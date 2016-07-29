@@ -1,0 +1,29 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
+    }
+}
+
+dependencies {
+  compile 'io.dropwizard:dropwizard-core:' + dropwizardVersion
+  compile 'io.dropwizard:dropwizard-jdbi:' + dropwizardVersion
+    compile 'no.ecc.vectortile:java-vector-tile:' + vectorTileVersion
+    compile 'org.postgresql:postgresql:9.4.1209'
+}
+
+idea {
+    project {
+        //if you want to set specific jdk and language level
+        jdkName = '1.8'
+        languageLevel = '1.8'
+    }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
