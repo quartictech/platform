@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import java.util.List;
 import java.util.Map;
 
+@Path("/tilejson")
 public class TileJsonResource {
     private final Map<String, GeoQueryConfig> queries;
 
@@ -20,15 +21,17 @@ public class TileJsonResource {
 
     @GET
     @Produces("application/json")
-    @Path("/tilejson")
     public Map<String, Object> tileJson() {
         List<Map<String, String>> vectorLayers = Lists.newArrayListWithCapacity(queries.size());
 
+        List<String> tileUrls = Lists.newArrayListWithCapacity(queries.size());
         for(Map.Entry<String, GeoQueryConfig> query : queries.entrySet()) {
             Map<String, String> properties = Maps.newHashMap();
             properties.put("description", query.getKey());
             properties.put("id", query.getKey());
             vectorLayers.add(properties);
+
+            tileUrls.add("http://localhost:8080/api/" + query.getKey() + "/{z}/{x}/{y}.pbf");
         }
 
         Map<String, Object> output = Maps.newHashMap();
@@ -36,8 +39,8 @@ public class TileJsonResource {
         output.put("name", "qt-geo");
         output.put("description", "Java based vector tile server");
         output.put("scheme", "xyz");
-        output.put("formart", "pbf");
-        output.put("tiles", Lists.newArrayList("http://localhost:8080/postcodes/{z}/{x}/{y}.pbf"));
+        output.put("format", "pbf");
+        output.put("tiles", tileUrls);
         output.put("vector_layers", vectorLayers);
 
         return output;

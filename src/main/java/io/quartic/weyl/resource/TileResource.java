@@ -8,8 +8,11 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
+import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier;
+import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.weyl.GeoQueryConfig;
 import io.quartic.weyl.util.Mercator;
+import io.quartic.weyl.util.TileCache;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Path("/")
 public class TileResource {
@@ -29,19 +33,29 @@ public class TileResource {
     private static final String GEOM_FIELD = "geom_wkb";
     private final DBI dbi;
     private final Map<String, GeoQueryConfig> queries;
+    private final TileCache cache;
 
-    public TileResource(DBI dbi, Map<String, GeoQueryConfig> queries) {
+    public TileResource(DBI dbi, Map<String, GeoQueryConfig> queries, TileCache cache) {
         this.dbi = dbi;
         this.queries = queries;
+        this.cache = cache;
     }
 
     @GET
     @Produces("application/protobuf")
     @Path("/{query}/{z}/{x}/{y}.pbf")
+    @CacheControl(maxAge = 60*60)
     public byte[] protobuf(@PathParam("query") String queryName,
                            @PathParam("z") Integer z,
                            @PathParam("x") Integer x,
                            @PathParam("y") Integer y) throws ParseException, IOException {
+
+        Optional<byte[]> cachedData = cache.get(queryName, z, x, y);
+        if (cachedData.isPresent()) {
+            log.info("Hitting cache for query");
+            return cachedData.get();
+        }
+
         Envelope bounds = Mercator.bounds(z, x, y);
         log.info("Bounds: {}", bounds);
         Coordinate southWest = Mercator.xy(new Coordinate(bounds.getMinX(), bounds.getMinY()));
@@ -57,6 +71,7 @@ public class TileResource {
         Handle h = dbi.open();
 
 
+
         String scale_box = String.format("%.12f, %.12f, %.12f, %.12f", -southWest.x, -southWest.y,
                 4096.0 / (northEast.x - southWest.x),
                 4096.0 / (northEast.y - southWest.y));
@@ -69,13 +84,28 @@ public class TileResource {
         log.info("Query: {}", sql);
         Query<Map<String, Object>> query = h.createQuery(sql);
 
+
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
         WKBReader wkbReader = new WKBReader();
+        long time = System.currentTimeMillis();
         List<Map<String, Object>> results = query.list();
+        log.info("Found {} results in {} ms", results.size(), System.currentTimeMillis() - time);
+
+        //String sql2 = String.format("SELECT ST_AsGeoJson(ST_TransScale(geom, %s)) as geom_geojson, * " +
+        //        "FROM (%s) AS data WHERE" +
+        //        " ST_IsValid(geom) AND ST_Intersects(geom, %s)", scale_box, queryConfig.getSql(),
+        //        bounding_box);
+        //Query<Map<String, Object>> queryGeoJson = h.createQuery(sql2);
+        //for (Map<String, Object> row : queryGeoJson.list()) {
+        //    log.info("Geojson: {}", row.get("geom_geojson"));
+        //}
+
+
         h.close();
-        log.info("Found {} results", results.size());
+        int size = 0;
         for (Map<String, Object> row : results) {
             byte[] wkb = (byte[]) row.get("geom_wkb");
+            size += wkb.length;
 
             if (wkb == null) {
                throw new IOException("Unable to find field with name " + GEOM_FIELD);
@@ -90,15 +120,23 @@ public class TileResource {
                        }
             );
             geom.geometryChanged();
+
+            TopologyPreservingSimplifier simplifier = new TopologyPreservingSimplifier(geom);
+            simplifier.setDistanceTolerance(4096.0 / 1000);
+
             //log.info("Geometry: {}", geom);
 
             Map<String, Object> attributes = new HashMap<>(row);
-            //log.info("Attributes: {}", attributes);
             attributes.remove("geom_wkb");
+            attributes.remove("geom");
 
-            encoder.addFeature(queryName, attributes, geom);
+            encoder.addFeature(queryName, attributes, simplifier.getResultGeometry());
         }
 
-        return encoder.encode();
+        log.info("Binary size: {}", size);
+
+        byte[] data =  encoder.encode();
+        cache.put(queryName, z, x, y, data);
+        return data;
     }
 }
