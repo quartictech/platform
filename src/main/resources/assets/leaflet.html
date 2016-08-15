@@ -82,10 +82,10 @@ var mvtSource = new L.TileLayer.MVTSource({
         };
         break;
       case 3: //'Polygon'
-        style.color = 'rgba(149,139,255,0.4)';
+        style.color = 'rgba(149,139,255,' + Math.random()+ ')';
         style.outline = {
           color: 'rgb(20,20,20)',
-          size: 1
+          size: 0
         };
         style.selected = {
           color: 'rgba(255,140,0,0.3)',
@@ -138,6 +138,14 @@ debug.mvtSource = mvtSource;
 
 //Add layer
 map.addLayer(mvtSource);
+
+document.body.onkeyup = function(e){
+    if(e.keyCode == 32){
+        console.log("Redrawing");
+        mvtSource.redraw();
+     }
+}
+
 
 </script>
 

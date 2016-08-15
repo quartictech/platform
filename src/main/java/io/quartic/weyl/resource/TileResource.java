@@ -11,8 +11,8 @@ import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier;
 import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.weyl.GeoQueryConfig;
+import io.quartic.weyl.util.DataCache;
 import io.quartic.weyl.util.Mercator;
-import io.quartic.weyl.util.TileCache;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -33,9 +33,9 @@ public class TileResource {
     private static final String GEOM_FIELD = "geom_wkb";
     private final DBI dbi;
     private final Map<String, GeoQueryConfig> queries;
-    private final TileCache cache;
+    private final DataCache cache;
 
-    public TileResource(DBI dbi, Map<String, GeoQueryConfig> queries, TileCache cache) {
+    public TileResource(DBI dbi, Map<String, GeoQueryConfig> queries, DataCache cache) {
         this.dbi = dbi;
         this.queries = queries;
         this.cache = cache;
@@ -50,7 +50,7 @@ public class TileResource {
                            @PathParam("x") Integer x,
                            @PathParam("y") Integer y) throws ParseException, IOException {
 
-        Optional<byte[]> cachedData = cache.get(queryName, z, x, y);
+        Optional<byte[]> cachedData = cache.getTile(queryName, z, x, y);
         if (cachedData.isPresent()) {
             log.info("Hitting cache for query");
             return cachedData.get();
@@ -69,8 +69,6 @@ public class TileResource {
 
         GeoQueryConfig queryConfig = queries.get(queryName);
         Handle h = dbi.open();
-
-
 
         String scale_box = String.format("%.12f, %.12f, %.12f, %.12f", -southWest.x, -southWest.y,
                 4096.0 / (northEast.x - southWest.x),
@@ -136,7 +134,7 @@ public class TileResource {
         log.info("Binary size: {}", size);
 
         byte[] data =  encoder.encode();
-        cache.put(queryName, z, x, y, data);
+        cache.putTile(queryName, z, x, y, data);
         return data;
     }
 }

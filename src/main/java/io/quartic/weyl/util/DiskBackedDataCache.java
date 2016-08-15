@@ -7,12 +7,12 @@ import java.io.*;
 import java.util.Map;
 import java.util.Optional;
 
-public class DiskBackedTileCache implements TileCache {
+public class DiskBackedDataCache implements DataCache {
     private final File directory;
     private final long timeoutMillis;
     private final Map<String, Long> insertTimes;
 
-    public DiskBackedTileCache(String path, long timeoutMillis) throws IOException {
+    public DiskBackedDataCache(String path, long timeoutMillis) throws IOException {
         this.directory = new File(path);
         this.timeoutMillis = timeoutMillis;
 
@@ -23,12 +23,14 @@ public class DiskBackedTileCache implements TileCache {
     }
 
     private String fileName(String layer, int z, int x, int y) {
-        return String.format("%s_%d_%d_%d.pbf", layer, z, x, y);
+        return String.format("tile_%s_%d_%d_%d.pbf", layer, z, x, y);
     }
 
-    @Override
-    public synchronized void put(String layer, int z, int x, int y, byte[] data) {
-        String name = fileName(layer, z, x, y);
+    private String fileName(String layer) {
+        return String.format("vector_%s", layer);
+    }
+
+    private synchronized void put(String name, byte[] data) {
         File file = new File(directory, name);
 
         try {
@@ -39,10 +41,7 @@ public class DiskBackedTileCache implements TileCache {
         }
     }
 
-    @Override
-    public Optional<byte[]> get(String layer, int z, int x, int y) {
-        String name = fileName(layer, z, x, y);
-
+    private Optional<byte[]> get(String name) {
         File file = new File(directory, name);
 
         if (file.exists()) {
@@ -64,5 +63,25 @@ public class DiskBackedTileCache implements TileCache {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public void putTile(String layer, int z, int x, int y, byte[] data) {
+        put(fileName(layer, z, x, y), data);
+    }
+
+    @Override
+    public Optional<byte[]> getTile(String layer, int z, int x, int y) {
+        return get(fileName(layer, z, x, y));
+    }
+
+    @Override
+    public void putVector(String layer, byte[] data) {
+        put(fileName(layer), data);
+    }
+
+    @Override
+    public Optional<byte[]> getVector(String layer) {
+        return get(fileName(layer));
     }
 }

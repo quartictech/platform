@@ -1,6 +1,6 @@
 queries:
-#  postcodes:
-#    sql: select name, geom, count from postcode_district_company_count
+  postcodes:
+    sql: select name, geom, count from postcode_district_company_count
   companies_by_lsoa:
     sql: select name, geom, count from companies_by_lsoa_london
 

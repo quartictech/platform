@@ -34,6 +34,20 @@ map.on('load', function () {
         type: 'vector',
         url: 'http://localhost:8080/api/tilejson'
     });
+
+    /*map.addSource('terrain-data', { type: 'geojson', data: 'http://localhost:8080/api/geojson/companies_by_lsoa.geojson'});
+
+     map.addLayer({
+        "id": "terrain-data",
+        "type": "fill",
+        "source": "terrain-data",
+        "source-layer": "companies_by_lsoa",
+        'paint': {
+            'fill-color': '#EED322',
+            'fill-opacity': 0.75
+        }
+    });*/
+
     map.addLayer({
         "id": "terrain-data",
         "type": "fill",
@@ -88,6 +102,10 @@ map.on('load', function () {
 var popup = new mapboxgl.Popup({
         closeButton: false,
             closeOnClick: false
+});
+
+map.on('click', function(e) {
+        console.log(map.querySourceFeatures('terrain-data'));
 });
 
 map.on('mousemove', function(e) {
