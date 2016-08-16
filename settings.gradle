@@ -1,0 +1,2 @@
+include 'weyl-core'
+include 'weyl-service'
