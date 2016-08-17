@@ -12,14 +12,18 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import messages from './messages';
+import  Map from '../../components/Map';
+import  Toolbar from '../../components/Toolbar';
 
+import styles from './styles.css';
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
 
   render() {
     return (
-      <h1>
-        <FormattedMessage {...messages.header} />
-      </h1>
+      <div className={styles.container}>
+        <Toolbar/>
+        <Map/>
+      </div>
     );
   }
 }

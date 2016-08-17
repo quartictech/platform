@@ -79,6 +79,11 @@ module.exports = (options) => ({
       'jsnext:main',
       'main',
     ],
+    alias: {
+      webworkify: 'webworkify-webpack',
+      'mapbox-gl': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.js'),
+      'mapbox-gl.css': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.css')
+    }
   },
   devtool: options.devtool,
   target: 'web', // Make web variables accessible to webpack, e.g. window
