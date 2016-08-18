@@ -1,27 +1,20 @@
 package io.quartic.weyl.core.connect;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
-import com.vividsolutions.jts.index.SpatialIndex;
-import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.core.model.ImmutableLayer;
-import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.*;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PostgisConnector {
+    private static final Logger log = LoggerFactory.getLogger(PostgisConnector.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
@@ -34,7 +27,7 @@ public class PostgisConnector {
         wkbReader = new WKBReader();
     }
 
-    public Layer fetch(String name, String sql) throws IOException {
+    public Optional<RawLayer> fetch(String name, String sql) {
         Handle h = dbi.open();
         List<Optional<Feature>> optionalFeatures = h.createQuery(sql)
                 .list()
@@ -43,25 +36,21 @@ public class PostgisConnector {
                 .collect(Collectors.toList());
 
         if (! optionalFeatures.stream().allMatch(Optional::isPresent)) {
-            throw new IOException("Error parsing features from query result");
+            log.error("Error parsing features from query result");
+            return Optional.empty();
         }
 
         List<Feature> features = optionalFeatures.stream()
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
-        return ImmutableLayer.builder()
+        return Optional.of(ImmutableRawLayer.builder()
                 .features(features)
-                .index(spatialIndex(features))
                 .name(name)
-                .build();
+                .build());
     }
 
-    private SpatialIndex spatialIndex(List<Feature> features) {
-        STRtree stRtree = new STRtree();
-        features.forEach(feature -> stRtree.insert(feature.geometry().getGeometry().getEnvelopeInternal(), feature));
-        return stRtree;
-    }
+
 
     private Optional<Geometry> parseGeomtry(byte[] data) {
         try {
@@ -84,9 +73,8 @@ public class PostgisConnector {
 
             String id = (String) row.get(ID_FIELD);
 
-            PreparedGeometry preparedGeometry = PreparedGeometryFactory.prepare(geometry);
             return ImmutableFeature.builder()
-                    .geometry(preparedGeometry)
+                    .geometry(geometry)
                     .id(id)
                     .build();
         });

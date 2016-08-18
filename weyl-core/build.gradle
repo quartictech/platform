@@ -12,6 +12,8 @@ dependencies {
     compile 'org.postgresql:postgresql:9.4.1209'
     compile 'org.jdbi:jdbi:2.75'
     processor 'org.immutables:value:2.2.10'
+    compile 'com.google.guava:guava:19.0'
+    compile 'org.slf4j:slf4j-api:1.7.21'
 }
 
 

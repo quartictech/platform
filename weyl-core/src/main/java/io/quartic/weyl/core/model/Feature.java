@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.model;
 
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
+import com.vividsolutions.jts.geom.Geometry;
 import org.immutables.value.Value;
 
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map;
 public interface Feature {
     String id();
 
-    PreparedGeometry geometry();
+    Geometry geometry();
 
     Map<String, Object> metadata();
 }

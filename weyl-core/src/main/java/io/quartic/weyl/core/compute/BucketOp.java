@@ -17,7 +17,6 @@ public class BucketOp {
     }
 
     public Layer compute() {
-        Map<String, >
         this.points.features().parallelStream()
                 .forEach(feature -> {
                     Geometry point = feature.geometry().getGeometry();
