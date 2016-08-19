@@ -4,6 +4,8 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
+import io.quartic.weyl.core.compute.BucketLayer;
+import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.connect.PostgisConnector;
 import io.quartic.weyl.core.model.*;
 import org.skife.jdbi.v2.DBI;
@@ -11,11 +13,12 @@ import org.skife.jdbi.v2.DBI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class LayerStore {
-    private Map<String, Layer> rawLayers;
-    private Map<String, IndexedLayer> indexedLayers;
+    private Map<LayerId, Layer> rawLayers;
+    private Map<LayerId, IndexedLayer> indexedLayers;
     private DBI dbi;
 
     public LayerStore(DBI dbi) {
@@ -28,15 +31,25 @@ public class LayerStore {
         Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(name, sql)
                 .map(LayerStore::index);
 
+        LayerId layerId = ImmutableLayerId.builder().id(UUID.randomUUID().toString()).build();
         layer.ifPresent(indexedLayer -> {
-            rawLayers.put(indexedLayer.layer().name(), indexedLayer.layer());
-            indexedLayers.put(indexedLayer.layer().name(), indexedLayer);
+            rawLayers.put(layerId, indexedLayer.layer());
+            indexedLayers.put(layerId, indexedLayer);
         });
 
         return layer;
     }
 
-     private static IndexedLayer index(RawLayer layer) {
+    public Optional<IndexedLayer> get(LayerId layerId) {
+       return Optional.of(indexedLayers.get(layerId));
+    }
+
+    public Optional<IndexedLayer> bucket(BucketSpec bucketSpec) {
+        return BucketLayer.create(this, bucketSpec)
+                .map(LayerStore::index);
+    }
+
+     private static IndexedLayer index(Layer layer) {
         Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
@@ -47,14 +60,14 @@ public class LayerStore {
 
         return ImmutableIndexedLayer.builder()
                 .layer(layer)
-                .spatialIndex(spatialIndex(layer.features()))
+                .spatialIndex(spatialIndex(features))
                 .indexedFeatures(features)
                 .build();
     }
 
-    private static SpatialIndex spatialIndex(Collection<Feature> features) {
+    private static SpatialIndex spatialIndex(Collection<IndexedFeature> features) {
         STRtree stRtree = new STRtree();
-        features.forEach(feature -> stRtree.insert(feature.geometry().getEnvelopeInternal(), feature));
+        features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
         return stRtree;
     }
 }
