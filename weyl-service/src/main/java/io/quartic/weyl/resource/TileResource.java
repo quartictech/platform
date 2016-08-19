@@ -1,7 +1,5 @@
 package io.quartic.weyl.resource;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
@@ -12,7 +10,7 @@ import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier;
 import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.weyl.GeoQueryConfig;
 import io.quartic.weyl.util.DataCache;
-import io.quartic.weyl.util.Mercator;
+import io.quartic.weyl.core.render.Mercator;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -55,11 +53,6 @@ public class TileResource {
             log.info("Hitting cache for query");
             return cachedData.get();
         }
-
-        Envelope bounds = Mercator.bounds(z, x, y);
-        log.info("Bounds: {}", bounds);
-        Coordinate southWest = Mercator.xy(new Coordinate(bounds.getMinX(), bounds.getMinY()));
-        Coordinate northEast = Mercator.xy(new Coordinate(bounds.getMaxX(), bounds.getMaxY()));
 
         log.info("South west: {}, North east: {}", southWest, northEast);
 

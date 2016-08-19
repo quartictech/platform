@@ -1,9 +1,11 @@
 package io.quartic.weyl.core.model;
 
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.SpatialIndex;
 import org.immutables.value.Value;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 @Value.Immutable
 public interface IndexedLayer {
@@ -13,4 +15,8 @@ public interface IndexedLayer {
     SpatialIndex spatialIndex();
 
     Collection<IndexedFeature> indexedFeatures();
+
+    default Stream<IndexedFeature> intersects(Envelope envelope) {
+        return spatialIndex().query(envelope).stream();
+    }
 }

@@ -1,4 +1,4 @@
-package io.quartic.weyl.util;
+package io.quartic.weyl.core.render;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
