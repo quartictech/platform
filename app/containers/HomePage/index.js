@@ -16,14 +16,35 @@ import  Map from '../../components/Map';
 import  Toolbar from '../../components/Toolbar';
 
 import styles from './styles.css';
-export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
 
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
+import { importLayer } from './actions';
+
+export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     return (
       <div className={styles.container}>
-        <Toolbar/>
+        <Toolbar importLayerClick={this.props.importLayer}/>
         <Map/>
       </div>
     );
   }
 }
+
+function mapDispatchToProps(dispatch) {
+  return {
+    importLayer: (evt) => dispatch(importLayer()),
+    dispatch,
+  };
+}
+
+const mapStateToProps = createStructuredSelector({
+  /*repos: selectRepos(),
+  username: selectUsername(),
+  loading: selectLoading(),
+  error: selectError(),*/
+});
+
+// Wrap the component to inject dispatch and state into it
+export default connect(mapStateToProps, mapDispatchToProps)(HomePage);

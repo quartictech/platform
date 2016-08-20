@@ -12,7 +12,7 @@ import messages from './messages';
 import 'lato-font/css/lato-font.css';
 import styles from './styles.css';
 
-function Toolbar() {
+function Toolbar(props) {
   return (
     <div className={styles.toolbar}>
     <div className="ui menu inverted attached">
@@ -20,11 +20,13 @@ function Toolbar() {
       Quartic Map
       </div>
       <div className="item">
-        <div className="ui button">Log-in</div>
+        <div className="ui button" onClick={props.importLayerClick}>Add Layer</div>
       </div>
     </div>
     </div>
   );
 }
+
+Toolbar.propTypes = { importLayerClick: React.PropTypes.func}
 
 export default Toolbar;
