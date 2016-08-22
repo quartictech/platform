@@ -5,7 +5,12 @@
 
 import { createSelector } from 'reselect';
 
-const selectLayers = () => (state) => state.get('layers');
+const selectHome = () => (state) => state.get('home');
+
+const selectLayers = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get('layers')
+);
 
 export {
   selectLayers,

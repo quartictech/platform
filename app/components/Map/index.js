@@ -19,6 +19,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     super();
     this.state = {map: null};
   }
+
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
         container: 'map-inner',
@@ -27,6 +28,56 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         center: [0.1278, 51.5074]
     });
   }
+
+  componentWillReceiveProps(nextProps) {
+    console.log(nextProps);
+    nextProps.layers.forEach((layer) => {
+      console.log("processing " + layer);
+      if (this.state.map.getSource(layer) === undefined) {
+        console.log("adding layer " + layer);
+        this.state.map.addSource(layer, {
+          "type": "vector",
+          "tiles": ["http://localhost:8080/api/" + layer + "/{z}/{x}/{y}.pbf"]
+        });
+
+        this.state.map.addLayer({
+          "id": layer,
+          "type": "fill",
+          "source": layer,
+          "source-layer": "test", // Should be changed to the real layer name!
+          "paint": {
+            "fill-color": '#EED322',
+            'fill-opacity': 0.75
+          }
+        });
+
+        this.state.map.addLayer({
+    "id": layer,
+    "type": "fill",
+    "source": layer,
+    "source-layer": "test",
+    'paint': {
+        'fill-color': {
+            property: 'count',
+            stops: [
+                [0, '#F2F12D'],
+                [100, '#EED322'],
+                [500, '#E6B71E'],
+                [1000, '#DA9C20'],
+                [2000, '#CA8323'],
+                [5000, '#B86B25'],
+                [10000, '#A25626'],
+                [100000, '#8B4225'],
+                [250000, '#723122']
+            ]
+        },
+        'fill-opacity': 0.75
+    }
+});
+      }
+    })
+  }
+
   render() {
     if (this.state != null && this.state.map != null) {
       this.state.map.resize();
@@ -38,6 +89,10 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       </div>
     );
   }
+}
+
+Map.propTypes = {
+  layers: React.PropTypes.array
 }
 
 export default Map;
