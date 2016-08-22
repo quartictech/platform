@@ -1,3 +1,6 @@
+plugins {
+    id 'org.inferred.processors' version '1.2.3'
+}
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
@@ -10,6 +13,7 @@ dependencies {
     compile 'no.ecc.vectortile:java-vector-tile:' + vectorTileVersion
     compile 'org.postgresql:postgresql:9.4.1209'
     compile 'org.apache.commons:commons-io:1.3.2'
+  processor 'org.immutables:value:2.2.10'
 }
 
 run {

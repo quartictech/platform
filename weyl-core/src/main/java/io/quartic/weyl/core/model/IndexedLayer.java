@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 
 @Value.Immutable
 public interface IndexedLayer {
+    LayerId layerId();
+
     // The layer we're indexing
     Layer layer();
 

@@ -31,10 +31,9 @@ public class LayerStore {
         Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(name, sql)
                 .map(LayerStore::index);
 
-        LayerId layerId = ImmutableLayerId.builder().id(UUID.randomUUID().toString()).build();
         layer.ifPresent(indexedLayer -> {
-            rawLayers.put(layerId, indexedLayer.layer());
-            indexedLayers.put(layerId, indexedLayer);
+            rawLayers.put(indexedLayer.layerId(), indexedLayer.layer());
+            indexedLayers.put(indexedLayer.layerId(), indexedLayer);
         });
 
         return layer;
@@ -50,7 +49,7 @@ public class LayerStore {
     }
 
      private static IndexedLayer index(Layer layer) {
-        Collection<IndexedFeature> features = layer.features()
+         Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
                         .feature(feature)
@@ -58,10 +57,12 @@ public class LayerStore {
                         .build())
                 .collect(Collectors.toList());
 
-        return ImmutableIndexedLayer.builder()
+         LayerId layerId = ImmutableLayerId.builder().id(UUID.randomUUID().toString()).build();
+         return ImmutableIndexedLayer.builder()
                 .layer(layer)
                 .spatialIndex(spatialIndex(features))
                 .indexedFeatures(features)
+                .layerId(layerId)
                 .build();
     }
 

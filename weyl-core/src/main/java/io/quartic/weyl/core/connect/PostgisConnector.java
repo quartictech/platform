@@ -29,7 +29,9 @@ public class PostgisConnector {
 
     public Optional<RawLayer> fetch(String name, String sql) {
         Handle h = dbi.open();
-        List<Optional<Feature>> optionalFeatures = h.createQuery(sql)
+        String sqlExpanded = String.format("SELECT ST_AsBinary(geom) as geom_wkb, * FROM (%s) as data",
+                sql);
+        List<Optional<Feature>> optionalFeatures = h.createQuery(sqlExpanded)
                 .list()
                 .stream()
                 .map(this::rowToFeature)
@@ -65,6 +67,11 @@ public class PostgisConnector {
     private Optional<Feature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
+        if (wkb == null) {
+            log.error("Missing required geometry field: " + GEOM_WKB_FIELD);
+            return Optional.empty();
+        }
+
         return parseGeomtry(wkb).map( geometry -> {
             Map<String, Object> attributes = new HashMap<>(row);
             attributes.remove(GEOM_FIELD);
@@ -73,8 +80,13 @@ public class PostgisConnector {
 
             String id = (String) row.get(ID_FIELD);
 
+            if (id == null) {
+                id = String.valueOf(geometry.hashCode());
+            }
+
             return ImmutableFeature.builder()
                     .geometry(geometry)
+                    .metadata(attributes)
                     .id(id)
                     .build();
         });

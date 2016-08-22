@@ -6,10 +6,13 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.IndexedLayer;
 import no.ecc.vectortile.VectorTileEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
 public class VectorTileRenderer {
+    private static final Logger log = LoggerFactory.getLogger(VectorTileRenderer.class);
     private final Collection<IndexedLayer> layers;
 
     public VectorTileRenderer(Collection<IndexedLayer> layers) {
@@ -22,12 +25,15 @@ public class VectorTileRenderer {
         Coordinate northEast = Mercator.xy(new Coordinate(bounds.getMaxX(), bounds.getMaxY()));
 
         Envelope envelope = new Envelope(southWest, northEast);
+        log.info("Envelope: {}", envelope.toString());
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
         for (IndexedLayer layer : layers) {
-            layer.intersects(envelope).forEach(feature ->
-                    encoder.addFeature(layer.layer().name(), feature.feature().metadata(),
-                            scaleGeometry(feature.feature().geometry(), envelope))
+            layer.intersects(envelope).forEach(feature -> {
+                log.info("Adding feature {}", feature.feature().metadata());
+                        encoder.addFeature(layer.layer().name(), feature.feature().metadata(),
+                                scaleGeometry(feature.feature().geometry(), envelope));
+                    }
             );
         }
 
