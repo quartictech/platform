@@ -10,56 +10,85 @@ import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 import styles from './styles.css';
 
-import NVD3Chart from 'react-nvd3';
+import {Chart} from 'react-d3-core';
+import {LineChart} from 'react-d3-basic';
+
 
 class BarChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super()
-    this.test = [{
-          key: "Cumulative Return",
-          values: [
-            {
-              "label" : "A" ,
-              "value" : -29.765957771107
-            } ,
-            {
-              "label" : "B" ,
-              "value" : 0
-            } ,
-            {
-              "label" : "C" ,
-              "value" : 32.807804682612
-            } ,
-            {
-              "label" : "D" ,
-              "value" : 196.45946739256
-            } ,
-            {
-              "label" : "E" ,
-              "value" : 0.19434030906893
-            } ,
-            {
-              "label" : "F" ,
-              "value" : -98.079782601442
-            } ,
-            {
-              "label" : "G" ,
-              "value" : -13.925743130903
-            } ,
-            {
-              "label" : "H" ,
-              "value" : -5.1387322875705
-            }
-          ]
-        }
-      ];
+    this.test = [
+  {
+    name: "Lavon Hilll I",
+    BMI: 20.57,
+    age: 12,
+    birthday: "1994-10-26T00:00:00.000Z",
+    city: "Annatown",
+    married: true,
+    index: 1
+  },
+  {
+    name: "Clovis Pagac",
+    BMI: 24.28,
+    age: 26,
+    birthday: "1995-11-10T00:00:00.000Z",
+    city: "South Eldredtown",
+    married: false,
+    index: 3
+  },
+  {
+    name: "Gaylord Paucek",
+    BMI: 24.41,
+    age: 30,
+    birthday: "1975-06-12T00:00:00.000Z",
+    city: "Koeppchester",
+    married: true,
+    index: 5
+  },
+  {
+    name: "Ashlynn Kuhn MD",
+    BMI: 23.77,
+    age: 32,
+    birthday: "1985-08-09T00:00:00.000Z",
+    city: "West Josiemouth",
+    married: false,
+    index: 6
+  }
+];
+
+this.x = function(d) {
+  return d.index;
+}
+
+this.chartSeries = [
+      {
+        field: 'BMI',
+        name: 'BMI',
+        color: '#ff7f0e'
+      }
+    ];
     }
 
   render() {
     return (
       <div className={styles.barChart}>
-        <FormattedMessage {...messages.header} />
-        <NVD3Chart id="barChart" type="discreteBarChart" datum={this.test} x="label" y="value"/>
+        <Chart
+          title={"test"}
+          width={700}
+          height={700}
+          margins={{left: 100, right: 100, top: 50, bottom: 50}}>
+          <LineChart
+            showXGrid= {false}
+            showYGrid= {false}
+            margins= {{left: 100, right: 100, top: 50, bottom: 50}}
+            title={"test"}
+            data={this.test}
+            width={700}
+            height={700}
+            chartSeries={this.chartSeries}
+            x={this.x}
+          />
+          </Chart>
       </div>
     );
   }

@@ -194,6 +194,7 @@
     "lodash": "4.14.1",
     "mapbox-gl": "^0.22.0",
     "react": "15.3.0",
+    "react-d3-basic": "^1.6.11",
     "react-dom": "15.3.0",
     "react-helmet": "3.1.0",
     "react-intl": "^2.1.3",
