@@ -13,7 +13,7 @@ import styles from './styles.css';
 import {LineChart} from 'react-d3-basic';
 
 
-class LineChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class BarChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super()
     this.test = [
