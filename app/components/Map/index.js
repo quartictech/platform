@@ -14,10 +14,12 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl.css'
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw';
 
+import SizeMe from 'react-sizeme';
+
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
-    this.state = {map: null};
+    this.state = {map: null, width: 0, height: 0 };
   }
 
   componentDidMount() {
@@ -30,7 +32,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
     nextProps.layers.forEach((layer) => {
       console.log("processing " + layer);
       if (this.state.map.getSource(layer) === undefined) {
@@ -79,14 +80,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   render() {
-    if (this.state != null && this.state.map != null) {
-      this.state.map.resize();
-    }
     return (
       <div className={styles.map}>
         <div id="map-inner" className={styles.mapViewport}>
         </div>
-      </div>
+        </div>
     );
   }
 }
@@ -95,4 +93,4 @@ Map.propTypes = {
   layers: React.PropTypes.array
 }
 
-export default Map;
+export default SizeMe()(Map);

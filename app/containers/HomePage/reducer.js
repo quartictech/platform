@@ -7,14 +7,14 @@ const initialState = fromJS({
 });
 
 function homeReducer(state = initialState, action) {
+  console.log("homeReducer");
+  console.log(state.get("layers"));
   switch (action.type) {
     case IMPORT_LAYER:
-      console.log("loading");
       return state.set("loading", true);
     case IMPORT_LAYER_DONE:
-      console.log("done loading " + action.layerId);
-      console.log(state);
-      return state.updateIn(["layers"], arr => arr.push(action.layerId));
+      return state.updateIn(["layers"], arr => arr.push(action.layerId))
+        .set("loading", false);
     default:
       return state;
   }

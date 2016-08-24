@@ -21,13 +21,13 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { importLayer } from './actions';
 
-import { selectLayers } from './selectors';
+import { selectLayers, selectLoading } from './selectors';
 
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     return (
       <div className={styles.container}>
-        <Toolbar importLayerClick={this.props.importLayer}/>
+        <Toolbar importLayerClick={this.props.importLayer} loading={this.props.loading}/>
         <Map layers={this.props.layers}/>
       </div>
     );
@@ -47,6 +47,7 @@ function mapDispatchToProps(dispatch) {
 
 const mapStateToProps = createStructuredSelector({
   layers: selectLayers(),
+  loading: selectLoading()
 });
 
 // Wrap the component to inject dispatch and state into it
