@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.immutables.value.Value;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Value.Immutable
 public interface Feature {
@@ -11,5 +12,5 @@ public interface Feature {
 
     Geometry geometry();
 
-    Map<String, Object> metadata();
+    Map<String, Optional<Object>> metadata();
 }

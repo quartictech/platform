@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.render;
 
+import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
@@ -10,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 public class VectorTileRenderer {
     private static final Logger log = LoggerFactory.getLogger(VectorTileRenderer.class);
@@ -29,10 +32,17 @@ public class VectorTileRenderer {
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
         for (IndexedLayer layer : layers) {
+            String layerName = layer.layerId().id();
+            log.info("Layer name {}", layerName);
             layer.intersects(envelope).forEach(feature -> {
                 log.info("Adding feature {}", feature.feature().metadata());
-                        encoder.addFeature(layer.layer().name(), feature.feature().metadata(),
-                                scaleGeometry(feature.feature().geometry(), envelope));
+                Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(feature.feature().metadata().size());
+
+                for (Map.Entry<String, Optional<Object>> entry : feature.feature().metadata().entrySet()) {
+                   attributes.put(entry.getKey(), entry.getValue().orElse(null));
+                }
+                encoder.addFeature(layerName, attributes,
+                        scaleGeometry(feature.feature().geometry(), envelope));
                     }
             );
         }

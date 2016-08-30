@@ -8,5 +8,7 @@ import org.immutables.value.Value;
 @JsonSerialize(as=ImmutablePostgisImportRequest.class)
 @JsonDeserialize(as=ImmutablePostgisImportRequest.class)
 public interface PostgisImportRequest {
+    String name();
+    String description();
     String query();
 }

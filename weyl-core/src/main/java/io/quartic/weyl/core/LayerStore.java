@@ -1,6 +1,8 @@
 package io.quartic.weyl.core;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -27,8 +29,8 @@ public class LayerStore {
         this.indexedLayers = Maps.newConcurrentMap();
     }
 
-    public Optional<IndexedLayer> importPostgis(String name, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(name, sql)
+    public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
+        Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(metadata, sql)
                 .map(LayerStore::index);
 
         layer.ifPresent(indexedLayer -> {
@@ -37,6 +39,10 @@ public class LayerStore {
         });
 
         return layer;
+    }
+
+    public Collection<IndexedLayer> listLayers() {
+        return indexedLayers.values();
     }
 
     public Optional<IndexedLayer> get(LayerId layerId) {

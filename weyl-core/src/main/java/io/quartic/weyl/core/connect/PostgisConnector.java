@@ -1,5 +1,7 @@
 package io.quartic.weyl.core.connect;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
@@ -9,7 +11,6 @@ import org.skife.jdbi.v2.Handle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ public class PostgisConnector {
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
+    private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
     private final DBI dbi;
     private final WKBReader wkbReader;
@@ -27,7 +29,7 @@ public class PostgisConnector {
         wkbReader = new WKBReader();
     }
 
-    public Optional<RawLayer> fetch(String name, String sql) {
+    public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
         Handle h = dbi.open();
         String sqlExpanded = String.format("SELECT ST_AsBinary(geom) as geom_wkb, * FROM (%s) as data",
                 sql);
@@ -48,7 +50,7 @@ public class PostgisConnector {
 
         return Optional.of(ImmutableRawLayer.builder()
                 .features(features)
-                .name(name)
+                .metadata(metadata)
                 .build());
     }
 
@@ -73,10 +75,13 @@ public class PostgisConnector {
         }
 
         return parseGeomtry(wkb).map( geometry -> {
-            Map<String, Object> attributes = new HashMap<>(row);
-            attributes.remove(GEOM_FIELD);
-            attributes.remove(GEOM_WKB_FIELD);
-            attributes.remove(ID_FIELD);
+            Map<String, Optional<Object>> attributes = Maps.newHashMap();
+
+            for(Map.Entry<String, Object> entry : row.entrySet()) {
+                if (! RESERVED_KEYS.contains(entry.getKey())) {
+                    attributes.put(entry.getKey(), Optional.ofNullable(entry.getValue()));
+                }
+            }
 
             String id = (String) row.get(ID_FIELD);
 

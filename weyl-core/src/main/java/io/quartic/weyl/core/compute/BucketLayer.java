@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
 
 public class BucketLayer implements Layer {
     private final Collection<Feature> features;
-    private final String bucketLayerName;
-    private final String featureLayerName;
+    private final LayerMetadata metadata;
 
     private static class Bucketed<T> {
         private final Feature bucket;
@@ -45,7 +44,7 @@ public class BucketLayer implements Layer {
             ForkJoinPool forkJoinPool = new ForkJoinPool(4);
             try {
                 Collection<Feature> features = forkJoinPool.submit(() -> bucketData(featureLayer.get(), bucketSpec, bucketIndex)).get();
-                return Optional.of(new BucketLayer(features, featureLayer.get().layer().name(), bucketLayer.get().layer().name()));
+                return Optional.of(new BucketLayer(features, featureLayer.get().layer().metadata().name(), bucketLayer.get().layer().metadata().name(), bucketSpec.layerName()));
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 return Optional.empty();
@@ -55,10 +54,12 @@ public class BucketLayer implements Layer {
         return Optional.empty();
     }
 
-    private BucketLayer(Collection<Feature> features, String bucketLayerName, String featureLayerName) {
+    private BucketLayer(Collection<Feature> features, String bucketLayerName, String featureLayerName, String newLayerName) {
         this.features = features;
-        this.bucketLayerName = bucketLayerName;
-        this.featureLayerName = featureLayerName;
+        this.metadata = ImmutableLayerMetadata.builder()
+                .name(newLayerName)
+                .description(String.format("Layer %s bucketed by %s", featureLayerName, bucketLayerName))
+                .build();
     }
 
     private static Collection<Feature> bucketData(IndexedLayer featureLayer, BucketSpec bucketSpec, SpatialIndex bucketIndex) {
@@ -82,17 +83,18 @@ public class BucketLayer implements Layer {
                 .map(bucketEntry -> {
                     Feature feature = bucketEntry.getKey();
                     Double value = aggregation.aggregate(bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
-                    Map<String, Object> metadata = new HashMap<>(feature.metadata());
-                    metadata.put(propertyName, value);
+                    Map<String, Optional<Object>> metadata = new HashMap<>(feature.metadata());
+                    metadata.put(propertyName, Optional.of(value));
                     return ImmutableFeature.copyOf(feature)
                             .withMetadata(metadata);
                 })
                 .collect(Collectors.toList());
     }
 
+
     @Override
-    public String name() {
-        return String.format("Layer %s bucketed by %s", featureLayerName, bucketLayerName);
+    public LayerMetadata metadata() {
+        return metadata;
     }
 
     @Override

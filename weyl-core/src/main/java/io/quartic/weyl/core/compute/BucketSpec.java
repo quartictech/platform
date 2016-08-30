@@ -5,6 +5,7 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 public interface BucketSpec {
+    String layerName();
     String aggregationPropertyName();
     LayerId buckets();
     LayerId features();
