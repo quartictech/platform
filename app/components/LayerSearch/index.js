@@ -11,29 +11,23 @@ import messages from './messages';
 
 import styles from './styles.css';
 
-//var search = require('semantic-ui/dist/components/search.js');
+import { search } from 'semantic-ui/dist/semantic.min.js';
+var $ = require('jquery');
 
 class LayerSearch extends React.Component {
     componentDidMount() {
-      let content = [
-    {
-      title: 'Horse',
-      description: 'An Animal',
-    },
-    {
-      title: 'Cow',
-      description: 'Another Animal',
-    }
-  ]
-;
-  //     search').search({
-  //   source : content,
-  //   searchFields   : [
-  //     'title'
-  //   ],
-  //   searchFullText: false
-  // });
-    }
+       $('.ui.search').search({
+         apiSettings: {
+           responseAsync: (settings, callback) => {
+             this.props.onSearch(settings.urlData.query, callback);
+           }
+         },
+         type: 'category',
+         onSelect: (result, response) => {
+           this.props.onSelect(result);
+         }
+       });
+     }
 
     render() {
       return (
@@ -46,6 +40,11 @@ class LayerSearch extends React.Component {
         </div>
       );
     }
+}
+
+LayerSearch.propTypes = {
+  onSearch: React.PropTypes.func,
+  onSelect: React.PropTypes.func
 }
 
 export default LayerSearch;

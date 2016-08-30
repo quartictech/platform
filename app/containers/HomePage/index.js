@@ -19,7 +19,7 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { importLayer } from './actions';
+import { search, addItem } from './actions';
 
 import { selectLayers, selectLoading } from './selectors';
 
@@ -27,7 +27,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
   render() {
     return (
       <div className={styles.container}>
-        <Toolbar importLayerClick={this.props.importLayer} loading={this.props.loading}/>
+        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect}/>
         <Map layers={this.props.layers}/>
       </div>
     );
@@ -40,8 +40,9 @@ HomePage.propTypes = {
 
 function mapDispatchToProps(dispatch) {
   return {
-    importLayer: (evt) => dispatch(importLayer()),
     dispatch,
+    onSearch: (query, callback) => dispatch(search(query, callback)),
+    onSelect: (result) => dispatch(addItem(result))
   };
 }
 

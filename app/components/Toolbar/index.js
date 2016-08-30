@@ -26,10 +26,7 @@ function Toolbar(props) {
       Quartic Map
       </div>
       <div className="item">
-        <div className={buttonClass} onClick={props.importLayerClick}>Add Layer</div>
-      </div>
-      <div className="item">
-      <LayerSearch/>
+      <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect}/>
       </div>
     </div>
     </div>
@@ -37,7 +34,8 @@ function Toolbar(props) {
 }
 
 Toolbar.propTypes = {
-  importLayerClick: React.PropTypes.func,
+  onSearch: React.PropTypes.func,
+  onSelect: React.PropTypes.func,
   loading: React.PropTypes.bool
 }
 

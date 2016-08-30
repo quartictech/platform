@@ -1,3 +1,4 @@
 
-export const IMPORT_LAYER = "hilbert/Home/IMPORT_LAYER";
-export const IMPORT_LAYER_DONE = "hilbert/Home/IMPORT_LAYER_DONE";
+export const SEARCH = "hilbert/Home/SEARCH";
+export const SEARCH_DONE = "hilbert/Home/SEARCH_DONE";
+export const ITEM_ADD = "hilbert/Home/ITEM_ADD";

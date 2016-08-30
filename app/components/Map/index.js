@@ -33,9 +33,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   componentWillReceiveProps(nextProps) {
     nextProps.layers.forEach((layer) => {
-      console.log("processing " + layer);
       if (this.state.map.getSource(layer) === undefined) {
-        console.log("adding layer " + layer);
         this.state.map.addSource(layer, {
           "type": "vector",
           "tiles": ["http://localhost:8080/api/" + layer + "/{z}/{x}/{y}.pbf"]
@@ -56,7 +54,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     "id": layer,
     "type": "fill",
     "source": layer,
-    "source-layer": "test",
+    "source-layer": layer,
     'paint': {
         'fill-color': {
             property: 'count',

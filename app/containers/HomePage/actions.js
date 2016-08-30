@@ -1,14 +1,28 @@
-import { IMPORT_LAYER, IMPORT_LAYER_DONE } from './constants';
+import { SEARCH, SEARCH_DONE, ITEM_ADD } from './constants';
 
-export function importLayer() {
+
+export function search(query, callback) {
+  console.log("Search started");
   return {
-    type: IMPORT_LAYER,
-  };
+    type: SEARCH,
+    query,
+    callback
+  }
 }
 
-export function importLayerDone(layerId) {
+export function searchDone(results, callback) {
   return {
-    type: IMPORT_LAYER_DONE,
-    layerId,
-  };
+    type: SEARCH_DONE,
+    response: results,
+    callback
+  }
+}
+
+export function addItem(result) {
+  console.log("Add item");
+  console.log(result);
+  return {
+    type: ITEM_ADD,
+    id: result.id
+  }
 }

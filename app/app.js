@@ -26,6 +26,8 @@ import configureStore from './store';
 import { translationMessages } from './i18n';
 
 // Import the CSS reset, which HtmlWebpackPlugin transfers to the build folder
+var $ = require('jquery');
+window.jQuery = $;
 import 'sanitize.css/sanitize.css';
 import 'semantic-ui/dist/semantic.css';
 

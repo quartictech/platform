@@ -1,37 +1,45 @@
 import { take, call, put, select, fork, cancel } from 'redux-saga/effects';
+import { takeEvery, takeLatest } from 'redux-saga'
 
-import { IMPORT_LAYER } from './constants';
+import { SEARCH } from './constants';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import request from 'utils/request';
-import { importLayerDone } from './actions';
+import { searchDone } from './actions';
 
-export function* importLayer() {
-  const requestURL = "http://localhost:8080/api/layer/import/test"
-  const layerId = yield call(request, requestURL, {
-      method: 'PUT',
-      body: JSON.stringify({'query': 'SELECT * from companies_by_lsoa_london'}),
-      headers: { "Content-Type": "application/json"}
-    })
+export function* search(action) {
+  console.log("Executing search");
+  const requestURL = "http://localhost:8080/api/layer?query=" + encodeURI(action.query)
+  const results = yield call(request, requestURL, {
+      method: 'GET'
+    });
 
-  if (!layerId.err) {
-    yield put(importLayerDone(layerId.data.id))
+  if (!results.err) {
+    let response = {
+      success: true,
+      results: {
+        layers: {
+          name: "Layers",
+          results: results.data.map((item) => { return {title: item.name, description: item.description, id: item.id.id}})
+        }
+      }
+    }
+    yield put(searchDone(response, action.callback));
   }
 }
 
-export function* importLayerWatcher() {
-  while (yield take(IMPORT_LAYER)) {
-    yield call(importLayer);
-  }
+export function* searchWatcher() {
+  yield* takeLatest(SEARCH, search);
 }
 
-export function* layerData() {
-  console.log("layerData");
-  const watcher = yield fork(importLayerWatcher);
+export function* searchData() {
+  console.log("Search watcher");
+  const watcher = yield fork(searchWatcher);
 
   yield take(LOCATION_CHANGE);
   yield cancel(watcher);
 }
 
+
 export default [
-    layerData,
+    searchData
 ]
