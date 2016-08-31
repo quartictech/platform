@@ -43,8 +43,10 @@ public class LayerResource {
    @PUT
    @Path("/compute")
    @Produces("application/json")
-   public void createComputedLayer(BucketSpec bucketSpec) {
+   public LayerId createComputedLayer(BucketSpec bucketSpec) {
       Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
+      return bucketLayer.map(IndexedLayer::layerId)
+              .orElseThrow(() -> new ProcessingException("bucket computation failed"));
    }
 
    @GET

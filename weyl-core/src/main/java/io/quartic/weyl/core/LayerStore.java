@@ -1,12 +1,10 @@
 package io.quartic.weyl.core;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
-import io.quartic.weyl.core.compute.BucketLayer;
+import io.quartic.weyl.core.compute.BucketOp;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.connect.PostgisConnector;
 import io.quartic.weyl.core.model.*;
@@ -50,7 +48,7 @@ public class LayerStore {
     }
 
     public Optional<IndexedLayer> bucket(BucketSpec bucketSpec) {
-        return BucketLayer.create(this, bucketSpec)
+        return BucketOp.create(this, bucketSpec)
                 .map(LayerStore::index);
     }
 

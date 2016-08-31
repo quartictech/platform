@@ -12,10 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
-public class BucketLayer implements Layer {
-    private final Collection<Feature> features;
-    private final LayerMetadata metadata;
-
+public class BucketOp {
     private static class Bucketed<T> {
         private final Feature bucket;
         private final T value;
@@ -34,7 +31,7 @@ public class BucketLayer implements Layer {
         }
     }
 
-    public static Optional<BucketLayer> create(LayerStore store, BucketSpec bucketSpec) {
+    public static Optional<RawLayer> create(LayerStore store, BucketSpec bucketSpec) {
         Optional<IndexedLayer> featureLayer = store.get(bucketSpec.features());
         Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
 
@@ -44,7 +41,22 @@ public class BucketLayer implements Layer {
             ForkJoinPool forkJoinPool = new ForkJoinPool(4);
             try {
                 Collection<Feature> features = forkJoinPool.submit(() -> bucketData(featureLayer.get(), bucketSpec, bucketIndex)).get();
-                return Optional.of(new BucketLayer(features, featureLayer.get().layer().metadata().name(), bucketLayer.get().layer().metadata().name(), bucketSpec.layerName()));
+                String layerName = String.format("%s (bucketed)",
+                        featureLayer.get().layer().metadata().name());
+                String layerDescription = String.format("%s bucketed by %s with aggregating by %s",
+                        featureLayer.get().layer().metadata().name(),
+                        bucketLayer.get().layer().metadata().name(),
+                        bucketSpec.aggregation().toString());
+
+
+                RawLayer layer = ImmutableRawLayer.builder()
+                        .features(features)
+                        .metadata(ImmutableLayerMetadata.builder()
+                                .name(layerName)
+                                .description(layerDescription)
+                                .build())
+                        .build();
+                return Optional.of(layer);
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 return Optional.empty();
@@ -52,14 +64,6 @@ public class BucketLayer implements Layer {
         }
 
         return Optional.empty();
-    }
-
-    private BucketLayer(Collection<Feature> features, String bucketLayerName, String featureLayerName, String newLayerName) {
-        this.features = features;
-        this.metadata = ImmutableLayerMetadata.builder()
-                .name(newLayerName)
-                .description(String.format("Layer %s bucketed by %s", featureLayerName, bucketLayerName))
-                .build();
     }
 
     private static Collection<Feature> bucketData(IndexedLayer featureLayer, BucketSpec bucketSpec, SpatialIndex bucketIndex) {
@@ -89,16 +93,5 @@ public class BucketLayer implements Layer {
                             .withMetadata(metadata);
                 })
                 .collect(Collectors.toList());
-    }
-
-
-    @Override
-    public LayerMetadata metadata() {
-        return metadata;
-    }
-
-    @Override
-    public Collection<Feature> features() {
-        return features;
     }
 }
