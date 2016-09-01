@@ -74,6 +74,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }
 });
       }
+    this.state.map.setLayoutProperty(layer.id, "visibility", layer.visible ? "visible" : "none");
     })
   }
 

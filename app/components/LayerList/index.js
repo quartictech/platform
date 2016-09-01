@@ -9,6 +9,8 @@ import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 import styles from './styles.css';
+import classNames from 'classnames';
+
 var $ = require('jquery');
 
 class LayerList extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -22,10 +24,14 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
   render() {
     let rows = [];
     for (var layer of this.props.layers) {
-      rows.push(<div className="item">
-      <button className="circular ui icon button">
+      let buttonClassNames = classNames("ui compact circular ui toggle button icon", {"active": layer.visible});
+      console.log(buttonClassNames);
+      rows.push(<div className="item" key={layer.id}>
+      <div className="left floated content">
+      <button className={buttonClassNames} onClick={this.props.layerVisibleToggle} id={layer.id}>
       <i className="icon eye"></i>
       </button>
+      </div>
         <div className="content">
           <div className="header">
             {layer.name}
@@ -41,8 +47,8 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       <h1 className="ui header">
       Layers
       </h1>
-      <div className="ui inverted segment">
-        <div className="ui inverted relaxed celled list">
+      <div className="ui">
+        <div className="ui relaxed celled list">
           {rows}
         </div>
         </div>
@@ -53,7 +59,8 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 }
 
 LayerList.propTypes = {
-  layers: React.PropTypes.array
+  layers: React.PropTypes.array,
+  layerVisibleToggle: React.PropTypes.func
 }
 
 export default LayerList;

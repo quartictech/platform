@@ -1,4 +1,4 @@
-import { SEARCH, SEARCH_DONE, ITEM_ADD } from './constants';
+import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE } from './constants';
 
 
 export function search(query, callback) {
@@ -24,5 +24,12 @@ export function addItem(result) {
     id: result.id,
     name: result.title,
     description: result.description
+  }
+}
+
+export function toggleLayerVisible(id) {
+  return {
+    type: LAYER_TOGGLE_VISIBLE,
+    id: id
   }
 }
