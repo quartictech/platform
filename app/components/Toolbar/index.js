@@ -22,8 +22,10 @@ function Toolbar(props) {
   return (
     <div className={styles.toolbar}>
     <div className="ui menu inverted attached">
-      <div className="item">
-      Quartic Map
+      <div className="header item">
+      <span className={styles.brand}>
+      <i className="icon map"/>Quartic <br/> Weyl
+      </span>
       </div>
       <div className="item">
       <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect}/>

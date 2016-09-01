@@ -18,19 +18,37 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     $('.ui.sidebar')
       .sidebar({
         context: $('#container')
-      })
+      });
+    }
 
+    componentDidUpdate() {
+      $('.ui.dropdown')
+      .dropdown();
   }
+
   render() {
     let rows = [];
     for (var layer of this.props.layers) {
-      let buttonClassNames = classNames("ui compact circular ui toggle button icon", {"active": layer.visible});
-      console.log(buttonClassNames);
+      let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
       rows.push(<div className="item" key={layer.id}>
       <div className="left floated content">
       <button className={buttonClassNames} onClick={this.props.layerVisibleToggle} id={layer.id}>
       <i className="icon eye"></i>
       </button>
+      <div className="ui compact dropdown button right attached icon secondary">
+      <i className="icon paint brush"></i>
+      <div className="menu">
+  <div className="item">
+
+      <i className="dropdown icon"></i>
+  Fill
+    <div className="menu">
+    <div className="item">Choropleth</div>
+    </div>
+  </div>
+  <div className="item">Stroke</div>
+  </div>
+      </div>
       </div>
         <div className="content">
           <div className="header">
@@ -44,11 +62,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     return (
       <div className="ui wide sidebar visible">
       <div className="ui container">
-      <h1 className="ui header">
-      Layers
-      </h1>
+
       <div className="ui">
-        <div className="ui relaxed celled list">
+        <div className="ui very relaxed celled list">
           {rows}
         </div>
         </div>
