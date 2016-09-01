@@ -30,45 +30,42 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     let rows = [];
     for (var layer of this.props.layers) {
       let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
-      rows.push(<div className="item" key={layer.id}>
-      <div className="left floated content">
-      <button className={buttonClassNames} onClick={this.props.layerVisibleToggle} id={layer.id}>
-      <i className="icon eye"></i>
-      </button>
-      <div className="ui compact dropdown button right attached icon secondary">
-      <i className="icon paint brush"></i>
-      <div className="menu">
-  <div className="item">
-
-      <i className="dropdown icon"></i>
-  Fill
-    <div className="menu">
-    <div className="item">Choropleth</div>
-    </div>
-  </div>
-  <div className="item">Stroke</div>
-  </div>
-      </div>
-      </div>
-        <div className="content">
-          <div className="header">
-            {layer.name}
-          </div>
-          {layer.description}
+      rows.push(<div className="ui raised fluid card" key={layer.id}>
+      <div className="content">
+        <div className="right floated">
+          <button className={buttonClassNames} onClick={this.props.layerVisibleToggle} id={layer.id}>
+            <i className="icon eye"></i>
+          </button>
+          <div className="ui compact dropdown button right attached icon secondary">
+            <i className="icon paint brush"></i>
+            <div className="menu">
+              <div className="item">
+              <i className="dropdown icon"></i>Fill
+              <div className="menu">
+                <div className="item">Choropleth</div>
+              </div>
+            </div>
+          <div className="item">Stroke</div>
         </div>
+      </div>
+    </div>
+    <div className="header">
+          {layer.name}
+        </div>
+        <div className="meta">
+        {layer.description}
+        </div>
+    </div>
 
         </div>);
     }
     return (
       <div className="ui wide sidebar visible">
-      <div className="ui container">
-
-      <div className="ui">
-        <div className="ui very relaxed celled list">
+      <div className="ui basic segment">
+        <div className="ui cards">
           {rows}
         </div>
         </div>
-      </div>
       </div>
     );
   }
