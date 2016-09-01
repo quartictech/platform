@@ -14,6 +14,7 @@ import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 import  Map from '../../components/Map';
 import  Toolbar from '../../components/Toolbar';
+import LayerList from '../../components/LayerList';
 
 import styles from './styles.css';
 
@@ -26,9 +27,15 @@ import { selectLayers, selectLoading } from './selectors';
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     return (
+
       <div className={styles.container}>
         <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect}/>
-        <Map layers={this.props.layers}/>
+        <div id="container" className={styles.container}>
+          <LayerList layers={this.props.layers} />
+          <div className="pusher">
+            <Map layers={this.props.layers}/>
+          </div>
+        </div>
       </div>
     );
   }

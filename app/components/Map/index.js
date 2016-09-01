@@ -33,28 +33,28 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   componentWillReceiveProps(nextProps) {
     nextProps.layers.forEach((layer) => {
-      if (this.state.map.getSource(layer) === undefined) {
-        this.state.map.addSource(layer, {
+      if (this.state.map.getSource(layer.id) === undefined) {
+        this.state.map.addSource(layer.id, {
           "type": "vector",
-          "tiles": ["http://localhost:8080/api/" + layer + "/{z}/{x}/{y}.pbf"]
+          "tiles": ["http://localhost:8080/api/" + layer.id + "/{z}/{x}/{y}.pbf"]
         });
 
-        this.state.map.addLayer({
-          "id": layer,
-          "type": "fill",
-          "source": layer,
-          "source-layer": "test", // Should be changed to the real layer name!
-          "paint": {
-            "fill-color": '#EED322',
-            'fill-opacity': 0.75
-          }
-        });
+        // this.state.map.addLayer({
+        //   "id": layer.id,
+        //   "type": "fill",
+        //   "source": layer.id,
+        //   "source-layer": "test", // Should be changed to the real layer name!
+        //   "paint": {
+        //     "fill-color": '#EED322',
+        //     'fill-opacity': 0.75
+        //   }
+        // });
 
         this.state.map.addLayer({
-    "id": layer,
+    "id": layer.id,
     "type": "fill",
-    "source": layer,
-    "source-layer": layer,
+    "source": layer.id,
+    "source-layer": layer.id,
     'paint': {
         'fill-color': {
             property: 'count',

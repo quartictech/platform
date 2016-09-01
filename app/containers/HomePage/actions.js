@@ -19,10 +19,10 @@ export function searchDone(results, callback) {
 }
 
 export function addItem(result) {
-  console.log("Add item");
-  console.log(result);
   return {
     type: ITEM_ADD,
-    id: result.id
+    id: result.id,
+    name: result.title,
+    description: result.description
   }
 }
