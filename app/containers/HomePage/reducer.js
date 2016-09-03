@@ -17,7 +17,9 @@ function homeReducer(state = initialState, action) {
     case LAYER_TOGGLE_VISIBLE:
       console.log("Toggle layer");
       return state.updateIn(["layers"], arr => {
+        console.log(action.id);
         let idx = arr.findKey(layer => layer.get("id") === action.id);
+        console.log("idx = " + idx);
         let val = arr.get(idx);
         return arr.set(idx, val.set("visible", ! val.get("visible")));
       });

@@ -20,7 +20,7 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, toggleLayerVisible } from './actions';
+import { search, addItem, layerToggleVisible } from './actions';
 
 import { selectLayers, selectLoading } from './selectors';
 
@@ -31,7 +31,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
         <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect}/>
         <div id="container" className={styles.container}>
           <LayerList layers={this.props.layers}
-            layerVisibleToggle={this.props.layerVisibleToggle}
+            layerToggleVisible={this.props.layerToggleVisible}
           />
           <div className="pusher">
             <Map layers={this.props.layers}/>
@@ -51,7 +51,7 @@ function mapDispatchToProps(dispatch) {
     dispatch,
     onSearch: (query, callback) => dispatch(search(query, callback)),
     onSelect: (result) => dispatch(addItem(result)),
-    layerVisibleToggle: (e) => dispatch(toggleLayerVisible(e.target.id))
+    layerToggleVisible: (id) => dispatch(layerToggleVisible(id))
   };
 }
 

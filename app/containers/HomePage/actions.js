@@ -27,7 +27,8 @@ export function addItem(result) {
   }
 }
 
-export function toggleLayerVisible(id) {
+export function layerToggleVisible(id) {
+  console.assert(id != null);
   return {
     type: LAYER_TOGGLE_VISIBLE,
     id: id

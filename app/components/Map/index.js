@@ -51,14 +51,14 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         // });
 
         this.state.map.addLayer({
-    "id": layer.id,
-    "type": "fill",
-    "source": layer.id,
-    "source-layer": layer.id,
-    'paint': {
-        'fill-color': {
-            property: 'count',
-            stops: [
+          "id": layer.id + "_fill",
+          "type": "fill",
+          "source": layer.id,
+          "source-layer": layer.id,
+          'paint': {
+            'fill-color': {
+              property: 'count',
+              stops: [
                 [0, '#F2F12D'],
                 [100, '#EED322'],
                 [500, '#E6B71E'],
@@ -68,13 +68,28 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
                 [10000, '#A25626'],
                 [100000, '#8B4225'],
                 [250000, '#723122']
-            ]
-        },
-        'fill-opacity': 0.75
-    }
-});
+              ]
+            },
+            'fill-opacity': 0.75
+          }
+        });
+
+        console.log("Adding weird layer");
+        this.state.map.addLayer({
+          "id": layer.id + "_circle",
+          "type": "circle",
+          "source": layer.id,
+          "source-layer": layer.id,
+          'paint': {
+            // make circles larger as the user zooms from z12 to z22
+            'circle-radius': 1.75,
+            // color circles by ethnicity, using data-driven styles
+            'circle-color': '#223b53'
+          }
+          });
       }
-    this.state.map.setLayoutProperty(layer.id, "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(layer.id + "_fill", "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(layer.id + "_circle", "visibility", layer.visible ? "visible" : "none");
     })
   }
 

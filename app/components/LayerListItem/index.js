@@ -12,14 +12,19 @@ import styles from './styles.css';
 import classNames from 'classnames';
 
 class LayerListItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  onLayerVisibleClick(event) {
+    this.props.layerToggleVisible(event.currentTarget.id);
+  }
+
   render() {
     let layer = this.props.layer;
     let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
+    let layerToggleVisible = this.props.layerToggleVisible;
     return (
-      <div className="ui raised fluid card" key={layer.id}>
+      <div className="ui raised fluid card">
       <div className="content">
         <div className="right floated">
-          <button className={buttonClassNames} onClick={this.props.layerVisibleToggle} id={layer.id}>
+          <button className={buttonClassNames} onClick={this.onLayerVisibleClick.bind(this)} id={layer.id}>
             <i className="icon eye"></i>
           </button>
           <div className="ui compact dropdown button right attached icon secondary">
@@ -49,7 +54,8 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 }
 
 LayerListItem.propTypes = {
-  layer: React.PropTypes.object
+  layer: React.PropTypes.object,
+  layerToggleVisible: React.PropTypes.func
 }
 
 export default LayerListItem;
