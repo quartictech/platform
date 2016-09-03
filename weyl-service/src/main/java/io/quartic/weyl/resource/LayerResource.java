@@ -3,10 +3,7 @@ package io.quartic.weyl.resource;
 import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.model.ImmutableLayerMetadata;
-import io.quartic.weyl.core.model.IndexedLayer;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
@@ -50,6 +47,21 @@ public class LayerResource {
    }
 
    @GET
+   @Path("/metadata/{id}")
+   @Produces("application/json")
+   public LayerResponse getLayer(@PathParam("id") String id) {
+      LayerId layerId = ImmutableLayerId.builder().id(id).build();
+      return layerStore.get(layerId)
+              .map(layer -> ImmutableLayerResponse.builder()
+                      .name(layer.layer().metadata().name())
+                      .description(layer.layer().metadata().description())
+                      .id(layerId)
+                      .stats(layer.layerStats())
+                      .build())
+              .orElseThrow(() -> new NotFoundException("no layer with id " + id));
+   }
+
+   @GET
    @Produces("application/json")
    public Collection<LayerResponse> listLayers(@QueryParam("query") String query) {
       Preconditions.checkNotNull(query);
@@ -60,6 +72,7 @@ public class LayerResource {
                         .name(layer.layer().metadata().name())
                         .description(layer.layer().metadata().description())
                         .id(layer.layerId())
+                        .stats(layer.layerStats())
                         .build())
                 .collect(Collectors.toList());
    }

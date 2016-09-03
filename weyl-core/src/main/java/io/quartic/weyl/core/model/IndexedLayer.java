@@ -18,7 +18,10 @@ public interface IndexedLayer {
 
     Collection<IndexedFeature> indexedFeatures();
 
+    LayerStats layerStats();
+
     default Stream<IndexedFeature> intersects(Envelope envelope) {
         return spatialIndex().query(envelope).stream();
     }
+
 }

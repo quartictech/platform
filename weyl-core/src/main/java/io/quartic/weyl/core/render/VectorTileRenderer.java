@@ -1,10 +1,8 @@
 package io.quartic.weyl.core.render;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateFilter;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.*;
 import io.quartic.weyl.core.model.IndexedLayer;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.slf4j.Logger;
@@ -13,10 +11,34 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class VectorTileRenderer {
     private static final Logger log = LoggerFactory.getLogger(VectorTileRenderer.class);
     private final Collection<IndexedLayer> layers;
+
+    private static class VectorTileFeature {
+        private final Map<String, Object> attributes;
+        private final Geometry geometry;
+
+        public static VectorTileFeature of(Geometry geometry, Map<String, Object> attributes) {
+            return new VectorTileFeature(geometry, attributes);
+        }
+
+        private VectorTileFeature(Geometry geometry, Map<String, Object> attributes) {
+            this.attributes = attributes;
+            this.geometry = geometry;
+        }
+
+        public Geometry getGeometry() {
+            return geometry;
+        }
+
+        public Map<String, Object> getAttributes() {
+            return attributes;
+        }
+    }
 
     public VectorTileRenderer(Collection<IndexedLayer> layers) {
         this.layers = layers;
@@ -33,21 +55,51 @@ public class VectorTileRenderer {
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
         for (IndexedLayer layer : layers) {
             String layerName = layer.layerId().id();
-            log.info("Layer name {}", layerName);
-            layer.intersects(envelope).forEach(feature -> {
-                log.info("Adding feature {}", feature.feature().metadata());
+            log.info("encoding layer name {}", layerName);
+            final AtomicInteger featureCount = new AtomicInteger();
+
+            Stopwatch stopwatch = Stopwatch.createStarted();
+            layer.intersects(envelope).parallel().map( (feature) -> {
                 Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(feature.feature().metadata().size());
 
                 for (Map.Entry<String, Optional<Object>> entry : feature.feature().metadata().entrySet()) {
-                   attributes.put(entry.getKey(), entry.getValue().orElse(null));
+                    attributes.put(entry.getKey(), entry.getValue().orElse(null));
                 }
-                encoder.addFeature(layerName, attributes,
-                        scaleGeometry(feature.feature().geometry(), envelope));
-                    }
-            );
+
+                return VectorTileFeature.of(scaleGeometry(feature.feature().geometry(), envelope), attributes);
+            }).sequential().forEach(vectorTileFeature -> {
+                String geometryType = geomType(vectorTileFeature.getGeometry());
+
+                // TODO (as): Add the moment, we're just dividing our geometries into vector tile layers
+                // by type. We may want to consider more interesting splitting schemes
+                // i.e. splitting by some property to allow fast switching on the frontend
+                // e.g. splt by year -> animation over time
+                if (geometryType != null) {
+                    featureCount.incrementAndGet();
+                    encoder.addFeature(layerName + "_" + geometryType,
+                            vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
+                }
+                else {
+                    log.warn("skipping geometry with type {}", vectorTileFeature.getGeometry().getGeometryType());
+                }
+            });
+            log.info("encoded {} features in {}ms", featureCount.get(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
 
         return encoder.encode();
+    }
+
+    private static String geomType(Geometry geometry) {
+        if (geometry instanceof Point || geometry instanceof MultiPoint) {
+            return "point";
+        }
+        else if (geometry instanceof Polygon || geometry instanceof MultiPolygon) {
+            return "polygon";
+        }
+        else if (geometry instanceof LineString || geometry instanceof MultiLineString) {
+            return "line";
+        }
+        else return null;
     }
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {

@@ -31,7 +31,7 @@ public class PostgisConnector {
 
     public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
         Handle h = dbi.open();
-        String sqlExpanded = String.format("SELECT ST_AsBinary(geom) as geom_wkb, * FROM (%s) as data",
+        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data",
                 sql);
         List<Optional<Feature>> optionalFeatures = h.createQuery(sqlExpanded)
                 .list()
@@ -83,11 +83,8 @@ public class PostgisConnector {
                 }
             }
 
-            String id = (String) row.get(ID_FIELD);
-
-            if (id == null) {
-                id = String.valueOf(geometry.hashCode());
-            }
+            String id = row.containsKey(ID_FIELD) ?
+                    row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
 
             return ImmutableFeature.builder()
                     .geometry(geometry)
