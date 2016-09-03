@@ -23,7 +23,8 @@ export function addItem(result) {
     type: ITEM_ADD,
     id: result.id,
     name: result.title,
-    description: result.description
+    description: result.description,
+    stats: result.stats
   }
 }
 

@@ -15,6 +15,7 @@ import 'mapbox-gl.css'
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw';
 
 import SizeMe from 'react-sizeme';
+import { polygonLayerStyle } from './styles.js';
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -51,35 +52,35 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         // });
 
         this.state.map.addLayer({
-          "id": layer.id + "_fill",
+          "id": layer.id + "_polygon",
           "type": "fill",
           "source": layer.id,
-          "source-layer": layer.id,
-          'paint': {
-            'fill-color': {
-              property: 'count',
-              stops: [
-                [0, '#F2F12D'],
-                [100, '#EED322'],
-                [500, '#E6B71E'],
-                [1000, '#DA9C20'],
-                [2000, '#CA8323'],
-                [5000, '#B86B25'],
-                [10000, '#A25626'],
-                [100000, '#8B4225'],
-                [250000, '#723122']
-              ]
-            },
-            'fill-opacity': 0.75
-          }
+          "source-layer": layer.id + "_polygon",
+          'paint': polygonLayerStyle(layer),
+          // {
+          //   'fill-color': {
+          //     property: 'count',
+          //     stops: [
+          //       [0, '#F2F12D'],
+          //       [100, '#EED322'],
+          //       [500, '#E6B71E'],
+          //       [1000, '#DA9C20'],
+          //       [2000, '#CA8323'],
+          //       [5000, '#B86B25'],
+          //       [10000, '#A25626'],
+          //       [100000, '#8B4225'],
+          //       [250000, '#723122']
+          //     ]
+          //   },
+          //   'fill-opacity': 0.75
+          // }
         });
 
-        console.log("Adding weird layer");
         this.state.map.addLayer({
-          "id": layer.id + "_circle",
+          "id": layer.id + "_point",
           "type": "circle",
           "source": layer.id,
-          "source-layer": layer.id,
+          "source-layer": layer.id + "_point",
           'paint': {
             // make circles larger as the user zooms from z12 to z22
             'circle-radius': 1.75,
@@ -88,8 +89,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           }
           });
       }
-      this.state.map.setLayoutProperty(layer.id + "_fill", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_circle", "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(layer.id + "_polygon", "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(layer.id + "_point", "visibility", layer.visible ? "visible" : "none");
     })
   }
 

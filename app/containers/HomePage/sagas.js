@@ -19,7 +19,7 @@ export function* search(action) {
       results: {
         layers: {
           name: "Layers",
-          results: results.data.map((item) => { return {title: item.name, description: item.description, id: item.id.id}})
+          results: results.data.map((item) => { return {title: item.name, description: item.description, id: item.id.id, stats: item.stats}})
         }
       }
     }
@@ -32,7 +32,6 @@ export function* searchWatcher() {
 }
 
 export function* searchData() {
-  console.log("Search watcher");
   const watcher = yield fork(searchWatcher);
 
   yield take(LOCATION_CHANGE);
