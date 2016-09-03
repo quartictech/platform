@@ -3,7 +3,7 @@ import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE } from './constants';
 
 const initialState = fromJS({
   layers: [],
-  loading: false,
+  loading: false
 });
 
 const defaultPolygonStyle = {

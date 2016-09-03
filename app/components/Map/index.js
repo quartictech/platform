@@ -33,6 +33,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log(nextProps);
     nextProps.layers.forEach((layer) => {
       if (this.state.map.getSource(layer.id) === undefined) {
         this.state.map.addSource(layer.id, {

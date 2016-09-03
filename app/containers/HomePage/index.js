@@ -20,7 +20,7 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible } from './actions';
+import { search, addItem, layerToggleVisible, bucketComputation } from './actions';
 
 import { selectLayers, selectLoading } from './selectors';
 
@@ -32,6 +32,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
         <div id="container" className={styles.container}>
           <LayerList layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
+            onBucketCompute={this.props.onBucketCompute}
           />
           <div className="pusher">
             <Map layers={this.props.layers}/>
@@ -51,7 +52,8 @@ function mapDispatchToProps(dispatch) {
     dispatch,
     onSearch: (query, callback) => dispatch(search(query, callback)),
     onSelect: (result) => dispatch(addItem(result)),
-    layerToggleVisible: (id) => dispatch(layerToggleVisible(id))
+    layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
+    onBucketCompute: (computation) => dispatch(bucketComputation(computation))
   };
 }
 
