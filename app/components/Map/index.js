@@ -58,23 +58,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "source": layer.id,
           "source-layer": layer.id + "_polygon",
           'paint': polygonLayerStyle(layer),
-          // {
-          //   'fill-color': {
-          //     property: 'count',
-          //     stops: [
-          //       [0, '#F2F12D'],
-          //       [100, '#EED322'],
-          //       [500, '#E6B71E'],
-          //       [1000, '#DA9C20'],
-          //       [2000, '#CA8323'],
-          //       [5000, '#B86B25'],
-          //       [10000, '#A25626'],
-          //       [100000, '#8B4225'],
-          //       [250000, '#723122']
-          //     ]
-          //   },
-          //   'fill-opacity': 0.75
-          // }
         });
 
         this.state.map.addLayer({

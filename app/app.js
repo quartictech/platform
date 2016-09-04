@@ -26,10 +26,11 @@ import configureStore from './store';
 import { translationMessages } from './i18n';
 
 // Import the CSS reset, which HtmlWebpackPlugin transfers to the build folder
-var $ = require('jquery');
-window.jQuery = $;
+//var $ = require('jquery');
+window.$ = window.jQuery = require('jquery')
 import 'sanitize.css/sanitize.css';
 import 'semantic-ui/dist/semantic.css';
+require('semantic-ui/dist/semantic')
 
 // Create redux store with history
 // this uses the singleton browserHistory provided by react-router

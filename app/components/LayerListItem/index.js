@@ -11,9 +11,26 @@ import messages from './messages';
 import styles from './styles.css';
 import classNames from 'classnames';
 
+import * as numeral from 'numeral';
+
 class LayerListItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   onLayerVisibleClick(event) {
     this.props.layerToggleVisible(event.currentTarget.id);
+  }
+
+  componentDidMount() {
+    $(this.accordion).accordion();
+  }
+
+  renderLayerStats(layer) {
+    let rows = [];
+    let attributeStats = layer.stats.attributeStats;
+    for (var key in attributeStats) {
+      rows.push(
+      <tr key={key}><td>{key}</td><td>{attributeStats[key].type}</td><td>{numeral(attributeStats[key].minimum).format()} -> {numeral(attributeStats[key].maximum).format()}</td></tr>
+    )
+    }
+    return rows;
   }
 
   render() {
@@ -46,7 +63,32 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         <div className="meta">
         {layer.description}
         </div>
-    </div>
+
+        <div className="ui accordion" ref={x => this.accordion=x}>
+          <div className="title">
+            <i className="dropdown icon"></i>
+            Attributes
+          </div>
+          <div className="content">
+            <table className="ui celled table">
+              <thead>
+                <tr><th>Attribute</th> <th>Type</th> <th>Detail</th> </tr>
+              </thead>
+              <tbody>
+                {this.renderLayerStats(layer)}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="title">
+            <i className="dropdown icon"></i>
+            Styles
+          </div>
+          <div className="content">
+            {layer.style.polygon.property}
+          </div>
+        </div>
+      </div>
     </div>
 
     );
