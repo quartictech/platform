@@ -15,18 +15,54 @@ import messages from './messages';
 import  Map from '../../components/Map';
 import  Toolbar from '../../components/Toolbar';
 import LineChart from '../../components/LineChart';
+import LayerList from '../../components/LayerList';
 
 import styles from './styles.css';
-export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
 
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
+import { search, addItem, layerToggleVisible, bucketComputation } from './actions';
+
+import { selectLayers, selectLoading } from './selectors';
+
+export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
 
     return (
       <div className={styles.container}>
-        <Toolbar/>
-        <Map/>
-        <LineChart/>
+        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect}/>
+        <div id="container" className={styles.container}>
+          <LayerList layers={this.props.layers}
+            layerToggleVisible={this.props.layerToggleVisible}
+            onBucketCompute={this.props.onBucketCompute}
+          />
+          <div className="pusher">
+            <Map layers={this.props.layers}/>
+          </div>
+        </div>
       </div>
     );
   }
 }
+
+HomePage.propTypes = {
+  layers: React.PropTypes.array,
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    dispatch,
+    onSearch: (query, callback) => dispatch(search(query, callback)),
+    onSelect: (result) => dispatch(addItem(result)),
+    layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
+    onBucketCompute: (computation) => dispatch(bucketComputation(computation))
+  };
+}
+
+const mapStateToProps = createStructuredSelector({
+  layers: selectLayers(),
+  loading: selectLoading()
+});
+
+// Wrap the component to inject dispatch and state into it
+export default connect(mapStateToProps, mapDispatchToProps)(HomePage);

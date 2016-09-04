@@ -1,3 +1,8 @@
-.toolbar { /* stylelint-ignore */
+.toolbar {
+
+}
+
+.brand { /* stylelint-ignore */
   text-transform: uppercase;
+  text-align: center;
 }

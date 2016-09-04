@@ -12,19 +12,33 @@ import messages from './messages';
 import 'lato-font/css/lato-font.css';
 import styles from './styles.css';
 
-function Toolbar() {
+import LayerSearch from '../LayerSearch';
+
+function Toolbar(props) {
+  let buttonClass = "ui button";
+  if (props.loading) {
+    buttonClass += " loading";
+  }
   return (
     <div className={styles.toolbar}>
     <div className="ui menu inverted attached">
-      <div className="item">
-      Quartic Map
+      <div className="header item">
+      <span className={styles.brand}>
+      <i className="icon map"/>Quartic <br/> Weyl
+      </span>
       </div>
       <div className="item">
-        <div className="ui button">Log-in</div>
+      <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect}/>
       </div>
     </div>
     </div>
   );
+}
+
+Toolbar.propTypes = {
+  onSearch: React.PropTypes.func,
+  onSelect: React.PropTypes.func,
+  loading: React.PropTypes.bool
 }
 
 export default Toolbar;
