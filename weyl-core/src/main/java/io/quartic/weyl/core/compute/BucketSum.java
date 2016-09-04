@@ -18,7 +18,7 @@ public abstract class BucketSum implements BucketAggregation {
 
 
     @Override
-    public double aggregate(Collection<Feature> features) {
+    public double aggregate(Feature bucket, Collection<Feature> features) {
         return features.stream().map(feature -> feature.metadata().get(property()))
                 .filter(Optional::isPresent)
                 .mapToDouble( value -> (Double) value.get())

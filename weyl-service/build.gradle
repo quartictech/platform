@@ -19,5 +19,5 @@ dependencies {
 run {
   main = 'io.quartic.weyl.WeylApplication'
   args = ['server', 'weyl.yml']
-    jvmArgs = ['-Xmx4g']
+  jvmArgs = ['-Xms12g', '-Xmx12g']
 }

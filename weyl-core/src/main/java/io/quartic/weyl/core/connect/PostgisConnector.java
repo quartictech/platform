@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.connect;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -8,11 +9,18 @@ import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.weyl.core.model.*;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.ResultIterator;
+import org.skife.jdbi.v2.StatementContext;
+import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class PostgisConnector {
     private static final Logger log = LoggerFactory.getLogger(PostgisConnector.class);
@@ -31,22 +39,25 @@ public class PostgisConnector {
 
     public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
         Handle h = dbi.open();
-        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data",
+        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                 sql);
-        List<Optional<Feature>> optionalFeatures = h.createQuery(sqlExpanded)
-                .list()
-                .stream()
-                .map(this::rowToFeature)
-                .collect(Collectors.toList());
+        ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
+                .iterator();
 
-        if (! optionalFeatures.stream().allMatch(Optional::isPresent)) {
-            log.error("Error parsing features from query result");
-            return Optional.empty();
+        List<Feature> features = Lists.newArrayList();
+        int count = 0;
+        while (iterator.hasNext()) {
+            count += 1;
+            if (count % 10000 == 0) {
+                log.info("Importing feature: {}", count);
+            }
+            Optional<Feature> feature = rowToFeature(iterator.next());
+
+            if (feature.isPresent()) {
+                features.add(feature.get());
+            }
         }
-
-        List<Feature> features = optionalFeatures.stream()
-                .map(Optional::get)
-                .collect(Collectors.toList());
+        iterator.close();
 
         return Optional.of(ImmutableRawLayer.builder()
                 .features(features)

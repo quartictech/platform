@@ -9,8 +9,9 @@ import java.util.Collection;
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(BucketCount.class),
-        @JsonSubTypes.Type(BucketSum.class)
+        @JsonSubTypes.Type(BucketSum.class),
+        @JsonSubTypes.Type(BucketDensity.class)
 })
 public interface BucketAggregation {
-    double aggregate(Collection<Feature> features);
+    double aggregate(Feature bucket, Collection<Feature> features);
 }

@@ -8,13 +8,13 @@ import org.immutables.value.Value;
 
 import java.util.Collection;
 
-@JsonTypeName("count")
+@JsonTypeName("density")
 @Value.Immutable
-@JsonSerialize(as = ImmutableBucketCount.class)
-@JsonDeserialize(as = ImmutableBucketCount.class)
-public class BucketCount implements BucketAggregation {
+@JsonSerialize(as = ImmutableBucketDensity.class)
+@JsonDeserialize(as = ImmutableBucketDensity.class)
+public class BucketDensity implements BucketAggregation {
     @Override
     public double aggregate(Feature bucket, Collection<Feature> features) {
-        return features.size();
+        return ((double) features.size()) / bucket.geometry().getArea();
     }
 }

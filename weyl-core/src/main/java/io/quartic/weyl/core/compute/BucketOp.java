@@ -43,7 +43,7 @@ public class BucketOp {
                 Collection<Feature> features = forkJoinPool.submit(() -> bucketData(featureLayer.get(), bucketSpec, bucketIndex)).get();
                 String layerName = String.format("%s (bucketed)",
                         featureLayer.get().layer().metadata().name());
-                String layerDescription = String.format("%s bucketed by %s with aggregating by %s",
+                String layerDescription = String.format("%s bucketed by %s aggregating by %s",
                         featureLayer.get().layer().metadata().name(),
                         bucketLayer.get().layer().metadata().name(),
                         bucketSpec.aggregation().toString());
@@ -86,7 +86,7 @@ public class BucketOp {
         return groups.asMap().entrySet().parallelStream()
                 .map(bucketEntry -> {
                     Feature feature = bucketEntry.getKey();
-                    Double value = aggregation.aggregate(bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
+                    Double value = aggregation.aggregate(feature, bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
                     Map<String, Optional<Object>> metadata = new HashMap<>(feature.metadata());
                     metadata.put(propertyName, Optional.of(value));
                     return ImmutableFeature.copyOf(feature)
