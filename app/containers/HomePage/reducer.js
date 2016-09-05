@@ -1,15 +1,20 @@
 import { fromJS } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE } from './constants';
+import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE_BUCKET } from './constants';
 
 const initialState = fromJS({
   layers: [],
-  loading: false
+  loading: false,
+  ui: {
+    layerOp: null,
+    chart: null
+  }
 });
 
 const defaultPolygonStyle = {
     "fill-color": "#F2F12D",
     "property": null,
-    "fill-opacity": 0.6
+    "fill-opacity": 0.8,
+    "color-scale": null
   };
 
 const defaultPointStyle = {
@@ -55,6 +60,8 @@ function homeReducer(state = initialState, action) {
         let val = arr.get(idx);
         return arr.set(idx, val.set("visible", ! val.get("visible")));
       });
+    case UI_TOGGLE_BUCKET:
+      return state.updateIn(["ui", "layerOp"], val => val == "bucket" ? null : "bucket");
     default:
       return state;
   }

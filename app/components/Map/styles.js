@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import * as chroma from 'chroma-js';
 
 export function computeColorScale(baseColor, step, n) {
   let color = baseColor;
@@ -13,16 +14,19 @@ export function computeColorScale(baseColor, step, n) {
   return result;
 }
 
-function computeStops(baseColor, nStops, minValue, maxValue) {
+function computeStops(colorScale, nStops, minValue, maxValue) {
   let result = [];
 
-  let colors = computeColorScale(baseColor, 2, nStops);
+  let colors = chroma.scale(colorScale).colors(nStops);
 
   for (var i = 0 ; i < nStops ; i++) {
     result.push([minValue + i * ((maxValue - minValue) / nStops), colors[i].toString(0)]);
   }
-  console.log(result);
   return result;
+}
+
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 export function polygonLayerStyle(layer) {
@@ -36,10 +40,15 @@ export function polygonLayerStyle(layer) {
     }
     else {
       let attributeStats = layer.stats.attributeStats[style.property];
+
+      let colorScale = style["color-scale"];
+      if (colorScale == null) {
+        colorScale = randomChoice(Object.keys(chroma.brewer));
+      }
       return {
         "fill-color" : {
           "property" : style.property,
-          "stops" : computeStops(style["fill-color"], 9, attributeStats.minimum, attributeStats.maximum)
+          "stops" : computeStops(colorScale, 8, attributeStats.minimum, attributeStats.maximum)
         },
         "fill-opacity": style["fill-opacity"]
       }

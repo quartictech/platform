@@ -1,4 +1,4 @@
-import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, BUCKET_COMPUTATION_START } from './constants';
+import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, BUCKET_COMPUTATION_START, UI_TOGGLE_BUCKET } from './constants';
 
 
 export function search(query, callback) {
@@ -41,5 +41,11 @@ export function bucketComputation(computation) {
   return {
     type: BUCKET_COMPUTATION_START,
     computation: computation
+  }
+}
+
+export function toggleBucketOp() {
+  return {
+    type: UI_TOGGLE_BUCKET
   }
 }

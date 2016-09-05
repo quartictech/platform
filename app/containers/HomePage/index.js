@@ -21,20 +21,22 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, bucketComputation } from './actions';
+import { search, addItem, layerToggleVisible, bucketComputation, toggleBucketOp } from './actions';
 
-import { selectLayers, selectLoading } from './selectors';
+import { selectLayers, selectLoading, selectUi } from './selectors';
 
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
 
     return (
       <div className={styles.container}>
-        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect}/>
+        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect} ui= {this.props.ui} onBucketToggle={this.props.onBucketToggle}/>
         <div id="container" className={styles.container}>
           <LayerList layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
             onBucketCompute={this.props.onBucketCompute}
+            ui={this.props.ui}
+            onBucketToggle={this.props.onBucketToggle}
           />
           <div className="pusher">
             <Map layers={this.props.layers}/>
@@ -55,13 +57,15 @@ function mapDispatchToProps(dispatch) {
     onSearch: (query, callback) => dispatch(search(query, callback)),
     onSelect: (result) => dispatch(addItem(result)),
     layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
-    onBucketCompute: (computation) => dispatch(bucketComputation(computation))
+    onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
+    onBucketToggle: () => dispatch(toggleBucketOp())
   };
 }
 
 const mapStateToProps = createStructuredSelector({
   layers: selectLayers(),
-  loading: selectLoading()
+  loading: selectLoading(),
+  ui: selectUi()
 });
 
 // Wrap the component to inject dispatch and state into it

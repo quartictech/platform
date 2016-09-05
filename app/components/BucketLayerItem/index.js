@@ -31,6 +31,10 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
     this.state.selectedBuckets = value;
   }
 
+  onCancelClick() {
+    this.props.onBucketToggle();
+  }
+
   onComputeClick() {
     console.log("compute click");
     this.props.onCompute({
@@ -81,7 +85,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
           </div>
           <div className="ui content">
             <button className="ui button primary" onClick={this.onComputeClick.bind(this)}>Compute</button>
-            <button className="ui button red">Cancel</button>
+            <button className="ui button red" onClick={this.onCancelClick.bind(this)}>Cancel</button>
           </div>
         </div>
     );
@@ -89,7 +93,8 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 }
 
 BucketLayerItem.PropTypes = {
-  onCompute: React.PropTypes.func
+  onCompute: React.PropTypes.func,
+  onBucketToggle: React.PropTypes.func
 }
 
 export default BucketLayerItem;

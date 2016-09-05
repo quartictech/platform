@@ -29,7 +29,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       let key="layer_" + layer.id;
       rows.push(<LayerListItem layer={layer} layerToggleVisible={this.props.layerToggleVisible} key={key}/>);
     }
-    rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} key="bucket"/>)
+    if (this.props.ui.layerOp == "bucket") {
+      rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onBucketToggle={this.props.onBucketToggle} key="bucket"/>)
+    }
     return (
       <div className="ui wide sidebar visible">
       <div className="ui basic segment">
@@ -45,7 +47,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 LayerList.propTypes = {
   layers: React.PropTypes.array,
   layerToggleVisible: React.PropTypes.func,
-  onBucketCompute: React.PropTypes.func
+  onBucketCompute: React.PropTypes.func,
+  ui: React.PropTypes.object,
+  onBucketToggle: React.PropTypes.func
 }
 
 export default LayerList;

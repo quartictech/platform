@@ -17,7 +17,13 @@ const selectLoading = () => createSelector(
   (homeState) => homeState.get('loading')
 );
 
+const selectUi = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("ui").toJS()
+)
+
 export {
   selectLayers,
-  selectLoading
+  selectLoading,
+  selectUi
 }

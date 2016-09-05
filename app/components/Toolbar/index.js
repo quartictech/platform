@@ -13,12 +13,11 @@ import 'lato-font/css/lato-font.css';
 import styles from './styles.css';
 
 import LayerSearch from '../LayerSearch';
+import classNames from 'classnames';
 
 function Toolbar(props) {
-  let buttonClass = "ui button";
-  if (props.loading) {
-    buttonClass += " loading";
-  }
+  let bucketClassNames = classNames("item", {"active": props.ui.layerOp === "bucket"})
+  console.log(props.ui);
   return (
     <div className={styles.toolbar}>
     <div className="ui menu inverted attached labeled icon">
@@ -31,7 +30,7 @@ function Toolbar(props) {
           <i className="icon list"></i>
           Layers
         </a>
-      <a className="item">
+      <a className={bucketClassNames} onClick={props.onBucketToggle}>
         <i className="icon object group"></i>
         Bucket
       </a>
@@ -51,7 +50,9 @@ function Toolbar(props) {
 Toolbar.propTypes = {
   onSearch: React.PropTypes.func,
   onSelect: React.PropTypes.func,
-  loading: React.PropTypes.bool
+  loading: React.PropTypes.bool,
+  ui: React.PropTypes.object,
+  onBucketToggle: React.PropTypes.func
 }
 
 export default Toolbar;
