@@ -21,15 +21,28 @@ function Toolbar(props) {
   }
   return (
     <div className={styles.toolbar}>
-    <div className="ui menu inverted attached">
+    <div className="ui menu inverted attached labeled icon">
       <div className="header item">
-      <span className={styles.brand}>
-      <i className="icon map"/>Quartic <br/> Weyl
-      </span>
+      <i className="icon map"/><span className={styles.brand}>Quartic</span>
       </div>
+
+      <div className="right menu">
+        <a className="item">
+          <i className="icon list"></i>
+          Layers
+        </a>
+      <a className="item">
+        <i className="icon object group"></i>
+        Bucket
+      </a>
+      <a className="item">
+        <i className="icon line chart"></i>
+        Chart
+      </a>
       <div className="item">
       <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect}/>
       </div>
+    </div>
     </div>
     </div>
   );

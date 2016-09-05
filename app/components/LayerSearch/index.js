@@ -31,7 +31,7 @@ class LayerSearch extends React.Component {
 
     render() {
       return (
-        <div className="ui category search">
+        <div className="ui category search right aligned">
         <div className="ui icon input">
         <input className="prompt" placeholder="Search layers.." type="text"></input>
         <i className="search icon"></i>
