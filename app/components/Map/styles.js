@@ -40,7 +40,8 @@ export function polygonLayerStyle(layer) {
         "fill-color" : {
           "property" : style.property,
           "stops" : computeStops(style["fill-color"], 9, attributeStats.minimum, attributeStats.maximum)
-        }
+        },
+        "fill-opacity": style["fill-opacity"]
       }
     }
 }

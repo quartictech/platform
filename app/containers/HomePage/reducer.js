@@ -9,7 +9,7 @@ const initialState = fromJS({
 const defaultPolygonStyle = {
     "fill-color": "#F2F12D",
     "property": null,
-    "fill-opacity": 0.75
+    "fill-opacity": 0.6
   };
 
 const defaultPointStyle = {
