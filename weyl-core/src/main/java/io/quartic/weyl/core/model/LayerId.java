@@ -10,5 +10,6 @@ import org.immutables.value.Value;
 @JsonDeserialize(as=ImmutableLayerId.class)
 public interface LayerId {
     @JsonValue
+    @Value.Parameter
     String id();
 }

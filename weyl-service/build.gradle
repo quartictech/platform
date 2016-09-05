@@ -19,5 +19,5 @@ dependencies {
 run {
   main = 'io.quartic.weyl.WeylApplication'
   args = ['server', 'weyl.yml']
-  jvmArgs = ['-Xms12g', '-Xmx12g']
+  jvmArgs = ['-Xms8g', '-Xmx8g', '-XX:+PrintGCDetails', '-XX:+PrintGCDateStamps', '-Xloggc:mygclogfilename.gc']
 }
