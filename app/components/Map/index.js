@@ -83,7 +83,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     console.log(mapStyle);
     return (
       <div className={styles.map}>
-        <div id="map-inner" style={mapStyle}>
+        <div id="map-inner" className={styles.mapViewport}>
         </div>
         </div>
     );
