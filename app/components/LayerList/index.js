@@ -33,7 +33,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onBucketToggle={this.props.onBucketToggle} key="bucket"/>)
     }
     return (
-      <div className="ui wide sidebar visible">
+      <div className={styles.layerList}>
       <div className="ui basic segment">
         <div className="ui cards">
           {rows}

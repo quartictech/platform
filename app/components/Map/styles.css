@@ -1,7 +1,6 @@
 .mapViewport { /* stylelint-ignore */
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
 }
 
-#map { width: 100vw; height: 100vh;}
-/*#map { position:absolute; top:0; bottom:0; width:100%; }*/
+.map {  height: 100%; width: 100%; display: table-cell; overflow:hidden;}

@@ -27,21 +27,18 @@ import { selectLayers, selectLoading, selectUi } from './selectors';
 
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
-
     return (
       <div className={styles.container}>
         <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect} ui= {this.props.ui} onBucketToggle={this.props.onBucketToggle}/>
-        <div id="container" className={styles.container}>
+        <div className={styles.innerContainer}>
           <LayerList layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
             onBucketCompute={this.props.onBucketCompute}
             ui={this.props.ui}
             onBucketToggle={this.props.onBucketToggle}
           />
-          <div className="pusher">
             <Map layers={this.props.layers}/>
           </div>
-        </div>
       </div>
     );
   }

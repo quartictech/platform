@@ -79,9 +79,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   render() {
+    let mapStyle={width: this.props.size.width + "px", height: this.props.size.height + "px"};
+    console.log(mapStyle);
     return (
       <div className={styles.map}>
-        <div id="map-inner" className={styles.mapViewport}>
+        <div id="map-inner" style={mapStyle}>
         </div>
         </div>
     );
@@ -92,4 +94,4 @@ Map.propTypes = {
   layers: React.PropTypes.array
 }
 
-export default SizeMe()(Map);
+export default SizeMe({monitorHeight:true})(Map);
