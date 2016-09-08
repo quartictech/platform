@@ -21,7 +21,7 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, bucketComputation, toggleBucketOp } from './actions';
+import { search, addItem, layerToggleVisible, bucketComputation, toggleUi } from './actions';
 
 import { selectLayers, selectLoading, selectUi } from './selectors';
 
@@ -29,7 +29,8 @@ export default class HomePage extends React.Component { // eslint-disable-line r
   render() {
     return (
       <div className={styles.container}>
-        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch} onSelect={this.props.onSelect} ui= {this.props.ui} onBucketToggle={this.props.onBucketToggle}/>
+        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch}
+        onSelect={this.props.onSelect} ui= {this.props.ui} onUiToggle={this.props.onUiToggle}/>
         <div className={styles.innerContainer}>
           <LayerList layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
@@ -37,7 +38,10 @@ export default class HomePage extends React.Component { // eslint-disable-line r
             ui={this.props.ui}
             onBucketToggle={this.props.onBucketToggle}
           />
+            <div className={styles.innerContainer2}>
             <Map layers={this.props.layers}/>
+            <LineChart visible={this.props.ui.panels.chart}/>
+            </div>
           </div>
       </div>
     );
@@ -55,7 +59,7 @@ function mapDispatchToProps(dispatch) {
     onSelect: (result) => dispatch(addItem(result)),
     layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
     onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
-    onBucketToggle: () => dispatch(toggleBucketOp())
+    onUiToggle: (element) => dispatch(toggleUi(element))
   };
 }
 

@@ -1,6 +1,3 @@
 .layerList { /* stylelint-ignore */
-  width: 25%;
-  height: 100%;
-  display: table-cell;
-  vertical-align: top;
+  flex: 0 0 20em;
 }

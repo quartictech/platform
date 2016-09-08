@@ -1,5 +1,3 @@
 .lineChart { /* stylelint-ignore */
-  display: table-cell;
-  height:33%;
-  width: 100%;
+  flex: 1;
 }

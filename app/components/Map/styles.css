@@ -1,6 +1,8 @@
 .mapViewport { /* stylelint-ignore */
-  height: 100%;
-  width: 100%;
+  flex: 1;
 }
 
-.map {  height: 100%; width: 100%; display: table-cell; overflow:hidden;}
+.map {
+  flex: 1;
+   flex-direction: column; display: flex;
+ }

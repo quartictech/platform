@@ -1,12 +1,14 @@
 import { fromJS } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE_BUCKET } from './constants';
+import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE } from './constants';
 
 const initialState = fromJS({
   layers: [],
   loading: false,
   ui: {
     layerOp: null,
-    chart: null
+    panels: {
+      chart: false
+    }
   }
 });
 
@@ -60,8 +62,15 @@ function homeReducer(state = initialState, action) {
         let val = arr.get(idx);
         return arr.set(idx, val.set("visible", ! val.get("visible")));
       });
-    case UI_TOGGLE_BUCKET:
-      return state.updateIn(["ui", "layerOp"], val => val == "bucket" ? null : "bucket");
+    case UI_TOGGLE:
+      let element = action.element;
+      console.log(element);
+      if (element === "bucket") {
+        return state.updateIn(["ui", "layerOp"], val => val == element ? null : element);
+      }
+      else {
+        return state.updateIn(["ui", "panels", element], val => !val)
+      }
     default:
       return state;
   }

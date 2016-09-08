@@ -17,6 +17,7 @@ import classNames from 'classnames';
 
 function Toolbar(props) {
   let bucketClassNames = classNames("item", {"active": props.ui.layerOp === "bucket"})
+  let chartClassNames = classNames("item", {"active": props.ui.panels.chart})
   console.log(props.ui);
   return (
     <div className={styles.toolbar}>
@@ -30,11 +31,11 @@ function Toolbar(props) {
           <i className="icon list"></i>
           Layers
         </a>
-      <a className={bucketClassNames} onClick={props.onBucketToggle}>
+      <a className={bucketClassNames} onClick={(e) => props.onUiToggle("bucket")}>
         <i className="icon object group"></i>
         Bucket
       </a>
-      <a className="item">
+      <a className={chartClassNames} onClick={(e) => props.onUiToggle("chart")}>
         <i className="icon line chart"></i>
         Chart
       </a>
@@ -52,7 +53,7 @@ Toolbar.propTypes = {
   onSelect: React.PropTypes.func,
   loading: React.PropTypes.bool,
   ui: React.PropTypes.object,
-  onBucketToggle: React.PropTypes.func
+  onUiToggle: React.PropTypes.func
 }
 
 export default Toolbar;

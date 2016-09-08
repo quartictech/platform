@@ -70,7 +70,7 @@ this.chartSeries = [
 
   render() {
     return (
-      <div className={styles.barChart}>
+      <div style={{"flex": 1, "flex-grow": this.props.visible ? 1 : 0}}>
           <LineChart
             showXGrid= {false}
             showYGrid= {false}
