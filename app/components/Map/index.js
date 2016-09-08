@@ -23,6 +23,39 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state = {map: null, width: 0, height: 0 };
   }
 
+  onMouseMove(e) {
+    var features = this.state.map.queryRenderedFeatures(e.point);
+    this.state.map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+  }
+
+  onMouseClick(e) {
+    var features = this.state.map.queryRenderedFeatures(e.point);
+    if (!features.length) {
+        return;
+    }
+
+    var feature = features[0];
+
+    let html  = `<table class="ui celled table">
+  <thead>
+    <tr><th>Attribute</th>
+    <th>Value</th>
+  </tr></thead>
+  <tbody>
+    `;
+
+    for (var property in feature.properties) {
+      html += `<tr><td>${property}</td><td>${feature.properties[property]}</td></tr>`;
+    }
+    html += "</tbody></table>";
+
+
+    var popup = new mapboxgl.Popup()
+        .setLngLat(this.state.map.unproject(e.point))
+        .setHTML(html)
+        .addTo(this.state.map);
+    }
+
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
         container: 'map-inner',
@@ -30,6 +63,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         zoom: 13,
         center: [0.1278, 51.5074]
     });
+
+    this.state.map.on('mousemove', this.onMouseMove.bind(this));
+    this.state.map.on('click', this.onMouseClick.bind(this));
   }
 
   componentWillReceiveProps(nextProps) {

@@ -11,7 +11,7 @@ import messages from './messages';
 import styles from './styles.css';
 
 import {LineChart} from 'react-d3-basic';
-
+import SizeMe from 'react-sizeme';
 
 class BarChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -70,21 +70,24 @@ this.chartSeries = [
 
   render() {
     return (
-      <div style={{"flex": 1, "flex-grow": this.props.visible ? 1 : 0}}>
+      <div style={{"visibility": this.props.visible ? "visible" : "hidden"}} className={styles.lineChart}>
+        <div className="ui card fluid">
+          <div className="ui content" style={{"padding": "5px"}}>
           <LineChart
             showXGrid= {false}
             showYGrid= {false}
-            margins= {{left: 100, right: 100, top: 50, bottom: 50}}
             title={"test"}
             data={this.test}
-            width={700}
-            height={700}
             chartSeries={this.chartSeries}
             x={this.x}
+            width={this.props.size.width - 20}
+            height={this.props.size.height - 20}
           />
+      </div>
+      </div>
       </div>
     );
   }
 }
 
-export default BarChart;
+export default SizeMe({monitorHeight:true})(BarChart);

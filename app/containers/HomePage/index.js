@@ -31,19 +31,23 @@ export default class HomePage extends React.Component { // eslint-disable-line r
       <div className={styles.container}>
         <Toolbar loading={this.props.loading} onSearch={this.props.onSearch}
         onSelect={this.props.onSelect} ui= {this.props.ui} onUiToggle={this.props.onUiToggle}/>
-        <div className={styles.innerContainer}>
+      <div className={styles.mapContainer}>
+        <Map layers={this.props.layers}/>
+      </div>
+
+      <div className={styles.leftDrawer}>
           <LayerList layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
             onBucketCompute={this.props.onBucketCompute}
             ui={this.props.ui}
             onBucketToggle={this.props.onBucketToggle}
           />
-            <div className={styles.innerContainer2}>
-            <Map layers={this.props.layers}/>
-            <LineChart visible={this.props.ui.panels.chart}/>
-            </div>
-          </div>
       </div>
+
+      <div className={styles.bottomDrawer}>
+            <LineChart visible={this.props.ui.panels.chart}/>
+          </div>
+        </div>
     );
   }
 }

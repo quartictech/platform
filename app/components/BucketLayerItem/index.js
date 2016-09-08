@@ -49,6 +49,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 
   render() {
     return (
+        <div className={styles.bucketLayerItem}>
         <div className="ui raised fluid card">
           <div className="content">
             <div className="header">Bucket Layer </div>
@@ -88,6 +89,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
             <button className="ui button red" onClick={this.onCancelClick.bind(this)}>Cancel</button>
           </div>
         </div>
+      </div>
     );
   }
 }

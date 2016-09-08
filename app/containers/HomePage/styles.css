@@ -1,13 +1,5 @@
 
-.innerContainer {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  z-index: 900;
-  height: 100vh;
-}
-
-.innerContainer2 {
+.mapContainer {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -16,12 +8,28 @@
 }
 
 .container {
-  height: calc(100vh - 70px);
+  height: 100vh;
   width: 100vw;
 }
 
-/*.pusher {
-  width: 100%;
-  height: 100%;
-  z-index: 900;
-}*/
+.leftDrawer {
+  position: absolute;
+  left: 0px;
+  height: calc(100vh - 70px);
+  top:70px;
+  width: 25vw;
+  pointer-events: none;
+  display: flex;
+  padding: 20px;
+}
+
+.bottomDrawer {
+  position: absolute;
+  left: 30vw;
+  top: 60vh;
+  height: 40vh;
+  width: 70vw;
+  display: flex;
+  pointer-events: none;
+  padding: 30px;
+}

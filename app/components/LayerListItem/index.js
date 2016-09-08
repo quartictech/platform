@@ -38,6 +38,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
     let layerToggleVisible = this.props.layerToggleVisible;
     return (
+      <div className={styles.layerListItem}>
       <div className="ui raised fluid card">
       <div className="content">
         <div className="right floated">
@@ -90,6 +91,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         </div>
       </div>
     </div>
+  </div>
 
     );
   }

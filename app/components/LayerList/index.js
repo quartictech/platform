@@ -34,11 +34,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     }
     return (
       <div className={styles.layerList}>
-      <div className="ui basic segment">
-        <div className="ui cards">
           {rows}
-        </div>
-        </div>
       </div>
     );
   }
