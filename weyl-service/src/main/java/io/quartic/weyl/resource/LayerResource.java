@@ -76,7 +76,7 @@ public class LayerResource {
             if (! result.containsKey(entry.getKey())) {
                continue;
             }
-            
+
             Double assignValue = null;
             if (entry.getValue().isPresent()) {
                Object value = entry.getValue().get();
