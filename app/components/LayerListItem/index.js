@@ -26,9 +26,11 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     let rows = [];
     let attributeStats = layer.stats.attributeStats;
     for (var key in attributeStats) {
-      rows.push(
-      <tr key={key}><td>{key}</td><td>{attributeStats[key].type}</td><td>{numeral(attributeStats[key].minimum).format()} -> {numeral(attributeStats[key].maximum).format()}</td></tr>
-    )
+      rows.push(<tr key={key}>
+        <td>{key}</td>
+        <td>{attributeStats[key].type}</td>
+        <td>{numeral(attributeStats[key].minimum).format()} -> {numeral(attributeStats[key].maximum).format()}</td>
+        </tr>);
     }
     return rows;
   }
@@ -73,7 +75,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
           <div className="content">
             <table className="ui celled table">
               <thead>
-                <tr><th>Attribute</th> <th>Type</th> <th>Detail</th> </tr>
+                <tr><th>Attribute</th><th>Type</th><th>Detail</th></tr>
               </thead>
               <tbody>
                 {this.renderLayerStats(layer)}

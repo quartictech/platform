@@ -18,6 +18,7 @@ import classNames from 'classnames';
 function Toolbar(props) {
   let bucketClassNames = classNames("item", {"active": props.ui.layerOp === "bucket"})
   let chartClassNames = classNames("item", {"active": props.ui.panels.chart})
+  let layerListClassNames = classNames("item", {"active": props.ui.panels.layerList})
   console.log(props.ui);
   return (
     <div className={styles.toolbar}>
@@ -27,7 +28,7 @@ function Toolbar(props) {
       </div>
 
       <div className="right menu">
-        <a className="item">
+        <a className={layerListClassNames} onClick={(e) => props.onUiToggle("layerList")}>
           <i className="icon list"></i>
           Layers
         </a>

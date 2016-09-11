@@ -7,7 +7,8 @@ const initialState = fromJS({
   ui: {
     layerOp: null,
     panels: {
-      chart: false
+      chart: false,
+      layerList: true
     }
   },
   // Make this an object for now. Ugh.
@@ -97,7 +98,6 @@ function homeReducer(state = initialState, action) {
     case NUMERIC_ATTRIBUTES_LOADED:
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:
-    console.log("YEH");
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
     default:
       return state;
