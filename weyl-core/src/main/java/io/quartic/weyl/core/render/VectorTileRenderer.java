@@ -66,6 +66,8 @@ public class VectorTileRenderer {
                     attributes.put(entry.getKey(), entry.getValue().orElse(null));
                 }
 
+                attributes.put("_id", feature.feature().id());
+
                 return VectorTileFeature.of(scaleGeometry(feature.feature().geometry(), envelope), attributes);
             }).sequential().forEach(vectorTileFeature -> {
                 String geometryType = geomType(vectorTileFeature.getGeometry());

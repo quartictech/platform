@@ -72,11 +72,22 @@ public class LayerResource {
       int index = 0;
       for (IndexedFeature feature : indexedLayer.indexedFeatures()) {
          for (Map.Entry<String, Optional<Object>> entry : feature.feature().metadata().entrySet()) {
+
+            if (! result.containsKey(entry.getKey())) {
+               continue;
+            }
+            
             Double assignValue = null;
             if (entry.getValue().isPresent()) {
                Object value = entry.getValue().get();
-               if (value instanceof Double || value instanceof Integer || value instanceof Float) {
+               if (value instanceof Double || value instanceof Float) {
                   assignValue = (double) value;
+               }
+               else if (value instanceof Long) {
+                  assignValue = ((Long) value).doubleValue();
+               }
+               else if (value instanceof Integer) {
+                  assignValue = ((Integer) value).doubleValue();
                }
             }
 
