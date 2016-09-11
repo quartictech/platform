@@ -16,14 +16,15 @@ import  Map from '../../components/Map';
 import  Toolbar from '../../components/Toolbar';
 import LineChart from '../../components/LineChart';
 import LayerList from '../../components/LayerList';
+import SelectionView from '../../components/SelectionView';
 
 import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, bucketComputation, toggleUi } from './actions';
+import { search, addItem, layerToggleVisible, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute } from './actions';
 
-import { selectLayers, selectLoading, selectUi } from './selectors';
+import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart } from './selectors';
 
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -32,7 +33,10 @@ export default class HomePage extends React.Component { // eslint-disable-line r
         <Toolbar loading={this.props.loading} onSearch={this.props.onSearch}
         onSelect={this.props.onSelect} ui= {this.props.ui} onUiToggle={this.props.onUiToggle}/>
       <div className={styles.mapContainer}>
-        <Map layers={this.props.layers}/>
+        <Map layers={this.props.layers}
+          onSelectFeatures={this.props.onSelectFeatures}
+          selection={this.props.selectionIds}
+          />
       </div>
 
       <div className={styles.leftDrawer}>
@@ -44,8 +48,15 @@ export default class HomePage extends React.Component { // eslint-disable-line r
           />
       </div>
 
+      <div className={styles.rightDrawer}>
+        <SelectionView selection={this.props.selectionFeatures} onClearSelection={this.props.onClearSelection} />
+      </div>
+
       <div className={styles.bottomDrawer}>
-            <LineChart visible={this.props.ui.panels.chart}/>
+            <LineChart visible={this.props.ui.panels.chart} layers={this.props.layers} onLayerSelection={this.props.onChartLayerSelection}
+              onAttributeSelection={this.props.onChartAttributeSelection}
+              chart={this.props.histogramChart}
+              numericAttributes={this.props.numericAttributes}/>
           </div>
         </div>
     );
@@ -63,14 +74,22 @@ function mapDispatchToProps(dispatch) {
     onSelect: (result) => dispatch(addItem(result)),
     layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
     onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
-    onUiToggle: (element) => dispatch(toggleUi(element))
+    onUiToggle: (element) => dispatch(toggleUi(element)),
+    onSelectFeatures: (ids, features) => dispatch(selectFeatures(ids, features)),
+    onClearSelection: () => dispatch(clearSelection()),
+    onChartLayerSelection: (layerId) => dispatch(loadNumericAttributes(layerId)),
+    onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute))
   };
 }
 
 const mapStateToProps = createStructuredSelector({
   layers: selectLayers(),
   loading: selectLoading(),
-  ui: selectUi()
+  ui: selectUi(),
+  selectionIds: selectSelectionIds(),
+  selectionFeatures: selectSelectionFeatures(),
+  numericAttributes: selectNumericAttributes(),
+  histogramChart: selectHistogramChart()
 });
 
 // Wrap the component to inject dispatch and state into it

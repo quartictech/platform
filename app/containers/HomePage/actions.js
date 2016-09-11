@@ -1,4 +1,8 @@
-import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, BUCKET_COMPUTATION_START, UI_TOGGLE } from './constants';
+import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, BUCKET_COMPUTATION_START, UI_TOGGLE,
+  SELECT_FEATURES, CLEAR_SELECTION,
+  NUMERIC_ATTRIBUTES_LOAD, NUMERIC_ATTRIBUTES_LOADED,
+  CHART_SELECT_ATTRIBUTE
+} from './constants';
 
 
 export function search(query, callback) {
@@ -48,5 +52,40 @@ export function toggleUi(element) {
   return {
     type: UI_TOGGLE,
     element
+  }
+}
+
+export function selectFeatures(ids, features) {
+  return {
+    type: SELECT_FEATURES,
+    ids,
+    features
+  }
+}
+
+export function clearSelection() {
+  return {
+    type: CLEAR_SELECTION
+  }
+}
+
+export function loadNumericAttributes(layerId) {
+  return {
+    type: NUMERIC_ATTRIBUTES_LOAD,
+    layerId
+  }
+}
+
+export function loadNumericAttributesDone(data) {
+  return {
+    type: NUMERIC_ATTRIBUTES_LOADED,
+    data
+  }
+}
+
+export function chartSelectAttribute(attribute) {
+  return {
+    type: CHART_SELECT_ATTRIBUTE,
+    attribute
   }
 }

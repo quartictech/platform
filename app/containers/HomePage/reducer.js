@@ -1,5 +1,5 @@
 import { fromJS } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE } from './constants';
+import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE } from './constants';
 
 const initialState = fromJS({
   layers: [],
@@ -9,6 +9,15 @@ const initialState = fromJS({
     panels: {
       chart: false
     }
+  },
+  // Make this an object for now. Ugh.
+  selection: {
+    ids: {},
+    features: []
+  },
+  numericAttributes: {},
+  histogramChart: {
+    selectedAttribute: null
   }
 });
 
@@ -64,13 +73,32 @@ function homeReducer(state = initialState, action) {
       });
     case UI_TOGGLE:
       let element = action.element;
-      console.log(element);
       if (element === "bucket") {
         return state.updateIn(["ui", "layerOp"], val => val == element ? null : element);
       }
       else {
         return state.updateIn(["ui", "panels", element], val => !val)
       }
+    case SELECT_FEATURES:
+    console.log("select features");
+      let keyMap = {};
+      for (var id of action.ids) {
+        if (! keyMap.hasOwnProperty(id[0])) {
+            keyMap[id[0]] = [];
+        }
+        keyMap[id[0]].push(id[1]);
+      }
+      console.log(action.features);
+      return state.updateIn(["selection", "ids"], selection => selection.clear().merge(keyMap))
+        .updateIn(["selection", "features"], features => features.clear().merge(action.features));
+    case CLEAR_SELECTION:
+      return state.setIn(["selection", "ids"], fromJS({}))
+        .setIn(["selection", "features"], fromJS([]));
+    case NUMERIC_ATTRIBUTES_LOADED:
+      return state.set("numericAttributes", fromJS(action.data));
+    case CHART_SELECT_ATTRIBUTE:
+    console.log("YEH");
+      return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
     default:
       return state;
   }

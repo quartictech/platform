@@ -1,12 +1,12 @@
 import { take, call, put, select, fork, cancel } from 'redux-saga/effects';
 import { takeEvery, takeLatest } from 'redux-saga'
 
-import { SEARCH, BUCKET_COMPUTATION_START } from './constants';
+import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD } from './constants';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import request from 'utils/request';
-import { searchDone, addItem } from './actions';
+import { searchDone, addItem, loadNumericAttributesDone } from './actions';
 
-export function* search(action) {
+function* search(action) {
   console.log("Executing search");
   const requestURL = "http://localhost:8080/api/layer?query=" + encodeURI(action.query)
   const results = yield call(request, requestURL, {
@@ -27,7 +27,7 @@ export function* search(action) {
   }
 }
 
-export function* bucketComputation(action) {
+function* bucketComputation(action) {
   console.log(action);
   const requestURL = "http://localhost:8080/api/layer/compute";
   const results = yield call(request, requestURL, {
@@ -52,12 +52,27 @@ export function* bucketComputation(action) {
   }
 }
 
+function* numericAttributes(action) {
+    console.log("Fetching numeric attributes");
+    const requestURL = "http://localhost:8080/api/layer/numeric_values/" + action.layerId;
+    const results = yield call(request, requestURL,
+    {
+      method: 'GET'
+    });
+
+    yield put(loadNumericAttributesDone(results.data));
+}
+
 export function* searchWatcher() {
   yield* takeLatest(SEARCH, search);
 }
 
 export function* computationWatcher() {
   yield* takeLatest(BUCKET_COMPUTATION_START, bucketComputation);
+}
+
+export function* numericAttributesWatcher() {
+  yield* takeLatest(NUMERIC_ATTRIBUTES_LOAD, numericAttributes);
 }
 
 export function* searchData() {
@@ -75,8 +90,16 @@ export function* computationData() {
   yield cancel(computationWatcher);
 }
 
+export function* numericAttributesData() {
+  const watcher = yield fork(numericAttributesWatcher);
+
+  yield take(LOCATION_CHANGE);
+  yield cancel(numericAttributesWatcher);
+}
+
 
 export default [
     searchData,
-    computationData
+    computationData,
+    numericAttributesData
 ]

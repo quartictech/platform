@@ -1,0 +1,8 @@
+.selectionView { /* stylelint-ignore */
+  padding-top: 10px;
+  width: 100%;
+}
+
+.innerSelectionView {
+  pointer-events: all;
+}

@@ -21,39 +21,42 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   constructor() {
     super();
     this.state = {map: null, width: 0, height: 0 };
+    this.state.visibleLayerIds = [];
   }
 
   onMouseMove(e) {
-    var features = this.state.map.queryRenderedFeatures(e.point);
+    var features = this.state.map.queryRenderedFeatures(e.point, {layers: this.state.visibleLayerIds});
     this.state.map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
   }
 
   onMouseClick(e) {
-    var features = this.state.map.queryRenderedFeatures(e.point);
+    var features = this.state.map.queryRenderedFeatures(e.point, {layers: this.state.visibleLayerIds});
     if (!features.length) {
         return;
     }
+    console.log(features);
 
     var feature = features[0];
+    this.props.onSelectFeatures([[feature.layer.source, feature.properties._id]], features);
 
-    let html  = `<table class="ui celled table">
-  <thead>
-    <tr><th>Attribute</th>
-    <th>Value</th>
-  </tr></thead>
-  <tbody>
-    `;
-
-    for (var property in feature.properties) {
-      html += `<tr><td>${property}</td><td>${feature.properties[property]}</td></tr>`;
-    }
-    html += "</tbody></table>";
-
-
-    var popup = new mapboxgl.Popup()
-        .setLngLat(this.state.map.unproject(e.point))
-        .setHTML(html)
-        .addTo(this.state.map);
+  //   let html  = `<table class="ui celled table">
+  // <thead>
+  //   <tr><th>Attribute</th>
+  //   <th>Value</th>
+  // </tr></thead>
+  // <tbody>
+  //   `;
+  //
+  //   for (var property in feature.properties) {
+  //     html += `<tr><td>${property}</td><td>${feature.properties[property]}</td></tr>`;
+  //   }
+  //   html += "</tbody></table>";
+  //
+  //
+  //   var popup = new mapboxgl.Popup()
+  //       .setLngLat(this.state.map.unproject(e.point))
+  //       .setHTML(html)
+  //       .addTo(this.state.map);
     }
 
   componentDidMount() {
@@ -69,24 +72,17 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
+    this.state.visibleLayerIds = [];
     nextProps.layers.forEach((layer) => {
+      if (layer.visible) {
+        this.state.visibleLayerIds.push(layer.id + "_polygon");
+        this.state.visibleLayerIds.push(layer.id + "_point");
+      }
       if (this.state.map.getSource(layer.id) === undefined) {
         this.state.map.addSource(layer.id, {
           "type": "vector",
           "tiles": ["http://localhost:8080/api/" + layer.id + "/{z}/{x}/{y}.pbf"]
         });
-
-        // this.state.map.addLayer({
-        //   "id": layer.id,
-        //   "type": "fill",
-        //   "source": layer.id,
-        //   "source-layer": "test", // Should be changed to the real layer name!
-        //   "paint": {
-        //     "fill-color": '#EED322',
-        //     'fill-opacity': 0.75
-        //   }
-        // });
 
         this.state.map.addLayer({
           "id": layer.id + "_polygon",
@@ -97,21 +93,44 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         });
 
         this.state.map.addLayer({
+          "id": layer.id + "_polygon_sel",
+          "type": "fill",
+          "source": layer.id,
+          "source-layer": layer.id + "_polygon",
+          'paint': {
+            "fill-outline-color": "#484896",
+            "fill-color": "#6e599f",
+            "fill-opacity": 0.75
+          },
+          "filter": ["in", "FIPS", ""]
+        });
+
+        this.state.map.addLayer({
           "id": layer.id + "_point",
           "type": "circle",
           "source": layer.id,
           "source-layer": layer.id + "_point",
           'paint': {
-            // make circles larger as the user zooms from z12 to z22
             'circle-radius': 1.75,
-            // color circles by ethnicity, using data-driven styles
             'circle-color': '#223b53'
           }
           });
       }
       this.state.map.setLayoutProperty(layer.id + "_polygon", "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(layer.id + "_polygon_sel", "visibility", layer.visible ? "visible" : "none");
       this.state.map.setLayoutProperty(layer.id + "_point", "visibility", layer.visible ? "visible" : "none");
-    })
+
+      // Selection
+
+      let polyFilter = ["in", "_id", ""];
+      if (nextProps.selection.hasOwnProperty(layer.id)) {
+        polyFilter = nextProps.selection[layer.id].reduce( function(memo, featureId) {
+          memo.push(featureId);
+          return memo;
+        }, ['in', '_id']);
+      }
+      this.state.map.setFilter(layer.id + '_polygon_sel', polyFilter);
+    });
   }
 
   render() {
@@ -127,7 +146,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 }
 
 Map.propTypes = {
-  layers: React.PropTypes.array
+  layers: React.PropTypes.array,
+  onSelectFeature: React.PropTypes.func,
+  selection: React.PropTypes.object
 }
 
 export default SizeMe({monitorHeight:true})(Map);

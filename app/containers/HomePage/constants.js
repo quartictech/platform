@@ -6,3 +6,9 @@ export const LAYER_TOGGLE_VISIBLE = "hilbert/Home/LAYER_TOGGLE_VISIBLE";
 export const BUCKET_COMPUTATION_START = "hilbert/Home/BUCKET_COMPUTATION_START";
 
 export const UI_TOGGLE = "hilbert/Home/UI_TOGGLE";
+export const SELECT_FEATURES = "hilbert/Home/SELECT_FEATURES";
+export const CLEAR_SELECTION = "hilbert/Home/CLEAR_SELECTION";
+
+export const NUMERIC_ATTRIBUTES_LOAD = "hilbert/Home/NUMERIC_ATTRIBUTES_LOAD";
+export const NUMERIC_ATTRIBUTES_LOADED = "hilbert/Home/NUMERIC_ATTRIBUTES_LOADED";
+export const CHART_SELECT_ATTRIBUTE = "hilbert/Home/CHART_SELECT_ATTRIBUTE";
