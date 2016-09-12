@@ -22,7 +22,9 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute } from './actions';
+import { search, addItem, layerToggleVisible, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
+  setLayerStyle
+ } from './actions';
 
 import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart } from './selectors';
 
@@ -46,6 +48,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
             ui={this.props.ui}
             visible={this.props.ui.panels.layerList}
             onBucketToggle={this.props.onBucketToggle}
+            onLayerStyleChange={this.props.onLayerStyleChange}
           />
       </div>
 
@@ -79,7 +82,8 @@ function mapDispatchToProps(dispatch) {
     onSelectFeatures: (ids, features) => dispatch(selectFeatures(ids, features)),
     onClearSelection: () => dispatch(clearSelection()),
     onChartLayerSelection: (layerId) => dispatch(loadNumericAttributes(layerId)),
-    onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute))
+    onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute)),
+    onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style))
   };
 }
 

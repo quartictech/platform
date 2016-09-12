@@ -1,5 +1,7 @@
 import { fromJS } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE } from './constants';
+import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
+  LAYER_SET_STYLE
+ } from './constants';
 
 const initialState = fromJS({
   layers: [],
@@ -41,9 +43,9 @@ function defaultLayerStyle(stats) {
   };
 
   for (const attribute in stats.attributeStats) {
-    console.log(attribute);
     if (stats.attributeStats[attribute].type == "NUMERIC") {
       style.polygon.property = attribute;
+      style.polygon["color-scale"] = "BuPu"
       break;
     }
   }
@@ -99,6 +101,14 @@ function homeReducer(state = initialState, action) {
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
+
+    case LAYER_SET_STYLE:
+      return state.updateIn(["layers"], arr => {
+        let idx = arr.findKey(layer => layer.get("id") === action.layerId);
+        let val = arr.get(idx);
+        console.log(action);
+        return arr.set(idx, val.mergeIn(["style", "polygon"], action.style.polygon));
+      });
     default:
       return state;
   }

@@ -13,6 +13,8 @@ import classNames from 'classnames';
 
 import * as numeral from 'numeral';
 
+import LayerStyleSettings from '../LayerStyleSettings';
+
 class LayerListItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   onLayerVisibleClick(event) {
     this.props.layerToggleVisible(event.currentTarget.id);
@@ -37,7 +39,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     let layer = this.props.layer;
-    let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
+    let buttonClassNames = classNames("ui toggle compact button icon ", {"active": layer.visible});
     let layerToggleVisible = this.props.layerToggleVisible;
     return (
       <div className={styles.layerListItem}>
@@ -47,18 +49,6 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
           <button className={buttonClassNames} onClick={this.onLayerVisibleClick.bind(this)} id={layer.id}>
             <i className="icon eye"></i>
           </button>
-          <div className="ui compact dropdown button right attached icon secondary">
-            <i className="icon paint brush"></i>
-            <div className="menu">
-              <div className="item">
-              <i className="dropdown icon"></i>Fill
-              <div className="menu">
-                <div className="item">Choropleth</div>
-              </div>
-            </div>
-          <div className="item">Stroke</div>
-        </div>
-      </div>
     </div>
     <div className="header">
           {layer.name}
@@ -67,6 +57,9 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         {layer.description}
         </div>
 
+        <div className="right floated">
+          <div className="ui mini statistic"><div className="value">{numeral(layer.stats.featureCount).format('0.0a')}</div><div className="label"> Features </div> </div>
+        </div>
         <div className="ui accordion" ref={x => this.accordion=x}>
           <div className="title">
             <i className="dropdown icon"></i>
@@ -88,7 +81,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
             Styles
           </div>
           <div className="content">
-            {layer.style.polygon.property}
+            <LayerStyleSettings layer={layer} onChange={this.props.onLayerStyleChange}/>
           </div>
         </div>
       </div>
@@ -101,7 +94,8 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
 LayerListItem.propTypes = {
   layer: React.PropTypes.object,
-  layerToggleVisible: React.PropTypes.func
+  layerToggleVisible: React.PropTypes.func,
+  onLayerStyleChange: React.PropTypes.func
 }
 
 export default LayerListItem;

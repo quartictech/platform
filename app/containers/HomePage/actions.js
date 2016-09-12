@@ -1,7 +1,8 @@
 import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, BUCKET_COMPUTATION_START, UI_TOGGLE,
   SELECT_FEATURES, CLEAR_SELECTION,
   NUMERIC_ATTRIBUTES_LOAD, NUMERIC_ATTRIBUTES_LOADED,
-  CHART_SELECT_ATTRIBUTE
+  CHART_SELECT_ATTRIBUTE,
+  LAYER_SET_STYLE
 } from './constants';
 
 
@@ -87,5 +88,13 @@ export function chartSelectAttribute(attribute) {
   return {
     type: CHART_SELECT_ATTRIBUTE,
     attribute
+  }
+}
+
+export function setLayerStyle(layerId, style) {
+  return {
+    type: LAYER_SET_STYLE,
+    layerId,
+    style
   }
 }

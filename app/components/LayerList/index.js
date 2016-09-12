@@ -25,13 +25,14 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 
   render() {
     let rows = [];
-    for (var layer of this.props.layers) {
-      let key="layer_" + layer.id;
-      rows.push(<LayerListItem layer={layer} layerToggleVisible={this.props.layerToggleVisible} key={key}/>);
-    }
     if (this.props.ui.layerOp == "bucket") {
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onBucketToggle={this.props.onBucketToggle} key="bucket"/>)
     }
+    for (var layer of this.props.layers) {
+      let key="layer_" + layer.id;
+      rows.push(<LayerListItem layer={layer} layerToggleVisible={this.props.layerToggleVisible} key={key} onLayerStyleChange={this.props.onLayerStyleChange}/>);
+    }
+
     return (
       <div className={styles.layerList} style={{"visibility": this.props.visible ? "visible" : "hidden"}}>
           {rows}
@@ -46,6 +47,7 @@ LayerList.propTypes = {
   onBucketCompute: React.PropTypes.func,
   ui: React.PropTypes.object,
   onBucketToggle: React.PropTypes.func,
+  onLayerStyleChange: React.PropTypes.func
 }
 
 export default LayerList;

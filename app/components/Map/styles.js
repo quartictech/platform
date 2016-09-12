@@ -42,10 +42,6 @@ export function polygonLayerStyle(layer) {
       let attributeStats = layer.stats.attributeStats[style.property];
 
       let colorScale = style["color-scale"];
-      if (colorScale == null) {
-        colorScale = randomChoice(Object.keys(chroma.brewer));
-        console.log(colorScale);
-      }
       return {
         "fill-color" : {
           "property" : style.property,

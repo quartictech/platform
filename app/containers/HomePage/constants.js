@@ -12,3 +12,4 @@ export const CLEAR_SELECTION = "hilbert/Home/CLEAR_SELECTION";
 export const NUMERIC_ATTRIBUTES_LOAD = "hilbert/Home/NUMERIC_ATTRIBUTES_LOAD";
 export const NUMERIC_ATTRIBUTES_LOADED = "hilbert/Home/NUMERIC_ATTRIBUTES_LOADED";
 export const CHART_SELECT_ATTRIBUTE = "hilbert/Home/CHART_SELECT_ATTRIBUTE";
+export const LAYER_SET_STYLE = "hilbert/Home/LAYER_SET_STYLE";
