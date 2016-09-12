@@ -11,4 +11,5 @@ import java.util.Map;
 @JsonDeserialize(as = ImmutableLayerStats.class)
 public interface LayerStats {
     Map<String, AttributeStats> attributeStats();
+    Integer featureCount();
 }

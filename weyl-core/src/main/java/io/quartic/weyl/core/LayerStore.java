@@ -144,6 +144,8 @@ public class LayerStore {
             builder.putAttributeStats(attributeType.getKey(), attributeStats);
         }
 
+        builder.featureCount(layer.features().size());
+
         return builder.build();
     }
 
