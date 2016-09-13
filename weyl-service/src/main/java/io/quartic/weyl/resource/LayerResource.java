@@ -120,7 +120,7 @@ public class LayerResource {
       Preconditions.checkNotNull(query);
         return layerStore.listLayers()
                 .stream()
-                .filter(layer -> layer.layer().metadata().name().contains(query))
+                .filter(layer -> layer.layer().metadata().name().toLowerCase().contains(query.toLowerCase()))
                 .map(layer -> ImmutableLayerResponse.builder()
                         .name(layer.layer().metadata().name())
                         .description(layer.layer().metadata().description())

@@ -81,7 +81,7 @@ public class BucketOp {
                 .index(hits, Bucketed::getBucket);
 
         BucketAggregation aggregation = bucketSpec.aggregation();
-        String propertyName = bucketSpec.aggregationPropertyName();
+        String propertyName = featureLayer.layer().metadata().name();
 
         return groups.asMap().entrySet().parallelStream()
                 .map(bucketEntry -> {

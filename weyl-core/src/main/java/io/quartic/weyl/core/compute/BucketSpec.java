@@ -9,7 +9,6 @@ import org.immutables.value.Value;
 @JsonSerialize(as = ImmutableBucketSpec.class)
 @JsonDeserialize(as = ImmutableBucketSpec.class)
 public interface BucketSpec {
-    String aggregationPropertyName();
     LayerId buckets();
     LayerId features();
     BucketAggregation aggregation();
