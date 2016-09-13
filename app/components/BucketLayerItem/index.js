@@ -38,7 +38,6 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
   onComputeClick() {
     console.log("compute click");
     this.props.onCompute({
-      aggregationPropertyName: "test",
       features: this.state.selectedLayer,
       buckets: this.state.selectedBuckets,
       aggregation: {

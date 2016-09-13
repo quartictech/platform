@@ -29,8 +29,14 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onBucketToggle={this.props.onBucketToggle} key="bucket"/>)
     }
     for (var layer of this.props.layers) {
+      if (layer.closed) {
+        continue;
+      }
       let key="layer_" + layer.id;
-      rows.push(<LayerListItem layer={layer} layerToggleVisible={this.props.layerToggleVisible} key={key} onLayerStyleChange={this.props.onLayerStyleChange}/>);
+      rows.push(<LayerListItem layer={layer} layerToggleVisible={this.props.layerToggleVisible} key={key}
+        onLayerStyleChange={this.props.onLayerStyleChange}
+        layerClose={this.props.layerClose}
+        />);
     }
 
     return (
@@ -44,6 +50,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 LayerList.propTypes = {
   layers: React.PropTypes.array,
   layerToggleVisible: React.PropTypes.func,
+  layerClose: React.PropTypes.func,
   onBucketCompute: React.PropTypes.func,
   ui: React.PropTypes.object,
   onBucketToggle: React.PropTypes.func,

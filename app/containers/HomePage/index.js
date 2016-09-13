@@ -22,7 +22,7 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
+import { search, addItem, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
   setLayerStyle
  } from './actions';
 
@@ -49,6 +49,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
             visible={this.props.ui.panels.layerList}
             onBucketToggle={this.props.onBucketToggle}
             onLayerStyleChange={this.props.onLayerStyleChange}
+            layerClose={this.props.layerClose}
           />
       </div>
 
@@ -77,6 +78,7 @@ function mapDispatchToProps(dispatch) {
     onSearch: (query, callback) => dispatch(search(query, callback)),
     onSelect: (result) => dispatch(addItem(result)),
     layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
+    layerClose: (id) => dispatch(layerClose(id)),
     onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
     onUiToggle: (element) => dispatch(toggleUi(element)),
     onSelectFeatures: (ids, features) => dispatch(selectFeatures(ids, features)),
@@ -94,7 +96,7 @@ const mapStateToProps = createStructuredSelector({
   selectionIds: selectSelectionIds(),
   selectionFeatures: selectSelectionFeatures(),
   numericAttributes: selectNumericAttributes(),
-  histogramChart: selectHistogramChart()
+  histogramChart: selectHistogramChart(),
 });
 
 // Wrap the component to inject dispatch and state into it

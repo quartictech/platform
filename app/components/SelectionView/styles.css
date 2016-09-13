@@ -5,4 +5,6 @@
 
 .innerSelectionView {
   pointer-events: all;
+  overflow: scroll;
+  height: 100%;
 }

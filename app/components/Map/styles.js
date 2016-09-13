@@ -31,10 +31,11 @@ function randomChoice(arr) {
 
 export function polygonLayerStyle(layer) {
     let style = layer.style.polygon;
-    console.log(style.property);
+    console.log(style);
     if (style.property == null) {
       return {
         "fill-color": style["fill-color"],
+        "fill-outline-color": style["fill-outline-color"],
         "fill-opacity": style["fill-opacity"]
       }
     }

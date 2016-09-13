@@ -34,7 +34,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     if (!features.length) {
         return;
     }
-    console.log(features);
 
     var feature = features[0];
     this.props.onSelectFeatures([[feature.layer.source, feature.properties._id]], features);
@@ -73,7 +72,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "source-layer": layer.id + "_polygon",
       'paint': {
         "fill-outline-color": "#484896",
-        "fill-color": "#6e599f",
+        "fill-color": "#FFB85F",//"#6e599f",
         "fill-opacity": 0.75
       },
       "filter": ["in", "FIPS", ""]
@@ -85,7 +84,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "source": layer.id,
       "source-layer": layer.id + "_point",
       'paint': {
-        'circle-radius': 1.75,
+        'circle-radius': 6,
         'circle-color': '#223b53'
       }
     });
@@ -107,7 +106,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
       let polyStyle = polygonLayerStyle(layer);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-color", polyStyle["fill-color"]);
-      
+      this.state.map.setPaintProperty(layer.id + "_polygon", "fill-outline-color", polyStyle["fill-outline-color"]);
+
       // Selection
       let polyFilter = ["in", "_id", ""];
       if (nextProps.selection.hasOwnProperty(layer.id)) {

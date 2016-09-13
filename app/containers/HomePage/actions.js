@@ -1,4 +1,4 @@
-import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, BUCKET_COMPUTATION_START, UI_TOGGLE,
+import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, BUCKET_COMPUTATION_START, UI_TOGGLE,
   SELECT_FEATURES, CLEAR_SELECTION,
   NUMERIC_ATTRIBUTES_LOAD, NUMERIC_ATTRIBUTES_LOADED,
   CHART_SELECT_ATTRIBUTE,
@@ -37,6 +37,14 @@ export function layerToggleVisible(id) {
   console.assert(id != null);
   return {
     type: LAYER_TOGGLE_VISIBLE,
+    id: id
+  }
+}
+
+export function layerClose(id) {
+  console.assert(id != null);
+  return {
+    type: LAYER_CLOSE,
     id: id
   }
 }

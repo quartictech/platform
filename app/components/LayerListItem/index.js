@@ -20,6 +20,10 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     this.props.layerToggleVisible(event.currentTarget.id);
   }
 
+  onLayerCloseClick(event) {
+    this.props.layerClose(event.currentTarget.id);
+  }
+
   componentDidMount() {
     $(this.accordion).accordion();
   }
@@ -39,7 +43,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     let layer = this.props.layer;
-    let buttonClassNames = classNames("ui toggle compact button icon ", {"active": layer.visible});
+    let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
     let layerToggleVisible = this.props.layerToggleVisible;
     return (
       <div className={styles.layerListItem}>
@@ -48,6 +52,9 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         <div className="right floated">
           <button className={buttonClassNames} onClick={this.onLayerVisibleClick.bind(this)} id={layer.id}>
             <i className="icon eye"></i>
+          </button>
+            <button className="ui compact button icon right attached" onClick={this.onLayerCloseClick.bind(this)} id={layer.id}>
+            <i className="icon close"></i>
           </button>
     </div>
     <div className="header">
@@ -95,6 +102,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 LayerListItem.propTypes = {
   layer: React.PropTypes.object,
   layerToggleVisible: React.PropTypes.func,
+  layerClose: React.PropTypes.func,
   onLayerStyleChange: React.PropTypes.func
 }
 

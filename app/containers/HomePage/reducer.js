@@ -1,5 +1,5 @@
 import { fromJS } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
+import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
   LAYER_SET_STYLE
  } from './constants';
 
@@ -25,7 +25,8 @@ const initialState = fromJS({
 });
 
 const defaultPolygonStyle = {
-    "fill-color": "#F2F12D",
+    "fill-color": "#006495", // #F2F12D",
+    "fill-outline-color": "#E0A025", //#FF6600",
     "property": null,
     "fill-opacity": 0.8,
     "color-scale": null
@@ -62,6 +63,7 @@ function homeReducer(state = initialState, action) {
           name: action.name,
           description: action.description,
           visible: true,
+          closed: false,
           style: defaultLayerStyle(action.stats),
           stats: action.stats
         })));
@@ -73,6 +75,12 @@ function homeReducer(state = initialState, action) {
         let idx = arr.findKey(layer => layer.get("id") === action.id);
         let val = arr.get(idx);
         return arr.set(idx, val.set("visible", ! val.get("visible")));
+      });
+    case LAYER_CLOSE:
+      return state.updateIn(["layers"], arr => {
+        let idx = arr.findKey(layer => layer.get("id") === action.id);
+        let val = arr.get(idx);
+        return arr.set(idx, val.set("visible", false).set("closed", true));
       });
     case UI_TOGGLE:
       let element = action.element;
