@@ -6,9 +6,11 @@ import { LOCATION_CHANGE } from 'react-router-redux';
 import request from 'utils/request';
 import { searchDone, addItem, loadNumericAttributesDone } from './actions';
 
+let apiRoot = "http://localhost:8080/api"
+
 function* search(action) {
   console.log("Executing search");
-  const requestURL = "http://localhost:8080/api/layer?query=" + encodeURI(action.query)
+  const requestURL = apiRoot + "/layer?query=" + encodeURI(action.query)
   const results = yield call(request, requestURL, {
       method: 'GET'
     });
@@ -29,7 +31,7 @@ function* search(action) {
 
 function* bucketComputation(action) {
   console.log(action);
-  const requestURL = "http://localhost:8080/api/layer/compute";
+  const requestURL = apiRoot + "/layer/compute";
   const results = yield call(request, requestURL, {
     method: 'PUT',
     headers: {
@@ -41,7 +43,7 @@ function* bucketComputation(action) {
 
   if (! results.err) {
     console.log(results);
-    const requestURL = "http://localhost:8080/api/layer/metadata/" + results.data;
+    const requestURL = apiRoot + "/layer/metadata/" + results.data;
     const results2 = yield call(request, requestURL, {
     method: 'GET',
   });
@@ -54,7 +56,7 @@ function* bucketComputation(action) {
 
 function* numericAttributes(action) {
     console.log("Fetching numeric attributes");
-    const requestURL = "http://localhost:8080/api/layer/numeric_values/" + action.layerId;
+    const requestURL = apiRoot + "/layer/numeric_values/" + action.layerId;
     const results = yield call(request, requestURL,
     {
       method: 'GET'
