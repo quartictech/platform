@@ -21,7 +21,7 @@ public abstract class BucketSum implements BucketAggregation {
     public double aggregate(Feature bucket, Collection<Feature> features) {
         return features.stream().map(feature -> feature.metadata().get(property()))
                 .filter(Optional::isPresent)
-                .mapToDouble( value -> (Double) value.get())
+                .mapToDouble( value -> BucketUtils.mapToDouble(value.get()))
                 .sum();
     }
 }

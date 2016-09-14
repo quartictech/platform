@@ -87,6 +87,12 @@ public class BucketOp {
                 .map(bucketEntry -> {
                     Feature feature = bucketEntry.getKey();
                     Double value = aggregation.aggregate(feature, bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
+
+                    if (bucketSpec.normalizeToArea()) {
+                        if (feature.geometry().getArea() > 0) {
+                            value /= feature.geometry().getArea();
+                        }
+                    }
                     Map<String, Optional<Object>> metadata = new HashMap<>(feature.metadata());
                     metadata.put(propertyName, Optional.of(value));
                     return ImmutableFeature.copyOf(feature)

@@ -12,7 +12,7 @@ import java.util.Collection;
 @Value.Immutable
 @JsonSerialize(as = ImmutableBucketCount.class)
 @JsonDeserialize(as = ImmutableBucketCount.class)
-public class BucketCount implements BucketAggregation {
+public abstract class BucketCount implements BucketAggregation {
     @Override
     public double aggregate(Feature bucket, Collection<Feature> features) {
         return features.size();

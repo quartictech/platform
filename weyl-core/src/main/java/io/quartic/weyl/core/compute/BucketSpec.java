@@ -12,4 +12,5 @@ public interface BucketSpec {
     LayerId buckets();
     LayerId features();
     BucketAggregation aggregation();
+    boolean normalizeToArea();
 }
