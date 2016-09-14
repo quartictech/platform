@@ -17,6 +17,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzb
 import SizeMe from 'react-sizeme';
 import { polygonLayerStyle } from './styles.js';
 
+import { line_color_stops, tube_color_stops } from './lines_colors.js';
+
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
@@ -88,6 +90,21 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         'circle-color': '#223b53'
       }
     });
+
+    this.state.map.addLayer({
+    "id": layer.id + "_line",
+    "type": "line",
+    "source": layer.id,
+    "source-layer": layer.id + "_line",
+    'paint': {
+      "line-color": {
+        property: "name",
+        stops: tube_color_stops,
+        type: "categorical"
+      },
+      "line-width": 8
+    }
+  });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -96,6 +113,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       if (layer.visible) {
         this.state.visibleLayerIds.push(layer.id + "_polygon");
         this.state.visibleLayerIds.push(layer.id + "_point");
+        this.state.visibleLayerIds.push(layer.id + "_line");
       }
       if (this.state.map.getSource(layer.id) === undefined) {
         this.createNewLayer(layer);
@@ -103,6 +121,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.state.map.setLayoutProperty(layer.id + "_polygon", "visibility", layer.visible ? "visible" : "none");
       this.state.map.setLayoutProperty(layer.id + "_polygon_sel", "visibility", layer.visible ? "visible" : "none");
       this.state.map.setLayoutProperty(layer.id + "_point", "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(layer.id + "_line", "visibility", layer.visible ? "visible" : "none");
 
       let polyStyle = polygonLayerStyle(layer);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-color", polyStyle["fill-color"]);
