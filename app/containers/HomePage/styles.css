@@ -18,6 +18,7 @@
   height: calc(100vh - 70px);
   top:70px;
   width: 25vw;
+  min-width: 300px;
   pointer-events: none;
   display: flex;
   padding: 20px;

@@ -12,41 +12,87 @@ import styles from './styles.css';
 var $ = require('jquery');
 
 import LayerPicker from '../LayerPicker';
+import LayerAttributePicker from '../LayerAttributePicker';
 
 class BucketLayerItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
     super(props);
-    this.state = {selectedLayer: null, selectedBuckets: null};
+    this.state = {selectedLayer: null, selectedBuckets: null, normalizeToArea: false};
   }
   componentDidMount() {
     $('#aggregate-dropdown')
-    .dropdown();
+    .dropdown({
+      onChange: (value) => {
+         this.onAggregationChange(value);
+       }
+    });
   }
 
   onLayerChange(value) {
     this.state.selectedLayer = value;
+    this.forceUpdate();
   }
 
   onBucketsChange(value) {
     this.state.selectedBuckets = value;
+    this.forceUpdate();
   }
 
   onCancelClick() {
     this.props.onBucketToggle();
   }
 
+  onNormalizeToAreaChange(e) {
+    this.state.normalizeToArea = e.currentTarget.checked;
+    console.log(this.state.normalizeToArea);
+  }
+
+  onAggregationChange(value) {
+    this.state.selectedAggregation = value;
+    this.forceUpdate();
+  }
+
   onComputeClick() {
     console.log("compute click");
-    this.props.onCompute({
+    let computeSpec = {
       features: this.state.selectedLayer,
       buckets: this.state.selectedBuckets,
       aggregation: {
-        type: "count"
-      }
-    });
+        type: this.state.selectedAggregation
+      },
+      normalizeToArea: this.state.normalizeToArea
+    };
+
+    if (this.state.selectedAggregation == "sum" || this.state.selectedAggregation == "mean") {
+      computeSpec.aggregation.property = this.state.selectedAttribute;
+    }
+
+    this.props.onCompute(computeSpec);
+  }
+
+  renderAttributePicker(numericAttributes) {
+    console.log(this.state.selectedAggregation);
+    if (this.state.selectedAggregation == "sum" || this.state.selectedAggregation == "mean"){
+        return (<div className="field">
+              <LayerAttributePicker attributes={numericAttributes} onChange={(v) => this.state.selectedAttribute = v} />
+              </div>);
+    }
+    else {
+      return;
+    }
   }
 
   render() {
+    let selectedFeatureLayer = this.props.layers.find(layer => layer.id === this.state.selectedLayer);
+    let numericAttributes = [];
+    if (selectedFeatureLayer != null) {
+      for (var key of Object.keys(selectedFeatureLayer.stats.attributeStats)) {
+        let attribute = selectedFeatureLayer.stats.attributeStats[key];
+        if (attribute.type === 'NUMERIC') {
+          numericAttributes.push(key);
+        }
+      }
+    }
     return (
         <div className={styles.bucketLayerItem}>
         <div className="ui raised fluid card">
@@ -68,18 +114,23 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
                 <i className="filter icon"></i>
                 <span className="text">Aggregate</span>
                 <div className="menu">
-                  <div className="header">
-                    <i className="tags icon"></i>
-                    Filter by tag
-                  </div>
-                  <div className="item">
+                  <div className="item" data-value="count">
                   Count
                   </div>
-                  <div className="item">
+                  <div className="item" data-value="sum">
                   Sum
+                  </div>
+                  <div className="item" data-value="mean">
+                  Average
                   </div>
                 </div>
               </div>
+            </div>
+            {this.renderAttributePicker(numericAttributes)}
+
+            <div className="ui checkbox">
+              <input name="normalizeToArea" type="checkbox" onChange={this.onNormalizeToAreaChange.bind(this)}/>
+              <label>Normalise to Area</label>
             </div>
           </form>
           </div>
