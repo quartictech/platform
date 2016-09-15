@@ -47,7 +47,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
             onBucketCompute={this.props.onBucketCompute}
             ui={this.props.ui}
             visible={this.props.ui.panels.layerList}
-            onBucketToggle={this.props.onBucketToggle}
+            onUiToggle={this.props.onUiToggle}
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
           />

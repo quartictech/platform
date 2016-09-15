@@ -26,7 +26,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
   render() {
     let rows = [];
     if (this.props.ui.layerOp == "bucket") {
-      rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onBucketToggle={this.props.onBucketToggle} key="bucket"/>)
+      rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket"/>)
     }
     for (var layer of this.props.layers) {
       if (layer.closed) {
@@ -53,7 +53,7 @@ LayerList.propTypes = {
   layerClose: React.PropTypes.func,
   onBucketCompute: React.PropTypes.func,
   ui: React.PropTypes.object,
-  onBucketToggle: React.PropTypes.func,
+  onUiToggle: React.PropTypes.func,
   onLayerStyleChange: React.PropTypes.func
 }
 

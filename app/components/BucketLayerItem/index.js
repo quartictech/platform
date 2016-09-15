@@ -39,7 +39,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
   }
 
   onCancelClick() {
-    this.props.onBucketToggle();
+    this.props.onUiToggle("bucket");
   }
 
   onNormalizeToAreaChange(e) {
@@ -146,7 +146,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 
 BucketLayerItem.PropTypes = {
   onCompute: React.PropTypes.func,
-  onBucketToggle: React.PropTypes.func
+  onUiToggle: React.PropTypes.func
 }
 
 export default BucketLayerItem;
