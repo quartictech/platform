@@ -37,14 +37,14 @@ const defaultPointStyle = {
     'circle-color': '#223b53'
 }
 
-function defaultLayerStyle(stats) {
+function defaultLayerStyle(schema) {
   let style = {
     polygon: Object.assign({}, defaultPolygonStyle),
     point: Object.assign({}, defaultPointStyle)
   };
 
-  for (const attribute in stats.attributeStats) {
-    if (stats.attributeStats[attribute].type == "NUMERIC") {
+  for (const attribute in schema.attributes) {
+    if (schema.attributes[attribute].type == "NUMERIC") {
       style.polygon.property = attribute;
       style.polygon["color-scale"] = "BuPu"
       break;
@@ -63,7 +63,7 @@ const layerReducer = (layerState, action) => {
         description: action.description,
         visible: true,
         closed: false,
-        style: defaultLayerStyle(action.stats),
+        style: defaultLayerStyle(action.attributeSchema),
         stats: action.stats,
         attributeSchema: action.attributeSchema,
         filter: {}
