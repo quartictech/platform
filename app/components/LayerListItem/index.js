@@ -28,15 +28,38 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     $(this.accordion).accordion();
   }
 
+  renderAttributeEnum(data) {
+    return (
+      <div className="ui list">
+        {data.map(value => {
+          return (
+            <div className="item" key={value}>
+              <div className="ui checked checkbox">
+                <input type="checkbox" defaultChecked name={value} />
+                <label>{value}</label>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   renderLayerStats(layer) {
     let rows = [];
     let attributeStats = layer.stats.attributeStats;
     for (var key in attributeStats) {
-      rows.push(<tr key={key}>
-        <td>{key}</td>
-        <td>{attributeStats[key].type}</td>
-        <td>{numeral(attributeStats[key].minimum).format()} -> {numeral(attributeStats[key].maximum).format()}</td>
-        </tr>);
+      rows.push(
+        <div className="ui accordion" key={key}>
+          <div className="title">
+            <i className="dropdown icon"></i>
+            {key}
+          </div>
+          <div className="content">
+            {this.renderAttributeEnum(['Arse', 'Bum', 'Cheeks'])}
+          </div>
+        </div>
+      );
     }
     return rows;
   }
@@ -67,20 +90,13 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         <div className="right floated">
           <div className="ui mini statistic"><div className="value">{numeral(layer.stats.featureCount).format('0.0a')}</div><div className="label"> Features </div> </div>
         </div>
-        <div className="ui accordion" ref={x => this.accordion=x}>
+        <div className="ui styled fluid accordion" ref={x => this.accordion=x}>
           <div className="title">
             <i className="dropdown icon"></i>
             Attributes
           </div>
           <div className="content">
-            <table className="ui celled table">
-              <thead>
-                <tr><th>Attribute</th><th>Type</th><th>Detail</th></tr>
-              </thead>
-              <tbody>
-                {this.renderLayerStats(layer)}
-              </tbody>
-            </table>
+            {this.renderLayerStats(layer)}
           </div>
 
           <div className="title">
