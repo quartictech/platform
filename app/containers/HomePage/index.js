@@ -22,8 +22,8 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle
+import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
+  setLayerStyle, layerToggleValueVisible
  } from './actions';
 
 import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart } from './selectors';
@@ -50,6 +50,7 @@ export default class HomePage extends React.Component { // eslint-disable-line r
             onUiToggle={this.props.onUiToggle}
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
+            onToggleValueVisible={this.props.onToggleValueVisible}
           />
       </div>
 
@@ -76,7 +77,7 @@ function mapDispatchToProps(dispatch) {
   return {
     dispatch,
     onSearch: (query, callback) => dispatch(search(query, callback)),
-    onSelect: (result) => dispatch(addItem(result)),
+    onSelect: (result) => dispatch(layerCreate(result)),
     layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
     layerClose: (id) => dispatch(layerClose(id)),
     onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
@@ -85,7 +86,8 @@ function mapDispatchToProps(dispatch) {
     onClearSelection: () => dispatch(clearSelection()),
     onChartLayerSelection: (layerId) => dispatch(loadNumericAttributes(layerId)),
     onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute)),
-    onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style))
+    onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style)),
+    onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value))
   };
 }
 

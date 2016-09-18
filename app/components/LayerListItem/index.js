@@ -15,6 +15,34 @@ import * as numeral from 'numeral';
 
 import LayerStyleSettings from '../LayerStyleSettings';
 
+const AttributeValue = ({
+  value,
+  onClick
+}) => (
+  <div className="item" key={value}>
+    <div className="ui checked checkbox">
+      <input type="checkbox" defaultChecked name={value} onClick={() => onClick(value)} />
+      <label>{value}</label>
+    </div>
+  </div>
+);
+
+const AttributeValueList = ({
+  attribute,
+  values,
+  onClick
+}) => (
+  <div className="ui list">
+    {values.map(v => (
+      <AttributeValue
+        key={v}
+        value={v}
+        onClick={(v) => onClick(attribute, v)}
+      />
+    ))}
+  </div>
+);
+
 class LayerListItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   onLayerVisibleClick(event) {
     this.props.layerToggleVisible(event.currentTarget.id);
@@ -30,13 +58,23 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
   renderLayerStats(layer) {
     let rows = [];
-    let attributeStats = layer.stats.attributeStats;
-    for (var key in attributeStats) {
-      rows.push(<tr key={key}>
-        <td>{key}</td>
-        <td>{attributeStats[key].type}</td>
-        <td>{numeral(attributeStats[key].minimum).format()} -> {numeral(attributeStats[key].maximum).format()}</td>
-        </tr>);
+    for (var key in layer.stats.attributeStats) {
+      rows.push(
+        <div className="ui accordion" key={key}>
+          <div className="title">
+            <i className="dropdown icon"></i>
+            {key}
+          </div>
+          <div className="content">
+            <AttributeValueList
+              key={key}
+              attribute={key}
+              values={['Inner London', 'Outer London']}
+              onClick={(a,v) => this.props.onToggleValueVisible(this.props.layer.id, a, v)}
+            />
+          </div>
+        </div>
+      );
     }
     return rows;
   }
@@ -67,20 +105,13 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         <div className="right floated">
           <div className="ui mini statistic"><div className="value">{numeral(layer.stats.featureCount).format('0.0a')}</div><div className="label"> Features </div> </div>
         </div>
-        <div className="ui accordion" ref={x => this.accordion=x}>
+        <div className="ui styled fluid accordion" ref={x => this.accordion=x}>
           <div className="title">
             <i className="dropdown icon"></i>
             Attributes
           </div>
           <div className="content">
-            <table className="ui celled table">
-              <thead>
-                <tr><th>Attribute</th><th>Type</th><th>Detail</th></tr>
-              </thead>
-              <tbody>
-                {this.renderLayerStats(layer)}
-              </tbody>
-            </table>
+            {this.renderLayerStats(layer)}
           </div>
 
           <div className="title">

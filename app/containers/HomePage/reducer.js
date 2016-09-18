@@ -1,6 +1,6 @@
-import { fromJS } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE
+import { fromJS, Set } from 'immutable';
+import {  SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE
  } from './constants';
 
 const initialState = fromJS({
@@ -54,34 +54,56 @@ function defaultLayerStyle(stats) {
   return style;
 }
 
+const layerReducer = (layerState, action) => {
+  switch (action.type) {
+    case LAYER_CREATE:
+      return fromJS({
+        id: action.id,
+        name: action.name,
+        description: action.description,
+        visible: true,
+        closed: false,
+        style: defaultLayerStyle(action.stats),
+        stats: action.stats,
+        filter: {}
+      });
+    case LAYER_TOGGLE_VISIBLE:
+      return layerState.set("visible", ! layerState.get("visible"));
+    case LAYER_CLOSE:
+      return layerState.set("visible", false).set("closed", true);
+    case LAYER_SET_STYLE:
+      return layerState.mergeIn(["style", "polygon"], action.style.polygon);
+    case LAYER_TOGGLE_VALUE_VISIBLE:
+      return layerState.updateIn(["filter", action.attribute], Set(), set => {
+        if (set.has(action.value)) {
+          return set.remove(action.value);
+        } else {
+          return set.add(action.value);
+        }
+      });
+    default:
+      return layerState;
+  }
+};
+
 function homeReducer(state = initialState, action) {
   switch (action.type) {
-    case ITEM_ADD:
-      return state.updateIn(["layers"], arr => arr.push(
-        fromJS({
-          id: action.id,
-          name: action.name,
-          description: action.description,
-          visible: true,
-          closed: false,
-          style: defaultLayerStyle(action.stats),
-          stats: action.stats
-        })));
     case SEARCH_DONE:
       action.callback(action.response);
       return state;
+
+    case LAYER_CREATE:
+      return state.updateIn(["layers"], arr => arr.push(layerReducer(undefined, action)));
     case LAYER_TOGGLE_VISIBLE:
-      return state.updateIn(["layers"], arr => {
-        let idx = arr.findKey(layer => layer.get("id") === action.id);
-        let val = arr.get(idx);
-        return arr.set(idx, val.set("visible", ! val.get("visible")));
-      });
     case LAYER_CLOSE:
+    case LAYER_SET_STYLE:
+    case LAYER_TOGGLE_VALUE_VISIBLE:
       return state.updateIn(["layers"], arr => {
-        let idx = arr.findKey(layer => layer.get("id") === action.id);
+        let idx = arr.findKey(layer => layer.get("id") === action.layerId);
         let val = arr.get(idx);
-        return arr.set(idx, val.set("visible", false).set("closed", true));
+        return arr.set(idx, layerReducer(val, action));
       });
+
     case UI_TOGGLE:
       let element = action.element;
       if (element === "bucket") {
@@ -110,13 +132,6 @@ function homeReducer(state = initialState, action) {
     case CHART_SELECT_ATTRIBUTE:
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
 
-    case LAYER_SET_STYLE:
-      return state.updateIn(["layers"], arr => {
-        let idx = arr.findKey(layer => layer.get("id") === action.layerId);
-        let val = arr.get(idx);
-        console.log(action);
-        return arr.set(idx, val.mergeIn(["style", "polygon"], action.style.polygon));
-      });
     default:
       return state;
   }

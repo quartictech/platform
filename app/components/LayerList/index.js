@@ -34,6 +34,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       }
       let key="layer_" + layer.id;
       rows.push(<LayerListItem layer={layer} layerToggleVisible={this.props.layerToggleVisible} key={key}
+        onToggleValueVisible={this.props.onToggleValueVisible}
         onLayerStyleChange={this.props.onLayerStyleChange}
         layerClose={this.props.layerClose}
         />);

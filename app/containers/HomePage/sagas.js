@@ -4,7 +4,7 @@ import { takeEvery, takeLatest } from 'redux-saga'
 import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD } from './constants';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import request from 'utils/request';
-import { searchDone, addItem, loadNumericAttributesDone } from './actions';
+import { searchDone, layerCreate, loadNumericAttributesDone } from './actions';
 
 let apiRoot = "http://localhost:8080/api"
 
@@ -49,7 +49,7 @@ function* bucketComputation(action) {
   });
 
     if (! results2.err) {
-      yield put(addItem(results2.data));
+      yield put(layerCreate(results2.data));
     }
   }
 }
