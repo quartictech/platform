@@ -57,26 +57,26 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
   }
 
   renderLayerStats(layer) {
-    let rows = [];
-    for (var key in layer.attributeSchema.attributes) {
-      rows.push(
-        <div className="ui accordion" key={key}>
-          <div className="title">
-            <i className="dropdown icon"></i>
-            {key}
+    return (
+      Object.keys(layer.attributeSchema.attributes)
+        .filter(key => layer.attributeSchema.attributes[key].categories !== null)
+        .map(key => (
+          <div className="ui accordion" key={key}>
+            <div className="title">
+              <i className="dropdown icon"></i>
+              {key}
+            </div>
+            <div className="content">
+              <AttributeValueList
+                key={key}
+                attribute={key}
+                values={layer.attributeSchema.attributes[key].categories}
+                onClick={(a,v) => this.props.onToggleValueVisible(this.props.layer.id, a, v)}
+              />
+            </div>
           </div>
-          <div className="content">
-            <AttributeValueList
-              key={key}
-              attribute={key}
-              values={['Inner London', 'Outer London']}
-              onClick={(a,v) => this.props.onToggleValueVisible(this.props.layer.id, a, v)}
-            />
-          </div>
-        </div>
-      );
-    }
-    return rows;
+      ))
+    );
   }
 
   render() {

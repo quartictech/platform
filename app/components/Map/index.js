@@ -127,18 +127,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-color", polyStyle["fill-color"]);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-outline-color", polyStyle["fill-outline-color"]);
 
-      // Selection
-      let polyFilter = ["in", "_id", ""];
-      if (nextProps.selection.hasOwnProperty(layer.id)) {
-        polyFilter = nextProps.selection[layer.id].reduce( function(memo, featureId) {
-          memo.push(featureId);
-          return memo;
-        }, ['in', '_id']);
-      }
-      this.state.map.setFilter(layer.id + '_polygon_sel', polyFilter);
-
       // Value filter
-      let uberFilter = ["none"];
+      let valueFilter = ["none"];
       for (var attribute in layer.filter) {
         if (layer.filter.hasOwnProperty(attribute)) {
           let values = layer.filter[attribute];
@@ -150,11 +140,21 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
               return f;
             }, ['in', attribute]);
 
-            uberFilter.push(filter);
+            valueFilter.push(filter);
           }
         }
       }
-      this.state.map.setFilter(layer.id + '_polygon', uberFilter);
+      this.state.map.setFilter(layer.id + '_polygon', valueFilter);
+
+      // Selection filter
+      let selFilter = ["in", "_id", ""];
+      if (nextProps.selection.hasOwnProperty(layer.id)) {
+        selFilter = nextProps.selection[layer.id].reduce( function(memo, featureId) {
+          memo.push(featureId);
+          return memo;
+        }, ['in', '_id']);
+      }
+      this.state.map.setFilter(layer.id + '_polygon_sel', ["all", selFilter, valueFilter]);
     });
   }
 
