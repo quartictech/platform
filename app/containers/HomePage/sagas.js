@@ -21,7 +21,10 @@ function* search(action) {
       results: {
         layers: {
           name: "Layers",
-          results: results.data.map((item) => { return {title: item.name, name: item.name, description: item.description, id: item.id, stats: item.stats}})
+          results: results.data.map((item) => { return {title: item.name, name: item.name, description: item.description, id: item.id,
+            stats: item.stats,
+            attributeSchema: item.attributeSchema
+          }})
         }
       }
     }
