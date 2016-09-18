@@ -54,18 +54,6 @@ function defaultLayerStyle(stats) {
   return style;
 }
 
-const filterReducer = (filterState, action) => {
-  console.log(action);
-
-  return filterState.updateIn([action.layerId, action.attribute], Set(), set => {
-    if (set.has(action.value)) {
-      return set.remove(action.value);
-    } else {
-      return set.add(action.value);
-    }
-  });
-};
-
 const layerReducer = (layerState, action) => {
   switch (action.type) {
     case LAYER_CREATE:
@@ -76,7 +64,8 @@ const layerReducer = (layerState, action) => {
         visible: true,
         closed: false,
         style: defaultLayerStyle(action.stats),
-        stats: action.stats
+        stats: action.stats,
+        filter: {}
       });
     case LAYER_TOGGLE_VISIBLE:
       return layerState.set("visible", ! layerState.get("visible"));
@@ -84,6 +73,14 @@ const layerReducer = (layerState, action) => {
       return layerState.set("visible", false).set("closed", true);
     case LAYER_SET_STYLE:
       return layerState.mergeIn(["style", "polygon"], action.style.polygon);
+    case LAYER_TOGGLE_VALUE_VISIBLE:
+      return layerState.updateIn(["filter", action.attribute], Set(), set => {
+        if (set.has(action.value)) {
+          return set.remove(action.value);
+        } else {
+          return set.add(action.value);
+        }
+      });
     default:
       return layerState;
   }
@@ -100,6 +97,7 @@ function homeReducer(state = initialState, action) {
     case LAYER_TOGGLE_VISIBLE:
     case LAYER_CLOSE:
     case LAYER_SET_STYLE:
+    case LAYER_TOGGLE_VALUE_VISIBLE:
       return state.updateIn(["layers"], arr => {
         let idx = arr.findKey(layer => layer.get("id") === action.layerId);
         let val = arr.get(idx);
@@ -133,8 +131,6 @@ function homeReducer(state = initialState, action) {
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
-    case LAYER_TOGGLE_VALUE_VISIBLE:
-      return state.update('filter', (filterState) => filterReducer(filterState, action));
 
     default:
       return state;

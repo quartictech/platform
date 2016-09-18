@@ -136,6 +136,25 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         }, ['in', '_id']);
       }
       this.state.map.setFilter(layer.id + '_polygon_sel', polyFilter);
+
+      // Value filter
+      let uberFilter = ["none"];
+      for (var attribute in layer.filter) {
+        if (layer.filter.hasOwnProperty(attribute)) {
+          let values = layer.filter[attribute];
+
+          if (values.length > 0) {
+            console.log(attribute);
+            let filter = values.reduce((f, v) => {
+              f.push(v);
+              return f;
+            }, ['in', attribute]);
+
+            uberFilter.push(filter);
+          }
+        }
+      }
+      this.state.map.setFilter(layer.id + '_polygon', uberFilter);
     });
   }
 

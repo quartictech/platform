@@ -23,7 +23,7 @@ import styles from './styles.css';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, toggleValueVisible
+  setLayerStyle, layerToggleValueVisible
  } from './actions';
 
 import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart } from './selectors';
