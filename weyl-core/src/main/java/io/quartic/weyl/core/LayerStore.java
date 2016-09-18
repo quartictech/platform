@@ -12,10 +12,7 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LayerStore {
@@ -79,70 +76,43 @@ public class LayerStore {
                  .build();
     }
 
-    private static InferredAttributeType inferType(Object value) {
-        if (value instanceof Integer || value instanceof Double || value instanceof Float) {
-            return InferredAttributeType.NUMERIC;
-        }
-        else {
-            String stringValue = value.toString();
-            try {
-                Double.parseDouble(stringValue);
-                return InferredAttributeType.NUMERIC;
-            }
-            catch(NumberFormatException e) {
-                return InferredAttributeType.STRING;
-            }
-        }
-    }
     private static LayerStats calculateStats(Layer layer) {
-        Map<String, InferredAttributeType> inferredAttributeTypes = Maps.newConcurrentMap();
         Map<String, Double> maxNumeric = Maps.newConcurrentMap();
         Map<String, Double> minNumeric = Maps.newConcurrentMap();
+
+        AttributeSchema attributeSchema = layer.schema();
 
         layer.features().parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .filter(entry -> entry.getValue().isPresent())
-                .forEach((entry -> {
-                    Object value = entry.getValue().get();
-                    InferredAttributeType inferredAttributeType = inferType(value);
+                .filter(entry -> attributeSchema.attributes().get(entry.getKey()).type()
+                        == AttributeType.NUMERIC)
+                .forEach(entry -> {
+                            Object value = entry.getValue().get();
+                            double doubleValue = Double.valueOf(value.toString());
 
-                    if (inferredAttributeType == InferredAttributeType.NUMERIC) {
-                        double doubleValue = Double.valueOf(value.toString());
-
-                        if (! maxNumeric.containsKey(entry.getKey())) {
-                            maxNumeric.put(entry.getKey(), doubleValue);
-                        }
-                        else if (doubleValue > maxNumeric.get(entry.getKey())) {
-                            maxNumeric.put(entry.getKey(), doubleValue);
-                        }
-                        if (! minNumeric.containsKey(entry.getKey())) {
-                            minNumeric.put(entry.getKey(), doubleValue);
-                        }
-                        else if (doubleValue < minNumeric.get(entry.getKey())) {
-                            minNumeric.put(entry.getKey(), doubleValue);
-                        }
-                    }
-
-                    if (inferredAttributeTypes.containsKey(entry.getKey())) {
-                       if (inferredAttributeTypes.get(entry.getKey()) != inferredAttributeType) {
-                           inferredAttributeTypes.put(entry.getKey(), InferredAttributeType.UNKNOWN);
-                       }
-                    }
-                    else {
-                        inferredAttributeTypes.put(entry.getKey(), inferredAttributeType);
-                    }
-                }) );
+                            if (!maxNumeric.containsKey(entry.getKey())) {
+                                maxNumeric.put(entry.getKey(), doubleValue);
+                            } else if (doubleValue > maxNumeric.get(entry.getKey())) {
+                                maxNumeric.put(entry.getKey(), doubleValue);
+                            }
+                            if (!minNumeric.containsKey(entry.getKey())) {
+                                minNumeric.put(entry.getKey(), doubleValue);
+                            } else if (doubleValue < minNumeric.get(entry.getKey())) {
+                                minNumeric.put(entry.getKey(), doubleValue);
+                            }
+                        });
 
         ImmutableLayerStats.Builder builder = ImmutableLayerStats.builder();
-        for (Map.Entry<String, InferredAttributeType> attributeType : inferredAttributeTypes.entrySet()) {
-            AttributeStats attributeStats = ImmutableAttributeStats.builder()
-                    .minimum(Optional.ofNullable(minNumeric.get(attributeType.getKey())))
-                    .maximum(Optional.ofNullable(maxNumeric.get(attributeType.getKey())))
-                    .type(attributeType.getValue())
-                    .build();
-
-            builder.putAttributeStats(attributeType.getKey(), attributeStats);
-        }
+        layer.schema().attributes()
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().type() == AttributeType.NUMERIC)
+                .forEach(entry -> builder.putAttributeStats(entry.getKey(),
+                        ImmutableAttributeStats.builder()
+                                .minimum(minNumeric.get(entry.getKey()))
+                                .maximum(maxNumeric.get(entry.getKey()))
+                        .build()));
 
         builder.featureCount(layer.features().size());
 

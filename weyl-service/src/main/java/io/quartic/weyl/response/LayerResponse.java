@@ -2,6 +2,7 @@ package io.quartic.weyl.response;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerStats;
 import org.immutables.value.Value;
@@ -14,4 +15,5 @@ public interface LayerResponse {
    String name();
    String description();
    LayerStats stats();
+   AttributeSchema attributeSchema();
 }

@@ -9,7 +9,6 @@ import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
 
-import javax.swing.text.html.Option;
 import javax.ws.rs.*;
 import java.util.Collection;
 import java.util.List;
@@ -58,9 +57,10 @@ public class LayerResource {
                .orElseThrow(() -> new NotFoundException("no layer with id " + id));
 
 
-      List<String> numericAttributes = indexedLayer.layerStats().attributeStats()
+      List<String> numericAttributes = indexedLayer.layer().schema()
+              .attributes()
               .entrySet().stream()
-              .filter( entry -> entry.getValue().type() == InferredAttributeType.NUMERIC)
+              .filter( entry -> entry.getValue().type() == AttributeType.NUMERIC)
               .map(Map.Entry::getKey)
               .collect(Collectors.toList());
 
@@ -110,6 +110,7 @@ public class LayerResource {
                       .description(layer.layer().metadata().description())
                       .id(layerId)
                       .stats(layer.layerStats())
+                      .attributeSchema(layer.layer().schema())
                       .build())
               .orElseThrow(() -> new NotFoundException("no layer with id " + id));
    }
@@ -120,12 +121,14 @@ public class LayerResource {
       Preconditions.checkNotNull(query);
         return layerStore.listLayers()
                 .stream()
-                .filter(layer -> layer.layer().metadata().name().toLowerCase().contains(query.toLowerCase()))
+                .filter(layer -> layer.layer()
+                        .metadata().name().toLowerCase().contains(query.toLowerCase()))
                 .map(layer -> ImmutableLayerResponse.builder()
                         .name(layer.layer().metadata().name())
                         .description(layer.layer().metadata().description())
                         .id(layer.layerId())
                         .stats(layer.layerStats())
+                        .attributeSchema(layer.layer().schema())
                         .build())
                 .collect(Collectors.toList());
    }

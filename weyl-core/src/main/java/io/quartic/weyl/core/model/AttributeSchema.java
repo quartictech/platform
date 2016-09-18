@@ -4,12 +4,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Value.Immutable
-@JsonSerialize(as=ImmutableAttributeStats.class)
-@JsonDeserialize(as=ImmutableAttributeStats.class)
-public interface AttributeStats {
-    Optional<Double> minimum();
-    Optional<Double> maximum();
+@JsonSerialize(as=ImmutableAttributeSchema.class)
+@JsonDeserialize(as=ImmutableAttributeSchema.class)
+public interface AttributeSchema {
+    Optional<String> primaryAttribute();
+    Map<String, Attribute> attributes();
 }

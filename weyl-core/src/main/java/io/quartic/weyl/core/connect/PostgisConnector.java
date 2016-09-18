@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
+import io.quartic.weyl.core.attributes.InferAttributeSchema;
 import io.quartic.weyl.core.model.*;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -55,9 +56,17 @@ public class PostgisConnector {
         }
         iterator.close();
 
+        Map<String, Attribute> attributes = InferAttributeSchema.inferSchema(features);
+
+        AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
+                .attributes(attributes)
+                .primaryAttribute(Optional.empty())
+                .build();
+
         return Optional.of(ImmutableRawLayer.builder()
                 .features(features)
                 .metadata(metadata)
+                .schema(attributeSchema)
                 .build());
     }
 

@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.model;
 
-public enum InferredAttributeType {
+public enum AttributeType {
     NUMERIC,
     STRING,
     UNKNOWN
