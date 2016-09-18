@@ -1,0 +1,8 @@
+.mapViewport { /* stylelint-ignore */
+  flex: 1;
+}
+
+.map {
+  flex: 1;
+   flex-direction: column; display: flex;
+ }

@@ -1,0 +1,47 @@
+
+.mapContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  z-index: 900;
+  height: 100vh;
+}
+
+.container {
+  height: 100vh;
+  width: 100vw;
+}
+
+.leftDrawer {
+  position: absolute;
+  left: 0px;
+  height: calc(100vh - 70px);
+  top:70px;
+  width: 25vw;
+  min-width: 300px;
+  pointer-events: none;
+  display: flex;
+  padding: 20px;
+}
+
+.rightDrawer {
+  position: absolute;
+  left: 75vw;
+  height: calc(100vh - 70px);
+  top:70px;
+  width: 25vw;
+  pointer-events: none;
+  display: flex;
+  padding: 20px;
+}
+
+.bottomDrawer {
+  position: absolute;
+  left: 30vw;
+  top: 60vh;
+  height: 40vh;
+  width: 70vw;
+  display: flex;
+  pointer-events: none;
+  padding: 30px;
+}
