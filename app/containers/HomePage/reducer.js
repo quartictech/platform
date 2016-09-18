@@ -1,6 +1,6 @@
 import { fromJS, Set } from 'immutable';
-import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE, TOGGLE_VALUE_VISIBLE
+import {  SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE
  } from './constants';
 
 const initialState = fromJS({
@@ -21,8 +21,7 @@ const initialState = fromJS({
   numericAttributes: {},
   histogramChart: {
     selectedAttribute: null
-  },
-  filter: {}
+  }
 });
 
 const defaultPolygonStyle = {
@@ -69,6 +68,16 @@ const filterReducer = (filterState, action) => {
 
 const layerReducer = (layerState, action) => {
   switch (action.type) {
+    case LAYER_CREATE:
+      return fromJS({
+        id: action.id,
+        name: action.name,
+        description: action.description,
+        visible: true,
+        closed: false,
+        style: defaultLayerStyle(action.stats),
+        stats: action.stats
+      });
     case LAYER_TOGGLE_VISIBLE:
       return layerState.set("visible", ! layerState.get("visible"));
     case LAYER_CLOSE:
@@ -82,20 +91,12 @@ const layerReducer = (layerState, action) => {
 
 function homeReducer(state = initialState, action) {
   switch (action.type) {
-    case ITEM_ADD:
-      return state.updateIn(["layers"], arr => arr.push(
-        fromJS({
-          id: action.id,
-          name: action.name,
-          description: action.description,
-          visible: true,
-          closed: false,
-          style: defaultLayerStyle(action.stats),
-          stats: action.stats
-        })));
     case SEARCH_DONE:
       action.callback(action.response);
       return state;
+
+    case LAYER_CREATE:
+      return state.updateIn(["layers"], arr => arr.push(layerReducer(undefined, action)));
     case LAYER_TOGGLE_VISIBLE:
     case LAYER_CLOSE:
     case LAYER_SET_STYLE:
@@ -104,6 +105,7 @@ function homeReducer(state = initialState, action) {
         let val = arr.get(idx);
         return arr.set(idx, layerReducer(val, action));
       });
+
     case UI_TOGGLE:
       let element = action.element;
       if (element === "bucket") {
@@ -131,7 +133,7 @@ function homeReducer(state = initialState, action) {
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
-    case TOGGLE_VALUE_VISIBLE:
+    case LAYER_TOGGLE_VALUE_VISIBLE:
       return state.update('filter', (filterState) => filterReducer(filterState, action));
 
     default:

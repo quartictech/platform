@@ -22,7 +22,7 @@ import styles from './styles.css';
 
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { search, addItem, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
+import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
   setLayerStyle, toggleValueVisible
  } from './actions';
 
@@ -77,7 +77,7 @@ function mapDispatchToProps(dispatch) {
   return {
     dispatch,
     onSearch: (query, callback) => dispatch(search(query, callback)),
-    onSelect: (result) => dispatch(addItem(result)),
+    onSelect: (result) => dispatch(layerCreate(result)),
     layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
     layerClose: (id) => dispatch(layerClose(id)),
     onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
@@ -87,7 +87,7 @@ function mapDispatchToProps(dispatch) {
     onChartLayerSelection: (layerId) => dispatch(loadNumericAttributes(layerId)),
     onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute)),
     onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style)),
-    onToggleValueVisible: (layerId, attribute, value) => dispatch(toggleValueVisible(layerId, attribute, value))
+    onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value))
   };
 }
 

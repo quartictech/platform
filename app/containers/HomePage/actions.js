@@ -1,9 +1,9 @@
-import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, BUCKET_COMPUTATION_START, UI_TOGGLE,
+import { SEARCH, SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, BUCKET_COMPUTATION_START, UI_TOGGLE,
   SELECT_FEATURES, CLEAR_SELECTION,
   NUMERIC_ATTRIBUTES_LOAD, NUMERIC_ATTRIBUTES_LOADED,
   CHART_SELECT_ATTRIBUTE,
   LAYER_SET_STYLE,
-  TOGGLE_VALUE_VISIBLE
+  LAYER_TOGGLE_VALUE_VISIBLE
 } from './constants';
 
 
@@ -24,9 +24,9 @@ export function searchDone(results, callback) {
   }
 }
 
-export function addItem(result) {
+export function layerCreate(result) {
   return {
-    type: ITEM_ADD,
+    type: LAYER_CREATE,
     id: result.id,
     name: result.name,
     description: result.description,
@@ -108,9 +108,9 @@ export function setLayerStyle(layerId, style) {
   }
 }
 
-export function toggleValueVisible(layerId, attribute, value) {
+export function layerToggleValueVisible(layerId, attribute, value) {
   return {
-    type: TOGGLE_VALUE_VISIBLE,
+    type: LAYER_TOGGLE_VALUE_VISIBLE,
     layerId,
     attribute,
     value
