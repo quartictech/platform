@@ -40,7 +40,7 @@ public class InferAttributeSchema {
                 .filter(Optional::isPresent)
                 .collect(Collectors.toSet());
 
-        if (values.size() < 20 && values.size() < features.size()) {
+        if (values.size() > 0 && values.size() < 10 && values.size() < features.size()) {
             return Optional.of(values);
         }
         else {
