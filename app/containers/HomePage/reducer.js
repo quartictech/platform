@@ -1,6 +1,6 @@
 import { fromJS } from 'immutable';
 import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE
+  LAYER_SET_STYLE, TOGGLE_VALUE_VISIBLE
  } from './constants';
 
 const initialState = fromJS({
@@ -21,7 +21,8 @@ const initialState = fromJS({
   numericAttributes: {},
   histogramChart: {
     selectedAttribute: null
-  }
+  },
+  filter: {}
 });
 
 const defaultPolygonStyle = {
@@ -53,6 +54,11 @@ function defaultLayerStyle(stats) {
 
   return style;
 }
+
+const filterReducer = (filterState, action) => {
+  console.log(action);
+  return filterState;
+};
 
 function homeReducer(state = initialState, action) {
   switch (action.type) {
@@ -117,6 +123,10 @@ function homeReducer(state = initialState, action) {
         console.log(action);
         return arr.set(idx, val.mergeIn(["style", "polygon"], action.style.polygon));
       });
+
+    case TOGGLE_VALUE_VISIBLE:
+      return state.update('filter', (filterState) => filterReducer(filterState, action));
+
     default:
       return state;
   }

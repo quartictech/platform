@@ -15,6 +15,34 @@ import * as numeral from 'numeral';
 
 import LayerStyleSettings from '../LayerStyleSettings';
 
+const AttributeValue = ({
+  value,
+  onClick
+}) => (
+  <div className="item" key={value}>
+    <div className="ui checked checkbox">
+      <input type="checkbox" defaultChecked name={value} onClick={() => onClick(value)} />
+      <label>{value}</label>
+    </div>
+  </div>
+);
+
+const AttributeValueList = ({
+  attribute,
+  values,
+  onClick
+}) => (
+  <div className="ui list">
+    {values.map(v => (
+      <AttributeValue
+        key={v}
+        value={v}
+        onClick={(v) => onClick(attribute, v)}
+      />
+    ))}
+  </div>
+);
+
 class LayerListItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   onLayerVisibleClick(event) {
     this.props.layerToggleVisible(event.currentTarget.id);
@@ -28,27 +56,9 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     $(this.accordion).accordion();
   }
 
-  renderAttributeEnum(data) {
-    return (
-      <div className="ui list">
-        {data.map(value => {
-          return (
-            <div className="item" key={value}>
-              <div className="ui checked checkbox">
-                <input type="checkbox" defaultChecked name={value} />
-                <label>{value}</label>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
   renderLayerStats(layer) {
     let rows = [];
-    let attributeStats = layer.stats.attributeStats;
-    for (var key in attributeStats) {
+    for (var key in layer.stats.attributeStats) {
       rows.push(
         <div className="ui accordion" key={key}>
           <div className="title">
@@ -56,7 +66,12 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
             {key}
           </div>
           <div className="content">
-            {this.renderAttributeEnum(['Arse', 'Bum', 'Cheeks'])}
+            <AttributeValueList
+              key={key}
+              attribute={key}
+              values={['Arse', 'Bum', 'Cheeks']}
+              onClick={(a,v) => this.props.onToggleValueVisible(this.props.layer.id, a, v)}
+            />
           </div>
         </div>
       );

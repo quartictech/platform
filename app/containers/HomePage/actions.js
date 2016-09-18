@@ -2,7 +2,8 @@ import { SEARCH, SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, BUCKE
   SELECT_FEATURES, CLEAR_SELECTION,
   NUMERIC_ATTRIBUTES_LOAD, NUMERIC_ATTRIBUTES_LOADED,
   CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE
+  LAYER_SET_STYLE,
+  TOGGLE_VALUE_VISIBLE
 } from './constants';
 
 
@@ -104,5 +105,14 @@ export function setLayerStyle(layerId, style) {
     type: LAYER_SET_STYLE,
     layerId,
     style
+  }
+}
+
+export function toggleValueVisible(layerId, attribute, value) {
+  return {
+    type: TOGGLE_VALUE_VISIBLE,
+    layerId,
+    attribute,
+    value
   }
 }
