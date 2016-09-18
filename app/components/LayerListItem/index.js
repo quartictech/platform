@@ -69,7 +69,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
             <AttributeValueList
               key={key}
               attribute={key}
-              values={['Arse', 'Bum', 'Cheeks']}
+              values={['Inner London', 'Outer London']}
               onClick={(a,v) => this.props.onToggleValueVisible(this.props.layer.id, a, v)}
             />
           </div>

@@ -1,4 +1,4 @@
-import { fromJS } from 'immutable';
+import { fromJS, Set } from 'immutable';
 import {  SEARCH_DONE, ITEM_ADD, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
   LAYER_SET_STYLE, TOGGLE_VALUE_VISIBLE
  } from './constants';
@@ -57,7 +57,14 @@ function defaultLayerStyle(stats) {
 
 const filterReducer = (filterState, action) => {
   console.log(action);
-  return filterState;
+
+  return filterState.updateIn([action.layerId, action.attribute], Set(), set => {
+    if (set.has(action.value)) {
+      return set.remove(action.value);
+    } else {
+      return set.add(action.value);
+    }
+  });
 };
 
 function homeReducer(state = initialState, action) {
