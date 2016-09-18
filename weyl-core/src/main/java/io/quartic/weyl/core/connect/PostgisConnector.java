@@ -72,7 +72,7 @@ public class PostgisConnector {
 
 
 
-    private Optional<Geometry> parseGeomtry(byte[] data) {
+    private Optional<Geometry> parseGeometry(byte[] data) {
         try {
             return Optional.of(wkbReader.read(data));
         } catch (ParseException e) {
@@ -90,7 +90,7 @@ public class PostgisConnector {
             return Optional.empty();
         }
 
-        return parseGeomtry(wkb).map( geometry -> {
+        return parseGeometry(wkb).map(geometry -> {
             Map<String, Optional<Object>> attributes = Maps.newHashMap();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
