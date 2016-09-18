@@ -67,6 +67,19 @@ const filterReducer = (filterState, action) => {
   });
 };
 
+const layerReducer = (layerState, action) => {
+  switch (action.type) {
+    case LAYER_TOGGLE_VISIBLE:
+      return layerState.set("visible", ! layerState.get("visible"));
+    case LAYER_CLOSE:
+      return layerState.set("visible", false).set("closed", true);
+    case LAYER_SET_STYLE:
+      return layerState.mergeIn(["style", "polygon"], action.style.polygon);
+    default:
+      return layerState;
+  }
+};
+
 function homeReducer(state = initialState, action) {
   switch (action.type) {
     case ITEM_ADD:
@@ -84,16 +97,12 @@ function homeReducer(state = initialState, action) {
       action.callback(action.response);
       return state;
     case LAYER_TOGGLE_VISIBLE:
-      return state.updateIn(["layers"], arr => {
-        let idx = arr.findKey(layer => layer.get("id") === action.id);
-        let val = arr.get(idx);
-        return arr.set(idx, val.set("visible", ! val.get("visible")));
-      });
     case LAYER_CLOSE:
+    case LAYER_SET_STYLE:
       return state.updateIn(["layers"], arr => {
-        let idx = arr.findKey(layer => layer.get("id") === action.id);
+        let idx = arr.findKey(layer => layer.get("id") === action.layerId);
         let val = arr.get(idx);
-        return arr.set(idx, val.set("visible", false).set("closed", true));
+        return arr.set(idx, layerReducer(val, action));
       });
     case UI_TOGGLE:
       let element = action.element;
@@ -122,15 +131,6 @@ function homeReducer(state = initialState, action) {
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
-
-    case LAYER_SET_STYLE:
-      return state.updateIn(["layers"], arr => {
-        let idx = arr.findKey(layer => layer.get("id") === action.layerId);
-        let val = arr.get(idx);
-        console.log(action);
-        return arr.set(idx, val.mergeIn(["style", "polygon"], action.style.polygon));
-      });
-
     case TOGGLE_VALUE_VISIBLE:
       return state.update('filter', (filterState) => filterReducer(filterState, action));
 

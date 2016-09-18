@@ -34,19 +34,19 @@ export function addItem(result) {
   }
 }
 
-export function layerToggleVisible(id) {
-  console.assert(id != null);
+export function layerToggleVisible(layerId) {
+  console.assert(layerId != null);
   return {
     type: LAYER_TOGGLE_VISIBLE,
-    id: id
+    layerId
   }
 }
 
-export function layerClose(id) {
-  console.assert(id != null);
+export function layerClose(layerId) {
+  console.assert(layerId != null);
   return {
     type: LAYER_CLOSE,
-    id: id
+    layerId
   }
 }
 
