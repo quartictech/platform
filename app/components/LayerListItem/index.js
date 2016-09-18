@@ -47,7 +47,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     let layerToggleVisible = this.props.layerToggleVisible;
     return (
       <div className={styles.layerListItem}>
-      <div className="ui raised fluid card">
+      <div className="ui fluid card">
       <div className="content">
         <div className="right floated">
           <button className={buttonClassNames} onClick={this.onLayerVisibleClick.bind(this)} id={layer.id}>
