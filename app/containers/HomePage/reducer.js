@@ -65,6 +65,7 @@ const layerReducer = (layerState, action) => {
         closed: false,
         style: defaultLayerStyle(action.stats),
         stats: action.stats,
+        attributeSchema: action.attributeSchema,
         filter: {}
       });
     case LAYER_TOGGLE_VISIBLE:

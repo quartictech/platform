@@ -30,7 +30,8 @@ export function layerCreate(result) {
     id: result.id,
     name: result.name,
     description: result.description,
-    stats: result.stats
+    stats: result.stats,
+    attributeSchema: result.attributeSchema
   }
 }
 

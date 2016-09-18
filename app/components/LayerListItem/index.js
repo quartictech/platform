@@ -58,7 +58,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
   renderLayerStats(layer) {
     let rows = [];
-    for (var key in layer.stats.attributeStats) {
+    for (var key in layer.attributeSchema.attributes) {
       rows.push(
         <div className="ui accordion" key={key}>
           <div className="title">
