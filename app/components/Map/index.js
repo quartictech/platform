@@ -44,7 +44,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
         container: 'map-inner',
-        style: 'mapbox://styles/mapbox/light-v9',
+        style: 'mapbox://styles/mapbox/basic-v9',
         zoom: 13,
         center: [0.1278, 51.5074]
     });
