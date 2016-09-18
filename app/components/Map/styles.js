@@ -30,25 +30,39 @@ function randomChoice(arr) {
 }
 
 export function polygonLayerStyle(layer) {
-    let style = layer.style.polygon;
-    console.log(style);
-    if (style.property == null) {
-      return {
-        "fill-color": style["fill-color"],
-        "fill-outline-color": style["fill-outline-color"],
-        "fill-opacity": style["fill-opacity"]
-      }
-    }
-    else {
-      let attributeStats = layer.stats.attributeStats[style.property];
+  let style = layer.style.polygon;
+  console.log(style);
+  return {
+    "fill-color": fillColorStyle(layer),
+    "fill-outline-color": style["fill-outline-color"],
+    "fill-opacity": fillOpacityStyle(layer)
+  }
+}
 
-      let colorScale = style["color-scale"];
-      return {
-        "fill-color" : {
-          "property" : style.property,
-          "stops" : computeStops(colorScale, 8, attributeStats.minimum, attributeStats.maximum)
-        },
-        "fill-opacity": style["fill-opacity"]
-      }
-    }
+function fillOpacityStyle(layer) {
+  let style = layer.style.polygon;
+  return {
+    "property" : "inner outer london",
+    "stops" : [
+      ["Inner London", 0.3],
+      ["Outer London", 1]
+    ],
+    "type": "categorical"
+  };
+}
+
+function fillColorStyle(layer) {
+  let style = layer.style.polygon;
+
+  if (style.property == null) {
+    return style["fill-color"];
+  } else {
+    let attributeStats = layer.stats.attributeStats[style.property];
+    let colorScale = style["color-scale"];
+
+    return {
+      "property" : style.property,
+      "stops" : computeStops(colorScale, 8, attributeStats.minimum, attributeStats.maximum)
+    };
+  }
 }
