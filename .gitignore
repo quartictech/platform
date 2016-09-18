@@ -5,3 +5,5 @@ out
 *.iws
 build/
 generated_src
+
+*.gc
