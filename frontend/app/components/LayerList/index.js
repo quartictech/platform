@@ -73,26 +73,59 @@ const AttributeList = ({
   </div>
 );
 
+const LayerListItemInfo = ({
+  layerId,
+  attributes,
+  onClick,
+  mode
+}) => {
+  switch (mode) {
+    case 'FILTER':
+      return (
+        <div className="ui secondary segment">
+          <div className="content">
+            <AttributeList
+              layerId={layerId}
+              attributes={attributes}
+              onClick={onClick}
+            />
+          </div>
+        </div>
+      );
+
+    case 'STYLE':
+      // TODO
+
+    default:
+      return null;
+  }
+};
+
 const LayerListItem = ({
   layer,
-  layerToggleVisible,
+  onButtonClick,
   onToggleValueVisible,
   onLayerStyleChange,
-  layerClose
+  mode
 }) => {
   let buttonClassNames = classNames("ui mini toggle compact button icon", {"active": layer.visible});
+  console.log('ID = ' + layer.id + ', mode = ' + mode);
   return (
     <div className={styles.layerListItem}>
       <div className="content">
         <div className="right floated">
-          <a>
+          <a onClick={e => onButtonClick('VISIBLE')}>
             <i className="icon eye"></i>
           </a>
-          <i className="icon filter"></i>
-          <i className="icon paint brush"></i>
+          <a onClick={e => onButtonClick('FILTER')}>
+            <i className="icon filter"></i>
+          </a>
+          <a onClick={e => onButtonClick('STYLE')}>
+            <i className="icon paint brush"></i>
+          </a>
         </div>
         <div className="header">
-          <a>
+          <a onClick={e => onButtonClick('CLOSE')}>
             <i className="icon close"></i>
           </a>
           {layer.name}
@@ -102,36 +135,59 @@ const LayerListItem = ({
         </div>
       </div>
 
-      <div className="ui secondary segment">
-        <div className="content">
-          <AttributeList
-            layerId={layer.id}
-            attributes={layer.attributeSchema.attributes}
-            onClick={(l,a,v) => onToggleValueVisible(l,a,v)}
-          />
-        </div>
-      </div>
+      <LayerListItemInfo
+        layerId={layer.id}
+        attributes={layer.attributeSchema.attributes}
+        onClick={(l,a,v) => onToggleValueVisible(l,a,v)}
+        mode={mode}
+      />
     </div>
   );
 }
 
+
+
 class LayerList extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  constructor() {
+    super();
+    this.state = {
+      activeLayerId: null,
+      activeMode: null
+    };
+  }
+
+  onButtonClick(name, layerId) {
+    console.log("onButtonClick = " + name + " " + layerId);
+    switch (name) {
+      case 'VISIBLE':
+        return this.props.layerToggleVisible(layerId);
+      case 'CLOSE':
+        return this.props.layerClose(layerId);
+      default:
+        return this.setState({
+          activeLayerId: layerId,
+          activeMode: (this.state.activeLayerId === layerId && this.state.activeMode === name) ? null : name
+        });
+    }
+  }
+
   render() {
     let rows = [];
     if (this.props.ui.layerOp == "bucket") {
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket"/>)
     }
-    for (var layer of this.props.layers) {
+    for (const layer of this.props.layers) {
       if (layer.closed) {
         continue;
       }
       let key="layer_" + layer.id;
       rows.push(<LayerListItem
+        key={key}
         layer={layer}
-        layerToggleVisible={this.props.layerToggleVisible} key={key}
+        onButtonClick={(name) => this.onButtonClick(name, layer.id)}
         onToggleValueVisible={this.props.onToggleValueVisible}
         onLayerStyleChange={this.props.onLayerStyleChange}
-        layerClose={this.props.layerClose}
+        mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
         />);
     }
 
