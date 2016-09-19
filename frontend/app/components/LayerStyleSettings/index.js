@@ -20,7 +20,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   }
 
   renderRadioButton(name, state) {
-        return <input name={this.props.layer.id} id={name} checked={state} type="radio" onChange={this.onRadioChange.bind(this)}
+        return <input name={this.props.layerId} id={name} checked={state} type="radio" onChange={this.onRadioChange.bind(this)}
           ref={x => this.radioButtons[name] = x}/>
   }
 
@@ -30,8 +30,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
     }
 
     let property = (e.currentTarget.id == "constant_fill") ? null : this.state.attribute;
-    console.log(property);
-    this.props.onChange(this.props.layer.id, {
+    this.props.onChange(this.props.layerId, {
         polygon: {
            property
         }
@@ -41,7 +40,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   onAttributeChange(value) {
     this.state.attribute = value;
 
-    this.props.onChange(this.props.layer.id, {
+    this.props.onChange(this.props.layerId, {
       polygon: {
         property: this.radioButtons["constant_fill"].checked ? null : this.state.attribute
       }
@@ -49,7 +48,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   }
 
   getNumericAttributes() {
-    let attributeStats = this.props.layer.attributeSchema.attributes;
+    let attributeStats = this.props.layerAttributes;
     let numericAttributes = [];
     for (var prop in attributeStats) {
       if (attributeStats[prop]["type"] === "NUMERIC") {
@@ -67,26 +66,21 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
     <div className="grouped fields">
       <div className="field">
         <div className="ui radio checkbox">
-          {this.renderRadioButton("constant_fill", this.props.layer.style.polygon.property == null)}
+          {this.renderRadioButton("constant_fill", this.props.layerStyle.polygon.property == null)}
           <label>Constant Fill</label>
         </div>
       </div>
       <div className="field">
         <div className="ui radio checkbox">
-          {this.renderRadioButton("choropleth", this.props.layer.style.polygon.property != null)}
+          {this.renderRadioButton("choropleth", this.props.layerStyle.polygon.property != null)}
           <label>Choropleth</label>
         </div>
-        <LayerAttributePicker attributes={numericAttributes} selected={this.props.layer.style.polygon.property} onChange={this.onAttributeChange.bind(this)}/>
+        <LayerAttributePicker attributes={numericAttributes} selected={this.props.layerStyle.polygon.property} onChange={this.onAttributeChange.bind(this)}/>
       </div>
     </div>
   </div>
     );
   }
-}
-
-LayerStyleSettings.PropTypes = {
-  layer: React.PropTypes.object,
-  onChange: React.PropTypes.func
 }
 
 export default LayerStyleSettings;

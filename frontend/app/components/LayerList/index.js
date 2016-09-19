@@ -12,6 +12,7 @@ import styles from './styles.css';
 import classNames from 'classnames';
 
 import BucketLayerItem from '../BucketLayerItem';
+import LayerStyleSettings from '../LayerStyleSettings';
 
 var $ = require('jquery');
 
@@ -76,7 +77,9 @@ const AttributeList = ({
 const LayerListItemInfo = ({
   layerId,
   attributes,
-  onClick,
+  layerStyle,
+  onAttributeValueClick,
+  onLayerStyleChange,
   mode
 }) => {
   switch (mode) {
@@ -87,15 +90,22 @@ const LayerListItemInfo = ({
             <AttributeList
               layerId={layerId}
               attributes={attributes}
-              onClick={onClick}
+              onClick={onAttributeValueClick}
             />
           </div>
         </div>
       );
 
     case 'STYLE':
-      // TODO
-
+    return (<div className="ui secondary segment">
+          <div className="content">
+          <LayerStyleSettings
+            layerId = {layerId}
+            layerAttributes = {attributes}
+            layerStyle = {layerStyle}
+            onChange = {onLayerStyleChange} />
+          </div>
+        </div>);
     default:
       return null;
   }
@@ -137,7 +147,9 @@ const LayerListItem = ({
       <LayerListItemInfo
         layerId={layer.id}
         attributes={layer.attributeSchema.attributes}
-        onClick={(l,a,v) => onToggleValueVisible(l,a,v)}
+        layerStyle={layer.style}
+        onAttributeValueClick={(l,a,v) => onToggleValueVisible(l,a,v)}
+        onLayerStyleChange={onLayerStyleChange}
         mode={mode}
       />
     </div>
