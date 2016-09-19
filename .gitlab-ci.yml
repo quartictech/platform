@@ -1,4 +1,4 @@
-image: openjdk:8u92-jre-alpine
+image: openjdk:8u102-jdk
 
 backend:
   stage: build
