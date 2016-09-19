@@ -109,7 +109,6 @@ const LayerListItem = ({
   mode
 }) => {
   let buttonClassNames = classNames("ui mini toggle compact button icon", {"active": layer.visible});
-  console.log('ID = ' + layer.id + ', mode = ' + mode);
   return (
     <div className={styles.layerListItem}>
       <div className="content">
@@ -157,7 +156,6 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
   }
 
   onButtonClick(name, layerId) {
-    console.log("onButtonClick = " + name + " " + layerId);
     switch (name) {
       case 'VISIBLE':
         return this.props.layerToggleVisible(layerId);
