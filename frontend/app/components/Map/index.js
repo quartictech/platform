@@ -45,8 +45,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.map = new mapboxgl.Map({
         container: 'map-inner',
         style: 'mapbox://styles/mapbox/basic-v9',
-        zoom: 13,
-        center: [0.1278, 51.5074]
+        zoom: 9.7,
+        center: [-0.10, 51.4800]
     });
 
     this.state.map.on('mousemove', this.onMouseMove.bind(this));
