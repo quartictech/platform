@@ -36,7 +36,7 @@ const defaultPolygonStyle = {
   "fill-outline-color": "#E0A025", // #FF6600",
   "property": null,
   "fill-opacity": 0.8,
-  "color-scale": null,
+  "color-scale": "BuPu",
 };
 
 const defaultPointStyle = {
@@ -50,11 +50,15 @@ function defaultLayerStyle(schema) {
     point: Object.assign({}, defaultPointStyle),
   };
 
-  for (const attribute in schema.attributes) {
-    if (schema.attributes[attribute].type === "NUMERIC") {
-      style.polygon.property = attribute;
-      style.polygon["color-scale"] = "BuPu";
-      break;
+  if (schema.primaryAttribute != null) {
+    state.polygon.property = attribute;
+  }
+  else {
+    for (const attribute in schema.attributes) {
+      if (schema.attributes[attribute].type === "NUMERIC") {
+        style.polygon.property = attribute;
+        break;
+      }
     }
   }
 
