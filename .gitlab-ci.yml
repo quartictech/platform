@@ -1,2 +1,5 @@
+image: openjdk:8u92-jre-alpine
+
 backend:
+  stage: build
   script: "./gradlew build"
