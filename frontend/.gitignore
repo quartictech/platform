@@ -5,8 +5,3 @@ node_modules
 stats.json
 semantic.json
 semantic/
-
-# Cruft
-.DS_Store
-npm-debug.log
-.idea

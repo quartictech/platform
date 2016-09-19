@@ -42,7 +42,16 @@ const selectHistogramChart = () => createSelector(
   (homeState) => homeState.get("histogramChart").toJS()
 )
 
-
+const selectMap = () => createSelector(
+  selectHome(),
+  (homeState) => {
+    const style = homeState.getIn(["ui", "settings", "satellite"]) ? "satellite-streets" : "outdoors";
+    return {
+      ready: homeState.getIn(["map", "ready"]),
+      style: 'mapbox://styles/mapbox/' + style + '-v9'
+    };
+  }
+)
 
 export {
   selectLayers,
@@ -51,5 +60,6 @@ export {
   selectSelectionIds,
   selectSelectionFeatures,
   selectNumericAttributes,
-  selectHistogramChart
+  selectHistogramChart,
+  selectMap
 }

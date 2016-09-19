@@ -48,8 +48,8 @@ function* bucketComputation(action) {
     console.log(results);
     const requestURL = apiRoot + "/layer/metadata/" + results.data;
     const results2 = yield call(request, requestURL, {
-    method: 'GET',
-  });
+      method: 'GET',
+    });
 
     if (! results2.err) {
       yield put(layerCreate(results2.data));

@@ -16,3 +16,6 @@ export const LAYER_TOGGLE_VISIBLE = "hilbert/Home/LAYER_TOGGLE_VISIBLE";
 export const LAYER_CLOSE = "hilbert/Home/LAYER_CLOSE";
 export const LAYER_SET_STYLE = "hilbert/Home/LAYER_SET_STYLE";
 export const LAYER_TOGGLE_VALUE_VISIBLE = "hilbert/home/LAYER_TOGGLE_VALUE_VISIBLE";
+
+export const MAP_LOADING = "hilbert/home/MAP_LOADING";
+export const MAP_LOADED = "hilbert/home/MAP_LOADED";

@@ -39,18 +39,22 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
     var feature = features[0];
     this.props.onSelectFeatures([[feature.layer.source, feature.properties._id]], features);
-    }
+  }
 
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
         container: 'map-inner',
-        style: 'mapbox://styles/mapbox/basic-v9',
+        style: this.props.map.style,
         zoom: 9.7,
         center: [-0.10, 51.4800]
     });
 
     this.state.map.on('mousemove', this.onMouseMove.bind(this));
     this.state.map.on('click', this.onMouseClick.bind(this));
+    this.state.map.on('style.load', () => {
+      this.props.onMapLoaded();
+      this.updateState(this.props);
+    });
   }
 
   createNewLayer(layer) {
@@ -92,70 +96,88 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
 
     this.state.map.addLayer({
-    "id": layer.id + "_line",
-    "type": "line",
-    "source": layer.id,
-    "source-layer": layer.id + "_line",
-    'paint': {
-      "line-color": {
-        property: "name",
-        stops: tube_color_stops,
-        type: "categorical"
-      },
-      "line-width": 8
-    }
-  });
+      "id": layer.id + "_line",
+      "type": "line",
+      "source": layer.id,
+      "source-layer": layer.id + "_line",
+      'paint': {
+        "line-color": {
+          property: "name",
+          stops: tube_color_stops,
+          type: "categorical"
+        },
+        "line-width": 8
+      }
+    });
   }
 
-  componentWillReceiveProps(nextProps) {
+  createValueFilter(spec) {
+    let filter = ["none"];
+    for (var attribute in spec) {
+      let values = spec[attribute];
+
+      if (values.length > 0) {
+        console.log(attribute);
+        let partial = values.reduce((f, v) => {
+          f.push(v);
+          return f;
+        }, ['in', attribute]);
+
+        filter.push(partial);
+      }
+    }
+    return filter;
+  }
+
+  createSelectionFilter(selection, layerId) {
+    let filter = ["in", "_id", ""];
+    if (selection.hasOwnProperty(layerId)) {
+      return selection[layerId].reduce((f, v) => {
+        f.push(v);
+        return f;
+      }, ['in', '_id']);
+    } else {
+      return ["in", "_id", ""];
+    }
+  }
+
+  updateState(props) {
     this.state.visibleLayerIds = [];
-    nextProps.layers.forEach((layer) => {
+    props.layers.forEach((layer) => {
       if (layer.visible) {
         this.state.visibleLayerIds.push(layer.id + "_polygon");
         this.state.visibleLayerIds.push(layer.id + "_point");
         this.state.visibleLayerIds.push(layer.id + "_line");
       }
+
       if (this.state.map.getSource(layer.id) === undefined) {
         this.createNewLayer(layer);
       }
-      this.state.map.setLayoutProperty(layer.id + "_polygon", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_polygon_sel", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_point", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_line", "visibility", layer.visible ? "visible" : "none");
+
+      ["polygon", "polygon_sel", "point", "line"].forEach((sub) => {
+          this.state.map.setLayoutProperty(layer.id + "_" + sub, "visibility", layer.visible ? "visible" : "none");
+      });
 
       let polyStyle = polygonLayerStyle(layer);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-color", polyStyle["fill-color"]);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-outline-color", polyStyle["fill-outline-color"]);
 
-      // Value filter
-      let valueFilter = ["none"];
-      for (var attribute in layer.filter) {
-        if (layer.filter.hasOwnProperty(attribute)) {
-          let values = layer.filter[attribute];
-
-          if (values.length > 0) {
-            console.log(attribute);
-            let filter = values.reduce((f, v) => {
-              f.push(v);
-              return f;
-            }, ['in', attribute]);
-
-            valueFilter.push(filter);
-          }
-        }
-      }
+      const valueFilter = this.createValueFilter(layer.filter);
       this.state.map.setFilter(layer.id + '_polygon', valueFilter);
 
-      // Selection filter
-      let selFilter = ["in", "_id", ""];
-      if (nextProps.selection.hasOwnProperty(layer.id)) {
-        selFilter = nextProps.selection[layer.id].reduce( function(memo, featureId) {
-          memo.push(featureId);
-          return memo;
-        }, ['in', '_id']);
-      }
-      this.state.map.setFilter(layer.id + '_polygon_sel', ["all", selFilter, valueFilter]);
+      const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
+      this.state.map.setFilter(layer.id + '_polygon_sel', ["all", selectionFilter, valueFilter]);
     });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.map.style !== this.props.map.style) {
+      this.props.onMapLoading();
+      this.state.map.setStyle(nextProps.map.style);
+    } else if (nextProps.map.ready) {
+      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox 'style.load' callback)
+      this.updateState(nextProps);
+    }
   }
 
   render() {
@@ -168,12 +190,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         </div>
     );
   }
-}
-
-Map.propTypes = {
-  layers: React.PropTypes.array,
-  onSelectFeature: React.PropTypes.func,
-  selection: React.PropTypes.object
 }
 
 export default SizeMe({monitorHeight:true})(Map);
