@@ -10,3 +10,25 @@
   margin-right: 10px;
   margin-bottom: 10px;
 }
+
+.layerListItem { /* stylelint-ignore */
+  padding-top: 10px;
+}
+
+a {
+  color: black;
+  opacity: 0.6;
+}
+
+a:hover {
+  color: black;
+  opacity: 1.0;
+}
+
+a.active {
+  color: red;
+}
+
+a.enabled {
+  color: blue;
+}

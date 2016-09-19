@@ -38,6 +38,7 @@ class LayerAttributePicker extends React.Component { // eslint-disable-line reac
       <div className={styles.attributePicker}>
         <div className="ui search selection dropdown" ref={(x) => this.dropdown = x}>
                 <span className="text">{this.props.selected ? this.props.selected : "Pick Attribute"}</span>
+                <i className="dropdown icon"></i>
                 <div className="menu">
                   {rows}
                 </div>
