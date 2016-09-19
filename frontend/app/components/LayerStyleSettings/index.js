@@ -16,7 +16,6 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   constructor() {
     super();
     this.radioButtons = {};
-    this.state = { attribute: null };
   }
 
   renderRadioButton(name, state) {
@@ -25,11 +24,8 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   }
 
   onRadioChange(e) {
-    if (e.currentTarget.id == "choropleth") {
-      this.state.attribute = this.getNumericAttributes()[0];
-    }
+    let property = (e.currentTarget.id == "constant_fill") ? null : this.getNumericAttributes()[0];
 
-    let property = (e.currentTarget.id == "constant_fill") ? null : this.state.attribute;
     this.props.onChange(this.props.layerId, {
         polygon: {
            property
@@ -38,11 +34,9 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   }
 
   onAttributeChange(value) {
-    this.state.attribute = value;
-
     this.props.onChange(this.props.layerId, {
       polygon: {
-        property: this.radioButtons["constant_fill"].checked ? null : this.state.attribute
+        property: this.radioButtons["constant_fill"].checked ? null : value
       }
     })
   }
@@ -57,6 +51,18 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
     }
 
     return numericAttributes;
+  }
+
+  renderAttributePicker(visible, numericAttributes) {
+    if (visible) {
+      return (<LayerAttributePicker
+        attributes={numericAttributes}
+        selected={this.props.layerStyle.polygon.property}
+        onChange={this.onAttributeChange.bind(this)}/>);
+    }
+    else {
+      return null;
+    }
   }
 
   render() {
@@ -75,7 +81,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
           {this.renderRadioButton("choropleth", this.props.layerStyle.polygon.property != null)}
           <label>Choropleth</label>
         </div>
-        <LayerAttributePicker attributes={numericAttributes} selected={this.props.layerStyle.polygon.property} onChange={this.onAttributeChange.bind(this)}/>
+        {this.renderAttributePicker(this.props.layerStyle.polygon.property != null, numericAttributes)}
       </div>
     </div>
   </div>

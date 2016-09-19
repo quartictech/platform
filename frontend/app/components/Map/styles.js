@@ -31,7 +31,6 @@ function randomChoice(arr) {
 
 export function polygonLayerStyle(layer) {
     let style = layer.style.polygon;
-    console.log(style);
     if (style.property == null) {
       return {
         "fill-color": style["fill-color"],
@@ -41,7 +40,6 @@ export function polygonLayerStyle(layer) {
     }
     else {
       let attributeStats = layer.stats.attributeStats[style.property];
-
       let colorScale = style["color-scale"];
       return {
         "fill-color" : {
