@@ -111,52 +111,54 @@ const LayerListItemInfo = ({
   }
 };
 
+const filterStyle = (layer, mode) => {
+  if (mode === 'FILTER') {
+    return styles.active;
+  }
+  return "";
+}
+
 const LayerListItem = ({
   layer,
   onButtonClick,
   onToggleValueVisible,
   onLayerStyleChange,
   mode
-}) => {
-  let buttonClassNames = classNames("ui mini toggle compact button icon", {"active": layer.visible});
-  return (
-    <div className={styles.layerListItem}>
-      <div className="content">
-        <div className="right floated">
-          <a onClick={e => onButtonClick('VISIBLE')}>
-            <i className="icon eye"></i>
-          </a>
-          <a onClick={e => onButtonClick('FILTER')}>
-            <i className="icon filter"></i>
-          </a>
-          <a onClick={e => onButtonClick('STYLE')}>
-            <i className="icon paint brush"></i>
-          </a>
-        </div>
-        <div className="header">
-          <a onClick={e => onButtonClick('CLOSE')}>
-            <i className="icon close"></i>
-          </a>
-          {layer.name}
-        </div>
-        <div className="meta">
-          {layer.description}
-        </div>
+}) => (
+  <div className={styles.layerListItem}>
+    <div className="content">
+      <div className="right floated">
+        <a onClick={e => onButtonClick('VISIBLE')} className={(layer.visible) ? styles.enabled : ""}>
+          <i className="icon eye"></i>
+        </a>
+        <a onClick={e => onButtonClick('FILTER')} className={filterStyle(layer, mode)}>
+          <i className="icon filter"></i>
+        </a>
+        <a onClick={e => onButtonClick('STYLE')}>
+          <i className="icon paint brush"></i>
+        </a>
       </div>
-
-      <LayerListItemInfo
-        layerId={layer.id}
-        attributes={layer.attributeSchema.attributes}
-        layerStyle={layer.style}
-        onAttributeValueClick={(l,a,v) => onToggleValueVisible(l,a,v)}
-        onLayerStyleChange={onLayerStyleChange}
-        mode={mode}
-      />
+      <div className="header">
+        <a onClick={e => onButtonClick('CLOSE')}>
+          <i className="icon close"></i>
+        </a>
+        {layer.name}
+      </div>
+      <div className="meta">
+        {layer.description}
+      </div>
     </div>
-  );
-}
 
-
+    <LayerListItemInfo
+      layerId={layer.id}
+      attributes={layer.attributeSchema.attributes}
+      layerStyle={layer.style}
+      onAttributeValueClick={(l,a,v) => onToggleValueVisible(l,a,v)}
+      onLayerStyleChange={onLayerStyleChange}
+      mode={mode}
+    />
+  </div>
+);
 
 class LayerList extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
