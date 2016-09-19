@@ -19,6 +19,7 @@ function Toolbar(props) {
   let bucketClassNames = classNames("item", {"active": props.ui.layerOp === "bucket"})
   let chartClassNames = classNames("item", {"active": props.ui.panels.chart})
   let layerListClassNames = classNames("item", {"active": props.ui.panels.layerList})
+  let satelliteClassNames = classNames("item", {"active": props.ui.settings.satellite})
   console.log(props.ui);
   return (
     <div className={styles.toolbar}>
@@ -28,22 +29,26 @@ function Toolbar(props) {
       </div>
 
       <div className="right menu">
+        <a className={satelliteClassNames} onClick={(e) => props.onUiToggle("satellite")}>
+          <i className="icon rocket"></i>
+          Satellite
+        </a>
         <a className={layerListClassNames} onClick={(e) => props.onUiToggle("layerList")}>
           <i className="icon list"></i>
           Layers
         </a>
-      <a className={bucketClassNames} onClick={(e) => props.onUiToggle("bucket")}>
-        <i className="icon object group"></i>
-        Bucket
-      </a>
-      <a className={chartClassNames} onClick={(e) => props.onUiToggle("chart")}>
-        <i className="icon line chart"></i>
-        Chart
-      </a>
-      <div className="item">
-      <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect}/>
+        <a className={bucketClassNames} onClick={(e) => props.onUiToggle("bucket")}>
+          <i className="icon object group"></i>
+          Bucket
+        </a>
+        <a className={chartClassNames} onClick={(e) => props.onUiToggle("chart")}>
+          <i className="icon line chart"></i>
+          Chart
+        </a>
+        <div className="item">
+        <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect}/>
+        </div>
       </div>
-    </div>
     </div>
     </div>
   );

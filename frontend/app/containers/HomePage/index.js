@@ -23,10 +23,10 @@ import styles from './styles.css';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, layerToggleValueVisible
+  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded
  } from './actions';
 
-import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart } from './selectors';
+import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart, selectMap } from './selectors';
 
 export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -37,7 +37,10 @@ export default class HomePage extends React.Component { // eslint-disable-line r
       <div className={styles.mapContainer}>
         <Map layers={this.props.layers}
           onSelectFeatures={this.props.onSelectFeatures}
+          onMapLoading={this.props.onMapLoading}
+          onMapLoaded={this.props.onMapLoaded}
           selection={this.props.selectionIds}
+          map={this.props.map}
           />
       </div>
 
@@ -87,7 +90,9 @@ function mapDispatchToProps(dispatch) {
     onChartLayerSelection: (layerId) => dispatch(loadNumericAttributes(layerId)),
     onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute)),
     onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style)),
-    onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value))
+    onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value)),
+    onMapLoading: () => dispatch(mapLoading()),
+    onMapLoaded: () => dispatch(mapLoaded())
   };
 }
 
@@ -99,6 +104,7 @@ const mapStateToProps = createStructuredSelector({
   selectionFeatures: selectSelectionFeatures(),
   numericAttributes: selectNumericAttributes(),
   histogramChart: selectHistogramChart(),
+  map: selectMap()
 });
 
 // Wrap the component to inject dispatch and state into it
