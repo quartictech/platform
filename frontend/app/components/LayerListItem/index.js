@@ -81,49 +81,31 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     let layer = this.props.layer;
-    let buttonClassNames = classNames("ui toggle compact button icon left attached", {"active": layer.visible});
+    let buttonClassNames = classNames("ui mini toggle compact button icon", {"active": layer.visible});
     let layerToggleVisible = this.props.layerToggleVisible;
     return (
       <div className={styles.layerListItem}>
-      <div className="ui fluid card">
       <div className="content">
         <div className="right floated">
-          <button className={buttonClassNames} onClick={this.onLayerVisibleClick.bind(this)} id={layer.id}>
+            <a>
             <i className="icon eye"></i>
-          </button>
-            <button className="ui compact button icon right attached" onClick={this.onLayerCloseClick.bind(this)} id={layer.id}>
-            <i className="icon close"></i>
-          </button>
+            </a>
+            <i className="icon filter"></i>
+            <i className="icon paint brush"></i>
     </div>
     <div className="header">
+            <a>
+            <i className="icon close"></i>
+            </a>
           {layer.name}
         </div>
         <div className="meta">
         {layer.description}
         </div>
-
-        <div className="right floated">
-          <div className="ui mini statistic"><div className="value">{numeral(layer.stats.featureCount).format('0.0a')}</div><div className="label"> Features </div> </div>
-        </div>
-        <div className="ui styled fluid accordion" ref={x => this.accordion=x}>
-          <div className="title">
-            <i className="dropdown icon"></i>
-            Attributes
-          </div>
-          <div className="content">
-            {this.renderLayerStats(layer)}
-          </div>
-
-          <div className="title">
-            <i className="dropdown icon"></i>
-            Styles
-          </div>
-          <div className="content">
-            <LayerStyleSettings layer={layer} onChange={this.props.onLayerStyleChange}/>
-          </div>
-        </div>
       </div>
-    </div>
+      <div className="ui secondary segment">
+  <p>I'm here to tell you something, and you will probably read me first.</p>
+</div>
   </div>
 
     );
