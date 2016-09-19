@@ -5,8 +5,9 @@
 */
 
 import React from 'react';
-
 import { FormattedMessage } from 'react-intl';
+import naturalsort from 'javascript-natural-sort';
+
 import messages from './messages';
 import styles from './styles.css';
 import classNames from 'classnames';
@@ -37,7 +38,7 @@ const AttributeValueList = ({
   onClick
 }) => (
   <div className="ui list">
-    {values.map(v => (
+    {values.sort(naturalsort).map(v => (
       <AttributeValue
         key={v}
         value={v}
@@ -58,6 +59,7 @@ const AttributeList = ({
     {
       Object.keys(attributes)
         .filter(key => attributes[key].categories !== null)
+        .sort(naturalsort)
         .map(key => (
           <div className="ui accordion" key={key} ref={x => $(x).accordion()}>
             <div className="title">

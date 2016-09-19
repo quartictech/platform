@@ -5,8 +5,9 @@
 */
 
 import React from 'react';
-
 import { FormattedMessage } from 'react-intl';
+import naturalsort from 'javascript-natural-sort';
+
 import messages from './messages';
 import styles from './styles.css';
 
@@ -21,14 +22,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
       return;
     }
     else {
-        let rows = [];
-
         let feature = this.props.selection[0];
-        for (var property in feature.properties) {
-          if (property === "_id") continue;
-          rows.push(<tr key={property}><td>{property}</td><td>{feature.properties[property]}</td></tr>);
-        }
-
         return (
         <div className={styles.innerSelectionView}>
           <div className="ui raised fluid card">
@@ -45,7 +39,13 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
                   </tr>
                 </thead>
                 <tbody>
-                  {rows}
+                  {Object.keys(feature.properties)
+                    .filter(key => key !== "_id")
+                    .sort(naturalsort)
+                    .map(key =>
+                      <tr key={key}><td>{key}</td><td>{feature.properties[key]}</td></tr>
+                    )
+                  }
                 </tbody>
               </table>
             </div>
