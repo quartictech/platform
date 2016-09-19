@@ -118,11 +118,15 @@ const LayerListItemInfo = ({
   }
 };
 
-const filterStyle = (layer, mode) => {
+const filterButtonStyle = (layer, mode) => {
   if (mode === 'FILTER') {
     return styles.active;
   }
   return "";
+}
+
+const styleButtonStyle = (layer, mode) => {
+  return (mode === 'STYLE') ? styles.active : "";
 }
 
 const LayerListItem = ({
@@ -138,10 +142,10 @@ const LayerListItem = ({
         <a onClick={e => onButtonClick('VISIBLE')} className={(layer.visible) ? styles.enabled : ""}>
           <i className="icon eye"></i>
         </a>
-        <a onClick={e => onButtonClick('FILTER')} className={filterStyle(layer, mode)}>
+        <a onClick={e => onButtonClick('FILTER')} className={filterButtonStyle(layer, mode)}>
           <i className="icon filter"></i>
         </a>
-        <a onClick={e => onButtonClick('STYLE')}>
+        <a onClick={e => onButtonClick('STYLE')} className={styleButtonStyle(layer, mode)}>
           <i className="icon paint brush"></i>
         </a>
       </div>
