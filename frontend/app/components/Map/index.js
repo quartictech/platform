@@ -49,8 +49,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         center: [-0.10, 51.4800]
     });
 
-    console.log(this.props);
-
     this.state.map.on('mousemove', this.onMouseMove.bind(this));
     this.state.map.on('click', this.onMouseClick.bind(this));
     this.state.map.on('style.load', () => {
@@ -177,6 +175,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onMapLoading();
       this.state.map.setStyle(nextProps.map.style);
     } else if (nextProps.map.ready) {
+      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox 'style.load' callback)
       this.updateState(nextProps);
     }
   }
