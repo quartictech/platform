@@ -43,6 +43,35 @@ const AttributeValueList = ({
   </div>
 );
 
+const AttributeList = ({
+  layerId,
+  attributes,
+  onClick
+}) => (
+  <div className="content">
+    {
+      Object.keys(attributes)
+        .filter(key => attributes[key].categories !== null)
+        .map(key => (
+          <div className="ui accordion" key={key}>
+            <div className="title">
+              <i className="dropdown icon"></i>
+              {key}
+            </div>
+            <div className="content">
+              <AttributeValueList
+                key={key}
+                attribute={key}
+                values={attributes[key].categories}
+                onClick={(a,v) => onClick(layerId, a, v)}
+              />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+);
+
 class LayerListItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   onLayerVisibleClick(event) {
     this.props.layerToggleVisible(event.currentTarget.id);
@@ -54,29 +83,6 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
 
   componentDidMount() {
     $(".ui.accordion").accordion();
-  }
-
-  renderLayerStats(layer) {
-    return (
-      Object.keys(layer.attributeSchema.attributes)
-        .filter(key => layer.attributeSchema.attributes[key].categories !== null)
-        .map(key => (
-          <div className="ui accordion" key={key}>
-            <div className="title">
-              <i className="dropdown icon"></i>
-              {key}
-            </div>
-            <div className="content">
-              <AttributeValueList
-                key={key}
-                attribute={key}
-                values={layer.attributeSchema.attributes[key].categories}
-                onClick={(a,v) => this.props.onToggleValueVisible(this.props.layer.id, a, v)}
-              />
-            </div>
-          </div>
-      ))
-    );
   }
 
   render() {
@@ -105,19 +111,16 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
         </div>
         <div className="ui secondary segment">
           <div className="content">
-            {this.renderLayerStats(layer)}
+            <AttributeList
+              layerId={this.props.layer.id}
+              attributes={layer.attributeSchema.attributes}
+              onClick={(l,a,v) => this.props.onToggleValueVisible(l,a,v)}
+            />
           </div>
         </div>
       </div>
     );
   }
-}
-
-LayerListItem.propTypes = {
-  layer: React.PropTypes.object,
-  layerToggleVisible: React.PropTypes.func,
-  layerClose: React.PropTypes.func,
-  onLayerStyleChange: React.PropTypes.func
 }
 
 export default LayerListItem;
