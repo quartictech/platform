@@ -92,19 +92,49 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
 
     this.state.map.addLayer({
-    "id": layer.id + "_line",
-    "type": "line",
-    "source": layer.id,
-    "source-layer": layer.id + "_line",
-    'paint': {
-      "line-color": {
-        property: "name",
-        stops: tube_color_stops,
-        type: "categorical"
-      },
-      "line-width": 8
+      "id": layer.id + "_line",
+      "type": "line",
+      "source": layer.id,
+      "source-layer": layer.id + "_line",
+      'paint': {
+        "line-color": {
+          property: "name",
+          stops: tube_color_stops,
+          type: "categorical"
+        },
+        "line-width": 8
+      }
+    });
+  }
+
+  createValueFilter(spec) {
+    let filter = ["none"];
+    for (var attribute in spec) {
+      let values = spec[attribute];
+
+      if (values.length > 0) {
+        console.log(attribute);
+        let partial = values.reduce((f, v) => {
+          f.push(v);
+          return f;
+        }, ['in', attribute]);
+
+        filter.push(partial);
+      }
     }
-  });
+    return filter;
+  }
+
+  createSelectionFilter(selection, layerId) {
+    let filter = ["in", "_id", ""];
+    if (selection.hasOwnProperty(layerId)) {
+      return selection[layerId].reduce((f, v) => {
+        f.push(v);
+        return f;
+      }, ['in', '_id']);
+    } else {
+      return ["in", "_id", ""];
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -115,46 +145,24 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         this.state.visibleLayerIds.push(layer.id + "_point");
         this.state.visibleLayerIds.push(layer.id + "_line");
       }
+
       if (this.state.map.getSource(layer.id) === undefined) {
         this.createNewLayer(layer);
       }
-      this.state.map.setLayoutProperty(layer.id + "_polygon", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_polygon_sel", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_point", "visibility", layer.visible ? "visible" : "none");
-      this.state.map.setLayoutProperty(layer.id + "_line", "visibility", layer.visible ? "visible" : "none");
+
+      ["polygon", "polygon_sel", "point", "line"].forEach((sub) => {
+          this.state.map.setLayoutProperty(layer.id + "_" + sub, "visibility", layer.visible ? "visible" : "none");
+      });
 
       let polyStyle = polygonLayerStyle(layer);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-color", polyStyle["fill-color"]);
       this.state.map.setPaintProperty(layer.id + "_polygon", "fill-outline-color", polyStyle["fill-outline-color"]);
 
-      // Value filter
-      let valueFilter = ["none"];
-      for (var attribute in layer.filter) {
-        if (layer.filter.hasOwnProperty(attribute)) {
-          let values = layer.filter[attribute];
-
-          if (values.length > 0) {
-            console.log(attribute);
-            let filter = values.reduce((f, v) => {
-              f.push(v);
-              return f;
-            }, ['in', attribute]);
-
-            valueFilter.push(filter);
-          }
-        }
-      }
+      const valueFilter = this.createValueFilter(layer.filter);
       this.state.map.setFilter(layer.id + '_polygon', valueFilter);
 
-      // Selection filter
-      let selFilter = ["in", "_id", ""];
-      if (nextProps.selection.hasOwnProperty(layer.id)) {
-        selFilter = nextProps.selection[layer.id].reduce( function(memo, featureId) {
-          memo.push(featureId);
-          return memo;
-        }, ['in', '_id']);
-      }
-      this.state.map.setFilter(layer.id + '_polygon_sel', ["all", selFilter, valueFilter]);
+      const selectionFilter = this.createSelectionFilter(nextProps.selection, layer.id);
+      this.state.map.setFilter(layer.id + '_polygon_sel', ["all", selectionFilter, valueFilter]);
     });
   }
 
