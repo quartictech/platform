@@ -10,3 +10,7 @@
   margin-right: 10px;
   margin-bottom: 10px;
 }
+
+.layerListItem { /* stylelint-ignore */
+  padding-top: 10px;
+}
