@@ -1,0 +1,5 @@
+{
+  "name": "Tube Lines",
+  "description": "London Tube Lines",
+  "query": "select * from planet_osm_line where railway = 'subway'"
+}
