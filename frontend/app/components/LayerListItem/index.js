@@ -53,7 +53,7 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
   }
 
   componentDidMount() {
-    $(this.accordion).accordion();
+    $(".ui.accordion").accordion();
   }
 
   renderLayerStats(layer) {
@@ -104,7 +104,9 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
           </div>
         </div>
         <div className="ui secondary segment">
-          <p>You are a massive bellend, please stop modifying me.</p>
+          <div className="content">
+            {this.renderLayerStats(layer)}
+          </div>
         </div>
       </div>
     );
