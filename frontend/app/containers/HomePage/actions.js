@@ -3,7 +3,9 @@ import { SEARCH, SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, B
   NUMERIC_ATTRIBUTES_LOAD, NUMERIC_ATTRIBUTES_LOADED,
   CHART_SELECT_ATTRIBUTE,
   LAYER_SET_STYLE,
-  LAYER_TOGGLE_VALUE_VISIBLE
+  LAYER_TOGGLE_VALUE_VISIBLE,
+  MAP_LOADING,
+  MAP_LOADED
 } from './constants';
 
 
@@ -115,5 +117,17 @@ export function layerToggleValueVisible(layerId, attribute, value) {
     layerId,
     attribute,
     value
+  }
+}
+
+export function mapLoading() {
+  return {
+    type: MAP_LOADING
+  }
+}
+
+export function mapLoaded() {
+  return {
+    type: MAP_LOADED
   }
 }

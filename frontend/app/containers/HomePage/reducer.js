@@ -1,6 +1,6 @@
 import { fromJS, Set } from 'immutable';
 import {  SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED
  } from './constants';
 
 const initialState = fromJS({
@@ -10,7 +10,11 @@ const initialState = fromJS({
     layerOp: null,
     panels: {
       chart: false,
-      layerList: true
+      layerList: true,
+      settings: false
+    },
+    settings: {
+      satellite: false
     }
   },
   // Make this an object for now. Ugh.
@@ -21,6 +25,10 @@ const initialState = fromJS({
   numericAttributes: {},
   histogramChart: {
     selectedAttribute: null
+  },
+  map: {
+    style: 'basic',
+    ready: false
   }
 });
 
@@ -87,6 +95,17 @@ const layerReducer = (layerState, action) => {
   }
 };
 
+const mapReducer = (mapState, action) => {
+  switch (action.type) {
+    case MAP_LOADING:
+      return mapState.set("ready", false);
+    case MAP_LOADED:
+      return mapState.set("ready", true);
+    default:
+      return mapState;
+  }
+}
+
 function homeReducer(state = initialState, action) {
   switch (action.type) {
     case SEARCH_DONE:
@@ -107,14 +126,17 @@ function homeReducer(state = initialState, action) {
 
     case UI_TOGGLE:
       let element = action.element;
-      if (element === "bucket") {
-        return state.updateIn(["ui", "layerOp"], val => val == element ? null : element);
+      switch (element) {
+        case "bucket":
+          return state.updateIn(["ui", "layerOp"], val => val == element ? null : element);
+        case "satellite":
+          return state.updateIn(["ui", "settings", "satellite"], val => !val);
+        default:
+          return state.updateIn(["ui", "panels", element], val => !val)
       }
-      else {
-        return state.updateIn(["ui", "panels", element], val => !val)
-      }
+
     case SELECT_FEATURES:
-    console.log("select features");
+      console.log("select features");
       let keyMap = {};
       for (var id of action.ids) {
         if (! keyMap.hasOwnProperty(id[0])) {
@@ -132,6 +154,10 @@ function homeReducer(state = initialState, action) {
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:
       return state.setIn(["histogramChart", "selectedAttribute"], action.attribute);
+
+    case MAP_LOADING:
+    case MAP_LOADED:
+      return state.update("map", mapState => mapReducer(mapState, action));
 
     default:
       return state;

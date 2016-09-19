@@ -39,18 +39,24 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
     var feature = features[0];
     this.props.onSelectFeatures([[feature.layer.source, feature.properties._id]], features);
-    }
+  }
 
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
         container: 'map-inner',
-        style: 'mapbox://styles/mapbox/basic-v9',
+        style: this.props.map.style,
         zoom: 9.7,
         center: [-0.10, 51.4800]
     });
 
+    console.log(this.props);
+
     this.state.map.on('mousemove', this.onMouseMove.bind(this));
     this.state.map.on('click', this.onMouseClick.bind(this));
+    this.state.map.on('style.load', () => {
+      this.props.onMapLoaded();
+      this.updateState(this.props);
+    });
   }
 
   createNewLayer(layer) {
@@ -137,9 +143,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  updateState(props) {
     this.state.visibleLayerIds = [];
-    nextProps.layers.forEach((layer) => {
+    props.layers.forEach((layer) => {
       if (layer.visible) {
         this.state.visibleLayerIds.push(layer.id + "_polygon");
         this.state.visibleLayerIds.push(layer.id + "_point");
@@ -161,9 +167,18 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       const valueFilter = this.createValueFilter(layer.filter);
       this.state.map.setFilter(layer.id + '_polygon', valueFilter);
 
-      const selectionFilter = this.createSelectionFilter(nextProps.selection, layer.id);
+      const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
       this.state.map.setFilter(layer.id + '_polygon_sel', ["all", selectionFilter, valueFilter]);
     });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.map.style !== this.props.map.style) {
+      this.props.onMapLoading();
+      this.state.map.setStyle(nextProps.map.style);
+    } else if (nextProps.map.ready) {
+      this.updateState(nextProps);
+    }
   }
 
   render() {
@@ -176,12 +191,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         </div>
     );
   }
-}
-
-Map.propTypes = {
-  layers: React.PropTypes.array,
-  onSelectFeature: React.PropTypes.func,
-  selection: React.PropTypes.object
 }
 
 export default SizeMe({monitorHeight:true})(Map);
