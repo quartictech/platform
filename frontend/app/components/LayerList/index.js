@@ -19,11 +19,12 @@ var $ = require('jquery');
 
 const AttributeValue = ({
   value,
+  checked,
   onClick
 }) => (
   <div className="item" key={value}>
     <div className="ui checked checkbox">
-      <input type="checkbox" defaultChecked name={value} onClick={() => onClick(value)} />
+      <input type="checkbox" checked={checked} name={value} onChange={() => onClick(value)} />
       <label>{value}</label>
     </div>
   </div>
@@ -32,6 +33,7 @@ const AttributeValue = ({
 const AttributeValueList = ({
   attribute,
   values,
+  uncheckedValues,
   onClick
 }) => (
   <div className="ui list">
@@ -39,6 +41,7 @@ const AttributeValueList = ({
       <AttributeValue
         key={v}
         value={v}
+        checked={!uncheckedValues.some(x => x === v)}
         onClick={(v) => onClick(attribute, v)}
       />
     ))}
@@ -48,6 +51,7 @@ const AttributeValueList = ({
 const AttributeList = ({
   layerId,
   attributes,
+  filter,
   onClick
 }) => (
   <div className="content">
@@ -65,6 +69,7 @@ const AttributeList = ({
                 key={key}
                 attribute={key}
                 values={attributes[key].categories}
+                uncheckedValues={filter.hasOwnProperty(key) ? filter[key] : []}
                 onClick={(a,v) => onClick(layerId, a, v)}
               />
             </div>
@@ -77,6 +82,7 @@ const AttributeList = ({
 const LayerListItemInfo = ({
   layerId,
   attributes,
+  filter,
   layerStyle,
   onAttributeValueClick,
   onLayerStyleChange,
@@ -90,6 +96,7 @@ const LayerListItemInfo = ({
             <AttributeList
               layerId={layerId}
               attributes={attributes}
+              filter={filter}
               onClick={onAttributeValueClick}
             />
           </div>
@@ -153,6 +160,7 @@ const LayerListItem = ({
       layerId={layer.id}
       attributes={layer.attributeSchema.attributes}
       layerStyle={layer.style}
+      filter={layer.filter}
       onAttributeValueClick={(l,a,v) => onToggleValueVisible(l,a,v)}
       onLayerStyleChange={onLayerStyleChange}
       mode={mode}
