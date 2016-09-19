@@ -122,6 +122,9 @@ const filterButtonStyle = (layer, mode) => {
   if (mode === 'FILTER') {
     return styles.active;
   }
+  if (Object.keys(layer.filter).some(k => layer.filter[k].length > 0)) {
+    return styles.enabled;
+  }
   return "";
 }
 
