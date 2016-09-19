@@ -85,29 +85,28 @@ class LayerListItem extends React.Component { // eslint-disable-line react/prefe
     let layerToggleVisible = this.props.layerToggleVisible;
     return (
       <div className={styles.layerListItem}>
-      <div className="content">
-        <div className="right floated">
+        <div className="content">
+          <div className="right floated">
             <a>
-            <i className="icon eye"></i>
+              <i className="icon eye"></i>
             </a>
             <i className="icon filter"></i>
             <i className="icon paint brush"></i>
-    </div>
-    <div className="header">
+          </div>
+          <div className="header">
             <a>
-            <i className="icon close"></i>
+              <i className="icon close"></i>
             </a>
-          {layer.name}
+            {layer.name}
+          </div>
+          <div className="meta">
+            {layer.description}
+          </div>
         </div>
-        <div className="meta">
-        {layer.description}
+        <div className="ui secondary segment">
+          <p>You are a massive bellend, please stop modifying me.</p>
         </div>
       </div>
-      <div className="ui secondary segment">
-  <p>I'm here to tell you something, and you will probably read me first.</p>
-</div>
-  </div>
-
     );
   }
 }
