@@ -11,4 +11,4 @@ cache:
 backend:
   stage: build
   script:
-    - ./gradlew build
+    - ./gradlew assemble
