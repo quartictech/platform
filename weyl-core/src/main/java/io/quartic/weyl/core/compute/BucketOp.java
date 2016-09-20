@@ -59,8 +59,6 @@ public class BucketOp {
     }
 
     Optional<Layer> compute() {
-         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
             Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();

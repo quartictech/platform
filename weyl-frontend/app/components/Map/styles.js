@@ -19,10 +19,10 @@ export function computeColorScaleFromBase(baseColor, step, n) {
 function computeStops(colorScale, nStops, minValue, maxValue) {
   const result = [];
 
-  const colors = chroma.scale(colorScale).colors(nStops + 2).slice(2);
+  const colors = chroma.scale(colorScale).colors(nStops);
 
   for (var i = 0; i < nStops; i++) {
-    result.push([(minValue + i) * ((maxValue - minValue) / nStops), colors[i].toString(0)]);
+    result.push([minValue + (i * (maxValue - minValue) / nStops), colors[i].toString(0)]);
   }
   return result;
 }
@@ -77,7 +77,7 @@ export function buildStyleLayers(layerName, style, attributeStats) {
         type: "fill",
         paint: {
           "fill-color": colorStyle(style.property, style.polygon, attributeStats),
-          "fill-outline-color": style.property == null ? style.polygon["fill-outline-color"] : null,
+          "fill-outline-color": style.property == null ? style.polygon["fill-outline-color"] : style.polygon.color,
           "fill-opacity": style.opacity,
         },
         filter: filter(style.property, "Polygon"),
