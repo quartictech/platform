@@ -13,15 +13,12 @@ import "mapbox-gl.css";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
 
 import SizeMe from "react-sizeme";
-import { polygonLayerStyle } from "./styles.js";
-
-import { tubeColorStops } from "./lines_colors.js";
+import { buildStyleLayers } from "./styles.js";
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
-    this.state = { map: null, width: 0, height: 0 };
-    this.state.visibleLayerIds = [];
+    this.state = { map: null, sourceLayerMappings: {}, visibleLayerIds: [] };
   }
 
   onMouseMove(e) {
@@ -55,58 +52,39 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
   }
 
-  createNewLayer(layer) {
+  createLayers(layer, styleLayers) {
     this.state.map.addSource(layer.id, {
       "type": "vector",
       "tiles": [`http://localhost:8080/api/${layer.id}/{z}/{x}/{y}.pbf`],
     });
 
-    this.state.map.addLayer({
-      "id": `${layer.id}_polygon`,
-      "type": "fill",
-      "source": layer.id,
-      "source-layer": `${layer.id}_polygon`,
-      "paint": polygonLayerStyle(layer),
-    });
+    Object.keys(styleLayers)
+      .forEach(styleLayerKey => {
+        const styleLayer = {
+          ...styleLayers[styleLayerKey],
+          "id": `${layer.id}_${styleLayerKey}`,
+          "source": layer.id,
+          "source-layer": layer.id,
+        };
+        this.state.map.addLayer(styleLayer);
 
-    this.state.map.addLayer({
-      "id": `${layer.id}_polygon_sel`,
-      "type": "fill",
-      "source": layer.id,
-      "source-layer": `${layer.id}_polygon`,
-      "paint": {
-        "fill-outline-color": "#484896",
-        "fill-color": "#FFB85F", // "#6e599f",
-        "fill-opacity": 0.75,
-      },
-      "filter": ["in", "FIPS", ""],
-    });
+        this.state.map.addLayer({
+          "id": `${layer.id}_${styleLayerKey}_sel`,
+          "type": "fill",
+          "source": layer.id,
+          "source-layer": layer.id,
+          "paint": {
+            "fill-outline-color": "#484896",
+            "fill-color": "#FFB85F", // "#6e599f",
+            "fill-opacity": 0.75,
+          },
+          "filter": ["in", "FIPS", ""],
+        });
+      }
+    );
 
-    this.state.map.addLayer({
-      "id": `${layer.id}_point`,
-      "type": "circle",
-      "source": layer.id,
-      "source-layer": `${layer.id}_point`,
-      "paint": {
-        "circle-radius": 6,
-        "circle-color": "#223b53",
-      },
-    });
-
-    this.state.map.addLayer({
-      "id": `${layer.id}_line`,
-      "type": "line",
-      "source": layer.id,
-      "source-layer": `${layer.id}_line`,
-      "paint": {
-        "line-color": {
-          property: "name",
-          stops: tubeColorStops,
-          type: "categorical",
-        },
-        "line-width": 8,
-      },
-    });
+    this.state.sourceLayerMappings[layer.id] = Object.keys(styleLayers)
+      .map(k => `${layer.id}_${k}`);
   }
 
   createValueFilter(spec) {
@@ -115,7 +93,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       const values = spec[attribute];
 
       if (values.length > 0) {
-        console.log(attribute);
         const partial = values.reduce((f, v) => {
           f.push(v);
           return f;
@@ -140,29 +117,30 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateState(props) {
     this.state.visibleLayerIds = [];
     props.layers.forEach((layer) => {
+      const styleLayers = buildStyleLayers(layer.style, layer.stats.attributeStats);
+      console.log(styleLayers);
       if (layer.visible) {
-        this.state.visibleLayerIds.push(`${layer.id}_polygon`);
-        this.state.visibleLayerIds.push(`${layer.id}_point`);
-        this.state.visibleLayerIds.push(`${layer.id}_line`);
+        Object.keys(styleLayers).forEach(k => this.state.visibleLayerIds.push(`${layer.id}_${k}`));
       }
 
       if (this.state.map.getSource(layer.id) === undefined) {
-        this.createNewLayer(layer);
+        this.createLayers(layer, styleLayers);
       }
 
-      ["polygon", "polygon_sel", "point", "line"].forEach((sub) => {
-        this.state.map.setLayoutProperty(`${layer.id}_${sub}`, "visibility", layer.visible ? "visible" : "none");
+      Object.keys(styleLayers).forEach(k => {
+        Object.keys(styleLayers[k].paint).forEach(paintProperty =>
+          this.state.map.setPaintProperty(`${layer.id}_${k}`, paintProperty, styleLayers[k].paint[paintProperty])
+        );
+
+        const layerFilter = styleLayers[k].filter;
+        
+        this.state.map.setLayoutProperty(`${layer.id}_${k}`, "visibility", layer.visible ? "visible" : "none");
+        const valueFilter = this.createValueFilter(layer.filter);
+        this.state.map.setFilter(`${layer.id}_${k}`, ["all", valueFilter, layerFilter]);
+
+        const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
+        this.state.map.setFilter(`${layer.id}_${k}_sel`, ["all", selectionFilter, valueFilter, layerFilter]);
       });
-
-      const polyStyle = polygonLayerStyle(layer);
-      this.state.map.setPaintProperty(`${layer.id}_polygon`, "fill-color", polyStyle["fill-color"]);
-      this.state.map.setPaintProperty(`${layer.id}_polygon`, "fill-outline-color", polyStyle["fill-outline-color"]);
-
-      const valueFilter = this.createValueFilter(layer.filter);
-      this.state.map.setFilter(`${layer.id}_polygon`, valueFilter);
-
-      const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
-      this.state.map.setFilter(`${layer.id}_polygon_sel`, ["all", selectionFilter, valueFilter]);
     });
   }
 
@@ -171,7 +149,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onMapLoading();
       this.state.map.setStyle(nextProps.map.style);
     } else if (nextProps.map.ready) {
-      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox "style.load" callback)
+      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox 'style.load' callback)
       this.updateState(nextProps);
     }
   }

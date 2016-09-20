@@ -5,7 +5,7 @@
 */
 
 import React from "react";
-import naturalsort from 'javascript-natural-sort';
+import naturalsort from "javascript-natural-sort";
 
 import styles from "./styles.css";
 

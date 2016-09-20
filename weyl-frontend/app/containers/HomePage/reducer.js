@@ -31,39 +31,25 @@ const initialState = fromJS({
   },
 });
 
-const defaultPolygonStyle = {
-  "fill-color": "#006495", // #F2F12D",
-  "fill-outline-color": "#E0A025", // #FF6600",
-  "property": null,
-  "fill-opacity": 0.8,
-  "color-scale": "BuPu",
-};
-
-const defaultPointStyle = {
-  "circle-radius": 1.75,
-  "circle-color": "#223b53",
-};
-
-function defaultLayerStyle(schema) {
-  const style = {
-    polygon: Object.assign({}, defaultPolygonStyle),
-    point: Object.assign({}, defaultPointStyle),
-  };
-
-  if (schema.primaryAttribute != null) {
-    style.polygon.property = schema.primaryAttribute;
-  }
-  else {
-    for (const attribute in schema.attributes) {
-      if (schema.attributes[attribute].type === "NUMERIC") {
-        style.polygon.property = attribute;
-        break;
-      }
-    }
-  }
-
-  return style;
-}
+const defaultLayerStyle = schema => ({
+  type: "DEFAULT",
+  property: schema.primaryAttribute,
+  opacity: 0.8,
+  point: {
+    "circle-radius": 6,
+    color: "#223b53",
+    colorScale: "BuPu",
+  },
+  polygon: {
+    color: "#006495", // #F2F12D",
+    "fill-outline-color": "#E0A025",
+    colorScale: "BuPu",
+  },
+  line: {
+    color: "#E0A025",
+    colorScale: "BuPu",
+  },
+});
 
 const layerReducer = (layerState, action) => {
   switch (action.type) {
@@ -84,7 +70,7 @@ const layerReducer = (layerState, action) => {
     case LAYER_CLOSE:
       return layerState.set("visible", false).set("closed", true);
     case LAYER_SET_STYLE:
-      return layerState.mergeIn(["style", "polygon"], action.style.polygon);
+      return layerState.mergeIn(["style"], action.style);
     case LAYER_TOGGLE_VALUE_VISIBLE:
       return layerState.updateIn(["filter", action.attribute], new Set(), set => {
         if (set.has(action.value)) {

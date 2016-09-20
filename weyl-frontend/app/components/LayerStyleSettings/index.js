@@ -31,17 +31,13 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
     const property = (e.currentTarget.id === "constant_fill") ? null : this.getNumericAttributes()[0];
 
     this.props.onChange(this.props.layerId, {
-      polygon: {
-        property,
-      },
+      property,
     });
   }
 
   onAttributeChange(value) {
     this.props.onChange(this.props.layerId, {
-      polygon: {
-        property: this.radioButtons.constant_fill.checked ? null : value,
-      },
+      property: this.radioButtons.constant_fill.checked ? null : value,
     });
   }
 
@@ -61,7 +57,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
       return (
         <LayerAttributePicker
           attributes={numericAttributes}
-          selected={this.props.layerStyle.polygon.property}
+          selected={this.props.layerStyle.property}
           onChange={this.onAttributeChange.bind(this)}
         />);
     }
@@ -75,16 +71,16 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
         <div className="grouped fields">
           <div className="field">
             <div className="ui radio checkbox">
-              {this.renderRadioButton("constant_fill", this.props.layerStyle.polygon.property == null)}
+              {this.renderRadioButton("constant_fill", this.props.layerStyle.property == null)}
               <label>Constant Fill</label>
             </div>
           </div>
           <div className="field">
             <div className="ui radio checkbox">
-              {this.renderRadioButton("choropleth", this.props.layerStyle.polygon.property != null)}
-              <label>Choropleth</label>
+              {this.renderRadioButton("choropleth", this.props.layerStyle.property != null)}
+              <label>Color By</label>
             </div>
-            {this.renderAttributePicker(this.props.layerStyle.polygon.property != null, numericAttributes)}
+            {this.renderAttributePicker(this.props.layerStyle.property != null, numericAttributes)}
           </div>
         </div>
       </div>
