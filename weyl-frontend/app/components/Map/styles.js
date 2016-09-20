@@ -25,28 +25,6 @@ function computeStops(colorScale, nStops, minValue, maxValue) {
   return result;
 }
 
-export function polygonLayerStyle(layer) {
-    let style = layer.style.polygon;
-    if (style.property == null) {
-      return {
-        "fill-color": style["fill-color"],
-        "fill-outline-color": style["fill-outline-color"],
-        "fill-opacity": style["fill-opacity"]
-      }
-    }
-    else {
-      let attributeStats = layer.stats.attributeStats[style.property];
-      let colorScale = style["color-scale"];
-      return {
-        "fill-color" : {
-          "property" : style.property,
-          "stops" : y
-        },
-        "fill-opacity": style["fill-opacity"]
-      }
-    }
-}
-
 function colorStyle(property, style, attributeStats) {
   if (property == null) {
       return style.color;
