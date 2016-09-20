@@ -86,7 +86,7 @@ export function buildStyleLayers(layerName, style, attributeStats) {
         type: "line",
         paint: {
           "line-color": colorStyle(style.property, style.line, attributeStats),
-          "line-width": 5
+          "line-width": 5,
         },
         filter: ["==", "$type", "LineString"],
       },

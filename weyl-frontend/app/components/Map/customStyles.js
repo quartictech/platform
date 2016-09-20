@@ -38,7 +38,7 @@ const greenSpacesStyles = {
     paint: {
       "fill-color": "#86C67C",
       "fill-opacity": 0.7,
-    }
+    },
   },
   line: {
     type: "line",
@@ -46,8 +46,8 @@ const greenSpacesStyles = {
       "line-color": "#2F4F2F",
       "line-width": 5,
     },
-    _zorder: 1
-  }
+    _zorder: 1,
+  },
 };
 
 
@@ -57,7 +57,7 @@ const nightLifeStyles = {
     paint: {
       "fill-color": "#807788",
       "fill-opacity": 0.7,
-    }
+    },
   },
   line: {
     type: "line",
@@ -65,31 +65,31 @@ const nightLifeStyles = {
       "line-color": "#ABA491",
       "line-width": 5,
     },
-    _zorder: 1
-  }
-}
+    _zorder: 1,
+  },
+};
 
 const roadsStyles = {
   line: {
     type: "line",
     paint: {
       "line-color": "#626262",
-      "line-width" : {
+      "line-width": {
         stops: [
           [5, 0.2],
           [10, 2],
           [15, 5],
-        ]
+        ],
       },
     },
   },
-}
+};
 
 const customStyles = {
   "TFL Lines": tubeLineStyles,
   "Green Spaces": greenSpacesStyles,
   "Nightlife": nightLifeStyles,
-  "Roads": roadsStyles
-}
+  "Roads": roadsStyles,
+};
 
-export { customStyles }
+export { customStyles };

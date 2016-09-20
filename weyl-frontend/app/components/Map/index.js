@@ -59,8 +59,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "tiles": [`http://localhost:8080/api/${layer.id}/{z}/{x}/{y}.pbf`],
     });
 
-    function zOrder(layer) {
-      return layer.hasOwnProperty("_zorder") ? layer._zorder : -1;
+    function zOrder(l) {
+      return l.hasOwnProperty("_zorder") ? l._zorder : -1;
     }
 
     Object.keys(styleLayers)
