@@ -39,31 +39,22 @@ const defaultPolygonStyle = {
   "color-scale": "BuPu",
 };
 
-const defaultPointStyle = {
-  "circle-radius": 1.75,
-  "circle-color": "#223b53",
+const defaultLayerStyle = (schema)  => {
+  type: "DEFAULT",
+  property: schema.primaryAttribute != null? schema.primaryAttribute,
+  opacity: 0.8,
+  point: {
+    'circle-radius': 1.75,
+    color: '#223b53'
+  },
+  polygon: {
+    color: "#006495", // #F2F12D",
+    "fill-outline-color": "#E0A025",
+  },
+  line: {
+    color: "#E0A025",
+  }
 };
-
-function defaultLayerStyle(schema) {
-  const style = {
-    polygon: Object.assign({}, defaultPolygonStyle),
-    point: Object.assign({}, defaultPointStyle),
-  };
-
-  if (schema.primaryAttribute != null) {
-    style.polygon.property = schema.primaryAttribute;
-  }
-  else {
-    for (const attribute in schema.attributes) {
-      if (schema.attributes[attribute].type === "NUMERIC") {
-        style.polygon.property = attribute;
-        break;
-      }
-    }
-  }
-
-  return style;
-}
 
 const layerReducer = (layerState, action) => {
   switch (action.type) {
