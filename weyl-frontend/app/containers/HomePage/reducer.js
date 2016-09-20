@@ -125,7 +125,6 @@ function homeReducer(state = initialState, action) {
     }
 
     case SELECT_FEATURES: {
-      console.log("select features");
       const keyMap = {};
       for (const id of action.ids) {
         if (!keyMap.hasOwnProperty(id[0])) {
@@ -133,13 +132,15 @@ function homeReducer(state = initialState, action) {
         }
         keyMap[id[0]].push(id[1]);
       }
-      console.log(action.features);
-      return state.updateIn(["selection", "ids"], selection => selection.clear().merge(keyMap))
+      return state
+        .updateIn(["selection", "ids"], selection => selection.clear().merge(keyMap))
         .updateIn(["selection", "features"], features => features.clear().merge(action.features));
     }
     case CLEAR_SELECTION:
-      return state.setIn(["selection", "ids"], fromJS({}))
+      return state
+        .setIn(["selection", "ids"], fromJS({}))
         .setIn(["selection", "features"], fromJS([]));
+        
     case NUMERIC_ATTRIBUTES_LOADED:
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:

@@ -62,7 +62,10 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.rightDrawer}>
-          <SelectionView selection={this.props.selectionFeatures} onClearSelection={this.props.onClearSelection} />
+          <SelectionView
+            selection={this.props.selectionFeatures}
+            onClearSelection={this.props.onClearSelection}
+          />
         </div>
 
         <div className={styles.bottomDrawer}>

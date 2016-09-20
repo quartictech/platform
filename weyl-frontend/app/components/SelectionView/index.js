@@ -8,11 +8,65 @@ import React from "react";
 import naturalsort from "javascript-natural-sort";
 
 import styles from "./styles.css";
+import { curatedAttributes } from "./curatedAttributes";
+
+Object.filter = (obj, predicate) =>
+    Object.keys(obj)
+          .filter( key => predicate(key, obj[key]) )
+          .reduce( (res, key) => Object.assign(res, { [key]: obj[key] }), {} );
+
+const AttributeTable = ({
+  attributes,
+  order
+}) => (
+  <table className="ui very basic celled very compact fixed selectable table">
+    <tbody>
+      {order
+        .filter(key => key !== "_id")
+        .filter(key => attributes.hasOwnProperty(key))
+        .filter(key => String(attributes[key]).trim() !== "")
+        .map(key =>
+          <tr key={key}>
+            <td className="right aligned">
+              <div className="ui sub header">{key}</div>
+            </td>
+            <td>{attributes[key]}</td>
+          </tr>
+        )
+      }
+    </tbody>
+  </table>
+);
 
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
-
   onClearSelectionClick() {
     this.props.onClearSelection();
+  }
+
+  getAttributeBehavior(layerName) {
+    return curatedAttributes.hasOwnProperty(layerName)
+      ? curatedAttributes[layerName]
+      : { title: () => "<< Unknown title >>", blessed: [] };
+  }
+
+  getTitle(layerName, properties) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return behavior.title(properties);
+  }
+
+  // In the order specified in curatedAttributes
+  getBlessedAttributeOrder(layerName, properties) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return behavior.blessed
+      .filter(k => properties.hasOwnProperty(k));
+  }
+
+  // Find all other properties, and then natural-sort for convenience
+  getUnblessedAttributeOrder(layerName, properties) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return Object.keys(properties)
+      .filter(k => (behavior.blessed.indexOf(k) === -1))
+      .sort(naturalsort);
   }
 
   renderInner() {
@@ -20,33 +74,50 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
       return null;
     }
 
-    const feature = this.props.selection[0];
+    const properties = this.props.selection[0].properties;
+    const layerName = this.props.selection[0].layerName;
+
     return (
       <div className={styles.innerSelectionView}>
         <div className="ui raised fluid card">
           <div className="content">
-            <div className="ui header">
-              Selection
-              <button className="right floated tiny ui button primary" onClick={this.onClearSelectionClick.bind(this)}>Clear</button>
+            <div className="header">
+              <a onClick={this.onClearSelectionClick.bind(this)}>
+                <i className="icon close"></i>
+              </a>
+              {this.getTitle(layerName, properties)}
             </div>
-            <table className="ui celled table">
-              <thead>
-                <tr>
-                  <th>Attribute</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.keys(feature.properties)
-                  .filter(key => key !== "_id")
-                  .sort(naturalsort)
-                  .map(key =>
-                    <tr key={key}><td>{key}</td><td>{feature.properties[key]}</td></tr>
-                  )
-                }
-              </tbody>
-            </table>
+            <div className="meta">
+              {layerName}
+            </div>
+
+            <div className="ui segment">
+              <AttributeTable
+                attributes={properties}
+                order={this.getBlessedAttributeOrder(layerName, properties)}
+              />
+            </div>
           </div>
+
+          <div className="extra content">
+            <div className="ui accordion" ref={x => $(x).accordion()}>
+              <div className="title">
+                <i className="dropdown icon"></i>
+                More attributes
+              </div>
+
+              <div className="content">
+                <div className="ui secondary segment">
+                  <AttributeTable
+                    attributes={properties}
+                    order={this.getUnblessedAttributeOrder(layerName, properties)}
+                  />
+                </div>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </div>
     );
