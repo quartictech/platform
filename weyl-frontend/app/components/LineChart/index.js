@@ -102,7 +102,7 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
                   data={this.state.hist}
                   chartSeries={chartSeries}
                   x={p => p.x}
-                  width={12 / 16 * this.props.size.width}
+                  width={(12 / 16) * this.props.size.width}
                   height={this.props.size.height - 20}
                   xScale="ordinal"
                   xTickFormat={d3.format(".2s")}
