@@ -8,7 +8,7 @@ import React from "react";
 import naturalsort from "javascript-natural-sort";
 
 import styles from "./styles.css";
-import { curatedAttributes } from "./curatedAttributes";
+import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
 Object.filter = (obj, predicate) =>
     Object.keys(obj)
@@ -44,14 +44,19 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 
   getAttributeBehavior(layerName) {
-    return curatedAttributes.hasOwnProperty(layerName)
-      ? curatedAttributes[layerName]
-      : { title: () => "<< Unknown title >>", blessed: [] };
+    return curatedBehaviors.hasOwnProperty(layerName)
+      ? curatedBehaviors[layerName]
+      : defaultBehavior;
   }
 
   getTitle(layerName, properties) {
     const behavior = this.getAttributeBehavior(layerName);
     return behavior.title(properties);
+  }
+
+  isAnythingBlessed(layerName) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return behavior.blessed.length > 0;
   }
 
   // In the order specified in curatedAttributes
@@ -94,7 +99,11 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             <div className="ui segment">
               <AttributeTable
                 attributes={properties}
-                order={this.getBlessedAttributeOrder(layerName, properties)}
+                order={
+                  this.isAnythingBlessed(layerName)
+                    ? this.getBlessedAttributeOrder(layerName, properties)
+                    : this.getUnblessedAttributeOrder(layerName, properties)
+                }
               />
             </div>
           </div>
@@ -110,7 +119,11 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
                 <div className="ui secondary segment">
                   <AttributeTable
                     attributes={properties}
-                    order={this.getUnblessedAttributeOrder(layerName, properties)}
+                    order={
+                      this.isAnythingBlessed(layerName)
+                        ? this.getUnblessedAttributeOrder(layerName, properties)
+                        : this.getBlessedAttributeOrder(layerName, properties)
+                    }
                   />
                 </div>
               </div>

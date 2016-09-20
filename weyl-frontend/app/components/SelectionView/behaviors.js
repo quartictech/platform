@@ -9,7 +9,12 @@ const formatAddress = (x) => {
     : x.postcode;
 };
 
-const curatedAttributes = {
+const defaultBehavior = {
+  title: () => "<< Unknown title >>",
+  blessed: []
+};
+
+const curatedBehaviors = {
   "London Boroughs": {
     title: (x) => x.name,
     blessed: [
@@ -42,5 +47,6 @@ const curatedAttributes = {
 };
 
 export {
-  curatedAttributes,
+  defaultBehavior,
+  curatedBehaviors,
 };
