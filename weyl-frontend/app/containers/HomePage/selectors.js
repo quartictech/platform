@@ -48,10 +48,9 @@ const selectHistogramChart = () => createSelector(
 const selectMap = () => createSelector(
   selectHome(),
   (homeState) => {
-    const style = homeState.getIn(["ui", "settings", "satellite"]) ? "satellite-streets" : "outdoors";
     return {
       ready: homeState.getIn(["map", "ready"]),
-      style: `mapbox://styles/mapbox/${style}-v9`,
+      theme: homeState.getIn(["ui", "settings", "theme"]),
     };
   }
 );
