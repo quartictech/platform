@@ -54,12 +54,12 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
   getBlessedAttributes(layerName, properties) {
     const behavior = this.getAttributeBehavior(layerName);
-    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) !== -1));
+    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) !== -1) && String(v).trim() !== "");
   }
 
   getUnblessedAttributes(layerName, properties) {
     const behavior = this.getAttributeBehavior(layerName);
-    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) === -1));
+    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) === -1) && String(v).trim() !== "");
   }
 
   renderInner() {
