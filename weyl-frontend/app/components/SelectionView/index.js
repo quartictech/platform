@@ -25,11 +25,10 @@ Object.filter = (obj, predicate) =>
           .filter( key => predicate(key, obj[key]) )
           .reduce( (res, key) => Object.assign(res, { [key]: obj[key] }), {} );
 
-
 const AttributeTable = ({
   attributes
 }) => (
-  <table className="ui very basic celled fixed table">
+  <table className="ui very basic celled very compact fixed selectable table">
     <tbody>
       {Object.keys(attributes)
         .filter(key => key !== "_id")
