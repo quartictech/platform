@@ -67,6 +67,14 @@ const nightLifeStyles = {
     },
     _zorder: 1,
   },
+  point: {
+    type: "circle",
+    paint: {
+      "circle-color": "#807788",
+      "circle-opacity": 0.7,
+      "circle-radius": 7,
+    },
+  },
 };
 
 const roadsStyles = {
