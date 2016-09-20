@@ -61,9 +61,4 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-SelectionView.PropTypes = {
-  selection: React.PropTypes.array,
-  onClearSelection: React.PropTypes.func,
-};
-
 export default SelectionView;

@@ -116,11 +116,4 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
   }
 }
 
-LineChart.PropTypes = {
-  layers: React.PropTypes.array,
-  onLayerSelection: React.PropTypes.func,
-  onAttributeSelection: React.PropTypes.func,
-  data: React.PropTypes.array,
-};
-
 export default SizeMe({ monitorHeight: true })(LineChart);

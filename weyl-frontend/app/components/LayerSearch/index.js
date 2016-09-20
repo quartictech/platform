@@ -35,9 +35,4 @@ class LayerSearch extends React.Component {
   }
 }
 
-LayerSearch.propTypes = {
-  onSearch: React.PropTypes.func,
-  onSelect: React.PropTypes.func,
-};
-
 export default LayerSearch;

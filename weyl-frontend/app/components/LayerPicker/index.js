@@ -46,10 +46,4 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
   }
 }
 
-LayerPicker.PropTypes = {
-  label: React.PropTypes.string,
-  layers: React.PropTypes.array,
-  onChange: React.PropTypes.func,
-};
-
 export default LayerPicker;

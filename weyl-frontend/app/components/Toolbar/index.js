@@ -50,11 +50,4 @@ function Toolbar(props) {
   );
 }
 
-Toolbar.propTypes = {
-  onSearch: React.PropTypes.func,
-  onSelect: React.PropTypes.func,
-  ui: React.PropTypes.object,
-  onUiToggle: React.PropTypes.func,
-};
-
 export default Toolbar;

@@ -143,9 +143,4 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
   }
 }
 
-BucketLayerItem.PropTypes = {
-  onCompute: React.PropTypes.func,
-  onUiToggle: React.PropTypes.func
-}
-
 export default BucketLayerItem;
