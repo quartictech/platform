@@ -84,8 +84,8 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
     const selectedFeatureLayer = this.props.layers.find(layer => layer.id === this.state.selectedLayer);
     const numericAttributes = [];
     if (selectedFeatureLayer != null) {
-      for (const key of Object.keys(selectedFeatureLayer.stats.attributeStats)) {
-        const attribute = selectedFeatureLayer.stats.attributeStats[key];
+      for (const key of Object.keys(selectedFeatureLayer.attributeSchema.attributes)) {
+        const attribute = selectedFeatureLayer.attributeSchema.attributes[key];
         if (attribute.type === "NUMERIC") {
           numericAttributes.push(key);
         }
