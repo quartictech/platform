@@ -9,7 +9,7 @@ import React from "react";
 import styles from "./styles.css";
 
 import mapboxgl from "mapbox-gl";
-// import "mapbox-gl.css";
+import "mapbox-gl.css";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
 
 import SizeMe from "react-sizeme";
