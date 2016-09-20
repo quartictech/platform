@@ -10,13 +10,8 @@ import naturalsort from 'javascript-natural-sort';
 import styles from "./styles.css";
 
 // TODO: these are currently hardcoded
+import { blessedAttributes } from "./blessedAttributes";
 const BLESSED_TITLE_ATT = "name";
-const BLESSED_PRIMARY_ATTS = [
-  "hectares",
-  "political control in council",
-  "average age 2015",
-  "crime rates per thousand population 2014/15"
-];
 
 
 Object.filter = (obj, predicate) =>
@@ -51,7 +46,23 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 
   getTitle(properties) {
-    return properties.hasOwnProperty(BLESSED_TITLE_ATT) ? properties[BLESSED_TITLE_ATT] : "< WTF >";
+    return properties.hasOwnProperty(BLESSED_TITLE_ATT) ? properties[BLESSED_TITLE_ATT] : "< No 'name' attribute >";
+  }
+
+  getBlessedAttributes(layerName, properties) {
+    const pred = blessedAttributes.hasOwnProperty(layerName)
+      ? ((k,v) => blessedAttributes[layerName].indexOf(k) !== -1)
+      : (() => true);
+
+    return Object.filter(properties, (k,v) => pred(k,v) && k !== BLESSED_TITLE_ATT);
+  }
+
+  getUnblessedAttributes(layerName, properties) {
+    const pred = blessedAttributes.hasOwnProperty(layerName)
+      ? ((k,v) => blessedAttributes[layerName].indexOf(k) === -1)
+      : (() => true);
+
+    return Object.filter(properties, (k,v) => pred(k,v) && k !== BLESSED_TITLE_ATT);
   }
 
   renderInner() {
@@ -60,6 +71,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
     }
 
     const properties = this.props.selection[0].properties;
+    const layerName = this.props.selection[0].layerName;
 
     return (
       <div className={styles.innerSelectionView}>
@@ -72,15 +84,11 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
               {this.getTitle(properties)}
             </div>
             <div className="meta">
-              {this.props.selection[0].layerName}
+              {layerName}
             </div>
 
             <div className="ui segment">
-              <AttributeTable
-                attributes={
-                  Object.filter(properties, (k,v) => BLESSED_PRIMARY_ATTS.indexOf(k) !== -1)
-                }
-              />
+              <AttributeTable attributes={this.getBlessedAttributes(layerName, properties)} />
             </div>
           </div>
 
@@ -93,11 +101,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
               <div className="content">
                 <div className="ui secondary segment">
-                  <AttributeTable
-                    attributes={
-                      Object.filter(properties, (k,v) => BLESSED_PRIMARY_ATTS.indexOf(k) === -1 && k !== BLESSED_TITLE_ATT)
-                    }
-                  />
+                  <AttributeTable attributes={this.getUnblessedAttributes(layerName, properties)} />
                 </div>
               </div>
 
