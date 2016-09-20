@@ -8,11 +8,7 @@ import React from "react";
 import naturalsort from 'javascript-natural-sort';
 
 import styles from "./styles.css";
-
-// TODO: these are currently hardcoded
-import { blessedAttributes } from "./blessedAttributes";
-const BLESSED_TITLE_ATT = "name";
-
+import { curatedAttributes } from "./curatedAttributes";
 
 Object.filter = (obj, predicate) =>
     Object.keys(obj)
@@ -45,24 +41,25 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
     this.props.onClearSelection();
   }
 
-  getTitle(properties) {
-    return properties.hasOwnProperty(BLESSED_TITLE_ATT) ? properties[BLESSED_TITLE_ATT] : "< No 'name' attribute >";
+  getAttributeBehavior(layerName) {
+    return curatedAttributes.hasOwnProperty(layerName)
+      ? curatedAttributes[layerName]
+      : { title: () => "<< Unknown title >>", blessed: [] };
+  }
+
+  getTitle(layerName, properties) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return behavior.title(properties);
   }
 
   getBlessedAttributes(layerName, properties) {
-    const pred = blessedAttributes.hasOwnProperty(layerName)
-      ? ((k,v) => blessedAttributes[layerName].indexOf(k) !== -1)
-      : (() => true);
-
-    return Object.filter(properties, (k,v) => pred(k,v) && k !== BLESSED_TITLE_ATT);
+    const behavior = this.getAttributeBehavior(layerName);
+    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) !== -1));
   }
 
   getUnblessedAttributes(layerName, properties) {
-    const pred = blessedAttributes.hasOwnProperty(layerName)
-      ? ((k,v) => blessedAttributes[layerName].indexOf(k) === -1)
-      : (() => false);
-
-    return Object.filter(properties, (k,v) => pred(k,v) && k !== BLESSED_TITLE_ATT);
+    const behavior = this.getAttributeBehavior(layerName);
+    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) === -1));
   }
 
   renderInner() {
@@ -81,7 +78,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
               <a onClick={this.onClearSelectionClick.bind(this)}>
                 <i className="icon close"></i>
               </a>
-              {this.getTitle(properties)}
+              {this.getTitle(layerName, properties)}
             </div>
             <div className="meta">
               {layerName}
