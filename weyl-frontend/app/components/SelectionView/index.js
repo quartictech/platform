@@ -60,7 +60,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   getUnblessedAttributes(layerName, properties) {
     const pred = blessedAttributes.hasOwnProperty(layerName)
       ? ((k,v) => blessedAttributes[layerName].indexOf(k) === -1)
-      : (() => true);
+      : (() => false);
 
     return Object.filter(properties, (k,v) => pred(k,v) && k !== BLESSED_TITLE_ATT);
   }
