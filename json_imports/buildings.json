@@ -1,0 +1,26 @@
+{
+	"name": "Other Spaces",
+	"description": "Other buildings and spaces excluding parks and nightlife",
+	"query": "SELECT * from planet_osm_polygon WHERE
+    amenity != 'club'
+    AND amenity != 'nightclub'
+    AND amenity != 'pub'
+    AND amenity != 'stripclub'
+    AND amenity != 'casino'
+    AND amenity != 'bar'
+    AND amenity != 'music_venue'
+    AND amenity != 'restaurant_bar'
+    AND amenity != 'restaurant'
+    and amenity!='gardens'
+    and amenity!='square'
+    and amenity!='green'
+    and amenity!='garden'
+    and leisure!='garden'
+    and leisure!='park'
+    and leisure!='open_space'
+    and leisure!='recreation_ground'
+    and leisure!='sports_ground'
+    and leisure!='dog_park'
+    and leisure!='sports_ground'
+    and leisure!='scrub'"
+}i

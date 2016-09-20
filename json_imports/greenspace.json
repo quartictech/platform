@@ -1,0 +1,17 @@
+{
+  "name": "Green Spaces",
+  "description": "Green spaces, parks, scrubs, playing fields, etc.",
+  "query": "SELECT * FROM planet_osm_polygon where amenity = 'park'
+  or amenity='gardens'
+  or amenity='square'
+  or amenity='green'
+  or amenity='garden'
+  or leisure='garden'
+  or leisure='park'
+  or leisure='open_space'
+  or leisure='recreation_ground'
+  or leisure='sports_ground'
+  or leisure='dog_park'
+  or leisure='sports_ground'
+  or leisure='scrub'"
+}
