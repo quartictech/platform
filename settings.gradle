@@ -1,2 +1,3 @@
 include 'weyl-core'
 include 'weyl-service'
+include 'weyl-frontend'
