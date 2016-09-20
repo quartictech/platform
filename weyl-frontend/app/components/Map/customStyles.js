@@ -58,6 +58,7 @@ const nightLifeStyles = {
       "fill-color": "#807788",
       "fill-opacity": 0.7,
     },
+    filter: ["==", "$type", "Polygon"],
   },
   line: {
     type: "line",
@@ -65,6 +66,7 @@ const nightLifeStyles = {
       "line-color": "#ABA491",
       "line-width": 5,
     },
+    filter: ["==", "$type", "Polygon"],
     _zorder: 1,
   },
   point: {
@@ -74,6 +76,7 @@ const nightLifeStyles = {
       "circle-opacity": 0.7,
       "circle-radius": 7,
     },
+    filter: ["==", "$type", "Point"],
   },
 };
 
