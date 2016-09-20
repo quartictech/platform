@@ -1,0 +1,14 @@
+image: openjdk:8u102-jdk
+
+before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+
+cache:
+  paths:
+     - .gradle/wrapper
+     - .gradle/caches
+
+build:
+  stage: build
+  script:
+    - ./gradlew assemble weyl-frontend:build
