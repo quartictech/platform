@@ -1,5 +1,9 @@
 // TODO: remove this jank
 
+const PREFERRED_TITLES = [
+  "name",
+];
+
 const isUsable = (x, k) => x.hasOwnProperty(k) && x[k].trim() !== "" && !x[k].match(/\d+/g);
 
 const formatAddress = (x) => {
@@ -9,14 +13,19 @@ const formatAddress = (x) => {
     : x.postcode;
 };
 
+const defaultTitle = (x) => {
+  const title = PREFERRED_TITLES.find(k => x.hasOwnProperty(k));
+  return (title !== undefined) ? x[title] : "<< Unknown title >>";
+};
+
 const defaultBehavior = {
-  title: () => "<< Unknown title >>",
+  title: (x) => "<< Unknown title >>",
   blessed: []
 };
 
 const curatedBehaviors = {
   "London Boroughs": {
-    title: (x) => x.name,
+    title: defaultTitle,
     blessed: [
       "hectares",
       "political control in council",
