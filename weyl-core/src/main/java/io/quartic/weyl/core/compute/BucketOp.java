@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.compute;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.vividsolutions.jts.geom.Geometry;
@@ -13,6 +14,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class BucketOp {
+    private final IndexedLayer featureLayer;
+    private final BucketSpec bucketSpec;
+    private final IndexedLayer bucketLayer;
+
     private static class Bucketed<T> {
         private final Feature bucket;
         private final T value;
@@ -31,42 +36,70 @@ public class BucketOp {
         }
     }
 
-    public static Optional<RawLayer> create(LayerStore store, BucketSpec bucketSpec) {
+    private BucketOp(IndexedLayer featureLayer, IndexedLayer bucketLayer, BucketSpec bucketSpec) {
+        this.featureLayer = featureLayer;
+        this.bucketLayer = bucketLayer;
+        this.bucketSpec = bucketSpec;
+    }
+
+    private String propertyName() {
+        return featureLayer.layer().metadata().name();
+    }
+
+    public static Optional<Layer> create(LayerStore store, BucketSpec bucketSpec) {
         Optional<IndexedLayer> featureLayer = store.get(bucketSpec.features());
         Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            SpatialIndex bucketIndex = bucketLayer.get().spatialIndex();
-
-            ForkJoinPool forkJoinPool = new ForkJoinPool(4);
-            try {
-                Collection<Feature> features = forkJoinPool.submit(() -> bucketData(featureLayer.get(), bucketSpec, bucketIndex)).get();
-                String layerName = String.format("%s (bucketed)",
-                        featureLayer.get().layer().metadata().name());
-                String layerDescription = String.format("%s bucketed by %s aggregating by %s",
-                        featureLayer.get().layer().metadata().name(),
-                        bucketLayer.get().layer().metadata().name(),
-                        bucketSpec.aggregation().toString());
-
-
-                RawLayer layer = ImmutableRawLayer.builder()
-                        .features(features)
-                        .metadata(ImmutableLayerMetadata.builder()
-                                .name(layerName)
-                                .description(layerDescription)
-                                .build())
-                        .build();
-                return Optional.of(layer);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                return Optional.empty();
-            }
+            return new BucketOp(featureLayer.get(), bucketLayer.get(), bucketSpec)
+                    .compute();
         }
 
         return Optional.empty();
     }
 
-    private static Collection<Feature> bucketData(IndexedLayer featureLayer, BucketSpec bucketSpec, SpatialIndex bucketIndex) {
+    Optional<Layer> compute() {
+         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
+
+        ForkJoinPool forkJoinPool = new ForkJoinPool(4);
+        try {
+            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
+            String layerName = String.format("%s (bucketed)",
+                    featureLayer.layer().metadata().name());
+            String layerDescription = String.format("%s bucketed by %s aggregating by %s",
+                    featureLayer.layer().metadata().name(),
+                    bucketLayer.layer().metadata().name(),
+                    bucketSpec.aggregation().toString());
+
+            Map<String, Attribute> attributeMap = Maps.newHashMap(bucketLayer.layer()
+                    .schema().attributes());
+            Attribute newAttribute = ImmutableAttribute.builder()
+                    .type(AttributeType.NUMERIC)
+                    .build();
+            attributeMap.put(propertyName(), newAttribute);
+
+            AttributeSchema attributeSchema = ImmutableAttributeSchema
+                    .copyOf(bucketLayer.layer().schema())
+                    .withAttributes(attributeMap)
+                    .withPrimaryAttribute(propertyName());
+
+            RawLayer layer = ImmutableRawLayer.builder()
+                    .features(features)
+                    .schema(attributeSchema)
+                    .metadata(ImmutableLayerMetadata.builder()
+                            .name(layerName)
+                            .description(layerDescription)
+                            .build())
+                    .build();
+            return Optional.of(layer);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
+    private Collection<Feature> bucketData() {
+        SpatialIndex bucketIndex = bucketLayer.spatialIndex();
         List<Bucketed<Feature>> hits = featureLayer.layer().features().parallelStream()
                 .flatMap(feature -> {
                     Geometry featureGeometry = feature.geometry();
@@ -81,7 +114,6 @@ public class BucketOp {
                 .index(hits, Bucketed::getBucket);
 
         BucketAggregation aggregation = bucketSpec.aggregation();
-        String propertyName = featureLayer.layer().metadata().name();
 
         return groups.asMap().entrySet().parallelStream()
                 .map(bucketEntry -> {
@@ -94,7 +126,7 @@ public class BucketOp {
                         }
                     }
                     Map<String, Optional<Object>> metadata = new HashMap<>(feature.metadata());
-                    metadata.put(propertyName, Optional.of(value));
+                    metadata.put(propertyName(), Optional.of(value));
                     return ImmutableFeature.copyOf(feature)
                             .withMetadata(metadata);
                 })
