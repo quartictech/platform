@@ -51,7 +51,7 @@ function defaultLayerStyle(schema) {
   };
 
   if (schema.primaryAttribute != null) {
-    state.polygon.property = attribute;
+    style.polygon.property = schema.primaryAttribute;
   }
   else {
     for (const attribute in schema.attributes) {
