@@ -13,5 +13,6 @@
   or leisure='sports_ground'
   or leisure='dog_park'
   or leisure='sports_ground'
-  or leisure='scrub'"
+  or leisure='scrub'
+  or leisure='common'"
 }
