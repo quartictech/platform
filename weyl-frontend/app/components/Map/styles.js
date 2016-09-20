@@ -19,52 +19,28 @@ function computeStops(colorScale, nStops, minValue, maxValue) {
 
   const colors = chroma.scale(colorScale).colors(nStops);
 
-  for (var i = 0 ; i < nStops ; i++) {
-    result.push([minValue + i * ((maxValue - minValue) / nStops), colors[i].toString(0)]);
+  for (var i = 0; i < nStops; i++) {
+    result.push([(minValue + i) * ((maxValue - minValue) / nStops), colors[i].toString(0)]);
   }
   return result;
 }
 
-export function polygonLayerStyle(layer) {
-    let style = layer.style.polygon;
-    if (style.property == null) {
-      return {
-        "fill-color": style["fill-color"],
-        "fill-outline-color": style["fill-outline-color"],
-        "fill-opacity": style["fill-opacity"]
-      }
-    }
-    else {
-      let attributeStats = layer.stats.attributeStats[style.property];
-      let colorScale = style["color-scale"];
-      return {
-        "fill-color" : {
-          "property" : style.property,
-          "stops" : y
-        },
-        "fill-opacity": style["fill-opacity"]
-      }
-    }
-}
-
 function colorStyle(property, style, attributeStats) {
   if (property == null) {
-      return style.color;
+    return style.color;
   }
-  else {
-    return {
-      "property": property,
-      "stops": computeStops(style.colorScale, 8, attributeStats[property].minimum, attributeStats[property].maximum)
-    }
-  }
+  return {
+    "property": property,
+    "stops": computeStops(style.colorScale, 8, attributeStats[property].minimum, attributeStats[property].maximum),
+  };
 }
 
-let customStyles = {}
+let customStyles = {};
 
 export function buildStyleLayers(style, attributeStats) {
   if (style.type === "DEFAULT") {
     return {
-      point:  {
+      point: {
         type: "circle",
         paint: {
           "circle-radius": style.point["circle-radius"],
@@ -82,16 +58,15 @@ export function buildStyleLayers(style, attributeStats) {
         },
         filter: ["==", "$type", "Polygon"],
       },
-      "line": {
+      line: {
         type: "line",
         paint: {
-          "line-color": colorStyle(style.property, style.line, attributeStats)
+          "line-color": colorStyle(style.property, style.line, attributeStats),
         },
         filter: ["==", "$type", "LineString"],
-      }
-    }
+      },
+    };
   }
-  else {
-    return customStyles[style.type];
-  }
+
+  return customStyles[style.type];
 }
