@@ -19,6 +19,34 @@ const BLESSED_PRIMARY_ATTS = [
   "crime rates per thousand population 2014/15"
 ];
 
+
+Object.filter = (obj, predicate) =>
+    Object.keys(obj)
+          .filter( key => predicate(key, obj[key]) )
+          .reduce( (res, key) => Object.assign(res, { [key]: obj[key] }), {} );
+
+
+const AttributeTable = ({
+  attributes
+}) => (
+  <table className="ui very basic celled fixed table">
+    <tbody>
+      {Object.keys(attributes)
+        .filter(key => key !== "_id")
+        .sort(naturalsort)
+        .map(key =>
+          <tr key={key}>
+            <td className="right aligned">
+              <div className="ui sub header">{key}</div>
+            </td>
+            <td>{attributes[key]}</td>
+          </tr>
+        )
+      }
+    </tbody>
+  </table>
+);
+
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
   onClearSelectionClick() {
     this.props.onClearSelection();
@@ -48,6 +76,14 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             <div className="meta">
               {LAYER_NAME}
             </div>
+
+            <div className="ui segment">
+              <AttributeTable
+                attributes={
+                  Object.filter(properties, (k,v) => BLESSED_PRIMARY_ATTS.indexOf(k) !== -1)
+                }
+              />
+            </div>
           </div>
 
           <div className="extra content">
@@ -59,22 +95,11 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
               <div className="content">
                 <div className="ui secondary segment">
-                  <table className="ui very basic celled fixed table">
-                    <tbody>
-                      {Object.keys(properties)
-                        .filter(key => key !== "_id")
-                        .sort(naturalsort)
-                        .map(key =>
-                          <tr key={key}>
-                            <td className="right aligned">
-                              <div className="ui sub header">{key}</div>
-                            </td>
-                            <td>{properties[key]}</td>
-                          </tr>
-                        )
-                      }
-                    </tbody>
-                  </table>
+                  <AttributeTable
+                    attributes={
+                      Object.filter(properties, (k,v) => BLESSED_PRIMARY_ATTS.indexOf(k) === -1 && k !== BLESSED_TITLE_ATT)
+                    }
+                  />
                 </div>
               </div>
 
