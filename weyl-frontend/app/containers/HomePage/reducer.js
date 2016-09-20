@@ -2,6 +2,7 @@ import { fromJS, Set } from "immutable";
 import { SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
   LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED,
  } from "./constants";
+ import { themes } from "../../themes";
 
 const initialState = fromJS({
   layers: [],
@@ -13,7 +14,7 @@ const initialState = fromJS({
       settings: false,
     },
     settings: {
-      satellite: false,
+      theme: "light",
     },
   },
   // Make this an object for now. Ugh.
@@ -119,8 +120,8 @@ function homeReducer(state = initialState, action) {
       switch (element) {
         case "bucket":
           return state.updateIn(["ui", "layerOp"], val => ((val === element) ? null : element));
-        case "satellite":
-          return state.updateIn(["ui", "settings", "satellite"], val => !val);
+        case "theme":
+          return state.updateIn(["ui", "settings", "theme"], val => themes[val].next);
         default:
           return state.updateIn(["ui", "panels", element], val => !val);
       }
@@ -140,6 +141,7 @@ function homeReducer(state = initialState, action) {
     case CLEAR_SELECTION:
       return state.setIn(["selection", "ids"], fromJS({}))
         .setIn(["selection", "features"], fromJS([]));
+
     case NUMERIC_ATTRIBUTES_LOADED:
       return state.set("numericAttributes", fromJS(action.data));
     case CHART_SELECT_ATTRIBUTE:

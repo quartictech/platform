@@ -11,12 +11,13 @@ import styles from "./styles.css";
 
 import LayerSearch from "../LayerSearch";
 import classNames from "classnames";
+import { themes } from "../../themes";
 
 function Toolbar(props) {
   const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
   const chartClassNames = classNames("item", { "active": props.ui.panels.chart });
   const layerListClassNames = classNames("item", { "active": props.ui.panels.layerList });
-  const satelliteClassNames = classNames("item", { "active": props.ui.settings.satellite });
+  const themeClassNames = classNames("item");
   return (
     <div className={styles.toolbar}>
       <div className="ui menu inverted attached labeled icon">
@@ -25,9 +26,9 @@ function Toolbar(props) {
         </div>
 
         <div className="right menu">
-          <a className={satelliteClassNames} onClick={() => props.onUiToggle("satellite")}>
-            <i className="icon rocket"></i>
-            Satellite
+          <a className={themeClassNames} onClick={() => props.onUiToggle("theme")}>
+            <i className={"icon " + themes[props.ui.settings.theme].icon}></i>
+            {themes[props.ui.settings.theme].label}
           </a>
           <a className={layerListClassNames} onClick={() => props.onUiToggle("layerList")}>
             <i className="icon list"></i>

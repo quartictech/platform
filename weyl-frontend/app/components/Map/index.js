@@ -14,6 +14,7 @@ mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzb
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
+import { themes } from "../../themes";
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -39,7 +40,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
       container: "map-inner",
-      style: this.props.map.style,
+      style: themes[this.props.map.theme].mapbox,
       zoom: 9.7,
       center: [-0.10, 51.4800],
     });
@@ -163,7 +164,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           this.state.map.setPaintProperty(`${layer.id}_${k}`, paintProperty, styleLayers[k].paint[paintProperty])
         );
 
-
         this.state.map.setLayoutProperty(`${layer.id}_${k}`, "visibility", layer.visible ? "visible" : "none");
         this.state.map.setLayoutProperty(`${layer.id}_point_sel`, "visibility", layer.visible ? "visible" : "none");
         this.state.map.setLayoutProperty(`${layer.id}_polygon_sel`, "visibility", layer.visible ? "visible" : "none");
@@ -183,9 +183,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.map.style !== this.props.map.style) {
+    if (nextProps.map.theme !== this.props.map.theme) {
       this.props.onMapLoading();
-      this.state.map.setStyle(nextProps.map.style);
+      this.state.map.setStyle(themes[nextProps.map.theme].mapbox);
     } else if (nextProps.map.ready) {
       // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox 'style.load' callback)
       this.updateState(nextProps);
