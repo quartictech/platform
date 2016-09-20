@@ -63,8 +63,8 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
           values.push(value);
         }
       }
-      const minValue = Math.min.apply(Math, values);
-      const maxValue = Math.max.apply(Math, values);
+      const minValue = Math.min(...values);
+      const maxValue = Math.max(...values);
       const x = linspace(minValue, maxValue, 10);
       this.state.hist = histogram({ data: values, bins: x }).map(bin => ({
         x: bin.x,
