@@ -32,23 +32,25 @@ const initialState = fromJS({
   },
 });
 
+const colorScale = "PuRd";
 const defaultLayerStyle = schema => ({
   type: "DEFAULT",
   property: schema.primaryAttribute,
   opacity: 0.8,
   point: {
     "circle-radius": 6,
-    color: "#223b53",
-    colorScale: "BuPu",
+    "color": "#223b53",
+    colorScale,
   },
   polygon: {
-    color: "#006495", // #F2F12D",
+    "color": "#006495", // #F2F12D",
     "fill-outline-color": "#E0A025",
-    colorScale: "BuPu",
+    colorScale,
   },
   line: {
-    color: "#E0A025",
-    colorScale: "BuPu",
+    "color": "#223b53",
+    //color: "#E0A025",
+    colorScale,
   },
 });
 
@@ -133,13 +135,11 @@ function homeReducer(state = initialState, action) {
         }
         keyMap[id[0]].push(id[1]);
       }
-      return state
-        .updateIn(["selection", "ids"], selection => selection.clear().merge(keyMap))
+      return state.updateIn(["selection", "ids"], selection => selection.clear().merge(keyMap))
         .updateIn(["selection", "features"], features => features.clear().merge(action.features));
     }
     case CLEAR_SELECTION:
-      return state
-        .setIn(["selection", "ids"], fromJS({}))
+      return state.setIn(["selection", "ids"], fromJS({}))
         .setIn(["selection", "features"], fromJS([]));
 
     case NUMERIC_ATTRIBUTES_LOADED:
