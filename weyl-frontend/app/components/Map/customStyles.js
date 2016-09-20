@@ -55,7 +55,7 @@ const nightLifeStyles = {
   polygon: {
     type: "fill",
     paint: {
-      "fill-color": "#C7BFAA",
+      "fill-color": "#807788",
       "fill-opacity": 0.7,
     }
   },
@@ -76,7 +76,7 @@ const roadsStyles = {
       "line-color": "#626262",
       "line-width" : {
         stops: [
-          [5, 0.5],
+          [5, 0.2],
           [10, 2],
           [15, 5],
         ]
