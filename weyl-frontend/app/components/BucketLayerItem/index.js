@@ -53,16 +53,16 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 
   onComputeClick() {
     console.log("compute click");
-    let computeSpec = {
+    const computeSpec = {
       features: this.state.selectedLayer,
       buckets: this.state.selectedBuckets,
       aggregation: {
-        type: this.state.selectedAggregation
+        type: this.state.selectedAggregation,
       },
-      normalizeToArea: this.state.normalizeToArea
+      normalizeToArea: this.state.normalizeToArea,
     };
 
-    if (this.state.selectedAggregation == "sum" || this.state.selectedAggregation == "mean") {
+    if (this.state.selectedAggregation === "sum" || this.state.selectedAggregation === "mean") {
       computeSpec.aggregation.property = this.state.selectedAttribute;
     }
 
@@ -71,67 +71,66 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 
   renderAttributePicker(numericAttributes) {
     console.log(this.state.selectedAggregation);
-    if (this.state.selectedAggregation == "sum" || this.state.selectedAggregation == "mean"){
-        return (<div className="field">
-              <LayerAttributePicker attributes={numericAttributes} onChange={(v) => this.state.selectedAttribute = v} />
-              </div>);
+    if (this.state.selectedAggregation === "sum" || this.state.selectedAggregation === "mean") {
+      return (
+        <div className="field">
+          <LayerAttributePicker attributes={numericAttributes} onChange={(v) => this.state.selectedAttribute = v} />
+        </div>);
     }
-    else {
-      return;
-    }
+    return null;
   }
 
   render() {
-    let selectedFeatureLayer = this.props.layers.find(layer => layer.id === this.state.selectedLayer);
-    let numericAttributes = [];
+    const selectedFeatureLayer = this.props.layers.find(layer => layer.id === this.state.selectedLayer);
+    const numericAttributes = [];
     if (selectedFeatureLayer != null) {
-      for (var key of Object.keys(selectedFeatureLayer.stats.attributeStats)) {
-        let attribute = selectedFeatureLayer.stats.attributeStats[key];
+      for (const key of Object.keys(selectedFeatureLayer.stats.attributeStats)) {
+        const attribute = selectedFeatureLayer.stats.attributeStats[key];
         if (attribute.type === "NUMERIC") {
           numericAttributes.push(key);
         }
       }
     }
     return (
-        <div className={styles.bucketLayerItem}>
+      <div className={styles.bucketLayerItem}>
         <div className="ui raised fluid card">
           <div className="content">
-            <div className="header">Bucket Layer </div>
+            <div className="header">Bucket Layer</div>
             <div className="meta">Take geographical features from one layer and assign them to polygons of another, aggregating the results.</div>
           </div>
           <div className="content">
-          <form className="ui form">
-            <div className="field">
-              <LayerPicker layers={this.props.layers} label="Pick Layer" onChange={this.onLayerChange.bind(this)}/>
-            </div>
-            <div className="field">
-              <LayerPicker layers={this.props.layers} label="Pick Buckets" onChange={this.onBucketsChange.bind(this)}/>
-            </div>
+            <form className="ui form">
+              <div className="field">
+                <LayerPicker layers={this.props.layers} label="Pick Layer" onChange={this.onLayerChange.bind(this)} />
+              </div>
+              <div className="field">
+                <LayerPicker layers={this.props.layers} label="Pick Buckets" onChange={this.onBucketsChange.bind(this)} />
+              </div>
 
-            <div className="field">
-              <div id="aggregate-dropdown" className="ui floating labeled icon dropdown button">
-                <i className="filter icon"></i>
-                <span className="text">Aggregate</span>
-                <div className="menu">
-                  <div className="item" data-value="count">
-                  Count
-                  </div>
-                  <div className="item" data-value="sum">
-                  Sum
-                  </div>
-                  <div className="item" data-value="mean">
-                  Average
+              <div className="field">
+                <div id="aggregate-dropdown" className="ui floating labeled icon dropdown button">
+                  <i className="filter icon"></i>
+                  <span className="text">Aggregate</span>
+                  <div className="menu">
+                    <div className="item" data-value="count">
+                      Count
+                    </div>
+                    <div className="item" data-value="sum">
+                      Sum
+                    </div>
+                    <div className="item" data-value="mean">
+                      Average
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            {this.renderAttributePicker(numericAttributes)}
+              {this.renderAttributePicker(numericAttributes)}
 
-            <div className="ui checkbox">
-              <input name="normalizeToArea" type="checkbox" onChange={this.onNormalizeToAreaChange.bind(this)}/>
-              <label>Normalise to Area</label>
-            </div>
-          </form>
+              <div className="ui checkbox">
+                <input name="normalizeToArea" type="checkbox" onChange={this.onNormalizeToAreaChange.bind(this)} />
+                <label>Normalise to Area</label>
+              </div>
+            </form>
           </div>
           <div className="ui content">
             <button className="ui button primary" onClick={this.onComputeClick.bind(this)}>Compute</button>

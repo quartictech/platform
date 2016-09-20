@@ -15,12 +15,20 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   }
 
   renderRadioButton(name, state) {
-    return <input name={this.props.layerId} id={name} checked={state} type="radio" onChange={this.onRadioChange.bind(this)}
-      ref={x => this.radioButtons[name] = x}/>
+    return (
+      <input
+        name={this.props.layerId}
+        id={name}
+        checked={state}
+        type="radio"
+        onChange={this.onRadioChange.bind(this)}
+        ref={x => this.radioButtons[name] = x}
+      />
+    );
   }
 
   onRadioChange(e) {
-    let property = (e.currentTarget.id === "constant_fill") ? null : this.getNumericAttributes()[0];
+    const property = (e.currentTarget.id === "constant_fill") ? null : this.getNumericAttributes()[0];
 
     this.props.onChange(this.props.layerId, {
       polygon: {
@@ -50,10 +58,12 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
 
   renderAttributePicker(visible, numericAttributes) {
     if (visible) {
-      return (<LayerAttributePicker
-        attributes={numericAttributes}
-        selected={this.props.layerStyle.polygon.property}
-        onChange={this.onAttributeChange.bind(this)}/>);
+      return (
+        <LayerAttributePicker
+          attributes={numericAttributes}
+          selected={this.props.layerStyle.polygon.property}
+          onChange={this.onAttributeChange.bind(this)}
+        />);
     }
     return null;
   }

@@ -198,7 +198,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
   }
 
   render() {
-    let rows = [];
+    const rows = [];
     if (this.props.ui.layerOp === "bucket") {
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket" />);
     }
@@ -220,7 +220,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 
     if (this.props.layers.length > 0) {
       return (
-        <div className={styles.layerList} style={{"visibility": this.props.visible ? "visible" : "hidden"}}>
+        <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
           <div className="ui raised fluid card">
             <div className={styles.innerLayerList}>
               {rows}
@@ -229,9 +229,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
         </div>
       );
     }
-    else {
-      return null;
-    }
+    return null;
   }
 }
 

@@ -16,7 +16,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
   renderInner() {
     if (this.props.selection.length === 0) {
-      return;
+      return null;
     }
 
     const rows = [];
