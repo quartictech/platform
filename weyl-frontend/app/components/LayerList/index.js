@@ -4,9 +4,10 @@
 *
 */
 
-import React from "react";
+import React from 'react';
+import naturalsort from 'javascript-natural-sort';
 
-import styles from "./styles.css";
+import styles from './styles.css';
 
 import BucketLayerItem from "../BucketLayerItem";
 import LayerStyleSettings from "../LayerStyleSettings";
@@ -33,7 +34,7 @@ const AttributeValueList = ({
   onClick,
 }) => (
   <div className="ui list">
-    {values.map(value => (
+    {values.sort(naturalsort).map(value => (
       <AttributeValue
         key={value}
         value={value}
@@ -54,6 +55,7 @@ const AttributeList = ({
     {
       Object.keys(attributes)
         .filter(key => attributes[key].categories !== null)
+        .sort(naturalsort)
         .map(key => (
           <div className="ui accordion" key={key} ref={x => $(x).accordion()}>
             <div className="title">
