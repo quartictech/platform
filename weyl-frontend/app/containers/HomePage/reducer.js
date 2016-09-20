@@ -39,16 +39,16 @@ const defaultLayerStyle = schema => ({
   opacity: 0.8,
   point: {
     "circle-radius": 6,
-    "color": "#223b53",
+    "color": "#e7298a", // "#223b53",
     colorScale,
   },
   polygon: {
-    "color": "#006495", // #F2F12D",
+    "color": "#67001f", // #F2F12D",
     "fill-outline-color": "#E0A025",
     colorScale,
   },
   line: {
-    "color": "#223b53",
+    "color": "#e7298a",
     //color: "#E0A025",
     colorScale,
   },
