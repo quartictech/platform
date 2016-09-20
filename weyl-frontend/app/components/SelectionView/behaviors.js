@@ -19,7 +19,7 @@ const defaultTitle = (x) => {
 };
 
 const defaultBehavior = {
-  title: (x) => "<< Unknown title >>",
+  title: defaultTitle,
   blessed: []
 };
 
