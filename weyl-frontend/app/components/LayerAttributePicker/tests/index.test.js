@@ -1,11 +1,11 @@
-// import LayerAttributePicker from '../index';
+// import LayerAttributePicker from "../index";
 
-import expect from 'expect';
-// import { shallow } from 'enzyme';
-// import React from 'react';
+import expect from "expect";
+// import { shallow } from "enzyme";
+// import React from "react";
 
-describe('<LayerAttributePicker />', () => {
-  it('Expect to have unit tests specified', () => {
+describe("<LayerAttributePicker />", () => {
+  it("Expect to have unit tests specified", () => {
     expect(true).toEqual(false);
   });
 });

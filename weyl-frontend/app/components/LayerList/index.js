@@ -4,17 +4,17 @@
 *
 */
 
-import React from 'react';
+import React from "react";
 
-import { FormattedMessage } from 'react-intl';
-import messages from './messages';
-import styles from './styles.css';
-import classNames from 'classnames';
+import { FormattedMessage } from "react-intl";
+import messages from "./messages";
+import styles from "./styles.css";
+import classNames from "classnames";
 
-import BucketLayerItem from '../BucketLayerItem';
-import LayerStyleSettings from '../LayerStyleSettings';
+import BucketLayerItem from "../BucketLayerItem";
+import LayerStyleSettings from "../LayerStyleSettings";
 
-var $ = require('jquery');
+var $ = require("jquery");
 
 
 const AttributeValue = ({
@@ -89,7 +89,7 @@ const LayerListItemInfo = ({
   mode
 }) => {
   switch (mode) {
-    case 'FILTER':
+    case "FILTER":
       return (
         <div className="ui secondary segment">
           <div className="content">
@@ -103,7 +103,7 @@ const LayerListItemInfo = ({
         </div>
       );
 
-    case 'STYLE':
+    case "STYLE":
     return (<div className="ui secondary segment">
           <div className="content">
           <LayerStyleSettings
@@ -119,7 +119,7 @@ const LayerListItemInfo = ({
 };
 
 const filterButtonStyle = (layer, mode) => {
-  if (mode === 'FILTER') {
+  if (mode === "FILTER") {
     return styles.active;
   }
   if (Object.keys(layer.filter).some(k => layer.filter[k].length > 0)) {
@@ -129,7 +129,7 @@ const filterButtonStyle = (layer, mode) => {
 }
 
 const styleButtonStyle = (layer, mode) => {
-  return (mode === 'STYLE') ? styles.active : "";
+  return (mode === "STYLE") ? styles.active : "";
 }
 
 const LayerListItem = ({
@@ -142,18 +142,18 @@ const LayerListItem = ({
   <div className={styles.layerListItem}>
     <div className="content">
       <div className="right floated">
-        <a onClick={e => onButtonClick('VISIBLE')} className={(layer.visible) ? styles.enabled : ""}>
+        <a onClick={e => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
           <i className="icon eye"></i>
         </a>
-        <a onClick={e => onButtonClick('FILTER')} className={filterButtonStyle(layer, mode)}>
+        <a onClick={e => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
           <i className="icon filter"></i>
         </a>
-        <a onClick={e => onButtonClick('STYLE')} className={styleButtonStyle(layer, mode)}>
+        <a onClick={e => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
           <i className="icon paint brush"></i>
         </a>
       </div>
       <div className="header">
-        <a onClick={e => onButtonClick('CLOSE')}>
+        <a onClick={e => onButtonClick("CLOSE")}>
           <i className="icon close"></i>
         </a>
         {layer.name}
@@ -186,9 +186,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 
   onButtonClick(name, layerId) {
     switch (name) {
-      case 'VISIBLE':
+      case "VISIBLE":
         return this.props.layerToggleVisible(layerId);
-      case 'CLOSE':
+      case "CLOSE":
         return this.props.layerClose(layerId);
       default:
         return this.setState({

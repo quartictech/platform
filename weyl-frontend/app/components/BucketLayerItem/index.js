@@ -4,27 +4,26 @@
 *
 */
 
-import React from 'react';
+import React from "react";
 
-import { FormattedMessage } from 'react-intl';
-import messages from './messages';
-import styles from './styles.css';
-var $ = require('jquery');
+import styles from "./styles.css";
+const $ = require("jquery");
 
-import LayerPicker from '../LayerPicker';
-import LayerAttributePicker from '../LayerAttributePicker';
+import LayerPicker from "../LayerPicker";
+import LayerAttributePicker from "../LayerAttributePicker";
 
 class BucketLayerItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
     super(props);
-    this.state = {selectedLayer: null, selectedBuckets: null, normalizeToArea: false};
+    this.state = { selectedLayer: null, selectedBuckets: null, normalizeToArea: false };
   }
+
   componentDidMount() {
-    $('#aggregate-dropdown')
+    $("#aggregate-dropdown")
     .dropdown({
       onChange: (value) => {
-         this.onAggregationChange(value);
-       }
+        this.onAggregationChange(value);
+      },
     });
   }
 
@@ -88,7 +87,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
     if (selectedFeatureLayer != null) {
       for (var key of Object.keys(selectedFeatureLayer.stats.attributeStats)) {
         let attribute = selectedFeatureLayer.stats.attributeStats[key];
-        if (attribute.type === 'NUMERIC') {
+        if (attribute.type === "NUMERIC") {
           numericAttributes.push(key);
         }
       }

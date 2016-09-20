@@ -4,13 +4,13 @@
 *
 */
 
-import React from 'react';
+import React from "react";
 
-import { FormattedMessage } from 'react-intl';
-import messages from './messages';
-import styles from './styles.css';
+import { FormattedMessage } from "react-intl";
+import messages from "./messages";
+import styles from "./styles.css";
 
-import LayerAttributePicker from '../LayerAttributePicker';
+import LayerAttributePicker from "../LayerAttributePicker";
 
 class LayerStyleSettings extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {

@@ -3,11 +3,11 @@
  *
  * This contains all the text for the Toolbar component.
  */
-import { defineMessages } from 'react-intl';
+import { defineMessages } from "react-intl";
 
 export default defineMessages({
   header: {
-    id: 'app.components.Toolbar.header',
-    defaultMessage: 'This is the Toolbar component !',
+    id: "app.components.Toolbar.header",
+    defaultMessage: "This is the Toolbar component !",
   },
 });

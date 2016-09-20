@@ -1,7 +1,7 @@
 /*
  * HomePage
  *
- * This is the first thing users see of our App, at the '/' route
+ * This is the first thing users see of our App, at the "/" route
  *
  * NOTE: while this component should technically be a stateless functional
  * component (SFC), hot reloading does not currently support SFCs. If hot
@@ -9,43 +9,47 @@
  * the linting exception.
  */
 
-import React from 'react';
-import { FormattedMessage } from 'react-intl';
-import messages from './messages';
-import  Map from '../../components/Map';
-import  Toolbar from '../../components/Toolbar';
-import LineChart from '../../components/LineChart';
-import LayerList from '../../components/LayerList';
-import SelectionView from '../../components/SelectionView';
+import React from "react";
+import Map from "../../components/Map";
+import Toolbar from "../../components/Toolbar";
+import LineChart from "../../components/LineChart";
+import LayerList from "../../components/LayerList";
+import SelectionView from "../../components/SelectionView";
 
-import styles from './styles.css';
+import styles from "./styles.css";
 
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
 import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded
- } from './actions';
+  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded,
+ } from "./actions";
 
-import { selectLayers, selectLoading, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart, selectMap } from './selectors';
+import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart, selectMap } from "./selectors";
 
-export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     return (
       <div className={styles.container}>
-        <Toolbar loading={this.props.loading} onSearch={this.props.onSearch}
-        onSelect={this.props.onSelect} ui= {this.props.ui} onUiToggle={this.props.onUiToggle}/>
-      <div className={styles.mapContainer}>
-        <Map layers={this.props.layers}
-          onSelectFeatures={this.props.onSelectFeatures}
-          onMapLoading={this.props.onMapLoading}
-          onMapLoaded={this.props.onMapLoaded}
-          selection={this.props.selectionIds}
-          map={this.props.map}
+        <Toolbar
+          onSearch={this.props.onSearch}
+          onSelect={this.props.onSelect}
+          ui={this.props.ui}
+          onUiToggle={this.props.onUiToggle}
+        />
+        <div className={styles.mapContainer}>
+          <Map
+            layers={this.props.layers}
+            onSelectFeatures={this.props.onSelectFeatures}
+            onMapLoading={this.props.onMapLoading}
+            onMapLoaded={this.props.onMapLoaded}
+            selection={this.props.selectionIds}
+            map={this.props.map}
           />
-      </div>
+        </div>
 
-      <div className={styles.leftDrawer}>
-          <LayerList layers={this.props.layers}
+        <div className={styles.leftDrawer}>
+          <LayerList
+            layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
             onBucketCompute={this.props.onBucketCompute}
             ui={this.props.ui}
@@ -55,26 +59,50 @@ export default class HomePage extends React.Component { // eslint-disable-line r
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
           />
-      </div>
-
-      <div className={styles.rightDrawer}>
-        <SelectionView selection={this.props.selectionFeatures} onClearSelection={this.props.onClearSelection} />
-      </div>
-
-      <div className={styles.bottomDrawer}>
-            <LineChart visible={this.props.ui.panels.chart} layers={this.props.layers} onLayerSelection={this.props.onChartLayerSelection}
-              onAttributeSelection={this.props.onChartAttributeSelection}
-              chart={this.props.histogramChart}
-              numericAttributes={this.props.numericAttributes}/>
-          </div>
         </div>
+
+        <div className={styles.rightDrawer}>
+          <SelectionView selection={this.props.selectionFeatures} onClearSelection={this.props.onClearSelection} />
+        </div>
+
+        <div className={styles.bottomDrawer}>
+          <LineChart
+            visible={this.props.ui.panels.chart}
+            layers={this.props.layers}
+            onLayerSelection={this.props.onChartLayerSelection}
+            onAttributeSelection={this.props.onChartAttributeSelection}
+            chart={this.props.histogramChart}
+            numericAttributes={this.props.numericAttributes}
+          />
+        </div>
+      </div>
     );
   }
 }
 
 HomePage.propTypes = {
   layers: React.PropTypes.array,
-}
+  layerToggleVisible: React.PropTypes.func,
+  onSearch: React.PropTypes.func,
+  onSelect: React.PropTypes.func,
+  onUiToggle: React.PropTypes.func,
+  onSelectFeatures: React.PropTypes.func,
+  onMapLoading: React.PropTypes.func,
+  onMapLoaded: React.PropTypes.func,
+  ui: React.PropTypes.object,
+  selectionIds: React.PropTypes.object,
+  map: React.PropTypes.object,
+  onBucketCompute: React.PropTypes.func,
+  onLayerStyleChange: React.PropTypes.func,
+  layerClose: React.PropTypes.func,
+  onToggleValueVisible: React.PropTypes.func,
+  selectionFeatures: React.PropTypes.array,
+  onClearSelection: React.PropTypes.func,
+  onChartLayerSelection: React.PropTypes.func,
+  onChartAttributeSelection: React.PropTypes.func,
+  histogramChart: React.PropTypes.object,
+  numericAttributes: React.PropTypes.object,
+};
 
 function mapDispatchToProps(dispatch) {
   return {
@@ -92,19 +120,18 @@ function mapDispatchToProps(dispatch) {
     onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style)),
     onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value)),
     onMapLoading: () => dispatch(mapLoading()),
-    onMapLoaded: () => dispatch(mapLoaded())
+    onMapLoaded: () => dispatch(mapLoaded()),
   };
 }
 
 const mapStateToProps = createStructuredSelector({
   layers: selectLayers(),
-  loading: selectLoading(),
   ui: selectUi(),
   selectionIds: selectSelectionIds(),
   selectionFeatures: selectSelectionFeatures(),
   numericAttributes: selectNumericAttributes(),
   histogramChart: selectHistogramChart(),
-  map: selectMap()
+  map: selectMap(),
 });
 
 // Wrap the component to inject dispatch and state into it

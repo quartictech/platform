@@ -1,71 +1,74 @@
-import { take, call, put, select, fork, cancel } from 'redux-saga/effects';
-import { takeEvery, takeLatest } from 'redux-saga'
+import { take, call, put, fork, cancel } from "redux-saga/effects";
+import { takeLatest } from "redux-saga";
 
-import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD } from './constants';
-import { LOCATION_CHANGE } from 'react-router-redux';
-import request from 'utils/request';
-import { searchDone, layerCreate, loadNumericAttributesDone } from './actions';
+import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD } from "./constants";
+import { LOCATION_CHANGE } from "react-router-redux";
+import request from "utils/request";
+import { searchDone, layerCreate, loadNumericAttributesDone } from "./actions";
 
-let apiRoot = "http://localhost:8080/api"
+const apiRoot = "http://localhost:8080/api";
 
 function* search(action) {
   console.log("Executing search");
-  const requestURL = apiRoot + "/layer?query=" + encodeURI(action.query)
+  const requestURL = `${apiRoot}/layer?query=${encodeURI(action.query)}`;
   const results = yield call(request, requestURL, {
-      method: 'GET'
-    });
+    method: "GET",
+  });
 
   if (!results.err) {
-    let response = {
+    const response = {
       success: true,
       results: {
         layers: {
           name: "Layers",
-          results: results.data.map((item) => { return {title: item.name, name: item.name, description: item.description, id: item.id,
+          results: results.data.map((item) => ({
+            title: item.name,
+            name: item.name,
+            description: item.description,
+            id: item.id,
             stats: item.stats,
-            attributeSchema: item.attributeSchema
-          }})
-        }
-      }
-    }
+            attributeSchema: item.attributeSchema,
+          })),
+        },
+      },
+    };
     yield put(searchDone(response, action.callback));
   }
 }
 
 function* bucketComputation(action) {
   console.log(action);
-  const requestURL = apiRoot + "/layer/compute";
+  const requestURL = `${apiRoot}/layer/compute`;
   const results = yield call(request, requestURL, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      "Accept": "application/json",
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(action.computation)
+    body: JSON.stringify(action.computation),
   });
 
-  if (! results.err) {
+  if (!results.err) {
     console.log(results);
-    const requestURL = apiRoot + "/layer/metadata/" + results.data;
-    const results2 = yield call(request, requestURL, {
-      method: 'GET',
+    const requestURL2 = `${apiRoot}/layer/metadata/${results.data}`;
+    const results2 = yield call(request, requestURL2, {
+      method: "GET",
     });
 
-    if (! results2.err) {
+    if (!results2.err) {
       yield put(layerCreate(results2.data));
     }
   }
 }
 
 function* numericAttributes(action) {
-    console.log("Fetching numeric attributes");
-    const requestURL = apiRoot + "/layer/numeric_values/" + action.layerId;
-    const results = yield call(request, requestURL,
-    {
-      method: 'GET'
-    });
+  console.log("Fetching numeric attributes");
+  const requestURL = `${apiRoot}/layer/numeric_values/${action.layerId}`;
+  const results = yield call(request, requestURL, {
+    method: "GET",
+  });
 
-    yield put(loadNumericAttributesDone(results.data));
+  yield put(loadNumericAttributesDone(results.data));
 }
 
 export function* searchWatcher() {
@@ -89,14 +92,14 @@ export function* searchData() {
 
 export function* computationData() {
   console.log("Computation watcher");
-  const watcher = yield fork(computationWatcher);
+  yield fork(computationWatcher);
 
   yield take(LOCATION_CHANGE);
   yield cancel(computationWatcher);
 }
 
 export function* numericAttributesData() {
-  const watcher = yield fork(numericAttributesWatcher);
+  yield fork(numericAttributesWatcher);
 
   yield take(LOCATION_CHANGE);
   yield cancel(numericAttributesWatcher);
@@ -104,7 +107,7 @@ export function* numericAttributesData() {
 
 
 export default [
-    searchData,
-    computationData,
-    numericAttributesData
-]
+  searchData,
+  computationData,
+  numericAttributesData,
+];
