@@ -31,6 +31,7 @@ const initialState = fromJS({
   },
 });
 
+const colorScale = "PuRd";
 const defaultLayerStyle = schema => ({
   type: "DEFAULT",
   property: schema.primaryAttribute,
@@ -38,16 +39,17 @@ const defaultLayerStyle = schema => ({
   point: {
     "circle-radius": 6,
     color: "#223b53",
-    colorScale: "BuPu",
+    colorScale,
   },
   polygon: {
     color: "#006495", // #F2F12D",
     "fill-outline-color": "#E0A025",
-    colorScale: "BuPu",
+    colorScale,
   },
   line: {
-    color: "#E0A025",
-    colorScale: "BuPu",
+    color: "#223b53",
+    //color: "#E0A025",
+    colorScale,
   },
 });
 

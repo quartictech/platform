@@ -52,36 +52,67 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
   }
 
+
   createLayers(layer, styleLayers) {
     this.state.map.addSource(layer.id, {
       "type": "vector",
       "tiles": [`http://localhost:8080/api/${layer.id}/{z}/{x}/{y}.pbf`],
     });
 
+    function zOrder(layer) {
+      return layer.hasOwnProperty("_zorder") ? layer._zorder : -1;
+    }
+
     Object.keys(styleLayers)
-      .forEach(styleLayerKey => {
+      .sort((a, b) => zOrder(styleLayers[b]) - zOrder(styleLayers[a]))
+      .forEach( styleLayerKey => {
+
         const styleLayer = {
           ...styleLayers[styleLayerKey],
           "id": `${layer.id}_${styleLayerKey}`,
           "source": layer.id,
           "source-layer": layer.id,
         };
+
+        if (styleLayer.hasOwnProperty("_zorder")) {
+          delete styleLayer["_zorder"];
+        }
+
         this.state.map.addLayer(styleLayer);
 
         this.state.map.addLayer({
-          "id": `${layer.id}_${styleLayerKey}_sel`,
+          "id": `${layer.id}_point_sel`,
+          "type": "circle",
+          "source": layer.id,
+          "source-layer": layer.id,
+          "paint": {
+            "circle-color": "#FFB85F", // "#6e599f",
+          },
+          "filter": ["in", "_id", ""],
+        });
+
+        this.state.map.addLayer({
+          "id": `${layer.id}_polygon_sel`,
           "type": "fill",
           "source": layer.id,
           "source-layer": layer.id,
           "paint": {
-            "fill-outline-color": "#484896",
             "fill-color": "#FFB85F", // "#6e599f",
-            "fill-opacity": 0.75,
           },
-          "filter": ["in", "FIPS", ""],
+          "filter": ["in", "_id", ""],
         });
-      }
-    );
+
+        this.state.map.addLayer({
+          "id": `${layer.id}_line_sel`,
+          "type": "line",
+          "source": layer.id,
+          "source-layer": layer.id,
+          "paint": {
+            "line-color": "#FFB85F", // "#6e599f",
+          },
+          "filter": ["in", "_id", ""],
+        });
+      });
 
     this.state.sourceLayerMappings[layer.id] = Object.keys(styleLayers)
       .map(k => `${layer.id}_${k}`);
@@ -117,8 +148,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateState(props) {
     this.state.visibleLayerIds = [];
     props.layers.forEach((layer) => {
-      const styleLayers = buildStyleLayers(layer.style, layer.stats.attributeStats);
-      console.log(styleLayers);
+      const styleLayers = buildStyleLayers(layer.name, layer.style, layer.stats.attributeStats);
       if (layer.visible) {
         Object.keys(styleLayers).forEach(k => this.state.visibleLayerIds.push(`${layer.id}_${k}`));
       }
@@ -127,20 +157,28 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         this.createLayers(layer, styleLayers);
       }
 
+      const valueFilter = this.createValueFilter(layer.filter);
       Object.keys(styleLayers).forEach(k => {
         Object.keys(styleLayers[k].paint).forEach(paintProperty =>
           this.state.map.setPaintProperty(`${layer.id}_${k}`, paintProperty, styleLayers[k].paint[paintProperty])
         );
 
-        const layerFilter = styleLayers[k].filter;
-        
-        this.state.map.setLayoutProperty(`${layer.id}_${k}`, "visibility", layer.visible ? "visible" : "none");
-        const valueFilter = this.createValueFilter(layer.filter);
-        this.state.map.setFilter(`${layer.id}_${k}`, ["all", valueFilter, layerFilter]);
 
-        const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
-        this.state.map.setFilter(`${layer.id}_${k}_sel`, ["all", selectionFilter, valueFilter, layerFilter]);
+        this.state.map.setLayoutProperty(`${layer.id}_${k}`, "visibility", layer.visible ? "visible" : "none");
+        this.state.map.setLayoutProperty(`${layer.id}_point_sel`, "visibility", layer.visible ? "visible" : "none");
+        this.state.map.setLayoutProperty(`${layer.id}_polygon_sel`, "visibility", layer.visible ? "visible" : "none");
+        this.state.map.setLayoutProperty(`${layer.id}_polygon_sel`, "visibility", layer.visible ? "visible" : "none");
+
+        if (styleLayers[k].hasOwnProperty("filter")) {
+          const layerFilter = styleLayers[k].filter;
+          this.state.map.setFilter(`${layer.id}_${k}`, ["all", valueFilter, layerFilter]);
+        }
       });
+
+      const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
+      this.state.map.setFilter(`${layer.id}_point_sel`, ["all", ["==", "$type", "Point"], selectionFilter, valueFilter]);
+      this.state.map.setFilter(`${layer.id}_polygon_sel`, ["all", ["==", "$type", "Polygon"], selectionFilter, valueFilter]);
+      this.state.map.setFilter(`${layer.id}_line_sel`, ["all", ["==", "$type", "LineString"], selectionFilter, valueFilter]);
     });
   }
 

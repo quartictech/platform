@@ -1,6 +1,8 @@
 import * as d3 from "d3";
 import * as chroma from "chroma-js";
 
+import { customStyles } from "./customStyles.js";
+
 export function computeColorScaleFromBase(baseColor, step, n) {
   let color = baseColor;
   const result = [];
@@ -17,7 +19,7 @@ export function computeColorScaleFromBase(baseColor, step, n) {
 function computeStops(colorScale, nStops, minValue, maxValue) {
   const result = [];
 
-  const colors = chroma.scale(colorScale).colors(nStops);
+  const colors = chroma.scale(colorScale).colors(nStops + 2).slice(2);
 
   for (var i = 0; i < nStops; i++) {
     result.push([(minValue + i) * ((maxValue - minValue) / nStops), colors[i].toString(0)]);
@@ -35,19 +37,41 @@ function colorStyle(property, style, attributeStats) {
   };
 }
 
-let customStyles = {};
+function filter(property, geomType) {
+  const geomFilter = ["==", "$type", geomType];
+  if (property != null) {
+    const propFilter = ["has", property];
+    return ["all", geomFilter, propFilter];
+  }
+  else {
+    return geomFilter;
+  }
+}
 
-export function buildStyleLayers(style, attributeStats) {
-  if (style.type === "DEFAULT") {
+export function buildStyleLayers(layerName, style, attributeStats) {
+  if (customStyles.hasOwnProperty(layerName)) {
+    return customStyles[layerName];
+  }
+  else {
     return {
       point: {
         type: "circle",
         paint: {
-          "circle-radius": style.point["circle-radius"],
+          "circle-radius": style.point["circle-radius"] - 2,
           "circle-color": colorStyle(style.property, style.point, attributeStats),
           "circle-opacity": style.opacity,
         },
-        filter: ["==", "$type", "Point"],
+        filter: filter(style.property, "Point"),
+      },
+      point2: {
+        type: "circle",
+        paint: {
+          "circle-radius": style.point["circle-radius"],
+          "circle-color": "#FFFFFF",
+          "circle-opacity": style.opacity,
+        },
+        filter: filter(style.property, "Point"),
+        _zorder: 1,
       },
       polygon: {
         type: "fill",
@@ -56,17 +80,16 @@ export function buildStyleLayers(style, attributeStats) {
           "fill-outline-color": style.property == null ? style.polygon["fill-outline-color"] : null,
           "fill-opacity": style.opacity,
         },
-        filter: ["==", "$type", "Polygon"],
+        filter: filter(style.property, "Polygon"),
       },
       line: {
         type: "line",
         paint: {
           "line-color": colorStyle(style.property, style.line, attributeStats),
+          "line-width": 5
         },
         filter: ["==", "$type", "LineString"],
       },
     };
   }
-
-  return customStyles[style.type];
 }
