@@ -67,21 +67,21 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "source-layer": layer.id,
         };
         this.state.map.addLayer(styleLayer);
+
+        this.state.map.addLayer({
+          "id": `${layer.id}_${styleLayerKey}_sel`,
+          "type": "fill",
+          "source": layer.id,
+          "source-layer": layer.id,
+          "paint": {
+            "fill-outline-color": "#484896",
+            "fill-color": "#FFB85F", // "#6e599f",
+            "fill-opacity": 0.75,
+          },
+          "filter": ["in", "FIPS", ""],
+        });
       }
     );
-
-    this.state.map.addLayer({
-      "id": `${layer.id}_polygon_sel`,
-      "type": "fill",
-      "source": layer.id,
-      "source-layer": layer.id,
-      "paint": {
-        "fill-outline-color": "#484896",
-        "fill-color": "#FFB85F", // "#6e599f",
-        "fill-opacity": 0.75,
-      },
-      "filter": ["in", "FIPS", ""],
-    });
 
     this.state.sourceLayerMappings[layer.id] = Object.keys(styleLayers)
       .map(k => `${layer.id}_${k}`);
@@ -118,6 +118,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.visibleLayerIds = [];
     props.layers.forEach((layer) => {
       const styleLayers = buildStyleLayers(layer.style, layer.stats.attributeStats);
+      console.log(styleLayers);
       if (layer.visible) {
         Object.keys(styleLayers).forEach(k => this.state.visibleLayerIds.push(`${layer.id}_${k}`));
       }
@@ -126,21 +127,20 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         this.createLayers(layer, styleLayers);
       }
 
-      ["polygon", "polygon_sel", "point", "line"].forEach((sub) => {
-        this.state.map.setLayoutProperty(`${layer.id}_${sub}`, "visibility", layer.visible ? "visible" : "none");
-      });
-
       Object.keys(styleLayers).forEach(k => {
         Object.keys(styleLayers[k].paint).forEach(paintProperty =>
           this.state.map.setPaintProperty(`${layer.id}_${k}`, paintProperty, styleLayers[k].paint[paintProperty])
         );
+
+        const layerFilter = styleLayers[k].filter;
+        
+        this.state.map.setLayoutProperty(`${layer.id}_${k}`, "visibility", layer.visible ? "visible" : "none");
+        const valueFilter = this.createValueFilter(layer.filter);
+        this.state.map.setFilter(`${layer.id}_${k}`, ["all", valueFilter, layerFilter]);
+
+        const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
+        this.state.map.setFilter(`${layer.id}_${k}_sel`, ["all", selectionFilter, valueFilter, layerFilter]);
       });
-
-      const valueFilter = this.createValueFilter(layer.filter);
-      this.state.map.setFilter(`${layer.id}_polygon`, valueFilter);
-
-      const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
-      this.state.map.setFilter(`${layer.id}_polygon_sel`, ["all", selectionFilter, valueFilter]);
     });
   }
 
