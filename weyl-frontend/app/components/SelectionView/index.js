@@ -16,13 +16,15 @@ Object.filter = (obj, predicate) =>
           .reduce( (res, key) => Object.assign(res, { [key]: obj[key] }), {} );
 
 const AttributeTable = ({
-  attributes
+  attributes,
+  order
 }) => (
   <table className="ui very basic celled very compact fixed selectable table">
     <tbody>
-      {Object.keys(attributes)
+      {order
         .filter(key => key !== "_id")
-        .sort(naturalsort)
+        .filter(key => attributes.hasOwnProperty(key))
+        .filter(key => String(attributes[key]).trim() !== "")
         .map(key =>
           <tr key={key}>
             <td className="right aligned">
@@ -52,14 +54,19 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
     return behavior.title(properties);
   }
 
-  getBlessedAttributes(layerName, properties) {
+  // In the order specified in curatedAttributes
+  getBlessedAttributeOrder(layerName, properties) {
     const behavior = this.getAttributeBehavior(layerName);
-    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) !== -1) && String(v).trim() !== "");
+    return behavior.blessed
+      .filter(k => properties.hasOwnProperty(k));
   }
 
-  getUnblessedAttributes(layerName, properties) {
+  // Find all other properties, and then natural-sort for convenience
+  getUnblessedAttributeOrder(layerName, properties) {
     const behavior = this.getAttributeBehavior(layerName);
-    return Object.filter(properties, (k, v) => (behavior.blessed.indexOf(k) === -1) && String(v).trim() !== "");
+    return Object.keys(properties)
+      .filter(k => (behavior.blessed.indexOf(k) === -1))
+      .sort(naturalsort);
   }
 
   renderInner() {
@@ -85,7 +92,10 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             </div>
 
             <div className="ui segment">
-              <AttributeTable attributes={this.getBlessedAttributes(layerName, properties)} />
+              <AttributeTable
+                attributes={properties}
+                order={this.getBlessedAttributeOrder(layerName, properties)}
+              />
             </div>
           </div>
 
@@ -98,7 +108,10 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
               <div className="content">
                 <div className="ui secondary segment">
-                  <AttributeTable attributes={this.getUnblessedAttributes(layerName, properties)} />
+                  <AttributeTable
+                    attributes={properties}
+                    order={this.getUnblessedAttributeOrder(layerName, properties)}
+                  />
                 </div>
               </div>
 
