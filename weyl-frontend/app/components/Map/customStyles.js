@@ -52,6 +52,7 @@ const greenSpacesStyles = {
 
 
 const nightLifeStyles = {
+  // These are for the layer from OSM (polygons)
   polygon: {
     type: "fill",
     paint: {
@@ -60,6 +61,7 @@ const nightLifeStyles = {
     },
     filter: ["==", "$type", "Polygon"],
   },
+  // MapboxGL doesn't have fill-outline-width so we add a separate line layer
   line: {
     type: "line",
     paint: {
@@ -69,6 +71,7 @@ const nightLifeStyles = {
     filter: ["==", "$type", "Polygon"],
     _zorder: 1,
   },
+  // This is for the point-like dataset from OSM
   point: {
     type: "circle",
     paint: {
