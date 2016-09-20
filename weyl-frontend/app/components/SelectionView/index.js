@@ -10,7 +10,6 @@ import naturalsort from 'javascript-natural-sort';
 import styles from "./styles.css";
 
 // TODO: these are currently hardcoded
-const LAYER_NAME = "London Boroughs";
 const BLESSED_TITLE_ATT = "name";
 const BLESSED_PRIMARY_ATTS = [
   "hectares",
@@ -73,7 +72,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
               {this.getTitle(properties)}
             </div>
             <div className="meta">
-              {LAYER_NAME}
+              {this.props.selection[0].layerName}
             </div>
 
             <div className="ui segment">

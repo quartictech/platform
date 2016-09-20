@@ -24,7 +24,15 @@ const selectSelectionIds = () => createSelector(
 
 const selectSelectionFeatures = () => createSelector(
   selectHome(),
-  (homeState) => homeState.getIn(["selection", "features"]).toJS()
+  (homeState) => {
+    const features = homeState.getIn(["selection", "features"]).toJS();
+    const layers = homeState.get("layers").toJS();
+
+    return Object.keys(features).map(k => ({
+      ...(features[k]),
+      layerName: layers.find(l => l.id === features[k].layer.source).name
+    }));
+  }
 );
 
 const selectNumericAttributes = () => createSelector(
