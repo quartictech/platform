@@ -8,7 +8,7 @@ cache:
      - .gradle/wrapper
      - .gradle/caches
 
-backend:
+build:
   stage: build
   script:
-    - ./gradlew assemble
+    - ./gradlew assemble weyl-frontend:build

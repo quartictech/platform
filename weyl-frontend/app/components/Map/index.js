@@ -128,7 +128,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   createSelectionFilter(selection, layerId) {
-    const filter = ["in", "_id", ""];
     if (selection.hasOwnProperty(layerId)) {
       return selection[layerId].reduce((f, v) => {
         f.push(v);

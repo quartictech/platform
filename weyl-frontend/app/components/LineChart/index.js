@@ -23,9 +23,9 @@ const linspace = function linspace(a, b, n) {
   if (n < 2) { return n === 1 ? [a] : []; }
   const ret = Array(n);
   n--;
-  for (let i = n; i >= 0; i--) { ret[i] = (i * b + (n - i) * a) / n; }
+  for (let i = n; i >= 0; i--) { ret[i] = ((i * b) + ((n - i) * a)) / n; }
   return ret;
-}
+};
 
 class LineChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -57,7 +57,7 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
       const values = [];
       console.log(prop);
 
-      for (let i = 0; i < nextProps.numericAttributes[prop].length ;i++) {
+      for (let i = 0; i < nextProps.numericAttributes[prop].length; i++) {
         const value = nextProps.numericAttributes[prop][i];
         if (!isNaN(value) && value != null) {
           values.push(value);
@@ -109,9 +109,9 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
                 />
               </div>
             </div>
+          </div>
         </div>
       </div>
-    </div>
     );
   }
 }
@@ -123,4 +123,4 @@ LineChart.PropTypes = {
   data: React.PropTypes.array,
 };
 
-export default SizeMe({ monitorHeight:true })(LineChart);
+export default SizeMe({ monitorHeight: true })(LineChart);

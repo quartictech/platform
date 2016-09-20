@@ -6,21 +6,17 @@
 
 import React from "react";
 
-import { FormattedMessage } from "react-intl";
-import messages from "./messages";
 import styles from "./styles.css";
-import classNames from "classnames";
 
 import BucketLayerItem from "../BucketLayerItem";
 import LayerStyleSettings from "../LayerStyleSettings";
 
-var $ = require("jquery");
-
+const $ = require("jquery");
 
 const AttributeValue = ({
   value,
   checked,
-  onClick
+  onClick,
 }) => (
   <div className="item" key={value}>
     <div className="ui checked checkbox">
@@ -34,14 +30,14 @@ const AttributeValueList = ({
   attribute,
   values,
   uncheckedValues,
-  onClick
+  onClick,
 }) => (
   <div className="ui list">
-    {values.map(v => (
+    {values.map(value => (
       <AttributeValue
-        key={v}
-        value={v}
-        checked={!uncheckedValues.some(x => x === v)}
+        key={value}
+        value={value}
+        checked={!uncheckedValues.some(x => x === value)}
         onClick={(v) => onClick(attribute, v)}
       />
     ))}
@@ -52,7 +48,7 @@ const AttributeList = ({
   layerId,
   attributes,
   filter,
-  onClick
+  onClick,
 }) => (
   <div className="content">
     {
@@ -70,7 +66,7 @@ const AttributeList = ({
                 attribute={key}
                 values={attributes[key].categories}
                 uncheckedValues={filter.hasOwnProperty(key) ? filter[key] : []}
-                onClick={(a,v) => onClick(layerId, a, v)}
+                onClick={(a, v) => onClick(layerId, a, v)}
               />
             </div>
           </div>
@@ -86,7 +82,7 @@ const LayerListItemInfo = ({
   layerStyle,
   onAttributeValueClick,
   onLayerStyleChange,
-  mode
+  mode,
 }) => {
   switch (mode) {
     case "FILTER":
@@ -104,15 +100,18 @@ const LayerListItemInfo = ({
       );
 
     case "STYLE":
-    return (<div className="ui secondary segment">
+      return (
+        <div className="ui secondary segment">
           <div className="content">
-          <LayerStyleSettings
-            layerId = {layerId}
-            layerAttributes = {attributes}
-            layerStyle = {layerStyle}
-            onChange = {onLayerStyleChange} />
+            <LayerStyleSettings
+              layerId={layerId}
+              layerAttributes={attributes}
+              layerStyle={layerStyle}
+              onChange={onLayerStyleChange}
+            />
           </div>
-        </div>);
+        </div>
+      );
     default:
       return null;
   }
@@ -126,34 +125,34 @@ const filterButtonStyle = (layer, mode) => {
     return styles.enabled;
   }
   return "";
-}
+};
 
-const styleButtonStyle = (layer, mode) => {
-  return (mode === "STYLE") ? styles.active : "";
-}
+const styleButtonStyle = (layer, mode) => (
+  (mode === "STYLE") ? styles.active : ""
+);
 
 const LayerListItem = ({
   layer,
   onButtonClick,
   onToggleValueVisible,
   onLayerStyleChange,
-  mode
+  mode,
 }) => (
   <div className={styles.layerListItem}>
     <div className="content">
       <div className="right floated">
-        <a onClick={e => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
+        <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
           <i className="icon eye"></i>
         </a>
-        <a onClick={e => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
+        <a onClick={() => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
           <i className="icon filter"></i>
         </a>
-        <a onClick={e => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
+        <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
           <i className="icon paint brush"></i>
         </a>
       </div>
       <div className="header">
-        <a onClick={e => onButtonClick("CLOSE")}>
+        <a onClick={() => onButtonClick("CLOSE")}>
           <i className="icon close"></i>
         </a>
         {layer.name}
@@ -168,7 +167,7 @@ const LayerListItem = ({
       attributes={layer.attributeSchema.attributes}
       layerStyle={layer.style}
       filter={layer.filter}
-      onAttributeValueClick={(l,a,v) => onToggleValueVisible(l,a,v)}
+      onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
       onLayerStyleChange={onLayerStyleChange}
       mode={mode}
     />
@@ -180,7 +179,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     super();
     this.state = {
       activeLayerId: null,
-      activeMode: null
+      activeMode: null,
     };
   }
 
@@ -193,29 +192,30 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       default:
         return this.setState({
           activeLayerId: layerId,
-          activeMode: (this.state.activeLayerId === layerId && this.state.activeMode === name) ? null : name
+          activeMode: (this.state.activeLayerId === layerId && this.state.activeMode === name) ? null : name,
         });
     }
   }
 
   render() {
     let rows = [];
-    if (this.props.ui.layerOp == "bucket") {
-      rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket"/>)
+    if (this.props.ui.layerOp === "bucket") {
+      rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket" />);
     }
     for (const layer of this.props.layers) {
-      if (layer.closed) {
-        continue;
+      if (!layer.closed) {
+        const key = `layer_${layer.id}`;
+        rows.push(
+          <LayerListItem
+            key={key}
+            layer={layer}
+            onButtonClick={(name) => this.onButtonClick(name, layer.id)}
+            onToggleValueVisible={this.props.onToggleValueVisible}
+            onLayerStyleChange={this.props.onLayerStyleChange}
+            mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
+          />
+        );
       }
-      let key="layer_" + layer.id;
-      rows.push(<LayerListItem
-        key={key}
-        layer={layer}
-        onButtonClick={(name) => this.onButtonClick(name, layer.id)}
-        onToggleValueVisible={this.props.onToggleValueVisible}
-        onLayerStyleChange={this.props.onLayerStyleChange}
-        mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
-        />);
     }
 
     if (this.props.layers.length > 0) {

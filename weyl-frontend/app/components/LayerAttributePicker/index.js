@@ -5,9 +5,8 @@
 */
 
 import React from "react";
+const $ = require("jquery");
 
-import { FormattedMessage } from "react-intl";
-import messages from "./messages";
 import styles from "./styles.css";
 import classNames from "classnames";
 
@@ -15,11 +14,11 @@ class LayerAttributePicker extends React.Component { // eslint-disable-line reac
   componentDidMount() {
     $(this.dropdown)
     .dropdown({
-       onChange: (value) => {
-         console.log(value);
-         this.props.onChange(value);
-       }
-     });
+      onChange: (value) => {
+        console.log(value);
+        this.props.onChange(value);
+      },
+    });
   }
 
   onChange(value) {
@@ -27,22 +26,21 @@ class LayerAttributePicker extends React.Component { // eslint-disable-line reac
   }
 
   render() {
-    let rows = [];
-    for (var attribute of this.props.attributes) {
-      let itemClasses = classNames("item active", {"selected": attribute === this.props.selected})
-      console.log(itemClasses);
+    const rows = [];
+    for (const attribute of this.props.attributes) {
+      const itemClasses = classNames("item active", { "selected": attribute === this.props.selected });
       rows.push(<div className={itemClasses} key={attribute} data-value={attribute}>{attribute}</div>);
     }
 
     return (
       <div className={styles.attributePicker}>
         <div className="ui search selection dropdown" ref={(x) => this.dropdown = x}>
-                <span className="text">{this.props.selected ? this.props.selected : "Pick Attribute"}</span>
-                <i className="dropdown icon"></i>
-                <div className="menu">
-                  {rows}
-                </div>
-              </div>
+          <span className="text">{this.props.selected ? this.props.selected : "Pick Attribute"}</span>
+          <i className="dropdown icon"></i>
+          <div className="menu">
+            {rows}
+          </div>
+        </div>
       </div>
     );
   }
