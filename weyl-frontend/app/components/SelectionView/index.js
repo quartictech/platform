@@ -10,11 +10,6 @@ import naturalsort from "javascript-natural-sort";
 import styles from "./styles.css";
 import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
-Object.filter = (obj, predicate) =>
-    Object.keys(obj)
-          .filter( key => predicate(key, obj[key]) )
-          .reduce( (res, key) => Object.assign(res, { [key]: obj[key] }), {} );
-
 const AttributeTable = ({
   attributes,
   order
