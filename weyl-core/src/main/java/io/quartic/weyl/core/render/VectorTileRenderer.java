@@ -70,38 +70,14 @@ public class VectorTileRenderer {
 
                 return VectorTileFeature.of(scaleGeometry(feature.feature().geometry(), envelope), attributes);
             }).sequential().forEach(vectorTileFeature -> {
-                String geometryType = geomType(vectorTileFeature.getGeometry());
-
-                // TODO (as): Add the moment, we're just dividing our geometries into vector tile layers
-                // by type. We may want to consider more interesting splitting schemes
-                // i.e. splitting by some property to allow fast switching on the frontend
-                // e.g. splt by year -> animation over time
-                if (geometryType != null) {
                     featureCount.incrementAndGet();
-                    encoder.addFeature(layerName + "_" + geometryType,
+                    encoder.addFeature(layerName,
                             vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
-                }
-                else {
-                    log.warn("skipping geometry with type {}", vectorTileFeature.getGeometry().getGeometryType());
-                }
             });
             log.info("encoded {} features in {}ms", featureCount.get(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
 
         return encoder.encode();
-    }
-
-    private static String geomType(Geometry geometry) {
-        if (geometry instanceof Point || geometry instanceof MultiPoint) {
-            return "point";
-        }
-        else if (geometry instanceof Polygon || geometry instanceof MultiPolygon) {
-            return "polygon";
-        }
-        else if (geometry instanceof LineString || geometry instanceof MultiLineString) {
-            return "line";
-        }
-        else return null;
     }
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {
