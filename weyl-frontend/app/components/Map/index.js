@@ -165,9 +165,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         );
 
         this.state.map.setLayoutProperty(`${layer.id}_${k}`, "visibility", layer.visible ? "visible" : "none");
-        this.state.map.setLayoutProperty(`${layer.id}_point_sel`, "visibility", layer.visible ? "visible" : "none");
-        this.state.map.setLayoutProperty(`${layer.id}_polygon_sel`, "visibility", layer.visible ? "visible" : "none");
-        this.state.map.setLayoutProperty(`${layer.id}_polygon_sel`, "visibility", layer.visible ? "visible" : "none");
 
         if (styleLayers[k].hasOwnProperty("filter")) {
           const layerFilter = styleLayers[k].filter;
@@ -175,6 +172,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         }
       });
 
+      this.state.map.setLayoutProperty(`${layer.id}_point_sel`, "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(`${layer.id}_line_sel`, "visibility", layer.visible ? "visible" : "none");
+      this.state.map.setLayoutProperty(`${layer.id}_polygon_sel`, "visibility", layer.visible ? "visible" : "none");
       const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
       this.state.map.setFilter(`${layer.id}_point_sel`, ["all", ["==", "$type", "Point"], selectionFilter, valueFilter]);
       this.state.map.setFilter(`${layer.id}_polygon_sel`, ["all", ["==", "$type", "Polygon"], selectionFilter, valueFilter]);
