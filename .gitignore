@@ -9,6 +9,6 @@ generated_src
 
 # Cruft
 .DS_Store
-npm-debug.log
+npm-debug.log*
 .idea
 *.gc
