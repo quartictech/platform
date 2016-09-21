@@ -1,21 +1,21 @@
 
 const tubeColorStops = [
-  ["Bakerloo Line", "#B36305"],
-  ["Central Line", "#E32017"],
+  ["Bakerloo", "#B36305"],
+  ["Central", "#E32017"],
   ["Circle", "#FFD300"],
   ["Crossrail", "#7156A5"],
   ["District", "#00782A"],
   ["DLR", "#00A4A7"],
   ["Emirates Air Line", "#E51836"],
   ["Hammersmith & City", "#F3A9BB"],
-  ["Jubilee Line", "#A0A5A9"],
+  ["Jubilee", "#A0A5A9"],
   ["London Overground", "#EE7C0E"],
-  ["Metropolitan Line", "#9B0056"],
+  ["Metropolitan", "#9B0056"],
   ["Northern", "#000000"],
   ["Piccadilly", "#003688"],
   ["Tramlink", "#84B817"],
-  ["Victoria Line", "#0098D4"],
-  ["Waterloo & City Line", "#95CDBA"],
+  ["Victoria", "#0098D4"],
+  ["Waterloo & City", "#95CDBA"],
 ];
 
 const tubeLineStyles = {
