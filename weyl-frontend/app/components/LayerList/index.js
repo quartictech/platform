@@ -223,9 +223,13 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     if (this.props.layers.filter(layer => !layer.closed).length > 0) {
       return (
         <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
-          <div className="ui raised fluid card">
-            <div className={styles.innerLayerList}>
-              {rows}
+          <div className={styles.innerLayerList}>
+            <div className="ui raised compact fluid card">
+              <div className="content">
+                <div className="header">
+                </div>
+                {rows}
+              </div>
             </div>
           </div>
         </div>
