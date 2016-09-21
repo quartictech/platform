@@ -29,6 +29,7 @@ const tubeLineStyles = {
       },
       "line-width": 5,
     },
+    _zorder: 2,
   },
 };
 
