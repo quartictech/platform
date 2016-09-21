@@ -104,6 +104,7 @@ const customStyles = {
   "Green Spaces": greenSpacesStyles,
   "Nightlife": nightLifeStyles,
   "Roads": roadsStyles,
+  "Green Belts 2014-2015": greenSpacesStyles,
 };
 
 export { customStyles };
