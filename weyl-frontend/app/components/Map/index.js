@@ -170,6 +170,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           const layerFilter = styleLayers[k].filter;
           this.state.map.setFilter(`${layer.id}_${k}`, ["all", valueFilter, layerFilter]);
         }
+        else {
+          this.state.map.setFilter(`${layer.id}_${k}`, valueFilter);
+        }
       });
 
       this.state.map.setLayoutProperty(`${layer.id}_point_sel`, "visibility", layer.visible ? "visible" : "none");
