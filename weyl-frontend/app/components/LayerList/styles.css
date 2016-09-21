@@ -5,7 +5,7 @@
 
 .innerLayerList {
   pointer-events: all;
-  overflow: scroll;
+  overflow: visible;
   max-height: 100%;
 }
 
