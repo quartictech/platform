@@ -41,6 +41,15 @@ const curatedBehaviors = {
     ],
   },
 
+  "Public Land Assets": {
+    title: (x) => x.holdingname,
+    blessed: [
+      "description",
+      "assetcategory",
+      "owner",
+    ],
+  },
+
   "London House Sales": {
     title: formatAddress,
     blessed: [
