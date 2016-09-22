@@ -19,4 +19,4 @@
 
 3. Run the data-import:
 
-      ./import.sh [<CONTEXT_PATH>]
+       ./import.sh [<CONTEXT_PATH>]
