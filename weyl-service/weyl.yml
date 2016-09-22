@@ -1,9 +1,3 @@
-queries:
-  postcodes:
-    sql: select name, geom, count from postcode_district_company_count
-  companies_by_lsoa:
-    sql: select name, geom, count from companies_by_lsoa_london
-
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
