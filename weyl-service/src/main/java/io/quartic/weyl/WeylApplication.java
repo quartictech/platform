@@ -6,7 +6,6 @@ import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.resource.GeoJsonResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileJsonResource;
 import io.quartic.weyl.resource.TileResource;
@@ -54,9 +53,6 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         TileJsonResource tileJsonResource = new TileJsonResource(configuration.getQueries());
         environment.jersey().register(tileJsonResource);
-
-        GeoJsonResource geoJsonResource = new GeoJsonResource(jdbi, configuration.getQueries(), cache);
-        environment.jersey().register(geoJsonResource);
 
         LayerStore layerStore = new LayerStore(jdbi);
         LayerResource layerResource = new LayerResource(layerStore);
