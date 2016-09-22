@@ -91,7 +91,6 @@ export function* searchData() {
 }
 
 export function* computationData() {
-  console.log("Computation watcher");
   yield fork(computationWatcher);
 
   yield take(LOCATION_CHANGE);

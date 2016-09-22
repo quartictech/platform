@@ -17,9 +17,11 @@ public class LiveLayerStore {
     // TODO: use IndexedLayer?
     public Optional<AbstractFeatureCollection> getFeaturesForLayer(String layerId) {
         long time = System.currentTimeMillis();
+        final int magic = Integer.parseInt(layerId) + 1;
 
-        final double lng = CENTRE_LNG + RADIUS * Math.cos(2 * Math.PI * time / 10_000);
-        final double lat = CENTRE_LAT + RADIUS * Math.sin(2 * Math.PI * time / 10_000);
+        final double radius = RADIUS / magic;
+        final double lng = CENTRE_LNG + radius * Math.cos(2 * Math.PI * time / (10_000 * magic));
+        final double lat = CENTRE_LAT + radius * Math.sin(2 * Math.PI * time / (10_000 * magic));
 
 
         return Optional.of(FeatureCollection.of(ImmutableList.of(
