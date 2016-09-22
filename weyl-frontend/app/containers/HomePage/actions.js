@@ -35,6 +35,7 @@ export function layerCreate(result) {
     description: result.description,
     stats: result.stats,
     attributeSchema: result.attributeSchema,
+    live: result.live,
   };
 }
 

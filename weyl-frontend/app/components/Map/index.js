@@ -51,50 +51,51 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.map.on("style.load", () => {
       this.props.onMapLoaded();
       this.updateMap(this.props);
-      // this.doWeirdStuff(this.state.map, 0);
-      // this.doWeirdStuff(this.state.map, 1);
     });
-  }
-
-  doWeirdStuff(map, id) {
-    const url = `http://localhost:8080/api/livelayer/${id}`;
-    const name = `weirdness-${id}`;
-
-    mapboxgl.util.getJSON(url, function(err, data) {
-      // Add response data as source.
-      map.addSource(name, {
-          type: 'geojson',
-          data: data
-      });
-
-      // Add response data as source.
-      map.addLayer({
-          "id": `${name}-layer`,
-          "type": "circle",
-          "source": name,
-          "paint": {
-              "circle-color": "#f00",
-              "circle-radius": 7
-          }
-      });
-
-      window.setInterval(function() {
-        map.getSource(name).setData(url);
+    const owner = this;
+    window.setInterval(function() {
+      owner.props.layers
+        .filter(layer => layer.live)
+        .forEach(layer => {
+          const source = owner.state.map.getSource(layer.id);
+          const data = source["_data"];
+          source.setData(data);
+        })
       }, 250);
-    });
   }
 
   updateMap(props) {
     this.state.visibleLayerIds = [];
-    props.layers.forEach(layer =>
+    const owner = this;
+
+    props.layers.filter(layer => layer.live).forEach(layer => {
+      this.updateLayer(layer, this.getSourceDefForLiveLayer(layer.id), props);
+    });
+
+    props.layers.filter(layer => !layer.live).forEach(layer =>
       this.updateLayer(layer, this.getSourceDefForStaticLayer(layer.id), props)
     );
   }
 
+  addLiveLayer(props) {
+    const layer = {
+      name: "weirdness",
+      // style: XXX,
+      visible: true,
+    }
+  }
+
   getSourceDefForStaticLayer(id) {
     return {
-      "type": "vector",
-      "tiles": [`http://localhost:8080/api/${id}/{z}/{x}/{y}.pbf`],
+      type: "vector",
+      tiles: [`http://localhost:8080/api/${id}/{z}/{x}/{y}.pbf`],
+    };
+  }
+
+  getSourceDefForLiveLayer(id) {
+    return {
+      type: 'geojson',
+      data: `http://localhost:8080/api/layer/live/${id}`,
     };
   }
 

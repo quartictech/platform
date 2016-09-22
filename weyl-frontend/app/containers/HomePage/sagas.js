@@ -21,14 +21,11 @@ function* search(action) {
       results: {
         layers: {
           name: "Layers",
-          results: results.data.map((item) => ({
-            title: item.name,
-            name: item.name,
-            description: item.description,
-            id: item.id,
-            stats: item.stats,
-            attributeSchema: item.attributeSchema,
-          })),
+          results: results.data.filter(x => !x.live).map(x => ({ ...x, title: x.name }))
+        },
+        live: {
+          name: "Live layers",
+          results: results.data.filter(x => x.live).map(x => ({ ...x, title: x.name }))
         },
       },
     };

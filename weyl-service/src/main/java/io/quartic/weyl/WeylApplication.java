@@ -8,7 +8,6 @@ import io.dropwizard.setup.Environment;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.resource.LayerResource;
-import io.quartic.weyl.resource.LiveLayerResource;
 import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.util.DataCache;
 import io.quartic.weyl.util.DiskBackedDataCache;
@@ -53,12 +52,9 @@ public class WeylApplication extends Application<WeylConfiguration> {
         DataCache cache = new DiskBackedDataCache("cache", 60 * 60 * 1000);
 
         LayerStore layerStore = new LayerStore(jdbi);
-        LayerResource layerResource = new LayerResource(layerStore);
-        environment.jersey().register(layerResource);
-
         LiveLayerStore liveLayerStore = new LiveLayerStore();
-        LiveLayerResource liveLayerResource = new LiveLayerResource(liveLayerStore);
-        environment.jersey().register(liveLayerResource);
+        LayerResource layerResource = new LayerResource(layerStore, liveLayerStore);
+        environment.jersey().register(layerResource);
 
         TileResource tileResource = new TileResource(layerStore);
         environment.jersey().register(tileResource);
