@@ -11,7 +11,6 @@ import styles from './styles.css';
 function MapInfo({
   map
 }) {
-  console.log(map);
   return (
     <div className={styles.mapInfo}>
       {
