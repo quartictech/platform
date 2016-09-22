@@ -40,25 +40,29 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   doWeirdStuff(map) {
     const id = 6;
-    const feed = `http://localhost:8080/api/livelayer/${id}`;
+    const url = `http://localhost:8080/api/livelayer/${id}`;
 
-    mapboxgl.util.getJSON(feed, function(err, data) {
+    mapboxgl.util.getJSON(url, function(err, data) {
       // Add response data as source.
-      map.addSource('earthquakes', {
+      map.addSource('weirdness', {
           type: 'geojson',
           data: data
       });
 
       // Add response data as source.
       map.addLayer({
-          "id": "earthquake-layer",
+          "id": "weirdness-layer",
           "type": "circle",
-          "source": "earthquakes",
+          "source": "weirdness",
           "paint": {
               "circle-color": "#f00",
               "circle-radius": 7
           }
       });
+
+      window.setInterval(function() {
+        map.getSource('weirdness').setData(url);
+      }, 250);
     });
   }
 
