@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.live.geojson;
+package io.quartic.weyl.core.geojson;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.immutables.value.Value;

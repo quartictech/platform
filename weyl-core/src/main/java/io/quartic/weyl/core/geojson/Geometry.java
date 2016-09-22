@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.live.geojson;
+package io.quartic.weyl.core.geojson;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
