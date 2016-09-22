@@ -52,6 +52,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onMapLoaded();
       this.updateMap(this.props);
     });
+
+    this.installRefreshCallback();
+  }
+
+  installRefreshCallback() {
     const owner = this;
     window.setInterval(function() {
       owner.props.layers
