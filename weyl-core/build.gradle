@@ -17,6 +17,9 @@ dependencies {
     compile 'no.ecc.vectortile:java-vector-tile:' + vectorTileVersion
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.8.1'
+    compile 'org.geotools:gt-geojson:15.1'
+
+    testCompile 'junit:junit:4.12'
 }
 
 

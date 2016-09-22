@@ -5,6 +5,7 @@ out
 *.iws
 build/
 generated_src
+generated_testSrc
 
 
 # Cruft
