@@ -112,7 +112,7 @@ public class LayerResource {
                       .stats(layer.layerStats())
                       .attributeSchema(layer.layer().schema())
                       .build())
-              .orElseThrow(() -> new NotFoundException("no layer with id " + id));
+              .orElseThrow(() -> new NotFoundException("No layer with id " + id));
    }
 
    @GET

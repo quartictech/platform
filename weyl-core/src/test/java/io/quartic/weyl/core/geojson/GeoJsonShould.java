@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Optional;
 
 public class GeoJsonShould {
 
@@ -23,10 +24,12 @@ public class GeoJsonShould {
 
         FeatureCollection original = FeatureCollection.of(list(
                 Feature.of(
+                        Optional.empty(),
                         Point.of(list(102.0, 0.5)),
                         ImmutableMap.of()
                 ),
                 Feature.of(
+                        Optional.empty(),
                         LineString.of(list(
                                 list(102.0, 0.0),
                                 list(103.0, 1.0),
@@ -36,6 +39,7 @@ public class GeoJsonShould {
                         ImmutableMap.of()
                 ),
                 Feature.of(
+                        Optional.empty(),
                         Polygon.of(list(list(
                                 list(100.0, 0.0),
                                 list(101.0, 0.0),

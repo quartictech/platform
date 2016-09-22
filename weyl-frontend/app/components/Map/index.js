@@ -16,9 +16,6 @@ import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
 
-var feed = 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
-
-
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
@@ -41,37 +38,28 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   doWeirdStuff(map) {
-    mapboxgl.util.getJSON(feed, function(err, data) {
-        // Add response data as source.
-        map.addSource('earthquakes', {
-            type: 'geojson',
-            data: data
-        });
+    const id = 6;
+    const feed = `http://localhost:8080/api/livelayer/${id}`;
 
-        // Add response data as source.
-        map.addLayer({
-            "id": "earthquake-layer",
-            "type": "circle",
-            "source": "earthquakes",
-            "paint": {
-                "circle-color": "#f00",
-                "circle-radius": {
-                    "property": "mag",
-                    "base": 1.8,
-                    "stops": [
-                        [{zoom: 0,  value: 2}, 1],
-                        [{zoom: 0,  value: 8}, 40],
-                        [{zoom: 11, value: 2}, 10],
-                        [{zoom: 11, value: 8}, 2400],
-                        [{zoom: 20, value: 2}, 20],
-                        [{zoom: 20, value: 8}, 6000]
-                    ]
-                }
-            }
-        });
+    mapboxgl.util.getJSON(feed, function(err, data) {
+      // Add response data as source.
+      map.addSource('earthquakes', {
+          type: 'geojson',
+          data: data
+      });
+
+      // Add response data as source.
+      map.addLayer({
+          "id": "earthquake-layer",
+          "type": "circle",
+          "source": "earthquakes",
+          "paint": {
+              "circle-color": "#f00",
+              "circle-radius": 50
+          }
+      });
     });
   }
-
 
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
@@ -81,14 +69,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       center: [-0.10, 51.4800],
     });
 
-
-    this.doWeirdStuff(this.state.map);
-
     this.state.map.on("mousemove", this.onMouseMove.bind(this));
     this.state.map.on("click", this.onMouseClick.bind(this));
     this.state.map.on("style.load", () => {
       this.props.onMapLoaded();
       this.updateState(this.props);
+      this.doWeirdStuff(this.state.map);
     });
   }
 
