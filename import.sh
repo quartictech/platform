@@ -1,10 +1,10 @@
 #!/bin/sh
 
-#curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d '{
-#	"name": "UK Postcodes",
-#	"description": "All postcode centroids in the UK",
-#	"query": "SELECT * from uk_postcodes"
-#}'
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d '{
+	"name": "UK Postcodes",
+	"description": "All postcode centroids in the UK",
+	"query": "SELECT * from uk_postcodes"
+}'
 
 curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d '{
 	"name": "Companies",
@@ -41,3 +41,11 @@ curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/impo
 	"description": "McDonalds™ Locations",
 	"query": "SELECT * from mcdonalds_geocoded"
 }'
+
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/roads.json
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/parking.json
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/nightlife.json
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/greenspace.json
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/buildings.json
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/tubes.json
+curl -XPUT -H Content-Type:application/json http://localhost:8080/api/layer/import -d @json_imports/rail.json
