@@ -25,6 +25,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   onMouseMove(e) {
     const features = this.state.map.queryRenderedFeatures(e.point, { layers: this.state.visibleLayerIds });
     this.state.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
+    this.props.onMouseMove(e.lngLat);
   }
 
   onMouseClick(e) {
@@ -55,7 +56,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "source": "earthquakes",
           "paint": {
               "circle-color": "#f00",
-              "circle-radius": 50
+              "circle-radius": 7
           }
       });
     });

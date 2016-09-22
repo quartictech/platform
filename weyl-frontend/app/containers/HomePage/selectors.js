@@ -49,7 +49,7 @@ const selectMap = () => createSelector(
   selectHome(),
   (homeState) => {
     return {
-      ready: homeState.getIn(["map", "ready"]),
+      ...(homeState.get("map").toJS()),
       theme: homeState.getIn(["ui", "settings", "theme"]),
     };
   }

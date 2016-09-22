@@ -6,6 +6,7 @@ import { SEARCH, SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, B
   LAYER_TOGGLE_VALUE_VISIBLE,
   MAP_LOADING,
   MAP_LOADED,
+  MAP_MOUSE_MOVE,
 } from "./constants";
 
 
@@ -129,5 +130,12 @@ export function mapLoading() {
 export function mapLoaded() {
   return {
     type: MAP_LOADED,
+  };
+}
+
+export function mapMouseMove(mouseLocation) {
+  return {
+    type: MAP_MOUSE_MOVE,
+    mouseLocation
   };
 }
