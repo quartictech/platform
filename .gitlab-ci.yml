@@ -1,4 +1,4 @@
-image: registry.gitlab.com/quartic/docker-build-image
+image: quartic/npm-jdk
 
 before_script:
     - export GRADLE_USER_HOME=`pwd`/.gradle
