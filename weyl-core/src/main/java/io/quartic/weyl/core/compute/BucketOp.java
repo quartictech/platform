@@ -81,7 +81,7 @@ public class BucketOp {
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(propertyName());
 
-            RawLayer layer = ImmutableRawLayer.builder()
+            RawLayer layer = ImmutableRawLayer.<Geometry>builder()
                     .features(features)
                     .schema(attributeSchema)
                     .metadata(ImmutableLayerMetadata.builder()

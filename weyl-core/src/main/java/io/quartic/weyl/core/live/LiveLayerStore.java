@@ -3,76 +3,60 @@ package io.quartic.weyl.core.live;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import io.quartic.weyl.core.geojson.AbstractFeatureCollection;
+import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.*;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class LiveLayerStore {
-    public static final double CENTRE_LNG = -0.10;
-    public static final double CENTRE_LAT = 51.4800;
-    public static final double RADIUS = 0.1;
+    private final Map<LayerId, Layer<Geometry>> layers = Maps.newHashMap();
 
-    private final Map<LayerId, Layer> layers = Maps.newHashMap();
-
-
+    public LiveLayerStore() {
+        layers.put(ImmutableLayerId.of("1234"), createFakeLayer());
+    }
 
     public Optional<AbstractFeatureCollection> getFeaturesForLayer(LayerId layerId) {
-        final Layer layer = layers.get(layerId);
+        final Layer<Geometry> layer = layers.get(layerId);
         if (layer == null) {
             return Optional.empty();
         }
 
-
-
-        return Optional.of(getFakeLayerFeatures());
-    }
-
-    private AbstractFeatureCollection getFakeLayerFeatures() {
-        long time = System.currentTimeMillis();
-        final int magic = 1;
-
-        final double radius = RADIUS / magic;
-        final double lng = CENTRE_LNG + radius * Math.cos(2 * Math.PI * time / (10_000 * magic));
-        final double lat = CENTRE_LAT + radius * Math.sin(2 * Math.PI * time / (10_000 * magic));
-
-        return FeatureCollection.of(ImmutableList.of(
-                Feature.of(
-                        Optional.of("ak14012159"),
-                        Point.of(ImmutableList.of(lng, lat)),
-                        ImmutableMap.of("pet names", 5)
-                )
-        ));
+        return Optional.of(FeatureCollection.of(
+                layer.features()
+                        .stream()
+                        .map(f -> Feature.of(Optional.of(f.id()), f.geometry(), f.metadata()))
+                        .collect(Collectors.toList())));
     }
 
     public Collection<LiveLayer> listLayers() {
-        return ImmutableList.of(createFakeLayer());
+        return layers.entrySet()
+                .stream()
+                .map(e -> ImmutableLiveLayer.builder().layerId(e.getKey()).layer(e.getValue()).build())
+                .collect(Collectors.toList());
     }
 
-    private LiveLayer createFakeLayer() {
-        return ImmutableLiveLayer.builder()
-                .layerId(ImmutableLayerId.of("1234"))
-                .layer(ImmutableRawLayer.builder()
-                        .metadata(ImmutableLayerMetadata.builder()
-                                .name("Weirdness")
-                                .description("This is absolute gash")
-                                .build()
-                        )
-                        .schema(ImmutableAttributeSchema.builder()
-                                .putAttributes("pet name", ImmutableAttribute.builder()
-                                        .type(AttributeType.STRING)
-                                        .build()
-                                )
-                                .build()
-                        )
-                        .features(ImmutableList.of())
+    private Layer<Geometry> createFakeLayer() {
+        return ImmutableRawLayer.<Geometry>builder()
+                .metadata(ImmutableLayerMetadata.builder()
+                        .name("Weirdness")
+                        .description("This is absolute gash")
                         .build()
+                )
+                .schema(ImmutableAttributeSchema.builder()
+                        .putAttributes("pet name", ImmutableAttribute.builder()
+                                .type(AttributeType.STRING)
+                                .build()
                         )
+                        .build()
+                )
+                .features(ImmutableList.of(
+                        new FakeFeature("abcd", 1, ImmutableMap.of()),
+                        new FakeFeature("efgh", 2, ImmutableMap.of())
+                ))
                 .build();
     }
 }
