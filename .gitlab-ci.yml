@@ -7,9 +7,12 @@ cache:
   paths:
      - .gradle/wrapper
      - .gradle/caches
+     - weyl-frontend/node_modules
+     - weyl-frontend/semantic
 
 build:
   stage: build
   script:
     - ./gradlew assemble
-    - ./gradlew weyl-frontend:build
+    - cd weyl-frontend && npm install
+    #- ./gradlew weyl-frontend:build
