@@ -34,7 +34,7 @@ class FakeFeature implements Feature<Geometry> {
         long time = System.currentTimeMillis();
 
         final double radius = RADIUS / magic;
-        final double lngDelta = CENTRE_LNG + radius * Math.cos(2 * Math.PI * time / (10_000 * magic));
+        final double lngDelta = radius * Math.cos(2 * Math.PI * time / (10_000 * magic));
         final double latDelta = radius * Math.sin(2 * Math.PI * time / (10_000 * magic));
 
         return Point.of(ImmutableList.of(CENTRE_LNG + lngDelta, CENTRE_LAT + ((magic % 2 == 0) ? latDelta : -latDelta)));

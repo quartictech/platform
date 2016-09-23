@@ -2,6 +2,7 @@ package io.quartic.weyl;
 
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -26,6 +27,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
     @Override
     public void initialize(Bootstrap<WeylConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
+        bootstrap.addBundle(new Java8Bundle());
     }
 
     private void configureCORS(Environment environment) {

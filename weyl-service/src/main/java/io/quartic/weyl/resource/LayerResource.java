@@ -120,7 +120,7 @@ public class LayerResource {
     @POST
     @Path("live/{id}")
     @Consumes("application/json")
-    public void updateLiveLayer(@PathParam("id") String id, AbstractFeatureCollection collection) {
+    public void updateLiveLayer(@PathParam("id") String id, FeatureCollection collection) {
         if (collection.features()
                 .stream()
                 .anyMatch(feature -> !feature.id().isPresent())) {
@@ -146,6 +146,8 @@ public class LayerResource {
                 .count() != collection.features().size()) {
             throw new NotAcceptableException("Features with duplicate IDs");
         }
+
+        collection.features().forEach(liveLayerStore::addToLayer);
 
         log.info("Updated {} features for layerId = {}", collection.features().size(), id);
     }

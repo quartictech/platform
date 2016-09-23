@@ -62,4 +62,32 @@ public class GeoJsonShould {
 
         Assert.assertThat(mapper.readValue(json, FeatureCollection.class), Matchers.equalTo(original));
     }
+
+    @Test
+    public void name() throws Exception {
+        String json = "{\n" +
+                "  \"type\": \"FeatureCollection\",\n" +
+                "  \"features\": [\n" +
+                "    {\n" +
+                "      \"type\": \"Feature\",\n" +
+                "      \"id\": \"noob_hangout\",\n" +
+                "      \"geometry\": {\n" +
+                "        \"type\": \"Point\",\n" +
+                "        \"coordinates\": [-0.1409, 51.5196]\n" +
+                "      },\n" +
+                "      \"properties\": {\n" +
+                "        \"timestamp\": \"12345678\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Jdk8Module());
+
+        FeatureCollection fc = mapper.readValue(json, FeatureCollection.class);
+
+        System.out.println(fc);
+
+    }
 }
