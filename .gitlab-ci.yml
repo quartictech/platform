@@ -1,0 +1,18 @@
+image: quartic/npm-jdk
+
+before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+
+cache:
+  paths:
+     - .gradle/wrapper
+     - .gradle/caches
+     - weyl-frontend/node_modules
+     - weyl-frontend/semantic
+
+build:
+  stage: build
+  script:
+    - ./gradlew assemble
+    - cd weyl-frontend && npm install
+    #- ./gradlew weyl-frontend:build
