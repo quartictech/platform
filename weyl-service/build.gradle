@@ -22,7 +22,10 @@ dependencies {
 
 mainClassName = 'io.quartic.weyl.WeylApplication'
 
+
+ext.memorySetting = (project.hasProperty('memory') ? project.memory : '8g')
+
 run {
   args = ['server', 'weyl.yml']
-  jvmArgs = ['-Xms8g', '-Xmx8g', '-XX:+PrintGCDetails', '-XX:+PrintGCDateStamps', '-Xloggc:mygclogfilename.gc']
+  jvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", '-XX:+PrintGCDetails', '-XX:+PrintGCDateStamps', '-Xloggc:mygclogfilename.gc']
 }

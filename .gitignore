@@ -13,3 +13,7 @@ generated_testSrc
 npm-debug.log
 .idea
 *.gc
+
+# Config files
+weyl-frontend/weylConfig.js
+weyl-service/weyl.yml

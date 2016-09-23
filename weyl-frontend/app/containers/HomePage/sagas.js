@@ -6,7 +6,7 @@ import { LOCATION_CHANGE } from "react-router-redux";
 import request from "utils/request";
 import { searchDone, layerCreate, loadNumericAttributesDone } from "./actions";
 
-const apiRoot = "http://localhost:8080/api";
+import { apiRoot } from "../../../weylConfig.js";
 
 function* search(action) {
   console.log("Executing search");

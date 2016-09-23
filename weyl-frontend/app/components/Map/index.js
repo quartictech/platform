@@ -16,6 +16,9 @@ import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
 
+import { apiRoot } from "../../../weylConfig.js";
+
+
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
@@ -93,7 +96,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDefForStaticLayer(id) {
     return {
       type: "vector",
-      tiles: [`http://localhost:8080/api/${id}/{z}/{x}/{y}.pbf`],
+      tiles: [`${apiRoot}/${id}/{z}/{x}/{y}.pbf`],
     };
   }
 

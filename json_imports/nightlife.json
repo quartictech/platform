@@ -5,7 +5,6 @@
     amenity = 'club'
     OR amenity = 'nightclub'
     OR amenity = 'pub'
-    OR amenity = 'stripclub'
     OR amenity = 'casino'
     OR amenity = 'bar'
     OR amenity = 'music_venue'
