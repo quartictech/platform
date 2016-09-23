@@ -1,4 +1,4 @@
-image: openjdk:8u102-jdk
+image: openjdk:8u92-jdk-alpine
 
 before_script:
     - export GRADLE_USER_HOME=`pwd`/.gradle
@@ -11,4 +11,4 @@ cache:
 build:
   stage: build
   script:
-    - ./gradlew assemble weyl-frontend:build
+    - ./gradlew assemble
