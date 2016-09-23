@@ -1,6 +1,7 @@
 package io.quartic.weyl.core;
 
 import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -12,7 +13,10 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class LayerStore {
@@ -57,7 +61,7 @@ public class LayerStore {
         return layer;
     }
 
-     private static IndexedLayer index(Layer layer) {
+     private static IndexedLayer index(Layer<Geometry> layer) {
          Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
@@ -76,7 +80,7 @@ public class LayerStore {
                  .build();
     }
 
-    private static LayerStats calculateStats(Layer layer) {
+    private static LayerStats calculateStats(Layer<?> layer) {
         Map<String, Double> maxNumeric = Maps.newConcurrentMap();
         Map<String, Double> minNumeric = Maps.newConcurrentMap();
 

@@ -113,7 +113,7 @@ public class LayerResource {
     @Path("/live/{id}")
     @Produces("application/json")
     public AbstractFeatureCollection getLiveFeatures(@PathParam("id") String id) {
-        return liveLayerStore.getFeaturesForLayer(id)
+        return liveLayerStore.getFeaturesForLayer(ImmutableLayerId.of(id))
                 .orElseThrow(() -> new NotFoundException("No live layer with id " + id));
     }
 

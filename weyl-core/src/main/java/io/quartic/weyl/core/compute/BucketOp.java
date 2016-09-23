@@ -19,19 +19,19 @@ public class BucketOp {
     private final IndexedLayer bucketLayer;
 
     private static class Bucketed<T> {
-        private final Feature bucket;
-        private final T value;
+        private final Feature<T> bucket;
+        private final Feature<T> value;
 
-        private Bucketed(Feature bucket, T value) {
+        private Bucketed(Feature<T> bucket, Feature<T> value) {
             this.bucket = bucket;
             this.value = value;
         }
 
-        Feature getBucket() {
+        Feature<T> getBucket() {
             return bucket;
         }
 
-        public T getValue() {
+        public Feature<T> getValue() {
             return value;
         }
     }
@@ -61,7 +61,7 @@ public class BucketOp {
     Optional<Layer> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
+            Collection<Feature<Geometry>> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
                     featureLayer.layer().metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -96,26 +96,26 @@ public class BucketOp {
         }
     }
 
-    private Collection<Feature> bucketData() {
+    private Collection<Feature<Geometry>> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-        List<Bucketed<Feature>> hits = featureLayer.layer().features().parallelStream()
+        List<Bucketed<Geometry>> hits = featureLayer.layer().features().parallelStream()
                 .flatMap(feature -> {
                     Geometry featureGeometry = feature.geometry();
                     List<IndexedFeature> buckets = bucketIndex.query(featureGeometry.getEnvelopeInternal());
 
-                    return buckets.stream().filter(hitFeature -> hitFeature.preparedGeometry().contains(featureGeometry))
+                    return buckets.stream()
+                            .filter(hitFeature -> hitFeature.preparedGeometry().contains(featureGeometry))
                             .map(hitFeature -> new Bucketed<>(hitFeature.feature(), feature));
                 })
                 .collect(Collectors.toList());
 
-        Multimap<Feature, Bucketed<Feature>> groups = Multimaps
-                .index(hits, Bucketed::getBucket);
+        Multimap<Feature<Geometry>, Bucketed<Geometry>> groups = Multimaps.index(hits, Bucketed::getBucket);
 
         BucketAggregation aggregation = bucketSpec.aggregation();
 
         return groups.asMap().entrySet().parallelStream()
                 .map(bucketEntry -> {
-                    Feature feature = bucketEntry.getKey();
+                    Feature<Geometry> feature = bucketEntry.getKey();
                     Double value = aggregation.aggregate(feature, bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
 
                     if (bucketSpec.normalizeToArea()) {

@@ -14,7 +14,7 @@ import java.util.Collection;
 @JsonDeserialize(as = ImmutableBucketCount.class)
 public abstract class BucketCount implements BucketAggregation {
     @Override
-    public double aggregate(Feature bucket, Collection<Feature> features) {
+    public double aggregate(Feature bucket, Collection<Feature<?>> features) {
         return features.size();
     }
 }

@@ -3,7 +3,6 @@ package io.quartic.weyl.core.compute;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.quartic.weyl.core.model.Feature;
-import org.immutables.value.Value;
 
 import java.util.Collection;
 
@@ -14,5 +13,5 @@ import java.util.Collection;
         @JsonSubTypes.Type(BucketMean.class)
 })
 public interface BucketAggregation {
-    double aggregate(Feature bucket, Collection<Feature> features);
+    double aggregate(Feature bucket, Collection<Feature<?>> features);
 }

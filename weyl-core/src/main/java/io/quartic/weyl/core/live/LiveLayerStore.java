@@ -2,6 +2,7 @@ package io.quartic.weyl.core.live;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.quartic.weyl.core.geojson.AbstractFeatureCollection;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
@@ -9,6 +10,7 @@ import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 public class LiveLayerStore {
@@ -16,7 +18,22 @@ public class LiveLayerStore {
     public static final double CENTRE_LAT = 51.4800;
     public static final double RADIUS = 0.1;
 
-    public Optional<AbstractFeatureCollection> getFeaturesForLayer(String layerId) {
+    private final Map<LayerId, Layer> layers = Maps.newHashMap();
+
+
+
+    public Optional<AbstractFeatureCollection> getFeaturesForLayer(LayerId layerId) {
+        final Layer layer = layers.get(layerId);
+        if (layer == null) {
+            return Optional.empty();
+        }
+
+
+
+        return Optional.of(getFakeLayerFeatures());
+    }
+
+    private AbstractFeatureCollection getFakeLayerFeatures() {
         long time = System.currentTimeMillis();
         final int magic = 1;
 
@@ -24,14 +41,13 @@ public class LiveLayerStore {
         final double lng = CENTRE_LNG + radius * Math.cos(2 * Math.PI * time / (10_000 * magic));
         final double lat = CENTRE_LAT + radius * Math.sin(2 * Math.PI * time / (10_000 * magic));
 
-
-        return Optional.of(FeatureCollection.of(ImmutableList.of(
+        return FeatureCollection.of(ImmutableList.of(
                 Feature.of(
                         Optional.of("ak14012159"),
                         Point.of(ImmutableList.of(lng, lat)),
                         ImmutableMap.of("pet names", 5)
                 )
-        )));
+        ));
     }
 
     public Collection<LiveLayer> listLayers() {

@@ -41,7 +41,7 @@ public class PostgisConnector {
         ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
                 .iterator();
 
-        List<Feature> features = Lists.newArrayList();
+        List<Feature<?>> features = Lists.newArrayList();
         int count = 0;
         while (iterator.hasNext()) {
             count += 1;
