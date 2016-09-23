@@ -19,3 +19,4 @@ export const LAYER_TOGGLE_VALUE_VISIBLE = "hilbert/home/LAYER_TOGGLE_VALUE_VISIB
 
 export const MAP_LOADING = "hilbert/home/MAP_LOADING";
 export const MAP_LOADED = "hilbert/home/MAP_LOADED";
+export const MAP_MOUSE_MOVE = "hilbert/home/MAP_MOUSE_MOVE";

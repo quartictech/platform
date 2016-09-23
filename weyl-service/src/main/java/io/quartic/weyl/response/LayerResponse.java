@@ -16,4 +16,5 @@ public interface LayerResponse {
    String description();
    LayerStats stats();
    AttributeSchema attributeSchema();
+   boolean live();
 }

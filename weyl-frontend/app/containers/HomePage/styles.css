@@ -39,9 +39,20 @@
   position: absolute;
   left: 30vw;
   top: 60vh;
-  height: 40vh;
+  height: 30vh;
   width: 70vw;
   display: flex;
   pointer-events: none;
   padding: 30px;
+}
+
+.infoBar {
+  position: absolute;
+  left: 0px;
+  height: 70px;
+  top: calc(100vh - 50px);
+  width: 100vw;
+  pointer-events: none;
+  display: flex;
+  padding: 20px;
 }

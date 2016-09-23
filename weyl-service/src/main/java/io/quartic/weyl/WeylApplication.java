@@ -6,9 +6,8 @@ import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.resource.GeoJsonResource;
+import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.resource.LayerResource;
-import io.quartic.weyl.resource.TileJsonResource;
 import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.util.DataCache;
 import io.quartic.weyl.util.DiskBackedDataCache;
@@ -52,14 +51,9 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().setUrlPattern("/api/*");
         DataCache cache = new DiskBackedDataCache("cache", 60 * 60 * 1000);
 
-        TileJsonResource tileJsonResource = new TileJsonResource(configuration.getQueries());
-        environment.jersey().register(tileJsonResource);
-
-        GeoJsonResource geoJsonResource = new GeoJsonResource(jdbi, configuration.getQueries(), cache);
-        environment.jersey().register(geoJsonResource);
-
         LayerStore layerStore = new LayerStore(jdbi);
-        LayerResource layerResource = new LayerResource(layerStore);
+        LiveLayerStore liveLayerStore = new LiveLayerStore();
+        LayerResource layerResource = new LayerResource(layerStore, liveLayerStore);
         environment.jersey().register(layerResource);
 
         TileResource tileResource = new TileResource(layerStore);

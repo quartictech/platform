@@ -1,6 +1,6 @@
 import { fromJS, Set } from "immutable";
 import { SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED,
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE,
  } from "./constants";
  import { themes } from "../../themes";
 
@@ -29,6 +29,7 @@ const initialState = fromJS({
   map: {
     style: "basic",
     ready: false,
+    mouseLocation: null // Will be {lng,lat} when known
   },
 });
 
@@ -66,6 +67,7 @@ const layerReducer = (layerState, action) => {
         style: defaultLayerStyle(action.attributeSchema),
         stats: action.stats,
         attributeSchema: action.attributeSchema,
+        live: action.live,
         filter: {},
       });
     case LAYER_TOGGLE_VISIBLE:
@@ -92,6 +94,8 @@ const mapReducer = (mapState, action) => {
       return mapState.set("ready", false);
     case MAP_LOADED:
       return mapState.set("ready", true);
+    case MAP_MOUSE_MOVE:
+      return mapState.set("mouseLocation", action.mouseLocation);
     default:
       return mapState;
   }
@@ -149,6 +153,7 @@ function homeReducer(state = initialState, action) {
 
     case MAP_LOADING:
     case MAP_LOADED:
+    case MAP_MOUSE_MOVE:
       return state.update("map", mapState => mapReducer(mapState, action));
 
     default:

@@ -11,7 +11,6 @@ const $ = require("jquery");
 
 class LayerPicker extends React.Component { // eslint-disable-line react/prefer-stateless-function
   componentDidMount() {
-    console.log(this.dropdown);
     $(this.dropdown)
     .dropdown({
       onChange: (value) => {

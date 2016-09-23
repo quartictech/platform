@@ -6,7 +6,6 @@ import io.dropwizard.db.DataSourceFactory;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.Map;
 
 public class WeylConfiguration extends Configuration {
     @Valid
@@ -14,16 +13,7 @@ public class WeylConfiguration extends Configuration {
     @JsonProperty
     private DataSourceFactory database = new DataSourceFactory();
 
-    @Valid
-    @NotNull
-    @JsonProperty
-    private Map<String, GeoQueryConfig> queries;
-
     public DataSourceFactory getDataSourceFactory() {
         return database;
-    }
-
-    public Map<String, GeoQueryConfig> getQueries() {
-        return queries;
     }
 }

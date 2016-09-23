@@ -4,6 +4,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
+import io.quartic.weyl.core.geojson.AbstractFeatureCollection;
+import io.quartic.weyl.core.live.LiveLayer;
+import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
@@ -15,123 +18,151 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Path("/layer")
 public class LayerResource {
-   private final LayerStore layerStore;
+    private final LayerStore layerStore;
+    private final LiveLayerStore liveLayerStore;
 
-   public LayerResource(LayerStore layerStore) {
-      this.layerStore = layerStore;
-   }
+    public LayerResource(LayerStore layerStore, LiveLayerStore liveLayerStore) {
+        this.layerStore = layerStore;
+        this.liveLayerStore = liveLayerStore;
+    }
 
-   @PUT
-   @Path("/import")
-   @Produces("application/json")
-   @Consumes("application/json")
-   public LayerId importLayer(PostgisImportRequest request) {
-      Preconditions.checkNotNull(request.name());
-      Preconditions.checkNotNull(request.description());
-      LayerMetadata metadata = ImmutableLayerMetadata.builder()
-              .name(request.name())
-              .description(request.description())
-              .build();
-      Optional<IndexedLayer> layer = layerStore.importPostgis(metadata, request.query());
-      return layer.orElseThrow(() -> new NotFoundException("Error importing layer"))
-              .layerId();
-   }
+    @PUT
+    @Path("/import")
+    @Produces("application/json")
+    @Consumes("application/json")
+    public LayerId importLayer(PostgisImportRequest request) {
+        Preconditions.checkNotNull(request.name());
+        Preconditions.checkNotNull(request.description());
+        LayerMetadata metadata = ImmutableLayerMetadata.builder()
+                .name(request.name())
+                .description(request.description())
+                .build();
+        Optional<IndexedLayer> layer = layerStore.importPostgis(metadata, request.query());
+        return layer.orElseThrow(() -> new NotFoundException("Error importing layer"))
+                .layerId();
+    }
 
-   @PUT
-   @Path("/compute")
-   @Produces("application/json")
-   public LayerId createComputedLayer(BucketSpec bucketSpec) {
-      Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
-      return bucketLayer.map(IndexedLayer::layerId)
-              .orElseThrow(() -> new ProcessingException("bucket computation failed"));
-   }
+    @PUT
+    @Path("/compute")
+    @Produces("application/json")
+    public LayerId createComputedLayer(BucketSpec bucketSpec) {
+        Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
+        return bucketLayer.map(IndexedLayer::layerId)
+                .orElseThrow(() -> new ProcessingException("bucket computation failed"));
+    }
 
-   @GET
-   @Path("/numeric_values/{id}")
-   @Produces("application/json")
-   public Map<String, Double[]> numericValues(@PathParam("id") String id) {
-       IndexedLayer indexedLayer = layerStore.get(ImmutableLayerId.of(id))
-               .orElseThrow(() -> new NotFoundException("no layer with id " + id));
+    @GET
+    @Path("/numeric_values/{id}")
+    @Produces("application/json")
+    public Map<String, Double[]> numericValues(@PathParam("id") String id) {
+        IndexedLayer indexedLayer = layerStore.get(ImmutableLayerId.of(id))
+                .orElseThrow(() -> new NotFoundException("no layer with id " + id));
 
 
-      List<String> numericAttributes = indexedLayer.layer().schema()
-              .attributes()
-              .entrySet().stream()
-              .filter( entry -> entry.getValue().type() == AttributeType.NUMERIC)
-              .map(Map.Entry::getKey)
-              .collect(Collectors.toList());
+        List<String> numericAttributes = indexedLayer.layer().schema()
+                .attributes()
+                .entrySet().stream()
+                .filter( entry -> entry.getValue().type() == AttributeType.NUMERIC)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
 
-      Map<String, Double[]> result = Maps.newHashMap();
-      for (String attributeName : numericAttributes) {
-          result.put(attributeName, new Double[indexedLayer.indexedFeatures().size()]);
-      }
+        Map<String, Double[]> result = Maps.newHashMap();
+        for (String attributeName : numericAttributes) {
+            result.put(attributeName, new Double[indexedLayer.indexedFeatures().size()]);
+        }
 
-      int index = 0;
-      for (IndexedFeature feature : indexedLayer.indexedFeatures()) {
-         for (Map.Entry<String, Optional<Object>> entry : feature.feature().metadata().entrySet()) {
+        int index = 0;
+        for (IndexedFeature feature : indexedLayer.indexedFeatures()) {
+            for (Map.Entry<String, Optional<Object>> entry : feature.feature().metadata().entrySet()) {
 
-            if (! result.containsKey(entry.getKey())) {
-               continue;
+                if (! result.containsKey(entry.getKey())) {
+                    continue;
+                }
+
+                Double assignValue = null;
+                if (entry.getValue().isPresent()) {
+                    Object value = entry.getValue().get();
+                    if (value instanceof Double || value instanceof Float) {
+                        assignValue = (double) value;
+                    }
+                    else if (value instanceof Long) {
+                        assignValue = ((Long) value).doubleValue();
+                    }
+                    else if (value instanceof Integer) {
+                        assignValue = ((Integer) value).doubleValue();
+                    }
+                }
+
+                result.get(entry.getKey())[index] = assignValue;
             }
+            index += 1;
+        }
 
-            Double assignValue = null;
-            if (entry.getValue().isPresent()) {
-               Object value = entry.getValue().get();
-               if (value instanceof Double || value instanceof Float) {
-                  assignValue = (double) value;
-               }
-               else if (value instanceof Long) {
-                  assignValue = ((Long) value).doubleValue();
-               }
-               else if (value instanceof Integer) {
-                  assignValue = ((Integer) value).doubleValue();
-               }
-            }
+        return result;
+    }
 
-            result.get(entry.getKey())[index] = assignValue;
-         }
-         index += 1;
-      }
+    @GET
+    @Path("/live/{id}")
+    @Produces("application/json")
+    public AbstractFeatureCollection getLiveFeatures(@PathParam("id") String id) {
+        return liveLayerStore.getFeaturesForLayer(id)
+                .orElseThrow(() -> new NotFoundException("No live layer with id " + id));
+    }
 
-      return result;
-   }
+    @GET
+    @Path("/metadata/{id}")
+    @Produces("application/json")
+    public LayerResponse getLayer(@PathParam("id") String id) {
+        LayerId layerId = ImmutableLayerId.builder().id(id).build();
+        return layerStore.get(layerId)
+                .map(this::createStaticLayerResponse)
+                .orElseThrow(() -> new NotFoundException("No layer with id " + id));
+    }
 
-   @GET
-   @Path("/metadata/{id}")
-   @Produces("application/json")
-   public LayerResponse getLayer(@PathParam("id") String id) {
-      LayerId layerId = ImmutableLayerId.builder().id(id).build();
-      return layerStore.get(layerId)
-              .map(layer -> ImmutableLayerResponse.builder()
-                      .name(layer.layer().metadata().name())
-                      .description(layer.layer().metadata().description())
-                      .id(layerId)
-                      .stats(layer.layerStats())
-                      .attributeSchema(layer.layer().schema())
-                      .build())
-              .orElseThrow(() -> new NotFoundException("no layer with id " + id));
-   }
+    @GET
+    @Produces("application/json")
+    public Collection<LayerResponse> listLayers(@QueryParam("query") String query) {
+        Preconditions.checkNotNull(query);
+        return Stream.concat(listStaticLayers(query), listLiveLayers(query)).collect(Collectors.toList());
+    }
 
-   @GET
-   @Produces("application/json")
-   public Collection<LayerResponse> listLayers(@QueryParam("query") String query) {
-      Preconditions.checkNotNull(query);
+    private Stream<LayerResponse> listStaticLayers(String query) {
         return layerStore.listLayers()
                 .stream()
-                .filter(layer -> layer.layer()
-                        .metadata().name().toLowerCase().contains(query.toLowerCase()))
-                .map(layer -> ImmutableLayerResponse.builder()
-                        .name(layer.layer().metadata().name())
-                        .description(layer.layer().metadata().description())
-                        .id(layer.layerId())
-                        .stats(layer.layerStats())
-                        .attributeSchema(layer.layer().schema())
-                        .build())
-                .collect(Collectors.toList());
-   }
+                .filter(layer -> layer.layer().metadata().name().toLowerCase().contains(query.toLowerCase()))
+                .map(this::createStaticLayerResponse);
+    }
 
+    private Stream<LayerResponse> listLiveLayers(String query) {
+        return liveLayerStore.listLayers()
+                .stream()
+                .filter(layer -> layer.layer().metadata().name().toLowerCase().contains(query.toLowerCase()))
+                .map(this::createLiveLayerResponse);
+    }
 
+    private LayerResponse createStaticLayerResponse(IndexedLayer layer) {
+        return ImmutableLayerResponse.builder()
+                .name(layer.layer().metadata().name())
+                .description(layer.layer().metadata().description())
+                .id(layer.layerId())
+                .stats(layer.layerStats())
+                .attributeSchema(layer.layer().schema())
+                .live(false)
+                .build();
+    }
+
+    private LayerResponse createLiveLayerResponse(LiveLayer layer) {
+        return ImmutableLayerResponse.builder()
+                .name(layer.layer().metadata().name())
+                .description(layer.layer().metadata().description())
+                .id(layer.layerId())
+                .stats(ImmutableLayerStats.builder().featureCount(1).build())
+                .attributeSchema(layer.layer().schema())
+                .live(true)
+                .build();
+    }
 }

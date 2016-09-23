@@ -15,13 +15,14 @@ import Toolbar from "../../components/Toolbar";
 import LineChart from "../../components/LineChart";
 import LayerList from "../../components/LayerList";
 import SelectionView from "../../components/SelectionView";
+import MapInfo from "../../components/MapInfo";
 
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded,
+  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove
  } from "./actions";
 
 import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart, selectMap } from "./selectors";
@@ -42,6 +43,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onSelectFeatures={this.props.onSelectFeatures}
             onMapLoading={this.props.onMapLoading}
             onMapLoaded={this.props.onMapLoaded}
+            onMouseMove={this.props.onMapMouseMove}
             selection={this.props.selectionIds}
             map={this.props.map}
           />
@@ -76,6 +78,12 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onAttributeSelection={this.props.onChartAttributeSelection}
             chart={this.props.histogramChart}
             numericAttributes={this.props.numericAttributes}
+          />
+        </div>
+
+        <div className={styles.infoBar}>
+          <MapInfo
+            map={this.props.map}
           />
         </div>
       </div>
@@ -124,6 +132,7 @@ function mapDispatchToProps(dispatch) {
     onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value)),
     onMapLoading: () => dispatch(mapLoading()),
     onMapLoaded: () => dispatch(mapLoaded()),
+    onMapMouseMove: (location) => dispatch(mapMouseMove(location))
   };
 }
 

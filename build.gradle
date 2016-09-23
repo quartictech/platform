@@ -3,11 +3,11 @@ apply plugin: 'idea'
 
 allprojects {
   repositories {
-    mavenCentral()
+      mavenCentral()
 
-    maven {
-        url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
-    }
+      maven {
+          url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
+      }
   }
 
   idea {
