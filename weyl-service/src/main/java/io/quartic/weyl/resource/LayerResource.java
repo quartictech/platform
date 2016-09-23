@@ -4,13 +4,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.geojson.AbstractFeatureCollection;
+import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import java.util.Collection;
@@ -22,6 +25,7 @@ import java.util.stream.Stream;
 
 @Path("/layer")
 public class LayerResource {
+    private static final Logger log = LoggerFactory.getLogger(LayerResource.class);
     private final LayerStore layerStore;
     private final LiveLayerStore liveLayerStore;
 
@@ -111,6 +115,39 @@ public class LayerResource {
     public AbstractFeatureCollection getLiveFeatures(@PathParam("id") String id) {
         return liveLayerStore.getFeaturesForLayer(id)
                 .orElseThrow(() -> new NotFoundException("No live layer with id " + id));
+    }
+
+    @POST
+    @Path("live/{id}")
+    @Consumes("application/json")
+    public void updateLiveLayer(@PathParam("id") String id, AbstractFeatureCollection collection) {
+        if (collection.features()
+                .stream()
+                .anyMatch(feature -> !feature.id().isPresent())) {
+            throw new NotAcceptableException("Features with missing ID");
+        }
+
+        if (collection.features()
+                .stream()
+                .anyMatch(feature -> !feature.properties().containsKey("timestamp"))) {
+            throw new NotAcceptableException("Features with missing timestamp");
+        }
+
+        if (collection.features()
+                .stream()
+                .anyMatch(feature -> !StringUtils.isNumeric(feature.properties().get("timestamp").toString()))) {
+            throw new NotAcceptableException("Features with non-numeric timestamp");
+        }
+
+        if (collection.features()
+                .stream()
+                .map(io.quartic.weyl.core.geojson.Feature::id)
+                .distinct()
+                .count() != collection.features().size()) {
+            throw new NotAcceptableException("Features with duplicate IDs");
+        }
+
+        log.info("Updated {} features for layerId = {}", collection.features().size(), id);
     }
 
     @GET
