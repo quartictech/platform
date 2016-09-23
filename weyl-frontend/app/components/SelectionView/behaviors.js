@@ -62,6 +62,15 @@ const curatedBehaviors = {
       "dateprocessed",
     ],
   },
+
+  "Nightlife": {
+    title: (x) => x.name,
+    blessed: [
+      "operator",
+      "amenity",
+      "building"
+    ],
+  },
 };
 
 export {
