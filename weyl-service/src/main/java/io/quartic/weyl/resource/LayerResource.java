@@ -11,6 +11,7 @@ import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,6 +131,12 @@ public class LayerResource {
                 .stream()
                 .anyMatch(feature -> !feature.properties().containsKey("timestamp"))) {
             throw new NotAcceptableException("Features with missing timestamp");
+        }
+
+        if (collection.features()
+                .stream()
+                .anyMatch(feature -> !StringUtils.isNumeric(feature.properties().get("timestamp").toString()))) {
+            throw new NotAcceptableException("Features with non-numeric timestamp");
         }
 
         if (collection.features()

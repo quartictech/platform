@@ -49,6 +49,16 @@ public class LayerResourceShould {
     }
 
     @Test(expected = NotAcceptableException.class)
+    public void throwIfTimestampsNonNumeric() throws Exception {
+        FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
+                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
+                Feature.of(Optional.of("5678"), point(), propsWithInvalidTimestamp())
+        ));
+
+        resource.updateLiveLayer("abc", collection);
+    }
+
+    @Test(expected = NotAcceptableException.class)
     public void throwIfNonUniqueIds() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
                 Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
@@ -58,11 +68,15 @@ public class LayerResourceShould {
         resource.updateLiveLayer("abc", collection);
     }
 
-    private ImmutableMap<String, Integer> propsWithTimestamp() {
+    private ImmutableMap<String, Object> propsWithTimestamp() {
         return ImmutableMap.of("timestamp", 12345);
     }
 
-    private ImmutableMap<String, Integer> propsWithoutTimestamp() {
+    private ImmutableMap<String, Object> propsWithInvalidTimestamp() {
+        return ImmutableMap.of("timestamp", "a_232_.3");
+    }
+
+    private ImmutableMap<String, Object> propsWithoutTimestamp() {
         return ImmutableMap.of();
     }
 
