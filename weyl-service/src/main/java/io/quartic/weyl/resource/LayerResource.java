@@ -147,7 +147,7 @@ public class LayerResource {
             throw new NotAcceptableException("Features with duplicate IDs");
         }
 
-        collection.features().forEach(liveLayerStore::addToLayer);
+        liveLayerStore.addToLayer(ImmutableLayerId.of(id), collection);
 
         log.info("Updated {} features for layerId = {}", collection.features().size(), id);
     }
