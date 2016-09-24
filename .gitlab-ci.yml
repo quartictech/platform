@@ -10,9 +10,15 @@ cache:
      - weyl-frontend/node_modules
      - weyl-frontend/semantic
 
-build:
+
+# TODO: merge these back into one job
+backend:
   stage: build
   script:
     - ./gradlew assemble
+
+frontend:
+  stage: build
+  script:
     - cd weyl-frontend && npm install
     #- ./gradlew weyl-frontend:build
