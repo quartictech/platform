@@ -21,30 +21,15 @@ public class LiveLayerStore {
 
     private final Map<LayerId, Layer<Geometry>> layers = Maps.newHashMap();
 
-    public LiveLayerStore() {
-        // TODO: Eliminate this hardcoded layer
-        createLayerWithId(
-                ImmutableLayerId.of("1234"),
-                ImmutableLayerMetadata.builder()
-                        .name("Tube stations")
-                        .description("Tube station arrivals")
-                        .build()
-        );
-    }
-
-    public void createLayer(LayerMetadata metadata) {
-        createLayerWithId(
-                ImmutableLayerId.of(UUID.randomUUID().toString()),
-                metadata);
-    }
-
-    private void createLayerWithId(LayerId id, LayerMetadata metadata) {
-        layers.put(id, ImmutableRawLayer.<Geometry>builder()
+    public LayerId createLayer(AbstractLayerMetadata metadata) {
+        final LayerId layerId = LayerId.of(UUID.randomUUID().toString());
+        layers.put(layerId, ImmutableRawLayer.<Geometry>builder()
                 .metadata(metadata)
                 .schema(ImmutableAttributeSchema.builder().build())
                 .features(new FeatureCache())
                 .build()
         );
+        return layerId;
     }
 
     public Collection<LiveLayer> listLayers() {

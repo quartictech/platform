@@ -5,9 +5,11 @@ import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.*;
+import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.request.LayerCreateRequest;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
@@ -20,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,7 +44,7 @@ public class LayerResource {
     public LayerId importLayer(PostgisImportRequest request) {
         Preconditions.checkNotNull(request.name());
         Preconditions.checkNotNull(request.description());
-        LayerMetadata metadata = ImmutableLayerMetadata.builder()
+        AbstractLayerMetadata metadata = LayerMetadata.builder()
                 .name(request.name())
                 .description(request.description())
                 .build();
@@ -63,9 +66,8 @@ public class LayerResource {
     @Path("/numeric_values/{id}")
     @Produces("application/json")
     public Map<String, Double[]> numericValues(@PathParam("id") String id) {
-        IndexedLayer indexedLayer = layerStore.get(ImmutableLayerId.of(id))
+        IndexedLayer indexedLayer = layerStore.get(LayerId.of(id))
                 .orElseThrow(() -> new NotFoundException("no layer with id " + id));
-
 
         List<String> numericAttributes = indexedLayer.layer().schema()
                 .attributes()
@@ -109,11 +111,18 @@ public class LayerResource {
         return result;
     }
 
+    @PUT
+    @Path("/live/{id}")
+    @Produces("application/json")
+    public LayerId createLiveLayer(LayerCreateRequest request) {
+        return liveLayerStore.createLayer(LayerMetadata.of(request.name(), request.description()));
+    }
+
     @GET
     @Path("/live/{id}")
     @Produces("application/json")
     public AbstractFeatureCollection getLiveFeatures(@PathParam("id") String id) {
-        return liveLayerStore.getFeaturesForLayer(ImmutableLayerId.of(id))
+        return liveLayerStore.getFeaturesForLayer(LayerId.of(id))
                 .orElseThrow(() -> new NotFoundException("No live layer with id " + id));
     }
 
@@ -121,43 +130,48 @@ public class LayerResource {
     @Path("live/{id}")
     @Consumes("application/json")
     public void updateLiveLayer(@PathParam("id") String id, FeatureCollection collection) {
-        if (collection.features()
-                .stream()
-                .anyMatch(feature -> !feature.id().isPresent())) {
-            throw new NotAcceptableException("Features with missing ID");
+        final LayerId layerId = LayerId.of(id);
+
+        if (liveLayerStore.listLayers().stream().noneMatch(l -> l.layerId().equals(layerId))) {
+            throw new NotFoundException("No live layer with id " + id);
         }
+
+        validateOrThrow(collection,
+                f -> !f.id().isPresent(),
+                "Features with missing ID");
+        validateOrThrow(collection,
+                f -> !f.properties().containsKey("timestamp"),
+                "Features with missing timestamp");
+        validateOrThrow(collection,
+                f -> !StringUtils.isNumeric(f.properties().get("timestamp").toString()),
+                "Features with non-numeric timestamp");
 
         if (collection.features()
                 .stream()
-                .anyMatch(feature -> !feature.properties().containsKey("timestamp"))) {
-            throw new NotAcceptableException("Features with missing timestamp");
-        }
-
-        if (collection.features()
-                .stream()
-                .anyMatch(feature -> !StringUtils.isNumeric(feature.properties().get("timestamp").toString()))) {
-            throw new NotAcceptableException("Features with non-numeric timestamp");
-        }
-
-        if (collection.features()
-                .stream()
-                .map(io.quartic.weyl.core.geojson.Feature::id)
+                .map(Feature::id)
                 .distinct()
                 .count() != collection.features().size()) {
             throw new NotAcceptableException("Features with duplicate IDs");
         }
 
-        liveLayerStore.addToLayer(ImmutableLayerId.of(id), collection);
+        liveLayerStore.addToLayer(layerId, collection);
 
         log.info("Updated {} features for layerId = {}", collection.features().size(), id);
+    }
+
+    private void validateOrThrow(FeatureCollection collection, Predicate<Feature> predicate, String message) {
+        if (collection.features()
+                .stream()
+                .anyMatch(predicate)) {
+            throw new NotAcceptableException(message);
+        }
     }
 
     @GET
     @Path("/metadata/{id}")
     @Produces("application/json")
     public LayerResponse getLayer(@PathParam("id") String id) {
-        LayerId layerId = ImmutableLayerId.builder().id(id).build();
-        return layerStore.get(layerId)
+        return layerStore.get(LayerId.of(id))
                 .map(this::createStaticLayerResponse)
                 .orElseThrow(() -> new NotFoundException("No layer with id " + id));
     }

@@ -4,8 +4,8 @@ import org.immutables.value.Value;
 
 import java.util.List;
 
-@MyStyle
+@SweetStyle
 @Value.Immutable
 public interface AbstractLineString extends Geometry {
-    @Value.Parameter List<List<Double>> coordinates();
+    List<List<Double>> coordinates();
 }

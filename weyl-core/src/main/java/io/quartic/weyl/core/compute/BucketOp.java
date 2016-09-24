@@ -84,7 +84,7 @@ public class BucketOp {
             RawLayer layer = ImmutableRawLayer.<Geometry>builder()
                     .features(features)
                     .schema(attributeSchema)
-                    .metadata(ImmutableLayerMetadata.builder()
+                    .metadata(LayerMetadata.builder()
                             .name(layerName)
                             .description(layerDescription)
                             .build())

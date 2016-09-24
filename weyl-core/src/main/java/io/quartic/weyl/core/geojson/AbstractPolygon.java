@@ -4,8 +4,8 @@ import org.immutables.value.Value;
 
 import java.util.List;
 
-@MyStyle
+@SweetStyle
 @Value.Immutable
 public interface AbstractPolygon extends Geometry {
-    @Value.Parameter List<List<List<Double>>> coordinates();
+    List<List<List<Double>>> coordinates();
 }

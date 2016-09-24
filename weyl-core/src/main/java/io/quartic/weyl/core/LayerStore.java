@@ -31,7 +31,7 @@ public class LayerStore {
         this.indexedLayers = Maps.newConcurrentMap();
     }
 
-    public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
+    public Optional<IndexedLayer> importPostgis(AbstractLayerMetadata metadata, String sql) {
         Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(metadata, sql)
                 .map(LayerStore::index);
 
@@ -70,7 +70,7 @@ public class LayerStore {
                         .build())
                 .collect(Collectors.toList());
 
-         LayerId layerId = ImmutableLayerId.builder().id(UUID.randomUUID().toString()).build();
+         LayerId layerId = LayerId.of(UUID.randomUUID().toString());
          return ImmutableIndexedLayer.builder()
                  .layer(layer)
                  .spatialIndex(spatialIndex(features))

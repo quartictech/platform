@@ -6,9 +6,10 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @JsonSerialize
 @Value.Style(
+        allParameters = true,
         jdkOnly = true,
         typeAbstract = "Abstract*",
         typeImmutable = "*",
         visibility = ImplementationVisibility.PUBLIC)
-@interface MyStyle {
+public @interface SweetStyle {
 }
