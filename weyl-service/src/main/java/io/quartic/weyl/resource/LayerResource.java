@@ -121,9 +121,8 @@ public class LayerResource {
     @GET
     @Path("/live/{id}")
     @Produces("application/json")
-    public AbstractFeatureCollection getLiveFeatures(@PathParam("id") String id) {
-        return liveLayerStore.getFeaturesForLayer(LayerId.of(id))
-                .orElseThrow(() -> new NotFoundException("No live layer with id " + id));
+    public FeatureCollection getLiveFeatures(@PathParam("id") String id) {
+        return liveLayerStore.getFeaturesForLayer(LayerId.of(id));
     }
 
     @POST

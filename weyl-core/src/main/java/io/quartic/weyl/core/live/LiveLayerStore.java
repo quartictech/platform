@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.live;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
@@ -21,7 +22,7 @@ public class LiveLayerStore {
 
     private final Map<LayerId, Layer<Geometry>> layers = Maps.newHashMap();
 
-    public LayerId createLayer(AbstractLayerMetadata metadata) {
+    public LayerId createLayer(LayerMetadata metadata) {
         final LayerId layerId = LayerId.of(UUID.randomUUID().toString());
         layers.put(layerId, ImmutableRawLayer.<Geometry>builder()
                 .metadata(metadata)
@@ -42,21 +43,24 @@ public class LiveLayerStore {
                 .collect(Collectors.toList());
     }
 
-    public Optional<FeatureCollection> getFeaturesForLayer(LayerId layerId) {
-        final Layer<Geometry> layer = layers.get(layerId);
-        if (layer == null) {
-            return Optional.empty();
-        }
+    public FeatureCollection getFeaturesForLayer(LayerId layerId) {
+        checkLayerExists(layerId);
 
-        return Optional.of(FeatureCollection.of(
-                layer.features()
+        return FeatureCollection.of(
+                layers.get(layerId).features()
                         .stream()
-                        .map(f -> Feature.of(Optional.of(f.id()), f.geometry(), f.metadata()))
-                        .collect(Collectors.toList())));
+                        .map(f -> Feature.of(Optional.of(
+                                f.id()),
+                                f.geometry(),
+                                f.metadata().entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()))
+                        ))
+                        .collect(Collectors.toList()));
     }
 
-    public void addToLayer(LayerId id, FeatureCollection features) {
-        final Collection<io.quartic.weyl.core.model.Feature<Geometry>> target = layers.get(id).features();
+    public void addToLayer(LayerId layerId, FeatureCollection features) {
+        checkLayerExists(layerId);
+
+        final Collection<io.quartic.weyl.core.model.Feature<Geometry>> target = layers.get(layerId).features();
         features.features()
                 .stream()
                 .map(f -> ImmutableFeature.of(
@@ -67,5 +71,9 @@ public class LiveLayerStore {
                                 .collect(toMap(Map.Entry::getKey, e -> Optional.of(e.getValue())))
                 ))
                 .collect(Collectors.toCollection(() -> target));
+    }
+
+    private void checkLayerExists(LayerId layerId) {
+        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
     }
 }
