@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.live;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.geojson.AbstractFeatureCollection;
@@ -20,10 +19,7 @@ import static java.util.stream.Collectors.toMap;
 public class LiveLayerStore {
     private final Map<LayerId, Layer<Geometry>> layers = Maps.newHashMap();
 
-    private final List<io.quartic.weyl.core.model.Feature<Geometry>> features = Lists.newArrayList(
-            new FakeFeature("abcd", 1, ImmutableMap.of()),
-            new FakeFeature("efgh", 2, ImmutableMap.of())
-    );
+    private final List<io.quartic.weyl.core.model.Feature<Geometry>> features = Lists.newArrayList();
 
     public LiveLayerStore() {
         layers.put(ImmutableLayerId.of("1234"), createFakeLayer());
@@ -59,17 +55,11 @@ public class LiveLayerStore {
     private Layer<Geometry> createFakeLayer() {
         return ImmutableRawLayer.<Geometry>builder()
                 .metadata(ImmutableLayerMetadata.builder()
-                        .name("Weirdness")
-                        .description("This is absolute gash")
+                        .name("Tube stations")
+                        .description("Tube station arrivals")
                         .build()
                 )
-                .schema(ImmutableAttributeSchema.builder()
-                        .putAttributes("pet name", ImmutableAttribute.builder()
-                                .type(AttributeType.STRING)
-                                .build()
-                        )
-                        .build()
-                )
+                .schema(ImmutableAttributeSchema.builder().build())
                 .features(features)
                 .build();
     }
