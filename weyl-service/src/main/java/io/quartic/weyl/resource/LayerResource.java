@@ -112,7 +112,7 @@ public class LayerResource {
     }
 
     @PUT
-    @Path("/live/{id}")
+    @Path("/live")
     @Produces("application/json")
     public LayerId createLiveLayer(LayerCreateRequest request) {
         return liveLayerStore.createLayer(LayerMetadata.of(request.name(), request.description()));
@@ -127,7 +127,7 @@ public class LayerResource {
     }
 
     @POST
-    @Path("live/{id}")
+    @Path("/live/{id}")
     @Consumes("application/json")
     public void updateLiveLayer(@PathParam("id") String id, FeatureCollection collection) {
         final LayerId layerId = LayerId.of(id);
