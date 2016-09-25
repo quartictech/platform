@@ -23,9 +23,6 @@ const initialState = fromJS({
     features: [],
   },
   numericAttributes: {},
-  histogramChart: {
-    selectedAttribute: null,
-  },
   map: {
     style: "basic",
     ready: false,
@@ -123,6 +120,7 @@ function homeReducer(state = initialState, action) {
       const element = action.element;
       switch (element) {
         case "bucket":
+        case "geofence":
           return state.updateIn(["ui", "layerOp"], val => ((val === element) ? null : element));
         case "theme":
           return state.updateIn(["ui", "settings", "theme"], val => themes[val].next);

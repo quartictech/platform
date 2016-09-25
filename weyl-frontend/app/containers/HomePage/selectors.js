@@ -40,11 +40,6 @@ const selectNumericAttributes = () => createSelector(
   (homeState) => homeState.get("numericAttributes").toJS()
 );
 
-const selectHistogramChart = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("histogramChart").toJS()
-);
-
 const selectMap = () => createSelector(
   selectHome(),
   (homeState) => {
@@ -61,6 +56,5 @@ export {
   selectSelectionIds,
   selectSelectionFeatures,
   selectNumericAttributes,
-  selectHistogramChart,
   selectMap,
 };

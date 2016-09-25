@@ -25,7 +25,7 @@ import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation,
   setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove
  } from "./actions";
 
-import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart, selectMap } from "./selectors";
+import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectMap } from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -75,8 +75,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             visible={this.props.ui.panels.chart}
             layers={this.props.layers}
             onLayerSelection={this.props.onChartLayerSelection}
-            onAttributeSelection={this.props.onChartAttributeSelection}
-            chart={this.props.histogramChart}
             numericAttributes={this.props.numericAttributes}
           />
         </div>
@@ -109,9 +107,6 @@ HomePage.propTypes = {
   onToggleValueVisible: React.PropTypes.func,
   selectionFeatures: React.PropTypes.array,
   onClearSelection: React.PropTypes.func,
-  onChartLayerSelection: React.PropTypes.func,
-  onChartAttributeSelection: React.PropTypes.func,
-  histogramChart: React.PropTypes.object,
   numericAttributes: React.PropTypes.object,
 };
 
@@ -142,7 +137,6 @@ const mapStateToProps = createStructuredSelector({
   selectionIds: selectSelectionIds(),
   selectionFeatures: selectSelectionFeatures(),
   numericAttributes: selectNumericAttributes(),
-  histogramChart: selectHistogramChart(),
   map: selectMap(),
 });
 

@@ -10,6 +10,7 @@ import naturalsort from 'javascript-natural-sort';
 import styles from './styles.css';
 
 import BucketLayerItem from "../BucketLayerItem";
+import GeofenceSettings from "../GeofenceSettings";
 import LayerStyleSettings from "../LayerStyleSettings";
 
 const $ = require("jquery");
@@ -204,6 +205,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     if (this.props.ui.layerOp === "bucket") {
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket" />);
     }
+    else if (this.props.ui.layerOp === "geofence") {
+      rows.push(<GeofenceSettings key="geofence"/>);
+    }
     for (const layer of this.props.layers) {
       if (!layer.closed) {
         const key = `layer_${layer.id}`;
@@ -220,7 +224,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       }
     }
 
-    if (this.props.layers.filter(layer => !layer.closed).length > 0) {
+    if (this.props.layers.filter(layer => !layer.closed).length > 0 || this.props.ui.layerOp != null)  {
       return (
         <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
           <div className={styles.innerLayerList}>

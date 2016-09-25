@@ -28,13 +28,11 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
   }
 
   onLayerChange(value) {
-    this.state.selectedLayer = value;
-    this.forceUpdate();
+    this.setState({selectedLayer: value});
   }
 
   onBucketsChange(value) {
-    this.state.selectedBuckets = value;
-    this.forceUpdate();
+    this.setState({selectedBuckets: value});
   }
 
   onCancelClick() {
@@ -43,16 +41,13 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 
   onNormalizeToAreaChange(e) {
     this.state.normalizeToArea = e.currentTarget.checked;
-    console.log(this.state.normalizeToArea);
   }
 
   onAggregationChange(value) {
-    this.state.selectedAggregation = value;
-    this.forceUpdate();
+    this.setState({selectedAggregation: value});
   }
 
   onComputeClick() {
-    console.log("compute click");
     const computeSpec = {
       features: this.state.selectedLayer,
       buckets: this.state.selectedBuckets,
@@ -70,11 +65,10 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
   }
 
   renderAttributePicker(numericAttributes) {
-    console.log(this.state.selectedAggregation);
     if (this.state.selectedAggregation === "sum" || this.state.selectedAggregation === "mean") {
       return (
         <div className="field">
-          <LayerAttributePicker attributes={numericAttributes} onChange={(v) => this.state.selectedAttribute = v} />
+          <LayerAttributePicker selected={this.state.selectedAttribute} attributes={numericAttributes} onChange={(v) => this.setState({selectedAttribute: v})} />
         </div>);
     }
     return null;
@@ -83,7 +77,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
   render() {
     const selectedFeatureLayer = this.props.layers.find(layer => layer.id === this.state.selectedLayer);
     const numericAttributes = [];
-    if (selectedFeatureLayer != null) {
+    if (selectedFeatureLayer != undefined) {
       for (const key of Object.keys(selectedFeatureLayer.attributeSchema.attributes)) {
         const attribute = selectedFeatureLayer.attributeSchema.attributes[key];
         if (attribute.type === "NUMERIC") {
@@ -93,24 +87,32 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
     }
     return (
       <div className={styles.bucketLayerItem}>
-        <div className="ui raised fluid card">
-          <div className="content">
-            <div className="header">Bucket Layer</div>
-            <div className="meta">Take geographical features from one layer and assign them to polygons of another, aggregating the results.</div>
-          </div>
-          <div className="content">
-            <form className="ui form">
+        <a onClick={() => this.onCancelClick()}>
+          <i className="icon close"></i>
+        </a><b>Bucket Layer</b>
+        <div className="ui secondary segment">
+          <div className="ui form">
+            <div className="two fields">
               <div className="field">
-                <LayerPicker layers={this.props.layers} label="Pick Layer" onChange={this.onLayerChange.bind(this)} />
+                <LayerPicker layers={this.props.layers} label="Layer" onChange={this.onLayerChange.bind(this)} />
               </div>
               <div className="field">
-                <LayerPicker layers={this.props.layers} label="Pick Buckets" onChange={this.onBucketsChange.bind(this)} />
+                <LayerPicker layers={this.props.layers} label="Buckets" onChange={this.onBucketsChange.bind(this)} />
               </div>
+            </div>
 
+            <div className="field">
+              <div className="ui checkbox">
+                <input name="normalizeToArea" type="checkbox" onChange={this.onNormalizeToAreaChange.bind(this)} />
+                <label>Normalise to Area</label>
+              </div>
+            </div>
+
+            <div className="two fields">
               <div className="field">
-                <div id="aggregate-dropdown" className="ui floating labeled icon dropdown button">
-                  <i className="filter icon"></i>
-                  <span className="text">Aggregate</span>
+                <div className="ui fluid mini floating labeled icon dropdown button" ref={x => $(x).dropdown({onChange:this.onAggregationChange.bind(this)})}>
+                  <i className="calculator icon"></i>
+                  <span className="text">Aggregate By</span>
                   <div className="menu">
                     <div className="item" data-value="count">
                       Count
@@ -125,16 +127,10 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
                 </div>
               </div>
               {this.renderAttributePicker(numericAttributes)}
-
-              <div className="ui checkbox">
-                <input name="normalizeToArea" type="checkbox" onChange={this.onNormalizeToAreaChange.bind(this)} />
-                <label>Normalise to Area</label>
-              </div>
-            </form>
+            </div>
           </div>
           <div className="ui content">
-            <button className="ui button primary" onClick={this.onComputeClick.bind(this)}>Compute</button>
-            <button className="ui button red" onClick={this.onCancelClick.bind(this)}>Cancel</button>
+            <button className="ui mini button primary" onClick={this.onComputeClick.bind(this)}>Compute</button>
           </div>
         </div>
       </div>
