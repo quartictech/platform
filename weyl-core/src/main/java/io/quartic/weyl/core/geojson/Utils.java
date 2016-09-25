@@ -29,10 +29,10 @@ public final class Utils {
     }
 
     public static com.vividsolutions.jts.geom.Geometry toJts(Geometry geometry) {
+        // TODO: this is gross - can we use a visitor?
         if (geometry instanceof Point) {
             Point point = (Point)geometry;
             return factory.createPoint(listToCoord(point.coordinates()));
-            // TODO
         }if (geometry instanceof LineString) {
             LineString string = (LineString)geometry;
             return factory.createLineString(listToCoords(string.coordinates()));

@@ -34,21 +34,21 @@ public class PostgisConnector {
         wkbReader = new WKBReader();
     }
 
-    public Optional<RawLayer<Geometry>> fetch(AbstractLayerMetadata metadata, String sql) {
+    public Optional<RawLayer> fetch(AbstractLayerMetadata metadata, String sql) {
         Handle h = dbi.open();
         String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                 sql);
         ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
                 .iterator();
 
-        List<Feature<Geometry>> features = Lists.newArrayList();
+        List<Feature> features = Lists.newArrayList();
         int count = 0;
         while (iterator.hasNext()) {
             count += 1;
             if (count % 10000 == 0) {
                 log.info("Importing feature: {}", count);
             }
-            Optional<Feature<Geometry>> feature = rowToFeature(iterator.next());
+            Optional<Feature> feature = rowToFeature(iterator.next());
 
             if (feature.isPresent()) {
                 features.add(feature.get());
@@ -63,7 +63,7 @@ public class PostgisConnector {
                 .primaryAttribute(Optional.empty())
                 .build();
 
-        return Optional.of(ImmutableRawLayer.<Geometry>builder()
+        return Optional.of(ImmutableRawLayer.builder()
                 .features(features)
                 .metadata(metadata)
                 .schema(attributeSchema)
@@ -82,7 +82,7 @@ public class PostgisConnector {
         return Optional.empty();
     }
 
-    private Optional<Feature<Geometry>> rowToFeature(Map<String, Object> row) {
+    private Optional<Feature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {

@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.model;
 
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.SpatialIndex;
 import org.immutables.value.Value;
 
@@ -13,7 +12,7 @@ public interface IndexedLayer {
     LayerId layerId();
 
     // The layer we're indexing
-    Layer<Geometry> layer();
+    Layer layer();
 
     SpatialIndex spatialIndex();
 

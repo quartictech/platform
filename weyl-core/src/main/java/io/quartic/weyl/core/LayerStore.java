@@ -1,7 +1,6 @@
 package io.quartic.weyl.core;
 
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -61,7 +60,7 @@ public class LayerStore {
         return layer;
     }
 
-     private static IndexedLayer index(Layer<Geometry> layer) {
+     private static IndexedLayer index(Layer layer) {
          Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
@@ -80,7 +79,7 @@ public class LayerStore {
                  .build();
     }
 
-    private static LayerStats calculateStats(Layer<?> layer) {
+    private static LayerStats calculateStats(Layer layer) {
         Map<String, Double> maxNumeric = Maps.newConcurrentMap();
         Map<String, Double> minNumeric = Maps.newConcurrentMap();
 

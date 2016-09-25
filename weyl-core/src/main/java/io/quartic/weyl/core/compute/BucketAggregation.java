@@ -13,5 +13,5 @@ import java.util.Collection;
         @JsonSubTypes.Type(BucketMean.class)
 })
 public interface BucketAggregation {
-    double aggregate(Feature bucket, Collection<Feature<?>> features);
+    double aggregate(Feature bucket, Collection<Feature> features);
 }

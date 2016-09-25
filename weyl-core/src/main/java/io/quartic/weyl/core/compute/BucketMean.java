@@ -19,7 +19,7 @@ public abstract class BucketMean implements BucketAggregation {
 
 
     @Override
-    public double aggregate(Feature bucket, Collection<Feature<?>> features) {
+    public double aggregate(Feature bucket, Collection<Feature> features) {
         if (features.size() == 0) {
             return 0;
         }

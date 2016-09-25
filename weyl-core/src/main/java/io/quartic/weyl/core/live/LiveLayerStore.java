@@ -2,7 +2,6 @@ package io.quartic.weyl.core.live;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
@@ -21,11 +20,11 @@ import static java.util.stream.Collectors.toMap;
 public class LiveLayerStore {
     private static final Logger log = LoggerFactory.getLogger(LiveLayerStore.class);
 
-    private final Map<LayerId, Layer<Geometry>> layers = Maps.newHashMap();
+    private final Map<LayerId, Layer> layers = Maps.newHashMap();
 
     public LayerId createLayer(LayerMetadata metadata) {
         final LayerId layerId = LayerId.of(UUID.randomUUID().toString());
-        layers.put(layerId, ImmutableRawLayer.<Geometry>builder()
+        layers.put(layerId, ImmutableRawLayer.builder()
                 .metadata(metadata)
                 .schema(ImmutableAttributeSchema.builder().build())
                 .features(new FeatureCache())
@@ -60,7 +59,7 @@ public class LiveLayerStore {
 
         // TODO: validate that all entries are of type Point
 
-        final Collection<io.quartic.weyl.core.model.Feature<Geometry>> target = layers.get(layerId).features();
+        final Collection<io.quartic.weyl.core.model.Feature> target = layers.get(layerId).features();
         features.features()
                 .stream()
                 .map(f -> ImmutableFeature.of(
