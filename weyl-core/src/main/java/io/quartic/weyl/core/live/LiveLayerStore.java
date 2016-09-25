@@ -2,9 +2,10 @@ package io.quartic.weyl.core.live;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Geometry;
+import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class LiveLayerStore {
                         .stream()
                         .map(f -> Feature.of(Optional.of(
                                 f.id()),
-                                f.geometry(),
+                                Utils.fromJts(f.geometry()),
                                 f.metadata().entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()))
                         ))
                         .collect(Collectors.toList()));
@@ -64,7 +65,7 @@ public class LiveLayerStore {
                 .stream()
                 .map(f -> ImmutableFeature.of(
                         f.id().get(), // TODO - what if empty?  (Shouldn't be, because we validate in LayerResource)
-                        f.geometry(),
+                        Utils.toJts(f.geometry()),
                         f.properties().entrySet()
                                 .stream()
                                 .collect(toMap(Map.Entry::getKey, e -> Optional.of(e.getValue())))

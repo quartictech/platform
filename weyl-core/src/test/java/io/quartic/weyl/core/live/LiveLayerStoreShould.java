@@ -64,8 +64,7 @@ public class LiveLayerStoreShould {
 
         assertThat(store.getFeaturesForLayer(id),
                 equalTo(featureCollection(
-                        feature("a", point()),
-                        feature("a", lineStringFrom(point()))
+                        feature("a", point())
                 ))
         );
     }
@@ -80,15 +79,13 @@ public class LiveLayerStoreShould {
         assertThat(store.getFeaturesForLayer(id),
                 equalTo(featureCollection(
                         feature("a", point()),
-                        feature("a", lineStringFrom(point())),
-                        feature("b", point()),
-                        feature("b", lineStringFrom(point()))
+                        feature("b", point())
                 ))
         );
     }
 
     @Test
-    public void return_newest_feature_for_particular_id() throws Exception {
+    public void return_newest_feature_and_history_for_particular_id() throws Exception {
         LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
 
         store.addToLayer(id, featureCollection(feature("a", point(1.0, 2.0))));
