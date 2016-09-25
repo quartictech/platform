@@ -79,6 +79,7 @@ const AttributeList = ({
 
 const LayerListItemInfo = ({
   layerId,
+  layerMetadata,
   attributes,
   filter,
   layerStyle,
@@ -114,6 +115,24 @@ const LayerListItemInfo = ({
           </div>
         </div>
       );
+
+    case "INFO":
+      return (
+        <div className="ui secondary segment">
+          <div className="content">
+            <table className="ui very basic celled very compact fixed selectable table">
+              <tbody>
+                <tr>
+                  <td className="right aligned">
+                    <div className="ui sub header">Attribution</div>
+                  </td>
+                  <td>{layerMetadata.attribution}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
     default:
       return null;
   }
@@ -131,6 +150,10 @@ const filterButtonStyle = (layer, mode) => {
 
 const styleButtonStyle = (layer, mode) => (
   (mode === "STYLE") ? styles.active : ""
+);
+
+const infoButtonStyle = (layer, mode) => (
+  (mode === "INFO") ? styles.active : ""
 );
 
 const LayerListItem = ({
@@ -152,20 +175,24 @@ const LayerListItem = ({
         <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
           <i className="icon paint brush"></i>
         </a>
+        <a onClick={() => onButtonClick("INFO")} className={infoButtonStyle(layer, mode)}>
+          <i className="icon info"></i>
+        </a>
       </div>
       <div className="header">
         <a onClick={() => onButtonClick("CLOSE")}>
           <i className="icon close"></i>
         </a>
-        {layer.name}
+        {layer.metadata.name}
       </div>
       <div className="meta">
-        {layer.description}
+        {layer.metadata.description}
       </div>
     </div>
 
     <LayerListItemInfo
       layerId={layer.id}
+      layerMetadata={layer.metadata}
       attributes={layer.attributeSchema.attributes}
       layerStyle={layer.style}
       filter={layer.filter}

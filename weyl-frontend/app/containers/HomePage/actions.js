@@ -31,8 +31,7 @@ export function layerCreate(result) {
   return {
     type: LAYER_CREATE,
     id: result.id,
-    name: result.name,
-    description: result.description,
+    metadata: result.metadata,
     stats: result.stats,
     attributeSchema: result.attributeSchema,
     live: result.live,

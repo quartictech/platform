@@ -8,6 +8,8 @@ import { searchDone, layerCreate, loadNumericAttributesDone } from "./actions";
 
 import { apiRoot } from "../../../weylConfig.js";
 
+const createResult = (x) => ({ ...x, title: x.metadata.name, description: x.metadata.description });
+
 function* search(action) {
   console.log("Executing search");
   const requestURL = `${apiRoot}/layer?query=${encodeURI(action.query)}`;
@@ -21,11 +23,11 @@ function* search(action) {
       results: {
         layers: {
           name: "Layers",
-          results: results.data.filter(x => !x.live).map(x => ({ ...x, title: x.name }))
+          results: results.data.filter(x => !x.live).map(createResult)
         },
         live: {
           name: "Live layers",
-          results: results.data.filter(x => x.live).map(x => ({ ...x, title: x.name }))
+          results: results.data.filter(x => x.live).map(createResult)
         },
       },
     };

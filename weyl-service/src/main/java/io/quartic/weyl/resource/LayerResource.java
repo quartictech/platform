@@ -39,11 +39,10 @@ public class LayerResource {
     @Produces("application/json")
     @Consumes("application/json")
     public LayerId importLayer(PostgisImportRequest request) {
-        Preconditions.checkNotNull(request.name());
-        Preconditions.checkNotNull(request.description());
         LayerMetadata metadata = ImmutableLayerMetadata.builder()
                 .name(request.name())
                 .description(request.description())
+                .attribution(request.attribution())
                 .build();
         Optional<IndexedLayer> layer = layerStore.importPostgis(metadata, request.query());
         return layer.orElseThrow(() -> new NotFoundException("Error importing layer"))
@@ -183,8 +182,7 @@ public class LayerResource {
 
     private LayerResponse createStaticLayerResponse(IndexedLayer layer) {
         return ImmutableLayerResponse.builder()
-                .name(layer.layer().metadata().name())
-                .description(layer.layer().metadata().description())
+                .metadata(layer.layer().metadata())
                 .id(layer.layerId())
                 .stats(layer.layerStats())
                 .attributeSchema(layer.layer().schema())
@@ -194,8 +192,7 @@ public class LayerResource {
 
     private LayerResponse createLiveLayerResponse(LiveLayer layer) {
         return ImmutableLayerResponse.builder()
-                .name(layer.layer().metadata().name())
-                .description(layer.layer().metadata().description())
+                .metadata(layer.layer().metadata())
                 .id(layer.layerId())
                 .stats(ImmutableLayerStats.builder().featureCount(1).build())
                 .attributeSchema(layer.layer().schema())

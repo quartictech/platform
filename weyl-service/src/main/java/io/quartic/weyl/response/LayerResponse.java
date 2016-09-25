@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerStats;
 import org.immutables.value.Value;
 
@@ -11,10 +12,9 @@ import org.immutables.value.Value;
 @JsonSerialize(as=ImmutableLayerResponse.class)
 @JsonDeserialize(as=ImmutableLayerResponse.class)
 public interface LayerResponse {
-   LayerId id();
-   String name();
-   String description();
-   LayerStats stats();
-   AttributeSchema attributeSchema();
-   boolean live();
+    LayerId id();
+    LayerMetadata metadata();
+    LayerStats stats();
+    AttributeSchema attributeSchema();
+    boolean live();
 }

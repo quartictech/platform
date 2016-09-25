@@ -60,8 +60,7 @@ const layerReducer = (layerState, action) => {
     case LAYER_CREATE:
       return fromJS({
         id: action.id,
-        name: action.name,
-        description: action.description,
+        metadata: action.metadata,
         visible: true,
         closed: false,
         style: defaultLayerStyle(action.attributeSchema),

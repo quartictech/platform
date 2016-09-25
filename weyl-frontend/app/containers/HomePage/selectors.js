@@ -30,7 +30,7 @@ const selectSelectionFeatures = () => createSelector(
 
     return Object.keys(features).map(k => ({
       ...(features[k]),
-      layerName: layers.find(l => l.id === features[k].layer.source).name,
+      layerName: layers.find(l => l.id === features[k].layer.source).metadata.name,
     }));
   }
 );
