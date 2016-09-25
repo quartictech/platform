@@ -4,6 +4,7 @@ before_script:
     - export GRADLE_USER_HOME=`pwd`/.gradle
 
 cache:
+  key: "$CI_BUILD_NAME"
   paths:
      - .gradle/wrapper
      - .gradle/caches
@@ -13,11 +14,6 @@ cache:
 build:
   stage: build
   script:
-    - ./gradlew assemble
+    - ./gradlew weyl-service:build
     - cd weyl-frontend && npm install
     #- ./gradlew weyl-frontend:build
-
-test:
-  stage: test
-  script:
-    - ./gradlew weyl-core:test weyl-service:test
