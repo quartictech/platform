@@ -36,10 +36,7 @@ public class LiveLayerStore {
     public Collection<LiveLayer> listLayers() {
         return layers.entrySet()
                 .stream()
-                .map(e -> ImmutableLiveLayer.builder()
-                        .layerId(e.getKey())
-                        .layer(e.getValue())
-                        .build())
+                .map(e -> LiveLayer.of(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
     }
 
@@ -59,6 +56,8 @@ public class LiveLayerStore {
 
     public void addToLayer(LayerId layerId, FeatureCollection features) {
         checkLayerExists(layerId);
+
+        // TODO: validate that all entries are of type Point
 
         final Collection<io.quartic.weyl.core.model.Feature<Geometry>> target = layers.get(layerId).features();
         features.features()

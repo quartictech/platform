@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.geojson.Feature;
+import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
@@ -144,14 +144,6 @@ public class LayerResource {
         validateOrThrow(collection,
                 f -> !StringUtils.isNumeric(f.properties().get("timestamp").toString()),
                 "Features with non-numeric timestamp");
-
-        if (collection.features()
-                .stream()
-                .map(Feature::id)
-                .distinct()
-                .count() != collection.features().size()) {
-            throw new NotAcceptableException("Features with duplicate IDs");
-        }
 
         liveLayerStore.addToLayer(layerId, collection);
 

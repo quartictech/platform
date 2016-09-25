@@ -6,17 +6,30 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
+import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.NotAcceptableException;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class LayerResourceShould {
 
-    private final LayerResource resource = new LayerResource(mock(LayerStore.class), mock(LiveLayerStore.class));
+    private final LiveLayerStore liveLayerStore = mock(LiveLayerStore.class);
+    private final LayerResource resource = new LayerResource(mock(LayerStore.class), liveLayerStore);
+
+    @Before
+    public void setUp() throws Exception {
+        when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
+                LiveLayer.of(LayerId.of("abc"), mock(Layer.class))
+        ));
+    }
 
     @Test
     public void acceptValidFeatureCollection() throws Exception {
@@ -53,16 +66,6 @@ public class LayerResourceShould {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
                 Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
                 Feature.of(Optional.of("5678"), point(), propsWithInvalidTimestamp())
-        ));
-
-        resource.updateLiveLayer("abc", collection);
-    }
-
-    @Test(expected = NotAcceptableException.class)
-    public void throwIfNonUniqueIds() throws Exception {
-        FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp())
         ));
 
         resource.updateLiveLayer("abc", collection);

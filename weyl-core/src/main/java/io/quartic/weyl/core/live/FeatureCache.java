@@ -1,14 +1,20 @@
 package io.quartic.weyl.core.live;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import io.quartic.weyl.core.geojson.Geometry;
+import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.ImmutableFeature;
 
 import java.util.AbstractCollection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.Iterables.getLast;
+import static io.quartic.weyl.core.geojson.Utils.lineStringFrom;
 
 class FeatureCache extends AbstractCollection<Feature<Geometry>> {
     private final Multimap<String, Feature<Geometry>> features = ArrayListMultimap.create();
@@ -17,9 +23,23 @@ class FeatureCache extends AbstractCollection<Feature<Geometry>> {
     public synchronized Iterator<Feature<Geometry>> iterator() {
         return features.asMap().entrySet()
                 .stream()
-                .map(e -> Iterables.getLast(e.getValue()))
+                .flatMap(e -> lineAndPointFromHistory((List<Feature<Geometry>>)e.getValue()))
                 .collect(Collectors.toList())   // We make an explicit copy to avoid concurrency issues
                 .iterator();
+    }
+
+    private Stream<Feature<Geometry>> lineAndPointFromHistory(List<Feature<Geometry>> history) {
+        final Feature<Geometry> last = getLast(history);
+        return Stream.of(
+                last,
+                ImmutableFeature.of(
+                        last.id(),
+                        lineStringFrom(history.stream()
+                                .map(f -> (Point)f.geometry())
+                                .collect(Collectors.toList())
+                        ),
+                        last.metadata())
+        );
     }
 
     @Override
