@@ -34,7 +34,7 @@ public class PostgisConnector {
         wkbReader = new WKBReader();
     }
 
-    public Optional<RawLayer> fetch(AbstractLayerMetadata metadata, String sql) {
+    public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
         Handle h = dbi.open();
         String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                 sql);

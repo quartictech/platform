@@ -30,7 +30,7 @@ public class LayerStore {
         this.indexedLayers = Maps.newConcurrentMap();
     }
 
-    public Optional<IndexedLayer> importPostgis(AbstractLayerMetadata metadata, String sql) {
+    public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
         Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(metadata, sql)
                 .map(LayerStore::index);
 
