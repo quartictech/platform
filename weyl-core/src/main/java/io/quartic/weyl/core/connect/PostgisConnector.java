@@ -102,7 +102,7 @@ public class PostgisConnector {
             String id = row.containsKey(ID_FIELD) ?
                     row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
 
-            return ImmutableFeature.<Geometry>builder()
+            return ImmutableFeature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
                     .id(id)

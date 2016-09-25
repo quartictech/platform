@@ -44,7 +44,7 @@ public class LayerResource {
     public LayerId importLayer(PostgisImportRequest request) {
         Preconditions.checkNotNull(request.name());
         Preconditions.checkNotNull(request.description());
-        AbstractLayerMetadata metadata = LayerMetadata.builder()
+        LayerMetadata metadata = LayerMetadata.builder()
                 .name(request.name())
                 .description(request.description())
                 .build();

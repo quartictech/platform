@@ -4,6 +4,6 @@ import java.util.Collection;
 
 public interface Layer {
     AttributeSchema schema();
-    AbstractLayerMetadata metadata();
+    LayerMetadata metadata();
     Collection<Feature> features();
 }
