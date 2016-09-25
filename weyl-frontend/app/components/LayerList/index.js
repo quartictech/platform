@@ -118,18 +118,10 @@ const LayerListItemInfo = ({
 
     case "INFO":
       return (
-        <div className="ui secondary segment">
-          <div className="content">
-            <table className="ui very basic celled very compact fixed selectable table">
-              <tbody>
-                <tr>
-                  <td className="right aligned">
-                    <div className="ui sub header">Attribution</div>
-                  </td>
-                  <td>{layerMetadata.attribution}</td>
-                </tr>
-              </tbody>
-            </table>
+        <div className="ui segment">
+          <div className="content" style={{ "font-size": "0.8em" }}>
+            <i className="copyright icon"></i>
+            {(layerMetadata.attribution !== null) ? layerMetadata.attribution : "Unknown"}
           </div>
         </div>
       );
