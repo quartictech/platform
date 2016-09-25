@@ -16,3 +16,8 @@ build:
     - ./gradlew assemble
     - cd weyl-frontend && npm install
     #- ./gradlew weyl-frontend:build
+
+test:
+  stage: test
+  script:
+    - ./gradlew weyl-core:test weyl-service:test
