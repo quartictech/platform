@@ -8,9 +8,12 @@ import React from "react";
 
 import styles from "./styles.css";
 
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl.css";
+import mapboxgl from "./mapbox-gl-helper.js";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
+import "mapbox-gl.css";
+
+import Draw from "mapbox-gl-draw";
+import "mapbox-gl-draw.css"
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
@@ -54,6 +57,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.map.on("style.load", () => {
       this.props.onMapLoaded();
       this.updateMap(this.props);
+      let Draw = mapboxgl.Draw();
+      this.state.map.addControl(Draw);
     });
 
     this.installRefreshCallback();

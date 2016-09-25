@@ -82,8 +82,15 @@ module.exports = (options) => ({
     alias: {
       webworkify: 'webworkify-webpack',
       'mapbox-gl': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.js'),
-      'mapbox-gl.css': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.css')
-    }
+      'mapbox-gl.css': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.css'),
+      'mapbox-gl-draw.css': path.resolve('./node_modules/mapbox-gl-draw/dist/mapbox-gl-draw.css'),
+    },
+  },
+  // This is needed to make geojsonhint (imported via mapbox-gl-draw) happy
+  // See e.g. https://github.com/pugjs/pug-loader/issues/8
+  node: {
+    console: true,
+    fs: "empty",
   },
   devtool: options.devtool,
   target: 'web', // Make web variables accessible to webpack, e.g. window
