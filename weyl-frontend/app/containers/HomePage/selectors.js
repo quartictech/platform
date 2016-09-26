@@ -28,10 +28,15 @@ const selectSelectionFeatures = () => createSelector(
     const features = homeState.getIn(["selection", "features"]).toJS();
     const layers = homeState.get("layers").toJS();
 
-    return Object.keys(features).map(k => ({
-      ...(features[k]),
-      layerName: layers.find(l => l.id === features[k].layer.source).name,
-    }));
+    return Object.keys(features).map(k => {
+      let layer = layers.find(l => l.id === features[k].layer.source);
+      let layerName = layer === undefined ? "" : layer.name;
+
+      return {
+        ...(features[k]),
+        layerName: layerName,
+      }
+    });
   }
 );
 
@@ -46,7 +51,6 @@ const selectMap = () => createSelector(
     return {
       ...(homeState.get("map").toJS()),
       theme: homeState.getIn(["ui", "settings", "theme"]),
-      geofenceEditing: homeState.getIn(["geofence", "editing"]),
     };
   }
 );

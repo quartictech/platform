@@ -1,6 +1,6 @@
 import { fromJS, Set } from "immutable";
 import { SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE, GEOFENCE_EDIT_START, GEOFENCE_EDIT_FINISH, GEOFENCE_EDIT_CHANGE,
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE, GEOFENCE_EDIT_START, GEOFENCE_EDIT_FINISH, GEOFENCE_EDIT_CHANGE, GEOFENCE_SAVE_DONE,
  } from "./constants";
  import { themes } from "../../themes";
 
@@ -108,6 +108,8 @@ const geofenceReducer = (geofenceState, action) => {
       return geofenceState.set("editing", true);
     case GEOFENCE_EDIT_CHANGE:
       return geofenceState.set("geojson", action.geojson);
+    case GEOFENCE_SAVE_DONE:
+      return geofenceState.set("editing", false);
     default:
       return geofenceState;
   }
@@ -172,6 +174,7 @@ function homeReducer(state = initialState, action) {
     case GEOFENCE_EDIT_START:
     case GEOFENCE_EDIT_FINISH:
     case GEOFENCE_EDIT_CHANGE:
+    case GEOFENCE_SAVE_DONE:
       return state.update("geofence", geofenceState => geofenceReducer(geofenceState, action));
 
     default:

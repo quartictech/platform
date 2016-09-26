@@ -46,6 +46,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onMouseMove={this.props.onMapMouseMove}
             selection={this.props.selectionIds}
             map={this.props.map}
+            geofence={this.props.geofence}
             onGeofenceChange={this.props.onGeofenceChange}
           />
         </div>
@@ -133,7 +134,7 @@ function mapDispatchToProps(dispatch) {
     onMapLoaded: () => dispatch(mapLoaded()),
     onMapMouseMove: (location) => dispatch(mapMouseMove(location)),
     onGeofenceEdit: () => dispatch(geofenceEditStart()),
-    onGeofenceSave: () => dispatch(geofenceEditFinish()),
+    onGeofenceSave: (geofence) => dispatch(geofenceEditFinish(geofence)),
     onGeofenceChange: (geojson) => dispatch(geofenceEditChange(geojson)),
   };
 }

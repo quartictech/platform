@@ -28,8 +28,9 @@ const GeofenceButton = ({ editing, onEditClick, onSaveClick }) => {
 const GeofenceInfo = ({ geojson }) => {
   if (geojson != null) {
     return (
-      <div className="ui label">Geofence Areas
-        <div className="detail">{geojson.features.length}</div>
+      <div className="ui mini horizontal statistic">
+        <div className="value">{geojson.features.length}</div>
+        <div className="label">Zones</div>
       </div>);
   }
   else {
@@ -51,7 +52,7 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
         <div className="ui secondary segment">
           <GeofenceButton editing={this.props.geofence.editing}
             onEditClick={this.props.onGeofenceEdit}
-            onSaveClick={this.props.onGeofenceSave} />
+            onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)} />
 
           <GeofenceInfo geojson={this.props.geofence.geojson} />
         </div>

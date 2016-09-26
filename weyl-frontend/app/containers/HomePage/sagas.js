@@ -4,7 +4,7 @@ import { takeLatest } from "redux-saga";
 import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD, GEOFENCE_EDIT_FINISH } from "./constants";
 import { LOCATION_CHANGE } from "react-router-redux";
 import request from "utils/request";
-import { searchDone, layerCreate, loadNumericAttributesDone } from "./actions";
+import { searchDone, layerCreate, loadNumericAttributesDone, geofenceSaveDone } from "./actions";
 
 import { apiRoot } from "../../../weylConfig.js";
 
@@ -73,13 +73,17 @@ function* geofenceSave(action) {
   const requestURL = `${apiRoot}/geofence/`;
   const results = yield call(request, requestURL, {
     method: "PUT",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
-      features: action.geojson,
+      features: action.geofence.geojson,
       type: "EXCLUDE",
     }),
   });
 
-  yield put(loadNumericAttributesDone(results.data));
+  yield put(geofenceSaveDone());
 }
 
 export function* searchWatcher() {
