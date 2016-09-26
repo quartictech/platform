@@ -1,8 +1,10 @@
 package io.quartic.weyl.core.geojson;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +35,20 @@ public final class Utils {
         if (geometry instanceof Point) {
             Point point = (Point)geometry;
             return factory.createPoint(listToCoord(point.coordinates()));
-        }if (geometry instanceof LineString) {
+        }
+        if (geometry instanceof LineString) {
             LineString string = (LineString)geometry;
             return factory.createLineString(listToCoords(string.coordinates()));
+        }
+        if (geometry instanceof Polygon) {
+            Polygon polygon = (Polygon) geometry;
+            LinearRing exterior  =factory.createLinearRing(listToCoords(polygon.coordinates().get(0)));
+            LinearRing[] holes =polygon.coordinates().stream().skip(1)
+                    .map(Utils::listToCoords)
+                    .map(factory::createLinearRing)
+                    .toArray(LinearRing[]::new);
+
+            return factory.createPolygon(exterior, holes);
         }
         throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
     }
