@@ -24,6 +24,16 @@ const defaultBehavior = {
 };
 
 const curatedBehaviors = {
+  "Jamcams": {
+    title: (x) => x.view,
+    blessed: [
+      "location",
+      "date",
+      "postcode",
+      "file"
+    ]
+  },
+
   "London Boroughs": {
     title: defaultTitle,
     blessed: [
