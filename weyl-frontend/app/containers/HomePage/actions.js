@@ -7,6 +7,10 @@ import { SEARCH, SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, B
   MAP_LOADING,
   MAP_LOADED,
   MAP_MOUSE_MOVE,
+  GEOFENCE_EDIT_START,
+  GEOFENCE_EDIT_FINISH,
+  GEOFENCE_EDIT_CHANGE,
+  GEOFENCE_SAVE_DONE,
 } from "./constants";
 
 
@@ -139,4 +143,30 @@ export function mapMouseMove(mouseLocation) {
     type: MAP_MOUSE_MOVE,
     mouseLocation
   };
+}
+
+export function geofenceEditStart() {
+  return {
+    type: GEOFENCE_EDIT_START,
+  }
+}
+
+export function geofenceEditFinish(geofence) {
+  return {
+    type: GEOFENCE_EDIT_FINISH,
+    geofence,
+  }
+}
+
+export function geofenceEditChange(geojson) {
+  return {
+    type: GEOFENCE_EDIT_CHANGE,
+    geojson,
+  };
+}
+
+export function geofenceSaveDone() {
+  return {
+    type: GEOFENCE_SAVE_DONE,
+  }
 }

@@ -30,7 +30,7 @@ const linspace = function linspace(a, b, n) {
 class LineChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
-    this.state = { hist: [] };
+    this.state = { selectedLayer: null, selectedAttribute: null, };
   }
 
   componentDidMount() {
@@ -38,27 +38,32 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
   }
 
   onLayerChange(value) {
-    console.log("On layer change");
+    this.setState({selectedLayer: value});
     this.props.onLayerSelection(value);
   }
 
   onAttributeChange(value) {
-    this.props.onAttributeSelection(value);
+    this.setState({selectedAttribute: value});
   }
 
   componentWillReceiveProps(nextProps) {
     const attributes = Object.keys(nextProps.numericAttributes);
-    if (attributes.length > 0) {
-      let prop = nextProps.chart.selectedAttribute;
-      if (prop == null || attributes.find(x => x === prop) === "undefined") {
-        prop = attributes[0];
-        this.onAttributeChange(prop);
-      }
-      const values = [];
-      console.log(prop);
+    if (attributes.length > 0 &&
+        (this.state.selectedAttribute == null || !nextProps.numericAttributes.hasOwnProperty(this.state.selectedAttribute))){
+      this.setState({selectedAttribute: attributes[0]});
+    }
+  }
 
-      for (let i = 0; i < nextProps.numericAttributes[prop].length; i++) {
-        const value = nextProps.numericAttributes[prop][i];
+  updateHist() {
+    const attributes = Object.keys(this.props.numericAttributes);
+    let selected = this.state.selectedAttribute;
+
+    let hist = [];
+    if (attributes.length > 0) {
+      const values = [];
+
+      for (let i = 0; i < this.props.numericAttributes[selected].length; i++) {
+        const value = this.props.numericAttributes[selected][i];
         if (!isNaN(value) && value != null) {
           values.push(value);
         }
@@ -66,20 +71,24 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
       const minValue = Math.min(...values);
       const maxValue = Math.max(...values);
       const x = linspace(minValue, maxValue, 10);
-      this.state.hist = histogram({ data: values, bins: x }).map(bin => ({
+      hist = histogram({ data: values, bins: x }).map(bin => ({
         x: bin.x,
         y: bin.y,
       }));
     }
+
+    return hist;
   }
 
   render() {
     const attributes = Object.keys(this.props.numericAttributes);
     const chartSeries = [{
       field: "y",
-      name: this.props.chart.selectedAttribute,
+      name: this.state.selectedAttribute,
       color: "#ff7f0e",
     }];
+
+    let hist = this.updateHist();
 
     return (
       <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.lineChart}>
@@ -89,7 +98,7 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
               <div className="four wide column">
                 <LayerPicker layers={this.props.layers} label="Pick Layer" onChange={this.onLayerChange.bind(this)} />
                 <br />
-                <LayerAttributePicker attributes={attributes} label="Pick Attribute" onChange={this.onAttributeChange.bind(this)} selected={this.props.chart.selectedAttribute} />
+                <LayerAttributePicker attributes={attributes} label="Pick Attribute" onChange={this.onAttributeChange.bind(this)} selected={this.state.selectedAttribute} />
               </div>
               <div className="ui vertical divider">
                 ->
@@ -99,7 +108,7 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
                   showXGrid={false}
                   showYGrid={false}
                   title="test"
-                  data={this.state.hist}
+                  data={hist}
                   chartSeries={chartSeries}
                   x={p => p.x}
                   width={(12 / 16) * this.props.size.width}

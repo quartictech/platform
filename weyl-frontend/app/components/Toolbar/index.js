@@ -15,6 +15,7 @@ import { themes } from "../../themes";
 
 function Toolbar(props) {
   const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
+  const geofenceClassNames = classNames("item", { "active": props.ui.layerOp === "geofence" });
   const chartClassNames = classNames("item", { "active": props.ui.panels.chart });
   const layerListClassNames = classNames("item", { "active": props.ui.panels.layerList });
   const themeClassNames = classNames("item");
@@ -37,6 +38,10 @@ function Toolbar(props) {
           <a className={bucketClassNames} onClick={() => props.onUiToggle("bucket")}>
             <i className="icon object group"></i>
             Bucket
+          </a>
+          <a className={geofenceClassNames} onClick={() => props.onUiToggle("geofence")}>
+            <i className="icon crop"></i>
+            Geofence
           </a>
           <a className={chartClassNames} onClick={() => props.onUiToggle("chart")}>
             <i className="icon line chart"></i>

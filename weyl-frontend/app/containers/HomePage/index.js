@@ -22,10 +22,10 @@ import styles from "./styles.css";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove
+  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove, geofenceEditStart, geofenceEditChange, geofenceEditFinish,
  } from "./actions";
 
-import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectHistogramChart, selectMap } from "./selectors";
+import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectMap, selectGeofence } from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -46,6 +46,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onMouseMove={this.props.onMapMouseMove}
             selection={this.props.selectionIds}
             map={this.props.map}
+            geofence={this.props.geofence}
+            onGeofenceChange={this.props.onGeofenceChange}
           />
         </div>
 
@@ -60,6 +62,9 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
+            onGeofenceEdit={this.props.onGeofenceEdit}
+            onGeofenceSave={this.props.onGeofenceSave}
+            geofence={this.props.geofence}
           />
         </div>
 
@@ -75,8 +80,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             visible={this.props.ui.panels.chart}
             layers={this.props.layers}
             onLayerSelection={this.props.onChartLayerSelection}
-            onAttributeSelection={this.props.onChartAttributeSelection}
-            chart={this.props.histogramChart}
             numericAttributes={this.props.numericAttributes}
           />
         </div>
@@ -109,9 +112,6 @@ HomePage.propTypes = {
   onToggleValueVisible: React.PropTypes.func,
   selectionFeatures: React.PropTypes.array,
   onClearSelection: React.PropTypes.func,
-  onChartLayerSelection: React.PropTypes.func,
-  onChartAttributeSelection: React.PropTypes.func,
-  histogramChart: React.PropTypes.object,
   numericAttributes: React.PropTypes.object,
 };
 
@@ -132,7 +132,10 @@ function mapDispatchToProps(dispatch) {
     onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value)),
     onMapLoading: () => dispatch(mapLoading()),
     onMapLoaded: () => dispatch(mapLoaded()),
-    onMapMouseMove: (location) => dispatch(mapMouseMove(location))
+    onMapMouseMove: (location) => dispatch(mapMouseMove(location)),
+    onGeofenceEdit: () => dispatch(geofenceEditStart()),
+    onGeofenceSave: (geofence) => dispatch(geofenceEditFinish(geofence)),
+    onGeofenceChange: (geojson) => dispatch(geofenceEditChange(geojson)),
   };
 }
 
@@ -142,8 +145,8 @@ const mapStateToProps = createStructuredSelector({
   selectionIds: selectSelectionIds(),
   selectionFeatures: selectSelectionFeatures(),
   numericAttributes: selectNumericAttributes(),
-  histogramChart: selectHistogramChart(),
   map: selectMap(),
+  geofence: selectGeofence(),
 });
 
 // Wrap the component to inject dispatch and state into it

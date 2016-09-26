@@ -8,9 +8,12 @@ import React from "react";
 
 import styles from "./styles.css";
 
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl.css";
+import mapboxgl from "./mapbox-gl-helper.js";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
+import "mapbox-gl.css";
+
+import { Draw } from "mapbox-gl-draw";
+import "mapbox-gl-draw.css";
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
@@ -56,6 +59,23 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.updateMap(this.props);
     });
 
+    this.state.map.on("draw.create", () => {
+      this.props.onGeofenceChange(this.state.draw.getAll());
+    });
+
+    this.state.map.on("draw.delete", () => {
+      this.props.onGeofenceChange(this.state.draw.getAll());
+    });
+
+    this.state.draw = mapboxgl.Draw({
+      position: "top-right",
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true
+      },
+    });
+
     this.installRefreshCallback();
   }
 
@@ -76,6 +96,15 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.visibleLayerIds = [];
     const owner = this;
 
+    if (props.geofence.editing != this.props.geofence.editing){
+      if (props.geofence.editing) {
+        this.state.map.addControl(this.state.draw);
+      }
+      else {
+       this.state.draw.remove();
+      }
+    }
+
     props.layers.filter(layer => layer.live).forEach(layer => {
       this.updateLayer(layer, this.getSourceDefForLiveLayer(layer.id), props);
     });
@@ -83,6 +112,43 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     props.layers.filter(layer => !layer.live).forEach(layer =>
       this.updateLayer(layer, this.getSourceDefForStaticLayer(layer.id), props)
     );
+
+    this.renderGeofence(props);
+  }
+
+  renderGeofence(props) {
+    if (props.geofence.geojson != null) {
+      if (this.state.map.getSource("geofence") === undefined) {
+        this.state.map.addSource("geofence", {
+          type: "geojson",
+          data: props.geofence.geojson,
+        });
+        this.state.map.addLayer({
+          "id": "geofence_fill",
+          "type": "fill",
+          "source": "geofence",
+          "source-layer": "geofence",
+          "paint": {
+            "fill-color": "#CC3300",
+            "fill-opacity": 0.7,
+          },
+        });
+
+        this.state.map.addLayer({
+          "id": "geofence_line",
+          "type": "line",
+          "source": "geofence",
+          "source-layer": "geofence",
+          "paint": {
+            "line-color": "#CC3300",
+            "line-width": 5,
+          },
+        });
+      }
+      this.state.map.getSource("geofence").setData(props.geofence.geojson);
+      this.setSubLayerVisibility("geofence_fill", props.geofence.geojson != null && !props.geofence.editing);
+      this.setSubLayerVisibility("geofence_line", props.geofence.geojson != null && !props.geofence.editing);
+    }
   }
 
   addLiveLayer(props) {

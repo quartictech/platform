@@ -28,21 +28,21 @@ const selectSelectionFeatures = () => createSelector(
     const features = homeState.getIn(["selection", "features"]).toJS();
     const layers = homeState.get("layers").toJS();
 
-    return Object.keys(features).map(k => ({
-      ...(features[k]),
-      layerName: layers.find(l => l.id === features[k].layer.source).name,
-    }));
+    return Object.keys(features).map(k => {
+      let layer = layers.find(l => l.id === features[k].layer.source);
+      let layerName = layer === undefined ? "" : layer.name;
+
+      return {
+        ...(features[k]),
+        layerName: layerName,
+      }
+    });
   }
 );
 
 const selectNumericAttributes = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("numericAttributes").toJS()
-);
-
-const selectHistogramChart = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("histogramChart").toJS()
 );
 
 const selectMap = () => createSelector(
@@ -55,12 +55,17 @@ const selectMap = () => createSelector(
   }
 );
 
+const selectGeofence = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("geofence").toJS(),
+);
+
 export {
   selectLayers,
   selectUi,
   selectSelectionIds,
   selectSelectionFeatures,
   selectNumericAttributes,
-  selectHistogramChart,
   selectMap,
+  selectGeofence,
 };

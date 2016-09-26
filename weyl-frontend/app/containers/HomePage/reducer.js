@@ -1,6 +1,6 @@
 import { fromJS, Set } from "immutable";
 import { SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE,
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE, GEOFENCE_EDIT_START, GEOFENCE_EDIT_FINISH, GEOFENCE_EDIT_CHANGE, GEOFENCE_SAVE_DONE,
  } from "./constants";
  import { themes } from "../../themes";
 
@@ -23,13 +23,14 @@ const initialState = fromJS({
     features: [],
   },
   numericAttributes: {},
-  histogramChart: {
-    selectedAttribute: null,
-  },
   map: {
     style: "basic",
     ready: false,
     mouseLocation: null // Will be {lng,lat} when known
+  },
+  geofence: {
+    editing: false,
+    geojson: null,
   },
 });
 
@@ -101,6 +102,19 @@ const mapReducer = (mapState, action) => {
   }
 };
 
+const geofenceReducer = (geofenceState, action) => {
+  switch (action.type) {
+    case GEOFENCE_EDIT_START:
+      return geofenceState.set("editing", true);
+    case GEOFENCE_EDIT_CHANGE:
+      return geofenceState.set("geojson", action.geojson);
+    case GEOFENCE_SAVE_DONE:
+      return geofenceState.set("editing", false);
+    default:
+      return geofenceState;
+  }
+}
+
 function homeReducer(state = initialState, action) {
   switch (action.type) {
     case SEARCH_DONE:
@@ -123,6 +137,7 @@ function homeReducer(state = initialState, action) {
       const element = action.element;
       switch (element) {
         case "bucket":
+        case "geofence":
           return state.updateIn(["ui", "layerOp"], val => ((val === element) ? null : element));
         case "theme":
           return state.updateIn(["ui", "settings", "theme"], val => themes[val].next);
@@ -155,6 +170,12 @@ function homeReducer(state = initialState, action) {
     case MAP_LOADED:
     case MAP_MOUSE_MOVE:
       return state.update("map", mapState => mapReducer(mapState, action));
+
+    case GEOFENCE_EDIT_START:
+    case GEOFENCE_EDIT_FINISH:
+    case GEOFENCE_EDIT_CHANGE:
+    case GEOFENCE_SAVE_DONE:
+      return state.update("geofence", geofenceState => geofenceReducer(geofenceState, action));
 
     default:
       return state;
