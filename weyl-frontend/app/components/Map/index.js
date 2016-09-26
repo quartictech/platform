@@ -12,8 +12,8 @@ import mapboxgl from "./mapbox-gl-helper.js";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
 import "mapbox-gl.css";
 
-import Draw from "mapbox-gl-draw";
-import "mapbox-gl-draw.css"
+import { Draw } from "mapbox-gl-draw";
+import "mapbox-gl-draw.css";
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
@@ -57,8 +57,24 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.map.on("style.load", () => {
       this.props.onMapLoaded();
       this.updateMap(this.props);
-      let Draw = mapboxgl.Draw();
-      this.state.map.addControl(Draw);
+    });
+
+    this.state.map.on("draw.create", () => {
+      console.log(this.state.draw.getAll());
+      this.props.onGeofenceChange(this.state.draw.getAll());
+    });
+
+    this.state.map.on("draw.delete", () => {
+      this.props.onGeofenceChange(this.state.draw.getAll());
+    });
+
+    this.state.draw = mapboxgl.Draw({
+      position: "top-right",
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true
+      },
     });
 
     this.installRefreshCallback();
@@ -80,6 +96,15 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateMap(props) {
     this.state.visibleLayerIds = [];
     const owner = this;
+
+    if (props.map.geofenceEditing != this.props.map.geofenceEditing){
+      if (props.map.geofenceEditing) {
+        this.state.map.addControl(this.state.draw);
+      }
+      else {
+       this.state.draw.remove();
+      }
+    }
 
     props.layers.filter(layer => layer.live).forEach(layer => {
       this.updateLayer(layer, this.getSourceDefForLiveLayer(layer.id), props);

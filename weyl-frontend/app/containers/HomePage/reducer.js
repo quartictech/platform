@@ -1,6 +1,6 @@
 import { fromJS, Set } from "immutable";
 import { SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
-  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE,
+  LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE, GEOFENCE_EDIT_START, GEOFENCE_EDIT_FINISH, GEOFENCE_EDIT_CHANGE,
  } from "./constants";
  import { themes } from "../../themes";
 
@@ -27,6 +27,10 @@ const initialState = fromJS({
     style: "basic",
     ready: false,
     mouseLocation: null // Will be {lng,lat} when known
+  },
+  geofence: {
+    editing: false,
+    geojson: null,
   },
 });
 
@@ -98,6 +102,17 @@ const mapReducer = (mapState, action) => {
   }
 };
 
+const geofenceReducer = (geofenceState, action) => {
+  switch (action.type) {
+    case GEOFENCE_EDIT_START:
+      return geofenceState.set("editing", true);
+    case GEOFENCE_EDIT_CHANGE:
+      return geofenceState.set("geojson", action.geojson);
+    default:
+      return geofenceState;
+  }
+}
+
 function homeReducer(state = initialState, action) {
   switch (action.type) {
     case SEARCH_DONE:
@@ -153,6 +168,11 @@ function homeReducer(state = initialState, action) {
     case MAP_LOADED:
     case MAP_MOUSE_MOVE:
       return state.update("map", mapState => mapReducer(mapState, action));
+
+    case GEOFENCE_EDIT_START:
+    case GEOFENCE_EDIT_FINISH:
+    case GEOFENCE_EDIT_CHANGE:
+      return state.update("geofence", geofenceState => geofenceReducer(geofenceState, action));
 
     default:
       return state;

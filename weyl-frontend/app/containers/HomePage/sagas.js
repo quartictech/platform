@@ -1,7 +1,7 @@
 import { take, call, put, fork, cancel } from "redux-saga/effects";
 import { takeLatest } from "redux-saga";
 
-import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD } from "./constants";
+import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD, GEOFENCE_EDIT_FINISH } from "./constants";
 import { LOCATION_CHANGE } from "react-router-redux";
 import request from "utils/request";
 import { searchDone, layerCreate, loadNumericAttributesDone } from "./actions";
@@ -68,6 +68,20 @@ function* numericAttributes(action) {
   yield put(loadNumericAttributesDone(results.data));
 }
 
+function* geofenceSave(action) {
+  console.log("saving geofence");
+  const requestURL = `${apiRoot}/geofence/`;
+  const results = yield call(request, requestURL, {
+    method: "PUT",
+    body: JSON.stringify({
+      features: action.geojson,
+      type: "EXCLUDE",
+    }),
+  });
+
+  yield put(loadNumericAttributesDone(results.data));
+}
+
 export function* searchWatcher() {
   yield* takeLatest(SEARCH, search);
 }
@@ -78,6 +92,10 @@ export function* computationWatcher() {
 
 export function* numericAttributesWatcher() {
   yield* takeLatest(NUMERIC_ATTRIBUTES_LOAD, numericAttributes);
+}
+
+export function* geofenceWatcher() {
+  yield* takeLatest(GEOFENCE_EDIT_FINISH, geofenceSave);
 }
 
 export function* searchData() {
@@ -101,9 +119,17 @@ export function* numericAttributesData() {
   yield cancel(numericAttributesWatcher);
 }
 
+export function* geofenceData() {
+  yield fork(geofenceWatcher);
+
+  yield take(LOCATION_CHANGE);
+  yield cancel(geofenceWatcher);
+}
+
 
 export default [
   searchData,
   computationData,
   numericAttributesData,
+  geofenceData,
 ];

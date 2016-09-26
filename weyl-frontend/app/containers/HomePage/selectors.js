@@ -46,8 +46,14 @@ const selectMap = () => createSelector(
     return {
       ...(homeState.get("map").toJS()),
       theme: homeState.getIn(["ui", "settings", "theme"]),
+      geofenceEditing: homeState.getIn(["geofence", "editing"]),
     };
   }
+);
+
+const selectGeofence = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("geofence").toJS(),
 );
 
 export {
@@ -57,4 +63,5 @@ export {
   selectSelectionFeatures,
   selectNumericAttributes,
   selectMap,
+  selectGeofence,
 };

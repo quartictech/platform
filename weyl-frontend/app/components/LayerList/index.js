@@ -206,7 +206,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket" />);
     }
     else if (this.props.ui.layerOp === "geofence") {
-      rows.push(<GeofenceSettings key="geofence"/>);
+      rows.push(<GeofenceSettings key="geofence" geofence={this.props.geofence} onGeofenceEdit={this.props.onGeofenceEdit} onGeofenceSave={this.props.onGeofenceSave}/>);
     }
     for (const layer of this.props.layers) {
       if (!layer.closed) {
