@@ -61,14 +61,10 @@ public class GeofenceStore implements LiveLayerStoreListener {
 
     @Override
     public synchronized void liveLayerEvent(LayerId layerId, Feature feature) {
-        LOG.info("Update for feature {} in layer {}",
-                feature.id(),
-                layerId);
         Set<AbstractGeofenceState> states = geofences.stream()
                 .map(geofence -> getState(geofence, feature))
                 .collect(Collectors.toSet());
 
         geofenceStates.replaceValues(feature.id(), states);
-        geofenceStates.entries().forEach(entry -> LOG.info("{} = {}", entry.getKey(), entry.getValue()));
     }
 }
