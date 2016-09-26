@@ -12,7 +12,10 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class LayerStore {
@@ -66,7 +69,7 @@ public class LayerStore {
                         .build())
                 .collect(Collectors.toList());
 
-         LayerId layerId = ImmutableLayerId.builder().id(UUID.randomUUID().toString()).build();
+         LayerId layerId = LayerId.of(UUID.randomUUID().toString());
          return ImmutableIndexedLayer.builder()
                  .layer(layer)
                  .spatialIndex(spatialIndex(features))

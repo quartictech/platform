@@ -8,9 +8,9 @@ import java.util.Optional;
 
 @Value.Immutable
 public interface Feature {
-    String id();
+    @Value.Parameter String id();
 
-    Geometry geometry();
+    @Value.Parameter Geometry geometry();
 
-    Map<String, Optional<Object>> metadata();
+    @Value.Parameter Map<String, Optional<Object>> metadata();
 }

@@ -7,9 +7,9 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.*;
 
-@MyStyle
+@SweetStyle
 @Value.Immutable
 @JsonTypeInfo(use= Id.NAME, include= As.PROPERTY, property="type")
 public interface AbstractFeatureCollection {
-    @Value.Parameter List<Feature> features();
+    List<Feature> features();
 }

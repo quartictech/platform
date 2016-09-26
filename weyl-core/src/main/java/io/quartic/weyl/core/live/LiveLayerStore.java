@@ -1,62 +1,78 @@
 package io.quartic.weyl.core.live;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.geojson.AbstractFeatureCollection;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Point;
+import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 public class LiveLayerStore {
-    public static final double CENTRE_LNG = -0.10;
-    public static final double CENTRE_LAT = 51.4800;
-    public static final double RADIUS = 0.1;
+    private static final Logger log = LoggerFactory.getLogger(LiveLayerStore.class);
 
-    public Optional<AbstractFeatureCollection> getFeaturesForLayer(String layerId) {
-        long time = System.currentTimeMillis();
-        final int magic = 1;
+    private final Map<LayerId, Layer> layers = Maps.newHashMap();
 
-        final double radius = RADIUS / magic;
-        final double lng = CENTRE_LNG + radius * Math.cos(2 * Math.PI * time / (10_000 * magic));
-        final double lat = CENTRE_LAT + radius * Math.sin(2 * Math.PI * time / (10_000 * magic));
-
-
-        return Optional.of(FeatureCollection.of(ImmutableList.of(
-                Feature.of(
-                        Optional.of("ak14012159"),
-                        Point.of(ImmutableList.of(lng, lat)),
-                        ImmutableMap.of("pet names", 5)
-                )
-        )));
+    public LayerId createLayer(LayerMetadata metadata) {
+        final LayerId layerId = LayerId.of(UUID.randomUUID().toString());
+        layers.put(layerId, ImmutableRawLayer.builder()
+                .metadata(metadata)
+                .schema(ImmutableAttributeSchema.builder().build())
+                .features(new FeatureCache())
+                .build()
+        );
+        return layerId;
     }
 
     public Collection<LiveLayer> listLayers() {
-        return ImmutableList.of(createFakeLayer());
+        return layers.entrySet()
+                .stream()
+                .map(e -> LiveLayer.of(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
     }
 
-    private LiveLayer createFakeLayer() {
-        return ImmutableLiveLayer.builder()
-                .layerId(ImmutableLayerId.of("1234"))
-                .layer(ImmutableRawLayer.builder()
-                        .metadata(ImmutableLayerMetadata.builder()
-                                .name("Weirdness")
-                                .description("This is absolute gash")
-                                .build()
-                        )
-                        .schema(ImmutableAttributeSchema.builder()
-                                .putAttributes("pet name", ImmutableAttribute.builder()
-                                        .type(AttributeType.STRING)
-                                        .build()
-                                )
-                                .build()
-                        )
-                        .features(ImmutableList.of())
-                        .build()
-                        )
-                .build();
+    public FeatureCollection getFeaturesForLayer(LayerId layerId) {
+        checkLayerExists(layerId);
+
+        return FeatureCollection.of(
+                layers.get(layerId).features()
+                        .stream()
+                        .map(f -> Feature.of(Optional.of(
+                                f.id()),
+                                Utils.fromJts(f.geometry()),
+                                f.metadata().entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()))
+                        ))
+                        .collect(Collectors.toList()));
+    }
+
+    public void addToLayer(LayerId layerId, FeatureCollection features) {
+        checkLayerExists(layerId);
+
+        // TODO: validate that all entries are of type Point
+
+        final Collection<io.quartic.weyl.core.model.Feature> target = layers.get(layerId).features();
+        features.features()
+                .stream()
+                .map(f -> ImmutableFeature.of(
+                        f.id().get(), // TODO - what if empty?  (Shouldn't be, because we validate in LayerResource)
+                        Utils.toJts(f.geometry()),
+                        f.properties().entrySet()
+                                .stream()
+                                .collect(toMap(Map.Entry::getKey, e -> Optional.of(e.getValue())))
+                ))
+                .collect(Collectors.toCollection(() -> target));
+    }
+
+    private void checkLayerExists(LayerId layerId) {
+        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
     }
 }

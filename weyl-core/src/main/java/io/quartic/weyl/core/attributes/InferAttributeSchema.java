@@ -48,7 +48,6 @@ public class InferAttributeSchema {
         }
     }
 
-
     private static AttributeType inferAttributeType(String attribute,
                                                     Collection<Feature> features) {
         Set<AttributeType> attributeTypes = features.stream()

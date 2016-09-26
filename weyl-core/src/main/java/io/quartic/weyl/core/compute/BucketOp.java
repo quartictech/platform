@@ -18,11 +18,11 @@ public class BucketOp {
     private final BucketSpec bucketSpec;
     private final IndexedLayer bucketLayer;
 
-    private static class Bucketed<T> {
+    private static class Bucketed {
         private final Feature bucket;
-        private final T value;
+        private final Feature value;
 
-        private Bucketed(Feature bucket, T value) {
+        private Bucketed(Feature bucket, Feature value) {
             this.bucket = bucket;
             this.value = value;
         }
@@ -31,7 +31,7 @@ public class BucketOp {
             return bucket;
         }
 
-        public T getValue() {
+        public Feature getValue() {
             return value;
         }
     }
@@ -84,7 +84,7 @@ public class BucketOp {
             RawLayer layer = ImmutableRawLayer.builder()
                     .features(features)
                     .schema(attributeSchema)
-                    .metadata(ImmutableLayerMetadata.builder()
+                    .metadata(LayerMetadata.builder()
                             .name(layerName)
                             .description(layerDescription)
                             .build())
@@ -98,18 +98,18 @@ public class BucketOp {
 
     private Collection<Feature> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-        List<Bucketed<Feature>> hits = featureLayer.layer().features().parallelStream()
+        List<Bucketed> hits = featureLayer.layer().features().parallelStream()
                 .flatMap(feature -> {
                     Geometry featureGeometry = feature.geometry();
                     List<IndexedFeature> buckets = bucketIndex.query(featureGeometry.getEnvelopeInternal());
 
-                    return buckets.stream().filter(hitFeature -> hitFeature.preparedGeometry().contains(featureGeometry))
-                            .map(hitFeature -> new Bucketed<>(hitFeature.feature(), feature));
+                    return buckets.stream()
+                            .filter(hitFeature -> hitFeature.preparedGeometry().contains(featureGeometry))
+                            .map(hitFeature -> new Bucketed(hitFeature.feature(), feature));
                 })
                 .collect(Collectors.toList());
 
-        Multimap<Feature, Bucketed<Feature>> groups = Multimaps
-                .index(hits, Bucketed::getBucket);
+        Multimap<Feature, Bucketed> groups = Multimaps.index(hits, Bucketed::getBucket);
 
         BucketAggregation aggregation = bucketSpec.aggregation();
 

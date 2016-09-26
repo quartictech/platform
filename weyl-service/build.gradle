@@ -10,10 +10,11 @@ dependencies {
   compile 'io.dropwizard:dropwizard-core:' + dropwizardVersion
   compile 'io.dropwizard:dropwizard-jdbi:' + dropwizardVersion
   compile 'io.dropwizard:dropwizard-assets:' + dropwizardVersion
+  compile 'io.dropwizard.modules:dropwizard-java8:0.9.0-1'
   compile 'no.ecc.vectortile:java-vector-tile:' + vectorTileVersion
   compile 'org.postgresql:postgresql:9.4.1209'
   compile 'org.apache.commons:commons-io:1.3.2'
-  processor 'org.immutables:value:2.2.10'
+  processor 'org.immutables:value:2.3'
 
   testCompile 'junit:junit:4.12'
   testCompile 'org.hamcrest:hamcrest-all:1.3'
