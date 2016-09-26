@@ -1,15 +1,15 @@
 package io.quartic.weyl.resource;
 
+import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
-import io.quartic.weyl.core.geofence.Geofence;
-import io.quartic.weyl.core.geofence.GeofenceState;
-import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.*;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.request.GeofenceRequest;
 
 import javax.ws.rs.*;
+import java.util.Map;
 
 @Path("/geofence")
 @Consumes("application/json")
@@ -34,5 +34,19 @@ public class GeofenceResource {
     @Produces("application/json")
     public GeofenceState getState() {
         return geofenceStore.getGlobalState();
+    }
+
+    @GET
+    @Path("/violations")
+    @Produces("application/json")
+    public Map<ViolationId, Violation> getViolations() {
+        return ImmutableMap.of(
+                id("abcd"), Violation.of(id("abcd"), "Something bad happened!"),
+                id("efgh"), Violation.of(id("efgh"), "Something even worse happened!")
+        );
+    }
+
+    private ViolationId id(String id) {
+        return ViolationId.of(id);
     }
 }
