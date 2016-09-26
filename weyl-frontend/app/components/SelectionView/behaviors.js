@@ -30,8 +30,8 @@ const curatedBehaviors = {
       "location",
       "date",
       "postcode",
-      "file"
-    ]
+    ],
+    imageUrl: "file",
   },
 
   "London Boroughs": {
