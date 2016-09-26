@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +40,8 @@ public class LayerResource {
 
     @PUT
     @Path("/import")
-    @Produces("application/json")
-    @Consumes("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public LayerId importLayer(PostgisImportRequest request) {
         Preconditions.checkNotNull(request.name());
         Preconditions.checkNotNull(request.description());
@@ -55,7 +56,7 @@ public class LayerResource {
 
     @PUT
     @Path("/compute")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public LayerId createComputedLayer(BucketSpec bucketSpec) {
         Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
         return bucketLayer.map(IndexedLayer::layerId)
@@ -64,7 +65,7 @@ public class LayerResource {
 
     @GET
     @Path("/numeric_values/{id}")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Double[]> numericValues(@PathParam("id") String id) {
         IndexedLayer indexedLayer = layerStore.get(LayerId.of(id))
                 .orElseThrow(() -> new NotFoundException("no layer with id " + id));
@@ -113,21 +114,28 @@ public class LayerResource {
 
     @PUT
     @Path("/live")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public LayerId createLiveLayer(LayerCreateRequest request) {
         return liveLayerStore.createLayer(LayerMetadata.of(request.name(), request.description()));
     }
 
+    @DELETE
+    @Path("/live/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteLiveLayer(@PathParam("id") String id) {
+        liveLayerStore.deleteLayer(LayerId.of(id));
+    }
+
     @GET
     @Path("/live/{id}")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public FeatureCollection getLiveFeatures(@PathParam("id") String id) {
         return liveLayerStore.getFeaturesForLayer(LayerId.of(id));
     }
 
     @POST
     @Path("/live/{id}")
-    @Consumes("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
     public void updateLiveLayer(@PathParam("id") String id, FeatureCollection collection) {
         final LayerId layerId = LayerId.of(id);
 
@@ -160,7 +168,7 @@ public class LayerResource {
 
     @GET
     @Path("/metadata/{id}")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public LayerResponse getLayer(@PathParam("id") String id) {
         return layerStore.get(LayerId.of(id))
                 .map(this::createStaticLayerResponse)
@@ -168,7 +176,7 @@ public class LayerResource {
     }
 
     @GET
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public Collection<LayerResponse> listLayers(@QueryParam("query") String query) {
         Preconditions.checkNotNull(query);
         return Stream.concat(listStaticLayers(query), listLiveLayers(query)).collect(Collectors.toList());

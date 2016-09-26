@@ -44,6 +44,15 @@ public class LiveLayerStoreShould {
                 containsInAnyOrder(lm1, lm2));
     }
 
+    @Test
+    public void not_list_layer_once_deleted() throws Exception {
+        LayerId id = createLayer();
+
+        store.deleteLayer(id);
+
+        assertThat(store.listLayers(), empty());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void throw_if_adding_to_non_existent_layer() throws Exception {
         store.addToLayer(LayerId.of("abcd"), featureCollection(feature("a", point())));

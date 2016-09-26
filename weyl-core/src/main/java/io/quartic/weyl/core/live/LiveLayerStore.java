@@ -32,6 +32,11 @@ public class LiveLayerStore {
         return layerId;
     }
 
+    public void deleteLayer(LayerId id) {
+        checkLayerExists(id);
+        layers.remove(id);
+    }
+
     public Collection<LiveLayer> listLayers() {
         return layers.entrySet()
                 .stream()
