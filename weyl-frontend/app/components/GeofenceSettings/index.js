@@ -10,6 +10,21 @@ import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 import styles from './styles.css';
 
+const GeofenceTypeDropdown = ({ type, onTypeChange, visible }) => {
+  if (visible) {
+    return (
+      <div className="inline field">
+        <select className="ui fluid dropdown" ref={x => $(x).dropdown()} onChange={e => onTypeChange(e.currentTarget.value)} value={type}>
+          <option value="EXCLUDE">Exclude</option>
+          <option value="INCLUDE">Include</option>
+        </select>
+      </div>);
+    }
+    else {
+      return null;
+    }
+}
+
 const GeofenceButton = ({ editing, onEditClick, onSaveClick }) => {
   if (editing) {
     return (
@@ -50,10 +65,14 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
           <i className="icon close"></i>
         </a><b>Geofence</b>
         <div className="ui secondary segment">
-          <GeofenceButton editing={this.props.geofence.editing}
-            onEditClick={this.props.onGeofenceEdit}
-            onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)} />
-
+          <div className="ui form">
+            <div className="inline field">
+              <GeofenceButton editing={this.props.geofence.editing}
+                onEditClick={this.props.onGeofenceEdit}
+                onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)} />
+            </div>
+            <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceChangeType} key="dropdown"/>
+          </div>
           <GeofenceInfo geojson={this.props.geofence.geojson} />
         </div>
       </div>

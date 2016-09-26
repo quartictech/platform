@@ -26,3 +26,4 @@ export const GEOFENCE_EDIT_START = "hilbert/home/GEOFENCE_EDIT_START";
 export const GEOFENCE_EDIT_FINISH = "hilbert/home/GEOFENCE_EDIT_FINISH";
 export const GEOFENCE_EDIT_CHANGE = "hilbert/home/GEOFENCE_EDIT_CHANGE";
 export const GEOFENCE_SAVE_DONE = "hilbert/home/GEOFENCE_SAVE_DONE";
+export const GEOFENCE_CHANGE_TYPE = "hilbert/home/GEOFENCE_CHANGE_TYPE";
