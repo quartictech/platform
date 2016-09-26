@@ -15,8 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static io.quartic.weyl.core.utils.Utils.uuid;
 
 public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
@@ -69,7 +70,7 @@ public class LayerStore {
                         .build())
                 .collect(Collectors.toList());
 
-         LayerId layerId = LayerId.of(UUID.randomUUID().toString());
+         LayerId layerId = uuid(LayerId::of);
          return ImmutableIndexedLayer.builder()
                  .layer(layer)
                  .spatialIndex(spatialIndex(features))
