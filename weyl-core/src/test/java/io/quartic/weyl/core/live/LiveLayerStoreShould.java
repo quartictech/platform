@@ -100,7 +100,19 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void not_delete_layer_contents_if_layer_recreated() throws Exception {
+    public void update_metadata_if_create_called_before_delete() throws Exception {
+        LayerId id = createLayer();
+        LayerMetadata newMetadata = LayerMetadata.of("cheese", "monkey");
+        store.createLayer(id, newMetadata);
+
+        final Collection<LiveLayer> layers = store.listLayers();
+
+        assertThat(layers.stream().map(l -> l.layer().metadata()).collect(toList()),
+                containsInAnyOrder(newMetadata));
+    }
+
+    @Test
+    public void not_delete_layer_contents_if_create_called_before_delete() throws Exception {
         LayerId id = createLayer();
         store.addToLayer(id, featureCollection(feature("a", point())));
         createLayer();
@@ -110,7 +122,6 @@ public class LiveLayerStoreShould {
                         feature("a", point())
                 ))
         );
-
     }
 
     @Test

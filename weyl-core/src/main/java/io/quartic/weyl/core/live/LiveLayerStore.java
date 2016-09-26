@@ -24,14 +24,17 @@ public class LiveLayerStore {
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
 
     public void createLayer(LayerId id, LayerMetadata metadata) {
-        if (!layers.containsKey(id)) {
-            layers.put(id, ImmutableRawLayer.builder()
-                    .metadata(metadata)
-                    .schema(ImmutableAttributeSchema.builder().build())
-                    .features(new FeatureCache())
-                    .build()
-            );
-        }
+        Collection<io.quartic.weyl.core.model.Feature> features
+                = layers.containsKey(id)
+                ? layers.get(id).features()
+                : new FeatureCache();
+
+        layers.put(id, ImmutableRawLayer.builder()
+                .metadata(metadata)
+                .schema(ImmutableAttributeSchema.builder().build())
+                .features(features)
+                .build()
+        );
     }
 
     public void deleteLayer(LayerId id) {
