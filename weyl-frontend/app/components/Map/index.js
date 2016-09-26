@@ -182,7 +182,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDefForLiveLayer(id) {
     return {
       type: 'geojson',
-      data: `http://localhost:8080/api/layer/live/${id}`,
+      data: `${apiRoot}/layer/live/${id}`,
     };
   }
 

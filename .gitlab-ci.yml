@@ -15,5 +15,5 @@ build:
   stage: build
   script:
     - ./gradlew weyl-service:build
-    - cd weyl-frontend && npm install
+    #- cd weyl-frontend && npm install
     #- ./gradlew weyl-frontend:build
