@@ -10,10 +10,12 @@ import io.quartic.weyl.core.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.quartic.weyl.core.utils.Utils.uuid;
 import static java.util.stream.Collectors.toMap;
 
 public class LiveLayerStore {
@@ -21,15 +23,23 @@ public class LiveLayerStore {
     private final Map<LayerId, Layer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
 
-    public LayerId createLayer(LayerMetadata metadata) {
-        final LayerId layerId = uuid(LayerId::of);
-        layers.put(layerId, ImmutableRawLayer.builder()
+    public void createLayer(LayerId id, LayerMetadata metadata) {
+        Collection<io.quartic.weyl.core.model.Feature> features
+                = layers.containsKey(id)
+                ? layers.get(id).features()
+                : new FeatureCache();
+
+        layers.put(id, ImmutableRawLayer.builder()
                 .metadata(metadata)
                 .schema(ImmutableAttributeSchema.builder().build())
-                .features(new FeatureCache())
+                .features(features)
                 .build()
         );
-        return layerId;
+    }
+
+    public void deleteLayer(LayerId id) {
+        checkLayerExists(id);
+        layers.remove(id);
     }
 
     public Collection<LiveLayer> listLayers() {
