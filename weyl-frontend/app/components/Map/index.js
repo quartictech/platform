@@ -25,7 +25,7 @@ import { apiRoot } from "../../../weylConfig.js";
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
-    this.state = { map: null, sourceLayerMappings: {}, visibleLayerIds: [] };
+    this.state = { map: null, sourceLayerMappings: {}, visibleLayerIds: [], zOrderedLayers: [] };
   }
 
   onMouseMove(e) {
@@ -44,6 +44,13 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.props.onSelectFeatures([[feature.layer.source, feature.properties._id]], features);
   }
 
+  addLayer(layer, before) {
+    this.state.map.addLayer(layer, before);
+    this.state.zOrderedLayers.push(layer.id);
+  }
+
+  getBottomLayer = () => this.state.zOrderedLayers.length > 0 ? this.state.zOrderedLayers[1] : null;
+
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
       container: "map-inner",
@@ -58,6 +65,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onMapLoaded();
       this.updateMap(this.props);
     });
+
 
     this.state.map.on("draw.create", () => {
       this.props.onGeofenceChange(this.state.draw.getAll());
@@ -124,7 +132,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           type: "geojson",
           data: props.geofence.geojson,
         });
-        this.state.map.addLayer({
+        this.addLayer({
           "id": "geofence_fill",
           "type": "fill",
           "source": "geofence",
@@ -133,9 +141,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
             "fill-color": "#000000",
             "fill-opacity": 0.7,
           },
-        });
+        }, this.getBottomLayer());
 
-        this.state.map.addLayer({
+        this.addLayer({
           "id": "geofence_line",
           "type": "line",
           "source": "geofence",
@@ -144,11 +152,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
             "line-color": "#000000",
             "line-width": 5,
           },
-        });
+        }, this.getBottomLayer());
       }
       this.state.map.getSource("geofence").setData(props.geofence.geojson);
-      this.setSubLayerVisibility("geofence_fill", props.geofence.geojson != null && !props.geofence.editing);
-      this.setSubLayerVisibility("geofence_line", props.geofence.geojson != null && !props.geofence.editing);
+      let visible = props.geofence.geojson != null && !props.geofence.editing;
+      this.state.map.setLayoutProperty("geofence_fill", "visibility", visible ? "visible" : "none");
+      this.state.map.setLayoutProperty("geofence_line", "visibility", visible ? "visible" : "none");
       let geofenceColor = props.geofence.type === "INCLUDE" ?  "#86C67C" : "#CC3300";
       this.state.map.setPaintProperty("geofence_fill", "fill-color", geofenceColor);
       this.state.map.setPaintProperty("geofence_line", "line-color", geofenceColor);
@@ -220,10 +229,10 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           delete styleLayer["_zorder"];
         }
 
-        this.state.map.addLayer(styleLayer);
+        this.addLayer(styleLayer);
       });
 
-    this.state.map.addLayer({
+    this.addLayer({
       "id": `${layer.id}_point_sel`,
       "type": "circle",
       "source": layer.id,
@@ -234,7 +243,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "filter": ["in", "_id", ""],
     });
 
-    this.state.map.addLayer({
+    this.addLayer({
       "id": `${layer.id}_polygon_sel`,
       "type": "fill",
       "source": layer.id,
@@ -245,7 +254,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "filter": ["in", "_id", ""],
     });
 
-    this.state.map.addLayer({
+    this.addLayer({
       "id": `${layer.id}_line_sel`,
       "type": "line",
       "source": layer.id,
