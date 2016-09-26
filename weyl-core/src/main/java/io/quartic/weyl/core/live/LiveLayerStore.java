@@ -58,9 +58,15 @@ public class LiveLayerStore {
                         .map(f -> Feature.of(Optional.of(
                                 f.id()),
                                 Utils.fromJts(f.geometry()),
-                                f.metadata().entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()))
+                                convertMetadata(f.id(), f.metadata())
                         ))
                         .collect(Collectors.toList()));
+    }
+
+    private Map<String, Object> convertMetadata(String id, Map<String, Optional<Object>> metadata) {
+        final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
+        output.put("_id", id);
+        return output;
     }
 
     public void addToLayer(LayerId layerId, FeatureCollection features) {
