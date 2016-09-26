@@ -49,6 +49,16 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
     return behavior.title(properties);
   }
 
+  hasImageUrl(layerName) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return ("imageUrl" in behavior);
+  }
+
+  getImageUrl(layerName) {
+    const behavior = this.getAttributeBehavior(layerName);
+    return behavior.imageUrl;
+  }
+
   isAnythingBlessed(layerName) {
     const behavior = this.getAttributeBehavior(layerName);
     return behavior.blessed.length > 0;
@@ -90,6 +100,15 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             <div className="meta">
               {layerName}
             </div>
+
+
+            {
+              (this.hasImageUrl(layerName)) ? (
+                <div className="ui segment">
+                  <img className="ui fluid image" src={properties[this.getImageUrl(layerName)]} />
+                </div>
+              ) : ""
+            }
 
             <div className="ui segment">
               <AttributeTable
