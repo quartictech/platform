@@ -99,6 +99,78 @@ const roadsStyles = {
   },
 };
 
+const liveLayerStyle = {
+  point: {
+    "type": "circle",
+    "paint": {
+      "circle-radius": 7,
+      "circle-color": {
+        property: "name",
+        stops: [
+          ["alex", "#e7298a"],
+          ["arlo", "#AAFD6F"],
+        ],
+        type: "categorical",
+      },
+    },
+    filter: ["==", "$type", "Point"],
+    _zorder: 0,
+  },
+  point2: {
+    "type": "circle",
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "#FFFFFF",
+    },
+    filter: ["==", "$type", "Point"],
+    _zorder: 1,
+  },
+  line: {
+    "type": "line",
+    "paint": {
+      "line-opacity": 0.5,
+      "line-width": 2,
+      "line-color": {
+        property: "name",
+        stops: [
+          ["alex", "#e7298a"],
+          ["arlo", "#AAFD6F"],
+        ],
+        type: "categorical",
+      },
+    },
+    filter: ["==", "$type", "LineString"],
+    _zorder: 4,
+  },
+  line2: {
+      "type": "circle",
+      "paint": {
+        "circle-radius": 5,
+        "circle-opacity": 0.5,
+        "circle-color": {
+          property: "name",
+          stops: [
+            ["alex", "#e7298a"],
+            ["arlo", "#AAFD6F"],
+          ],
+          type: "categorical",
+        },
+      },
+    filter: ["==", "$type", "LineString"],
+    _zorder: 3,
+  },
+  line3: {
+      "type": "circle",
+      "paint": {
+        "circle-radius": 7,
+        "circle-opacity": 0.5,
+        "circle-color": "#FFFFFF",
+      },
+    filter: ["==", "$type", "LineString"],
+    _zorder: 4,
+  },
+};
+
 const customStyles = {
   "TFL Lines": tubeLineStyles,
   "Green Spaces": greenSpacesStyles,
@@ -107,4 +179,4 @@ const customStyles = {
   "Green Belts 2014-2015": greenSpacesStyles,
 };
 
-export { customStyles };
+export { customStyles, liveLayerStyle };

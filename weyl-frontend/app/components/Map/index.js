@@ -164,14 +164,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }
   }
 
-  addLiveLayer(props) {
-    const layer = {
-      name: "weirdness",
-      // style: XXX,
-      visible: true,
-    }
-  }
-
   getSourceDefForStaticLayer(id) {
     return {
       type: "vector",
@@ -182,12 +174,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDefForLiveLayer(id) {
     return {
       type: 'geojson',
-      data: `http://localhost:8080/api/layer/live/${id}`,
+      data: `${apiRoot}/layer/live/${id}`,
     };
   }
 
   updateLayer(layer, sourceDef, props) {
-    const styleLayers = buildStyleLayers(layer.name, layer.style, layer.stats.attributeStats);
+    const styleLayers = buildStyleLayers(layer);
 
     if (this.state.map.getSource(layer.id) === undefined) {
       this.createSourceAndSubLayers(layer, sourceDef, styleLayers);
