@@ -114,6 +114,7 @@ const liveLayerStyle = {
       },
     },
     filter: ["==", "$type", "Point"],
+    _zorder: 0,
   },
   point2: {
     "type": "circle",
@@ -128,6 +129,7 @@ const liveLayerStyle = {
     "type": "line",
     "paint": {
       "line-opacity": 0.5,
+      "line-width": 2,
       "line-color": {
         property: "name",
         stops: [
@@ -138,6 +140,7 @@ const liveLayerStyle = {
       },
     },
     filter: ["==", "$type", "LineString"],
+    _zorder: 4,
   },
   line2: {
       "type": "circle",
@@ -154,6 +157,17 @@ const liveLayerStyle = {
         },
       },
     filter: ["==", "$type", "LineString"],
+    _zorder: 3,
+  },
+  line3: {
+      "type": "circle",
+      "paint": {
+        "circle-radius": 7,
+        "circle-opacity": 0.5,
+        "circle-color": "#FFFFFF",
+      },
+    filter: ["==", "$type", "LineString"],
+    _zorder: 4,
   },
 };
 
