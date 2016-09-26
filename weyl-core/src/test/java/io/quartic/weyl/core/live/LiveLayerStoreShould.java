@@ -53,7 +53,7 @@ public class LiveLayerStoreShould {
     public void accept_if_adding_to_existing_layer() throws Exception {
         LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
 
-        store.addToLayer(id, featureCollection(feature("a", point())));
+        store.addToLayer(id, featureCollection(featureWithId("a", point())));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class LiveLayerStoreShould {
 
         assertThat(store.getFeaturesForLayer(id),
                 equalTo(featureCollection(
-                        feature("a", point())
+                        featureWithId("a", point())
                 ))
         );
     }
@@ -78,8 +78,8 @@ public class LiveLayerStoreShould {
 
         assertThat(store.getFeaturesForLayer(id),
                 equalTo(featureCollection(
-                        feature("a", point()),
-                        feature("b", point())
+                        featureWithId("a", point()),
+                        featureWithId("b", point())
                 ))
         );
     }
@@ -93,18 +93,22 @@ public class LiveLayerStoreShould {
 
         assertThat(store.getFeaturesForLayer(id),
                 equalTo(featureCollection(
-                        feature("a", point(3.0, 4.0)),
-                        feature("a", lineStringFrom(point(1.0, 2.0), point(3.0, 4.0)))
+                        featureWithId("a", point(3.0, 4.0)),
+                        featureWithId("a", lineStringFrom(point(1.0, 2.0), point(3.0, 4.0)))
                 ))
         );
     }
-
+    
     private FeatureCollection featureCollection(Feature... features) {
         return FeatureCollection.of(ImmutableList.copyOf(features));
     }
 
     private Feature feature(String id, Geometry geometry) {
-        return Feature.of(Optional.of(id), geometry, timestamp());
+        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234));
+    }
+
+    private Feature featureWithId(String id, Geometry geometry) {
+        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234, "_id", id));
     }
 
     private Point point() {
@@ -113,9 +117,5 @@ public class LiveLayerStoreShould {
 
     private Point point(double x, double y) {
         return Point.of(ImmutableList.of(x, y));
-    }
-
-    private ImmutableMap<String, Integer> timestamp() {
-        return ImmutableMap.of("timestamp", 1234);
     }
 }
