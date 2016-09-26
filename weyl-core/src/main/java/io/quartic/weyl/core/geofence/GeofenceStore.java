@@ -31,12 +31,12 @@ public class GeofenceStore implements LiveLayerStoreListener {
         liveLayerStore.addListener(this);
     }
 
-    public void setGeofence(Geofence geofence) {
+    public synchronized void setGeofence(Geofence geofence) {
         geofences.clear();
         geofences.add(geofence);
     }
 
-    public Optional<Geofence> getGeofence() {
+    public synchronized Optional<Geofence> getGeofence() {
         if (!geofences.isEmpty()) {
             return Optional.of(Iterables.getOnlyElement(geofences));
         }
@@ -45,7 +45,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
         }
     }
 
-    public GeofenceState getGlobalState() {
+    public synchronized GeofenceState getGlobalState() {
         return GeofenceState.of(
                 geofenceStates.values().stream().allMatch(GeofenceState::ok),
                 geofenceStates.values().stream()
@@ -54,7 +54,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
         );
     }
 
-    public Collection<Violation> getViolations() {
+    public synchronized Collection<Violation> getViolations() {
         return ImmutableList.copyOf(allViolations);
     }
 
