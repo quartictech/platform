@@ -9,7 +9,7 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.request.LayerCreateRequest;
+import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +40,8 @@ public class LayerResource {
 
     @PUT
     @Path("/import")
-    @Produces("application/json")
-    @Consumes("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public LayerId importLayer(PostgisImportRequest request) {
         Preconditions.checkNotNull(request.name());
         Preconditions.checkNotNull(request.description());
@@ -55,7 +56,7 @@ public class LayerResource {
 
     @PUT
     @Path("/compute")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public LayerId createComputedLayer(BucketSpec bucketSpec) {
         Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
         return bucketLayer.map(IndexedLayer::layerId)
@@ -64,7 +65,7 @@ public class LayerResource {
 
     @GET
     @Path("/numeric_values/{id}")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Double[]> numericValues(@PathParam("id") String id) {
         IndexedLayer indexedLayer = layerStore.get(LayerId.of(id))
                 .orElseThrow(() -> new NotFoundException("no layer with id " + id));
@@ -111,43 +112,41 @@ public class LayerResource {
         return result;
     }
 
-    @PUT
-    @Path("/live")
-    @Produces("application/json")
-    public LayerId createLiveLayer(LayerCreateRequest request) {
-        return liveLayerStore.createLayer(LayerMetadata.of(request.name(), request.description()));
+    @DELETE
+    @Path("/live/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteLiveLayer(@PathParam("id") String id) {
+        liveLayerStore.deleteLayer(LayerId.of(id));
     }
 
     @GET
     @Path("/live/{id}")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public FeatureCollection getLiveFeatures(@PathParam("id") String id) {
         return liveLayerStore.getFeaturesForLayer(LayerId.of(id));
     }
 
     @POST
     @Path("/live/{id}")
-    @Consumes("application/json")
-    public void updateLiveLayer(@PathParam("id") String id, FeatureCollection collection) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) {
         final LayerId layerId = LayerId.of(id);
 
-        if (liveLayerStore.listLayers().stream().noneMatch(l -> l.layerId().equals(layerId))) {
-            throw new NotFoundException("No live layer with id " + id);
-        }
+        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()));
 
-        validateOrThrow(collection,
+        validateOrThrow(request.featureCollection(),
                 f -> !f.id().isPresent(),
                 "Features with missing ID");
-        validateOrThrow(collection,
+        validateOrThrow(request.featureCollection(),
                 f -> !f.properties().containsKey("timestamp"),
                 "Features with missing timestamp");
-        validateOrThrow(collection,
+        validateOrThrow(request.featureCollection(),
                 f -> !StringUtils.isNumeric(f.properties().get("timestamp").toString()),
                 "Features with non-numeric timestamp");
 
-        liveLayerStore.addToLayer(layerId, collection);
+        liveLayerStore.addToLayer(layerId, request.featureCollection());
 
-        log.info("Updated {} features for layerId = {}", collection.features().size(), id);
+        log.info("Updated {} features for layerId = {}", request.featureCollection().features().size(), id);
     }
 
     private void validateOrThrow(FeatureCollection collection, Predicate<Feature> predicate, String message) {
@@ -160,7 +159,7 @@ public class LayerResource {
 
     @GET
     @Path("/metadata/{id}")
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public LayerResponse getLayer(@PathParam("id") String id) {
         return layerStore.get(LayerId.of(id))
                 .map(this::createStaticLayerResponse)
@@ -168,7 +167,7 @@ public class LayerResource {
     }
 
     @GET
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     public Collection<LayerResponse> listLayers(@QueryParam("query") String query) {
         Preconditions.checkNotNull(query);
         return Stream.concat(listStaticLayers(query), listLiveLayers(query)).collect(Collectors.toList());

@@ -10,6 +10,7 @@ import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.request.LayerUpdateRequest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,7 +39,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.of("5678"), point(), propsWithTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", collection);
+        resource.updateLiveLayer("abc", createRequest(collection));
     }
 
     @Test(expected = NotAcceptableException.class)
@@ -48,7 +49,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.empty(), point(), propsWithTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", collection);
+        resource.updateLiveLayer("abc", createRequest(collection));
     }
 
     @Test(expected = NotAcceptableException.class)
@@ -58,7 +59,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.of("5678"), point(), propsWithoutTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", collection);
+        resource.updateLiveLayer("abc", createRequest(collection));
     }
 
     @Test(expected = NotAcceptableException.class)
@@ -68,7 +69,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.of("5678"), point(), propsWithInvalidTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", collection);
+        resource.updateLiveLayer("abc", createRequest(collection));
     }
 
     private ImmutableMap<String, Object> propsWithTimestamp() {
@@ -85,5 +86,9 @@ public class LayerResourceShould {
 
     private Point point() {
         return Point.of(ImmutableList.of(1.0, 2.0));
+    }
+
+    private LayerUpdateRequest createRequest(FeatureCollection collection) {
+        return LayerUpdateRequest.of("foo", "bar", collection);
     }
 }
