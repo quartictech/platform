@@ -6,11 +6,14 @@ import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GeofenceStore implements LiveLayerStoreListener {
+    private static final Logger LOG = LoggerFactory.getLogger(GeofenceStore.class);
     private Collection<AbstractGeofence> geofences;
     private Multimap<String, AbstractGeofenceState> geofenceStates;
 
@@ -58,10 +61,14 @@ public class GeofenceStore implements LiveLayerStoreListener {
 
     @Override
     public synchronized void liveLayerEvent(LayerId layerId, Feature feature) {
+        LOG.info("Update for feature {} in layer {}",
+                feature.id(),
+                layerId);
         Set<AbstractGeofenceState> states = geofences.stream()
                 .map(geofence -> getState(geofence, feature))
                 .collect(Collectors.toSet());
 
-        geofenceStates.putAll(feature.id(), states);
+        geofenceStates.replaceValues(feature.id(), states);
+        geofenceStates.entries().forEach(entry -> LOG.info("{} = {}", entry.getKey(), entry.getValue()));
     }
 }
