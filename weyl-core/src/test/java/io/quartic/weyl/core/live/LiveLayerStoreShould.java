@@ -2,10 +2,8 @@ package io.quartic.weyl.core.live;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Geometry;
-import io.quartic.weyl.core.geojson.Point;
+import io.quartic.weyl.core.geojson.*;
+import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.junit.Test;
@@ -17,13 +15,15 @@ import static io.quartic.weyl.core.geojson.Utils.lineStringFrom;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class LiveLayerStoreShould {
     private final LiveLayerStore store = new LiveLayerStore();
 
     @Test
     public void create_a_layer() throws Exception {
-        LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
+        LayerId id = createLayer();
 
         assertThat(id, notNullValue());
     }
@@ -51,14 +51,14 @@ public class LiveLayerStoreShould {
 
     @Test
     public void accept_if_adding_to_existing_layer() throws Exception {
-        LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
+        LayerId id = createLayer();
 
         store.addToLayer(id, featureCollection(feature("a", point())));
     }
 
     @Test
     public void return_features_added_to_layer() throws Exception {
-        LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
+        LayerId id = createLayer();
 
         store.addToLayer(id, featureCollection(feature("a", point())));
 
@@ -71,7 +71,7 @@ public class LiveLayerStoreShould {
 
     @Test
     public void return_extra_features_added_to_layer() throws Exception {
-        LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
+        LayerId id = createLayer();
 
         store.addToLayer(id, featureCollection(feature("a", point())));
         store.addToLayer(id, featureCollection(feature("b", point())));
@@ -86,7 +86,7 @@ public class LiveLayerStoreShould {
 
     @Test
     public void return_newest_feature_and_history_for_particular_id() throws Exception {
-        LayerId id = store.createLayer(LayerMetadata.of("foo", "bar"));
+        LayerId id = createLayer();
 
         store.addToLayer(id, featureCollection(feature("a", point(1.0, 2.0))));
         store.addToLayer(id, featureCollection(feature("a", point(3.0, 4.0))));
@@ -97,6 +97,25 @@ public class LiveLayerStoreShould {
                         feature("a", lineStringFrom(point(1.0, 2.0), point(3.0, 4.0)))
                 ))
         );
+    }
+
+    @Test
+    public void notify_listeners_on_change() throws Exception {
+        LiveLayerStoreListener listenerA = mock(LiveLayerStoreListener.class);
+        LiveLayerStoreListener listenerB = mock(LiveLayerStoreListener.class);
+
+        LayerId id = createLayer();
+        store.addListener(listenerA);
+        store.addListener(listenerB);
+        store.addToLayer(id, featureCollection(feature("a", point())));
+
+        final ImmutableFeature feature = ImmutableFeature.of("a", Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
+        verify(listenerA).liveLayerEvent(id, feature);
+        verify(listenerB).liveLayerEvent(id, feature);
+    }
+
+    private LayerId createLayer() {
+        return store.createLayer(LayerMetadata.of("foo", "bar"));
     }
 
     private FeatureCollection featureCollection(Feature... features) {
