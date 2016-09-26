@@ -7,7 +7,6 @@ fi
 
 API_ROOT=http://localhost:8080${CONTEXT_PATH}/api
 
-<<<<<<< HEAD
 # curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
 # 	"name": "UK Postcodes",
 # 	"description": "All postcode centroids in the UK",
@@ -73,7 +72,6 @@ API_ROOT=http://localhost:8080${CONTEXT_PATH}/api
 # 	"query": "SELECT gb_name as name, area_ha, perim_km, la_name, year, ST_Force_2d(geom) as geom from local_authority_green_belt_boundaries_2014_15"
 #
 # }'
-=======
 echo $API_ROOT
 
 curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
@@ -127,7 +125,7 @@ curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
 curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
 	"name": "London Crime",
 	"description": "London crime events for MET, BTP and City Police",
-	"query": "select * from crime_geocoded"
+	"query": "select * from crime_geocoded limit 1000000"
 }'
 
 curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d @json_imports/roads.json
