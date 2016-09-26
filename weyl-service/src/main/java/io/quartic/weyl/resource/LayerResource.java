@@ -9,7 +9,7 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.request.LayerCreateRequest;
+import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
@@ -112,13 +112,6 @@ public class LayerResource {
         return result;
     }
 
-    @PUT
-    @Path("/live")
-    @Produces(MediaType.APPLICATION_JSON)
-    public LayerId createLiveLayer(LayerCreateRequest request) {
-        return liveLayerStore.createLayer(LayerMetadata.of(request.name(), request.description()));
-    }
-
     @DELETE
     @Path("/live/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -136,26 +129,24 @@ public class LayerResource {
     @POST
     @Path("/live/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateLiveLayer(@PathParam("id") String id, FeatureCollection collection) {
+    public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) {
         final LayerId layerId = LayerId.of(id);
 
-        if (liveLayerStore.listLayers().stream().noneMatch(l -> l.layerId().equals(layerId))) {
-            throw new NotFoundException("No live layer with id " + id);
-        }
+        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()));
 
-        validateOrThrow(collection,
+        validateOrThrow(request.featureCollection(),
                 f -> !f.id().isPresent(),
                 "Features with missing ID");
-        validateOrThrow(collection,
+        validateOrThrow(request.featureCollection(),
                 f -> !f.properties().containsKey("timestamp"),
                 "Features with missing timestamp");
-        validateOrThrow(collection,
+        validateOrThrow(request.featureCollection(),
                 f -> !StringUtils.isNumeric(f.properties().get("timestamp").toString()),
                 "Features with non-numeric timestamp");
 
-        liveLayerStore.addToLayer(layerId, collection);
+        liveLayerStore.addToLayer(layerId, request.featureCollection());
 
-        log.info("Updated {} features for layerId = {}", collection.features().size(), id);
+        log.info("Updated {} features for layerId = {}", request.featureCollection().features().size(), id);
     }
 
     private void validateOrThrow(FeatureCollection collection, Predicate<Feature> predicate, String message) {

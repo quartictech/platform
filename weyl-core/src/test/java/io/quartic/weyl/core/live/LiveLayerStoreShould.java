@@ -22,19 +22,15 @@ public class LiveLayerStoreShould {
     private final LiveLayerStore store = new LiveLayerStore();
 
     @Test
-    public void create_a_layer() throws Exception {
-        LayerId id = createLayer();
-
-        assertThat(id, notNullValue());
-    }
-
-    @Test
     public void list_created_layers() throws Exception {
         final LayerMetadata lm1 = LayerMetadata.of("foo", "bar");
         final LayerMetadata lm2 = LayerMetadata.of("cheese", "monkey");
 
-        LayerId id1 = store.createLayer(lm1);
-        LayerId id2 = store.createLayer(lm2);
+        LayerId id1 = LayerId.of("abc");
+        LayerId id2 = LayerId.of("def");
+
+        store.createLayer(id1, lm1);
+        store.createLayer(id2, lm2);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -47,7 +43,6 @@ public class LiveLayerStoreShould {
     @Test
     public void not_list_layer_once_deleted() throws Exception {
         LayerId id = createLayer();
-
         store.deleteLayer(id);
 
         assertThat(store.listLayers(), empty());
@@ -61,14 +56,12 @@ public class LiveLayerStoreShould {
     @Test
     public void accept_if_adding_to_existing_layer() throws Exception {
         LayerId id = createLayer();
-
         store.addToLayer(id, featureCollection(feature("a", point())));
     }
 
     @Test
     public void return_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
-
         store.addToLayer(id, featureCollection(feature("a", point())));
 
         assertThat(store.getFeaturesForLayer(id),
@@ -81,7 +74,6 @@ public class LiveLayerStoreShould {
     @Test
     public void return_extra_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
-
         store.addToLayer(id, featureCollection(feature("a", point())));
         store.addToLayer(id, featureCollection(feature("b", point())));
 
@@ -96,7 +88,6 @@ public class LiveLayerStoreShould {
     @Test
     public void return_newest_feature_and_history_for_particular_id() throws Exception {
         LayerId id = createLayer();
-
         store.addToLayer(id, featureCollection(feature("a", point(1.0, 2.0))));
         store.addToLayer(id, featureCollection(feature("a", point(3.0, 4.0))));
 
@@ -106,6 +97,20 @@ public class LiveLayerStoreShould {
                         feature("a", lineStringFrom(point(1.0, 2.0), point(3.0, 4.0)))
                 ))
         );
+    }
+
+    @Test
+    public void not_delete_layer_contents_if_layer_recreated() throws Exception {
+        LayerId id = createLayer();
+        store.addToLayer(id, featureCollection(feature("a", point())));
+        createLayer();
+
+        assertThat(store.getFeaturesForLayer(id),
+                equalTo(featureCollection(
+                        feature("a", point())
+                ))
+        );
+
     }
 
     @Test
@@ -124,7 +129,9 @@ public class LiveLayerStoreShould {
     }
 
     private LayerId createLayer() {
-        return store.createLayer(LayerMetadata.of("foo", "bar"));
+        final LayerId id = LayerId.of("abc");
+        store.createLayer(id, LayerMetadata.of("foo", "bar"));
+        return id;
     }
 
     private FeatureCollection featureCollection(Feature... features) {
