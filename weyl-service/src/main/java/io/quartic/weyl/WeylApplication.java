@@ -7,7 +7,10 @@ import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.geofence.GeofenceState;
+import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.resource.GeofenceResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.util.DataCache;
@@ -61,5 +64,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         TileResource tileResource = new TileResource(layerStore);
         environment.jersey().register(tileResource);
 
+        GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
+        GeofenceResource geofenceResource = new GeofenceResource(geofenceStore);
+        environment.jersey().register(geofenceResource);
     }
 }
