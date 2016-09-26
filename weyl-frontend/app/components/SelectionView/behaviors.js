@@ -34,6 +34,17 @@ const curatedBehaviors = {
     ]
   },
 
+  "London Crime": {
+    title: (x) => x.crimetype,
+    blessed: [
+      'fallswithin',
+      'lastoutcomecat',
+      'location',
+      'reportedby',
+      'monthyear',
+    ],
+  },
+
   "London Boroughs": {
     title: defaultTitle,
     blessed: [
