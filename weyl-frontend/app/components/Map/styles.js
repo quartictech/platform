@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import * as chroma from "chroma-js";
 
-import { customStyles } from "./customStyles.js";
+import { customStyles, liveLayerStyle } from "./customStyles.js";
 
 export function computeColorScaleFromBase(baseColor, step, n) {
   let color = baseColor;
@@ -48,9 +48,13 @@ function filter(property, geomType) {
   }
 }
 
-export function buildStyleLayers(layerName, style, attributeStats) {
+export function buildStyleLayers(layer) {
+  let [layerName, style, attributeStats] = [layer.name, layer.style, layer.stats.attributeStats];
   if (customStyles.hasOwnProperty(layerName)) {
     return customStyles[layerName];
+  }
+  else if (layer.live) {
+    return liveLayerStyle;
   }
   else {
     return {
