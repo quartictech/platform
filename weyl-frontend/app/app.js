@@ -57,20 +57,24 @@ const rootRoute = {
 };
 
 // TODO: this is super-hacky, and definitely shouldn't live here!
+const oldViolations = {};
+const requestViolations = (handler) => {
+  $.getJSON(`${apiRoot}/geofence/violations`, (data) => {
+    Object.keys(data)
+      .filter(k => !oldViolations.hasOwnProperty(k))
+      .forEach(k => handler(k, data[k]));
+  });
+};
 const setupViolationNotifications = () => {
-  const seenBefore = {};
+  requestViolations((k, v) => oldViolations[k] = v); // Seed things
 
   window.setInterval(() => {
-    $.getJSON(`${apiRoot}/geofence/violations`, (data) => {
-      Object.keys(data)
-        .filter(k => !seenBefore.hasOwnProperty(k))
-        .forEach(k => {
-          seenBefore[k] = data[k];  // So we don't notify again
-          new Notification("Geofence violation", {
-            body: data[k].message,
-            tag: k
-          });
-        });
+    requestViolations((k, v) => {
+      oldViolations[k] = v;
+      new Notification("Geofence violation", {
+        body: v.message,
+        tag: k
+      });
     });
   }, 2000);
 }
