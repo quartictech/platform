@@ -36,9 +36,9 @@ public class GeofenceStore implements LiveLayerStoreListener {
     public GeofenceState getGlobalState() {
         return GeofenceState.of(
                 geofenceStates.values().stream().allMatch(AbstractGeofenceState::ok),
-                Joiner.on("\n").join(geofenceStates.values().stream()
-                        .map(AbstractGeofenceState::detail).collect(Collectors.toList())
-                )
+                geofenceStates.values().stream()
+                        .map(AbstractGeofenceState::detail)
+                        .collect(Collectors.joining("\n"))
         );
     }
 
