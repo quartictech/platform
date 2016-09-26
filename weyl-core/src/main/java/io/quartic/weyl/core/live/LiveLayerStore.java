@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.quartic.weyl.core.utils.Utils.uuid;
 import static java.util.stream.Collectors.toMap;
 
 public class LiveLayerStore {
@@ -21,7 +22,7 @@ public class LiveLayerStore {
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
 
     public LayerId createLayer(LayerMetadata metadata) {
-        final LayerId layerId = LayerId.of(UUID.randomUUID().toString());
+        final LayerId layerId = uuid(LayerId::of);
         layers.put(layerId, ImmutableRawLayer.builder()
                 .metadata(metadata)
                 .schema(ImmutableAttributeSchema.builder().build())

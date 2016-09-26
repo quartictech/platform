@@ -89,7 +89,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           const data = source["_data"];
           source.setData(data);
         })
-      }, 250);
+      }, 1000);
   }
 
   updateMap(props) {
