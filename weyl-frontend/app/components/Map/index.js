@@ -99,6 +99,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     if (props.geofence.editing != this.props.geofence.editing){
       if (props.geofence.editing) {
         this.state.map.addControl(this.state.draw);
+        this.props.onGeofenceChange(this.state.draw.getAll());
       }
       else {
        this.state.draw.remove();
@@ -129,7 +130,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "source": "geofence",
           "source-layer": "geofence",
           "paint": {
-            "fill-color": "#CC3300",
+            "fill-color": "#000000",
             "fill-opacity": 0.7,
           },
         });
@@ -140,7 +141,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "source": "geofence",
           "source-layer": "geofence",
           "paint": {
-            "line-color": "#CC3300",
+            "line-color": "#000000",
             "line-width": 5,
           },
         });
@@ -148,6 +149,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.state.map.getSource("geofence").setData(props.geofence.geojson);
       this.setSubLayerVisibility("geofence_fill", props.geofence.geojson != null && !props.geofence.editing);
       this.setSubLayerVisibility("geofence_line", props.geofence.geojson != null && !props.geofence.editing);
+      let geofenceColor = props.geofence.type === "INCLUDE" ?  "#86C67C" : "#CC3300";
+      this.state.map.setPaintProperty("geofence_fill", "fill-color", geofenceColor);
+      this.state.map.setPaintProperty("geofence_line", "line-color", geofenceColor);
     }
   }
 

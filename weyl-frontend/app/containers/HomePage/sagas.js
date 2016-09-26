@@ -79,7 +79,7 @@ function* geofenceSave(action) {
     },
     body: JSON.stringify({
       features: action.geofence.geojson,
-      type: "EXCLUDE",
+      type: action.geofence.type,
     }),
   });
 

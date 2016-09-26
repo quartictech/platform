@@ -11,6 +11,7 @@ import { SEARCH, SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, B
   GEOFENCE_EDIT_FINISH,
   GEOFENCE_EDIT_CHANGE,
   GEOFENCE_SAVE_DONE,
+  GEOFENCE_CHANGE_TYPE,
 } from "./constants";
 
 
@@ -163,6 +164,13 @@ export function geofenceEditChange(geojson) {
     type: GEOFENCE_EDIT_CHANGE,
     geojson,
   };
+}
+
+export function geofenceChangeType(geofenceType) {
+  return {
+    type: GEOFENCE_CHANGE_TYPE,
+    value: geofenceType,
+  }
 }
 
 export function geofenceSaveDone() {

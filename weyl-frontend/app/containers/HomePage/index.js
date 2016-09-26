@@ -22,7 +22,7 @@ import styles from "./styles.css";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove, geofenceEditStart, geofenceEditChange, geofenceEditFinish,
+  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove, geofenceEditStart, geofenceEditChange, geofenceEditFinish, geofenceChangeType,
  } from "./actions";
 
 import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectMap, selectGeofence } from "./selectors";
@@ -65,6 +65,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onGeofenceEdit={this.props.onGeofenceEdit}
             onGeofenceSave={this.props.onGeofenceSave}
             geofence={this.props.geofence}
+            onGeofenceChangeType={this.props.onGeofenceChangeType}
           />
         </div>
 
@@ -136,6 +137,7 @@ function mapDispatchToProps(dispatch) {
     onGeofenceEdit: () => dispatch(geofenceEditStart()),
     onGeofenceSave: (geofence) => dispatch(geofenceEditFinish(geofence)),
     onGeofenceChange: (geojson) => dispatch(geofenceEditChange(geojson)),
+    onGeofenceChangeType: (geofenceType) => dispatch(geofenceChangeType(geofenceType)),
   };
 }
 
