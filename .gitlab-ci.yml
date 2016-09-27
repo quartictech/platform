@@ -14,9 +14,4 @@ cache:
 build:
   stage: build
   script:
-    - ./gradlew weyl-service:build
-    - cd weyl-frontend
-    - cp weylConfig.js.example weylConfig.js
-    - npm install
-    - npm run lint
-    #- ./gradlew weyl-frontend:build
+    - ./gradlew build
