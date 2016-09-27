@@ -28,7 +28,7 @@ function Toolbar(props) {
 
         <div className="right menu">
           <a className={themeClassNames} onClick={() => props.onUiToggle("theme")}>
-            <i className={"icon " + themes[props.ui.settings.theme].icon}></i>
+            <i className={`icon ${themes[props.ui.settings.theme].icon}`}></i>
             {themes[props.ui.settings.theme].label}
           </a>
           <a className={layerListClassNames} onClick={() => props.onUiToggle("layerList")}>

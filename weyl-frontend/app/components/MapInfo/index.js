@@ -4,12 +4,12 @@
 *
 */
 
-import React from 'react';
+import React from "react";
 
-import styles from './styles.css';
+import styles from "./styles.css";
 
 function MapInfo({
-  map
+  map,
 }) {
   return (
     <div className={styles.mapInfo}>

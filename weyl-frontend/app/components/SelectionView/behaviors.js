@@ -4,7 +4,7 @@ const PREFERRED_TITLES = [
   "name",
 ];
 
-const isUsable = (x, k) => x.hasOwnProperty(k) && x[k].trim() !== "" && !x[k].match(/\d+/g);
+const isUsable = (x, k) => (k in k) && (x[k].trim() !== "") && !x[k].match(/\d+/g);
 
 const formatAddress = (x) => {
   const component = ["addr1", "addr2", "addr3", "addr4"].find(k => isUsable(x, k));
@@ -14,13 +14,13 @@ const formatAddress = (x) => {
 };
 
 const defaultTitle = (x) => {
-  const title = PREFERRED_TITLES.find(k => x.hasOwnProperty(k));
+  const title = PREFERRED_TITLES.find(k => k in x);
   return (title !== undefined) ? x[title] : "<< Unknown title >>";
 };
 
 const defaultBehavior = {
   title: defaultTitle,
-  blessed: []
+  blessed: [],
 };
 
 const curatedBehaviors = {
@@ -78,7 +78,7 @@ const curatedBehaviors = {
     blessed: [
       "operator",
       "amenity",
-      "building"
+      "building",
     ],
   },
 

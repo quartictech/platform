@@ -21,11 +21,11 @@ function* search(action) {
       results: {
         layers: {
           name: "Layers",
-          results: results.data.filter(x => !x.live).map(x => ({ ...x, title: x.name }))
+          results: results.data.filter(x => !x.live).map(x => ({ ...x, title: x.name })),
         },
         live: {
           name: "Live layers",
-          results: results.data.filter(x => x.live).map(x => ({ ...x, title: x.name }))
+          results: results.data.filter(x => x.live).map(x => ({ ...x, title: x.name })),
         },
       },
     };
@@ -71,7 +71,7 @@ function* numericAttributes(action) {
 function* geofenceSave(action) {
   console.log("saving geofence");
   const requestURL = `${apiRoot}/geofence/`;
-  const results = yield call(request, requestURL, {
+  yield call(request, requestURL, {
     method: "PUT",
     headers: {
       "Accept": "application/json",

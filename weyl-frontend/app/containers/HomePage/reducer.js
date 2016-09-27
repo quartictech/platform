@@ -2,8 +2,8 @@ import { fromJS, Set } from "immutable";
 import { SEARCH_DONE, LAYER_CREATE, LAYER_TOGGLE_VISIBLE, LAYER_CLOSE, UI_TOGGLE, SELECT_FEATURES, CLEAR_SELECTION, NUMERIC_ATTRIBUTES_LOADED, CHART_SELECT_ATTRIBUTE,
   LAYER_SET_STYLE, LAYER_TOGGLE_VALUE_VISIBLE, MAP_LOADING, MAP_LOADED, MAP_MOUSE_MOVE, GEOFENCE_EDIT_START, GEOFENCE_EDIT_FINISH, GEOFENCE_EDIT_CHANGE, GEOFENCE_SAVE_DONE,
   GEOFENCE_CHANGE_TYPE,
- } from "./constants";
- import { themes } from "../../themes";
+} from "./constants";
+import { themes } from "../../themes";
 
 const initialState = fromJS({
   layers: [],
@@ -27,7 +27,7 @@ const initialState = fromJS({
   map: {
     style: "basic",
     ready: false,
-    mouseLocation: null // Will be {lng,lat} when known
+    mouseLocation: null, // Will be {lng,lat} when known
   },
   geofence: {
     editing: false,
@@ -53,7 +53,7 @@ const defaultLayerStyle = schema => ({
   },
   line: {
     "color": "#e7298a",
-    //color: "#E0A025",
+    // color: "#E0A025",
     colorScale,
   },
 });
@@ -117,7 +117,7 @@ const geofenceReducer = (geofenceState, action) => {
     default:
       return geofenceState;
   }
-}
+};
 
 function homeReducer(state = initialState, action) {
   switch (action.type) {
@@ -153,7 +153,7 @@ function homeReducer(state = initialState, action) {
     case SELECT_FEATURES: {
       const keyMap = {};
       for (const id of action.ids) {
-        if (!keyMap.hasOwnProperty(id[0])) {
+        if (!(id[0] in keyMap)) {
           keyMap[id[0]] = [];
         }
         keyMap[id[0]].push(id[1]);
