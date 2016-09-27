@@ -41,7 +41,7 @@
     "lint:staged": "lint-staged",
     "pretest": "npm run test:clean && npm run lint",
     "test:clean": "rimraf ./coverage",
-    "test": "cross-env NODE_ENV=test karma start internals/testing/karma.conf.js --single-run",
+    "test": "",
     "test:watch": "npm run test -- --auto-watch --no-single-run",
     "test:firefox": "npm run test -- --browsers Firefox",
     "test:safari": "npm run test -- --browsers Safari",
