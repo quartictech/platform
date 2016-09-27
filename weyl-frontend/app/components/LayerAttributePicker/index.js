@@ -25,8 +25,7 @@ class LayerAttributePicker extends React.Component { // eslint-disable-line reac
   }
 
   componentWillReceiveProps(nextProps) {
-
-    if (nextProps.selected != "" && nextProps.attributes.findIndex(x => nextProps.selected === x) == -1) {
+    if (nextProps.selected !== "" && nextProps.attributes.findIndex(x => nextProps.selected === x) === -1) {
       $(this.dropdown).dropdown("restore defaults");
     }
   }
@@ -40,14 +39,14 @@ class LayerAttributePicker extends React.Component { // eslint-disable-line reac
 
     return (
       <div className={styles.attributePicker}>
-        <div className="ui fluid mini icon labeled search dropdown button" ref={(x) => this.dropdown = x}>
+        <div className="ui fluid mini icon labeled search dropdown button" ref={(x) => (this.dropdown = x)}>
           <i className="tag icon"></i>
           <span className="text">{this.props.selected ? this.props.selected : "Pick Attribute"}</span>
           <div className="menu">
-                {rows}
-            </div>
+            {rows}
           </div>
         </div>
+      </div>
     );
   }
 }

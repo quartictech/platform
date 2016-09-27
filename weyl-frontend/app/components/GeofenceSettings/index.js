@@ -4,11 +4,10 @@
 *
 */
 
-import React from 'react';
+import React from "react";
 
-import { FormattedMessage } from 'react-intl';
-import messages from './messages';
-import styles from './styles.css';
+import styles from "./styles.css";
+const $ = require("jquery");
 
 const GeofenceTypeDropdown = ({ type, onTypeChange, visible }) => {
   if (visible) {
@@ -18,27 +17,21 @@ const GeofenceTypeDropdown = ({ type, onTypeChange, visible }) => {
           <option value="EXCLUDE">Exclude</option>
           <option value="INCLUDE">Include</option>
         </select>
-      </div>);
-    }
-    else {
-      return null;
-    }
-}
+      </div>
+    );
+  }
+  return null;
+};
 
 const GeofenceButton = ({ editing, onEditClick, onSaveClick }) => {
-  if (editing) {
-    return (
-      <button className="ui icon button primary" onClick={() => onSaveClick() }>
-        <i className="save icon"></i>
-      </button>);
-  }
-  else {
-    return (
-      <button className="ui icon button primary" onClick={() => onEditClick() }>
-        <i className="pencil icon"></i>
-      </button> );
-  }
-}
+  const callback = (editing) ? onSaveClick : onEditClick;
+  const icon = (editing) ? "save" : "pencil";
+  return (
+    <button className="ui icon button primary" onClick={() => callback()}>
+      <i className={`${icon} icon`}></i>
+    </button>
+  );
+};
 
 const GeofenceInfo = ({ geojson }) => {
   if (geojson != null) {
@@ -48,16 +41,10 @@ const GeofenceInfo = ({ geojson }) => {
         <div className="label">Zones</div>
       </div>);
   }
-  else {
-    return null;
-  }
-}
+  return null;
+};
 
 class GeofenceSettings extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  constructor() {
-    super();
-  }
-
   render() {
     return (
       <div className={styles.geofenceSettings}>
@@ -67,11 +54,13 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
         <div className="ui secondary segment">
           <div className="ui form">
             <div className="inline field">
-              <GeofenceButton editing={this.props.geofence.editing}
+              <GeofenceButton
+                editing={this.props.geofence.editing}
                 onEditClick={this.props.onGeofenceEdit}
-                onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)} />
+                onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)}
+              />
             </div>
-            <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceChangeType} key="dropdown"/>
+            <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceChangeType} key="dropdown" />
           </div>
           <GeofenceInfo geojson={this.props.geofence.geojson} />
         </div>

@@ -33,7 +33,7 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
 
     return (
       <div className={styles.layerPicker}>
-        <div className="ui mini floating labeled icon dropdown button" ref={(x) => this.dropdown = x}>
+        <div className="ui mini floating labeled icon dropdown button" ref={(x) => (this.dropdown = x)}>
           <i className="filter icon"></i>
           <span className="text">{this.props.label}</span>
           <div className="menu">

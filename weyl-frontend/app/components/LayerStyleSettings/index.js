@@ -12,18 +12,23 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   constructor() {
     super();
     this.radioButtons = {};
+    this.onAttributeChange = this.onAttributeChange.bind(this);
+    this.onRadioChange = this.onRadioChange.bind(this);
   }
 
-  renderRadioButton(name, state) {
+  renderRadioButton(name, label, state) {
     return (
-      <input
-        name={this.props.layerId}
-        id={name}
-        checked={state}
-        type="radio"
-        onChange={this.onRadioChange.bind(this)}
-        ref={x => this.radioButtons[name] = x}
-      />
+      <div className="ui radio checkbox">
+        <input
+          name={this.props.layerId}
+          id={name}
+          checked={state}
+          type="radio"
+          onChange={this.onRadioChange}
+          ref={x => (this.radioButtons[name] = x)}
+        />
+        <label htmlFor={name}>{label}</label>
+      </div>
     );
   }
 
@@ -44,11 +49,11 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
   getNumericAttributes() {
     const attributeStats = this.props.layerAttributes;
     const numericAttributes = [];
-    for (const prop in attributeStats) {
+    attributeStats.forEach(prop => {
       if (attributeStats[prop].type === "NUMERIC") {
         numericAttributes.push(prop);
       }
-    }
+    });
     return numericAttributes;
   }
 
@@ -58,7 +63,7 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
         <LayerAttributePicker
           attributes={numericAttributes}
           selected={this.props.layerStyle.property}
-          onChange={this.onAttributeChange.bind(this)}
+          onChange={this.onAttributeChange}
         />);
     }
     return null;
@@ -70,16 +75,10 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
       <div className="ui form">
         <div className="grouped fields">
           <div className="field">
-            <div className="ui radio checkbox">
-              {this.renderRadioButton("constant_fill", this.props.layerStyle.property == null)}
-              <label>Constant Fill</label>
-            </div>
+            {this.renderRadioButton("constant_fill", "Constant Fill", this.props.layerStyle.property == null)}
           </div>
           <div className="field">
-            <div className="ui radio checkbox">
-              {this.renderRadioButton("choropleth", this.props.layerStyle.property != null)}
-              <label>Color By</label>
-            </div>
+            {this.renderRadioButton("choropleth", "Color By", this.props.layerStyle.property != null)}
             {this.renderAttributePicker(this.props.layerStyle.property != null, numericAttributes)}
           </div>
         </div>

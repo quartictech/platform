@@ -34,7 +34,7 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
     super();
     this.state = { selectedLayer: null, selectedAttribute: null };
     this.onLayerChange = this.onLayerChange.bind(this);
-    this.this.onAttributeChange = this.onAttributeChange.bind(this);
+    this.onAttributeChange = this.onAttributeChange.bind(this);
   }
 
   componentDidMount() {
