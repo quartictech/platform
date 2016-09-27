@@ -66,6 +66,11 @@ const requestViolations = (handler) => {
   });
 };
 const setupViolationNotifications = () => {
+  Notification.requestPermission().then(function(result) {
+    console.log("requestPermission result:");
+    console.log(result);
+  });
+
   requestViolations((k, v) => oldViolations[k] = v); // Seed things
 
   window.setInterval(() => {
