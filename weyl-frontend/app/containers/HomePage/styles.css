@@ -14,9 +14,9 @@
 
 .leftDrawer {
   position: absolute;
-  left: 0px;
+  left: 0;
   height: calc(100vh - 70px);
-  top:70px;
+  top: 70px;
   width: 25vw;
   min-width: 300px;
   pointer-events: none;
@@ -28,7 +28,7 @@
   position: absolute;
   left: 75vw;
   height: calc(100vh - 70px);
-  top:70px;
+  top: 70px;
   width: 25vw;
   pointer-events: none;
   display: flex;
@@ -48,7 +48,7 @@
 
 .infoBar {
   position: absolute;
-  left: 0px;
+  left: 0;
   height: 70px;
   top: calc(100vh - 50px);
   width: 100vw;
