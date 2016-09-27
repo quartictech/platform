@@ -107,8 +107,8 @@ const liveLayerStyle = {
       "circle-color": {
         property: "name",
         stops: [
-          ["alex", "#e7298a"],
-          ["arlo", "#AAFD6F"],
+          ["Alex", "#e7298a"],
+          ["Arlo", "#AAFD6F"],
         ],
         type: "categorical",
       },
@@ -133,8 +133,8 @@ const liveLayerStyle = {
       "line-color": {
         property: "name",
         stops: [
-          ["alex", "#e7298a"],
-          ["arlo", "#AAFD6F"],
+          ["Alex", "#e7298a"],
+          ["Arlo", "#AAFD6F"],
         ],
         type: "categorical",
       },
@@ -150,8 +150,8 @@ const liveLayerStyle = {
         "circle-color": {
           property: "name",
           stops: [
-            ["alex", "#e7298a"],
-            ["arlo", "#AAFD6F"],
+            ["Alex", "#e7298a"],
+            ["Arlo", "#AAFD6F"],
           ],
           type: "categorical",
         },

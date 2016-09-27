@@ -15,7 +15,7 @@ const initialState = fromJS({
       settings: false,
     },
     settings: {
-      theme: "light",
+      theme: "dark",
     },
   },
   // Make this an object for now. Ugh.

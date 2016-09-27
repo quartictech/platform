@@ -81,6 +81,15 @@ const curatedBehaviors = {
       "building"
     ],
   },
+
+  "London Crime": {
+    title: (x) => `${x.crimetype} (${x.monthyear})`,
+    blessed: [
+      "location",
+      "fallswithin",
+      "lastoutcomecat",
+    ],
+  },
 };
 
 export {
