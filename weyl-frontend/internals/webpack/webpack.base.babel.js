@@ -91,7 +91,6 @@ module.exports = (options) => ({
   // This is needed to make geojsonhint (imported via mapbox-gl-draw) happy
   // See e.g. https://github.com/pugjs/pug-loader/issues/8
   node: {
-    console: true,
     fs: "empty",
   },
   devtool: options.devtool,
