@@ -126,4 +126,4 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
   }
 }
 
-export default SizeMe({ monitorHeight: true })(LineChart);
+export default SizeMe({ monitorHeight: true })(LineChart);  // eslint-disable-line new-cap

@@ -22,6 +22,7 @@ import useScroll from "react-router-scroll";
 import LanguageProvider from "containers/LanguageProvider";
 import configureStore from "./store";
 import { apiRoot } from "../weylConfig.js";
+const $ = require("jquery");
 
 // Import i18n messages
 import { translationMessages } from "./i18n";
@@ -61,28 +62,29 @@ const oldViolations = {};
 const requestViolations = (handler) => {
   $.getJSON(`${apiRoot}/geofence/violations`, (data) => {
     Object.keys(data)
-      .filter(k => !oldViolations.hasOwnProperty(k))
+      .filter(k => !(k in oldViolations))
       .forEach(k => handler(k, data[k]));
   });
 };
 const setupViolationNotifications = () => {
-  Notification.requestPermission().then(function(result) {
+  Notification.requestPermission().then(result => {
     console.log("requestPermission result:");
     console.log(result);
   });
 
-  requestViolations((k, v) => oldViolations[k] = v); // Seed things
+  requestViolations((k, v) => (oldViolations[k] = v)); // Seed things
 
   window.setInterval(() => {
     requestViolations((k, v) => {
       oldViolations[k] = v;
-      new Notification("Geofence violation", {
+      const n = new Notification("Geofence violation", {
         body: v.message,
-        tag: k
+        tag: k,
       });
+      setTimeout(n.close.bind(n), 5000);
     });
   }, 2000);
-}
+};
 setupViolationNotifications();
 
 
