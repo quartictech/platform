@@ -10,8 +10,11 @@ import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
-import "mapbox-gl.css";       // eslint-disable-line import/no-unresolved
-import "mapbox-gl-draw.css";  // eslint-disable-line import/no-unresolved
+
+// TODO: there is some quite special magic going on here that throws eslint
+import { Draw } from "mapbox-gl-draw";  // eslint-disable-line no-unused-vars
+import "mapbox-gl.css";                 // eslint-disable-line import/no-unresolved
+import "mapbox-gl-draw.css";            // eslint-disable-line import/no-unresolved
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
@@ -50,7 +53,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getBottomLayer = () => (this.state.zOrderedLayers.length > 0 ? this.state.zOrderedLayers[1] : null);
 
   componentDidMount() {
-    this.state.map = mapboxgl.Map({   // eslint-disable-line new-cap
+    this.state.map = new mapboxgl.Map({
       container: "map-inner",
       style: themes[this.props.map.theme].mapbox,
       zoom: 9.7,
