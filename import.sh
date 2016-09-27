@@ -75,7 +75,7 @@ curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
 curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
 	"name": "London Crime",
 	"description": "London crime events for MET, BTP and City Police",
-	"query": "select * from crime_geocoded limit 1000000"
+	"query": "select * from crime_geocoded where crimetype is not null limit 1000000"
 }'
 
 curl -XPUT -H Content-Type:application/json $API_ROOT/layer/import -d '{
