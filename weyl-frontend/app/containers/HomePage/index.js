@@ -12,7 +12,6 @@
 import React from "react";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
-import LineChart from "../../components/LineChart";
 import LayerList from "../../components/LayerList";
 import SelectionView from "../../components/SelectionView";
 import MapInfo from "../../components/MapInfo";
@@ -77,12 +76,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.bottomDrawer}>
-          <LineChart
-            visible={this.props.ui.panels.chart}
-            layers={this.props.layers}
-            onLayerSelection={this.props.onChartLayerSelection}
-            numericAttributes={this.props.numericAttributes}
-          />
         </div>
 
         <div className={styles.infoBar}>
