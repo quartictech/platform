@@ -4,10 +4,10 @@
 *
 */
 
-import React from 'react';
-import naturalsort from 'javascript-natural-sort';
+import React from "react";
+import naturalsort from "javascript-natural-sort";
 
-import styles from './styles.css';
+import styles from "./styles.css";
 
 import BucketLayerItem from "../BucketLayerItem";
 import GeofenceSettings from "../GeofenceSettings";
