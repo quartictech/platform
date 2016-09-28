@@ -34,7 +34,7 @@ run {
 }
 
 docker {
-  name      "quartic/${project.name}"
+  name      "quartic/${rootProject.name}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
