@@ -9,8 +9,12 @@ cache:
      - weyl-frontend/node_modules
      - weyl-frontend/semantic
 
+stages:
+  - build_frontend
+  - build_backend
+
 frontend:
-  stage: build
+  stage: build_frontend
   image: node:6.6.0
   script:
     - cd weyl-frontend
@@ -22,10 +26,7 @@ frontend:
       - weyl-frontend/build/assets
 
 backend:
-  stage: build
+  stage: build_backend
   image: quartic/npm-jdk
   script:
     - ./gradlew weyl-service:build
-  dependencies:
-    - frontend
-
