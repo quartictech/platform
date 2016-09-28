@@ -12,12 +12,22 @@ cache:
 backend:
   stage: build
   image: quartic/npm-jdk
+  services:
+    - docker:dind
   script:
     - ./gradlew weyl-service:docker
 
 frontend:
   stage: build
   image: node:6.6.0
+  services:
+    - docker:dind
   script:
-    - cp weyl-frontend/weylConfig.js.example weyl-frontend/weylConfig.js
-    - ./gradlew weyl-service:docker
+    # All of this guff goes away once we can run both NPM and Java in the same Docker image
+    - cd weyl-frontend
+    - cp weylConfig.js.example weylConfig.js
+    - npm install
+    - npm run build
+    - mkdir build/docker
+    - cp -r Dockerfile build/assets/* build/docker/
+    - docker build -t quartic/weyl-frontend build/docker
