@@ -1,4 +1,17 @@
 plugins {
-    id "com.palantir.npm-run" version "0.2.0"
+    id "com.moowork.node" version "0.13"
+    id 'com.palantir.docker' version '0.9.1'
+}
+
+task build(type: NpmTask) {
+  args = ["run", "build"]
+  // TODO: specify input files
+  outputs.dir   "${buildDir}/assets"
+}
+
+docker {
+  name      "quartic/${project.name}"
+  dependsOn build
+  files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
 

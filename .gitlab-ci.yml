@@ -13,13 +13,11 @@ backend:
   stage: build
   image: quartic/npm-jdk
   script:
-    - ./gradlew weyl-service:build
+    - ./gradlew weyl-service:docker
 
 frontend:
   stage: build
   image: node:6.6.0
   script:
-    - cd weyl-frontend
-    - cp weylConfig.js.example weylConfig.js
-    - npm install
-    - npm run build
+    - cp weyl-frontend/weylConfig.js.example weyl-frontend/weylConfig.js
+    - ./gradlew weyl-service:docker
