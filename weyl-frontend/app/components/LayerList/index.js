@@ -4,10 +4,10 @@
 *
 */
 
-import React from 'react';
-import naturalsort from 'javascript-natural-sort';
+import React from "react";
+import naturalsort from "javascript-natural-sort";
 
-import styles from './styles.css';
+import styles from "./styles.css";
 
 import BucketLayerItem from "../BucketLayerItem";
 import GeofenceSettings from "../GeofenceSettings";
@@ -23,7 +23,7 @@ const AttributeValue = ({
   <div className="item" key={value}>
     <div className="ui checked checkbox">
       <input type="checkbox" checked={checked} name={value} onChange={() => onClick(value)} />
-      <label>{value}</label>
+      <label htmlFor={value}>{value}</label>
     </div>
   </div>
 );
@@ -68,7 +68,7 @@ const AttributeList = ({
                 key={key}
                 attribute={key}
                 values={attributes[key].categories}
-                uncheckedValues={filter.hasOwnProperty(key) ? filter[key] : []}
+                uncheckedValues={(key in filter) ? filter[key] : []}
                 onClick={(a, v) => onClick(layerId, a, v)}
               />
             </div>
@@ -204,14 +204,14 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
     const rows = [];
     if (this.props.ui.layerOp === "bucket") {
       rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket" />);
-    }
-    else if (this.props.ui.layerOp === "geofence") {
-      rows.push(<GeofenceSettings key="geofence"
+    } else if (this.props.ui.layerOp === "geofence") {
+      rows.push(<GeofenceSettings
+        key="geofence"
         geofence={this.props.geofence}
         onGeofenceEdit={this.props.onGeofenceEdit}
         onGeofenceSave={this.props.onGeofenceSave}
         onGeofenceChangeType={this.props.onGeofenceChangeType}
-        />);
+      />);
     }
     for (const layer of this.props.layers) {
       if (!layer.closed) {
@@ -229,7 +229,7 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       }
     }
 
-    if (this.props.layers.filter(layer => !layer.closed).length > 0 || this.props.ui.layerOp != null)  {
+    if (this.props.layers.filter(layer => !layer.closed).length > 0 || this.props.ui.layerOp != null) {
       return (
         <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
           <div className={styles.innerLayerList}>

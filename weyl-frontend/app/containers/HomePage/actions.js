@@ -142,21 +142,21 @@ export function mapLoaded() {
 export function mapMouseMove(mouseLocation) {
   return {
     type: MAP_MOUSE_MOVE,
-    mouseLocation
+    mouseLocation,
   };
 }
 
 export function geofenceEditStart() {
   return {
     type: GEOFENCE_EDIT_START,
-  }
+  };
 }
 
 export function geofenceEditFinish(geofence) {
   return {
     type: GEOFENCE_EDIT_FINISH,
     geofence,
-  }
+  };
 }
 
 export function geofenceEditChange(geojson) {
@@ -170,11 +170,11 @@ export function geofenceChangeType(geofenceType) {
   return {
     type: GEOFENCE_CHANGE_TYPE,
     value: geofenceType,
-  }
+  };
 }
 
 export function geofenceSaveDone() {
   return {
     type: GEOFENCE_SAVE_DONE,
-  }
+  };
 }

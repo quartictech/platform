@@ -18,6 +18,7 @@ import LayerAttributePicker from "../LayerAttributePicker";
 import * as histogram from "histogramjs";
 import * as d3 from "d3";
 
+/* eslint-disable no-param-reassign */
 const linspace = function linspace(a, b, n) {
   if (typeof n === "undefined") n = Math.max(Math.round(b - a) + 1, 1);
   if (n < 2) { return n === 1 ? [a] : []; }
@@ -26,11 +27,14 @@ const linspace = function linspace(a, b, n) {
   for (let i = n; i >= 0; i--) { ret[i] = ((i * b) + ((n - i) * a)) / n; }
   return ret;
 };
+/* eslint-enable no-param-reassign */
 
 class LineChart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
-    this.state = { selectedLayer: null, selectedAttribute: null, };
+    this.state = { selectedLayer: null, selectedAttribute: null };
+    this.onLayerChange = this.onLayerChange.bind(this);
+    this.onAttributeChange = this.onAttributeChange.bind(this);
   }
 
   componentDidMount() {
@@ -38,27 +42,26 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
   }
 
   onLayerChange(value) {
-    this.setState({selectedLayer: value});
+    this.setState({ selectedLayer: value });
     this.props.onLayerSelection(value);
   }
 
   onAttributeChange(value) {
-    this.setState({selectedAttribute: value});
+    this.setState({ selectedAttribute: value });
   }
 
   componentWillReceiveProps(nextProps) {
     const attributes = Object.keys(nextProps.numericAttributes);
     if (attributes.length > 0 &&
-        (this.state.selectedAttribute == null || !nextProps.numericAttributes.hasOwnProperty(this.state.selectedAttribute))){
-      this.setState({selectedAttribute: attributes[0]});
+        (this.state.selectedAttribute == null || !(this.state.selectedAttribute in nextProps.numericAttributes))) {
+      this.setState({ selectedAttribute: attributes[0] });
     }
   }
 
   updateHist() {
     const attributes = Object.keys(this.props.numericAttributes);
-    let selected = this.state.selectedAttribute;
+    const selected = this.state.selectedAttribute;
 
-    let hist = [];
     if (attributes.length > 0) {
       const values = [];
 
@@ -71,13 +74,13 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
       const minValue = Math.min(...values);
       const maxValue = Math.max(...values);
       const x = linspace(minValue, maxValue, 10);
-      hist = histogram({ data: values, bins: x }).map(bin => ({
+      return histogram({ data: values, bins: x }).map(bin => ({
         x: bin.x,
         y: bin.y,
       }));
     }
 
-    return hist;
+    return [];
   }
 
   render() {
@@ -88,17 +91,15 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
       color: "#ff7f0e",
     }];
 
-    let hist = this.updateHist();
-
     return (
       <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.lineChart}>
         <div className="ui card fluid">
           <div className="ui content" style={{ "padding": "5px" }}>
             <div className="ui grid">
               <div className="four wide column">
-                <LayerPicker layers={this.props.layers} label="Pick Layer" onChange={this.onLayerChange.bind(this)} />
+                <LayerPicker layers={this.props.layers} label="Pick Layer" onChange={this.onLayerChange} />
                 <br />
-                <LayerAttributePicker attributes={attributes} label="Pick Attribute" onChange={this.onAttributeChange.bind(this)} selected={this.state.selectedAttribute} />
+                <LayerAttributePicker attributes={attributes} label="Pick Attribute" onChange={this.onAttributeChange} selected={this.state.selectedAttribute} />
               </div>
               <div className="ui vertical divider">
                 ->
@@ -108,7 +109,7 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
                   showXGrid={false}
                   showYGrid={false}
                   title="test"
-                  data={hist}
+                  data={this.updateHist()}
                   chartSeries={chartSeries}
                   x={p => p.x}
                   width={(12 / 16) * this.props.size.width}
@@ -125,4 +126,4 @@ class LineChart extends React.Component { // eslint-disable-line react/prefer-st
   }
 }
 
-export default SizeMe({ monitorHeight: true })(LineChart);
+export default SizeMe({ monitorHeight: true })(LineChart);  // eslint-disable-line new-cap

@@ -10,10 +10,11 @@ import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
 mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
-import "mapbox-gl.css";
 
-import { Draw } from "mapbox-gl-draw";
-import "mapbox-gl-draw.css";
+// TODO: there is some quite special magic going on here that throws eslint
+import { Draw } from "mapbox-gl-draw";  // eslint-disable-line no-unused-vars
+import "mapbox-gl.css";                 // eslint-disable-line import/no-unresolved
+import "mapbox-gl-draw.css";            // eslint-disable-line import/no-unresolved
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
@@ -41,7 +42,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }
 
     const feature = features[0];
-    this.props.onSelectFeatures([[feature.layer.source, feature.properties._id]], features);
+    this.props.onSelectFeatures([[feature.layer.source, feature.properties["_id"]]], features); // eslint-disable-line dot-notation
   }
 
   addLayer(layer, before) {
@@ -49,7 +50,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.zOrderedLayers.push(layer.id);
   }
 
-  getBottomLayer = () => this.state.zOrderedLayers.length > 0 ? this.state.zOrderedLayers[1] : null;
+  getBottomLayer = () => (this.state.zOrderedLayers.length > 0 ? this.state.zOrderedLayers[1] : null);
 
   componentDidMount() {
     this.state.map = new mapboxgl.Map({
@@ -75,12 +76,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onGeofenceChange(this.state.draw.getAll());
     });
 
-    this.state.draw = mapboxgl.Draw({
+    this.state.draw = mapboxgl.Draw({   // eslint-disable-line new-cap
       position: "top-right",
       displayControlsDefault: false,
       controls: {
         polygon: true,
-        trash: true
+        trash: true,
       },
     });
 
@@ -89,28 +90,26 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   installRefreshCallback() {
     const owner = this;
-    window.setInterval(function() {
+    window.setInterval(() => {
       owner.props.layers
         .filter(layer => layer.live)
         .forEach(layer => {
           const source = owner.state.map.getSource(layer.id);
-          const data = source["_data"];
+          const data = source["_data"];  // eslint-disable-line dot-notation
           source.setData(data);
-        })
-      }, 1000);
+        });
+    }, 1000);
   }
 
   updateMap(props) {
     this.state.visibleLayerIds = [];
-    const owner = this;
 
-    if (props.geofence.editing != this.props.geofence.editing){
+    if (props.geofence.editing !== this.props.geofence.editing) {
       if (props.geofence.editing) {
         this.state.map.addControl(this.state.draw);
         this.props.onGeofenceChange(this.state.draw.getAll());
-      }
-      else {
-       this.state.draw.remove();
+      } else {
+        this.state.draw.remove();
       }
     }
 
@@ -155,10 +154,10 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         }, this.getBottomLayer());
       }
       this.state.map.getSource("geofence").setData(props.geofence.geojson);
-      let visible = props.geofence.geojson != null && !props.geofence.editing;
+      const visible = props.geofence.geojson != null && !props.geofence.editing;
       this.state.map.setLayoutProperty("geofence_fill", "visibility", visible ? "visible" : "none");
       this.state.map.setLayoutProperty("geofence_line", "visibility", visible ? "visible" : "none");
-      let geofenceColor = props.geofence.type === "INCLUDE" ?  "#86C67C" : "#CC3300";
+      const geofenceColor = props.geofence.type === "INCLUDE" ? "#86C67C" : "#CC3300";
       this.state.map.setPaintProperty("geofence_fill", "fill-color", geofenceColor);
       this.state.map.setPaintProperty("geofence_line", "line-color", geofenceColor);
     }
@@ -173,7 +172,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   getSourceDefForLiveLayer(id) {
     return {
-      type: 'geojson',
+      type: "geojson",
       data: `${apiRoot}/layer/live/${id}`,
     };
   }
@@ -203,13 +202,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.map.addSource(layer.id, source);
 
     function zOrder(l) {
-      return l.hasOwnProperty("_zorder") ? l._zorder : -1;
+      return ("_zorder" in l) ? l["_zorder"] : -1;  // eslint-disable-line dot-notation
     }
 
     Object.keys(styleLayers)
       .sort((a, b) => zOrder(styleLayers[b]) - zOrder(styleLayers[a]))
-      .forEach( styleLayerKey => {
-
+      .forEach(styleLayerKey => {
         const styleLayer = {
           ...styleLayers[styleLayerKey],
           "id": `${layer.id}_${styleLayerKey}`,
@@ -217,8 +215,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "source-layer": layer.id,
         };
 
-        if (styleLayer.hasOwnProperty("_zorder")) {
-          delete styleLayer["_zorder"];
+        if ("_zorder" in styleLayer) {
+          delete styleLayer["_zorder"]; // eslint-disable-line dot-notation
         }
 
         this.addLayer(styleLayer);
@@ -268,7 +266,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
     this.setSubLayerVisibility(id, visible);
 
-    this.state.map.setFilter(id, config.hasOwnProperty("filter")
+    this.state.map.setFilter(id, ("filter" in config)
       ? ["all", valueFilter, config.filter]
       : valueFilter
     );
@@ -276,7 +274,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   createValueFilter(spec) {
     const filter = ["none"];
-    for (const attribute in spec) {
+    spec.forEach(attribute => {
       const values = spec[attribute];
 
       if (values.length > 0) {
@@ -287,12 +285,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
         filter.push(partial);
       }
-    }
+    });
     return filter;
   }
 
   createSelectionFilter(selection, layerId) {
-    if (selection.hasOwnProperty(layerId)) {
+    if (layerId in selection) {
       return selection[layerId].reduce((f, v) => {
         f.push(v);
         return f;
@@ -305,7 +303,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.state.map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
     if (visible) {
       this.state.visibleLayerIds.push(id);
-    };
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -313,7 +311,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onMapLoading();
       this.state.map.setStyle(themes[nextProps.map.theme].mapbox);
     } else if (nextProps.map.ready) {
-      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox 'style.load' callback)
+      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox "style.load" callback)
       this.updateMap(nextProps);
     }
   }
@@ -328,4 +326,4 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 }
 
-export default SizeMe({ monitorHeight: true })(Map);
+export default SizeMe({ monitorHeight: true })(Map);  // eslint-disable-line new-cap

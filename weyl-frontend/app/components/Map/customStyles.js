@@ -113,8 +113,8 @@ const liveLayerStyle = {
         type: "categorical",
       },
     },
-    filter: ["==", "$type", "Point"],
-    _zorder: 0,
+    "filter": ["==", "$type", "Point"],
+    "_zorder": 0,
   },
   point2: {
     "type": "circle",
@@ -122,8 +122,8 @@ const liveLayerStyle = {
       "circle-radius": 9,
       "circle-color": "#FFFFFF",
     },
-    filter: ["==", "$type", "Point"],
-    _zorder: 1,
+    "filter": ["==", "$type", "Point"],
+    "_zorder": 1,
   },
   line: {
     "type": "line",
@@ -139,35 +139,35 @@ const liveLayerStyle = {
         type: "categorical",
       },
     },
-    filter: ["==", "$type", "LineString"],
-    _zorder: 4,
+    "filter": ["==", "$type", "LineString"],
+    "_zorder": 4,
   },
   line2: {
-      "type": "circle",
-      "paint": {
-        "circle-radius": 5,
-        "circle-opacity": 0.5,
-        "circle-color": {
-          property: "name",
-          stops: [
-            ["Alex", "#e7298a"],
-            ["Arlo", "#AAFD6F"],
-          ],
-          type: "categorical",
-        },
+    "type": "circle",
+    "paint": {
+      "circle-radius": 5,
+      "circle-opacity": 0.5,
+      "circle-color": {
+        property: "name",
+        stops: [
+          ["Alex", "#e7298a"],
+          ["Arlo", "#AAFD6F"],
+        ],
+        type: "categorical",
       },
-    filter: ["==", "$type", "LineString"],
-    _zorder: 3,
+    },
+    "filter": ["==", "$type", "LineString"],
+    "_zorder": 3,
   },
   line3: {
-      "type": "circle",
-      "paint": {
-        "circle-radius": 7,
-        "circle-opacity": 0.5,
-        "circle-color": "#FFFFFF",
-      },
-    filter: ["==", "$type", "LineString"],
-    _zorder: 4,
+    "type": "circle",
+    "paint": {
+      "circle-radius": 7,
+      "circle-opacity": 0.5,
+      "circle-color": "#FFFFFF",
+    },
+    "filter": ["==", "$type", "LineString"],
+    "_zorder": 4,
   },
 };
 

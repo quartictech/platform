@@ -6,19 +6,20 @@
 
 import React from "react";
 import naturalsort from "javascript-natural-sort";
+const $ = require("jquery");
 
 import styles from "./styles.css";
 import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
 const AttributeTable = ({
   attributes,
-  order
+  order,
 }) => (
   <table className="ui very basic celled very compact fixed selectable table">
     <tbody>
       {order
         .filter(key => key !== "_id")
-        .filter(key => attributes.hasOwnProperty(key))
+        .filter(key => key in attributes)
         .filter(key => String(attributes[key]).trim() !== "")
         .map(key =>
           <tr key={key}>
@@ -34,12 +35,17 @@ const AttributeTable = ({
 );
 
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  constructor() {
+    super();
+    this.onClearSelectionClick = this.onClearSelectionClick.bind(this);
+  }
+
   onClearSelectionClick() {
     this.props.onClearSelection();
   }
 
   getAttributeBehavior(layerName) {
-    return curatedBehaviors.hasOwnProperty(layerName)
+    return (layerName in curatedBehaviors)
       ? curatedBehaviors[layerName]
       : defaultBehavior;
   }
@@ -68,7 +74,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   getBlessedAttributeOrder(layerName, properties) {
     const behavior = this.getAttributeBehavior(layerName);
     return behavior.blessed
-      .filter(k => properties.hasOwnProperty(k));
+      .filter(k => k in properties);
   }
 
   // Find all other properties, and then natural-sort for convenience
@@ -92,7 +98,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
         <div className="ui raised fluid card">
           <div className="content">
             <div className="header">
-              <a onClick={this.onClearSelectionClick.bind(this)}>
+              <a onClick={this.onClearSelectionClick}>
                 <i className="icon close"></i>
               </a>
               {this.getTitle(layerName, properties)}
@@ -105,7 +111,11 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             {
               (this.hasImageUrl(layerName)) ? (
                 <div className="ui segment">
-                  <img className="ui fluid image" src={properties[this.getImageUrl(layerName)]} />
+                  <img
+                    className="ui fluid image"
+                    src={properties[this.getImageUrl(layerName)]}
+                    alt={properties[this.getImageUrl(layerName)]}
+                  />
                 </div>
               ) : ""
             }
