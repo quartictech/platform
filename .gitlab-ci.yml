@@ -9,9 +9,12 @@ cache:
      - weyl-frontend/node_modules
      - weyl-frontend/semantic
 
+before-script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+
 build:
   stage: build
   image: quartic/uber-builder
   script:
     - cp weyl-frontend/weylConfig.js.example weyl-frontend/weylConfig.js
-    - ./gradlew docker
+    - ./gradlew dockerPush -Pregistry=$CI_REGISTRY
