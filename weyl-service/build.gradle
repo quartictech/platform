@@ -8,6 +8,7 @@ apply plugin: 'idea'
 
 dependencies {
   compile project(':weyl-core')
+  compile project(':weyl-frontend')
   compile 'io.dropwizard:dropwizard-core:' + dropwizardVersion
   compile 'io.dropwizard:dropwizard-jdbi:' + dropwizardVersion
   compile 'io.dropwizard:dropwizard-assets:' + dropwizardVersion

@@ -1,17 +1,15 @@
 plugins {
     id "com.moowork.node" version "0.13"
-    id 'com.palantir.docker' version '0.9.1'
+    id "java"
 }
 
-task build(type: NpmTask, dependsOn: npmInstall) {
+task npmBuild(type: NpmTask, dependsOn: npmInstall) {
   args = ["run", "build"]
   // TODO: specify input files
-  outputs.dir   "${buildDir}/assets"
+  outputs.dir   "${buildDir}/webpack"
 }
 
-docker {
-  name      "quartic/${project.name}"
-  dependsOn build
-  files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
+jar {
+  from npmBuild
 }
 
