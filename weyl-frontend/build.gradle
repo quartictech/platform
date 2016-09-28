@@ -3,7 +3,7 @@ plugins {
     id 'com.palantir.docker' version '0.9.1'
 }
 
-task build(type: NpmTask) {
+task build(type: NpmTask, dependsOn: npmInstall) {
   args = ["run", "build"]
   // TODO: specify input files
   outputs.dir   "${buildDir}/assets"
