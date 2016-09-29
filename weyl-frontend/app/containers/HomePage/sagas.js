@@ -10,7 +10,7 @@ import * as selectors from "./selectors";
 
 import { apiRoot } from "../../../weylConfig.js";
 
-function* search(action) {
+function* searchForLayers(action) {
   console.log("Executing search");
   const requestURL = `${apiRoot}/layer?query=${encodeURI(action.query)}`;
   const results = yield call(request, requestURL, {
@@ -35,7 +35,7 @@ function* search(action) {
   }
 }
 
-function* bucketComputation(action) {
+function* runBucketComputation(action) {
   console.log(action);
   const requestURL = `${apiRoot}/layer/compute`;
   const results = yield call(request, requestURL, {
@@ -60,7 +60,7 @@ function* bucketComputation(action) {
   }
 }
 
-function* numericAttributes(action) {
+function* fetchNumericAttributes(action) {
   console.log("Fetching numeric attributes");
   const requestURL = `${apiRoot}/layer/numeric_values/${action.layerId}`;
   const results = yield call(request, requestURL, {
@@ -70,7 +70,7 @@ function* numericAttributes(action) {
   yield put(actions.loadNumericAttributesDone(results.data));
 }
 
-function* geofenceSave(action) {
+function* saveGeofence(action) {
   console.log("saving geofence");
   const requestURL = `${apiRoot}/geofence/`;
   yield call(request, requestURL, {
@@ -87,8 +87,6 @@ function* geofenceSave(action) {
 
   yield put(actions.geofenceSaveDone());
 }
-
-// ////////////////////////
 
 function* getNotifications() {
   const results = yield call(request, `${apiRoot}/geofence/violations`, {
@@ -112,7 +110,7 @@ function displayNewNotifications(allNotifications, oldNotifications) {
     });
 }
 
-function* notificationPoller() {
+function* pollForNotifications() {
   yield* getNotifications();  // Seed so we don't display historical notifications
 
   while (true) {
@@ -126,61 +124,26 @@ function* notificationPoller() {
     }
   }
 }
-
-function* searchWatcher() {
-  yield* takeLatest(constants.SEARCH, search);
-}
-
-function* computationWatcher() {
-  yield* takeLatest(constants.BUCKET_COMPUTATION_START, bucketComputation);
-}
-
-function* numericAttributesWatcher() {
-  yield* takeLatest(constants.NUMERIC_ATTRIBUTES_LOAD, numericAttributes);
-}
-
-function* geofenceWatcher() {
-  yield* takeLatest(constants.GEOFENCE_EDIT_FINISH, geofenceSave);
-}
-
 // ////////////////////////
 
-function* pollForNotifications() {
-  const watcher = yield fork(notificationPoller);
-  yield take(LOCATION_CHANGE);
-  yield cancel(watcher);
+function watch(action, generator) {
+  return function* () {
+    yield* takeLatest(action, generator);
+  };
 }
 
-function* searchData() {
-  const watcher = yield fork(searchWatcher);
-  yield take(LOCATION_CHANGE);
-  yield cancel(watcher);
+function prepare(generator) {
+  return function* () {
+    const forked = yield fork(generator);
+    yield take(LOCATION_CHANGE);
+    yield cancel(forked);
+  };
 }
-
-function* computationData() {
-  const watcher = yield fork(computationWatcher);
-  yield take(LOCATION_CHANGE);
-  yield cancel(watcher);
-}
-
-function* numericAttributesData() {
-  const watcher = yield fork(numericAttributesWatcher);
-  yield take(LOCATION_CHANGE);
-  yield cancel(watcher);
-}
-
-function* geofenceData() {
-  const watcher = yield fork(geofenceWatcher);
-  yield take(LOCATION_CHANGE);
-  yield cancel(watcher);
-}
-
-// ////////////////////////
 
 export default [
-  pollForNotifications,
-  searchData,
-  computationData,
-  numericAttributesData,
-  geofenceData,
+  prepare(pollForNotifications),
+  prepare(watch(constants.SEARCH, searchForLayers)),
+  prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
+  prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),
+  prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),
 ];
