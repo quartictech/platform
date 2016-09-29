@@ -40,6 +40,13 @@ export const selectSelectionFeatures = () => createSelector(
   }
 );
 
+export const selectLiveLayerIds = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("layers").toJS()
+    .filter(layer => layer.live)
+    .map(layer => layer.id)
+);
+
 export const selectNumericAttributes = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("numericAttributes").toJS()

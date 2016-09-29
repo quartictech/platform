@@ -29,6 +29,23 @@ export function layerCreate(result) {
   };
 }
 
+export function layerSetStyle(layerId, style) {
+  return {
+    type: constants.LAYER_SET_STYLE,
+    layerId,
+    style,
+  };
+}
+
+export function layerToggleValueVisible(layerId, attribute, value) {
+  return {
+    type: constants.LAYER_TOGGLE_VALUE_VISIBLE,
+    layerId,
+    attribute,
+    value,
+  };
+}
+
 export function layerToggleVisible(layerId) {
   console.assert(layerId != null);
   return {
@@ -101,23 +118,6 @@ export function chartSelectAttribute(attribute) {
   return {
     type: constants.CHART_SELECT_ATTRIBUTE,
     attribute,
-  };
-}
-
-export function setLayerStyle(layerId, style) {
-  return {
-    type: constants.LAYER_SET_STYLE,
-    layerId,
-    style,
-  };
-}
-
-export function layerToggleValueVisible(layerId, attribute, value) {
-  return {
-    type: constants.LAYER_TOGGLE_VALUE_VISIBLE,
-    layerId,
-    attribute,
-    value,
   };
 }
 

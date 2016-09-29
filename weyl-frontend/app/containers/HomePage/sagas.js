@@ -124,6 +124,25 @@ function* pollForNotifications() {
     }
   }
 }
+
+function* pollForLiveLayerData() {
+  while (true) {
+    yield call(delay, 1000);
+
+    const layerIds = yield select(selectors.selectLiveLayerIds());
+
+    // TODO: run these in parallel
+    for (const id of layerIds) {
+      const results = yield call(request, `${apiRoot}/layer/live/${id}`, {
+        method: "GET",
+      });
+      if (!results.err) {
+        yield put(actions.layerSetData(id, results.data));
+      }
+    }
+  }
+}
+
 // ////////////////////////
 
 function watch(action, generator) {
@@ -142,6 +161,7 @@ function prepare(generator) {
 
 export default [
   prepare(pollForNotifications),
+  prepare(pollForLiveLayerData),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),

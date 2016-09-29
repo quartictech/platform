@@ -67,7 +67,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.updateMap(this.props);
     });
 
-
     this.state.map.on("draw.create", () => {
       this.props.onGeofenceChange(this.state.draw.getAll());
     });
@@ -84,21 +83,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         trash: true,
       },
     });
-
-    this.installRefreshCallback();
-  }
-
-  installRefreshCallback() {
-    const owner = this;
-    window.setInterval(() => {
-      owner.props.layers
-        .filter(layer => layer.live)
-        .forEach(layer => {
-          const source = owner.state.map.getSource(layer.id);
-          const data = source["_data"];  // eslint-disable-line dot-notation
-          source.setData(data);
-        });
-    }, 1000);
   }
 
   updateMap(props) {
@@ -114,11 +98,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }
 
     props.layers.filter(layer => layer.live).forEach(layer => {
-      this.updateLayer(layer, this.getSourceDefForLiveLayer(layer.id), props);
+      this.updateLayer(layer, this.getSourceDefForLiveLayer(layer), props);
     });
 
     props.layers.filter(layer => !layer.live).forEach(layer =>
-      this.updateLayer(layer, this.getSourceDefForStaticLayer(layer.id), props)
+      this.updateLayer(layer, this.getSourceDefForStaticLayer(layer), props)
     );
 
     this.renderGeofence(props);
@@ -163,17 +147,17 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }
   }
 
-  getSourceDefForStaticLayer(id) {
+  getSourceDefForStaticLayer(layer) {
     return {
       type: "vector",
-      tiles: [`${apiRoot}/${id}/{z}/{x}/{y}.pbf`],
+      tiles: [`${apiRoot}/${layer.id}/{z}/{x}/{y}.pbf`],
     };
   }
 
-  getSourceDefForLiveLayer(id) {
+  getSourceDefForLiveLayer(layer) {
     return {
       type: "geojson",
-      data: `${apiRoot}/layer/live/${id}`,
+      data: layer.data,
     };
   }
 
@@ -182,6 +166,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
     if (this.state.map.getSource(layer.id) === undefined) {
       this.createSourceAndSubLayers(layer, sourceDef, styleLayers);
+    }
+    if (layer.live) {
+      this.state.map.getSource(layer.id).setData(sourceDef.data);
     }
 
     const valueFilter = this.createValueFilter(layer.filter);

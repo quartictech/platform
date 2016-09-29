@@ -69,9 +69,12 @@ const layerReducer = (layerState, action) => {
         stats: action.stats,
         attributeSchema: action.attributeSchema,
         live: action.live,
-        data: {},   // Only relevant in the case of live layers
-        filter: {},
-      });
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        },   // Only relevant in the case of live layers
+      })
+      .set("filter", new Set());  // Because otherwise we get a map`
     case constants.LAYER_TOGGLE_VISIBLE:
       return layerState.set("visible", !layerState.get("visible"));
     case constants.LAYER_CLOSE:
@@ -86,7 +89,7 @@ const layerReducer = (layerState, action) => {
         return set.add(action.value);
       });
     case constants.LAYER_SET_DATA:
-      return layerState.update("data", action.data);
+      return layerState.set("data", action.data);
     default:
       return layerState;
   }
