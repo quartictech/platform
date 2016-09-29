@@ -45,6 +45,15 @@ export function layerClose(layerId) {
   };
 }
 
+export function layerSetData(layerId, data) {
+  console.assert(layerId != null);
+  return {
+    type: constants.LAYER_SET_DATA,
+    layerId,
+    data,
+  };
+}
+
 export function bucketComputation(computation) {
   console.log("Bucket computation");
   return {
@@ -161,5 +170,12 @@ export function geofenceChangeType(geofenceType) {
 export function geofenceSaveDone() {
   return {
     type: constants.GEOFENCE_SAVE_DONE,
+  };
+}
+
+export function notificationsUpdate(notifications) {
+  return {
+    type: constants.NOTIFICATIONS_UPDATE,
+    notifications,
   };
 }

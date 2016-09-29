@@ -20,15 +20,10 @@ import styles from "./styles.css";
 
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { startPolling } from "./polling";
 import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  componentDidMount() {
-    startPolling();
-  }
-
   render() {
     return (
       <div className={styles.container}>

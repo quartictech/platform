@@ -1,10 +1,12 @@
-import { take, call, put, fork, cancel } from "redux-saga/effects";
-import { takeLatest } from "redux-saga";
+import { take, call, put, fork, cancel, select } from "redux-saga/effects";
+import { delay, takeLatest } from "redux-saga";
 
-import { SEARCH, BUCKET_COMPUTATION_START, NUMERIC_ATTRIBUTES_LOAD, GEOFENCE_EDIT_FINISH } from "./constants";
+
 import { LOCATION_CHANGE } from "react-router-redux";
 import request from "utils/request";
-import { searchDone, layerCreate, loadNumericAttributesDone, geofenceSaveDone } from "./actions";
+import * as constants from "./constants";
+import * as actions from "./actions";
+import * as selectors from "./selectors";
 
 import { apiRoot } from "../../../weylConfig.js";
 
@@ -29,7 +31,7 @@ function* search(action) {
         },
       },
     };
-    yield put(searchDone(response, action.callback));
+    yield put(actions.searchDone(response, action.callback));
   }
 }
 
@@ -53,7 +55,7 @@ function* bucketComputation(action) {
     });
 
     if (!results2.err) {
-      yield put(layerCreate(results2.data));
+      yield put(actions.layerCreate(results2.data));
     }
   }
 }
@@ -65,7 +67,7 @@ function* numericAttributes(action) {
     method: "GET",
   });
 
-  yield put(loadNumericAttributesDone(results.data));
+  yield put(actions.loadNumericAttributesDone(results.data));
 }
 
 function* geofenceSave(action) {
@@ -83,55 +85,100 @@ function* geofenceSave(action) {
     }),
   });
 
-  yield put(geofenceSaveDone());
+  yield put(actions.geofenceSaveDone());
 }
 
-export function* searchWatcher() {
-  yield* takeLatest(SEARCH, search);
+// ////////////////////////
+
+function* getNotifications() {
+  const results = yield call(request, `${apiRoot}/geofence/violations`, {
+    method: "GET",
+  });
+  if (!results.err) {
+    yield put(actions.notificationsUpdate(results.data));
+  }
+  return results;
 }
 
-export function* computationWatcher() {
-  yield* takeLatest(BUCKET_COMPUTATION_START, bucketComputation);
+function displayNewNotifications(allNotifications, oldNotifications) {
+  Object.keys(allNotifications)
+    .filter(k => !(k in oldNotifications))
+    .forEach(k => {
+      const n = new Notification("Geofence violation", {
+        body: allNotifications[k].message,
+        tag: k,
+      });
+      setTimeout(n.close.bind(n), 5000);
+    });
 }
 
-export function* numericAttributesWatcher() {
-  yield* takeLatest(NUMERIC_ATTRIBUTES_LOAD, numericAttributes);
+function* pollForStuff() {
+  yield* getNotifications();  // Seed so we don't display historical notifications
+
+  while (true) {
+    yield call(delay, 2000);
+
+    const oldNotifications = yield select(selectors.selectNotifications());
+    const results = yield* getNotifications();
+
+    if (!results.err) {
+      displayNewNotifications(results.data, oldNotifications);
+    }
+  }
 }
 
-export function* geofenceWatcher() {
-  yield* takeLatest(GEOFENCE_EDIT_FINISH, geofenceSave);
+function* searchWatcher() {
+  yield* takeLatest(constants.SEARCH, search);
 }
 
-export function* searchData() {
-  const watcher = yield fork(searchWatcher);
+function* computationWatcher() {
+  yield* takeLatest(constants.BUCKET_COMPUTATION_START, bucketComputation);
+}
 
+function* numericAttributesWatcher() {
+  yield* takeLatest(constants.NUMERIC_ATTRIBUTES_LOAD, numericAttributes);
+}
+
+function* geofenceWatcher() {
+  yield* takeLatest(constants.GEOFENCE_EDIT_FINISH, geofenceSave);
+}
+
+// ////////////////////////
+
+function* wtf() {
+  const watcher = yield fork(pollForStuff);
   yield take(LOCATION_CHANGE);
   yield cancel(watcher);
 }
 
-export function* computationData() {
-  yield fork(computationWatcher);
-
+function* searchData() {
+  const watcher = yield fork(searchWatcher);
   yield take(LOCATION_CHANGE);
-  yield cancel(computationWatcher);
+  yield cancel(watcher);
 }
 
-export function* numericAttributesData() {
-  yield fork(numericAttributesWatcher);
-
+function* computationData() {
+  const watcher = yield fork(computationWatcher);
   yield take(LOCATION_CHANGE);
-  yield cancel(numericAttributesWatcher);
+  yield cancel(watcher);
 }
 
-export function* geofenceData() {
-  yield fork(geofenceWatcher);
-
+function* numericAttributesData() {
+  const watcher = yield fork(numericAttributesWatcher);
   yield take(LOCATION_CHANGE);
-  yield cancel(geofenceWatcher);
+  yield cancel(watcher);
 }
 
+function* geofenceData() {
+  const watcher = yield fork(geofenceWatcher);
+  yield take(LOCATION_CHANGE);
+  yield cancel(watcher);
+}
+
+// ////////////////////////
 
 export default [
+  wtf,
   searchData,
   computationData,
   numericAttributesData,
