@@ -1,4 +1,15 @@
 plugins {
-    id "com.palantir.npm-run" version "0.2.0"
+    id "com.moowork.node" version "0.13"
+    id "java"
+}
+
+task npmBuild(type: NpmTask, dependsOn: npmInstall) {
+  args = ["run", "build"]
+  // TODO: specify input files
+  outputs.dir   "${buildDir}/webpack"
+}
+
+jar {
+  from npmBuild
 }
 
