@@ -15,6 +15,7 @@ import Toolbar from "../../components/Toolbar";
 import LayerList from "../../components/LayerList";
 import SelectionView from "../../components/SelectionView";
 import MapInfo from "../../components/MapInfo";
+import FeedPane from "../../components/FeedPane";
 
 import styles from "./styles.css";
 
@@ -66,6 +67,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.rightDrawer}>
+          <FeedPane />
           <SelectionView
             selection={this.props.selectionFeatures}
             onClearSelection={this.props.onClearSelection}

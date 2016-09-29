@@ -31,7 +31,7 @@
   top: 70px;
   width: 25vw;
   pointer-events: none;
-  display: flex;
+  /*display: flex;*/
   padding: 20px;
 }
 
