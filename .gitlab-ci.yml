@@ -1,5 +1,3 @@
-image: quartic/npm-jdk
-
 before_script:
     - export GRADLE_USER_HOME=`pwd`/.gradle
 
@@ -11,12 +9,17 @@ cache:
      - weyl-frontend/node_modules
      - weyl-frontend/semantic
 
-build:
+backend:
   stage: build
+  image: quartic/npm-jdk
   script:
     - ./gradlew weyl-service:build
+
+frontend:
+  stage: build
+  image: node:6.6.0
+  script:
     - cd weyl-frontend
     - cp weylConfig.js.example weylConfig.js
     - npm install
-    - npm run lint
-    #- ./gradlew weyl-frontend:build
+    - npm run build
