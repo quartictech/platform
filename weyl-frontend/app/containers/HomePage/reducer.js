@@ -70,8 +70,8 @@ const layerReducer = (layerState, action) => {
         attributeSchema: action.attributeSchema,
         live: action.live,
         data: {
-          type: 'FeatureCollection',
-          features: []
+          type: "FeatureCollection",
+          features: [],
         },   // Only relevant in the case of live layers
       })
       .set("filter", new Set());  // Because otherwise we get a map`
