@@ -112,7 +112,7 @@ function displayNewNotifications(allNotifications, oldNotifications) {
     });
 }
 
-function* pollForStuff() {
+function* notificationPoller() {
   yield* getNotifications();  // Seed so we don't display historical notifications
 
   while (true) {
@@ -145,8 +145,8 @@ function* geofenceWatcher() {
 
 // ////////////////////////
 
-function* wtf() {
-  const watcher = yield fork(pollForStuff);
+function* pollForNotifications() {
+  const watcher = yield fork(notificationPoller);
   yield take(LOCATION_CHANGE);
   yield cancel(watcher);
 }
@@ -178,7 +178,7 @@ function* geofenceData() {
 // ////////////////////////
 
 export default [
-  wtf,
+  pollForNotifications,
   searchData,
   computationData,
   numericAttributesData,
