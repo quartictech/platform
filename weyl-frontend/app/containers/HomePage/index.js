@@ -21,11 +21,8 @@ import styles from "./styles.css";
 
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { search, layerCreate, layerToggleVisible, layerClose, bucketComputation, toggleUi, selectFeatures, clearSelection, loadNumericAttributes, chartSelectAttribute,
-  setLayerStyle, layerToggleValueVisible, mapLoading, mapLoaded, mapMouseMove, geofenceEditStart, geofenceEditChange, geofenceEditFinish, geofenceChangeType,
- } from "./actions";
-
-import { selectLayers, selectUi, selectSelectionIds, selectSelectionFeatures, selectNumericAttributes, selectMap, selectGeofence } from "./selectors";
+import * as actions from "./actions";
+import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -116,39 +113,36 @@ HomePage.propTypes = {
   numericAttributes: React.PropTypes.object,
 };
 
-function mapDispatchToProps(dispatch) {
-  return {
-    dispatch,
-    onSearch: (query, callback) => dispatch(search(query, callback)),
-    onSelect: (result) => dispatch(layerCreate(result)),
-    layerToggleVisible: (id) => dispatch(layerToggleVisible(id)),
-    layerClose: (id) => dispatch(layerClose(id)),
-    onBucketCompute: (computation) => dispatch(bucketComputation(computation)),
-    onUiToggle: (element) => dispatch(toggleUi(element)),
-    onSelectFeatures: (ids, features) => dispatch(selectFeatures(ids, features)),
-    onClearSelection: () => dispatch(clearSelection()),
-    onChartLayerSelection: (layerId) => dispatch(loadNumericAttributes(layerId)),
-    onChartAttributeSelection: (attribute) => dispatch(chartSelectAttribute(attribute)),
-    onLayerStyleChange: (layerId, style) => dispatch(setLayerStyle(layerId, style)),
-    onToggleValueVisible: (layerId, attribute, value) => dispatch(layerToggleValueVisible(layerId, attribute, value)),
-    onMapLoading: () => dispatch(mapLoading()),
-    onMapLoaded: () => dispatch(mapLoaded()),
-    onMapMouseMove: (location) => dispatch(mapMouseMove(location)),
-    onGeofenceEdit: () => dispatch(geofenceEditStart()),
-    onGeofenceSave: (geofence) => dispatch(geofenceEditFinish(geofence)),
-    onGeofenceChange: (geojson) => dispatch(geofenceEditChange(geojson)),
-    onGeofenceChangeType: (geofenceType) => dispatch(geofenceChangeType(geofenceType)),
-  };
-}
+const mapDispatchToProps = {
+  onSearch: actions.search,
+  onSelect: actions.layerCreate,
+  layerToggleVisible: actions.layerToggleVisible,
+  layerClose: actions.layerClose,
+  onBucketCompute: actions.bucketComputation,
+  onUiToggle: actions.toggleUi,
+  onSelectFeatures: actions.selectFeatures,
+  onClearSelection: actions.clearSelection,
+  onChartLayerSelection: actions.loadNumericAttributes,
+  onChartAttributeSelection: actions.chartSelectAttribute,
+  onLayerStyleChange: actions.setLayerStyle,
+  onToggleValueVisible: actions.layerToggleValueVisible,
+  onMapLoading: actions.mapLoading,
+  onMapLoaded: actions.mapLoaded,
+  onMapMouseMove: actions.mapMouseMove,
+  onGeofenceEdit: actions.geofenceEditStart,
+  onGeofenceSave: actions.geofenceEditFinish,
+  onGeofenceChange: actions.geofenceEditChange,
+  onGeofenceChangeType: actions.geofenceChangeType,
+};
 
 const mapStateToProps = createStructuredSelector({
-  layers: selectLayers(),
-  ui: selectUi(),
-  selectionIds: selectSelectionIds(),
-  selectionFeatures: selectSelectionFeatures(),
-  numericAttributes: selectNumericAttributes(),
-  map: selectMap(),
-  geofence: selectGeofence(),
+  layers: selectors.selectLayers(),
+  ui: selectors.selectUi(),
+  selectionIds: selectors.selectSelectionIds(),
+  selectionFeatures: selectors.selectSelectionFeatures(),
+  numericAttributes: selectors.selectNumericAttributes(),
+  map: selectors.selectMap(),
+  geofence: selectors.selectGeofence(),
 });
 
 // Wrap the component to inject dispatch and state into it
