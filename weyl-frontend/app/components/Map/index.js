@@ -273,30 +273,15 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   createValueFilter(spec) {
-    const filter = ["none"];
-    spec.forEach(attribute => {
-      const values = spec[attribute];
-
-      if (values.length > 0) {
-        const partial = values.reduce((f, v) => {
-          f.push(v);
-          return f;
-        }, ["in", attribute]);
-
-        filter.push(partial);
-      }
-    });
-    return filter;
+    return ["none"].concat(
+      Object.keys(spec)
+        .filter(k => spec[k].length > 0)
+        .map(k => ["in", k].concat(spec[k]))
+    );
   }
 
   createSelectionFilter(selection, layerId) {
-    if (layerId in selection) {
-      return selection[layerId].reduce((f, v) => {
-        f.push(v);
-        return f;
-      }, ["in", "_id"]);
-    }
-    return ["in", "_id", ""];
+    return ["in", "_id"].concat((layerId in selection) ? selection[layerId] : "");
   }
 
   setSubLayerVisibility(id, visible) {
