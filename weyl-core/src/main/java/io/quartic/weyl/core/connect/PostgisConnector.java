@@ -41,14 +41,14 @@ public class PostgisConnector {
         ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
                 .iterator();
 
-        List<Feature> features = Lists.newArrayList();
+        List<AbstractFeature> features = Lists.newArrayList();
         int count = 0;
         while (iterator.hasNext()) {
             count += 1;
             if (count % 10000 == 0) {
                 log.info("Importing feature: {}", count);
             }
-            Optional<Feature> feature = rowToFeature(iterator.next());
+            Optional<AbstractFeature> feature = rowToFeature(iterator.next());
 
             if (feature.isPresent()) {
                 features.add(feature.get());
@@ -82,7 +82,7 @@ public class PostgisConnector {
         return Optional.empty();
     }
 
-    private Optional<Feature> rowToFeature(Map<String, Object> row) {
+    private Optional<AbstractFeature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
@@ -99,10 +99,10 @@ public class PostgisConnector {
                 }
             }
 
-            String id = row.containsKey(ID_FIELD) ?
-                    row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
+            FeatureId id = FeatureId.of(row.containsKey(ID_FIELD) ?
+                    row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode()));
 
-            return ImmutableFeature.builder()
+            return Feature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
                     .id(id)

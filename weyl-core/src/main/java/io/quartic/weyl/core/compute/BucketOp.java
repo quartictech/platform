@@ -19,19 +19,19 @@ public class BucketOp {
     private final IndexedLayer bucketLayer;
 
     private static class Bucketed {
-        private final Feature bucket;
-        private final Feature value;
+        private final AbstractFeature bucket;
+        private final AbstractFeature value;
 
-        private Bucketed(Feature bucket, Feature value) {
+        private Bucketed(AbstractFeature bucket, AbstractFeature value) {
             this.bucket = bucket;
             this.value = value;
         }
 
-        Feature getBucket() {
+        AbstractFeature getBucket() {
             return bucket;
         }
 
-        public Feature getValue() {
+        public AbstractFeature getValue() {
             return value;
         }
     }
@@ -61,7 +61,7 @@ public class BucketOp {
     Optional<Layer> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
+            Collection<AbstractFeature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
                     featureLayer.layer().metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -96,7 +96,7 @@ public class BucketOp {
         }
     }
 
-    private Collection<Feature> bucketData() {
+    private Collection<AbstractFeature> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
         List<Bucketed> hits = featureLayer.layer().features().parallelStream()
                 .flatMap(feature -> {
@@ -109,13 +109,13 @@ public class BucketOp {
                 })
                 .collect(Collectors.toList());
 
-        Multimap<Feature, Bucketed> groups = Multimaps.index(hits, Bucketed::getBucket);
+        Multimap<AbstractFeature, Bucketed> groups = Multimaps.index(hits, Bucketed::getBucket);
 
         BucketAggregation aggregation = bucketSpec.aggregation();
 
         return groups.asMap().entrySet().parallelStream()
                 .map(bucketEntry -> {
-                    Feature feature = bucketEntry.getKey();
+                    AbstractFeature feature = bucketEntry.getKey();
                     Double value = aggregation.aggregate(feature, bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
 
                     if (bucketSpec.normalizeToArea()) {
@@ -125,7 +125,7 @@ public class BucketOp {
                     }
                     Map<String, Optional<Object>> metadata = new HashMap<>(feature.metadata());
                     metadata.put(propertyName(), Optional.of(value));
-                    return ImmutableFeature.copyOf(feature)
+                    return Feature.copyOf(feature)
                             .withMetadata(metadata);
                 })
                 .collect(Collectors.toList());

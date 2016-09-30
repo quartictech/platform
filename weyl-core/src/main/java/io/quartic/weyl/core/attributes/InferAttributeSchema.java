@@ -1,8 +1,8 @@
 package io.quartic.weyl.core.attributes;
 
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeType;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.ImmutableAttribute;
 
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class InferAttributeSchema {
-    public static Map<String, Attribute> inferSchema(Collection<Feature> features) {
+    public static Map<String, Attribute> inferSchema(Collection<AbstractFeature> features) {
         Set<String> attributes = features.parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .map(Map.Entry::getKey)
@@ -26,7 +26,7 @@ public class InferAttributeSchema {
 
     }
 
-    public static Attribute inferAttribute(String attribute, Collection<Feature> features) {
+    public static Attribute inferAttribute(String attribute, Collection<AbstractFeature> features) {
         Optional<Set<Object>> categories = inferCategories(attribute, features);
         return ImmutableAttribute.builder()
                 .type(inferAttributeType(attribute, features))
@@ -34,7 +34,7 @@ public class InferAttributeSchema {
                 .build();
     }
 
-    private static Optional<Set<Object>> inferCategories(String attribute, Collection<Feature> features) {
+    private static Optional<Set<Object>> inferCategories(String attribute, Collection<AbstractFeature> features) {
         Set<Object> values = features.stream()
                 .map(feature -> feature.metadata().get(attribute))
                 .filter(Optional::isPresent)
@@ -49,7 +49,7 @@ public class InferAttributeSchema {
     }
 
     private static AttributeType inferAttributeType(String attribute,
-                                                    Collection<Feature> features) {
+                                                    Collection<AbstractFeature> features) {
         Set<AttributeType> attributeTypes = features.stream()
                 .map(feature -> feature.metadata().get(attribute))
                 .filter(Optional::isPresent)

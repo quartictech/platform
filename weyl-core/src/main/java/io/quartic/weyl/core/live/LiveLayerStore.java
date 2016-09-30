@@ -24,7 +24,7 @@ public class LiveLayerStore {
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
 
     public void createLayer(LayerId id, LayerMetadata metadata) {
-        Collection<io.quartic.weyl.core.model.Feature> features
+        Collection<AbstractFeature> features
                 = layers.containsKey(id)
                 ? layers.get(id).features()
                 : new FeatureCache();
@@ -55,15 +55,15 @@ public class LiveLayerStore {
         return FeatureCollection.of(
                 layers.get(layerId).features()
                         .stream()
-                        .map(f -> Feature.of(Optional.of(
-                                f.id()),
+                        .map(f -> Feature.of(
+                                Optional.of(f.id()),
                                 Utils.fromJts(f.geometry()),
                                 convertMetadata(f.id(), f.metadata())
                         ))
                         .collect(Collectors.toList()));
     }
 
-    private Map<String, Object> convertMetadata(String id, Map<String, Optional<Object>> metadata) {
+    private Map<String, Object> convertMetadata(FeatureId id, Map<String, Optional<Object>> metadata) {
         final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
         output.put("_id", id);
         return output;
@@ -74,10 +74,10 @@ public class LiveLayerStore {
 
         // TODO: validate that all entries are of type Point
 
-        final Collection<io.quartic.weyl.core.model.Feature> target = layers.get(layerId).features();
-        final Collection<io.quartic.weyl.core.model.Feature> newFeatures = features.features()
+        final Collection<AbstractFeature> target = layers.get(layerId).features();
+        final Collection<AbstractFeature> newFeatures = features.features()
                 .stream()
-                .map(f -> ImmutableFeature.of(
+                .map(f -> io.quartic.weyl.core.model.Feature.of(
                         f.id().get(), // TODO - what if empty?  (Shouldn't be, because we validate in LayerResource)
                         Utils.toJts(f.geometry()),
                         f.properties().entrySet()
@@ -98,7 +98,7 @@ public class LiveLayerStore {
         listeners.add(liveLayerStoreListener);
     }
 
-    private void notifyListeners(LayerId layerId, io.quartic.weyl.core.model.Feature feature) {
+    private void notifyListeners(LayerId layerId, AbstractFeature feature) {
         listeners.forEach(listener -> listener.liveLayerEvent(layerId, feature));
     }
 }

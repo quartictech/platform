@@ -8,6 +8,7 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.request.LayerUpdateRequest;
@@ -35,8 +36,8 @@ public class LayerResourceShould {
     @Test
     public void acceptValidFeatureCollection() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("5678"), point(), propsWithTimestamp())
+                Feature.of(id("1234"), point(), propsWithTimestamp()),
+                Feature.of(id("5678"), point(), propsWithTimestamp())
         ));
 
         resource.updateLiveLayer("abc", createRequest(collection));
@@ -45,7 +46,7 @@ public class LayerResourceShould {
     @Test(expected = NotAcceptableException.class)
     public void throwIfIdsMissing() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
+                Feature.of(id("1234"), point(), propsWithTimestamp()),
                 Feature.of(Optional.empty(), point(), propsWithTimestamp())
         ));
 
@@ -55,8 +56,8 @@ public class LayerResourceShould {
     @Test(expected = NotAcceptableException.class)
     public void throwIfTimestampsMissing() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("5678"), point(), propsWithoutTimestamp())
+                Feature.of(id("1234"), point(), propsWithTimestamp()),
+                Feature.of(id("5678"), point(), propsWithoutTimestamp())
         ));
 
         resource.updateLiveLayer("abc", createRequest(collection));
@@ -65,11 +66,15 @@ public class LayerResourceShould {
     @Test(expected = NotAcceptableException.class)
     public void throwIfTimestampsNonNumeric() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("5678"), point(), propsWithInvalidTimestamp())
+                Feature.of(id("1234"), point(), propsWithTimestamp()),
+                Feature.of(id("5678"), point(), propsWithInvalidTimestamp())
         ));
 
         resource.updateLiveLayer("abc", createRequest(collection));
+    }
+
+    private Optional<FeatureId> id(String id) {
+        return Optional.of(FeatureId.of(id));
     }
 
     private ImmutableMap<String, Object> propsWithTimestamp() {

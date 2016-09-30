@@ -4,7 +4,8 @@ import com.google.common.collect.*;
 import io.quartic.weyl.core.geojson.SweetStyle;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerStoreListener;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 
@@ -16,7 +17,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
     @SweetStyle
     @Value.Immutable
     interface AbstractViolationKey {
-        String featureId();
+        FeatureId featureId();
         GeofenceId geofenceId();
     }
 
@@ -25,7 +26,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
     private final Map<ViolationKey, Violation> currentViolations = Maps.newHashMap();
     private final List<Violation> allViolations = Lists.newArrayList();
     private final Set<Geofence> geofences = Sets.newHashSet();
-    private final Multimap<String, GeofenceState> geofenceStates = HashMultimap.create();
+    private final Multimap<FeatureId, GeofenceState> geofenceStates = HashMultimap.create();
 
     public GeofenceStore(LiveLayerStore liveLayerStore) {
         liveLayerStore.addListener(this);
@@ -58,7 +59,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
         return ImmutableList.copyOf(allViolations);
     }
 
-    private GeofenceState getState(Geofence geofence, Feature feature) {
+    private GeofenceState getState(Geofence geofence, AbstractFeature feature) {
         if (geofence.type() == GeofenceType.INCLUDE &&
                 geofence.geometry().contains(feature.geometry())) {
             return GeofenceState.of(true, String.format("Actor %s is within inclusive geofence boundary", feature.id()));
@@ -73,7 +74,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
     }
 
     @Override
-    public synchronized void liveLayerEvent(LayerId layerId, Feature feature) {
+    public synchronized void liveLayerEvent(LayerId layerId, AbstractFeature feature) {
         final Set<GeofenceState> states = geofences.stream()
                 .map(geofence -> getState(geofence, feature))
                 .collect(Collectors.toSet());
@@ -83,7 +84,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
         updateViolations(feature);
     }
 
-    private void updateViolations(Feature feature) {
+    private void updateViolations(AbstractFeature feature) {
         geofences.forEach(geofence -> {
             final GeofenceState state = getState(geofence, feature);
             final ViolationKey vk = ViolationKey.of(feature.id(), geofence.id());
