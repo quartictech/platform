@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.live.feed;
+package io.quartic.weyl.core.feed;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.quartic.weyl.core.geojson.SweetStyle;
