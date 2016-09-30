@@ -15,25 +15,26 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static io.quartic.weyl.core.utils.Utils.uuid;
 
 public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
     private Map<LayerId, Layer> rawLayers;
     private Map<LayerId, IndexedLayer> indexedLayers;
     private DBI dbi;
+    private final Supplier<String> idSupplier;
 
-    public LayerStore(DBI dbi) {
+    public LayerStore(DBI dbi, Supplier<String> idSupplier) {
         this.dbi = dbi;
+        this.idSupplier = idSupplier;
         this.rawLayers = Maps.newConcurrentMap();
         this.indexedLayers = Maps.newConcurrentMap();
     }
 
     public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
         Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(metadata, sql)
-                .map(LayerStore::index);
+                .map(this::index);
 
         layer.ifPresent(this::storeLayer);
 
@@ -55,13 +56,13 @@ public class LayerStore {
 
     public Optional<IndexedLayer> bucket(BucketSpec bucketSpec) {
          Optional<IndexedLayer> layer = BucketOp.create(this, bucketSpec)
-                .map(LayerStore::index);
+                .map(this::index);
 
         layer.ifPresent(this::storeLayer);
         return layer;
     }
 
-     private static IndexedLayer index(Layer layer) {
+     private IndexedLayer index(Layer layer) {
          Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
@@ -70,7 +71,7 @@ public class LayerStore {
                         .build())
                 .collect(Collectors.toList());
 
-         LayerId layerId = uuid(LayerId::of);
+         LayerId layerId = LayerId.of(idSupplier.get());
          return ImmutableIndexedLayer.builder()
                  .layer(layer)
                  .spatialIndex(spatialIndex(features))

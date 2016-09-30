@@ -1,12 +1,12 @@
 package io.quartic.weyl.core.utils;
 
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class Utils {
     private Utils() {}
 
-    public static <T> T uuid(Function<String, T> converter) {
-        return converter.apply(UUID.randomUUID().toString());
+    public static Supplier<String> idSupplier() {
+        return () -> UUID.randomUUID().toString();
     }
 }

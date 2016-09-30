@@ -8,8 +8,10 @@ import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.feed.FeedStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.resource.FeedResource;
 import io.quartic.weyl.resource.GeofenceResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
@@ -19,6 +21,8 @@ import org.skife.jdbi.v2.DBI;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.util.EnumSet;
+
+import static io.quartic.weyl.core.utils.Utils.idSupplier;
 
 public class WeylApplication extends Application<WeylConfiguration> {
     public static void main(String[] args) throws Exception {
@@ -55,16 +59,16 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         environment.jersey().setUrlPattern("/api/*");
 
-        LayerStore layerStore = new LayerStore(jdbi);
+        LayerStore layerStore = new LayerStore(jdbi, idSupplier());
         LiveLayerStore liveLayerStore = new LiveLayerStore();
-        LayerResource layerResource = new LayerResource(layerStore, liveLayerStore);
-        environment.jersey().register(layerResource);
+        environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
 
-        TileResource tileResource = new TileResource(layerStore);
-        environment.jersey().register(tileResource);
+        environment.jersey().register(new TileResource(layerStore));
 
         GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
-        GeofenceResource geofenceResource = new GeofenceResource(geofenceStore);
-        environment.jersey().register(geofenceResource);
+        environment.jersey().register(new GeofenceResource(geofenceStore, idSupplier()));
+
+        FeedStore feedStore = new FeedStore(liveLayerStore, environment.getObjectMapper(), idSupplier());
+        environment.jersey().register(new FeedResource(feedStore));
     }
 }

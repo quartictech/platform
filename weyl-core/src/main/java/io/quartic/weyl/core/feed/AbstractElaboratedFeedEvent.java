@@ -9,6 +9,7 @@ import org.immutables.value.Value;
 @SweetStyle
 @Value.Immutable
 public interface AbstractElaboratedFeedEvent {
+    FeedEventId id();
     @JsonUnwrapped
     AbstractFeedEvent event();
     LayerId layerId();

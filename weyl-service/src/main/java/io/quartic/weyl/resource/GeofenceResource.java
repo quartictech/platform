@@ -9,17 +9,19 @@ import io.quartic.weyl.request.GeofenceRequest;
 
 import javax.ws.rs.*;
 import java.util.Map;
+import java.util.function.Supplier;
 
-import static io.quartic.weyl.core.utils.Utils.uuid;
 import static java.util.stream.Collectors.toMap;
 
 @Path("/geofence")
 @Consumes("application/json")
 public class GeofenceResource {
     private final GeofenceStore geofenceStore;
+    private final Supplier<String> idSupplier;
 
-    public GeofenceResource(GeofenceStore geofenceStore) {
+    public GeofenceResource(GeofenceStore geofenceStore, Supplier<String> idSupplier) {
         this.geofenceStore = geofenceStore;
+        this.idSupplier = idSupplier;
     }
 
     @PUT
@@ -29,7 +31,7 @@ public class GeofenceResource {
                 .toArray(Polygon[]::new);
 
         MultiPolygon multiPolygon = new GeometryFactory().createMultiPolygon(polygons);
-        geofenceStore.setGeofence(Geofence.of(uuid(GeofenceId::of), geofenceRequest.type(),  multiPolygon));
+        geofenceStore.setGeofence(Geofence.of(GeofenceId.of(idSupplier.get()), geofenceRequest.type(),  multiPolygon));
     }
 
     @GET

@@ -3,6 +3,7 @@ package io.quartic.weyl.core.feed;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerStoreListener;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.LayerId;
@@ -10,17 +11,22 @@ import io.quartic.weyl.core.model.LayerId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FeedStore implements LiveLayerStoreListener {
     public static final FeedIcon FEED_ICON = FeedIcon.of("blue twitter");   // TODO: don't hardcode this
     public static final String FEED_EVENT_KEY = "feedEvent";
+    public static final SequenceId INITIAL_SEQUENCE_ID = SequenceId.of(0);
     private final ObjectMapper mapper;
     private final List<ElaboratedFeedEvent> events = Lists.newArrayList();
-    private int nextSequenceId = 0;
+    private int nextSequenceId = INITIAL_SEQUENCE_ID.id();
+    private final Supplier<String> idSupplier;
 
-    public FeedStore(ObjectMapper mapper) {
+    public FeedStore(LiveLayerStore liveLayerStore, ObjectMapper mapper, Supplier<String> idSupplier) {
         this.mapper = mapper;
+        this.idSupplier = idSupplier;
+        liveLayerStore.addListener(this);
     }
 
     @Override
@@ -29,7 +35,7 @@ public class FeedStore implements LiveLayerStoreListener {
                 .getOrDefault(FEED_EVENT_KEY, Optional.empty())
                 .ifPresent(raw -> {
                     FeedEvent event = convertOrThrow(raw);
-                    events.add(ElaboratedFeedEvent.of(event, layerId, feature.id(), FEED_ICON));
+                    events.add(ElaboratedFeedEvent.of(FeedEventId.of(idSupplier.get()), event, layerId, feature.id(), FEED_ICON));
                     nextSequenceId++;
                 });
     }

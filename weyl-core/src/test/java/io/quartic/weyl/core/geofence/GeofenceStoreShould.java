@@ -8,7 +8,7 @@ import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import org.junit.Test;
 
-import static io.quartic.weyl.core.utils.Utils.uuid;
+import static io.quartic.weyl.core.utils.Utils.idSupplier;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -91,7 +91,7 @@ public class GeofenceStoreShould {
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofence(Geofence.of(uuid(GeofenceId::of), type, fenceGeometry));
+        store.setGeofence(Geofence.of(GeofenceId.of(idSupplier().get()), type, fenceGeometry));
     }
 
     private void updatePoint(boolean containsResult) {

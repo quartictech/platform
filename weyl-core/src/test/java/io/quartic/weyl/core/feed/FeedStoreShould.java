@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
@@ -19,7 +20,7 @@ import java.util.Optional;
 
 import static io.quartic.weyl.core.feed.FeedStore.FEED_EVENT_KEY;
 import static io.quartic.weyl.core.feed.FeedStore.FEED_ICON;
-import static io.quartic.weyl.core.utils.Utils.uuid;
+import static io.quartic.weyl.core.utils.Utils.idSupplier;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -28,10 +29,8 @@ public class FeedStoreShould {
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new Jdk8Module())
             .registerModule(new JavaTimeModule());
-    private final FeedStore store = new FeedStore(mapper);
+    private final FeedStore store = new FeedStore(mock(LiveLayerStore.class), mapper, () -> "xyz");
     private final LayerId layerId = LayerId.of("abcd");
-
-
 
     @Test
     public void accept_features_with_events() throws Exception {
@@ -133,7 +132,7 @@ public class FeedStoreShould {
 
     private AbstractFeature feature(Map<String, Optional<Object>> properties) {
         return Feature.of(
-                uuid(FeatureId::of),
+                FeatureId.of(idSupplier().get()),
                 mock(Geometry.class),
                 properties);
     }
@@ -148,6 +147,7 @@ public class FeedStoreShould {
 
     private ElaboratedFeedEvent elaborate(AbstractFeature feature, LayerId layerId) {
         return ElaboratedFeedEvent.of(
+                FeedEventId.of("xyz"),
                 mapper.convertValue(feature.metadata().get(FEED_EVENT_KEY).get(), FeedEvent.class),
                 layerId,
                 feature.id(),

@@ -143,6 +143,31 @@ function* pollForLiveLayerData() {
   }
 }
 
+// TODO: this needs to be synchronized with live-layer polling
+function* pollForFeedEvents() {
+  // Initialise the sequence ID
+  const results = yield call(request,
+    `${apiRoot}/feed/nextSequenceId`,
+    { method: "GET" }
+  );
+  if (!results.err) {
+    yield put(actions.feedUpdate(results.data, []));
+  }
+
+  while (true) {
+    yield call(delay, 1000);
+
+    const feedInfo = yield select(selectors.selectFeedPollInfo());
+    const results = yield call(request,
+      `${apiRoot}/feed?layerIds=${feedInfo.layerIds.join(",")}&since=${feedInfo.nextSequenceId}`,
+      { method: "GET" }
+    );
+    if (!results.err) {
+      yield put(actions.feedUpdate(results.data.nextSequenceId, results.data.events));
+    }
+  }
+}
+
 // ////////////////////////
 
 function watch(action, generator) {
@@ -162,6 +187,7 @@ function prepare(generator) {
 export default [
   prepare(pollForNotifications),
   prepare(pollForLiveLayerData),
+  prepare(pollForFeedEvents),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),

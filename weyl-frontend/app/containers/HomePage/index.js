@@ -71,7 +71,9 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             selection={this.props.selectionFeatures}
             onClearSelection={this.props.onClearSelection}
           />
-          <FeedPane />
+          <FeedPane
+            feed={this.props.feed}
+          />
         </div>
 
         <div className={styles.bottomDrawer}>
@@ -138,6 +140,7 @@ const mapStateToProps = createStructuredSelector({
   numericAttributes: selectors.selectNumericAttributes(),
   map: selectors.selectMap(),
   geofence: selectors.selectGeofence(),
+  feed: selectors.selectFeed(),
 });
 
 // Wrap the component to inject dispatch and state into it

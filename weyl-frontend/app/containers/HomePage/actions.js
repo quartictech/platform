@@ -179,3 +179,9 @@ export function notificationsUpdate(notifications) {
     notifications,
   };
 }
+
+export const feedUpdate = (nextSequenceId, events) => ({
+  type: constants.FEED_UPDATE,
+  nextSequenceId,
+  events,
+});

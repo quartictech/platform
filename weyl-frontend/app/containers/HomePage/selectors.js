@@ -69,3 +69,14 @@ export const selectNotifications = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("notifications").toJS(),
 );
+
+export const selectFeed = () => createSelector(
+  selectHome(),
+  (home) => home.get("feed").toJS(),
+)
+
+export const selectFeedPollInfo = () => createSelector(
+  selectFeed(),
+  selectLiveLayerIds(),
+  (feed, layerIds) => ({ ...feed, layerIds }),
+);

@@ -15,17 +15,19 @@ export const LAYER_CREATE = "weyl/Home/LAYER_CREATE";
 export const LAYER_TOGGLE_VISIBLE = "weyl/Home/LAYER_TOGGLE_VISIBLE";
 export const LAYER_CLOSE = "weyl/Home/LAYER_CLOSE";
 export const LAYER_SET_STYLE = "weyl/Home/LAYER_SET_STYLE";
-export const LAYER_TOGGLE_VALUE_VISIBLE = "weyl/home/LAYER_TOGGLE_VALUE_VISIBLE";
+export const LAYER_TOGGLE_VALUE_VISIBLE = "weyl/Home/LAYER_TOGGLE_VALUE_VISIBLE";
 export const LAYER_SET_DATA = "weyl/Home/LAYER_SET_DATA";
 
-export const MAP_LOADING = "weyl/home/MAP_LOADING";
-export const MAP_LOADED = "weyl/home/MAP_LOADED";
-export const MAP_MOUSE_MOVE = "weyl/home/MAP_MOUSE_MOVE";
+export const MAP_LOADING = "weyl/Home/MAP_LOADING";
+export const MAP_LOADED = "weyl/Home/MAP_LOADED";
+export const MAP_MOUSE_MOVE = "weyl/Home/MAP_MOUSE_MOVE";
 
-export const GEOFENCE_EDIT_START = "weyl/home/GEOFENCE_EDIT_START";
-export const GEOFENCE_EDIT_FINISH = "weyl/home/GEOFENCE_EDIT_FINISH";
-export const GEOFENCE_EDIT_CHANGE = "weyl/home/GEOFENCE_EDIT_CHANGE";
-export const GEOFENCE_SAVE_DONE = "weyl/home/GEOFENCE_SAVE_DONE";
-export const GEOFENCE_CHANGE_TYPE = "weyl/home/GEOFENCE_CHANGE_TYPE";
+export const GEOFENCE_EDIT_START = "weyl/Home/GEOFENCE_EDIT_START";
+export const GEOFENCE_EDIT_FINISH = "weyl/Home/GEOFENCE_EDIT_FINISH";
+export const GEOFENCE_EDIT_CHANGE = "weyl/Home/GEOFENCE_EDIT_CHANGE";
+export const GEOFENCE_SAVE_DONE = "weyl/Home/GEOFENCE_SAVE_DONE";
+export const GEOFENCE_CHANGE_TYPE = "weyl/Home/GEOFENCE_CHANGE_TYPE";
 
-export const NOTIFICATIONS_UPDATE = "weyl/home/NOTIFICATIONS_UPDATE";
+export const NOTIFICATIONS_UPDATE = "weyl/Home/NOTIFICATIONS_UPDATE";
+
+export const FEED_UPDATE = "weyl/Home/FEED_UPDATE";

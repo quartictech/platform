@@ -31,6 +31,10 @@ const initialState = fromJS({
     geojson: null,
     type: "INCLUDE",
   },
+  feed: {
+    nextSequenceId: null, // TODO: eliminate this once we have websockets
+    events: [],
+  },
   notifications: {},
 });
 
@@ -89,7 +93,6 @@ const layerReducer = (layerState, action) => {
         return set.add(action.value);
       });
     case constants.LAYER_SET_DATA:
-      console.log(action.data);
       return layerState.set("data", action.data);
     default:
       return layerState;
@@ -123,6 +126,17 @@ const geofenceReducer = (geofenceState, action) => {
       return geofenceState;
   }
 };
+
+const feedReducer = (feedState, action) => {
+  switch (action.type) {
+    case constants.FEED_UPDATE:
+      return feedState
+        .set("nextSequenceId", action.nextSequenceId)
+        .update("events", events => events.push(...action.events));
+    default:
+      return feedState;
+  }
+}
 
 function homeReducer(state = initialState, action) {
   switch (action.type) {
@@ -190,6 +204,9 @@ function homeReducer(state = initialState, action) {
 
     case constants.NOTIFICATIONS_UPDATE:
       return state.set("notifications", fromJS(action.notifications));
+
+    case constants.FEED_UPDATE:
+      return state.update("feed", feedState => feedReducer(feedState, action));
 
     default:
       return state;
