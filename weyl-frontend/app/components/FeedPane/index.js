@@ -8,9 +8,8 @@ const FeedEvent = ({ event }) => (
       <i className={`circular ${event.icon} icon`}></i>
     </div>
     <div className="content">
-    <div className="date">{moment.unix(event.timestamp).fromNow()}</div>
       <div className="summary">
-        <a className="user">{event.user}</a>
+        <a className="user">{event.user}</a> <div className="date">{moment.unix(event.timestamp).fromNow()}</div>
       </div>
       <div className="extra text">{event.body}</div>
     </div>

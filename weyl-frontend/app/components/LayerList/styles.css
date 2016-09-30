@@ -13,20 +13,20 @@
   padding-top: 10px;
 }
 
-a {
+.layerListItem a {
   color: black;
   opacity: 0.6;
 }
 
-a:hover {
+.layerListItem a:hover {
   color: black;
   opacity: 1;
 }
 
-a.active {
+.layerListItem a.active {
   color: red;
 }
 
-a.enabled {
+.layerListItem a.enabled {
   color: blue;
 }
