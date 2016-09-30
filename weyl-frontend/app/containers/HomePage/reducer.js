@@ -89,6 +89,7 @@ const layerReducer = (layerState, action) => {
         return set.add(action.value);
       });
     case constants.LAYER_SET_DATA:
+      console.log(action.data);
       return layerState.set("data", action.data);
     default:
       return layerState;

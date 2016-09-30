@@ -1,5 +1,6 @@
 package io.quartic.weyl;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.java8.Java8Bundle;
@@ -7,7 +8,6 @@ import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.geofence.GeofenceState;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.resource.GeofenceResource;
@@ -49,6 +49,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     @Override
     public void run(WeylConfiguration configuration, Environment environment) throws Exception {
+        environment.getObjectMapper().registerModule(new JavaTimeModule());
+
         configureCORS(environment);
         final DBIFactory factory = new DBIFactory();
         final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");

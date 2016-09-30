@@ -25,7 +25,7 @@ function FeedPane() {
               <div className="content">
               <div className="date">1 hour ago</div>
                 <div className="summary">
-                  <a className="user">Oliver Charlesworth</a> spunked in your face
+                  <a className="user">Oliver Charlesworth</a> tweeted
                 </div>
 
                 <div className="extra text">
