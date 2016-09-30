@@ -1,4 +1,4 @@
-const themes = {
+export const themes = {
   light: {
     next: "dark",
     label: "Light",
@@ -17,8 +17,4 @@ const themes = {
     icon: "rocket",
     mapbox: "mapbox://styles/mapbox/satellite-streets-v9",
   },
-};
-
-export {
-  themes,
 };
