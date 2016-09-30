@@ -74,7 +74,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
     }
 
     @Override
-    public synchronized void liveLayerEvent(LayerId layerId, AbstractFeature feature) {
+    public synchronized void onLiveLayerEvent(LayerId layerId, AbstractFeature feature) {
         final Set<GeofenceState> states = geofences.stream()
                 .map(geofence -> getState(geofence, feature))
                 .collect(Collectors.toSet());

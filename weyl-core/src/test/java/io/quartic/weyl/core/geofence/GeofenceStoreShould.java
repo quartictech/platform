@@ -97,6 +97,6 @@ public class GeofenceStoreShould {
     private void updatePoint(boolean containsResult) {
         Geometry point = mock(Geometry.class);
         when(fenceGeometry.contains(point)).thenReturn(containsResult);
-        store.liveLayerEvent(LayerId.of("abc"), Feature.of(FeatureId.of("123"), point, ImmutableMap.of()));
+        store.onLiveLayerEvent(LayerId.of("abc"), Feature.of(FeatureId.of("123"), point, ImmutableMap.of()));
     }
 }

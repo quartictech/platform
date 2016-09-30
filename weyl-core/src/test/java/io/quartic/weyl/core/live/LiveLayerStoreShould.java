@@ -136,8 +136,8 @@ public class LiveLayerStoreShould {
 
         final io.quartic.weyl.core.model.Feature feature
                 = io.quartic.weyl.core.model.Feature.of(FeatureId.of("a"), Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
-        verify(listenerA).liveLayerEvent(id, feature);
-        verify(listenerB).liveLayerEvent(id, feature);
+        verify(listenerA).onLiveLayerEvent(id, feature);
+        verify(listenerB).onLiveLayerEvent(id, feature);
     }
 
     private LayerId createLayer() {

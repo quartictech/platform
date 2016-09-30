@@ -99,6 +99,6 @@ public class LiveLayerStore {
     }
 
     private void notifyListeners(LayerId layerId, AbstractFeature feature) {
-        listeners.forEach(listener -> listener.liveLayerEvent(layerId, feature));
+        listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, feature));
     }
 }

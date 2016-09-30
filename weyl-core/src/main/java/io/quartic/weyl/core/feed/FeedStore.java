@@ -1,36 +1,39 @@
 package io.quartic.weyl.core.feed;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.live.LiveLayerStoreListener;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.LayerId;
-import org.immutables.value.Value;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FeedStore {
-    @SweetStyle
-    @Value.Immutable
-    interface AbstractEventWithLayer {
-        LayerId layerId();
-        AbstractFeedEvent event();
-    }
-
-    private final List<EventWithLayer> events = Lists.newArrayList();
+public class FeedStore implements LiveLayerStoreListener {
+    public static final FeedIcon FEED_ICON = FeedIcon.of("blue twitter");   // TODO: don't hardcode this
+    public static final String FEED_EVENT_KEY = "feedEvent";
+    private final List<ElaboratedFeedEvent> events = Lists.newArrayList();
     private int nextSequenceId = 0;
 
-    public synchronized void pushEvent(LayerId layerId, AbstractFeedEvent event) {
-        events.add(EventWithLayer.of(layerId, event));
-        nextSequenceId++;
+    @Override
+    public void onLiveLayerEvent(LayerId layerId, AbstractFeature feature) {
+        feature.metadata()
+                .getOrDefault(FEED_EVENT_KEY, Optional.empty())
+                .ifPresent(raw -> {
+                    Preconditions.checkArgument(raw instanceof AbstractFeedEvent, "Feed event is invalid");
+                    events.add(ElaboratedFeedEvent.of((AbstractFeedEvent)raw, layerId, feature.id(), FEED_ICON));
+                    nextSequenceId++;
+                });
     }
 
-    public synchronized List<AbstractFeedEvent> getEvents(Collection<LayerId> layerIds) {
+    public synchronized List<AbstractElaboratedFeedEvent> getEvents(Collection<LayerId> layerIds) {
         return getEventsSince(layerIds, SequenceId.of(0));
     }
 
-    public synchronized List<AbstractFeedEvent> getEventsSince(Collection<LayerId> layerIds, SequenceId sequenceId) {
+    public synchronized List<AbstractElaboratedFeedEvent> getEventsSince(Collection<LayerId> layerIds, SequenceId sequenceId) {
         if (sequenceId.id() > nextSequenceId) {
             return ImmutableList.of();
         }
@@ -38,7 +41,6 @@ public class FeedStore {
         return events.subList(sequenceId.id(), events.size())
                 .stream()
                 .filter(e -> layerIds.contains(e.layerId()))    // TODO: we need to make this more efficient
-                .map(EventWithLayer::event)
                 .collect(Collectors.toList());
     }
 
