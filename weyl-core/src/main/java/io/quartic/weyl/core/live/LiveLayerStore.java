@@ -23,7 +23,7 @@ public class LiveLayerStore {
     private final Map<LayerId, Layer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
 
-    public void createLayer(LayerId id, LayerMetadata metadata) {
+    public void createOrUpdateLayer(LayerId id, LayerMetadata metadata) {
         Collection<AbstractFeature> features
                 = layers.containsKey(id)
                 ? layers.get(id).features()

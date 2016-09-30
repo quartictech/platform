@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.feed;
 
-import com.google.common.base.Preconditions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.quartic.weyl.core.live.LiveLayerStoreListener;
@@ -15,18 +15,31 @@ import java.util.stream.Collectors;
 public class FeedStore implements LiveLayerStoreListener {
     public static final FeedIcon FEED_ICON = FeedIcon.of("blue twitter");   // TODO: don't hardcode this
     public static final String FEED_EVENT_KEY = "feedEvent";
+    private final ObjectMapper mapper;
     private final List<ElaboratedFeedEvent> events = Lists.newArrayList();
     private int nextSequenceId = 0;
+
+    public FeedStore(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
 
     @Override
     public void onLiveLayerEvent(LayerId layerId, AbstractFeature feature) {
         feature.metadata()
                 .getOrDefault(FEED_EVENT_KEY, Optional.empty())
                 .ifPresent(raw -> {
-                    Preconditions.checkArgument(raw instanceof AbstractFeedEvent, "Feed event is invalid");
-                    events.add(ElaboratedFeedEvent.of((AbstractFeedEvent)raw, layerId, feature.id(), FEED_ICON));
+                    FeedEvent event = convertOrThrow(raw);
+                    events.add(ElaboratedFeedEvent.of(event, layerId, feature.id(), FEED_ICON));
                     nextSequenceId++;
                 });
+    }
+
+    private FeedEvent convertOrThrow(Object raw) {
+        try {
+            return mapper.convertValue(raw, FeedEvent.class);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Event information invalid", e);
+        }
     }
 
     public synchronized List<AbstractElaboratedFeedEvent> getEvents(Collection<LayerId> layerIds) {
