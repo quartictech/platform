@@ -143,9 +143,7 @@ function* pollForLiveLayerData() {
   }
 }
 
-// TODO: this needs to be synchronized with live-layer polling
-function* pollForFeedEvents() {
-  // Initialise the sequence ID
+function* initFeedEvents() {
   const results = yield call(request,
     `${apiRoot}/feed/nextSequenceId`,
     { method: "GET" }
@@ -153,6 +151,11 @@ function* pollForFeedEvents() {
   if (!results.err) {
     yield put(actions.feedUpdate(results.data, []));
   }
+}
+
+// TODO: this needs to be synchronized with live-layer polling
+function* pollForFeedEvents() {
+  yield* initFeedEvents();
 
   while (true) {
     yield call(delay, 1000);

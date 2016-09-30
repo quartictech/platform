@@ -73,7 +73,7 @@ export const selectNotifications = () => createSelector(
 export const selectFeed = () => createSelector(
   selectHome(),
   (home) => home.get("feed").toJS(),
-)
+);
 
 export const selectFeedPollInfo = () => createSelector(
   selectFeed(),

@@ -136,7 +136,7 @@ const feedReducer = (feedState, action) => {
     default:
       return feedState;
   }
-}
+};
 
 function homeReducer(state = initialState, action) {
   switch (action.type) {
