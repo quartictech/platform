@@ -48,13 +48,8 @@ class LayerStyleSettings extends React.Component { // eslint-disable-line react/
 
   getNumericAttributes() {
     const attributeStats = this.props.layerAttributes;
-    const numericAttributes = [];
-    attributeStats.forEach(prop => {
-      if (attributeStats[prop].type === "NUMERIC") {
-        numericAttributes.push(prop);
-      }
-    });
-    return numericAttributes;
+    return Object.keys(attributeStats)
+      .filter(k => attributeStats[k].type === "NUMERIC");
   }
 
   renderAttributePicker(visible, numericAttributes) {
