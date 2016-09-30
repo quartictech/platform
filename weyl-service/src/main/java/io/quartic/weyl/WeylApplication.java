@@ -13,8 +13,6 @@ import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.resource.GeofenceResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.util.DataCache;
-import io.quartic.weyl.util.DiskBackedDataCache;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -56,7 +54,6 @@ public class WeylApplication extends Application<WeylConfiguration> {
         final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
         environment.jersey().setUrlPattern("/api/*");
-        DataCache cache = new DiskBackedDataCache("cache", 60 * 60 * 1000);
 
         LayerStore layerStore = new LayerStore(jdbi);
         LiveLayerStore liveLayerStore = new LiveLayerStore();
