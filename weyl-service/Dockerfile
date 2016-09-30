@@ -6,6 +6,5 @@ RUN apk --no-cache add bash
 ADD weyl-service.tar /
 
 WORKDIR /weyl-service
-RUN mkdir cache
 
 CMD ./bin/weyl-service server weyl.yml
