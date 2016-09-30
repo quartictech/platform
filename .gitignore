@@ -17,3 +17,5 @@ npm-debug.log
 # Config files
 weyl-frontend/weylConfig.js
 weyl-service/weyl.yml
+
+_detritus/
