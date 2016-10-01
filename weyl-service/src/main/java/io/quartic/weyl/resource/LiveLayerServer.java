@@ -77,7 +77,7 @@ public class LiveLayerServer {
             throw new RuntimeException("Already subscribed to layerId '" + layerId + "'");
         }
         LOG.info("[{}] Subscribe to {}", session.getId(), layerId);
-        subscriptions.put(layerId, liveLayerStore.subscribeView(layerId, featureCollection -> {
+        subscriptions.put(layerId, liveLayerStore.addSubscriber(layerId, featureCollection -> {
             final LiveLayerUpdate update = LiveLayerUpdate.of(layerId, featureCollection);
             try {
                 session.getAsyncRemote().sendText(objectMapper.writeValueAsString(update));
@@ -93,6 +93,6 @@ public class LiveLayerServer {
             throw new RuntimeException("Not subscribed to layerId '" + layerId + "'");
         }
         LOG.info("[{}] Unsubscribe from {}", session.getId(), layerId);
-        liveLayerStore.unsubscribeView(subscription);
+        liveLayerStore.removeSubscriber(subscription);
     }
 }

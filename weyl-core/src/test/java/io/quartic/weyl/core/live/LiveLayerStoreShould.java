@@ -29,8 +29,8 @@ public class LiveLayerStoreShould {
         LayerId id1 = LayerId.of("abc");
         LayerId id2 = LayerId.of("def");
 
-        store.createLayer(id1, lm1, LiveLayerViewType.LOCATION_AND_TRACK);
-        store.createLayer(id2, lm2, LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id1, lm1, Collection::stream);
+        store.createLayer(id2, lm2, Collection::stream);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -65,7 +65,7 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         Consumer<FeatureCollection> subscriber = mock(Consumer.class);
 
-        store.subscribeView(id, subscriber);
+        store.addSubscriber(id, subscriber);
         store.addToLayer(id, featureCollection(feature("a", point())));
 
         verify(subscriber).accept(
@@ -80,7 +80,7 @@ public class LiveLayerStoreShould {
         Consumer<FeatureCollection> subscriber = mock(Consumer.class);
 
         store.addToLayer(id, featureCollection(feature("a", point())));
-        store.subscribeView(id, subscriber);
+        store.addSubscriber(id, subscriber);
         store.addToLayer(id, featureCollection(feature("b", point())));
 
         verify(subscriber).accept(
@@ -94,7 +94,7 @@ public class LiveLayerStoreShould {
     public void update_metadata_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
         LayerMetadata newMetadata = LayerMetadata.of("cheese", "monkey");
-        store.createLayer(id, newMetadata, LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id, newMetadata, Collection::stream);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -107,7 +107,7 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         Consumer<FeatureCollection> subscriber = mock(Consumer.class);
 
-        store.subscribeView(id, subscriber);
+        store.addSubscriber(id, subscriber);
         store.addToLayer(id, featureCollection(feature("a", point())));
         createLayer();
 
@@ -136,8 +136,8 @@ public class LiveLayerStoreShould {
     public void not_notify_subscribers_after_unsubscribe() {
         Consumer<FeatureCollection> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
-        LiveLayerSubscription subscription = store.subscribeView(id, subscriber);
-        store.unsubscribeView(subscription);
+        LiveLayerSubscription subscription = store.addSubscriber(id, subscriber);
+        store.removeSubscriber(subscription);
 
         store.addToLayer(id, featureCollection(featureWithId("a", point())));
 
@@ -148,7 +148,7 @@ public class LiveLayerStoreShould {
     public void unsubscribe_after_subscriber_deleted() {
         Consumer<FeatureCollection> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
-        store.subscribeView(id, subscriber);
+        store.addSubscriber(id, subscriber);
         store.deleteLayer(id);
         createLayerWithId(id);
         store.addToLayer(id, featureCollection(featureWithId("a", point())));
@@ -157,7 +157,7 @@ public class LiveLayerStoreShould {
     }
 
     private void createLayerWithId(LayerId id) {
-        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id, LayerMetadata.of("foo", "bar"), Collection::stream);
     }
 
     private LayerId createLayer() {

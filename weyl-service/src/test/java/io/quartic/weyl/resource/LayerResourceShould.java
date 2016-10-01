@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.NotAcceptableException;
+import java.util.Collection;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
@@ -29,7 +30,7 @@ public class LayerResourceShould {
     @Before
     public void setUp() throws Exception {
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), LiveLayerViewType.LOCATION_AND_TRACK)
+                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), Collection::stream)
         ));
     }
 

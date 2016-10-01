@@ -10,5 +10,5 @@ import org.immutables.value.Value;
 public interface AbstractLiveLayer {
     LayerId layerId();
     Layer layer();
-    LiveLayerViewType viewType();
+    LiveLayerView view();
 }
