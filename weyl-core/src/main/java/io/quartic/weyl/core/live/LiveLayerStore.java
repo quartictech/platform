@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -82,7 +81,7 @@ public class LiveLayerStore {
         final Collection<FeedEvent> layerFeedEvents = layers.get(layerId).feedEvents();
 
         final Collection<io.quartic.weyl.core.model.Feature> newFeatures = events.stream()
-                .flatMap(event -> flatMapOptional(event.featureCollection(), fc -> fc.features().stream()))
+                .flatMap(event -> event.featureCollection().map(fc -> fc.features().stream()).orElse(Stream.empty()))
                 .map(f -> ImmutableFeature.of(
                         f.id().get(), // TODO - what if empty?  (Shouldn't be, because we validate in LayerResource)
                         Utils.toJts(f.geometry()),
@@ -94,8 +93,7 @@ public class LiveLayerStore {
 
         newFeatures.forEach(f -> notifyListeners(layerId, f));
         newFeatures.stream().collect(Collectors.toCollection(() -> layerFeatures));
-        log.debug("class = {}", layerFeedEvents.getClass());
-        events.stream().flatMap(event -> flatMapOptional(event.feedEvent(), Stream::of))
+        events.stream().flatMap(event -> event.feedEvent().map(Stream::of).orElse(Stream.empty()))
                 .forEach(layerFeedEvents::add);
 
         liveLayerSubscriptions.get(layerId)
@@ -116,15 +114,6 @@ public class LiveLayerStore {
                                 convertMetadata(f.id(),f.metadata())
                         ))
                 .collect(Collectors.toList()));
-    }
-
-    private static <T, R> Stream<R> flatMapOptional(Optional<T> optional, Function<T, Stream<R>> f) {
-        if (optional.isPresent()) {
-            return f.apply(optional.get());
-        }
-        else {
-            return Stream.empty();
-        }
     }
 
     private void checkLayerExists(LayerId layerId) {
