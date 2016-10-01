@@ -29,8 +29,8 @@ public class LiveLayerStoreShould {
         LayerId id1 = LayerId.of("abc");
         LayerId id2 = LayerId.of("def");
 
-        store.createLayer(id1, lm1);
-        store.createLayer(id2, lm2);
+        store.createLayer(id1, lm1, LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id2, lm2, LiveLayerViewType.LOCATION_AND_TRACK);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -104,7 +104,7 @@ public class LiveLayerStoreShould {
     public void update_metadata_if_create_called_before_delete() throws Exception {
         LayerId id = createLayer();
         LayerMetadata newMetadata = LayerMetadata.of("cheese", "monkey");
-        store.createLayer(id, newMetadata);
+        store.createLayer(id, newMetadata, LiveLayerViewType.LOCATION_AND_TRACK);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -142,7 +142,7 @@ public class LiveLayerStoreShould {
 
     private LayerId createLayer() {
         final LayerId id = LayerId.of("abc");
-        store.createLayer(id, LayerMetadata.of("foo", "bar"));
+        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
         return id;
     }
 

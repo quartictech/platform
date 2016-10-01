@@ -132,7 +132,7 @@ public class LayerResource {
     public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) {
         final LayerId layerId = LayerId.of(id);
 
-        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()));
+        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()), request.viewType());
 
         validateOrThrow(request.featureCollection(),
                 f -> !f.id().isPresent(),

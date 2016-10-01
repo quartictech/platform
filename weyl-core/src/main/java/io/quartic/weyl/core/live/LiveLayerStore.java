@@ -1,8 +1,7 @@
 package io.quartic.weyl.core.live;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
@@ -14,27 +13,32 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
 public class LiveLayerStore {
     private static final Logger log = LoggerFactory.getLogger(LiveLayerStore.class);
-    private final Map<LayerId, Layer> layers = Maps.newHashMap();
+    private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
+    private final Map<LayerId, LiveLayerViewType> defaultViews = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
+    private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = ArrayListMultimap.create();
 
-    public void createLayer(LayerId id, LayerMetadata metadata) {
+    public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerViewType viewType) {
         Collection<io.quartic.weyl.core.model.Feature> features
                 = layers.containsKey(id)
-                ? layers.get(id).features()
+                ? layers.get(id).layer().features()
                 : new FeatureCache();
 
-        layers.put(id, ImmutableRawLayer.builder()
+        Layer layer = ImmutableRawLayer.builder()
                 .metadata(metadata)
                 .schema(ImmutableAttributeSchema.builder().build())
                 .features(features)
-                .build()
-        );
+                .build();
+
+        layers.put(id, LiveLayer.of(id, layer, viewType));
     }
 
     public void deleteLayer(LayerId id) {
@@ -45,7 +49,7 @@ public class LiveLayerStore {
     public Collection<LiveLayer> listLayers() {
         return layers.entrySet()
                 .stream()
-                .map(e -> LiveLayer.of(e.getKey(), e.getValue()))
+                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 
@@ -53,7 +57,7 @@ public class LiveLayerStore {
         checkLayerExists(layerId);
 
         return FeatureCollection.of(
-                layers.get(layerId).features()
+                layers.get(layerId).layer().features()
                         .stream()
                         .map(f -> Feature.of(Optional.of(
                                 f.id()),
@@ -74,7 +78,7 @@ public class LiveLayerStore {
 
         // TODO: validate that all entries are of type Point
 
-        final Collection<io.quartic.weyl.core.model.Feature> target = layers.get(layerId).features();
+        final Collection<io.quartic.weyl.core.model.Feature> target = layers.get(layerId).layer().features();
         final Collection<io.quartic.weyl.core.model.Feature> newFeatures = features.features()
                 .stream()
                 .map(f -> ImmutableFeature.of(
@@ -88,6 +92,20 @@ public class LiveLayerStore {
 
         newFeatures.forEach(f -> notifyListeners(layerId, f));
         newFeatures.stream().collect(Collectors.toCollection(() -> target));
+
+        liveLayerSubscriptions.get(layerId)
+                .forEach(subscription -> {
+                    Stream<io.quartic.weyl.core.model.Feature> featureStream = subscription.liveLayerView().compute(layers.get(layerId).layer().features());
+                    FeatureCollection featureCollection = FeatureCollection.of(
+                        featureStream
+                                .map(f -> Feature.of(Optional.of(
+                                        f.id()),
+                                        Utils.fromJts(f.geometry()),
+                                        convertMetadata(f.id(), f.metadata())
+                                ))
+                                .collect(Collectors.toList()));
+                    subscription.subscriber().accept(featureCollection);
+                });
     }
 
     private void checkLayerExists(LayerId layerId) {
@@ -100,5 +118,11 @@ public class LiveLayerStore {
 
     private void notifyListeners(LayerId layerId, io.quartic.weyl.core.model.Feature feature) {
         listeners.forEach(listener -> listener.liveLayerEvent(layerId, feature));
+    }
+
+    public synchronized void subscribeView(LayerId layerId, Consumer<FeatureCollection> subscriber) {
+        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
+
+        liveLayerSubscriptions.put(layerId, LiveLayerSubscription.of(layerId, layers.get(layerId).viewType().getLiveLayerView(), subscriber));
     }
 }
