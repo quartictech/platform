@@ -12,13 +12,11 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static io.quartic.weyl.core.geojson.Utils.lineStringFrom;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
     private final LiveLayerStore store = new LiveLayerStore();
@@ -63,47 +61,37 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void return_features_added_to_layer() throws Exception {
+    public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+
+        store.subscribeView(id, subscriber);
         store.addToLayer(id, featureCollection(feature("a", point())));
 
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
+        verify(subscriber).accept(
+                featureCollection(
                         featureWithId("a", point())
-                ))
-        );
+                ));
     }
 
     @Test
-    public void return_extra_features_added_to_layer() throws Exception {
+    public void notify_subscribers_of_extra_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+
         store.addToLayer(id, featureCollection(feature("a", point())));
+        store.subscribeView(id, subscriber);
         store.addToLayer(id, featureCollection(feature("b", point())));
 
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
+        verify(subscriber).accept(
+                featureCollection(
                         featureWithId("a", point()),
                         featureWithId("b", point())
-                ))
-        );
+                ));
     }
 
     @Test
-    public void return_newest_feature_and_history_for_particular_id() throws Exception {
-        LayerId id = createLayer();
-        store.addToLayer(id, featureCollection(feature("a", point(1.0, 2.0))));
-        store.addToLayer(id, featureCollection(feature("a", point(3.0, 4.0))));
-
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
-                        featureWithId("a", point(3.0, 4.0)),
-                        featureWithId("a", lineStringFrom(point(1.0, 2.0), point(3.0, 4.0)))
-                ))
-        );
-    }
-
-    @Test
-    public void update_metadata_if_create_called_before_delete() throws Exception {
+    public void update_metadata_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
         LayerMetadata newMetadata = LayerMetadata.of("cheese", "monkey");
         store.createLayer(id, newMetadata, LiveLayerViewType.LOCATION_AND_TRACK);
@@ -115,16 +103,18 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void not_delete_layer_contents_if_create_called_before_delete() throws Exception {
+    public void not_delete_layer_contents_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+
+        store.subscribeView(id, subscriber);
         store.addToLayer(id, featureCollection(feature("a", point())));
         createLayer();
 
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
+        verify(subscriber).accept(
+                featureCollection(
                         featureWithId("a", point())
-                ))
-        );
+                ));
     }
 
     @Test
@@ -143,24 +133,15 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void notify_subscribers_on_change() {
-        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
-        LayerId id = createLayer();
-        store.subscribeView(id, subscriber);
-        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
-        store.addToLayer(id, featureCollection);
-        verify(subscriber).accept(featureCollection);
-    }
-
-    @Test
     public void not_notify_subscribers_after_unsubscribe() {
         Consumer<FeatureCollection> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
         LiveLayerSubscription subscription = store.subscribeView(id, subscriber);
         store.unsubscribeView(subscription);
-        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
-        store.addToLayer(id, featureCollection);
-        verify(subscriber, never()).accept(featureCollection);
+
+        store.addToLayer(id, featureCollection(featureWithId("a", point())));
+
+        verifyZeroInteractions(subscriber);
     }
 
     @Test
@@ -170,9 +151,9 @@ public class LiveLayerStoreShould {
         store.subscribeView(id, subscriber);
         store.deleteLayer(id);
         createLayerWithId(id);
-        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
-        store.addToLayer(id, featureCollection);
-        verify(subscriber, never()).accept(featureCollection);
+        store.addToLayer(id, featureCollection(featureWithId("a", point())));
+
+        verifyZeroInteractions(subscriber);
     }
 
     private void createLayerWithId(LayerId id) {

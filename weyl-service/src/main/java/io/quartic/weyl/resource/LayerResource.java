@@ -119,13 +119,6 @@ public class LayerResource {
         liveLayerStore.deleteLayer(LayerId.of(id));
     }
 
-    @GET
-    @Path("/live/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public FeatureCollection getLiveFeatures(@PathParam("id") String id) {
-        return liveLayerStore.getFeaturesForLayer(LayerId.of(id));
-    }
-
     @POST
     @Path("/live/{id}")
     @Consumes(MediaType.APPLICATION_JSON)

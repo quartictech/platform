@@ -53,20 +53,6 @@ public class LiveLayerStore {
                 .collect(Collectors.toList());
     }
 
-    public FeatureCollection getFeaturesForLayer(LayerId layerId) {
-        checkLayerExists(layerId);
-
-        LiveLayer liveLayer = layers.get(layerId);
-        return FeatureCollection.of(
-                liveLayer.viewType().getLiveLayerView().compute(liveLayer.layer().features())
-                        .map(f -> Feature.of(Optional.of(
-                                f.id()),
-                                Utils.fromJts(f.geometry()),
-                                convertMetadata(f.id(), f.metadata())
-                        ))
-                        .collect(Collectors.toList()));
-    }
-
     private Map<String, Object> convertMetadata(String id, Map<String, Optional<Object>> metadata) {
         final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
         output.put("_id", id);
