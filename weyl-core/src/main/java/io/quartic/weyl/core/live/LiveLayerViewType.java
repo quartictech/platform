@@ -1,14 +1,15 @@
 package io.quartic.weyl.core.live;
 
 public enum LiveLayerViewType {
-    LOCATION_AND_TRACK;
+    LOCATION_AND_TRACK(new LastKnownLocationAndTrackView());
+
+    private final LiveLayerView view;
+
+    LiveLayerViewType(LiveLayerView view) {
+        this.view = view;
+    }
 
     LiveLayerView getLiveLayerView() {
-        switch (this) {
-            case LOCATION_AND_TRACK:
-                return new LastKnownLocationAndTrackView();
-            default:
-                throw new IllegalArgumentException("unconfigured live layer view type " + toString());
-        }
+        return view;
     }
 }

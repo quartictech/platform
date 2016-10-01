@@ -43,6 +43,7 @@ public class LiveLayerStore {
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
         layers.remove(id);
+        liveLayerSubscriptions.removeAll(id);
     }
 
     public Collection<LiveLayer> listLayers() {
@@ -120,7 +121,7 @@ public class LiveLayerStore {
     }
 
     public synchronized LiveLayerSubscription subscribeView(LayerId layerId, Consumer<FeatureCollection> subscriber) {
-        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
+        checkLayerExists(layerId);
         LiveLayerSubscription subscription = LiveLayerSubscription.of(layerId, layers.get(layerId).viewType().getLiveLayerView(), subscriber);
         liveLayerSubscriptions.put(layerId, subscription);
         return subscription;
