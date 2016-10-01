@@ -5,11 +5,9 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.live.*;
-import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.LayerId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import javax.ws.rs.NotFoundException;
 import java.io.IOException;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Metered
 @Timed
@@ -46,8 +41,6 @@ public class LiveLayerServer {
                 }
             }
         );
-
-        session.getAsyncRemote().sendText("welcome");
     }
 
     @OnMessage
