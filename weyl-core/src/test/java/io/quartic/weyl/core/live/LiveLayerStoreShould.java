@@ -10,12 +10,14 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static io.quartic.weyl.core.geojson.Utils.lineStringFrom;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class LiveLayerStoreShould {
@@ -140,9 +142,46 @@ public class LiveLayerStoreShould {
         verify(listenerB).liveLayerEvent(id, feature);
     }
 
+    @Test
+    public void notify_subscribers_on_change() {
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        LayerId id = createLayer();
+        store.subscribeView(id, subscriber);
+        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
+        store.addToLayer(id, featureCollection);
+        verify(subscriber).accept(featureCollection);
+    }
+
+    @Test
+    public void not_notify_subscribers_after_unsubscribe() {
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        LayerId id = createLayer();
+        LiveLayerSubscription subscription = store.subscribeView(id, subscriber);
+        store.unsubscribeView(subscription);
+        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
+        store.addToLayer(id, featureCollection);
+        verify(subscriber, never()).accept(featureCollection);
+    }
+
+    @Test
+    public void unsubscribe_after_subscriber_deleted() {
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        LayerId id = createLayer();
+        store.subscribeView(id, subscriber);
+        store.deleteLayer(id);
+        createLayerWithId(id);
+        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
+        store.addToLayer(id, featureCollection);
+        verify(subscriber, never()).accept(featureCollection);
+    }
+
+    private void createLayerWithId(LayerId id) {
+        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
+    }
+
     private LayerId createLayer() {
         final LayerId id = LayerId.of("abc");
-        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
+        createLayerWithId(id);
         return id;
     }
 
