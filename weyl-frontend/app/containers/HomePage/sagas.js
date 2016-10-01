@@ -127,10 +127,10 @@ function* pollForNotifications() {
 
 function createSocketChannel(socket) {
   return eventChannel(emit => {
-    socket.onmessage = (event) => emit(JSON.parse(event.data));
+    socket.onmessage = (event) => emit(JSON.parse(event.data)); // eslint-disable-line no-param-reassign
     return () => socket.close();
   });
-};
+}
 
 function* handleLayerUpdates(socket) {
   const chan = yield call(createSocketChannel, socket);
@@ -146,7 +146,7 @@ function* handleLayerUpdates(socket) {
 }
 
 function reportLayerSubscriptionChange(socket, type, layerId) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     socket.send(JSON.stringify({ type, layerId }));
     resolve();
   });
@@ -168,13 +168,15 @@ function* reportLayerSubscriptionChanges(socket) {
         }
         break;
       }
+      default:
+        break;  // Should never get here
     }
   }
 }
 
 function* handleSocketStuff() {
   // TODO: should be yielded?
-  const socket = new WebSocket(`ws://localhost:8080/live-ws`);
+  const socket = new WebSocket("ws://localhost:8080/live-ws");
   // TODO: error handling
 
   yield [
