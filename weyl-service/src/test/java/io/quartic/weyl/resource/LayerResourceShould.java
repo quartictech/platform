@@ -8,6 +8,7 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.live.LiveLayerViewType;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.request.LayerUpdateRequest;
@@ -28,7 +29,7 @@ public class LayerResourceShould {
     @Before
     public void setUp() throws Exception {
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("abc"), mock(Layer.class))
+                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), LiveLayerViewType.LOCATION_AND_TRACK)
         ));
     }
 
@@ -89,6 +90,6 @@ public class LayerResourceShould {
     }
 
     private LayerUpdateRequest createRequest(FeatureCollection collection) {
-        return LayerUpdateRequest.of("foo", "bar", collection);
+        return LayerUpdateRequest.of("foo", "bar", collection, LiveLayerViewType.LOCATION_AND_TRACK);
     }
 }
