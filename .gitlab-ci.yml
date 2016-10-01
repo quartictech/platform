@@ -15,4 +15,5 @@ build:
   image: quartic/uber-builder
   script:
     - cp weyl-frontend/weylConfig.js.example weyl-frontend/weylConfig.js
+    - npm set progress=false
     - ./gradlew docker
