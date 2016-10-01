@@ -31,6 +31,7 @@ const initialState = fromJS({
     geojson: null,
     type: "INCLUDE",
   },
+  notifications: {},
 });
 
 const colorScale = "PuRd";
@@ -68,7 +69,10 @@ const layerReducer = (layerState, action) => {
         stats: action.stats,
         attributeSchema: action.attributeSchema,
         live: action.live,
-        data: {},   // Only relevant in the case of live layers
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },   // Only relevant in the case of live layers
         filter: {},
       });
     case constants.LAYER_TOGGLE_VISIBLE:
@@ -84,6 +88,8 @@ const layerReducer = (layerState, action) => {
         }
         return set.add(action.value);
       });
+    case constants.LAYER_SET_DATA:
+      return layerState.set("data", action.data);
     default:
       return layerState;
   }
@@ -129,6 +135,7 @@ function homeReducer(state = initialState, action) {
     case constants.LAYER_CLOSE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
+    case constants.LAYER_SET_DATA:
       return state.updateIn(["layers"], arr => {
         const idx = arr.findKey(layer => layer.get("id") === action.layerId);
         const val = arr.get(idx);
@@ -179,6 +186,9 @@ function homeReducer(state = initialState, action) {
     case constants.GEOFENCE_SAVE_DONE:
     case constants.GEOFENCE_CHANGE_TYPE:
       return state.update("geofence", geofenceState => geofenceReducer(geofenceState, action));
+
+    case constants.NOTIFICATIONS_UPDATE:
+      return state.set("notifications", fromJS(action.notifications));
 
     default:
       return state;

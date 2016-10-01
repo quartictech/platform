@@ -16,6 +16,7 @@ export const LAYER_TOGGLE_VISIBLE = "weyl/Home/LAYER_TOGGLE_VISIBLE";
 export const LAYER_CLOSE = "weyl/Home/LAYER_CLOSE";
 export const LAYER_SET_STYLE = "weyl/Home/LAYER_SET_STYLE";
 export const LAYER_TOGGLE_VALUE_VISIBLE = "weyl/home/LAYER_TOGGLE_VALUE_VISIBLE";
+export const LAYER_SET_DATA = "weyl/Home/LAYER_SET_DATA";
 
 export const MAP_LOADING = "weyl/home/MAP_LOADING";
 export const MAP_LOADED = "weyl/home/MAP_LOADED";
@@ -26,3 +27,5 @@ export const GEOFENCE_EDIT_FINISH = "weyl/home/GEOFENCE_EDIT_FINISH";
 export const GEOFENCE_EDIT_CHANGE = "weyl/home/GEOFENCE_EDIT_CHANGE";
 export const GEOFENCE_SAVE_DONE = "weyl/home/GEOFENCE_SAVE_DONE";
 export const GEOFENCE_CHANGE_TYPE = "weyl/home/GEOFENCE_CHANGE_TYPE";
+
+export const NOTIFICATIONS_UPDATE = "weyl/home/NOTIFICATIONS_UPDATE";

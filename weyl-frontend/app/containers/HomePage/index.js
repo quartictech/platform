@@ -117,7 +117,7 @@ const mapDispatchToProps = {
   onClearSelection: actions.clearSelection,
   onChartLayerSelection: actions.loadNumericAttributes,
   onChartAttributeSelection: actions.chartSelectAttribute,
-  onLayerStyleChange: actions.setLayerStyle,
+  onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,

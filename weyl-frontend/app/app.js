@@ -21,8 +21,6 @@ import { syncHistoryWithStore } from "react-router-redux";
 import useScroll from "react-router-scroll";
 import LanguageProvider from "containers/LanguageProvider";
 import configureStore from "./store";
-import { apiRoot } from "../weylConfig.js";
-const $ = require("jquery");
 
 // Import i18n messages
 import { translationMessages } from "./i18n";
@@ -56,37 +54,6 @@ const rootRoute = {
   component: App,
   childRoutes: createRoutes(store),
 };
-
-// TODO: this is super-hacky, and definitely shouldn't live here!
-const oldViolations = {};
-const requestViolations = (handler) => {
-  $.getJSON(`${apiRoot}/geofence/violations`, (data) => {
-    Object.keys(data)
-      .filter(k => !(k in oldViolations))
-      .forEach(k => handler(k, data[k]));
-  });
-};
-const setupViolationNotifications = () => {
-  Notification.requestPermission().then(result => {
-    console.log("requestPermission result:");
-    console.log(result);
-  });
-
-  requestViolations((k, v) => (oldViolations[k] = v)); // Seed things
-
-  window.setInterval(() => {
-    requestViolations((k, v) => {
-      oldViolations[k] = v;
-      const n = new Notification("Geofence violation", {
-        body: v.message,
-        tag: k,
-      });
-      setTimeout(n.close.bind(n), 5000);
-    });
-  }, 2000);
-};
-setupViolationNotifications();
-
 
 const render = (translatedMessages) => {
   ReactDOM.render(

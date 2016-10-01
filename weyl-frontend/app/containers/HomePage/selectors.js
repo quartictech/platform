@@ -7,22 +7,22 @@ import { createSelector } from "reselect";
 
 const selectHome = () => (state) => state.get("home");
 
-const selectLayers = () => createSelector(
+export const selectLayers = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("layers").toJS()
 );
 
-const selectUi = () => createSelector(
+export const selectUi = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("ui").toJS()
 );
 
-const selectSelectionIds = () => createSelector(
+export const selectSelectionIds = () => createSelector(
   selectHome(),
   (homeState) => homeState.getIn(["selection", "ids"]).toJS()
 );
 
-const selectSelectionFeatures = () => createSelector(
+export const selectSelectionFeatures = () => createSelector(
   selectHome(),
   (homeState) => {
     const features = homeState.getIn(["selection", "features"]).toJS();
@@ -40,12 +40,19 @@ const selectSelectionFeatures = () => createSelector(
   }
 );
 
-const selectNumericAttributes = () => createSelector(
+export const selectLiveLayerIds = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("layers").toJS()
+    .filter(layer => layer.live)
+    .map(layer => layer.id)
+);
+
+export const selectNumericAttributes = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("numericAttributes").toJS()
 );
 
-const selectMap = () => createSelector(
+export const selectMap = () => createSelector(
   selectHome(),
   (homeState) => ({
     ...(homeState.get("map").toJS()),
@@ -53,17 +60,12 @@ const selectMap = () => createSelector(
   })
 );
 
-const selectGeofence = () => createSelector(
+export const selectGeofence = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("geofence").toJS(),
 );
 
-export {
-  selectLayers,
-  selectUi,
-  selectSelectionIds,
-  selectSelectionFeatures,
-  selectNumericAttributes,
-  selectMap,
-  selectGeofence,
-};
+export const selectNotifications = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("notifications").toJS(),
+);
