@@ -38,6 +38,7 @@ public class LiveLayerServer {
     @OnOpen
     public void myOnOpen(final Session session) throws IOException {
         this.session = session;
+        LOG.info("[{}] Open", session.getId());
     }
 
     @OnMessage
@@ -66,6 +67,7 @@ public class LiveLayerServer {
 
     @OnClose
     public void myOnClose(CloseReason cr) {
+        LOG.info("[{}] Close", session.getId());
         subscriptions.keySet().forEach(this::unsubscribe);  // TODO: need to unsubscribe from everything, even if one throws
     }
 
@@ -73,6 +75,7 @@ public class LiveLayerServer {
         if (subscriptions.containsKey(layerId)) {
             throw new RuntimeException("Already subscribed to layerId '" + layerId + "'");
         }
+        LOG.info("[{}] Subscribe to {}", session.getId(), layerId);
         subscriptions.put(layerId, liveLayerStore.subscribeView(layerId, featureCollection -> {
             final LiveLayerUpdate update = LiveLayerUpdate.of(layerId, featureCollection);
             try {
@@ -88,6 +91,7 @@ public class LiveLayerServer {
         if (subscription == null) {
             throw new RuntimeException("Not subscribed to layerId '" + layerId + "'");
         }
+        LOG.info("[{}] Unsubscribe from {}", session.getId(), layerId);
         liveLayerStore.unsubscribeView(subscription);
     }
 }

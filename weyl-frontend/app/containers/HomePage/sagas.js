@@ -125,24 +125,6 @@ function* pollForNotifications() {
   }
 }
 
-function* pollForLiveLayerData() {
-  while (true) {
-    yield call(delay, 1000);
-
-    const layerIds = yield select(selectors.selectLiveLayerIds());
-
-    // TODO: run these in parallel
-    for (const id of layerIds) {
-      const results = yield call(request, `${apiRoot}/layer/live/${id}`, {
-        method: "GET",
-      });
-      if (!results.err) {
-        yield put(actions.layerSetData(id, results.data));
-      }
-    }
-  }
-}
-
 function createSocketChannel(socket) {
   return eventChannel(emit => {
     socket.onmessage = (event) => emit(JSON.parse(event.data));
@@ -150,17 +132,55 @@ function createSocketChannel(socket) {
   });
 };
 
-function* handleSocketStuff() {
-  // TODO: should be yielded?
-  const socket = new WebSocket(`${apiRoot}/layer/live-ws/${id}`);
-  // TODO: error handling
-
+function* handleLayerUpdates(socket) {
   const chan = yield call(createSocketChannel, socket);
-
   while (true) {
     const msg = yield take(chan);
-    console.log("msg", msg);
+    const layer = yield select(selectors.selectLayer(msg.layerId));
+    if (layer) {
+      yield put(actions.layerSetData(msg.layerId, msg.featureCollection));
+    } else {
+      console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);
+    }
   }
+}
+
+function reportLayerSubscriptionChange(socket, type, layerId) {
+  return new Promise((resolve, reject) => {
+    socket.send(JSON.stringify({ type, layerId }));
+    resolve();
+  });
+}
+
+function* reportLayerSubscriptionChanges(socket) {
+  while (true) {
+    const action = yield take([constants.LAYER_CREATE, constants.LAYER_CLOSE]);
+    switch (action.type) {
+      case constants.LAYER_CREATE:
+        if (action.live) {
+          yield call(reportLayerSubscriptionChange, socket, "subscribe", action.id);
+        }
+        break;
+      case constants.LAYER_CLOSE: {
+        const layer = yield select(selectors.selectLayer(action.layerId));
+        if (layer.live) {
+          yield call(reportLayerSubscriptionChange, socket, "unsubscribe", action.layerId);
+        }
+        break;
+      }
+    }
+  }
+}
+
+function* handleSocketStuff() {
+  // TODO: should be yielded?
+  const socket = new WebSocket(`ws://localhost:8080/live-ws`);
+  // TODO: error handling
+
+  yield [
+    handleLayerUpdates(socket),
+    reportLayerSubscriptionChanges(socket),
+  ];
 }
 
 // ////////////////////////
@@ -181,7 +201,6 @@ function prepare(generator) {
 
 export default [
   prepare(pollForNotifications),
-  prepare(pollForLiveLayerData),
   prepare(handleSocketStuff),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
