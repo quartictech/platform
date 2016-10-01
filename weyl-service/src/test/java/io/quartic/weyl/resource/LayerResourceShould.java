@@ -6,6 +6,7 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
+import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerViewType;
@@ -17,6 +18,7 @@ import org.junit.Test;
 
 import javax.ws.rs.NotAcceptableException;
 import java.util.Collection;
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
@@ -30,7 +32,7 @@ public class LayerResourceShould {
     @Before
     public void setUp() throws Exception {
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), Collection::stream)
+                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), ImmutableList.of(), Collection::stream)
         ));
     }
 
@@ -54,36 +56,8 @@ public class LayerResourceShould {
         resource.updateLiveLayer("abc", createRequest(collection));
     }
 
-    @Test(expected = NotAcceptableException.class)
-    public void throwIfTimestampsMissing() throws Exception {
-        FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("5678"), point(), propsWithoutTimestamp())
-        ));
-
-        resource.updateLiveLayer("abc", createRequest(collection));
-    }
-
-    @Test(expected = NotAcceptableException.class)
-    public void throwIfTimestampsNonNumeric() throws Exception {
-        FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("5678"), point(), propsWithInvalidTimestamp())
-        ));
-
-        resource.updateLiveLayer("abc", createRequest(collection));
-    }
-
     private ImmutableMap<String, Object> propsWithTimestamp() {
         return ImmutableMap.of("timestamp", 12345);
-    }
-
-    private ImmutableMap<String, Object> propsWithInvalidTimestamp() {
-        return ImmutableMap.of("timestamp", "a_232_.3");
-    }
-
-    private ImmutableMap<String, Object> propsWithoutTimestamp() {
-        return ImmutableMap.of();
     }
 
     private Point point() {
@@ -91,6 +65,6 @@ public class LayerResourceShould {
     }
 
     private LayerUpdateRequest createRequest(FeatureCollection collection) {
-        return LayerUpdateRequest.of("foo", "bar", collection, LiveLayerViewType.LOCATION_AND_TRACK);
+        return LayerUpdateRequest.of("foo", "bar", LiveLayerViewType.LOCATION_AND_TRACK, ImmutableList.of(LiveEvent.of(Instant.now(), Optional.of(collection), Optional.empty())));
     }
 }

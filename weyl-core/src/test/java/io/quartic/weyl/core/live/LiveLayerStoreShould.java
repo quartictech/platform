@@ -8,6 +8,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -50,26 +51,26 @@ public class LiveLayerStoreShould {
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_if_adding_to_non_existent_layer() throws Exception {
-        store.addToLayer(LayerId.of("abcd"), featureCollection(feature("a", point())));
+        store.addToLayer(LayerId.of("abcd"), liveEvents(feature("a", point())));
     }
 
     @Test
     public void accept_if_adding_to_existing_layer() throws Exception {
         LayerId id = createLayer();
 
-        store.addToLayer(id, featureCollection(featureWithId("a", point())));
+        store.addToLayer(id, liveEvents(featureWithId("a", point())));
     }
 
     @Test
     public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
-        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, featureCollection(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature("a", point())));
 
         verify(subscriber).accept(
-                featureCollection(
+                liveLayerState(id,
                         featureWithId("a", point())
                 ));
     }
@@ -77,14 +78,14 @@ public class LiveLayerStoreShould {
     @Test
     public void notify_subscribers_of_extra_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
-        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
-        store.addToLayer(id, featureCollection(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature("a", point())));
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, featureCollection(feature("b", point())));
+        store.addToLayer(id, liveEvents(feature("b", point())));
 
         verify(subscriber).accept(
-                featureCollection(
+                liveLayerState(id,
                         featureWithId("a", point()),
                         featureWithId("b", point())
                 ));
@@ -105,15 +106,18 @@ public class LiveLayerStoreShould {
     @Test
     public void not_delete_layer_contents_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
-        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
+        store.addToLayer(id, liveEvents(feature("a", point())));
+
+        createLayer();  // Create again
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, featureCollection(feature("a", point())));
-        createLayer();
+        store.addToLayer(id, liveEvents(feature("b", point())));
 
         verify(subscriber).accept(
-                featureCollection(
-                        featureWithId("a", point())
+                liveLayerState(id,
+                        featureWithId("a", point()),
+                        featureWithId("b", point())
                 ));
     }
 
@@ -125,7 +129,7 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         store.addListener(listenerA);
         store.addListener(listenerB);
-        store.addToLayer(id, featureCollection(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature("a", point())));
 
         final ImmutableFeature feature = ImmutableFeature.of("a", Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
         verify(listenerA).liveLayerEvent(id, feature);
@@ -134,24 +138,25 @@ public class LiveLayerStoreShould {
 
     @Test
     public void not_notify_subscribers_after_unsubscribe() {
-        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
+
         LiveLayerSubscription subscription = store.addSubscriber(id, subscriber);
         store.removeSubscriber(subscription);
 
-        store.addToLayer(id, featureCollection(featureWithId("a", point())));
+        store.addToLayer(id, liveEvents(featureCollection(featureWithId("a", point()))));
 
         verifyZeroInteractions(subscriber);
     }
 
     @Test
-    public void unsubscribe_after_subscriber_deleted() {
-        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+    public void unsubscribe_when_subscriber_deleted() {
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
         store.addSubscriber(id, subscriber);
         store.deleteLayer(id);
         createLayerWithId(id);
-        store.addToLayer(id, featureCollection(featureWithId("a", point())));
+        store.addToLayer(id, liveEvents(featureCollection(featureWithId("a", point()))));
 
         verifyZeroInteractions(subscriber);
     }
@@ -164,6 +169,20 @@ public class LiveLayerStoreShould {
         final LayerId id = LayerId.of("abc");
         createLayerWithId(id);
         return id;
+    }
+
+    private Collection<LiveEvent> liveEvents(Feature... features) {
+        FeatureCollection featureCollection = FeatureCollection.of(ImmutableList.copyOf(features));
+        return liveEvents(featureCollection);
+    }
+
+    private Collection<LiveEvent> liveEvents(FeatureCollection featureCollection) {
+        LiveEvent liveEvent = LiveEvent.of(Instant.now(), Optional.of(featureCollection), Optional.empty());
+        return ImmutableList.of(liveEvent);
+    }
+
+    private LiveLayerState liveLayerState(LayerId id, Feature... features) {
+        return LiveLayerState.of(id, featureCollection(features), ImmutableList.of());
     }
 
     private FeatureCollection featureCollection(Feature... features) {
