@@ -163,9 +163,25 @@ public class LiveLayerStoreShould {
         verify(subscriber, never()).accept(featureCollection);
     }
 
+    @Test
+    public void unsubscribe_after_subscriber_deleted() {
+        Consumer<FeatureCollection> subscriber = mock(Consumer.class);
+        LayerId id = createLayer();
+        store.subscribeView(id, subscriber);
+        store.deleteLayer(id);
+        createLayerWithId(id);
+        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
+        store.addToLayer(id, featureCollection);
+        verify(subscriber, never()).accept(featureCollection);
+    }
+
+    private void createLayerWithId(LayerId id) {
+        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
+    }
+
     private LayerId createLayer() {
         final LayerId id = LayerId.of("abc");
-        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
+        createLayerWithId(id);
         return id;
     }
 
