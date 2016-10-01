@@ -38,7 +38,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     private WebsocketBundle configureWebsockets() {
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
-                .create(LiveLayerServer.class, "/live-ws/{layerId}")
+                .create(LiveLayerServer.class, "/live-ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
 
                     @Override
