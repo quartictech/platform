@@ -29,7 +29,7 @@ public class LiveLayerStore {
         Collection<io.quartic.weyl.core.model.Feature> features
                 = layers.containsKey(id)
                 ? layers.get(id).layer().features()
-                : new FeatureCache();
+                : Lists.newLinkedList();
 
         Layer layer = ImmutableRawLayer.builder()
                 .metadata(metadata)
@@ -56,9 +56,9 @@ public class LiveLayerStore {
     public FeatureCollection getFeaturesForLayer(LayerId layerId) {
         checkLayerExists(layerId);
 
+        LiveLayer liveLayer = layers.get(layerId);
         return FeatureCollection.of(
-                layers.get(layerId).layer().features()
-                        .stream()
+                liveLayer.viewType().getLiveLayerView().compute(liveLayer.layer().features())
                         .map(f -> Feature.of(Optional.of(
                                 f.id()),
                                 Utils.fromJts(f.geometry()),
