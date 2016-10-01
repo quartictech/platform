@@ -6,6 +6,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.geojson.FeatureCollection;
+import io.quartic.weyl.core.live.LiveLayerState;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.LayerId;
@@ -33,9 +34,9 @@ public class LiveLayerServer {
 
     @OnOpen
     public void myOnOpen(@PathParam("layerId") String layerId, final Session session) throws IOException {
-        this.subscription = liveLayerStore.subscribeView(LayerId.of(layerId), (FeatureCollection featureCollection) -> {
+        this.subscription = liveLayerStore.subscribeView(LayerId.of(layerId), (LiveLayerState state) -> {
                 try {
-                    session.getAsyncRemote().sendText(OM.writeValueAsString(featureCollection));
+                    session.getAsyncRemote().sendText(OM.writeValueAsString(state));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }

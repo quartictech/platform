@@ -22,12 +22,21 @@ if __name__ == "__main__":
                     "timestamp": int(round(time.time() * 1000))
                     }
                 }]}
-        r = requests.post("{}/layer/live/{}".format(API_ROOT, "alex-test"), 
-                json={             
-                    'name': 'Alex Test',             
-                    'description': 'A weird gimpy little test',             
+        r = requests.post("{}/layer/live/{}".format(API_ROOT, "alex-test"),
+                json={
+                    'name': 'Alex Test',
+                    'description': 'A weird gimpy little test',
                     'viewType': 'LOCATION_AND_TRACK',
-                    'featureCollection': geoj         
-                    })
+                    'events': [
+                        {
+                            "timestamp": int(round(time.time() * 1000)),
+                            "featureCollection": geoj,
+                            "feedEvent": {
+                                "source": "alex",
+                                "message": "hello"
+                            }
+                        }
+                    ]}
+                    )
         print(r.text)
         time.sleep(5)

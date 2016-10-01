@@ -12,5 +12,5 @@ import java.util.function.Consumer;
 interface AbstractLiveLayerSubscription {
    LayerId layerId();
    LiveLayerView liveLayerView();
-   Consumer<FeatureCollection> subscriber();
+   Consumer<LiveLayerState> subscriber();
 }
