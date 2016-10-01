@@ -26,12 +26,13 @@ import java.util.Map;
 @ServerEndpoint("/live-ws")
 public class LiveLayerServer {
     private static final Logger LOG = LoggerFactory.getLogger(LiveLayerServer.class);
+    private final ObjectMapper objectMapper;
     private final LiveLayerStore liveLayerStore;
-    private final static ObjectMapper OM = new ObjectMapper();
     private Map<LayerId, LiveLayerSubscription> subscriptions = Maps.newHashMap();
     private Session session;
 
-    public LiveLayerServer(LiveLayerStore liveLayerStore) {
+    public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore) {
+        this.objectMapper = objectMapper;
         this.liveLayerStore = liveLayerStore;
     }
 
@@ -47,7 +48,7 @@ public class LiveLayerServer {
             // TODO: replace this with dedicated Jackson-annotated types
             final TypeReference<HashMap<String, String>> typeRef
                     = new TypeReference<HashMap<String,String>>() {};
-            final Map<String, String> map = OM.readValue(message, typeRef);
+            final Map<String, String> map = objectMapper.readValue(message, typeRef);
 
             final String msgType = map.get("type");
             switch (msgType) {
@@ -79,7 +80,7 @@ public class LiveLayerServer {
         subscriptions.put(layerId, liveLayerStore.subscribeView(layerId, featureCollection -> {
             final LiveLayerUpdate update = LiveLayerUpdate.of(layerId, featureCollection);
             try {
-                session.getAsyncRemote().sendText(OM.writeValueAsString(update));
+                session.getAsyncRemote().sendText(objectMapper.writeValueAsString(update));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();    // TODO
             }
