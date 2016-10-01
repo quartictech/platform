@@ -12,6 +12,11 @@ export const selectLayers = () => createSelector(
   (homeState) => homeState.get("layers").toJS()
 );
 
+export const selectLayer = (layerId) => createSelector(
+  selectLayers(),
+  (layers) => layers.find(l => l.id === layerId)
+);
+
 export const selectUi = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("ui").toJS()

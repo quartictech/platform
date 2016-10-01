@@ -13,13 +13,11 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static io.quartic.weyl.core.geojson.Utils.lineStringFrom;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
     private final LiveLayerStore store = new LiveLayerStore();
@@ -32,8 +30,8 @@ public class LiveLayerStoreShould {
         LayerId id1 = LayerId.of("abc");
         LayerId id2 = LayerId.of("def");
 
-        store.createLayer(id1, lm1, LiveLayerViewType.LOCATION_AND_TRACK);
-        store.createLayer(id2, lm2, LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id1, lm1, Collection::stream);
+        store.createLayer(id2, lm2, Collection::stream);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -64,50 +62,40 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void return_features_added_to_layer() throws Exception {
+    public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+
+        store.addSubscriber(id, subscriber);
         store.addToLayer(id, liveEvents(feature("a", point())));
 
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
+        verify(subscriber).accept(
+                liveLayerState(id,
                         featureWithId("a", point())
-                ))
-        );
+                ));
     }
 
     @Test
-    public void return_extra_features_added_to_layer() throws Exception {
+    public void notify_subscribers_of_extra_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+
         store.addToLayer(id, liveEvents(feature("a", point())));
+        store.addSubscriber(id, subscriber);
         store.addToLayer(id, liveEvents(feature("b", point())));
 
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
+        verify(subscriber).accept(
+                liveLayerState(id,
                         featureWithId("a", point()),
                         featureWithId("b", point())
-                ))
-        );
+                ));
     }
 
     @Test
-    public void return_newest_feature_and_history_for_particular_id() throws Exception {
-        LayerId id = createLayer();
-        store.addToLayer(id, liveEvents(feature("a", point(1.0, 2.0))));
-        store.addToLayer(id, liveEvents(feature("a", point(3.0, 4.0))));
-
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
-                        featureWithId("a", point(3.0, 4.0)),
-                        featureWithId("a", lineStringFrom(point(1.0, 2.0), point(3.0, 4.0)))
-                ))
-        );
-    }
-
-    @Test
-    public void update_metadata_if_create_called_before_delete() throws Exception {
+    public void update_metadata_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
         LayerMetadata newMetadata = LayerMetadata.of("cheese", "monkey");
-        store.createLayer(id, newMetadata, LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id, newMetadata, Collection::stream);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -116,16 +104,21 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void not_delete_layer_contents_if_create_called_before_delete() throws Exception {
+    public void not_delete_layer_contents_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
-        store.addToLayer(id, liveEvents(feature("a", point())));
-        createLayer();
+        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
-        assertThat(store.getFeaturesForLayer(id),
-                equalTo(featureCollection(
-                        featureWithId("a", point())
-                ))
-        );
+        store.addToLayer(id, liveEvents(feature("a", point())));
+
+        createLayer();  // Create again
+        store.addSubscriber(id, subscriber);
+        store.addToLayer(id, liveEvents(feature("b", point())));
+
+        verify(subscriber).accept(
+                liveLayerState(id,
+                        featureWithId("a", point()),
+                        featureWithId("b", point())
+                ));
     }
 
     @Test
@@ -144,46 +137,32 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void notify_subscribers_on_change() {
-        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
-        LayerId id = createLayer();
-        store.subscribeView(id, subscriber);
-        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
-        Collection<LiveEvent> liveEvents = liveEvents(featureCollection);
-        store.addToLayer(id, liveEvents);
-        verify(subscriber).accept(liveLayerState(featureCollection));
-    }
-
-    private LiveLayerState liveLayerState(FeatureCollection featureCollection) {
-        return LiveLayerState.of(featureCollection, ImmutableList.of());
-    }
-
-    @Test
     public void not_notify_subscribers_after_unsubscribe() {
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
-        LiveLayerSubscription subscription = store.subscribeView(id, subscriber);
-        store.unsubscribeView(subscription);
-        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
-        Collection<LiveEvent> liveEvents = liveEvents();
-        store.addToLayer(id, liveEvents);
-        verify(subscriber, never()).accept(liveLayerState(featureCollection));
+
+        LiveLayerSubscription subscription = store.addSubscriber(id, subscriber);
+        store.removeSubscriber(subscription);
+
+        store.addToLayer(id, liveEvents(featureCollection(featureWithId("a", point()))));
+
+        verifyZeroInteractions(subscriber);
     }
 
     @Test
-    public void unsubscribe_after_subscriber_deleted() {
+    public void unsubscribe_when_subscriber_deleted() {
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
-        store.subscribeView(id, subscriber);
+        store.addSubscriber(id, subscriber);
         store.deleteLayer(id);
         createLayerWithId(id);
-        FeatureCollection featureCollection = featureCollection(featureWithId("a", point()));
-        store.addToLayer(id, liveEvents(featureCollection));
-        verify(subscriber, never()).accept(liveLayerState(featureCollection));
+        store.addToLayer(id, liveEvents(featureCollection(featureWithId("a", point()))));
+
+        verifyZeroInteractions(subscriber);
     }
 
     private void createLayerWithId(LayerId id) {
-        store.createLayer(id, LayerMetadata.of("foo", "bar"), LiveLayerViewType.LOCATION_AND_TRACK);
+        store.createLayer(id, LayerMetadata.of("foo", "bar"), Collection::stream);
     }
 
     private LayerId createLayer() {
@@ -200,6 +179,10 @@ public class LiveLayerStoreShould {
     private Collection<LiveEvent> liveEvents(FeatureCollection featureCollection) {
         LiveEvent liveEvent = LiveEvent.of(Instant.now(), Optional.of(featureCollection), Optional.empty());
         return ImmutableList.of(liveEvent);
+    }
+
+    private LiveLayerState liveLayerState(LayerId id, Feature... features) {
+        return LiveLayerState.of(id, featureCollection(features), ImmutableList.of());
     }
 
     private FeatureCollection featureCollection(Feature... features) {

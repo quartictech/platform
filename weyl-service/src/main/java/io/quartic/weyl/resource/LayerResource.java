@@ -120,20 +120,13 @@ public class LayerResource {
         liveLayerStore.deleteLayer(LayerId.of(id));
     }
 
-    @GET
-    @Path("/live/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public FeatureCollection getLiveFeatures(@PathParam("id") String id) {
-        return liveLayerStore.getFeaturesForLayer(LayerId.of(id));
-    }
-
     @POST
     @Path("/live/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) {
         final LayerId layerId = LayerId.of(id);
 
-        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()), request.viewType());
+        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()), request.viewType().getLiveLayerView());
 
         request.events().forEach( event -> {
                     validateOrThrow(event.featureCollection().isPresent() ? event.featureCollection().get().features().stream() : Stream.empty(),

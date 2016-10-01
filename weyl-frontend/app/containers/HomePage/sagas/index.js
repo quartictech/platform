@@ -1,14 +1,14 @@
-import { take, call, put, fork, cancel, select } from "redux-saga/effects";
-import { delay, takeLatest } from "redux-saga";
-
+import { take, call, put, fork, cancel } from "redux-saga/effects";
+import { takeLatest } from "redux-saga";
 
 import { LOCATION_CHANGE } from "react-router-redux";
 import request from "utils/request";
-import * as constants from "./constants";
-import * as actions from "./actions";
-import * as selectors from "./selectors";
+import * as constants from "../constants";
+import * as actions from "../actions";
+import { apiRoot } from "../../../../weylConfig.js";
 
-import { apiRoot } from "../../../weylConfig.js";
+import handleSocket from "./handleSocket";
+import pollForNotifications from "./pollForNotifications";
 
 function* searchForLayers(action) {
   console.log("Executing search");
@@ -88,60 +88,6 @@ function* saveGeofence(action) {
   yield put(actions.geofenceSaveDone());
 }
 
-function* getNotifications() {
-  const results = yield call(request, `${apiRoot}/geofence/violations`, {
-    method: "GET",
-  });
-  if (!results.err) {
-    yield put(actions.notificationsUpdate(results.data));
-  }
-  return results;
-}
-
-function displayNewNotifications(allNotifications, oldNotifications) {
-  Object.keys(allNotifications)
-    .filter(k => !(k in oldNotifications))
-    .forEach(k => {
-      const n = new Notification("Geofence violation", {
-        body: allNotifications[k].message,
-        tag: k,
-      });
-      setTimeout(n.close.bind(n), 5000);
-    });
-}
-
-function* pollForNotifications() {
-  yield* getNotifications();  // Seed so we don't display historical notifications
-
-  while (true) {
-    yield call(delay, 2000);
-
-    const oldNotifications = yield select(selectors.selectNotifications());
-    const results = yield* getNotifications();
-
-    if (!results.err) {
-      displayNewNotifications(results.data, oldNotifications);
-    }
-  }
-}
-
-function* pollForLiveLayerData() {
-  while (true) {
-    yield call(delay, 1000);
-
-    const layerIds = yield select(selectors.selectLiveLayerIds());
-
-    // TODO: run these in parallel
-    for (const id of layerIds) {
-      const results = yield call(request, `${apiRoot}/layer/live/${id}`, {
-        method: "GET",
-      });
-      if (!results.err) {
-        yield put(actions.layerSetData(id, results.data));
-      }
-    }
-  }
-}
 
 // ////////////////////////
 
@@ -161,7 +107,7 @@ function prepare(generator) {
 
 export default [
   prepare(pollForNotifications),
-  prepare(pollForLiveLayerData),
+  prepare(handleSocket),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),

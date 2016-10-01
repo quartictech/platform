@@ -1,5 +1,6 @@
 package io.quartic.weyl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.java8.Java8Bundle;
@@ -33,17 +34,17 @@ public class WeylApplication extends Application<WeylConfiguration> {
     public void initialize(Bootstrap<WeylConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
         bootstrap.addBundle(new Java8Bundle());
-        bootstrap.addBundle(configureWebsockets());
+        bootstrap.addBundle(configureWebsockets(bootstrap.getObjectMapper()));
     }
 
-    private WebsocketBundle configureWebsockets() {
+    private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
-                .create(LiveLayerServer.class, "/live-ws/{layerId}")
+                .create(LiveLayerServer.class, "/live-ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
 
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new LiveLayerServer(liveLayerStore);
+                        return (T) new LiveLayerServer(objectMapper, liveLayerStore);
                     }
                 })
                 .build();

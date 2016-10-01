@@ -13,5 +13,5 @@ public interface AbstractLiveLayer {
     LayerId layerId();
     Layer layer();
     Collection<FeedEvent> feedEvents();
-    LiveLayerViewType viewType();
+    LiveLayerView view();
 }

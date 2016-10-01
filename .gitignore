@@ -13,6 +13,8 @@ generated_testSrc
 npm-debug.log
 .idea
 *.gc
+.env
+
 
 # Config files
 weyl-frontend/weylConfig.js
