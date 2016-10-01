@@ -22,9 +22,8 @@ import static java.util.stream.Collectors.toMap;
 public class LiveLayerStore {
     private static final Logger log = LoggerFactory.getLogger(LiveLayerStore.class);
     private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
-    private final Map<LayerId, LiveLayerViewType> defaultViews = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
-    private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = ArrayListMultimap.create();
+    private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerViewType viewType) {
         Collection<io.quartic.weyl.core.model.Feature> features
@@ -120,9 +119,14 @@ public class LiveLayerStore {
         listeners.forEach(listener -> listener.liveLayerEvent(layerId, feature));
     }
 
-    public synchronized void subscribeView(LayerId layerId, Consumer<FeatureCollection> subscriber) {
+    public synchronized LiveLayerSubscription subscribeView(LayerId layerId, Consumer<FeatureCollection> subscriber) {
         Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
+        LiveLayerSubscription subscription = LiveLayerSubscription.of(layerId, layers.get(layerId).viewType().getLiveLayerView(), subscriber);
+        liveLayerSubscriptions.put(layerId, subscription);
+        return subscription;
+    }
 
-        liveLayerSubscriptions.put(layerId, LiveLayerSubscription.of(layerId, layers.get(layerId).viewType().getLiveLayerView(), subscriber));
+    public synchronized void unsubscribeView(LiveLayerSubscription liveLayerSubscription) {
+       liveLayerSubscriptions.remove(liveLayerSubscription.layerId(), liveLayerSubscription);
     }
 }

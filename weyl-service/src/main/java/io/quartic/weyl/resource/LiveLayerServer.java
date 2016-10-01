@@ -8,10 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.live.LastKnownLocationAndTrackView;
-import io.quartic.weyl.core.live.LiveLayer;
-import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.live.LiveLayerView;
+import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import org.slf4j.Logger;
@@ -33,16 +30,15 @@ public class LiveLayerServer {
     private static final Logger LOG = LoggerFactory.getLogger(LiveLayerServer.class);
     private final LiveLayerStore liveLayerStore;
     private final static ObjectMapper OM = new ObjectMapper();
+    private LiveLayerSubscription subscription = null;
 
     public LiveLayerServer(LiveLayerStore liveLayerStore) {
         this.liveLayerStore = liveLayerStore;
     }
 
-
-
     @OnOpen
     public void myOnOpen(@PathParam("layerId") String layerId, final Session session) throws IOException {
-        liveLayerStore.subscribeView(LayerId.of(layerId), (FeatureCollection featureCollection) -> {
+        this.subscription = liveLayerStore.subscribeView(LayerId.of(layerId), (FeatureCollection featureCollection) -> {
                 try {
                     session.getAsyncRemote().sendText(OM.writeValueAsString(featureCollection));
                 } catch (JsonProcessingException e) {
@@ -56,10 +52,13 @@ public class LiveLayerServer {
 
     @OnMessage
     public void myOnMsg(final Session session, String message) {
-        session.getAsyncRemote().sendText(message.toUpperCase());
+        // Nothing atm
     }
 
     @OnClose
     public void myOnClose(final Session session, CloseReason cr) {
+        if (subscription != null) {
+            liveLayerStore.unsubscribeView(subscription);
+        }
     }
 }
