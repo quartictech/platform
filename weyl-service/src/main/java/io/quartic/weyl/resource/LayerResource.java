@@ -1,6 +1,7 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
@@ -134,25 +135,19 @@ public class LayerResource {
 
         liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()), request.viewType());
 
-        validateOrThrow(request.featureCollection(),
-                f -> !f.id().isPresent(),
-                "Features with missing ID");
-        validateOrThrow(request.featureCollection(),
-                f -> !f.properties().containsKey("timestamp"),
-                "Features with missing timestamp");
-        validateOrThrow(request.featureCollection(),
-                f -> !StringUtils.isNumeric(f.properties().get("timestamp").toString()),
-                "Features with non-numeric timestamp");
+        request.events().forEach( event -> {
+                    validateOrThrow(event.featureCollection().isPresent() ? event.featureCollection().get().features().stream() : Stream.empty(),
+                            f -> !f.id().isPresent(),
+                            "Features with missing ID");
+                });
 
-        liveLayerStore.addToLayer(layerId, request.featureCollection());
+        liveLayerStore.addToLayer(layerId, request.events());
 
-        log.info("Updated {} features for layerId = {}", request.featureCollection().features().size(), id);
+        log.info("Updated {} features for layerId = {}", request.events().size(), id);
     }
 
-    private void validateOrThrow(FeatureCollection collection, Predicate<Feature> predicate, String message) {
-        if (collection.features()
-                .stream()
-                .anyMatch(predicate)) {
+    private void validateOrThrow(Stream<Feature> features, Predicate<Feature> predicate, String message) {
+        if (features.anyMatch(predicate)) {
             throw new NotAcceptableException(message);
         }
     }
