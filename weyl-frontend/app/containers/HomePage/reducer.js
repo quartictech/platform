@@ -73,8 +73,8 @@ const layerReducer = (layerState, action) => {
           type: "FeatureCollection",
           features: [],
         },   // Only relevant in the case of live layers
-      })
-      .set("filter", new Set());  // Because otherwise we get a map`
+        filter: {},
+      });
     case constants.LAYER_TOGGLE_VISIBLE:
       return layerState.set("visible", !layerState.get("visible"));
     case constants.LAYER_CLOSE:
