@@ -1,5 +1,5 @@
 import { take, call, put, fork, cancel, select } from "redux-saga/effects";
-import { delay, takeLatest } from "redux-saga";
+import { delay, takeLatest, eventChannel } from "redux-saga";
 
 
 import { LOCATION_CHANGE } from "react-router-redux";
@@ -143,6 +143,26 @@ function* pollForLiveLayerData() {
   }
 }
 
+function createSocketChannel(socket) {
+  return eventChannel(emit => {
+    socket.onmessage = (event) => emit(JSON.parse(event.data));
+    return () => socket.close();
+  });
+};
+
+function* handleSocketStuff() {
+  // TODO: should be yielded?
+  const socket = new WebSocket(`${apiRoot}/layer/live-ws/${id}`);
+  // TODO: error handling
+
+  const chan = yield call(createSocketChannel, socket);
+
+  while (true) {
+    const msg = yield take(chan);
+    console.log("msg", msg);
+  }
+}
+
 // ////////////////////////
 
 function watch(action, generator) {
@@ -162,6 +182,7 @@ function prepare(generator) {
 export default [
   prepare(pollForNotifications),
   prepare(pollForLiveLayerData),
+  prepare(handleSocketStuff),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),
