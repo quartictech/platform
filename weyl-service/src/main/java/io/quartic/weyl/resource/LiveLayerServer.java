@@ -20,15 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.List;
 
 @Metered
 @Timed
 @ExceptionMetered
-@ServerEndpoint("/live-ws")
-public class LiveLayerServer {
+public class LiveLayerServer extends Endpoint implements MessageHandler.Whole<String> {
     private static final Logger LOG = LoggerFactory.getLogger(LiveLayerServer.class);
     private final ObjectMapper objectMapper;
     private final LiveLayerStore liveLayerStore;
@@ -41,14 +39,14 @@ public class LiveLayerServer {
         alertProcessor.addListener(this::sendAlert);
     }
 
-    @OnOpen
-    public void myOnOpen(final Session session) throws IOException {
+    @Override
+    public void onOpen(final Session session, EndpointConfig config) {
         this.session = session;
         LOG.info("[{}] Open", session.getId());
     }
 
-    @OnMessage
-    public void myOnMsg(String message) {
+    @Override
+    public void onMessage(String message) {
         try {
             final SocketMessage msg = objectMapper.readValue(message, SocketMessage.class);
             if (msg instanceof ClientStatusMessage) {
@@ -64,8 +62,8 @@ public class LiveLayerServer {
         }
     }
 
-    @OnClose
-    public void myOnClose(CloseReason cr) {
+    @Override
+    public void onClose(Session session, CloseReason closeReason) {
         LOG.info("[{}] Close", session.getId());
         unsubscribeAll();
     }

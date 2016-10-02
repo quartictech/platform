@@ -39,9 +39,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
-                .create(LiveLayerServer.class, "/live-ws")
+                .create(LiveLayerServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
-
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new LiveLayerServer(objectMapper, liveLayerStore, alertProcessor);
@@ -75,6 +74,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         LayerStore layerStore = new LayerStore(jdbi);
 
+        environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(geofenceStore));
