@@ -5,14 +5,12 @@ import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 
-const promiseTo = (f) => new Promise(resolve => resolve(f()));
-
-function createSocketChannel(socket) {
-  return eventChannel(emit => {
+const createSocketChannel(socket) =>
+  eventChannel(emit => {
     socket.onmessage = (event) => emit(JSON.parse(event.data)); // eslint-disable-line no-param-reassign
+    socket.onclose = (event) => console.log("onclose", event);
     return () => socket.close();
   });
-}
 
 function* handleLayerUpdate(msg) {
   const layer = yield select(selectors.selectLayer(msg.layerId));
@@ -23,10 +21,10 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-const createNotification = (title, body) => promiseTo(() => {
+const createNotification = (title, body) => {
   const n = new Notification(title, { body });
   setTimeout(n.close.bind(n), 5000);
-});
+};
 
 function* handleAlert(msg) {
   yield call(createNotification, msg.title, msg.body);
@@ -50,9 +48,8 @@ function* handleSocketPushes(socket) {
   }
 }
 
-function reportLayerSubscriptionChange(socket, type, layerId) {
-  return promiseTo(() => socket.send(JSON.stringify({ type, layerId })));
-}
+const reportLayerSubscriptionChange = (socket, type, layerId) =>
+  socket.send(JSON.stringify({ type, layerId }));
 
 function* reportLayerSubscriptionChanges(socket) {
   while (true) {
