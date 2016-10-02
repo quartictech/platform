@@ -69,8 +69,3 @@ export const selectGeofence = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("geofence").toJS(),
 );
-
-export const selectNotifications = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("notifications").toJS(),
-);

@@ -172,10 +172,3 @@ export function geofenceSaveDone() {
     type: constants.GEOFENCE_SAVE_DONE,
   };
 }
-
-export function notificationsUpdate(notifications) {
-  return {
-    type: constants.NOTIFICATIONS_UPDATE,
-    notifications,
-  };
-}
