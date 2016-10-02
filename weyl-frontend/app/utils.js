@@ -1,2 +1,2 @@
-export const apiRootUrl = `${location.url}api`;
+export const apiRootUrl = `${location.origin}${location.pathname}api`;
 export const wsUrl = `ws://${location.host}${location.pathname}ws`;
