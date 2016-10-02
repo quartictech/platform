@@ -10,8 +10,12 @@ const ngrok = (isDev && process.env.ENABLE_TUNNEL) || argv.tunnel ? require("ngr
 const resolve = require("path").resolve;
 const app = express();
 
-// If you need a backend, e.g. an API, add your custom backend-specific middleware here
-// app.use("/api", myApi);
+// Stuff to proxy to backend during dev
+const proxy = require("http-proxy-middleware");
+const apiProxy = proxy("/api", { target: "http://localhost:8080" });
+const wsProxy = proxy("/ws", { target: "ws://localhost:8080" });
+app.use(apiProxy);
+app.use(wsProxy);
 
 // In production we need to pass these values in instead of relying on webpack
 setup(app, {
@@ -22,8 +26,9 @@ setup(app, {
 // get the intended port number, use port 3000 if not provided
 const port = argv.port || process.env.PORT || 3000;
 
+
 // Start your app.
-app.listen(port, (err) => {
+const server = app.listen(port, (err) => {
   if (err) {
     return logger.error(err.message);
   }
@@ -41,3 +46,5 @@ app.listen(port, (err) => {
     logger.appStarted(port);
   }
 });
+
+server.on("upgrade", wsProxy.upgrade);
