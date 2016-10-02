@@ -1,11 +1,11 @@
-package io.quartic.weyl.message;
+package io.quartic.weyl.core.alert;
 
 import io.quartic.weyl.core.geojson.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractNotification extends SocketMessage {
+public interface AbstractAlert {
     String title();
     String body();
 }

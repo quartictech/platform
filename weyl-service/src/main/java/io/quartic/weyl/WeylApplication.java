@@ -9,12 +9,10 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.resource.GeofenceResource;
-import io.quartic.weyl.resource.LayerResource;
-import io.quartic.weyl.resource.LiveLayerServer;
-import io.quartic.weyl.resource.TileResource;
+import io.quartic.weyl.resource.*;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -26,6 +24,7 @@ import java.util.EnumSet;
 public class WeylApplication extends Application<WeylConfiguration> {
     private final LiveLayerStore liveLayerStore = new LiveLayerStore();
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
+    private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -45,7 +44,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new LiveLayerServer(objectMapper, liveLayerStore, geofenceStore);
+                        return (T) new LiveLayerServer(objectMapper, liveLayerStore, alertProcessor);
                     }
                 })
                 .build();
@@ -75,13 +74,10 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().setUrlPattern("/api/*");
 
         LayerStore layerStore = new LayerStore(jdbi);
-        LayerResource layerResource = new LayerResource(layerStore, liveLayerStore);
-        environment.jersey().register(layerResource);
 
-        TileResource tileResource = new TileResource(layerStore);
-        environment.jersey().register(tileResource);
-
-        GeofenceResource geofenceResource = new GeofenceResource(geofenceStore);
-        environment.jersey().register(geofenceResource);
+        environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
+        environment.jersey().register(new TileResource(layerStore));
+        environment.jersey().register(new GeofenceResource(geofenceStore));
+        environment.jersey().register(new AlertResource(alertProcessor));
     }
 }

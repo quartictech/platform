@@ -23,7 +23,7 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-function* handleNotification(msg) {
+function* handleAlert(msg) {
   yield call(promiseTo(() => {
     const n = new Notification(msg.title, {
       body: msg.body,
@@ -40,8 +40,8 @@ function* handleSocketPushes(socket) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
         break;
-      case "Notification":
-        yield* handleNotification(msg);
+      case "Alert":
+        yield* handleAlert(msg);
         break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);

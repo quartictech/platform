@@ -1,15 +1,13 @@
 package io.quartic.weyl.message;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.geojson.SweetStyle;
-import io.quartic.weyl.core.live.LiveLayerState;
-import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractLayerUpdate extends SocketMessage {
-    LayerId layerId();
+public interface AbstractAlertMessage extends SocketMessage {
     @JsonUnwrapped
-    LiveLayerState state();
+    AbstractAlert alert();
 }

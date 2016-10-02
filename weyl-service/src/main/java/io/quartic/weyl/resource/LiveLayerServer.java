@@ -7,14 +7,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
-import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.geofence.Violation;
+import io.quartic.weyl.core.alert.AbstractAlert;
+import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.live.LiveLayerState;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.message.LayerUpdate;
-import io.quartic.weyl.message.Notification;
+import io.quartic.weyl.message.AlertMessage;
+import io.quartic.weyl.message.LayerUpdateMessage;
 import io.quartic.weyl.message.SocketMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +36,10 @@ public class LiveLayerServer {
     private Map<LayerId, LiveLayerSubscription> subscriptions = Maps.newHashMap();
     private Session session;
 
-    public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, GeofenceStore geofenceStore) {
+    public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, AlertProcessor alertProcessor) {
         this.objectMapper = objectMapper;
         this.liveLayerStore = liveLayerStore;
-        geofenceStore.addListener(this::sendViolation);
+        alertProcessor.addListener(this::sendAlert);
     }
 
     @OnOpen
@@ -96,11 +96,11 @@ public class LiveLayerServer {
     }
 
     private void sendLayerUpdate(LayerId layerId, LiveLayerState state) {
-        sendMessage(LayerUpdate.of(layerId, state));
+        sendMessage(LayerUpdateMessage.of(layerId, state));
     }
 
-    private void sendViolation(Violation violation) {
-        sendMessage(Notification.of("Geofence violation", violation.message()));
+    private void sendAlert(AbstractAlert alert) {
+        sendMessage(AlertMessage.of(alert));
     }
 
     private void sendMessage(SocketMessage message) {
