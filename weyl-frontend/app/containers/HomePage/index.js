@@ -73,6 +73,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           />
           <FeedPane
              feed={this.props.feed}
+             layers={this.props.layers}
           />
         </div>
 

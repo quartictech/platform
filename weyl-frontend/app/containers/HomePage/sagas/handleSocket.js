@@ -19,6 +19,7 @@ function* handleLayerUpdates(socket) {
     const layer = yield select(selectors.selectLayer(msg.layerId));
     if (layer) {
       yield put(actions.layerSetData(msg.layerId, msg.featureCollection));
+      yield put(actions.feedSetData(msg.layerId, msg.feedEvents));
     } else {
       console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);
     }

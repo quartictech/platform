@@ -12,5 +12,5 @@ import java.util.List;
 public interface AbstractLiveLayerState {
     LayerId layerId();
     FeatureCollection featureCollection();
-    List<FeedEvent> feedEvents();
+    List<EnrichedFeedEvent> feedEvents();
 }

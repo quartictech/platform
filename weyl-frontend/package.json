@@ -213,6 +213,7 @@
     "moment": "^2.15.1",
     "numeral": "^1.5.3",
     "react": "15.3.0",
+    "react-addons-css-transition-group": "^15.3.2",
     "react-d3-basic": "^1.6.11",
     "react-dom": "15.3.0",
     "react-helmet": "3.1.0",
