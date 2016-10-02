@@ -4,5 +4,5 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 
 public interface LiveLayerStoreListener {
-    void liveLayerEvent(LayerId layerId, Feature feature);
+    void onLiveLayerEvent(LayerId layerId, Feature feature);
 }

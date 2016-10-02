@@ -14,7 +14,7 @@ npm-debug.log
 .idea
 *.gc
 .env
-
+_detritus
 
 # Config files
 weyl-frontend/weylConfig.js

@@ -8,7 +8,6 @@ import * as actions from "../actions";
 import { apiRoot } from "../../../../weylConfig.js";
 
 import handleSocket from "./handleSocket";
-import pollForNotifications from "./pollForNotifications";
 
 function* searchForLayers(action) {
   console.log("Executing search");
@@ -106,7 +105,6 @@ function prepare(generator) {
 }
 
 export default [
-  prepare(pollForNotifications),
   prepare(handleSocket),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
