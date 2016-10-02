@@ -52,8 +52,12 @@ const reportLayerSubscriptionChange = (socket, type, layerId) =>
   socket.send(JSON.stringify({ type, layerId }));
 
 function* reportLayerSubscriptionChanges(socket) {
+  // We need the backend to be in a consistent state, and that's only possible
+  // if it receives subscribe/unsubscribe in the order that they occurred.
+  // TODO: maybe we should just send the absolute state each time?
+  const channel = yield actionChannel([constants.LAYER_CREATE, constants.LAYER_CLOSE]);
   while (true) {
-    const action = yield take([constants.LAYER_CREATE, constants.LAYER_CLOSE]);
+    const action = yield take(channel);
     switch (action.type) {
       case constants.LAYER_CREATE:
         if (action.live) {
