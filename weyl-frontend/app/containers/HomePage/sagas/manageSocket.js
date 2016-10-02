@@ -1,4 +1,4 @@
-import { take, takem, call, put, select, race, actionChannel } from "redux-saga/effects";
+import { take, takem, call, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsRoot } from "../../../../weylConfig.js";
 import * as constants from "../constants";
@@ -65,9 +65,9 @@ const createSocket = () => new WebSocket(`${wsRoot}/live-ws`);
 
 const createSocketChannel = (socket) =>
   eventChannel(emit => {
-    socket.onopen = (event) => emit("open");
+    socket.onopen = () => emit("open");                         // eslint-disable-line no-param-reassign
     socket.onmessage = (event) => emit(JSON.parse(event.data)); // eslint-disable-line no-param-reassign
-    socket.onclose = (event) => emit(END);
+    socket.onclose = () => emit(END);                           // eslint-disable-line no-param-reassign
     return () => socket.close();
   });
 
@@ -78,8 +78,7 @@ export default function* () {
 
     const result = yield takem(channel);  // First result should be "open"
     if (result !== END) {
-      console.log("socketUp");
-
+      yield put(actions.connectionUp());
       yield* reportStatus(socket);
 
       yield race({
@@ -88,10 +87,7 @@ export default function* () {
       });
     }
 
-    console.log("socketDown");
-
-    // TODO: dispatch socketDown action
-
+    yield put(actions.connectionDown());
     yield call(delay, 1000); // Rate-limit reconnection attempts
   }
 }

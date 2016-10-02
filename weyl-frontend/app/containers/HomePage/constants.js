@@ -27,3 +27,6 @@ export const GEOFENCE_EDIT_FINISH = "weyl/home/GEOFENCE_EDIT_FINISH";
 export const GEOFENCE_EDIT_CHANGE = "weyl/home/GEOFENCE_EDIT_CHANGE";
 export const GEOFENCE_SAVE_DONE = "weyl/home/GEOFENCE_SAVE_DONE";
 export const GEOFENCE_CHANGE_TYPE = "weyl/home/GEOFENCE_CHANGE_TYPE";
+
+export const CONNECTION_UP = "weyl/home/CONNECTION_UP";
+export const CONNECTION_DOWN = "weyl/home/CONNECTION_DOWN";

@@ -69,3 +69,8 @@ export const selectGeofence = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("geofence").toJS(),
 );
+
+export const selectConnectionUp = () => createSelector(
+  selectHome(),
+  (home) => home.get("connection"),
+);

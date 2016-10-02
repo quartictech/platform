@@ -172,3 +172,12 @@ export function geofenceSaveDone() {
     type: constants.GEOFENCE_SAVE_DONE,
   };
 }
+
+export const connectionUp = () => ({
+  type: constants.CONNECTION_UP,
+});
+
+
+export const connectionDown = () => ({
+  type: constants.CONNECTION_DOWN,
+});
