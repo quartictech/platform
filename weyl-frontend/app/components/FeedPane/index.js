@@ -42,16 +42,19 @@ function FeedPane({ feed, layers }) {
             Random BS
           </div>
 
-          <div className="ui small feed">
-            <ReactCSSTransitionGroup transitionName="example">
-              {
-                events
-                .map(e => (
-                  <FeedEvent key={e.id} event={e} />
-                ))
-              }
+          <ReactCSSTransitionGroup
+            component="div"
+            className="ui feed"
+            transitionName="example"
+            transitionEnterTimeout={500}
+            transitionLeaveTimeout={500}>
+            {
+              events
+              .map(e => (
+                <FeedEvent key={e.id} event={e} />
+              ))
+            }
           </ReactCSSTransitionGroup>
-          </div>
         </div>
       </div>
     </div>

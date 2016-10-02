@@ -4,6 +4,14 @@ import time
 
 API_ROOT = "http://localhost:8080/api"
 
+def random_message():
+    return " ".join([
+        random.choice(["@arlo", "@oliver", "@david.cameron"]),
+        random.choice(["why are you such", "I wish you were more of", "don't you think I'm"]),
+        random.choice(["an irritating person?", "an amazing guy?", "a dreamer?"]),
+        random.choice(["I find that charming.", "I find that irritating.", "You go girl.", "I miss Jade Goodie ;-("])
+        ])
+
 if __name__ == "__main__":
     p = (0.1278, 51.5074)
     while True:
@@ -33,7 +41,7 @@ if __name__ == "__main__":
                             "featureCollection": geoj,
                             "feedEvent": {
                                 "source": "alex",
-                                "message": "hello"
+                                "message": random_message(),
                             }
                         }
                     ]}
