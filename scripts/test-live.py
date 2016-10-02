@@ -7,7 +7,7 @@ API_ROOT = "http://localhost:8080/api"
 if __name__ == "__main__":
     p = (0.1278, 51.5074)
     while True:
-        p = (p[0] + random.random()*0.01, random.random()*0.01)
+        p = (p[0] + random.random()*0.01, p[1] + random.random()*0.01)
 
 
         geoj = {"type": "FeatureCollection", "features": [{

@@ -8,6 +8,7 @@ import numericAttributes from "./numericAttributes";
 import histogramChart from "./histogramChart";
 import search from "./search";
 import notifications from "./notifications";
+import feed from "./feed";
 
 // Immutable version
 const combineReducers = (reducers) =>
@@ -27,4 +28,5 @@ export default combineReducers({
   histogramChart,
   search,
   notifications,
+  feed,
 });
