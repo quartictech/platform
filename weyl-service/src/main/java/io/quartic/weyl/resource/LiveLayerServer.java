@@ -4,9 +4,8 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.live.LiveLayerState;
@@ -14,6 +13,7 @@ import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.message.AlertMessage;
+import io.quartic.weyl.message.ClientStatusMessage;
 import io.quartic.weyl.message.LayerUpdateMessage;
 import io.quartic.weyl.message.SocketMessage;
 import org.slf4j.Logger;
@@ -22,8 +22,7 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Metered
 @Timed
@@ -33,7 +32,7 @@ public class LiveLayerServer {
     private static final Logger LOG = LoggerFactory.getLogger(LiveLayerServer.class);
     private final ObjectMapper objectMapper;
     private final LiveLayerStore liveLayerStore;
-    private Map<LayerId, LiveLayerSubscription> subscriptions = Maps.newHashMap();
+    private List<LiveLayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
     public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, AlertProcessor alertProcessor) {
@@ -51,21 +50,14 @@ public class LiveLayerServer {
     @OnMessage
     public void myOnMsg(String message) {
         try {
-            // TODO: replace this with dedicated Jackson-annotated types
-            final TypeReference<HashMap<String, String>> typeRef
-                    = new TypeReference<HashMap<String,String>>() {};
-            final Map<String, String> map = objectMapper.readValue(message, typeRef);
-
-            final String msgType = map.get("type");
-            switch (msgType) {
-                case "subscribe":
-                    subscribe(LayerId.of(map.get("layerId")));
-                    break;
-                case "unsubscribe":
-                    unsubscribe(LayerId.of(map.get("layerId")));
-                    break;
-                default:
-                    throw new RuntimeException("Unrecognised type '" + msgType + "'");
+            final SocketMessage msg = objectMapper.readValue(message, SocketMessage.class);
+            if (msg instanceof ClientStatusMessage) {
+                ClientStatusMessage csm = (ClientStatusMessage)msg;
+                LOG.info("[{}] Subscribed to {}", session.getId(), csm.subscribedLiveLayerIds());
+                unsubscribeAll();
+                csm.subscribedLiveLayerIds().forEach(this::subscribe);
+            } else {
+                throw new RuntimeException("Unrecognised type '" + msg.getClass().getCanonicalName() + "'");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -75,24 +67,16 @@ public class LiveLayerServer {
     @OnClose
     public void myOnClose(CloseReason cr) {
         LOG.info("[{}] Close", session.getId());
-        subscriptions.keySet().forEach(this::unsubscribe);  // TODO: need to unsubscribe from everything, even if one throws
+        unsubscribeAll();
+    }
+
+    private void unsubscribeAll() {
+        subscriptions.forEach(liveLayerStore::removeSubscriber);
+        subscriptions.clear();
     }
 
     private void subscribe(LayerId layerId) {
-        if (subscriptions.containsKey(layerId)) {
-            throw new RuntimeException("Already subscribed to layerId '" + layerId + "'");
-        }
-        LOG.info("[{}] Subscribe to {}", session.getId(), layerId);
-        subscriptions.put(layerId, liveLayerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
-    }
-
-    private void unsubscribe(LayerId layerId) {
-        final LiveLayerSubscription subscription = subscriptions.remove(layerId);
-        if (subscription == null) {
-            throw new RuntimeException("Not subscribed to layerId '" + layerId + "'");
-        }
-        LOG.info("[{}] Unsubscribe from {}", session.getId(), layerId);
-        liveLayerStore.removeSubscriber(subscription);
+        subscriptions.add(liveLayerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
     }
 
     private void sendLayerUpdate(LayerId layerId, LiveLayerState state) {
