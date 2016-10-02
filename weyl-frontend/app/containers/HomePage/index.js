@@ -72,8 +72,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onClearSelection={this.props.onClearSelection}
           />
           <FeedPane
-             feed={this.props.feed}
-             layers={this.props.layers}
+            feed={this.props.feed}
+            layers={this.props.layers}
           />
         </div>
 

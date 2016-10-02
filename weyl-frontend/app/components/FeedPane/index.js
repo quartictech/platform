@@ -7,7 +7,7 @@ import classNames from "classnames";
 const FeedEvent = ({ event }) => (
   <div className={classNames("event", styles.slideFade)}>
     <div className="label">
-      <i className={`circular phone icon`}></i>
+      <i className={"circular phone icon"}></i>
     </div>
     <div className="content">
       <div className="summary">
@@ -19,9 +19,8 @@ const FeedEvent = ({ event }) => (
 );
 
 function FeedPane({ feed, layers }) {
-  let visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
-  let events = [].concat.apply([],
-    Object.keys(feed.events)
+  const visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
+  const events = [].concat([], ...Object.keys(feed.events)
       .filter(layerId => visibleLayerIds.has(layerId))
       .map(k => feed.events[k])
     )
@@ -47,7 +46,8 @@ function FeedPane({ feed, layers }) {
             className="ui feed"
             transitionName="example"
             transitionEnterTimeout={500}
-            transitionLeaveTimeout={500}>
+            transitionLeaveTimeout={500}
+          >
             {
               events
               .map(e => (

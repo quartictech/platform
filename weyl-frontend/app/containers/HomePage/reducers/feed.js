@@ -8,7 +8,7 @@ const initialState = fromJS({
 export default (state = initialState, action) => {
   switch (action.type) {
     case constants.FEED_SET_DATA:
-      return state.setIn(["events", action.layerId], action.data)
+      return state.setIn(["events", action.layerId], action.data);
     default:
       return state;
   }
