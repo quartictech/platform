@@ -7,7 +7,6 @@ import selection from "./selection";
 import numericAttributes from "./numericAttributes";
 import histogramChart from "./histogramChart";
 import search from "./search";
-import notifications from "./notifications";
 
 // Immutable version
 const combineReducers = (reducers) =>
@@ -26,5 +25,4 @@ export default combineReducers({
   numericAttributes,
   histogramChart,
   search,
-  notifications,
 });

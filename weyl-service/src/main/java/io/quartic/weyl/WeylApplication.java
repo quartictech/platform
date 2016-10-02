@@ -24,7 +24,8 @@ import javax.websocket.server.ServerEndpointConfig;
 import java.util.EnumSet;
 
 public class WeylApplication extends Application<WeylConfiguration> {
-    private LiveLayerStore liveLayerStore;
+    private final LiveLayerStore liveLayerStore = new LiveLayerStore();
+    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -44,7 +45,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new LiveLayerServer(objectMapper, liveLayerStore);
+                        return (T) new LiveLayerServer(objectMapper, liveLayerStore, geofenceStore);
                     }
                 })
                 .build();
@@ -74,14 +75,12 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().setUrlPattern("/api/*");
 
         LayerStore layerStore = new LayerStore(jdbi);
-        liveLayerStore = new LiveLayerStore();
         LayerResource layerResource = new LayerResource(layerStore, liveLayerStore);
         environment.jersey().register(layerResource);
 
         TileResource tileResource = new TileResource(layerStore);
         environment.jersey().register(tileResource);
 
-        GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
         GeofenceResource geofenceResource = new GeofenceResource(geofenceStore);
         environment.jersey().register(geofenceResource);
     }

@@ -7,9 +7,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.Violation;
+import io.quartic.weyl.core.live.LiveLayerState;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.message.LayerUpdate;
+import io.quartic.weyl.message.Notification;
+import io.quartic.weyl.message.SocketMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +36,10 @@ public class LiveLayerServer {
     private Map<LayerId, LiveLayerSubscription> subscriptions = Maps.newHashMap();
     private Session session;
 
-    public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore) {
+    public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, GeofenceStore geofenceStore) {
         this.objectMapper = objectMapper;
         this.liveLayerStore = liveLayerStore;
+        geofenceStore.addListener(this::sendViolation);
     }
 
     @OnOpen
@@ -76,13 +83,7 @@ public class LiveLayerServer {
             throw new RuntimeException("Already subscribed to layerId '" + layerId + "'");
         }
         LOG.info("[{}] Subscribe to {}", session.getId(), layerId);
-        subscriptions.put(layerId, liveLayerStore.addSubscriber(layerId, liveLayerState -> {
-            try {
-                session.getAsyncRemote().sendText(objectMapper.writeValueAsString(liveLayerState));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();    // TODO
-            }
-        }));
+        subscriptions.put(layerId, liveLayerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
     }
 
     private void unsubscribe(LayerId layerId) {
@@ -92,5 +93,21 @@ public class LiveLayerServer {
         }
         LOG.info("[{}] Unsubscribe from {}", session.getId(), layerId);
         liveLayerStore.removeSubscriber(subscription);
+    }
+
+    private void sendLayerUpdate(LayerId layerId, LiveLayerState state) {
+        sendMessage(LayerUpdate.of(layerId, state));
+    }
+
+    private void sendViolation(Violation violation) {
+        sendMessage(Notification.of("Geofence violation", violation.message()));
+    }
+
+    private void sendMessage(SocketMessage message) {
+        try {
+            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(message));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();    // TODO
+        }
     }
 }

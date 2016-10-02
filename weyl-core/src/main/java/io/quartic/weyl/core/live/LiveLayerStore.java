@@ -109,13 +109,13 @@ public class LiveLayerStore {
                             computed
                                     .map(this::fromJts)
                                     .collect(Collectors.toList()));
-                    LiveLayerState newState = LiveLayerState.of(layerId, featureCollection, layer.feedEvents());
+                    LiveLayerState newState = LiveLayerState.of(featureCollection, layer.feedEvents());
                     subscription.subscriber().accept(newState);
                 });
     }
 
     private void notifyListeners(LayerId layerId, Collection<io.quartic.weyl.core.model.Feature> newFeatures) {
-        newFeatures.forEach(f -> listeners.forEach(listener -> listener.liveLayerEvent(layerId, f)));
+        newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
     }
 
     private io.quartic.weyl.core.model.Feature toJts(Feature f) {

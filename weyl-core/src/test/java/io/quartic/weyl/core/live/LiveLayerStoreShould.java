@@ -132,8 +132,8 @@ public class LiveLayerStoreShould {
         store.addToLayer(id, liveEvents(feature("a", point())));
 
         final ImmutableFeature feature = ImmutableFeature.of("a", Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
-        verify(listenerA).liveLayerEvent(id, feature);
-        verify(listenerB).liveLayerEvent(id, feature);
+        verify(listenerA).onLiveLayerEvent(id, feature);
+        verify(listenerB).onLiveLayerEvent(id, feature);
     }
 
     @Test
@@ -182,7 +182,7 @@ public class LiveLayerStoreShould {
     }
 
     private LiveLayerState liveLayerState(LayerId id, Feature... features) {
-        return LiveLayerState.of(id, featureCollection(features), ImmutableList.of());
+        return LiveLayerState.of(featureCollection(features), ImmutableList.of());
     }
 
     private FeatureCollection featureCollection(Feature... features) {

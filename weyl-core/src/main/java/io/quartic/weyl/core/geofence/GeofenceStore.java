@@ -11,7 +11,6 @@ import org.immutables.value.Value;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// TODO: synchronization
 public class GeofenceStore implements LiveLayerStoreListener {
     @SweetStyle
     @Value.Immutable
@@ -23,9 +22,8 @@ public class GeofenceStore implements LiveLayerStoreListener {
     private int nextViolationId = 0;
 
     private final Map<ViolationKey, Violation> currentViolations = Maps.newHashMap();
-    private final List<Violation> allViolations = Lists.newArrayList();
     private final Set<Geofence> geofences = Sets.newHashSet();
-    private final Multimap<String, GeofenceState> geofenceStates = HashMultimap.create();
+    private final Set<ViolationListener> listeners = Sets.newHashSet();
 
     public GeofenceStore(LiveLayerStore liveLayerStore) {
         liveLayerStore.addListener(this);
@@ -45,17 +43,12 @@ public class GeofenceStore implements LiveLayerStoreListener {
         }
     }
 
-    public synchronized GeofenceState getGlobalState() {
-        return GeofenceState.of(
-                geofenceStates.values().stream().allMatch(GeofenceState::ok),
-                geofenceStates.values().stream()
-                        .map(GeofenceState::detail)
-                        .collect(Collectors.joining("\n"))
-        );
+    public synchronized void addListener(ViolationListener listener) {
+        listeners.add(listener);
     }
 
-    public synchronized Collection<Violation> getViolations() {
-        return ImmutableList.copyOf(allViolations);
+    public synchronized void removeListener(ViolationListener listener) {
+        listeners.remove(listener);
     }
 
     private GeofenceState getState(Geofence geofence, Feature feature) {
@@ -73,12 +66,10 @@ public class GeofenceStore implements LiveLayerStoreListener {
     }
 
     @Override
-    public synchronized void liveLayerEvent(LayerId layerId, Feature feature) {
+    public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
         final Set<GeofenceState> states = geofences.stream()
                 .map(geofence -> getState(geofence, feature))
                 .collect(Collectors.toSet());
-
-        geofenceStates.replaceValues(feature.id(), states);
 
         updateViolations(feature);
     }
@@ -96,9 +87,13 @@ public class GeofenceStore implements LiveLayerStoreListener {
                             ViolationId.of(Integer.toString(nextViolationId++)),
                             state.detail());
                     currentViolations.put(vk, violation);
-                    allViolations.add(violation);
+                    notifyListeners(violation);
                 }
             }
         });
+    }
+
+    private void notifyListeners(Violation violation) {
+        listeners.forEach(l -> l.onViolation(violation));
     }
 }
