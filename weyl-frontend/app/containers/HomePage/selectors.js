@@ -70,6 +70,11 @@ export const selectGeofence = () => createSelector(
   (homeState) => homeState.get("geofence").toJS(),
 );
 
+export const selectFeed = () => createSelector(
+  selectHome(),
+  (homeState) => homeState.get("feed").toJS(),
+);
+
 export const selectConnectionUp = () => createSelector(
   selectHome(),
   (home) => home.get("connection"),

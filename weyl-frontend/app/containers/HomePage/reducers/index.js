@@ -7,6 +7,7 @@ import selection from "./selection";
 import numericAttributes from "./numericAttributes";
 import histogramChart from "./histogramChart";
 import search from "./search";
+import feed from "./feed";
 import connection from "./connection";
 
 // Immutable version
@@ -26,5 +27,6 @@ export default combineReducers({
   numericAttributes,
   histogramChart,
   search,
+  feed,
   connection,
 });

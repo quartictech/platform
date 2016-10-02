@@ -173,6 +173,15 @@ export function geofenceSaveDone() {
   };
 }
 
+export function feedSetData(layerId, data) {
+  console.assert(layerId != null);
+  return {
+    type: constants.FEED_SET_DATA,
+    layerId,
+    data,
+  };
+}
+
 export const connectionUp = () => ({
   type: constants.CONNECTION_UP,
 });

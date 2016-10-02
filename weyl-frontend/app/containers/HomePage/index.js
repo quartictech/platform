@@ -15,6 +15,7 @@ import Toolbar from "../../components/Toolbar";
 import LayerList from "../../components/LayerList";
 import SelectionView from "../../components/SelectionView";
 import MapInfo from "../../components/MapInfo";
+import FeedPane from "../../components/FeedPane";
 import ConnectionStatus from "../../components/ConnectionStatus";
 
 import styles from "./styles.css";
@@ -72,6 +73,10 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <SelectionView
             selection={this.props.selectionFeatures}
             onClearSelection={this.props.onClearSelection}
+          />
+          <FeedPane
+            feed={this.props.feed}
+            layers={this.props.layers}
           />
         </div>
 
@@ -139,6 +144,7 @@ const mapStateToProps = createStructuredSelector({
   numericAttributes: selectors.selectNumericAttributes(),
   map: selectors.selectMap(),
   geofence: selectors.selectGeofence(),
+  feed: selectors.selectFeed(),
   connectionUp: selectors.selectConnectionUp(),
 });
 
