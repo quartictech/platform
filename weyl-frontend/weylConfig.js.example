@@ -1,2 +1,0 @@
-export const apiRoot = "http://localhost:8080/api";
-export const wsRoot = "ws://localhost:8080";
