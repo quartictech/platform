@@ -1,6 +1,6 @@
 import { take, takem, call, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
-import { wsRoot } from "../../../../weylConfig.js";
+import { wsUrl } from "../../../utils.js";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -62,7 +62,7 @@ function* watchLayerChanges(socket) {
   }
 }
 
-const createSocket = () => new WebSocket(`${wsRoot}/live-ws`);
+const createSocket = () => new WebSocket(wsUrl);
 
 const createSocketChannel = (socket) =>
   eventChannel(emit => {

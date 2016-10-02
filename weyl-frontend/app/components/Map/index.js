@@ -19,8 +19,7 @@ import "mapbox-gl-draw.css";            // eslint-disable-line import/no-unresol
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
-
-import { apiRoot } from "../../../weylConfig.js";
+import { apiRootUrl } from "../../utils.js";
 
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -150,7 +149,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDefForStaticLayer(layer) {
     return {
       type: "vector",
-      tiles: [`${apiRoot}/${layer.id}/{z}/{x}/{y}.pbf`],
+      tiles: [`${apiRootUrl}/${layer.id}/{z}/{x}/{y}.pbf`],
     };
   }
 

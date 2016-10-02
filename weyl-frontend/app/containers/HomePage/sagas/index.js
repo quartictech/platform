@@ -5,13 +5,13 @@ import { LOCATION_CHANGE } from "react-router-redux";
 import request from "utils/request";
 import * as constants from "../constants";
 import * as actions from "../actions";
-import { apiRoot } from "../../../../weylConfig.js";
+import { apiRootUrl } from "../../../utils.js";
 
 import manageSocket from "./manageSocket";
 
 function* searchForLayers(action) {
   console.log("Executing search");
-  const requestURL = `${apiRoot}/layer?query=${encodeURI(action.query)}`;
+  const requestURL = `${apiRootUrl}/layer?query=${encodeURI(action.query)}`;
   const results = yield call(request, requestURL, {
     method: "GET",
   });
@@ -36,7 +36,7 @@ function* searchForLayers(action) {
 
 function* runBucketComputation(action) {
   console.log(action);
-  const requestURL = `${apiRoot}/layer/compute`;
+  const requestURL = `${apiRootUrl}/layer/compute`;
   const results = yield call(request, requestURL, {
     method: "PUT",
     headers: {
@@ -48,7 +48,7 @@ function* runBucketComputation(action) {
 
   if (!results.err) {
     console.log(results);
-    const requestURL2 = `${apiRoot}/layer/metadata/${results.data}`;
+    const requestURL2 = `${apiRootUrl}/layer/metadata/${results.data}`;
     const results2 = yield call(request, requestURL2, {
       method: "GET",
     });
@@ -61,7 +61,7 @@ function* runBucketComputation(action) {
 
 function* fetchNumericAttributes(action) {
   console.log("Fetching numeric attributes");
-  const requestURL = `${apiRoot}/layer/numeric_values/${action.layerId}`;
+  const requestURL = `${apiRootUrl}/layer/numeric_values/${action.layerId}`;
   const results = yield call(request, requestURL, {
     method: "GET",
   });
@@ -71,7 +71,7 @@ function* fetchNumericAttributes(action) {
 
 function* saveGeofence(action) {
   console.log("saving geofence");
-  const requestURL = `${apiRoot}/geofence/`;
+  const requestURL = `${apiRootUrl}/geofence/`;
   yield call(request, requestURL, {
     method: "PUT",
     headers: {
