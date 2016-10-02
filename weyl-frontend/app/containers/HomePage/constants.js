@@ -29,3 +29,5 @@ export const GEOFENCE_SAVE_DONE = "weyl/home/GEOFENCE_SAVE_DONE";
 export const GEOFENCE_CHANGE_TYPE = "weyl/home/GEOFENCE_CHANGE_TYPE";
 
 export const NOTIFICATIONS_UPDATE = "weyl/home/NOTIFICATIONS_UPDATE";
+
+export const FEED_SET_DATA = "weyl/home/FEED_SET_DATA";

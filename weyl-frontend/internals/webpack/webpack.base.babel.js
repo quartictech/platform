@@ -65,6 +65,8 @@ module.exports = (options) => ({
         NODE_ENV: JSON.stringify(process.env.NODE_ENV),
       },
     }),
+    // Some nonsense to make moment work (see https://github.com/moment/moment/issues/2979#issuecomment-189899510)
+    new webpack.ContextReplacementPlugin(/\.\/locale$/, 'empty-module', false, /js$/),
   ]),
   postcss: () => options.postcssPlugins,
   resolve: {

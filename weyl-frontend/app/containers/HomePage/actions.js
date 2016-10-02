@@ -179,3 +179,12 @@ export function notificationsUpdate(notifications) {
     notifications,
   };
 }
+
+export function feedSetData(layerId, data) {
+  console.assert(layerId != null);
+  return {
+    type: constants.FEED_SET_DATA,
+    layerId,
+    data,
+  };
+}

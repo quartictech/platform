@@ -12,6 +12,6 @@ import java.util.Collection;
 public interface AbstractLiveLayer {
     LayerId layerId();
     Layer layer();
-    Collection<FeedEvent> feedEvents();
+    Collection<EnrichedFeedEvent> feedEvents();
     LiveLayerView view();
 }
