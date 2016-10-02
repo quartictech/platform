@@ -10,5 +10,5 @@ import java.util.List;
 @SweetStyle
 public interface AbstractLiveLayerState {
     FeatureCollection featureCollection();
-    List<FeedEvent> feedEvents();
+    List<EnrichedFeedEvent> feedEvents();
 }

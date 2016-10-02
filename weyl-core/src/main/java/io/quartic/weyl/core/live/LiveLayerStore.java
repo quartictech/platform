@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,11 +25,16 @@ public class LiveLayerStore {
     private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
+    private final AtomicLong eventIdCounter = new AtomicLong();
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
         Collection<io.quartic.weyl.core.model.Feature> features
                 = layers.containsKey(id)
                 ? layers.get(id).layer().features()
+                : Lists.newLinkedList();
+        Collection<EnrichedFeedEvent> feedEvents
+                = layers.containsKey(id)
+                ? layers.get(id).feedEvents()
                 : Lists.newLinkedList();
 
         Layer layer = ImmutableRawLayer.builder()
@@ -37,7 +43,7 @@ public class LiveLayerStore {
                 .features(features)
                 .build();
 
-        layers.put(id, LiveLayer.of(id, layer, Lists.newLinkedList(), view));
+        layers.put(id, LiveLayer.of(id, layer, feedEvents, view));
     }
 
     public void deleteLayer(LayerId id) {
@@ -56,9 +62,10 @@ public class LiveLayerStore {
     public void addToLayer(LayerId layerId, Collection<LiveEvent> events) {
         checkLayerExists(layerId);
 
-        // TODO: validate that all entries are of type Point
-        final Collection<io.quartic.weyl.core.model.Feature> newFeatures = collectFeatures(events);
-        final List<FeedEvent> feedEvents = collectFeedEvents(events);
+        final Collection<EnrichedLiveEvent> enrichedLiveEvents = enrichLiveEvents(events);
+
+        final Collection<io.quartic.weyl.core.model.Feature> newFeatures = collectFeatures(enrichedLiveEvents);
+        final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
 
         final LiveLayer layer = layers.get(layerId);
         layer.layer().features().addAll(newFeatures);
@@ -68,20 +75,32 @@ public class LiveLayerStore {
         notifySubscribers(layerId);
     }
 
-    private List<io.quartic.weyl.core.model.Feature> collectFeatures(Collection<LiveEvent> events) {
+    private Collection<EnrichedLiveEvent> enrichLiveEvents(Collection<LiveEvent> events) {
         return events.stream()
-                .flatMap(event -> event.featureCollection().map(fc -> fc.features().stream()).orElse(Stream.empty()))
+                .map(event -> EnrichedLiveEvent.of(
+                        LiveEventId.of(eventIdCounter.incrementAndGet()),
+                        event))
+                .collect(Collectors.toList());
+    }
+
+    private List<io.quartic.weyl.core.model.Feature> collectFeatures(Collection<EnrichedLiveEvent> events) {
+        return events.stream()
+                .flatMap(event -> event.liveEvent().featureCollection().map(fc -> fc.features().stream()).orElse(Stream.empty()))
                 .map(this::toJts)
                 .collect(Collectors.toList());
     }
 
-    private List<FeedEvent> collectFeedEvents(Collection<LiveEvent> events) {
+    private List<EnrichedFeedEvent> collectFeedEvents(Collection<EnrichedLiveEvent> events) {
         return events.stream()
-                .flatMap(event -> event.feedEvent()
-                        .map(Stream::of)
+                .flatMap(event -> event.liveEvent().feedEvent()
+                        .map(feedEvent -> Stream.of(enrichedFeedEvent(event, feedEvent)))
                         .orElse(Stream.empty())
                 )
                 .collect(Collectors.toList());
+    }
+
+    private static EnrichedFeedEvent enrichedFeedEvent(EnrichedLiveEvent liveEvent, FeedEvent feedEvent) {
+        return EnrichedFeedEvent.of(liveEvent.eventId(), liveEvent.liveEvent().timestamp(), feedEvent);
     }
 
     public void addListener(LiveLayerStoreListener liveLayerStoreListener) {

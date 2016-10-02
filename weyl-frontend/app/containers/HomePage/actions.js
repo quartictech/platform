@@ -172,3 +172,12 @@ export function geofenceSaveDone() {
     type: constants.GEOFENCE_SAVE_DONE,
   };
 }
+
+export function feedSetData(layerId, data) {
+  console.assert(layerId != null);
+  return {
+    type: constants.FEED_SET_DATA,
+    layerId,
+    data,
+  };
+}
