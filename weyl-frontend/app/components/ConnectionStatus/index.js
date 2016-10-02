@@ -6,7 +6,9 @@ class ConnectionStatus extends React.Component { // eslint-disable-line react/pr
     if (this.props.connectionUp) {
       $(".ui.modal").modal("hide");
     } else {
-      $(".ui.modal").modal({ blurring: true }).modal("show");
+      $(".ui.modal")
+        .modal({ blurring: true, closable: false })
+        .modal("show");
     }
 
     return (
