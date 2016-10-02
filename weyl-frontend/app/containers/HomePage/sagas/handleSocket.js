@@ -23,13 +23,13 @@ function* handleLayerUpdate(msg) {
   }
 }
 
+const createNotification = (title, body) => promiseTo(() => {
+  const n = new Notification(title, { body });
+  setTimeout(n.close.bind(n), 5000);
+});
+
 function* handleAlert(msg) {
-  yield call(promiseTo(() => {
-    const n = new Notification(msg.title, {
-      body: msg.body,
-    });
-    setTimeout(n.close.bind(n), 5000);
-  }));
+  yield call(createNotification, msg.title, msg.body);
 }
 
 function* handleSocketPushes(socket) {
