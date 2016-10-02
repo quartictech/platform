@@ -7,7 +7,7 @@ import * as constants from "../constants";
 import * as actions from "../actions";
 import { apiRoot } from "../../../../weylConfig.js";
 
-import handleSocket from "./handleSocket";
+import manageSocket from "./manageSocket";
 
 function* searchForLayers(action) {
   console.log("Executing search");
@@ -105,7 +105,7 @@ function prepare(generator) {
 }
 
 export default [
-  prepare(handleSocket),
+  prepare(manageSocket),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),

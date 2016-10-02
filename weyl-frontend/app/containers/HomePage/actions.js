@@ -181,3 +181,12 @@ export function feedSetData(layerId, data) {
     data,
   };
 }
+
+export const connectionUp = () => ({
+  type: constants.CONNECTION_UP,
+});
+
+
+export const connectionDown = () => ({
+  type: constants.CONNECTION_DOWN,
+});

@@ -16,6 +16,7 @@ import LayerList from "../../components/LayerList";
 import SelectionView from "../../components/SelectionView";
 import MapInfo from "../../components/MapInfo";
 import FeedPane from "../../components/FeedPane";
+import ConnectionStatus from "../../components/ConnectionStatus";
 
 import styles from "./styles.css";
 
@@ -28,6 +29,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
   render() {
     return (
       <div className={styles.container}>
+        <ConnectionStatus connectionUp={this.props.connectionUp} />
+
         <Toolbar
           onSearch={this.props.onSearch}
           onSelect={this.props.onSelect}
@@ -142,6 +145,7 @@ const mapStateToProps = createStructuredSelector({
   map: selectors.selectMap(),
   geofence: selectors.selectGeofence(),
   feed: selectors.selectFeed(),
+  connectionUp: selectors.selectConnectionUp(),
 });
 
 // Wrap the component to inject dispatch and state into it
