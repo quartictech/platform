@@ -18,7 +18,7 @@ const FeedEvent = ({ event }) => (
   </div>
 );
 
-function FeedPane({ feed, layers }) {
+function FeedPane({ feed, layers, visible, onUiToggle }) {
   const visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
   const events = [].concat([], ...Object.keys(feed.events)
       .filter(layerId => visibleLayerIds.has(layerId))
@@ -28,12 +28,12 @@ function FeedPane({ feed, layers }) {
     .slice(1, 10);
 
   return (
-    <div className={styles.feedPane}>
+    <div className={styles.feedPane} style={{ "visibility": visible ? "visible" : "hidden" }}>
       <div className="ui raised fluid card">
         <div className="content">
           <div className="header">
             <a>
-              <i className="icon close"></i>
+              <i className="icon close" onClick={() => onUiToggle("liveFeed")}></i>
             </a>
             Live feed
           </div>

@@ -17,6 +17,7 @@ function Toolbar(props) {
   const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
   const geofenceClassNames = classNames("item", { "active": props.ui.layerOp === "geofence" });
   const layerListClassNames = classNames("item", { "active": props.ui.panels.layerList });
+  const liveFeedClassNames = classNames("item", { "active": props.ui.panels.liveFeed });
   const themeClassNames = classNames("item");
   return (
     <div className={styles.toolbar}>
@@ -41,6 +42,10 @@ function Toolbar(props) {
           <a className={geofenceClassNames} onClick={() => props.onUiToggle("geofence")}>
             <i className="icon crop"></i>
             Geofence
+          </a>
+          <a className={liveFeedClassNames} onClick={() => props.onUiToggle("liveFeed")}>
+            <i className="icon feed"></i>
+            Live Feed
           </a>
           <div className="item">
             <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect} />

@@ -8,6 +8,7 @@ const initialState = fromJS({
     chart: false,
     layerList: true,
     settings: false,
+    liveFeed: false,
   },
   settings: {
     theme: "dark",
