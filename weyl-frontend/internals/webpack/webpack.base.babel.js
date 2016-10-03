@@ -81,14 +81,6 @@ module.exports = (options) => ({
       'jsnext:main',
       'main',
     ],
-    alias: {
-      webworkify: 'webworkify-webpack',
-      'mapbox-gl': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.js'),
-      'mapbox-gl.css': path.resolve('./node_modules/mapbox-gl/dist/mapbox-gl.css'),
-      // Really weird stuff happened in Chrome without this line!
-      'mapbox-gl-draw': path.resolve('./node_modules/mapbox-gl-draw/dist/mapbox-gl-draw.js'),
-      'mapbox-gl-draw.css': path.resolve('./node_modules/mapbox-gl-draw/dist/mapbox-gl-draw.css'),
-    },
   },
   // This is needed to make geojsonhint (imported via mapbox-gl-draw) happy
   // See e.g. https://github.com/pugjs/pug-loader/issues/8
