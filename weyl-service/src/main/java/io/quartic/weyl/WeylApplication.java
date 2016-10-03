@@ -6,6 +6,7 @@ import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jdbi.DBIFactory;
+import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
@@ -79,6 +80,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(geofenceStore));
         environment.jersey().register(new AlertResource(alertProcessor));
+
+        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
     }
 
     // We pass a memoized supplier so we get connect-on-demand, to avoid startup failure when Postgres is down
