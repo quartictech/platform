@@ -80,7 +80,7 @@ if __name__ == "__main__":
             msg = "Heading to pub {}".format(pub["name"])
             post_event("arlo", make_geojson(pub["geojson"]["coordinates"], "Arlo", pub["name"]), msg)
             start = p
-            arlo_noise_scale *= 1.3
+            arlo_noise_scale *= 1.1
 
         dx, dy = target[0] - start[0], target[1] - start[1]
         scale = float(progress) / STEPS
