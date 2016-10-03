@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.utils.Utils.uuid;
@@ -23,16 +24,16 @@ public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
     private Map<LayerId, Layer> rawLayers;
     private Map<LayerId, IndexedLayer> indexedLayers;
-    private DBI dbi;
+    private Supplier<DBI> dbi;
 
-    public LayerStore(DBI dbi) {
+    public LayerStore(Supplier<DBI> dbi) {
         this.dbi = dbi;
         this.rawLayers = Maps.newConcurrentMap();
         this.indexedLayers = Maps.newConcurrentMap();
     }
 
     public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(dbi).fetch(metadata, sql)
+        Optional<IndexedLayer> layer = new PostgisConnector(dbi.get()).fetch(metadata, sql)
                 .map(LayerStore::index);
 
         layer.ifPresent(this::storeLayer);
