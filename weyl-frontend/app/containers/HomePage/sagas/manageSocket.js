@@ -6,7 +6,10 @@ import * as actions from "../actions";
 import * as selectors from "../selectors";
 
 
-const sendMessage = (socket, msg) => socket.send(JSON.stringify(msg));
+const sendMessage = (socket, msg) => {
+  console.log("Sending message", msg);
+  socket.send(JSON.stringify(msg));
+};
 
 function* reportStatus(socket) {
   const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds());
@@ -41,6 +44,7 @@ function* handleAlert(msg) {
 function* handleMessages(channel) {
   while (true) {
     const msg = yield take(channel);
+    console.log("Received message", msg);
     switch (msg.type) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
