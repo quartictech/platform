@@ -24,8 +24,8 @@ public class LiveLayerStoreShould {
 
     @Test
     public void list_created_layers() throws Exception {
-        final LayerMetadata lm1 = LayerMetadata.of("foo", "bar");
-        final LayerMetadata lm2 = LayerMetadata.of("cheese", "monkey");
+        final LayerMetadata lm1 = metadata("foo", "bar");
+        final LayerMetadata lm2 = metadata("cheese", "monkey");
 
         LayerId id1 = LayerId.of("abc");
         LayerId id2 = LayerId.of("def");
@@ -70,7 +70,7 @@ public class LiveLayerStoreShould {
         store.addToLayer(id, liveEvents(feature("a", point())));
 
         verify(subscriber).accept(
-                liveLayerState(id,
+                liveLayerState(
                         featureWithId("a", point())
                 ));
     }
@@ -85,7 +85,7 @@ public class LiveLayerStoreShould {
         store.addToLayer(id, liveEvents(feature("b", point())));
 
         verify(subscriber).accept(
-                liveLayerState(id,
+                liveLayerState(
                         featureWithId("a", point()),
                         featureWithId("b", point())
                 ));
@@ -94,7 +94,7 @@ public class LiveLayerStoreShould {
     @Test
     public void update_metadata_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
-        LayerMetadata newMetadata = LayerMetadata.of("cheese", "monkey");
+        LayerMetadata newMetadata = metadata("cheese", "monkey");
         store.createLayer(id, newMetadata, Collection::stream);
 
         final Collection<LiveLayer> layers = store.listLayers();
@@ -115,7 +115,7 @@ public class LiveLayerStoreShould {
         store.addToLayer(id, liveEvents(feature("b", point())));
 
         verify(subscriber).accept(
-                liveLayerState(id,
+                liveLayerState(
                         featureWithId("a", point()),
                         featureWithId("b", point())
                 ));
@@ -162,7 +162,11 @@ public class LiveLayerStoreShould {
     }
 
     private void createLayerWithId(LayerId id) {
-        store.createLayer(id, LayerMetadata.of("foo", "bar"), Collection::stream);
+        store.createLayer(id, metadata("foo", "bar"), Collection::stream);
+    }
+
+    private LayerMetadata metadata(String name, String description) {
+        return LayerMetadata.of(name, description, Optional.empty());
     }
 
     private LayerId createLayer() {
@@ -181,7 +185,7 @@ public class LiveLayerStoreShould {
         return ImmutableList.of(liveEvent);
     }
 
-    private LiveLayerState liveLayerState(LayerId id, Feature... features) {
+    private LiveLayerState liveLayerState(Feature... features) {
         return LiveLayerState.of(featureCollection(features), ImmutableList.of());
     }
 

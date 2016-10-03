@@ -67,7 +67,7 @@ public class LayerResourceShould {
 
     private LayerUpdateRequest createRequest(FeatureCollection collection) {
         return LayerUpdateRequest.of(
-                LayerMetadata.of("foo", "bar"),
+                LayerMetadata.of("foo", "bar", Optional.empty()),
                 LiveLayerViewType.LOCATION_AND_TRACK,
                 ImmutableList.of(LiveEvent.of(Instant.now(), Optional.of(collection), Optional.empty())));
     }
