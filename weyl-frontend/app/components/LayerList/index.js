@@ -86,10 +86,10 @@ const LayerListItem = ({
         <a onClick={() => onButtonClick("CLOSE")}>
           <i className="icon close"></i>
         </a>
-        {layer.name}
+        {layer.metadata.name}
       </div>
       <div className="meta">
-        {layer.description}
+        {layer.metadata.description}
       </div>
     </div>
 

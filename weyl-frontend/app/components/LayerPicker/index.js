@@ -28,7 +28,7 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
     const rows = [];
 
     for (const layer of this.props.layers) {
-      rows.push(<div className="item" key={layer.id} data-value={layer.id}>{layer.name}</div>);
+      rows.push(<div className="item" key={layer.id} data-value={layer.id}>{layer.metadata.name}</div>);
     }
 
     return (

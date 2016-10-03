@@ -46,7 +46,7 @@ function filter(property, geomType) {
 }
 
 export function buildStyleLayers(layer) {
-  const [layerName, style, attributeStats] = [layer.name, layer.style, layer.stats.attributeStats];
+  const [layerName, style, attributeStats] = [layer.metadata.name, layer.style, layer.stats.attributeStats];
   if (layerName in customStyles) {
     return customStyles[layerName];
   } else if (layer.live) {

@@ -15,6 +15,5 @@ public interface AbstractFeedEvent {
     String message();
 
     @JsonAnyGetter
-    @Value.Parameter
     Map<String, String> properties();
 }

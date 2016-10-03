@@ -1,12 +1,10 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
@@ -14,7 +12,6 @@ import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +123,7 @@ public class LayerResource {
     public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) {
         final LayerId layerId = LayerId.of(id);
 
-        liveLayerStore.createLayer(layerId, LayerMetadata.of(request.name(), request.description()), request.viewType().getLiveLayerView());
+        liveLayerStore.createLayer(layerId, request.metadata(), request.viewType().getLiveLayerView());
 
         request.events().forEach( event -> {
                     validateOrThrow(event.featureCollection().isPresent() ? event.featureCollection().get().features().stream() : Stream.empty(),
@@ -177,9 +174,8 @@ public class LayerResource {
 
     private LayerResponse createStaticLayerResponse(IndexedLayer layer) {
         return ImmutableLayerResponse.builder()
-                .name(layer.layer().metadata().name())
-                .description(layer.layer().metadata().description())
                 .id(layer.layerId())
+                .metadata(layer.layer().metadata())
                 .stats(layer.layerStats())
                 .attributeSchema(layer.layer().schema())
                 .live(false)
@@ -188,9 +184,8 @@ public class LayerResource {
 
     private LayerResponse createLiveLayerResponse(LiveLayer layer) {
         return ImmutableLayerResponse.builder()
-                .name(layer.layer().metadata().name())
-                .description(layer.layer().metadata().description())
                 .id(layer.layerId())
+                .metadata(layer.layer().metadata())
                 .stats(ImmutableLayerStats.builder().featureCount(1).build())
                 .attributeSchema(layer.layer().schema())
                 .live(true)

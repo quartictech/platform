@@ -12,6 +12,7 @@ import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerViewType;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +66,9 @@ public class LayerResourceShould {
     }
 
     private LayerUpdateRequest createRequest(FeatureCollection collection) {
-        return LayerUpdateRequest.of("foo", "bar", LiveLayerViewType.LOCATION_AND_TRACK, ImmutableList.of(LiveEvent.of(Instant.now(), Optional.of(collection), Optional.empty())));
+        return LayerUpdateRequest.of(
+                LayerMetadata.of("foo", "bar"),
+                LiveLayerViewType.LOCATION_AND_TRACK,
+                ImmutableList.of(LiveEvent.of(Instant.now(), Optional.of(collection), Optional.empty())));
     }
 }
