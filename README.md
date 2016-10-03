@@ -14,6 +14,4 @@
         cd weyl-frontend
         npm start
 
-4. Run the data-import:
-
-        ./import.sh [<CONTEXT_PATH>]
+4. Run data imports (can we found in the `dilectic` repo).

@@ -1,5 +1,0 @@
-{
-	"name": "Roads",
-	"description": "Roads",
-	"query": "SELECT * from planet_osm_line"
-}
