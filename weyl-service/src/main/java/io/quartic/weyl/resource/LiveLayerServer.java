@@ -12,10 +12,7 @@ import io.quartic.weyl.core.live.LiveLayerState;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.message.AlertMessage;
-import io.quartic.weyl.message.ClientStatusMessage;
-import io.quartic.weyl.message.LayerUpdateMessage;
-import io.quartic.weyl.message.SocketMessage;
+import io.quartic.weyl.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +53,8 @@ public class LiveLayerServer {
                 LOG.info("[{}] Subscribed to {}", session.getId(), csm.subscribedLiveLayerIds());
                 unsubscribeAll();
                 csm.subscribedLiveLayerIds().forEach(this::subscribe);
+            } else if (msg instanceof PingMessage) {
+                LOG.info("[{}] Received ping", session.getId());
             } else {
                 throw new RuntimeException("Unrecognised type '" + msg.getClass().getCanonicalName() + "'");
             }
