@@ -68,6 +68,7 @@ if __name__ == "__main__":
     start = p
     target = None
     progress = 0
+    noise_scale = 0.001
 
     while True:
         if target is None or progress >= STEPS:
@@ -78,11 +79,14 @@ if __name__ == "__main__":
             msg = "Heading to pub {}".format(pub["name"])
             post_event("arlo", make_geojson(pub["geojson"]["coordinates"], "Arlo", pub["name"]), msg)
             start = p
+            noise_scale *= 1.5
 
         dx, dy = target[0] - start[0], target[1] - start[1]
-        p = start[0] + random.random() * 0.001 + (progress / STEPS) * dx, start[1] + random.random() * 0.001 + (progress / STEPS) * dy
+        scale = float(progress) / STEPS
+        p = start[0] + (random.random() * noise_scale) + (scale * dx), start[1] + (random.random() * noise_scale) + (scale * dy)
         print("location: {}".format(p))
 
         post_event("alex", make_geojson(p, "Alex", "alex"), random_message() if random.random() > 0.9 else None)
+        post_event("arlo", make_geojson((p[0] + random.random() * 0.001, p[1] + random.random()*0.001), "Arlo", "arlo"), random_message() if random.random() > 0.99 else None)
         time.sleep(1)
         progress += 1
