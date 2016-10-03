@@ -9,7 +9,7 @@ import * as selectors from "../selectors";
 const sendMessage = (socket, msg) => {
   console.log("Sending message", msg);
   socket.send(JSON.stringify(msg));
-}
+};
 
 function* reportStatus(socket) {
   const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds());
