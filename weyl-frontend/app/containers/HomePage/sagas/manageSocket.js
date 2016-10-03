@@ -11,6 +11,14 @@ const sendMessage = (socket, msg) => {
   socket.send(JSON.stringify(msg));
 };
 
+function* keepConnectionAlive(socket) {
+  while (true) {
+    const msg = { type: "Ping" };
+    yield call(sendMessage, socket, msg);
+    yield call(delay, 30 * 1000);
+  }
+}
+
 function* reportStatus(socket) {
   const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds());
 
@@ -88,6 +96,7 @@ export default function* () {
 
       yield race({
         watchLayerChanges: watchLayerChanges(socket),
+        keepConnectionAlive: keepConnectionAlive(socket),
         handleMessages: handleMessages(channel),
       });
     }
