@@ -2,9 +2,12 @@ import { fromJS } from "immutable";
 import * as constants from "../constants";
 
 const initialState = fromJS({
-  style: "basic",
-  ready: false,
-  mouseLocation: null, // Will be {lng,lat} when known
+  editing: false,
+  geojson: {
+    type: "FeatureCollection",
+    features: [],
+  },
+  type: "INCLUDE",
 });
 
 export default (state = initialState, action) => {

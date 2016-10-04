@@ -156,22 +156,19 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
       />);
     }
     for (const layer of this.props.layers) {
-      if (!layer.closed) {
-        const key = `layer_${layer.id}`;
-        rows.push(
-          <LayerListItem
-            key={key}
-            layer={layer}
-            onButtonClick={(name) => this.onButtonClick(name, layer.id)}
-            onToggleValueVisible={this.props.onToggleValueVisible}
-            onLayerStyleChange={this.props.onLayerStyleChange}
-            mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
-          />
-        );
-      }
+      rows.push(
+        <LayerListItem
+          key={layer.id}
+          layer={layer}
+          onButtonClick={(name) => this.onButtonClick(name, layer.id)}
+          onToggleValueVisible={this.props.onToggleValueVisible}
+          onLayerStyleChange={this.props.onLayerStyleChange}
+          mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
+        />
+      );
     }
 
-    if (this.props.layers.filter(layer => !layer.closed).length > 0 || this.props.ui.layerOp != null) {
+    if (this.props.layers.length > 0 || this.props.ui.layerOp != null) {
       return (
         <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
           <div className={styles.innerLayerList}>

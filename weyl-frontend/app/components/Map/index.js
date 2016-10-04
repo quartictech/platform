@@ -20,20 +20,37 @@ import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
 import { apiRootUrl } from "../../utils.js";
 
+// https://gist.github.com/samgiles/762ee337dff48623e729
+Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
+  return Array.prototype.concat.apply([], this.map(lambda));
+};
+
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
-    this.state = { map: null, sourceLayerMappings: {}, visibleLayerIds: [], zOrderedLayers: [] };
+    this.map = null;
+    this.subLayers = {};
+  }
+
+  getVisibleSubLayers() {
+    const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
+    return Object.keys(this.subLayers)
+      .filter(id => visibleLayerIds.some(i => i === id))
+      .flatMap(id => this.subLayers[id]);
+  }
+
+  queryRenderedFeatures(point) {
+    return this.map.queryRenderedFeatures(point, { layers: this.getVisibleSubLayers() });
   }
 
   onMouseMove(e) {
-    const features = this.state.map.queryRenderedFeatures(e.point, { layers: this.state.visibleLayerIds });
-    this.state.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
+    const features = this.queryRenderedFeatures(e.point);
+    this.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
     this.props.onMouseMove(e.lngLat);
   }
 
   onMouseClick(e) {
-    const features = this.state.map.queryRenderedFeatures(e.point, { layers: this.state.visibleLayerIds });
+    const features = this.queryRenderedFeatures(e.point);
     if (!features.length) {
       return;
     }
@@ -42,37 +59,31 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.props.onSelectFeatures([[feature.layer.source, feature.properties["_id"]]], features); // eslint-disable-line dot-notation
   }
 
-  addLayer(layer, before) {
-    this.state.map.addLayer(layer, before);
-    this.state.zOrderedLayers.push(layer.id);
-  }
-
-  getBottomLayer = () => (this.state.zOrderedLayers.length > 0 ? this.state.zOrderedLayers[1] : null);
-
   componentDidMount() {
-    this.state.map = new mapboxgl.Map({
+    this.map = new mapboxgl.Map({
       container: "map-inner",
       style: themes[this.props.map.theme].mapbox,
       zoom: 9.7,
       center: [-0.10, 51.4800],
     });
 
-    this.state.map.on("mousemove", this.onMouseMove.bind(this));
-    this.state.map.on("click", this.onMouseClick.bind(this));
-    this.state.map.on("style.load", () => {
+    this.map.on("mousemove", this.onMouseMove.bind(this));
+    this.map.on("click", this.onMouseClick.bind(this));
+    this.map.on("style.load", () => {
+      this.subLayers = {};     // Everything is gone once the style changes
       this.props.onMapLoaded();
       this.updateMap(this.props);
     });
 
-    this.state.map.on("draw.create", () => {
-      this.props.onGeofenceChange(this.state.draw.getAll());
+    this.map.on("draw.create", () => {
+      this.props.onGeofenceChange(this.draw.getAll());
     });
 
-    this.state.map.on("draw.delete", () => {
-      this.props.onGeofenceChange(this.state.draw.getAll());
+    this.map.on("draw.delete", () => {
+      this.props.onGeofenceChange(this.draw.getAll());
     });
 
-    this.state.draw = mapboxgl.Draw({   // eslint-disable-line new-cap
+    this.draw = mapboxgl.Draw({   // eslint-disable-line new-cap
       position: "top-right",
       displayControlsDefault: false,
       controls: {
@@ -83,91 +94,102 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   updateMap(props) {
-    this.state.visibleLayerIds = [];
-
-    if (props.geofence.editing !== this.props.geofence.editing) {
-      if (props.geofence.editing) {
-        this.state.map.addControl(this.state.draw);
-        this.props.onGeofenceChange(this.state.draw.getAll());
-      } else {
-        this.state.draw.remove();
-      }
-    }
-
-    props.layers.filter(layer => layer.live).forEach(layer => {
-      this.updateLayer(layer, this.getSourceDefForLiveLayer(layer), props);
-    });
-
-    props.layers.filter(layer => !layer.live).forEach(layer =>
-      this.updateLayer(layer, this.getSourceDefForStaticLayer(layer), props)
-    );
-
-    this.renderGeofence(props);
+    this.updateNonIdempotent(props);
+    this.updateIdempotent(props);
   }
 
-  renderGeofence(props) {
-    if (props.geofence.geojson != null) {
-      if (this.state.map.getSource("geofence") === undefined) {
-        this.state.map.addSource("geofence", {
-          type: "geojson",
-          data: props.geofence.geojson,
-        });
-        this.addLayer({
-          "id": "geofence_fill",
+  updateNonIdempotent(props) {
+    this.toggleGeofenceEditControlsIfNeeded(props);
+    this.addGeofenceLayerIfMissing(props.geofence);
+    this.deleteOldLayers(props.layers);
+    this.addNewLayers(props.layers);
+  }
+
+  updateIdempotent(props) {
+    this.updateLayers(props.layers, props.selection);
+    this.updateGeofenceLayer(props.geofence);
+  }
+
+  toggleGeofenceEditControlsIfNeeded(props) {
+    if (props.geofence.editing !== this.props.geofence.editing) {
+      if (props.geofence.editing) {
+        this.map.addControl(this.draw);
+        this.props.onGeofenceChange(this.draw.getAll());
+      } else {
+        this.draw.remove();
+      }
+    }
+  }
+
+  addGeofenceLayerIfMissing(geofence) {
+    if (this.map.getSource("geofence") === undefined) {
+      this.map.addSource("geofence", {
+        type: "geojson",
+        data: geofence.geojson,
+      });
+
+      this.addSubLayers("geofence", [
+        {
+          "id": "fill",
           "type": "fill",
-          "source": "geofence",
-          "source-layer": "geofence",
           "paint": {
             "fill-color": "#000000",
             "fill-opacity": 0.7,
           },
-        }, this.getBottomLayer());
-
-        this.addLayer({
-          "id": "geofence_line",
+        },
+        {
+          "id": "line",
           "type": "line",
-          "source": "geofence",
-          "source-layer": "geofence",
           "paint": {
             "line-color": "#000000",
             "line-width": 5,
           },
-        }, this.getBottomLayer());
-      }
-      this.state.map.getSource("geofence").setData(props.geofence.geojson);
-      const visible = props.geofence.geojson != null && !props.geofence.editing;
-      this.state.map.setLayoutProperty("geofence_fill", "visibility", visible ? "visible" : "none");
-      this.state.map.setLayoutProperty("geofence_line", "visibility", visible ? "visible" : "none");
-      const geofenceColor = props.geofence.type === "INCLUDE" ? "#86C67C" : "#CC3300";
-      this.state.map.setPaintProperty("geofence_fill", "fill-color", geofenceColor);
-      this.state.map.setPaintProperty("geofence_line", "line-color", geofenceColor);
+        },
+      ]);
     }
   }
 
-  getSourceDefForStaticLayer(layer) {
-    return {
-      type: "vector",
-      tiles: [`${apiRootUrl}/${layer.id}/{z}/{x}/{y}.pbf`],
-    };
+  updateGeofenceLayer(geofence) {
+    this.map.getSource("geofence").setData(geofence.geojson);
+    const visible = !geofence.editing;
+    this.setSubLayerVisibility("geofence_fill", visible);
+    this.setSubLayerVisibility("geofence_line", visible);
+    const geofenceColor = geofence.type === "INCLUDE" ? "#86C67C" : "#CC3300";
+    this.map.setPaintProperty("geofence_fill", "fill-color", geofenceColor);
+    this.map.setPaintProperty("geofence_line", "line-color", geofenceColor);
   }
 
-  getSourceDefForLiveLayer(layer) {
-    return {
-      type: "geojson",
-      data: layer.data,
-    };
+  deleteOldLayers(layers) {
+    const layerIds = layers.map(l => l.id);
+    const layersToDelete = Object.keys(this.subLayers)
+      .filter(id => !layerIds.some(i => i === id));
+
+    layersToDelete.forEach(id => {
+      this.subLayers[id].forEach(subLayerId => this.map.removeLayer(subLayerId));
+      this.map.removeSource(id);
+      delete this.subLayers[id];
+    });
   }
 
-  updateLayer(layer, sourceDef, props) {
-    const styleLayers = buildStyleLayers(layer);
+  addNewLayers(layers) {
+    const layersToAdd = layers.filter(layer => !(layer.id in this.subLayers));
 
-    if (this.state.map.getSource(layer.id) === undefined) {
-      this.createSourceAndSubLayers(layer, sourceDef, styleLayers);
-    }
+    layersToAdd.forEach(layer => {
+      const subLayerIds = this.createSourceAndSubLayers(layer);
+      this.subLayers[layer.id] = subLayerIds;
+    });
+  }
+
+  updateLayers(layers, selection) {
+    layers.forEach(layer => this.updateLayer(layer, selection));
+  }
+
+  updateLayer(layer, selection) {
     if (layer.live) {
-      this.state.map.getSource(layer.id).setData(sourceDef.data);
+      this.map.getSource(layer.id).setData(this.getSourceDef(layer).data);
     }
 
+    const styleLayers = buildStyleLayers(layer);
     const valueFilter = this.createValueFilter(layer.filter);
     Object.keys(styleLayers).forEach(k => {
       this.configureSubLayer(`${layer.id}_${k}`, layer.visible, valueFilter, styleLayers[k]);
@@ -176,81 +198,92 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.setSubLayerVisibility(`${layer.id}_point_sel`, layer.visible);
     this.setSubLayerVisibility(`${layer.id}_line_sel`, layer.visible);
     this.setSubLayerVisibility(`${layer.id}_polygon_sel`, layer.visible);
-    const selectionFilter = this.createSelectionFilter(props.selection, layer.id);
-    this.state.map.setFilter(`${layer.id}_point_sel`, ["all", ["==", "$type", "Point"], selectionFilter, valueFilter]);
-    this.state.map.setFilter(`${layer.id}_polygon_sel`, ["all", ["==", "$type", "Polygon"], selectionFilter, valueFilter]);
-    this.state.map.setFilter(`${layer.id}_line_sel`, ["all", ["==", "$type", "LineString"], selectionFilter, valueFilter]);
+    const selectionFilter = this.createSelectionFilter(selection, layer.id);
+    this.map.setFilter(`${layer.id}_point_sel`, ["all", ["==", "$type", "Point"], selectionFilter, valueFilter]);
+    this.map.setFilter(`${layer.id}_polygon_sel`, ["all", ["==", "$type", "Polygon"], selectionFilter, valueFilter]);
+    this.map.setFilter(`${layer.id}_line_sel`, ["all", ["==", "$type", "LineString"], selectionFilter, valueFilter]);
   }
 
-  createSourceAndSubLayers(layer, source, styleLayers) {
-    this.state.map.addSource(layer.id, source);
+  getSourceDef(layer) {
+    return (layer.live)
+      ? { type: "geojson", data: layer.data }
+      : { type: "vector", tiles: [`${apiRootUrl}/${layer.id}/{z}/{x}/{y}.pbf`] };
+  }
+
+  createSourceAndSubLayers(layer) {
+    this.map.addSource(layer.id, this.getSourceDef(layer));
 
     function zOrder(l) {
       return ("_zorder" in l) ? l["_zorder"] : -1;  // eslint-disable-line dot-notation
     }
 
+    const styleLayers = buildStyleLayers(layer);
+
+    const subLayerDefs = [];
     Object.keys(styleLayers)
       .sort((a, b) => zOrder(styleLayers[b]) - zOrder(styleLayers[a]))
       .forEach(styleLayerKey => {
         const styleLayer = {
           ...styleLayers[styleLayerKey],
-          "id": `${layer.id}_${styleLayerKey}`,
-          "source": layer.id,
-          "source-layer": layer.id,
+          "id": styleLayerKey,
         };
 
         if ("_zorder" in styleLayer) {
           delete styleLayer["_zorder"]; // eslint-disable-line dot-notation
         }
 
-        this.addLayer(styleLayer);
+        subLayerDefs.push(styleLayer);
       });
 
-    this.addLayer({
-      "id": `${layer.id}_point_sel`,
+    subLayerDefs.push({
+      "id": "point_sel",
       "type": "circle",
-      "source": layer.id,
-      "source-layer": layer.id,
       "paint": {
         "circle-color": "#FFB85F", // "#6e599f",
       },
       "filter": ["in", "_id", ""],
     });
 
-    this.addLayer({
-      "id": `${layer.id}_polygon_sel`,
+    subLayerDefs.push({
+      "id": "polygon_sel",
       "type": "fill",
-      "source": layer.id,
-      "source-layer": layer.id,
       "paint": {
         "fill-color": "#FFB85F", // "#6e599f",
       },
       "filter": ["in", "_id", ""],
     });
 
-    this.addLayer({
-      "id": `${layer.id}_line_sel`,
+    subLayerDefs.push({
+      "id": "line_sel",
       "type": "line",
-      "source": layer.id,
-      "source-layer": layer.id,
       "paint": {
         "line-color": "#FFB85F", // "#6e599f",
       },
       "filter": ["in", "_id", ""],
     });
 
-    this.state.sourceLayerMappings[layer.id] = Object.keys(styleLayers)
-      .map(k => `${layer.id}_${k}`);
+    return this.addSubLayers(layer.id, subLayerDefs);
+  }
+
+  addSubLayers(sourceId, subLayerDefs) {
+    const finalDefs = subLayerDefs.map(def => ({
+      ...def,
+      "id": `${sourceId}_${def.id}`,
+      "source": sourceId,
+      "source-layer": sourceId,
+    }));
+    finalDefs.forEach(def => this.map.addLayer(def));
+    return finalDefs.map(def => def.id);
   }
 
   configureSubLayer(id, visible, valueFilter, config) {
     Object.keys(config.paint).forEach(paintProperty =>
-      this.state.map.setPaintProperty(id, paintProperty, config.paint[paintProperty])
+      this.map.setPaintProperty(id, paintProperty, config.paint[paintProperty])
     );
 
     this.setSubLayerVisibility(id, visible);
 
-    this.state.map.setFilter(id, ("filter" in config)
+    this.map.setFilter(id, ("filter" in config)
       ? ["all", valueFilter, config.filter]
       : valueFilter
     );
@@ -269,16 +302,13 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   setSubLayerVisibility(id, visible) {
-    this.state.map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
-    if (visible) {
-      this.state.visibleLayerIds.push(id);
-    }
+    this.map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.map.theme !== this.props.map.theme) {
       this.props.onMapLoading();
-      this.state.map.setStyle(themes[nextProps.map.theme].mapbox);
+      this.map.setStyle(themes[nextProps.map.theme].mapbox);
     } else if (nextProps.map.ready) {
       // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox "style.load" callback)
       this.updateMap(nextProps);
