@@ -1,88 +1,15 @@
-/**
-*
-* LayerList
-*
-*/
-
 import React from "react";
-import naturalsort from "javascript-natural-sort";
-
 import styles from "./styles.css";
 
 import BucketLayerItem from "../BucketLayerItem";
 import GeofenceSettings from "../GeofenceSettings";
 import LayerStyleSettings from "../LayerStyleSettings";
+import AttributeList from "./AttributeList";
 
-const $ = require("jquery");
-
-const AttributeValue = ({
-  value,
-  checked,
-  onClick,
-}) => (
-  <div className="item" key={value}>
-    <div className="ui checked checkbox">
-      <input type="checkbox" checked={checked} name={value} onChange={() => onClick(value)} />
-      <label htmlFor={value}>{value}</label>
-    </div>
-  </div>
-);
-
-const AttributeValueList = ({
-  attribute,
-  values,
-  uncheckedValues,
-  onClick,
-}) => (
-  <div className="ui list">
-    {values.sort(naturalsort).map(value => (
-      <AttributeValue
-        key={value}
-        value={value}
-        checked={!uncheckedValues.some(x => x === value)}
-        onClick={(v) => onClick(attribute, v)}
-      />
-    ))}
-  </div>
-);
-
-const AttributeList = ({
-  layerId,
-  attributes,
-  filter,
-  onClick,
-}) => (
-  <div className="content">
-    {
-      Object.keys(attributes)
-        .filter(key => attributes[key].categories !== null)
-        .sort(naturalsort)
-        .map(key => (
-          <div className="ui accordion" key={key} ref={x => $(x).accordion()}>
-            <div className="title">
-              <i className="dropdown icon"></i>
-              {key}
-            </div>
-            <div className="content">
-              <AttributeValueList
-                key={key}
-                attribute={key}
-                values={attributes[key].categories}
-                uncheckedValues={(key in filter) ? filter[key] : []}
-                onClick={(a, v) => onClick(layerId, a, v)}
-              />
-            </div>
-          </div>
-        ))
-    }
-  </div>
-);
+const DEFAULT_ICON = "grey map";
 
 const LayerListItemInfo = ({
-  layerId,
-  attributes,
-  filter,
-  layerStyle,
+  layer,
   onAttributeValueClick,
   onLayerStyleChange,
   mode,
@@ -93,9 +20,9 @@ const LayerListItemInfo = ({
         <div className="ui secondary segment">
           <div className="content">
             <AttributeList
-              layerId={layerId}
-              attributes={attributes}
-              filter={filter}
+              layerId={layer.id}
+              attributes={layer.attributeSchema.attributes}
+              filter={layer.filter}
               onClick={onAttributeValueClick}
             />
           </div>
@@ -107,14 +34,25 @@ const LayerListItemInfo = ({
         <div className="ui secondary segment">
           <div className="content">
             <LayerStyleSettings
-              layerId={layerId}
-              layerAttributes={attributes}
-              layerStyle={layerStyle}
+              layerId={layer.id}
+              layerAttributes={layer.attributeSchema.attributes}
+              layerStyle={layer.style}
               onChange={onLayerStyleChange}
             />
           </div>
         </div>
       );
+
+
+    case "INFO":
+      return (
+        <div className="ui secondary segment">
+          <div className="content" style={{ "font-size": "0.8em" }}>
+            {(layer.metadata.description)}
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }
@@ -134,6 +72,10 @@ const styleButtonStyle = (layer, mode) => (
   (mode === "STYLE") ? styles.active : ""
 );
 
+const infoButtonStyle = (layer, mode) => (
+  (mode === "INFO") ? styles.active : ""
+);
+
 const LayerListItem = ({
   layer,
   onButtonClick,
@@ -141,9 +83,18 @@ const LayerListItem = ({
   onLayerStyleChange,
   mode,
 }) => (
-  <div className={styles.layerListItem}>
+  <div className="item" style={{ "padding-top": "10px", "padding-bottom": "10px" }}>
     <div className="content">
       <div className="right floated">
+        <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
+      </div>
+      <div className="ui small header">
+        <a onClick={() => onButtonClick("CLOSE")}>
+          <i className="icon close"></i>
+        </a>
+        {layer.metadata.name}
+      </div>
+      <div className="description" style={{ "margin-top": "0.2em" }}>
         <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
           <i className="icon eye"></i>
         </a>
@@ -153,27 +104,18 @@ const LayerListItem = ({
         <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
           <i className="icon paint brush"></i>
         </a>
-      </div>
-      <div className="header">
-        <a onClick={() => onButtonClick("CLOSE")}>
-          <i className="icon close"></i>
+        <a onClick={() => onButtonClick("INFO")} className={infoButtonStyle(layer, mode)}>
+          <i className="icon info"></i>
         </a>
-        {layer.name}
-      </div>
-      <div className="meta">
-        {layer.description}
+
+        <LayerListItemInfo
+          layer={layer}
+          onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
+          onLayerStyleChange={onLayerStyleChange}
+          mode={mode}
+        />
       </div>
     </div>
-
-    <LayerListItemInfo
-      layerId={layer.id}
-      attributes={layer.attributeSchema.attributes}
-      layerStyle={layer.style}
-      filter={layer.filter}
-      onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
-      onLayerStyleChange={onLayerStyleChange}
-      mode={mode}
-    />
   </div>
 );
 
@@ -235,9 +177,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
           <div className={styles.innerLayerList}>
             <div className="ui raised compact fluid card">
               <div className="content">
-                <div className="header">
+                <div className="ui divided items">
+                  {rows}
                 </div>
-                {rows}
               </div>
             </div>
           </div>

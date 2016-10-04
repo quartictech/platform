@@ -35,7 +35,7 @@ export const selectSelectionFeatures = () => createSelector(
 
     return Object.keys(features).map(k => {
       const layer = layers.find(l => l.id === features[k].layer.source);
-      const layerName = layer === undefined ? "" : layer.name;
+      const layerName = layer === undefined ? "" : layer.metadata.name;
 
       return {
         ...(features[k]),

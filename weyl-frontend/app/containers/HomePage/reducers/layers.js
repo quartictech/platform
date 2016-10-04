@@ -25,8 +25,7 @@ const defaultLayerStyle = schema => ({
 
 const newLayer = (action) => fromJS({
   id: action.id,
-  name: action.name,
-  description: action.description,
+  metadata: action.metadata,
   visible: true,
   closed: false,
   style: defaultLayerStyle(action.attributeSchema),
