@@ -7,6 +7,7 @@ import csv
 import os.path
 
 API_ROOT = "http://localhost:8080/api"
+LAYER_NAME = "pub-tour"
 
 def random_message():
     return " ".join([
@@ -25,13 +26,14 @@ def read_pubs(fname):
     return pubs
 
 def delete_layer():
-    requests.delete("{}/layer/live/{}".format(API_ROOT, "alex-test"))
+    requests.delete("{}/layer/live/{}".format(API_ROOT, LAYER_NAME))
 
 def post_event(user, geojson, message):
-    r = requests.post("{}/layer/live/{}".format(API_ROOT, "alex-test"),
+    r = requests.post("{}/layer/live/{}".format(API_ROOT, LAYER_NAME),
         json={
-            'name': 'Alex Test',
+            'name': 'Pub tour',
             'description': 'A weird gimpy little test',
+            'icon': 'brown beer',
             'viewType': 'LOCATION_AND_TRACK',
             'events': [
                 {

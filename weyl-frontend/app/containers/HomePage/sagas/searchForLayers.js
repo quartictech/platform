@@ -6,7 +6,7 @@ import { apiRootUrl } from "../../../utils.js";
 const unpackLayer = (layer) => ({
   ...layer,
   title: layer.metadata.name,
-  description: layer.metadata.description
+  description: layer.metadata.description,
 });
 
 export default function* (action) {

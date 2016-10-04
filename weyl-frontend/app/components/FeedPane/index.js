@@ -4,10 +4,12 @@ import moment from "moment";
 import styles from "./styles.css";
 import classNames from "classnames";
 
+const DEFAULT_ICON = "comment";
+
 const FeedEvent = ({ event }) => (
   <div className={classNames("event", styles.slideFade)}>
     <div className="label">
-      <i className={"circular phone icon"}></i>
+      <i className={`circular ${event.icon} icon`}></i>
     </div>
     <div className="content">
       <div className="summary">
@@ -18,15 +20,27 @@ const FeedEvent = ({ event }) => (
   </div>
 );
 
-function FeedPane({ feed, layers, visible, onUiToggle }) {
+// https://gist.github.com/samgiles/762ee337dff48623e729
+Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
+  return Array.prototype.concat.apply([], this.map(lambda));
+};
+
+const visibleEvents = (events, layers) => {
+  const icons = layers.reduce((p, layer) => {
+    p[layer.id] = (layer.metadata.icon || DEFAULT_ICON);  // eslint-disable-line no-param-reassign
+    return p;
+  }, {});
   const visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
-  const events = [].concat([], ...Object.keys(feed.events)
-      .filter(layerId => visibleLayerIds.has(layerId))
-      .map(k => feed.events[k])
-    )
+
+  const x = Object.keys(events)
+    .filter(layerId => visibleLayerIds.has(layerId))
+    .flatMap(layerId => events[layerId].map(e => ({ ...e, icon: icons[layerId] })))
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(1, 10);
+  return x;
+};
 
+function FeedPane({ feed, layers, visible, onUiToggle }) {
   return (
     <div className={styles.feedPane} style={{ "visibility": visible ? "visible" : "hidden" }}>
       <div className="ui raised fluid card">
@@ -37,9 +51,6 @@ function FeedPane({ feed, layers, visible, onUiToggle }) {
             </a>
             Live feed
           </div>
-          <div className="meta">
-            Random BS
-          </div>
 
           <ReactCSSTransitionGroup
             component="div"
@@ -49,10 +60,10 @@ function FeedPane({ feed, layers, visible, onUiToggle }) {
             transitionLeaveTimeout={500}
           >
             {
-              events
-              .map(e => (
-                <FeedEvent key={e.id} event={e} />
-              ))
+              visibleEvents(feed.events, layers)
+                .map(e => (
+                  <FeedEvent key={e.id} event={e} />
+                ))
             }
           </ReactCSSTransitionGroup>
         </div>
