@@ -9,10 +9,7 @@ import AttributeList from "./AttributeList";
 const DEFAULT_ICON = "grey map";
 
 const LayerListItemInfo = ({
-  layerId,
-  attributes,
-  filter,
-  layerStyle,
+  layer,
   onAttributeValueClick,
   onLayerStyleChange,
   mode,
@@ -23,9 +20,9 @@ const LayerListItemInfo = ({
         <div className="ui secondary segment">
           <div className="content">
             <AttributeList
-              layerId={layerId}
-              attributes={attributes}
-              filter={filter}
+              layerId={layer.id}
+              attributes={layer.attributeSchema.attributes}
+              filter={layer.filter}
               onClick={onAttributeValueClick}
             />
           </div>
@@ -37,14 +34,25 @@ const LayerListItemInfo = ({
         <div className="ui secondary segment">
           <div className="content">
             <LayerStyleSettings
-              layerId={layerId}
-              layerAttributes={attributes}
-              layerStyle={layerStyle}
+              layerId={layer.id}
+              layerAttributes={layer.attributeSchema.attributes}
+              layerStyle={layer.style}
               onChange={onLayerStyleChange}
             />
           </div>
         </div>
       );
+
+
+    case "INFO":
+      return (
+        <div className="ui secondary segment">
+          <div className="content" style={{ "font-size": "0.8em" }}>
+            {(layer.metadata.description)}
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }
@@ -64,6 +72,10 @@ const styleButtonStyle = (layer, mode) => (
   (mode === "STYLE") ? styles.active : ""
 );
 
+const infoButtonStyle = (layer, mode) => (
+  (mode === "INFO") ? styles.active : ""
+);
+
 const LayerListItem = ({
   layer,
   onButtonClick,
@@ -76,7 +88,7 @@ const LayerListItem = ({
       <div className="right floated">
         <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
       </div>
-      <div className="header">
+      <div className="header" style={{ "font-weight": "bold" }}>
         <a onClick={() => onButtonClick("CLOSE")}>
           <i className="icon close"></i>
         </a>
@@ -91,13 +103,13 @@ const LayerListItem = ({
       <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
         <i className="icon paint brush"></i>
       </a>
+      <a onClick={() => onButtonClick("INFO")} className={infoButtonStyle(layer, mode)}>
+        <i className="icon info"></i>
+      </a>
     </div>
 
     <LayerListItemInfo
-      layerId={layer.id}
-      attributes={layer.attributeSchema.attributes}
-      layerStyle={layer.style}
-      filter={layer.filter}
+      layer={layer}
       onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
       onLayerStyleChange={onLayerStyleChange}
       mode={mode}
