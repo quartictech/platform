@@ -86,12 +86,14 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 
   renderInner() {
-    if (this.props.selection.length === 0) {
+    if ((this.props.selection.length === 0)
+      || !this.props.selection[0].layer
+      || !this.props.selection[0].layer.visible) {
       return null;
     }
 
     const properties = this.props.selection[0].properties;
-    const layerName = this.props.selection[0].layerName;
+    const layerName = this.props.selection[0].layer.metadata.name;
 
     return (
       <div className={styles.innerSelectionView}>
