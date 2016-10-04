@@ -4,7 +4,7 @@ import moment from "moment";
 import styles from "./styles.css";
 import classNames from "classnames";
 
-const DEFAULT_ICON = "comment";
+const DEFAULT_ICON = "grey map";
 
 const FeedEvent = ({ event }) => (
   <div className={classNames("event", styles.slideFade)}>

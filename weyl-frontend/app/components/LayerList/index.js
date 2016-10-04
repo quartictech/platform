@@ -6,6 +6,8 @@ import GeofenceSettings from "../GeofenceSettings";
 import LayerStyleSettings from "../LayerStyleSettings";
 import AttributeList from "./AttributeList";
 
+const DEFAULT_ICON = "grey map";
+
 const LayerListItemInfo = ({
   layerId,
   attributes,
@@ -72,15 +74,7 @@ const LayerListItem = ({
   <div className={styles.layerListItem}>
     <div className="content">
       <div className="right floated">
-        <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
-          <i className="icon eye"></i>
-        </a>
-        <a onClick={() => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
-          <i className="icon filter"></i>
-        </a>
-        <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
-          <i className="icon paint brush"></i>
-        </a>
+        <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
       </div>
       <div className="header">
         <a onClick={() => onButtonClick("CLOSE")}>
@@ -88,9 +82,15 @@ const LayerListItem = ({
         </a>
         {layer.metadata.name}
       </div>
-      <div className="meta">
-        {layer.metadata.description}
-      </div>
+      <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
+        <i className="icon eye"></i>
+      </a>
+      <a onClick={() => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
+        <i className="icon filter"></i>
+      </a>
+      <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
+        <i className="icon paint brush"></i>
+      </a>
     </div>
 
     <LayerListItemInfo
