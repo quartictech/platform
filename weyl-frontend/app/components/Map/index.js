@@ -94,13 +94,18 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   updateMap(props) {
-    // These modify our own state (not React state) based on changes
+    this.updateNonIdempotent(props);
+    this.updateIdempotent(props);
+  }
+
+  updateNonIdempotent(props) {
     this.toggleGeofenceEditControlsIfNeeded(props);
     this.addGeofenceLayerIfMissing(props.geofence);
     this.deleteOldLayers(props.layers);
     this.addNewLayers(props.layers);
+  }
 
-    // These are idempotent
+  updateIdempotent(props) {
     this.updateLayers(props.layers, props.selection);
     this.updateGeofenceLayer(props.geofence);
   }
@@ -156,28 +161,27 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   deleteOldLayers(layers) {
     const layerIds = layers.map(l => l.id);
-    Object.keys(this.subLayers)
-      .filter(id => !layerIds.some(i => i === id))
-      .forEach(id => {
-        this.subLayers[id].forEach(subLayerId => this.map.removeLayer(subLayerId));
-        this.map.removeSource(id);
-        delete this.subLayers[id];
-      });
+    const layersToDelete = Object.keys(this.subLayers)
+      .filter(id => !layerIds.some(i => i === id));
+
+    layersToDelete.forEach(id => {
+      this.subLayers[id].forEach(subLayerId => this.map.removeLayer(subLayerId));
+      this.map.removeSource(id);
+      delete this.subLayers[id];
+    });
   }
 
   addNewLayers(layers) {
-    layers
-      .filter(layer => !(layer.id in this.subLayers))
-      .forEach(layer => {
-        console.log("Here");
-        const subLayerIds = this.createSourceAndSubLayers(layer);
-        this.subLayers[layer.id] = subLayerIds;
-      });
+    const layersToAdd = layers.filter(layer => !(layer.id in this.subLayers));
+
+    layersToAdd.forEach(layer => {
+      const subLayerIds = this.createSourceAndSubLayers(layer);
+      this.subLayers[layer.id] = subLayerIds;
+    });
   }
 
   updateLayers(layers, selection) {
-    layers
-      .forEach(layer => this.updateLayer(layer, selection));
+    layers.forEach(layer => this.updateLayer(layer, selection));
   }
 
   updateLayer(layer, selection) {
