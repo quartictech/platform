@@ -32,12 +32,11 @@ const visibleEvents = (events, layers) => {
   }, {});
   const visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
 
-  const x = Object.keys(events)
+  return Object.keys(events)
     .filter(layerId => visibleLayerIds.has(layerId))
     .flatMap(layerId => events[layerId].map(e => ({ ...e, icon: icons[layerId] })))
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(1, 10);
-  return x;
 };
 
 function FeedPane({ feed, layers, visible, onUiToggle }) {
