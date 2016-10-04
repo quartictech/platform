@@ -27,7 +27,6 @@ const newLayer = (action) => fromJS({
   id: action.id,
   metadata: action.metadata,
   visible: true,
-  closed: false,
   style: defaultLayerStyle(action.attributeSchema),
   stats: action.stats,
   attributeSchema: action.attributeSchema,
@@ -43,8 +42,6 @@ const layerReducer = (state, action) => {
   switch (action.type) {
     case constants.LAYER_TOGGLE_VISIBLE:
       return state.set("visible", !state.get("visible"));
-    case constants.LAYER_CLOSE:
-      return state.set("visible", false).set("closed", true);
     case constants.LAYER_SET_STYLE:
       return state.mergeIn(["style"], action.style);
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
@@ -61,18 +58,23 @@ const layerReducer = (state, action) => {
   }
 };
 
+const getIdx = (state, id) => state.findKey(layer => layer.get("id") === id)
+
 export default (state = new List(), action) => {
   switch (action.type) {
     case constants.LAYER_CREATE:
-      return state.push(newLayer(action));
-    case constants.LAYER_TOGGLE_VISIBLE:
+      if (getIdx(state, action.id) === undefined) {
+        return state.push(newLayer(action));
+      }
     case constants.LAYER_CLOSE:
+      const idx = getIdx(state, action.layerId);
+      return state.delete(idx);
+    case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
     case constants.LAYER_SET_DATA: {
-      const idx = state.findKey(layer => layer.get("id") === action.layerId);
-      const val = state.get(idx);
-      return state.set(idx, layerReducer(val, action));
+      const idx = getIdx(state, action.layerId);
+      return state.update(idx, val => layerReducer(val, action));
     }
     default:
       return state;
