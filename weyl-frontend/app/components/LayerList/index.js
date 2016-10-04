@@ -83,37 +83,39 @@ const LayerListItem = ({
   onLayerStyleChange,
   mode,
 }) => (
-  <div className={styles.layerListItem}>
+  <div className="item" style={{ "padding-top": "10px", "padding-bottom": "10px" }}>
     <div className="content">
       <div className="right floated">
         <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
       </div>
-      <div className="header" style={{ "font-weight": "bold" }}>
+      <div className="ui small header">
         <a onClick={() => onButtonClick("CLOSE")}>
           <i className="icon close"></i>
         </a>
         {layer.metadata.name}
       </div>
-      <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
-        <i className="icon eye"></i>
-      </a>
-      <a onClick={() => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
-        <i className="icon filter"></i>
-      </a>
-      <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
-        <i className="icon paint brush"></i>
-      </a>
-      <a onClick={() => onButtonClick("INFO")} className={infoButtonStyle(layer, mode)}>
-        <i className="icon info"></i>
-      </a>
-    </div>
+      <div className="description" style={{ "margin-top": "0.2em" }}>
+        <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
+          <i className="icon eye"></i>
+        </a>
+        <a onClick={() => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
+          <i className="icon filter"></i>
+        </a>
+        <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
+          <i className="icon paint brush"></i>
+        </a>
+        <a onClick={() => onButtonClick("INFO")} className={infoButtonStyle(layer, mode)}>
+          <i className="icon info"></i>
+        </a>
 
-    <LayerListItemInfo
-      layer={layer}
-      onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
-      onLayerStyleChange={onLayerStyleChange}
-      mode={mode}
-    />
+        <LayerListItemInfo
+          layer={layer}
+          onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
+          onLayerStyleChange={onLayerStyleChange}
+          mode={mode}
+        />
+      </div>
+    </div>
   </div>
 );
 
@@ -175,9 +177,9 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
           <div className={styles.innerLayerList}>
             <div className="ui raised compact fluid card">
               <div className="content">
-                <div className="header">
+                <div className="ui divided items">
+                  {rows}
                 </div>
-                {rows}
               </div>
             </div>
           </div>
