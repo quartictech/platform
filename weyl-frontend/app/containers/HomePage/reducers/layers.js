@@ -58,24 +58,23 @@ const layerReducer = (state, action) => {
   }
 };
 
-const getIdx = (state, id) => state.findKey(layer => layer.get("id") === id)
+const getIdx = (state, id) => state.findKey(layer => layer.get("id") === id);
 
 export default (state = new List(), action) => {
   switch (action.type) {
     case constants.LAYER_CREATE:
-      if (getIdx(state, action.id) === undefined) {
-        return state.push(newLayer(action));
-      }
+      return (getIdx(state, action.id) === undefined)
+        ? state.push(newLayer(action))
+        : state;
     case constants.LAYER_CLOSE:
-      const idx = getIdx(state, action.layerId);
-      return state.delete(idx);
+      return state.delete(getIdx(state, action.layerId));
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
-    case constants.LAYER_SET_DATA: {
-      const idx = getIdx(state, action.layerId);
-      return state.update(idx, val => layerReducer(val, action));
-    }
+    case constants.LAYER_SET_DATA:
+      return state.update(
+        getIdx(state, action.layerId),
+        val => layerReducer(val, action));
     default:
       return state;
   }
