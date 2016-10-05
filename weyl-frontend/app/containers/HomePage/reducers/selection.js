@@ -17,8 +17,8 @@ export default (state = initialState, action) => {
         keyMap[id[0]].push(id[1]);
       }
       return state
-        .update("ids", selection => selection.clear().merge(keyMap))
-        .update("features", features => features.clear().merge(action.features));
+        .set("ids", fromJS(keyMap))
+        .set("features", fromJS(action.features));
     }
     case constants.CLEAR_SELECTION:
       return state

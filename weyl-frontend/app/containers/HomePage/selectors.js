@@ -29,17 +29,16 @@ export const selectSelectionIds = () => createSelector(
 
 export const selectSelectionFeatures = () => createSelector(
   selectHome(),
-  (homeState) => {
-    const features = homeState.getIn(["selection", "features"]).toJS();
-    const layers = homeState.get("layers").toJS();
+  selectLayers(),
+  (home, layers) => {
+    const features = home.getIn(["selection", "features"]).toJS();
 
     return Object.keys(features).map(k => {
       const layer = layers.find(l => l.id === features[k].layer.source);
-      const layerName = layer === undefined ? "" : layer.metadata.name;
 
       return {
         ...(features[k]),
-        layerName,
+        layer,
       };
     });
   }
