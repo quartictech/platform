@@ -131,12 +131,12 @@ export function mapMouseMove(mouseLocation) {
   };
 }
 
-export function mapClickFeature(layerId, featureId, feature, ctrlPressed) {
+export function mapClickFeature(layerId, featureId, featureProperties, ctrlPressed) {
   return {
     type: constants.MAP_CLICK_FEATURE,
     layerId,
     featureId,
-    feature,
+    featureProperties,
     ctrlPressed,
   };
 }

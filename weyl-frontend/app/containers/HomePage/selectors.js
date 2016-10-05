@@ -27,20 +27,25 @@ export const selectSelectionIds = () => createSelector(
   (homeState) => homeState.getIn(["selection", "ids"]).toJS()
 );
 
+// https://gist.github.com/samgiles/762ee337dff48623e729
+Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
+  return Array.prototype.concat.apply([], this.map(lambda));
+};
+
 export const selectSelectionFeatures = () => createSelector(
   selectHome(),
   selectLayers(),
   (home, layers) => {
+    const ids = home.getIn(["selection", "ids"]).toJS();
     const features = home.getIn(["selection", "features"]).toJS();
 
-    return Object.keys(features).map(k => {
-      const layer = layers.find(l => l.id === features[k].layer.source);
-
-      return {
-        ...(features[k]),
-        layer,
-      };
-    });
+    return Object.keys(ids)
+      .flatMap(layerId => ids[layerId]
+        .map(fid => ({
+          layer: layers.find(l => l.id === layerId),
+          properties: features[fid],
+        }))
+      );
   }
 );
 

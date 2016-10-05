@@ -32,17 +32,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.subLayers = {};
   }
 
-  getVisibleSubLayers() {
-    const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
-    return Object.keys(this.subLayers)
-      .filter(id => visibleLayerIds.some(i => i === id))
-      .flatMap(id => this.subLayers[id]);
-  }
-
-  queryRenderedFeatures(point) {
-    return this.map.queryRenderedFeatures(point, { layers: this.getVisibleSubLayers() });
-  }
-
   onMouseMove(e) {
     const features = this.queryRenderedFeatures(e.point);
     this.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
@@ -66,8 +55,19 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       return;
     }
 
-    const feature = features[0];
-    this.props.onMapClickFeature(feature.layer.source, feature.properties["_id"], features, ctrlPressed); // eslint-disable-line dot-notation
+    const feature = features[0];  // TODO: is this correct?
+    this.props.onMapClickFeature(feature.layer.source, feature.properties["_id"], feature.properties, ctrlPressed); // eslint-disable-line dot-notation
+  }
+
+  queryRenderedFeatures(point) {
+    return this.map.queryRenderedFeatures(point, { layers: this.getVisibleSubLayers() });
+  }
+
+  getVisibleSubLayers() {
+    const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
+    return Object.keys(this.subLayers)
+      .filter(id => visibleLayerIds.some(i => i === id))
+      .flatMap(id => this.subLayers[id]);
   }
 
   componentDidMount() {

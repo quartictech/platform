@@ -3,28 +3,34 @@ import * as constants from "../constants";
 
 const initialState = fromJS({
   ids: {},
-  features: [],
-  multiSelectEnabled: false,
+  features: {},
 });
 
 export default (state = initialState, action) => {
   switch (action.type) {
     case constants.MAP_CLICK_FEATURE: {
-      const alreadyContains = state.hasIn(["ids", action.layerId, action.featureId]);
-      const reducer = alreadyContains
-        ? (fids => fids.delete(action.featureId))
-        : action.ctrlPressed
-          ? (fids => fids.add(action.featureId))
-          : (fids => new Set([action.featureId]));
-      return state
-        .updateIn(["ids", action.layerId], new Set(), reducer)
-        .set("features", fromJS(action.feature));
+      if (state.hasIn(["ids", action.layerId, action.featureId])) {
+        // Delete entry
+        return state
+          .updateIn(["ids", action.layerId], fids => fids.delete(action.featureId))
+          .deleteIn(["features", action.featureId]);
+      }
+
+      if (action.ctrlPressed) {
+        // Add entry
+        return state
+          .updateIn(["ids", action.layerId], new Set(), fids => fids.add(action.featureId))
+          .setIn(["features", action.featureId], action.featureProperties);
+      }
+
+      // Clear all entries, add this one
+      return initialState
+        .setIn(["ids", action.layerId], new Set([action.featureId]))
+        .setIn(["features", action.featureId], action.featureProperties);
     }
 
     case constants.CLEAR_SELECTION:
-      return state
-        .set("ids", fromJS({}))
-        .set("features", fromJS([]));
+      return initialState;
 
     default:
       return state;
