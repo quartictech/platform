@@ -26,6 +26,7 @@ import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+
   render() {
     return (
       <div className={styles.container}>
@@ -40,7 +41,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.mapContainer}>
           <Map
             layers={this.props.layers}
-            onSelectFeatures={this.props.onSelectFeatures}
+            onMapClickFeature={this.props.onMapClickFeature}
             onMapLoading={this.props.onMapLoading}
             onMapLoaded={this.props.onMapLoaded}
             onMouseMove={this.props.onMapMouseMove}
@@ -123,7 +124,6 @@ const mapDispatchToProps = {
   layerClose: actions.layerClose,
   onBucketCompute: actions.bucketComputation,
   onUiToggle: actions.toggleUi,
-  onSelectFeatures: actions.selectFeatures,
   onClearSelection: actions.clearSelection,
   onChartLayerSelection: actions.loadNumericAttributes,
   onChartAttributeSelection: actions.chartSelectAttribute,
@@ -132,6 +132,7 @@ const mapDispatchToProps = {
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
+  onMapClickFeature: actions.mapClickFeature,
   onGeofenceEdit: actions.geofenceEditStart,
   onGeofenceSave: actions.geofenceEditFinish,
   onGeofenceChange: actions.geofenceEditChange,
