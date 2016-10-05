@@ -86,12 +86,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 
   renderInner() {
-
-
-    console.log(this.props.selection);
-
     if ((this.props.selection.length === 0)
-      || !this.props.selection[0].layer
       || !this.props.selection[0].layer.visible) {
       return null;
     }

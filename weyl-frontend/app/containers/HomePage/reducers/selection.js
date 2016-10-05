@@ -8,7 +8,7 @@ const initialState = fromJS({
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case constants.MAP_CLICK_FEATURE: {
+    case constants.MAP_CLICK_FEATURE:
       if (state.hasIn(["ids", action.layerId, action.featureId])) {
         // Delete entry
         return state
@@ -27,7 +27,15 @@ export default (state = initialState, action) => {
       return initialState
         .setIn(["ids", action.layerId], new Set([action.featureId]))
         .setIn(["features", action.featureId], action.featureProperties);
-    }
+
+    case constants.LAYER_CLOSE:
+      console.log("layerId", action.layerId);
+      return state.getIn(["ids", action.layerId])
+        .reduce(
+          (prevState, fid) => prevState.deleteIn(["features", fid]),
+          state
+        )
+        .deleteIn(["ids", action.layerId]);
 
     case constants.CLEAR_SELECTION:
       return initialState;
