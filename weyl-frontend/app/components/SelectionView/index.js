@@ -60,19 +60,40 @@ const Header = ({ selection, onClearSelectionClick }) => (
 );
 
 const Media = ({ selection }) => {
+  if (displayMode(selection) === "AGGREGATE") {
+    return <div className="ui segment">TODO: aggregation</div>;
+  }
+
+  // TODO: given the above check, features should be homogeneous - need to generalise this
   const properties = selection[0].properties;
   const layerName = selection[0].layer.metadata.name;
 
-  return (hasImageUrl(layerName)) ? (
-    <div className="ui segment">
-      <img
-        className="ui fluid image"
-        src={properties[getImageUrl(layerName)]}
-        alt={properties[getImageUrl(layerName)]}
-      />
-    </div>
-  ) : <div></div>;
+  if (hasImageUrl(layerName)) {
+    if (displayMode(selection) === "BASEBALL") {
+      return (
+        <div className="ui segment">
+          <Image url={properties[getImageUrl(layerName)]} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="ui segment">
+        <table className="ui very basic very compact small fixed table">
+          <tr>
+            {selection.map(s =>
+              <td key={s.properties["_id"]}><Image url={s.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
+            )}
+          </tr>
+        </table>
+      </div>
+    );
+  }
 };
+
+const Image = ({ url }) => (
+  <img className="ui fluid image" src={url} alt={url} />
+);
 
 const BlessedProperties = ({ selection }) => {
   if (displayMode(selection) === "AGGREGATE") {
