@@ -3,6 +3,7 @@ import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 import moment from "moment";
 import styles from "./styles.css";
 import classNames from "classnames";
+const _ = require("underscore");
 
 const DEFAULT_ICON = "grey map";
 
@@ -20,11 +21,6 @@ const FeedEvent = ({ event }) => (
   </div>
 );
 
-// https://gist.github.com/samgiles/762ee337dff48623e729
-Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
-  return Array.prototype.concat.apply([], this.map(lambda));
-};
-
 const visibleEvents = (events, layers) => {
   const icons = layers.reduce((p, layer) => {
     p[layer.id] = (layer.metadata.icon || DEFAULT_ICON);  // eslint-disable-line no-param-reassign
@@ -32,11 +28,13 @@ const visibleEvents = (events, layers) => {
   }, {});
   const visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
 
-  return Object.keys(events)
+  return _.chain(events).keys()
     .filter(layerId => visibleLayerIds.has(layerId))
-    .flatMap(layerId => events[layerId].map(e => ({ ...e, icon: icons[layerId] })))
+    .map(layerId => events[layerId].map(e => ({ ...e, icon: icons[layerId] })))
+    .flatten()
     .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(1, 10);
+    .slice(1, 10)
+    .value();
 };
 
 function FeedPane({ feed, layers, visible, onUiToggle }) {

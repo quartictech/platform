@@ -1,9 +1,3 @@
-/**
-*
-* Map
-*
-*/
-
 import React from "react";
 
 import styles from "./styles.css";
@@ -20,10 +14,8 @@ import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
 import { apiRootUrl } from "../../utils.js";
 
-// https://gist.github.com/samgiles/762ee337dff48623e729
-Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
-  return Array.prototype.concat.apply([], this.map(lambda));
-};
+const _ = require("underscore");
+
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -56,9 +48,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   getVisibleSubLayers() {
     const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
-    return Object.keys(this.subLayers)
+    return _.flatten(Object.keys(this.subLayers)
       .filter(id => visibleLayerIds.some(i => i === id))
-      .flatMap(id => this.subLayers[id]);
+      .map(id => this.subLayers[id]));
   }
 
   componentDidMount() {

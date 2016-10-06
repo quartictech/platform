@@ -1,9 +1,5 @@
-
-/**
- * Homepage selectors
- */
-
 import { createSelector } from "reselect";
+const _ = require("underscore");
 
 const selectHome = () => (state) => state.get("home");
 
@@ -27,11 +23,6 @@ export const selectSelectionIds = () => createSelector(
   (homeState) => homeState.getIn(["selection", "ids"]).toJS()
 );
 
-// https://gist.github.com/samgiles/762ee337dff48623e729
-Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
-  return Array.prototype.concat.apply([], this.map(lambda));
-};
-
 export const selectSelectionFeatures = () => createSelector(
   selectHome(),
   selectLayers(),
@@ -39,13 +30,15 @@ export const selectSelectionFeatures = () => createSelector(
     const ids = home.getIn(["selection", "ids"]).toJS();
     const features = home.getIn(["selection", "features"]).toJS();
 
-    return Object.keys(ids)
-      .flatMap(layerId => ids[layerId]
+    return _.chain(ids).keys()
+      .map(layerId => ids[layerId]
         .map(fid => ({
           layer: layers.find(l => l.id === layerId),
           properties: features[fid],
         }))
-      );
+      )
+      .flatten()
+      .values();
   }
 );
 
