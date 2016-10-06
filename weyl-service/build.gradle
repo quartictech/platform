@@ -26,6 +26,12 @@ dependencies {
   testCompile 'org.mockito:mockito-core:1.10.19'
 }
 
+jar {
+    manifest {
+        attributes("Implementation-Version": version)
+    }
+}
+
 mainClassName = 'io.quartic.weyl.WeylApplication'
 applicationDefaultJvmArgs = ["-Xms8g", "-Xmx8g", '-XX:+PrintGCDetails', '-XX:+PrintGCDateStamps', '-Xloggc:mygclogfilename.gc']
 
