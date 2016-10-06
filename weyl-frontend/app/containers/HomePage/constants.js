@@ -20,7 +20,7 @@ export const LAYER_SET_DATA = "weyl/Home/LAYER_SET_DATA";
 export const MAP_LOADING = "weyl/home/MAP_LOADING";
 export const MAP_LOADED = "weyl/home/MAP_LOADED";
 export const MAP_MOUSE_MOVE = "weyl/home/MAP_MOUSE_MOVE";
-export const MAP_CLICK_FEATURE = "weyl/Home/MAP_CLICK_FEATURE";
+export const MAP_MOUSE_CLICK = "weyl/Home/MAP_MOUSE_CLICK";
 
 export const GEOFENCE_EDIT_START = "weyl/home/GEOFENCE_EDIT_START";
 export const GEOFENCE_EDIT_FINISH = "weyl/home/GEOFENCE_EDIT_FINISH";

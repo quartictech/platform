@@ -39,24 +39,15 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   onMouseClick(e) {
-    this.onMouseClickOrDown(e, false);
-  }
-
-  // HACK - Mapbox doesn't generate click events when Ctrl is pressed
-  onMouseDown(e) {
-    if (e.originalEvent.ctrlKey) {
-      this.onMouseClickOrDown(e, true);
-    }
-  }
-
-  onMouseClickOrDown(e, ctrlPressed) {
     const features = this.queryRenderedFeatures(e.point);
-    if (!features.length) {
-      return;
-    }
-
-    const feature = features[0];  // TODO: is this correct?
-    this.props.onMapClickFeature(feature.layer.source, feature.properties["_id"], feature.properties, ctrlPressed); // eslint-disable-line dot-notation
+    const feature = (features.length > 0)
+      ? {
+        id: features[0].properties["_id"],
+        layerId: features[0].layer.source,
+        properties: features[0].properties,
+      }
+      : undefined;
+    this.props.onMouseClick(feature, e.originalEvent.metaKey); // eslint-disable-line dot-notation
   }
 
   queryRenderedFeatures(point) {
@@ -82,7 +73,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
     this.map.on("mousemove", this.onMouseMove.bind(this));
     this.map.on("click", this.onMouseClick.bind(this));
-    this.map.on("mousedown", this.onMouseDown.bind(this));
     this.map.on("style.load", () => {
       this.subLayers = {};     // Everything is gone once the style changes
       this.props.onMapLoaded();

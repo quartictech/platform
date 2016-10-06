@@ -41,10 +41,10 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.mapContainer}>
           <Map
             layers={this.props.layers}
-            onMapClickFeature={this.props.onMapClickFeature}
             onMapLoading={this.props.onMapLoading}
             onMapLoaded={this.props.onMapLoaded}
             onMouseMove={this.props.onMapMouseMove}
+            onMouseClick={this.props.onMapMouseClick}
             selection={this.props.selectionIds}
             map={this.props.map}
             geofence={this.props.geofence}
@@ -132,7 +132,7 @@ const mapDispatchToProps = {
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
-  onMapClickFeature: actions.mapClickFeature,
+  onMapMouseClick: actions.mapMouseClick,
   onGeofenceEdit: actions.geofenceEditStart,
   onGeofenceSave: actions.geofenceEditFinish,
   onGeofenceChange: actions.geofenceEditChange,

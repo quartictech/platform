@@ -131,13 +131,11 @@ export function mapMouseMove(mouseLocation) {
   };
 }
 
-export function mapClickFeature(layerId, featureId, featureProperties, ctrlPressed) {
+export function mapMouseClick(feature, multiSelectEnabled) {
   return {
-    type: constants.MAP_CLICK_FEATURE,
-    layerId,
-    featureId,
-    featureProperties,
-    ctrlPressed,
+    type: constants.MAP_MOUSE_CLICK,
+    feature,
+    multiSelectEnabled,
   };
 }
 

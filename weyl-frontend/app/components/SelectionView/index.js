@@ -102,10 +102,13 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
               <a onClick={this.onClearSelectionClick}>
                 <i className="icon close"></i>
               </a>
-              {this.getTitle(layerName, properties)}
+              {
+                (this.props.selection.length > 1)
+                  ? `${this.props.selection.length} features selected`
+                  : this.getTitle(layerName, properties)
+              }
             </div>
             <div className="meta">
-              {layerName}
             </div>
 
 
