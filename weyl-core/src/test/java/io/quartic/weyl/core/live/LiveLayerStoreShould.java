@@ -3,6 +3,7 @@ package io.quartic.weyl.core.live;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.geojson.*;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -131,7 +132,7 @@ public class LiveLayerStoreShould {
         store.addListener(listenerB);
         store.addToLayer(id, liveEvents(feature("a", point())));
 
-        final ImmutableFeature feature = ImmutableFeature.of("a", Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
+        final ImmutableFeature feature = ImmutableFeature.of(FeatureId.of("a"), Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
         verify(listenerA).onLiveLayerEvent(id, feature);
         verify(listenerB).onLiveLayerEvent(id, feature);
     }
@@ -194,11 +195,12 @@ public class LiveLayerStoreShould {
     }
 
     private Feature feature(String id, Geometry geometry) {
-        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234));
+        return Feature.of(Optional.of(FeatureId.of(id)), geometry, ImmutableMap.of("timestamp", 1234));
     }
 
     private Feature featureWithId(String id, Geometry geometry) {
-        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234, "_id", id));
+        final FeatureId fid = FeatureId.of(id);
+        return Feature.of(Optional.of(fid), geometry, ImmutableMap.of("timestamp", 1234, "_id", fid));
     }
 
     private Point point() {

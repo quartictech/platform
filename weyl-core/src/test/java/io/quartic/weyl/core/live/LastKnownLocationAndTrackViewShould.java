@@ -7,6 +7,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import org.junit.Test;
 
@@ -14,8 +15,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 public class LastKnownLocationAndTrackViewShould {
     @Test
@@ -75,7 +77,7 @@ public class LastKnownLocationAndTrackViewShould {
 
     private Feature featureWithName(String name, Geometry geometry) {
         return ImmutableFeature.builder()
-                .id(name)
+                .id(FeatureId.of(name))
                 .geometry(geometry)
                 .metadata(ImmutableMap.of("name", Optional.of(name)))
                 .build();

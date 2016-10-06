@@ -1,9 +1,9 @@
 package io.quartic.weyl.core.live;
 
-import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 
 import java.util.Collection;
@@ -38,7 +38,7 @@ public class LastKnownLocationAndTrackView implements LiveLayerView {
 
     @Override
     public Stream<Feature> compute(Collection<Feature> history) {
-        Map<String, List<Feature>> historyById = history.stream()
+        Map<FeatureId, List<Feature>> historyById = history.stream()
                 .collect(Collectors.groupingBy(Feature::id));
 
         return historyById.values()

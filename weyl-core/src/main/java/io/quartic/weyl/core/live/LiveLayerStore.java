@@ -159,7 +159,7 @@ public class LiveLayerStore {
         Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
     }
 
-    private static Map<String, Object> convertMetadata(String id, Map<String, Optional<Object>> metadata) {
+    private static Map<String, Object> convertMetadata(FeatureId id, Map<String, Optional<Object>> metadata) {
         final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
         output.put("_id", id);
         return output;

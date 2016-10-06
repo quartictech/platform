@@ -3,6 +3,7 @@ package io.quartic.weyl.core.geofence;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import org.junit.Before;
@@ -100,6 +101,6 @@ public class GeofenceStoreShould {
     private void updatePoint(boolean containsResult) {
         Geometry point = mock(Geometry.class);
         when(fenceGeometry.contains(point)).thenReturn(containsResult);
-        store.onLiveLayerEvent(LayerId.of("abc"), ImmutableFeature.of("123", point, ImmutableMap.of()));
+        store.onLiveLayerEvent(LayerId.of("abc"), ImmutableFeature.of(FeatureId.of("123"), point, ImmutableMap.of()));
     }
 }

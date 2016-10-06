@@ -1,21 +1,26 @@
 package io.quartic.weyl.core.geofence;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.quartic.weyl.core.geojson.SweetStyle;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GeofenceStore implements LiveLayerStoreListener {
     @SweetStyle
     @Value.Immutable
     interface AbstractViolationKey {
-        String featureId();
+        FeatureId featureId();
         GeofenceId geofenceId();
     }
 

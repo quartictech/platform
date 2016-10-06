@@ -10,6 +10,7 @@ import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerViewType;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -18,8 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.NotAcceptableException;
-import java.util.Collection;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
@@ -40,8 +41,8 @@ public class LayerResourceShould {
     @Test
     public void acceptValidFeatureCollection() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
-                Feature.of(Optional.of("5678"), point(), propsWithTimestamp())
+                Feature.of(Optional.of(FeatureId.of("1234")), point(), propsWithTimestamp()),
+                Feature.of(Optional.of(FeatureId.of("5678")), point(), propsWithTimestamp())
         ));
 
         resource.updateLiveLayer("abc", createRequest(collection));
@@ -50,7 +51,7 @@ public class LayerResourceShould {
     @Test(expected = NotAcceptableException.class)
     public void throwIfIdsMissing() throws Exception {
         FeatureCollection collection = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("1234"), point(), propsWithTimestamp()),
+                Feature.of(Optional.of(FeatureId.of("1234")), point(), propsWithTimestamp()),
                 Feature.of(Optional.empty(), point(), propsWithTimestamp())
         ));
 

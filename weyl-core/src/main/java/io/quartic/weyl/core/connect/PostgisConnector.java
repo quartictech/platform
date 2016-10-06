@@ -105,7 +105,7 @@ public class PostgisConnector {
             return ImmutableFeature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
-                    .id(id)
+                    .id(FeatureId.of(id))
                     .build();
         });
     }

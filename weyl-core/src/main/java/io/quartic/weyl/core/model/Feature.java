@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Value.Immutable
 public interface Feature {
-    @Value.Parameter String id();
+    @Value.Parameter FeatureId id();
 
     @Value.Parameter Geometry geometry();
 
