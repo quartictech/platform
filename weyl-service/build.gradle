@@ -37,7 +37,7 @@ run {
 }
 
 docker {
-  name      "registry.gitlab.com/quartic/${rootProject.name}"
+  name      "registry.gitlab.com/quartic/${rootProject.name}:${version}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
