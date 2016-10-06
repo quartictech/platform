@@ -1,157 +1,48 @@
-/**
-*
-* SelectionView
-*
-*/
-
 import React from "react";
 import naturalsort from "javascript-natural-sort";
 const $ = require("jquery");
+const _ = require("underscore");
 
 import styles from "./styles.css";
 import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
-const AttributeTable = ({
-  attributes,
-  order,
-}) => (
-  <table className="ui very basic celled very compact fixed selectable table">
-    <tbody>
-      {order
-        .filter(key => key !== "_id")
-        .filter(key => key in attributes)
-        .filter(key => String(attributes[key]).trim() !== "")
-        .map(key =>
-          <tr key={key}>
-            <td className="right aligned">
-              <div className="ui sub header">{key}</div>
-            </td>
-            <td>{attributes[key]}</td>
-          </tr>
-        )
-      }
-    </tbody>
-  </table>
-);
-
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  constructor() {
-    super();
-    this.onClearSelectionClick = this.onClearSelectionClick.bind(this);
-  }
-
-  onClearSelectionClick() {
-    this.props.onClearSelection();
-  }
-
-  getAttributeBehavior(layerName) {
-    return (layerName in curatedBehaviors)
-      ? curatedBehaviors[layerName]
-      : defaultBehavior;
-  }
-
-  getTitle(layerName, properties) {
-    const behavior = this.getAttributeBehavior(layerName);
-    return behavior.title(properties);
-  }
-
-  hasImageUrl(layerName) {
-    const behavior = this.getAttributeBehavior(layerName);
-    return ("imageUrl" in behavior);
-  }
-
-  getImageUrl(layerName) {
-    const behavior = this.getAttributeBehavior(layerName);
-    return behavior.imageUrl;
-  }
-
-  isAnythingBlessed(layerName) {
-    const behavior = this.getAttributeBehavior(layerName);
-    return behavior.blessed.length > 0;
-  }
-
-  // In the order specified in curatedAttributes
-  getBlessedAttributeOrder(layerName, properties) {
-    const behavior = this.getAttributeBehavior(layerName);
-    return behavior.blessed
-      .filter(k => k in properties);
-  }
-
-  // Find all other properties, and then natural-sort for convenience
-  getUnblessedAttributeOrder(layerName, properties) {
-    const behavior = this.getAttributeBehavior(layerName);
-    return Object.keys(properties)
-      .filter(k => (behavior.blessed.indexOf(k) === -1))
-      .sort(naturalsort);
-  }
-
   renderInner() {
     if ((this.props.selection.length === 0)
-      || !this.props.selection[0].layer
       || !this.props.selection[0].layer.visible) {
       return null;
     }
 
-    const properties = this.props.selection[0].properties;
-    const layerName = this.props.selection[0].layer.metadata.name;
+    const numUniqueLayers = _.chain(this.props.selection)
+      .map(s => s.layer.id).uniq().size().value();
+    const numFeatures = this.props.selection.length;
+
+    if (numFeatures === 1) {
+      console.log("Single object");
+    } else if (numFeatures === 2 && numUniqueLayers === 1) {
+      console.log("Side-by-side comparison");
+    } else {
+      console.log("Aggregates");
+    }
 
     return (
       <div className={styles.innerSelectionView}>
         <div className="ui raised fluid card">
           <div className="content">
-            <div className="header">
-              <a onClick={this.onClearSelectionClick}>
-                <i className="icon close"></i>
-              </a>
-              {this.getTitle(layerName, properties)}
-            </div>
-            <div className="meta">
-              {layerName}
-            </div>
-
-
-            {
-              (this.hasImageUrl(layerName)) ? (
-                <div className="ui segment">
-                  <img
-                    className="ui fluid image"
-                    src={properties[this.getImageUrl(layerName)]}
-                    alt={properties[this.getImageUrl(layerName)]}
-                  />
-                </div>
-              ) : ""
-            }
-
-            <div className="ui segment">
-              <AttributeTable
-                attributes={properties}
-                order={
-                  this.isAnythingBlessed(layerName)
-                    ? this.getBlessedAttributeOrder(layerName, properties)
-                    : this.getUnblessedAttributeOrder(layerName, properties)
-                }
-              />
-            </div>
+            <Header selection={this.props.selection} onClose={this.props.onClose} />
+            <Media selection={this.props.selection} />
+            <BlessedProperties selection={this.props.selection} />
           </div>
 
           <div className="extra content">
             <div className="ui accordion" ref={x => $(x).accordion()}>
               <div className="title">
                 <i className="dropdown icon"></i>
-                More attributes
+                More properties
               </div>
 
               <div className="content">
-                <div className="ui secondary segment">
-                  <AttributeTable
-                    attributes={properties}
-                    order={
-                      this.isAnythingBlessed(layerName)
-                        ? this.getUnblessedAttributeOrder(layerName, properties)
-                        : this.getBlessedAttributeOrder(layerName, properties)
-                    }
-                  />
-                </div>
+                <UnblessedProperties selection={this.props.selection} />
               </div>
 
             </div>
@@ -170,5 +61,116 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
     );
   }
 }
+
+const Header = ({ selection, onClearSelectionClick }) => (
+  <div className="header">
+    <a onClick={onClearSelectionClick}>
+      <i className="icon close"></i>
+    </a>
+    {
+      (selection.length > 1)
+        ? `${selection.length} features selected`
+        : getTitle(selection[0].layer.metadata.name, selection[0].properties)
+    }
+  </div>
+);
+
+const Media = ({ selection }) => {
+  const properties = selection[0].properties;
+  const layerName = selection[0].layer.metadata.name;
+
+  return (hasImageUrl(layerName)) ? (
+    <div className="ui segment">
+      <img
+        className="ui fluid image"
+        src={properties[getImageUrl(layerName)]}
+        alt={properties[getImageUrl(layerName)]}
+      />
+    </div>
+  ) : <div></div>;
+};
+
+const BlessedProperties = ({ selection }) => {
+  const properties = selection[0].properties;
+  const layerName = selection[0].layer.metadata.name;
+
+  return (
+    <div className="ui segment">
+      <PropertiesTable
+        properties={properties}
+        order={
+          isAnythingBlessed(layerName)
+            ? getBlessedPropertyOrder(layerName, properties)
+            : getUnblessedPropertyOrder(layerName, properties)
+        }
+      />
+    </div>
+  );
+};
+
+const UnblessedProperties = ({ selection }) => {
+  const properties = selection[0].properties;
+  const layerName = selection[0].layer.metadata.name;
+
+  return (
+    <div className="ui secondary segment">
+      <PropertiesTable
+        properties={properties}
+        order={
+          isAnythingBlessed(layerName)
+            ? getUnblessedPropertyOrder(layerName, properties)
+            : getBlessedPropertyOrder(layerName, properties)
+        }
+      />
+    </div>
+  );
+};
+
+const PropertiesTable = ({ properties, order }) => (
+  <table className="ui very basic celled very compact fixed selectable table">
+    <tbody>
+      {order
+        .filter(key => key !== "_id")
+        .filter(key => key in properties)
+        .filter(key => String(properties[key]).trim() !== "")
+        .map(key =>
+          <tr key={key}>
+            <td className="right aligned">
+              <div className="ui sub header">{key}</div>
+            </td>
+            <td>{properties[key]}</td>
+          </tr>
+        )
+      }
+    </tbody>
+  </table>
+);
+
+const getTitle = (layerName, properties) =>
+  getBehavior(layerName).title(properties);
+
+const hasImageUrl = (layerName) =>
+  ("imageUrl" in getBehavior(layerName));
+
+const getImageUrl = (layerName) =>
+  getBehavior(layerName).imageUrl;
+
+const isAnythingBlessed = (layerName) =>
+  getBehavior(layerName).blessed.length > 0;
+
+// In the specified order
+const getBlessedPropertyOrder = (layerName, properties) =>
+  getBehavior(layerName).blessed.filter(k => k in properties);
+
+// Find all other properties, and then natural-sort for convenience
+const getUnblessedPropertyOrder = (layerName, properties) => {
+  const behavior = getBehavior(layerName);
+  return Object.keys(properties)
+    .filter(k => (behavior.blessed.indexOf(k) === -1))
+    .sort(naturalsort);
+};
+
+const getBehavior = (layerName) =>
+  ((layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior);
 
 export default SelectionView;

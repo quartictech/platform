@@ -1,9 +1,3 @@
-/**
-*
-* Map
-*
-*/
-
 import React from "react";
 
 import styles from "./styles.css";
@@ -20,27 +14,14 @@ import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
 import { apiRootUrl } from "../../utils.js";
 
-// https://gist.github.com/samgiles/762ee337dff48623e729
-Array.prototype.flatMap = function (lambda) {  // eslint-disable-line no-extend-native
-  return Array.prototype.concat.apply([], this.map(lambda));
-};
+const _ = require("underscore");
+
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
     this.map = null;
     this.subLayers = {};
-  }
-
-  getVisibleSubLayers() {
-    const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
-    return Object.keys(this.subLayers)
-      .filter(id => visibleLayerIds.some(i => i === id))
-      .flatMap(id => this.subLayers[id]);
-  }
-
-  queryRenderedFeatures(point) {
-    return this.map.queryRenderedFeatures(point, { layers: this.getVisibleSubLayers() });
   }
 
   onMouseMove(e) {
@@ -51,12 +32,25 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   onMouseClick(e) {
     const features = this.queryRenderedFeatures(e.point);
-    if (!features.length) {
-      return;
-    }
+    const feature = (features.length > 0)
+      ? {
+        id: features[0].properties["_id"],  // eslint-disable-line dot-notation
+        layerId: features[0].layer.source,
+        properties: features[0].properties,
+      }
+      : undefined;
+    this.props.onMouseClick(feature, e.originalEvent.metaKey);
+  }
 
-    const feature = features[0];
-    this.props.onSelectFeatures([[feature.layer.source, feature.properties["_id"]]], features); // eslint-disable-line dot-notation
+  queryRenderedFeatures(point) {
+    return this.map.queryRenderedFeatures(point, { layers: this.getVisibleSubLayers() });
+  }
+
+  getVisibleSubLayers() {
+    const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
+    return _.flatten(Object.keys(this.subLayers)
+      .filter(id => visibleLayerIds.some(i => i === id))
+      .map(id => this.subLayers[id]));
   }
 
   componentDidMount() {
@@ -66,6 +60,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       zoom: 9.7,
       center: [-0.10, 51.4800],
     });
+
+    this.map.dragRotate.disable();
 
     this.map.on("mousemove", this.onMouseMove.bind(this));
     this.map.on("click", this.onMouseClick.bind(this));

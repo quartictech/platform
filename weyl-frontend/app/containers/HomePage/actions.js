@@ -85,14 +85,6 @@ export function toggleUi(element) {
   };
 }
 
-export function selectFeatures(ids, features) {
-  return {
-    type: constants.SELECT_FEATURES,
-    ids,
-    features,
-  };
-}
-
 export function clearSelection() {
   return {
     type: constants.CLEAR_SELECTION,
@@ -136,6 +128,14 @@ export function mapMouseMove(mouseLocation) {
   return {
     type: constants.MAP_MOUSE_MOVE,
     mouseLocation,
+  };
+}
+
+export function mapMouseClick(feature, multiSelectEnabled) {
+  return {
+    type: constants.MAP_MOUSE_CLICK,
+    feature,
+    multiSelectEnabled,
   };
 }
 
@@ -184,7 +184,6 @@ export function feedSetData(layerId, data) {
 export const connectionUp = () => ({
   type: constants.CONNECTION_UP,
 });
-
 
 export const connectionDown = () => ({
   type: constants.CONNECTION_DOWN,

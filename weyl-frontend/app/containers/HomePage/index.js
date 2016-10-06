@@ -26,6 +26,7 @@ import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+
   render() {
     return (
       <div className={styles.container}>
@@ -40,10 +41,10 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.mapContainer}>
           <Map
             layers={this.props.layers}
-            onSelectFeatures={this.props.onSelectFeatures}
             onMapLoading={this.props.onMapLoading}
             onMapLoaded={this.props.onMapLoaded}
             onMouseMove={this.props.onMapMouseMove}
+            onMouseClick={this.props.onMapMouseClick}
             selection={this.props.selectionIds}
             map={this.props.map}
             geofence={this.props.geofence}
@@ -72,7 +73,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.rightDrawer}>
           <SelectionView
             selection={this.props.selectionFeatures}
-            onClearSelection={this.props.onClearSelection}
+            onClose={this.props.onSelectionClose}
           />
           <FeedPane
             feed={this.props.feed}
@@ -123,8 +124,7 @@ const mapDispatchToProps = {
   layerClose: actions.layerClose,
   onBucketCompute: actions.bucketComputation,
   onUiToggle: actions.toggleUi,
-  onSelectFeatures: actions.selectFeatures,
-  onClearSelection: actions.clearSelection,
+  onSelectionClose: actions.clearSelection,
   onChartLayerSelection: actions.loadNumericAttributes,
   onChartAttributeSelection: actions.chartSelectAttribute,
   onLayerStyleChange: actions.layerSetStyle,
@@ -132,6 +132,7 @@ const mapDispatchToProps = {
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
+  onMapMouseClick: actions.mapMouseClick,
   onGeofenceEdit: actions.geofenceEditStart,
   onGeofenceSave: actions.geofenceEditFinish,
   onGeofenceChange: actions.geofenceEditChange,

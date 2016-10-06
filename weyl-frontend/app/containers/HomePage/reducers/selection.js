@@ -1,30 +1,46 @@
-import { fromJS } from "immutable";
+import { Set, fromJS } from "immutable";
 import * as constants from "../constants";
 
 const initialState = fromJS({
   ids: {},
-  features: [],
+  features: {},
 });
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case constants.SELECT_FEATURES: {
-      const keyMap = {};
-      for (const id of action.ids) {
-        if (!(id[0] in keyMap)) {
-          keyMap[id[0]] = [];
-        }
-        keyMap[id[0]].push(id[1]);
+    case constants.MAP_MOUSE_CLICK:
+      if (!action.feature) {
+        return initialState;  // Clear everything
       }
-      return state
-        .set("ids", fromJS(keyMap))
-        .set("features", fromJS(action.features));
-    }
+
+      if (action.multiSelectEnabled) {
+        return state.hasIn(["ids", action.feature.layerId, action.feature.id])
+          ? deleteEntry(state, action.feature)
+          : addEntry(state, action.feature);
+      }
+
+      return addEntry(initialState, action.feature);  // Clear all entries, add this one
+
+    case constants.LAYER_CLOSE:
+      return state.getIn(["ids", action.layerId])
+        .reduce(
+          (prevState, fid) => prevState.deleteIn(["features", fid]),
+          state
+        )
+        .deleteIn(["ids", action.layerId]);
+
     case constants.CLEAR_SELECTION:
-      return state
-        .set("ids", fromJS({}))
-        .set("features", fromJS([]));
+      return initialState;
+
     default:
       return state;
   }
 };
+
+const addEntry = (state, feature) => state
+  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
+  .setIn(["features", feature.id], feature.properties);
+
+const deleteEntry = (state, feature) => state
+  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
+  .deleteIn(["features", feature.id]);

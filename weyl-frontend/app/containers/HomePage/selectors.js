@@ -1,9 +1,5 @@
-
-/**
- * Homepage selectors
- */
-
 import { createSelector } from "reselect";
+const _ = require("underscore");
 
 const selectHome = () => (state) => state.get("home");
 
@@ -31,16 +27,18 @@ export const selectSelectionFeatures = () => createSelector(
   selectHome(),
   selectLayers(),
   (home, layers) => {
+    const ids = home.getIn(["selection", "ids"]).toJS();
     const features = home.getIn(["selection", "features"]).toJS();
 
-    return Object.keys(features).map(k => {
-      const layer = layers.find(l => l.id === features[k].layer.source);
-
-      return {
-        ...(features[k]),
-        layer,
-      };
-    });
+    return _.chain(ids).keys()
+      .map(layerId => ids[layerId]
+        .map(fid => ({
+          layer: layers.find(l => l.id === layerId),
+          properties: features[fid],
+        }))
+      )
+      .flatten()
+      .values();
   }
 );
 
