@@ -8,28 +8,20 @@ const initialState = fromJS({
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case constants.MAP_CLICK_FEATURE:
-      if (state.hasIn(["ids", action.layerId, action.featureId])) {
-        // Delete entry
-        return state
-          .updateIn(["ids", action.layerId], fids => fids.delete(action.featureId))
-          .deleteIn(["features", action.featureId]);
+    case constants.MAP_MOUSE_CLICK:
+      if (!action.feature) {
+          return initialState;  // Clear everything
       }
 
-      if (action.ctrlPressed) {
-        // Add entry
-        return state
-          .updateIn(["ids", action.layerId], new Set(), fids => fids.add(action.featureId))
-          .setIn(["features", action.featureId], action.featureProperties);
+      if (action.multiSelectEnabled) {
+        return state.hasIn(["ids", action.feature.layerId, action.feature.id])
+          ? deleteEntry(state, action.feature)
+          : addEntry(state, action.feature);
       }
 
-      // Clear all entries, add this one
-      return initialState
-        .setIn(["ids", action.layerId], new Set([action.featureId]))
-        .setIn(["features", action.featureId], action.featureProperties);
+      return addEntry(initialState, action.feature);  // Clear all entries, add this one
 
     case constants.LAYER_CLOSE:
-      console.log("layerId", action.layerId);
       return state.getIn(["ids", action.layerId])
         .reduce(
           (prevState, fid) => prevState.deleteIn(["features", fid]),
@@ -44,3 +36,11 @@ export default (state = initialState, action) => {
       return state;
   }
 };
+
+const addEntry = (state, feature) => state
+  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
+  .setIn(["features", feature.id], feature.properties);
+
+const deleteEntry = (state, feature) => state
+  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
+  .deleteIn(["features", feature.id]);
