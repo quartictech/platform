@@ -1,24 +1,30 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id "java"
+    id "idea"
+    id "com.palantir.git-version" version "0.5.2"
+}
 
 allprojects {
-  repositories {
-      mavenCentral()
+    repositories {
+        mavenCentral()
 
-      maven {
-          url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
-      }
-  }
-
-  idea {
-    project {
-        //if you want to set specific jdk and language level
-        jdkName = '1.8'
-        languageLevel = '1.8'
+        maven {
+            url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
+        }
     }
-  }
-  sourceCompatibility = 1.8
-  targetCompatibility = 1.8
+
+    idea {
+        project {
+            //if you want to set specific jdk and language level
+            jdkName = '1.8'
+            languageLevel = '1.8'
+        }
+    }
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    version gitVersion()
+
 }
 
 

@@ -1,15 +1,18 @@
 package io.quartic.weyl.resource;
 
+import io.quartic.weyl.response.Pong;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("/ping")
-@Produces(MediaType.TEXT_PLAIN)
+@Produces(MediaType.APPLICATION_JSON)
 public class PingPongResource {
     @GET
-    public String ping() {
-        return "pong";
+    public Pong ping() {
+        final String version = getClass().getPackage().getImplementationVersion();
+        return Pong.of(version == null ? "unknown" : version);
     }
 }

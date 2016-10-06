@@ -26,6 +26,12 @@ dependencies {
   testCompile 'org.mockito:mockito-core:1.10.19'
 }
 
+jar {
+    manifest {
+        attributes("Implementation-Version": version)
+    }
+}
+
 mainClassName = 'io.quartic.weyl.WeylApplication'
 applicationDefaultJvmArgs = ["-Xms8g", "-Xmx8g", '-XX:+PrintGCDetails', '-XX:+PrintGCDateStamps', '-Xloggc:mygclogfilename.gc']
 
@@ -37,7 +43,7 @@ run {
 }
 
 docker {
-  name      "registry.gitlab.com/quartic/${rootProject.name}"
+  name      "registry.gitlab.com/quartic/${rootProject.name}:${version}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
