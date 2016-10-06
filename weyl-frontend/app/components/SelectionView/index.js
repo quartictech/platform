@@ -89,6 +89,8 @@ const Media = ({ selection }) => {
       </div>
     );
   }
+
+  return null;
 };
 
 const Image = ({ url }) => (
