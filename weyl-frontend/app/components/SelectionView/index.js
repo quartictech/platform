@@ -7,7 +7,7 @@ import styles from "./styles.css";
 import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  renderInner() {
+  render() {
     const filteredSelection = this.props.selection
       .filter(s => s.layer.visible);  // TODO: take account of actual filtering
 
@@ -16,37 +16,31 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
     }
 
     return (
-      <div className={styles.innerSelectionView}>
-        <div className="ui raised fluid card">
-          <div className="content">
-            <Header selection={filteredSelection} onClose={this.props.onClose} />
-            <Media selection={filteredSelection} />
-            <BlessedProperties selection={filteredSelection} />
-          </div>
-
-          <div className="extra content">
-            <div className="ui accordion" ref={x => $(x).accordion()}>
-              <div className="title">
-                <i className="dropdown icon"></i>
-                More properties
-              </div>
-
-              <div className="content">
-                <UnblessedProperties selection={filteredSelection} />
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-      </div>
-    );
-  }
-
-  render() {
-    return (
       <div className={styles.selectionView}>
-        {this.renderInner()}
+        <div className={styles.innerSelectionView}>
+          <div className="ui raised fluid card">
+            <div className="content">
+              <Header selection={filteredSelection} onClose={this.props.onClose} />
+              <Media selection={filteredSelection} />
+              <BlessedProperties selection={filteredSelection} />
+            </div>
+
+            <div className="extra content">
+              <div className="ui accordion" ref={x => $(x).accordion()}>
+                <div className="title">
+                  <i className="dropdown icon"></i>
+                  More properties
+                </div>
+
+                <div className="content">
+                  <UnblessedProperties selection={filteredSelection} />
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
     );
   }
@@ -81,20 +75,21 @@ const Media = ({ selection }) => {
 };
 
 const BlessedProperties = ({ selection }) => {
+  if (displayMode(selection) === "AGGREGATE") {
+    return <div className="ui segment">TODO: aggregation</div>;
+  }
+
+  // TODO: given the above check, features should be homogeneous - need to generalise this
   const properties = selection[0].properties;
   const layerName = selection[0].layer.metadata.name;
-
-  const numUniqueLayers = _.chain(selection).map(s => s.layer.id).uniq().size().value();
-  const numFeatures = selection.length;
-
   return (
     <div className="ui segment">
       <PropertiesTable
         selection={selection}
         order={
           isAnythingBlessed(layerName)
-            ? getBlessedPropertyOrder(layerName, selection[0].properties) // TODO: union properties
-            : getUnblessedPropertyOrder(layerName, selection[0].properties) // TODO: union properties
+            ? getBlessedPropertyOrder(layerName, properties)
+            : getUnblessedPropertyOrder(layerName, properties)
         }
       />
     </div>
@@ -102,24 +97,25 @@ const BlessedProperties = ({ selection }) => {
 };
 
 const UnblessedProperties = ({ selection }) => {
+  if (displayMode(selection) === "AGGREGATE") {
+    return <div className="ui segment">TODO: aggregation</div>;
+  }
+
+  // TODO: given the above check, features should be homogeneous - need to generalise this
   const properties = selection[0].properties;
   const layerName = selection[0].layer.metadata.name;
-
-  // TODO
-  return <div></div>;
-
-  // return (
-  //   <div className="ui secondary segment">
-  //     <PropertiesTable
-  //       properties={properties}
-  //       order={
-  //         isAnythingBlessed(layerName)
-  //           ? getUnblessedPropertyOrder(layerName, properties)
-  //           : getBlessedPropertyOrder(layerName, properties)
-  //       }
-  //     />
-  //   </div>
-  // );
+  return (
+    <div className="ui segment">
+      <PropertiesTable
+        selection={selection}
+        order={
+          isAnythingBlessed(layerName)
+            ? getUnblessedPropertyOrder(layerName, properties)
+            : getBlessedPropertyOrder(layerName, properties)
+        }
+      />
+    </div>
+  );
 };
 
 const PropertiesTable = ({ selection, order }) => (
@@ -130,7 +126,7 @@ const PropertiesTable = ({ selection, order }) => (
           <tr>
             <th />
             {selection.map(s =>
-              <th key={s.properties["_id"]}>{getTitle(s.layer.metadata.name, s.properties)}</th>  // eslint-disable-line dot-notation
+              <th key={s.properties["_id"]}>{getTitle(s.layer.metadata.name, s.properties)}</th>    // eslint-disable-line dot-notation
             )}
           </tr>
         </thead>
@@ -144,7 +140,7 @@ const PropertiesTable = ({ selection, order }) => (
               <div className="ui sub header">{key}</div>
             </td>
             {selection.map(s =>
-              <td key={s.properties["_id"]}>{s.properties[key]}</td>  // eslint-disable-line dot-notation
+              <td key={s.properties["_id"]}>{s.properties[key]}</td>    // eslint-disable-line dot-notation
             )}
           </tr>
         )
@@ -152,6 +148,19 @@ const PropertiesTable = ({ selection, order }) => (
     </tbody>
   </table>
 );
+
+const displayMode = (selection) => {
+  const numUniqueLayers = _.chain(selection).map(s => s.layer.id).uniq().size().value();
+  const numFeatures = selection.length;
+
+  if (numFeatures === 1) {
+    return "BASEBALL";
+  }
+  if (numFeatures < 5 && numUniqueLayers === 1) {
+    return "SIDE_BY_SIDE";
+  }
+  return "AGGREGATE";
+};
 
 const isPropertyDisplayable = (key, properties) =>
   (key !== "_id") && (key in properties) && (String(properties[key]).trim() !== "");
