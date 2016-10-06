@@ -38,7 +38,7 @@ export const selectSelectionFeatures = () => createSelector(
         }))
       )
       .flatten()
-      .values();
+      .value();
   }
 );
 
