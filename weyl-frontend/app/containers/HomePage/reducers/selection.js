@@ -10,7 +10,7 @@ export default (state = initialState, action) => {
   switch (action.type) {
     case constants.MAP_MOUSE_CLICK:
       if (!action.feature) {
-          return initialState;  // Clear everything
+        return initialState;  // Clear everything
       }
 
       if (action.multiSelectEnabled) {

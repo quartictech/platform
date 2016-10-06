@@ -42,12 +42,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const features = this.queryRenderedFeatures(e.point);
     const feature = (features.length > 0)
       ? {
-        id: features[0].properties["_id"],
+        id: features[0].properties["_id"],  // eslint-disable-line dot-notation
         layerId: features[0].layer.source,
         properties: features[0].properties,
       }
       : undefined;
-    this.props.onMouseClick(feature, e.originalEvent.metaKey); // eslint-disable-line dot-notation
+    this.props.onMouseClick(feature, e.originalEvent.metaKey);
   }
 
   queryRenderedFeatures(point) {

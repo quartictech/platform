@@ -73,7 +73,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.rightDrawer}>
           <SelectionView
             selection={this.props.selectionFeatures}
-            onClearSelection={this.props.onClearSelection}
+            onClose={this.props.onSelectionClose}
           />
           <FeedPane
             feed={this.props.feed}
@@ -124,7 +124,7 @@ const mapDispatchToProps = {
   layerClose: actions.layerClose,
   onBucketCompute: actions.bucketComputation,
   onUiToggle: actions.toggleUi,
-  onClearSelection: actions.clearSelection,
+  onSelectionClose: actions.clearSelection,
   onChartLayerSelection: actions.loadNumericAttributes,
   onChartAttributeSelection: actions.chartSelectAttribute,
   onLayerStyleChange: actions.layerSetStyle,
