@@ -63,7 +63,7 @@ public class LayerStore {
     }
 
      private static IndexedLayer index(Layer layer) {
-         Collection<IndexedFeature> features = layer.features()
+         Collection<IndexedFeature> features = layer.features().values()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
                         .feature(feature)
@@ -87,7 +87,7 @@ public class LayerStore {
 
         AttributeSchema attributeSchema = layer.schema();
 
-        layer.features().parallelStream()
+        layer.features().values().parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .filter(entry -> entry.getValue().isPresent())
                 .filter(entry -> attributeSchema.attributes().get(entry.getKey()).type()

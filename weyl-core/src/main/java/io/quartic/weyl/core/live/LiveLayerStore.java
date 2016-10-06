@@ -28,10 +28,10 @@ public class LiveLayerStore {
     private final AtomicLong eventIdCounter = new AtomicLong();
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
-        Collection<io.quartic.weyl.core.model.Feature> features
+        FeatureMap features
                 = layers.containsKey(id)
                 ? layers.get(id).layer().features()
-                : Lists.newLinkedList();
+                : new MutableFeatureMap();
         Collection<EnrichedFeedEvent> feedEvents
                 = layers.containsKey(id)
                 ? layers.get(id).feedEvents()
@@ -68,7 +68,7 @@ public class LiveLayerStore {
         final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
 
         final LiveLayer layer = layers.get(layerId);
-        layer.layer().features().addAll(newFeatures);
+        layer.layer().features().putAll(newFeatures);
         layer.feedEvents().addAll(feedEvents);
 
         notifyListeners(layerId, newFeatures);
@@ -120,7 +120,7 @@ public class LiveLayerStore {
 
     private void notifySubscribers(LayerId layerId) {
         final LiveLayer layer = layers.get(layerId);
-        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
+        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features().values();
         liveLayerSubscriptions.get(layerId)
                 .forEach(subscription -> {
                     Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView().compute(features);

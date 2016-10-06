@@ -14,7 +14,7 @@ import org.skife.jdbi.v2.ResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class PostgisConnector {
         ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
                 .iterator();
 
-        List<Feature> features = Lists.newArrayList();
+        Collection<Feature> features = Lists.newArrayList();
         int count = 0;
         while (iterator.hasNext()) {
             count += 1;
@@ -50,9 +50,7 @@ public class PostgisConnector {
             }
             Optional<Feature> feature = rowToFeature(iterator.next());
 
-            if (feature.isPresent()) {
-                features.add(feature.get());
-            }
+            feature.ifPresent(features::add);
         }
         iterator.close();
 
@@ -64,7 +62,7 @@ public class PostgisConnector {
                 .build();
 
         return Optional.of(ImmutableRawLayer.builder()
-                .features(features)
+                .features(new ImmutableFeatureMap(features))
                 .metadata(metadata)
                 .schema(attributeSchema)
                 .build());
