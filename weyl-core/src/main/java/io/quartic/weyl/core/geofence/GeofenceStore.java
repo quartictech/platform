@@ -14,7 +14,6 @@ import org.immutables.value.Value;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class GeofenceStore implements LiveLayerStoreListener {
     @SweetStyle
@@ -59,30 +58,22 @@ public class GeofenceStore implements LiveLayerStoreListener {
     private GeofenceState getState(Geofence geofence, Feature feature) {
         if (geofence.type() == GeofenceType.INCLUDE &&
                 geofence.geometry().contains(feature.geometry())) {
-            return GeofenceState.of(true, String.format("Actor %s is within inclusive geofence boundary", feature.id()));
+            return GeofenceState.of(true, String.format("Actor %s is within inclusive geofence boundary", feature.externalId()));
         }
         else if (geofence.type() == GeofenceType.EXCLUDE &&
                 !geofence.geometry().contains(feature.geometry())) {
-            return GeofenceState.of(true, String.format("Actor %s is outside exclusive geofence boundary", feature.id()));
+            return GeofenceState.of(true, String.format("Actor %s is outside exclusive geofence boundary", feature.externalId()));
         }
         else {
-            return GeofenceState.of(false, String.format("Actor %s is in violation of geofence boundary", feature.id()));
+            return GeofenceState.of(false, String.format("Actor %s is in violation of geofence boundary", feature.externalId()));
         }
     }
 
     @Override
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
-        final Set<GeofenceState> states = geofences.stream()
-                .map(geofence -> getState(geofence, feature))
-                .collect(Collectors.toSet());
-
-        updateViolations(feature);
-    }
-
-    private void updateViolations(Feature feature) {
         geofences.forEach(geofence -> {
             final GeofenceState state = getState(geofence, feature);
-            final ViolationKey vk = ViolationKey.of(feature.id(), geofence.id());
+            final ViolationKey vk = ViolationKey.of(feature.uid(), geofence.id());
 
             if (state.ok()) {
                 currentViolations.remove(vk);

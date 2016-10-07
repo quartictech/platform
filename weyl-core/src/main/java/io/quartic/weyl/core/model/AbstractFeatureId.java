@@ -8,5 +8,5 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface AbstractFeatureId {
     @JsonValue
-    String id();
+    long id();
 }

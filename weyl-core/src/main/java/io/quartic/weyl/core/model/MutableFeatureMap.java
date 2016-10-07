@@ -31,7 +31,7 @@ public class MutableFeatureMap extends AbstractMap<FeatureId, Feature> implement
 
     @Override
     public Feature put(Feature feature) {
-        return internal.put(feature.id(), feature);
+        return internal.put(feature.uid(), feature);
     }
 
     @Override
@@ -40,6 +40,6 @@ public class MutableFeatureMap extends AbstractMap<FeatureId, Feature> implement
     }
 
     private Map<FeatureId, Feature> toMap(Collection<? extends Feature> features) {
-        return features.stream().collect(Collectors.toMap(Feature::id, v -> v));
+        return features.stream().collect(Collectors.toMap(Feature::uid, v -> v));
     }
 }

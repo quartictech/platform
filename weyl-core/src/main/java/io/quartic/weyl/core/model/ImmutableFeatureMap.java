@@ -17,7 +17,7 @@ public class ImmutableFeatureMap extends AbstractMap<FeatureId, Feature> impleme
     }
 
     public ImmutableFeatureMap(Collection<? extends Feature> features) {
-        internal = features.stream().collect(toMap(Feature::id, v -> v));
+        internal = features.stream().collect(toMap(Feature::uid, v -> v));
     }
 
     @Override
