@@ -16,6 +16,8 @@ import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.RandomUidGenerator;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.resource.*;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -28,8 +30,8 @@ import java.util.EnumSet;
 import java.util.function.Supplier;
 
 public class WeylApplication extends Application<WeylConfiguration> {
-    private final UidGenerator<FeatureId> fidGenerator = new UidGenerator<>(FeatureId::of);
-    private final UidGenerator<LayerId> lidGenerator = new UidGenerator<>(LayerId::of);
+    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
+    private final UidGenerator<LayerId> lidGenerator = new RandomUidGenerator<>(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
     private final LiveLayerStore liveLayerStore = new LiveLayerStore(fidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);

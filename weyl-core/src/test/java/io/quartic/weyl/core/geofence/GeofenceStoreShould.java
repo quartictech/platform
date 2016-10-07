@@ -6,6 +6,7 @@ import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +17,7 @@ public class GeofenceStoreShould {
     private final GeofenceStore store = new GeofenceStore(mock(LiveLayerStore.class));
     private final ViolationListener listener = mock(ViolationListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
-    private final UidGenerator<GeofenceId> gidGen = new UidGenerator<>(GeofenceId::of);
+    private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
 
     @Before
     public void setUp() throws Exception {

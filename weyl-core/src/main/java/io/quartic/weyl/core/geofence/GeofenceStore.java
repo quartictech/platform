@@ -9,6 +9,7 @@ import io.quartic.weyl.core.live.LiveLayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.immutables.value.Value;
 
@@ -24,7 +25,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
         GeofenceId geofenceId();
     }
 
-    private final UidGenerator<ViolationId> vidGenerator = new UidGenerator<>(ViolationId::of);
+    private final UidGenerator<ViolationId> vidGenerator = new SequenceUidGenerator<>(ViolationId::of);
 
     private final Map<ViolationKey, Violation> currentViolations = Maps.newHashMap();
     private final Set<Geofence> geofences = Sets.newHashSet();

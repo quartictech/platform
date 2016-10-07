@@ -7,6 +7,7 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geojson.Utils;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.request.GeofenceRequest;
 
@@ -18,7 +19,7 @@ import javax.ws.rs.Path;
 @Consumes("application/json")
 public class GeofenceResource {
     private final GeofenceStore geofenceStore;
-    private final UidGenerator<GeofenceId> gidGenerator = new UidGenerator<>(GeofenceId::of);
+    private final UidGenerator<GeofenceId> gidGenerator = new SequenceUidGenerator<>(GeofenceId::of);
 
     public GeofenceResource(GeofenceStore geofenceStore) {
         this.geofenceStore = geofenceStore;

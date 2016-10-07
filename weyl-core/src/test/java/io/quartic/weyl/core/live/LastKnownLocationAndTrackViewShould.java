@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LastKnownLocationAndTrackViewShould {
-    private final UidGenerator<FeatureId> uidGen = mock(UidGenerator.class);
+    private final UidGenerator<FeatureId> uidGen = mock(SequenceUidGenerator.class);
 
     @Before
     public void setUp() throws Exception {

@@ -9,6 +9,7 @@ import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 
 import java.util.Collection;
@@ -25,7 +26,7 @@ public class LiveLayerStore {
     private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
-    private final UidGenerator<LiveEventId> eidGenerator = new UidGenerator<>(LiveEventId::of);
+    private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
     private final UidGenerator<FeatureId> fidGenerator;
 
     public LiveLayerStore(UidGenerator<FeatureId> fidGenerator) {
