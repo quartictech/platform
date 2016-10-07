@@ -31,7 +31,7 @@ public class LayerResourceShould {
     @Before
     public void setUp() throws Exception {
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), ImmutableList.of(), (gen, history) -> history.stream())
+                LiveLayer.of(LayerId.of("666"), mock(Layer.class), ImmutableList.of(), (gen, history) -> history.stream())
         ));
     }
 
@@ -42,7 +42,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.of("5678"), point(), propsWithTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", createRequest(collection));
+        resource.updateLiveLayer("666", createRequest(collection));
     }
 
     @Test(expected = NotAcceptableException.class)
@@ -52,7 +52,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.empty(), point(), propsWithTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", createRequest(collection));
+        resource.updateLiveLayer("666", createRequest(collection));
     }
 
     private ImmutableMap<String, Object> propsWithTimestamp() {

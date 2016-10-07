@@ -41,8 +41,9 @@ public class LastKnownLocationAndTrackView implements LiveLayerView {
 
     @Override
     public Stream<Feature> compute(UidGenerator<FeatureId> uidGenerator, Collection<Feature> history) {
+        // TODO: sorting by UID is wrong - we should sort by timestamp
         Map<String, List<Feature>> historyById = history.stream()
-                .sorted((a, b) -> Long.compare(a.uid().id(), b.uid().id()))
+                .sorted((a, b) -> Long.compare(Long.valueOf(a.uid().uid()), Long.valueOf(b.uid().uid())))
                 .collect(groupingBy(Feature::externalId));
 
         return historyById.values()

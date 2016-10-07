@@ -26,7 +26,11 @@ public class LiveLayerStore {
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
     private final UidGenerator<LiveEventId> eidGenerator = new UidGenerator<>(LiveEventId::of);
-    private final UidGenerator<FeatureId> fidGenerator = new UidGenerator<>(FeatureId::of);
+    private final UidGenerator<FeatureId> fidGenerator;
+
+    public LiveLayerStore(UidGenerator<FeatureId> fidGenerator) {
+        this.fidGenerator = fidGenerator;
+    }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
         FeatureMap features
@@ -151,17 +155,17 @@ public class LiveLayerStore {
         return Feature.of(
                 Optional.of(f.externalId()),
                 Utils.fromJts(f.geometry()),
-                convertMetadata(f.externalId(), f.metadata())
+                convertMetadata(f.uid(), f.metadata())
         );
     }
 
     private void checkLayerExists(LayerId layerId) {
-        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.id());
+        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
     }
 
-    private static Map<String, Object> convertMetadata(String externalId, Map<String, Optional<Object>> metadata) {
+    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Optional<Object>> metadata) {
         final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
-        output.put("_id", externalId);  // TODO: eliminate the _id concept
+        output.put("_id", featureId);  // TODO: eliminate the _id concept
         return output;
     }
 }

@@ -29,8 +29,8 @@ public class LastKnownLocationAndTrackViewShould {
     @Before
     public void setUp() throws Exception {
         when(uidGen.get())
-                .thenReturn(FeatureId.of(1001))
-                .thenReturn(FeatureId.of(1002));
+                .thenReturn(FeatureId.of("1001"))
+                .thenReturn(FeatureId.of("1002"));
     }
 
     @Test
@@ -105,22 +105,22 @@ public class LastKnownLocationAndTrackViewShould {
                 .collect(Collectors.toList());
     }
 
-    private Feature locationFeature(String name, long uid, double x, double y) {
+    private Feature locationFeature(String name, int uid, double x, double y) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(coordinate(x, y));
         return featureWithName(name, uid, geometry);
     }
 
-    private Feature lineFeature(String name, long uid, Coordinate[] coordinates) {
+    private Feature lineFeature(String name, int uid, Coordinate[] coordinates) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createLineString(coordinates);
         return featureWithName(name, uid, geometry);
     }
 
-    private Feature featureWithName(String name, long uid, Geometry geometry) {
+    private Feature featureWithName(String name, int uid, Geometry geometry) {
         return ImmutableFeature.builder()
                 .externalId(name)
-                .uid(FeatureId.of(uid))
+                .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
                 .metadata(ImmutableMap.of("name", Optional.of(name)))
                 .build();

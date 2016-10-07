@@ -2,8 +2,12 @@ package io.quartic.weyl.core.render;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateFilter;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.IndexedLayer;
+import io.quartic.weyl.core.model.LayerId;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +58,8 @@ public class VectorTileRenderer {
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
         for (IndexedLayer layer : layers) {
-            String layerName = layer.layerId().id();
-            log.info("encoding layer name {}", layerName);
+            final LayerId layerId = layer.layerId();
+            log.info("encoding layer {}", layerId);
             final AtomicInteger featureCount = new AtomicInteger();
 
             Stopwatch stopwatch = Stopwatch.createStarted();
@@ -66,12 +70,12 @@ public class VectorTileRenderer {
                     attributes.put(entry.getKey(), entry.getValue().orElse(null));
                 }
 
-                attributes.put("_id", feature.feature().externalId());
+                attributes.put("_id", feature.feature().uid().uid());
 
                 return VectorTileFeature.of(scaleGeometry(feature.feature().geometry(), envelope), attributes);
             }).sequential().forEach(vectorTileFeature -> {
                     featureCount.incrementAndGet();
-                    encoder.addFeature(layerName,
+                    encoder.addFeature(layerId.uid(),
                             vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
             });
             log.info("encoded {} features in {}ms", featureCount.get(), stopwatch.elapsed(TimeUnit.MILLISECONDS));

@@ -8,6 +8,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.weyl.core.attributes.InferAttributeSchema;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
@@ -26,10 +27,12 @@ public class PostgisConnector {
     private static final String ID_FIELD = "id";
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
+    private final UidGenerator<FeatureId> fidGenerator;
     private final DBI dbi;
     private final WKBReader wkbReader;
 
-    public PostgisConnector(DBI dbi) {
+    public PostgisConnector(UidGenerator<FeatureId> fidGenerator, DBI dbi) {
+        this.fidGenerator = fidGenerator;
         this.dbi = dbi;
         wkbReader = new WKBReader();
     }
@@ -103,6 +106,7 @@ public class PostgisConnector {
             return ImmutableFeature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
+                    .uid(fidGenerator.get())
                     .externalId(id)
                     .build();
         });

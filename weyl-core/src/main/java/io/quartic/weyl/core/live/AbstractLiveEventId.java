@@ -1,12 +1,10 @@
 package io.quartic.weyl.core.live;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.model.Uid;
 import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractLiveEventId {
-    @JsonValue
-    Long id();
+public interface AbstractLiveEventId extends Uid {
 }

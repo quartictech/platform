@@ -9,6 +9,7 @@ import io.quartic.weyl.core.live.LiveLayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.immutables.value.Value;
 
 import java.util.Map;
@@ -23,7 +24,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
         GeofenceId geofenceId();
     }
 
-    private int nextViolationId = 0;
+    private final UidGenerator<ViolationId> vidGenerator = new UidGenerator<>(ViolationId::of);
 
     private final Map<ViolationKey, Violation> currentViolations = Maps.newHashMap();
     private final Set<Geofence> geofences = Sets.newHashSet();
@@ -79,8 +80,7 @@ public class GeofenceStore implements LiveLayerStoreListener {
                 currentViolations.remove(vk);
             } else {
                 if (!currentViolations.containsKey(vk)) {
-                    final Violation violation = Violation.of(
-                            ViolationId.of(Integer.toString(nextViolationId++)),
+                    final Violation violation = Violation.of(vidGenerator.get(),
                             state.detail());
                     currentViolations.put(vk, violation);
                     notifyListeners(violation);

@@ -8,6 +8,7 @@ import io.quartic.weyl.core.compute.BucketOp;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.connect.PostgisConnector;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,23 +19,24 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static io.quartic.weyl.core.utils.Utils.uuid;
-
 public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
-    private Map<LayerId, Layer> rawLayers;
-    private Map<LayerId, IndexedLayer> indexedLayers;
+    private final Map<LayerId, Layer> rawLayers = Maps.newConcurrentMap();
+    private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
+    private final UidGenerator<FeatureId> fidGenerator;
+    private final UidGenerator<LayerId> lidGenerator;
     private Supplier<DBI> dbi;
 
-    public LayerStore(Supplier<DBI> dbi) {
+    public LayerStore(UidGenerator<FeatureId> fidGenerator, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi) {
+        this.fidGenerator = fidGenerator;
+        this.lidGenerator = lidGenerator;
         this.dbi = dbi;
-        this.rawLayers = Maps.newConcurrentMap();
-        this.indexedLayers = Maps.newConcurrentMap();
     }
 
     public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(dbi.get()).fetch(metadata, sql)
-                .map(LayerStore::index);
+        Optional<IndexedLayer> layer = new PostgisConnector(fidGenerator, dbi.get())
+                .fetch(metadata, sql)
+                .map(this::index);
 
         layer.ifPresent(this::storeLayer);
 
@@ -56,13 +58,13 @@ public class LayerStore {
 
     public Optional<IndexedLayer> bucket(BucketSpec bucketSpec) {
          Optional<IndexedLayer> layer = BucketOp.create(this, bucketSpec)
-                .map(LayerStore::index);
+                .map(this::index);
 
         layer.ifPresent(this::storeLayer);
         return layer;
     }
 
-     private static IndexedLayer index(Layer layer) {
+     private IndexedLayer index(Layer layer) {
          Collection<IndexedFeature> features = layer.features().values()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
@@ -71,12 +73,11 @@ public class LayerStore {
                         .build())
                 .collect(Collectors.toList());
 
-         LayerId layerId = uuid(LayerId::of);
          return ImmutableIndexedLayer.builder()
                  .layer(layer)
                  .spatialIndex(spatialIndex(features))
                  .indexedFeatures(features)
-                 .layerId(layerId)
+                 .layerId(lidGenerator.get())
                  .layerStats(calculateStats(layer))
                  .build();
     }
