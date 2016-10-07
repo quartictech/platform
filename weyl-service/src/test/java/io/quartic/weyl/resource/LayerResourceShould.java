@@ -18,7 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.NotAcceptableException;
-import java.util.Collection;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -26,14 +25,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LayerResourceShould {
-
     private final LiveLayerStore liveLayerStore = mock(LiveLayerStore.class);
     private final LayerResource resource = new LayerResource(mock(LayerStore.class), liveLayerStore);
 
     @Before
     public void setUp() throws Exception {
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("abc"), mock(Layer.class), ImmutableList.of(), Collection::stream)
+                LiveLayer.of(LayerId.of("666"), mock(Layer.class), ImmutableList.of(), (gen, history) -> history.stream())
         ));
     }
 
@@ -44,7 +42,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.of("5678"), point(), propsWithTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", createRequest(collection));
+        resource.updateLiveLayer("666", createRequest(collection));
     }
 
     @Test(expected = NotAcceptableException.class)
@@ -54,7 +52,7 @@ public class LayerResourceShould {
                 Feature.of(Optional.empty(), point(), propsWithTimestamp())
         ));
 
-        resource.updateLiveLayer("abc", createRequest(collection));
+        resource.updateLiveLayer("666", createRequest(collection));
     }
 
     private ImmutableMap<String, Object> propsWithTimestamp() {

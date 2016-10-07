@@ -3,6 +3,11 @@ plugins {
     id "java"
 }
 
+task npmLint(type: NpmTask, dependsOn: npmInstall) {
+  args = ["run", "lint"]
+}
+
+
 task npmBuild(type: NpmTask, dependsOn: npmInstall) {
   args = ["run", "build"]
   // TODO: specify input files

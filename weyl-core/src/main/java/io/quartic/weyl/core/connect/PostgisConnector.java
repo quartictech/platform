@@ -8,13 +8,14 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.weyl.core.attributes.InferAttributeSchema;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -26,10 +27,12 @@ public class PostgisConnector {
     private static final String ID_FIELD = "id";
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
+    private final UidGenerator<FeatureId> fidGenerator;
     private final DBI dbi;
     private final WKBReader wkbReader;
 
-    public PostgisConnector(DBI dbi) {
+    public PostgisConnector(UidGenerator<FeatureId> fidGenerator, DBI dbi) {
+        this.fidGenerator = fidGenerator;
         this.dbi = dbi;
         wkbReader = new WKBReader();
     }
@@ -41,7 +44,7 @@ public class PostgisConnector {
         ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
                 .iterator();
 
-        List<Feature> features = Lists.newArrayList();
+        Collection<Feature> features = Lists.newArrayList();
         int count = 0;
         while (iterator.hasNext()) {
             count += 1;
@@ -50,9 +53,7 @@ public class PostgisConnector {
             }
             Optional<Feature> feature = rowToFeature(iterator.next());
 
-            if (feature.isPresent()) {
-                features.add(feature.get());
-            }
+            feature.ifPresent(features::add);
         }
         iterator.close();
 
@@ -64,7 +65,7 @@ public class PostgisConnector {
                 .build();
 
         return Optional.of(ImmutableRawLayer.builder()
-                .features(features)
+                .features(new ImmutableFeatureMap(features))
                 .metadata(metadata)
                 .schema(attributeSchema)
                 .build());
@@ -105,7 +106,8 @@ public class PostgisConnector {
             return ImmutableFeature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
-                    .id(id)
+                    .uid(fidGenerator.get())
+                    .externalId(id)
                     .build();
         });
     }

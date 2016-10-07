@@ -3,18 +3,21 @@ package io.quartic.weyl.core.geofence;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
-import static io.quartic.weyl.core.utils.Utils.uuid;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
     private final GeofenceStore store = new GeofenceStore(mock(LiveLayerStore.class));
     private final ViolationListener listener = mock(ViolationListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
+    private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
 
     @Before
     public void setUp() throws Exception {
@@ -94,12 +97,19 @@ public class GeofenceStoreShould {
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofence(Geofence.of(uuid(GeofenceId::of), type, fenceGeometry));
+        store.setGeofence(Geofence.of(gidGen.get(), type, fenceGeometry));
     }
 
     private void updatePoint(boolean containsResult) {
         Geometry point = mock(Geometry.class);
         when(fenceGeometry.contains(point)).thenReturn(containsResult);
-        store.onLiveLayerEvent(LayerId.of("abc"), ImmutableFeature.of("123", point, ImmutableMap.of()));
+        store.onLiveLayerEvent(
+                LayerId.of("666"),
+                ImmutableFeature.builder()
+                        .externalId("ducks")
+                        .uid(FeatureId.of("123"))
+                        .geometry(point)
+                        .metadata(ImmutableMap.of())
+                        .build());
     }
 }

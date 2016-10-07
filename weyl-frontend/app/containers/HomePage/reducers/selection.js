@@ -21,13 +21,18 @@ export default (state = initialState, action) => {
 
       return addEntry(initialState, action.feature);  // Clear all entries, add this one
 
-    case constants.LAYER_CLOSE:
-      return state.getIn(["ids", action.layerId])
-        .reduce(
-          (prevState, fid) => prevState.deleteIn(["features", fid]),
-          state
-        )
-        .deleteIn(["ids", action.layerId]);
+    case constants.LAYER_CLOSE: {
+      const location = ["ids", action.layerId];
+      if (state.hasIn(location)) {
+        return state.getIn(location)
+          .reduce(
+            (prevState, fid) => prevState.deleteIn(["features", fid]),
+            state
+          )
+          .deleteIn(location);
+      }
+      return state;
+    }
 
     case constants.CLEAR_SELECTION:
       return initialState;

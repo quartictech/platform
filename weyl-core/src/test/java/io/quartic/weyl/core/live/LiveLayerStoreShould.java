@@ -3,9 +3,12 @@ package io.quartic.weyl.core.live;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.geojson.*;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -20,18 +23,20 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
-    private final LiveLayerStore store = new LiveLayerStore();
+    private final static LiveLayerView IDENTITY_VIEW = (gen, features) -> features.stream();
+    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
+    private final LiveLayerStore store = new LiveLayerStore(fidGenerator);
 
     @Test
     public void list_created_layers() throws Exception {
         final LayerMetadata lm1 = metadata("foo", "bar");
         final LayerMetadata lm2 = metadata("cheese", "monkey");
 
-        LayerId id1 = LayerId.of("abc");
-        LayerId id2 = LayerId.of("def");
+        LayerId id1 = LayerId.of("666");
+        LayerId id2 = LayerId.of("777");
 
-        store.createLayer(id1, lm1, Collection::stream);
-        store.createLayer(id2, lm2, Collection::stream);
+        store.createLayer(id1, lm1, IDENTITY_VIEW);
+        store.createLayer(id2, lm2, IDENTITY_VIEW);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -51,14 +56,14 @@ public class LiveLayerStoreShould {
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_if_adding_to_non_existent_layer() throws Exception {
-        store.addToLayer(LayerId.of("abcd"), liveEvents(feature("a", point())));
+        store.addToLayer(LayerId.of("666"), liveEvents(feature("a", point())));
     }
 
     @Test
     public void accept_if_adding_to_existing_layer() throws Exception {
         LayerId id = createLayer();
 
-        store.addToLayer(id, liveEvents(featureWithId("a", point())));
+        store.addToLayer(id, liveEvents(feature("a", point())));
     }
 
     @Test
@@ -71,7 +76,7 @@ public class LiveLayerStoreShould {
 
         verify(subscriber).accept(
                 liveLayerState(
-                        featureWithId("a", point())
+                        featureWithUid("a", "1", point())
                 ));
     }
 
@@ -86,8 +91,8 @@ public class LiveLayerStoreShould {
 
         verify(subscriber).accept(
                 liveLayerState(
-                        featureWithId("a", point()),
-                        featureWithId("b", point())
+                        featureWithUid("a", "1", point()),
+                        featureWithUid("b", "2", point())
                 ));
     }
 
@@ -95,7 +100,7 @@ public class LiveLayerStoreShould {
     public void update_metadata_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
         LayerMetadata newMetadata = metadata("cheese", "monkey");
-        store.createLayer(id, newMetadata, Collection::stream);
+        store.createLayer(id, newMetadata, IDENTITY_VIEW);
 
         final Collection<LiveLayer> layers = store.listLayers();
 
@@ -116,8 +121,8 @@ public class LiveLayerStoreShould {
 
         verify(subscriber).accept(
                 liveLayerState(
-                        featureWithId("a", point()),
-                        featureWithId("b", point())
+                        featureWithUid("a", "1", point()),
+                        featureWithUid("b", "2", point())
                 ));
     }
 
@@ -129,9 +134,14 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         store.addListener(listenerA);
         store.addListener(listenerB);
-        store.addToLayer(id, liveEvents(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature("abcd", point())));
 
-        final ImmutableFeature feature = ImmutableFeature.of("a", Utils.toJts(point()), ImmutableMap.of("timestamp", Optional.of(1234)));
+        final ImmutableFeature feature = ImmutableFeature.builder()
+                .externalId("abcd")
+                .uid(FeatureId.of("1"))
+                .geometry(Utils.toJts(point()))
+                .metadata(ImmutableMap.of("timestamp", Optional.of(1234)))
+                .build();
         verify(listenerA).onLiveLayerEvent(id, feature);
         verify(listenerB).onLiveLayerEvent(id, feature);
     }
@@ -144,7 +154,7 @@ public class LiveLayerStoreShould {
         LiveLayerSubscription subscription = store.addSubscriber(id, subscriber);
         store.removeSubscriber(subscription);
 
-        store.addToLayer(id, liveEvents(featureCollection(featureWithId("a", point()))));
+        store.addToLayer(id, liveEvents(featureCollection(featureWithUid("a", "1", point()))));
 
         verifyZeroInteractions(subscriber);
     }
@@ -156,13 +166,13 @@ public class LiveLayerStoreShould {
         store.addSubscriber(id, subscriber);
         store.deleteLayer(id);
         createLayerWithId(id);
-        store.addToLayer(id, liveEvents(featureCollection(featureWithId("a", point()))));
+        store.addToLayer(id, liveEvents(featureCollection(featureWithUid("a", "1", point()))));
 
         verifyZeroInteractions(subscriber);
     }
 
     private void createLayerWithId(LayerId id) {
-        store.createLayer(id, metadata("foo", "bar"), Collection::stream);
+        store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW);
     }
 
     private LayerMetadata metadata(String name, String description) {
@@ -170,7 +180,7 @@ public class LiveLayerStoreShould {
     }
 
     private LayerId createLayer() {
-        final LayerId id = LayerId.of("abc");
+        final LayerId id = LayerId.of("666");
         createLayerWithId(id);
         return id;
     }
@@ -197,8 +207,8 @@ public class LiveLayerStoreShould {
         return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234));
     }
 
-    private Feature featureWithId(String id, Geometry geometry) {
-        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234, "_id", id));
+    private Feature featureWithUid(String id, String uid, Geometry geometry) {
+        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234, "_id", FeatureId.of(uid)));
     }
 
     private Point point() {
