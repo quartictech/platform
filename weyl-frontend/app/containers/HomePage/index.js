@@ -17,6 +17,7 @@ import SelectionView from "../../components/SelectionView";
 import MapInfo from "../../components/MapInfo";
 import FeedPane from "../../components/FeedPane";
 import ConnectionStatus from "../../components/ConnectionStatus";
+import Chart from "../../components/Chart";
 
 import styles from "./styles.css";
 
@@ -84,6 +85,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.bottomDrawer}>
+          <Chart visible={true} layers={this.props.layers}/>
         </div>
 
         <div className={styles.infoBar}>

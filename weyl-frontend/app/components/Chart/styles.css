@@ -1,0 +1,21 @@
+.chart { /* stylelint-ignore */
+  flex: 1;
+  pointer-events: all;
+}
+
+.card {
+  height: 100%;
+  width: 100%;
+}
+
+.content {
+  height: 100%;
+  width: 100%;
+  padding: 5px;
+}
+
+.plotArea {
+  height:100%;
+  width:100%;
+  padding: 5px;
+}
