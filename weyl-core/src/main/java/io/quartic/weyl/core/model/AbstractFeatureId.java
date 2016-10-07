@@ -5,5 +5,5 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractLayerId extends Uid {
+public interface AbstractFeatureId extends Uid {
 }

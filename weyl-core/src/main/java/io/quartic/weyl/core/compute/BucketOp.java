@@ -82,7 +82,7 @@ public class BucketOp {
                     .withPrimaryAttribute(propertyName());
 
             RawLayer layer = ImmutableRawLayer.builder()
-                    .features(features)
+                    .features(new ImmutableFeatureMap(features))
                     .schema(attributeSchema)
                     .metadata(LayerMetadata.builder()
                             .name(layerName)
@@ -98,7 +98,7 @@ public class BucketOp {
 
     private Collection<Feature> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-        List<Bucketed> hits = featureLayer.layer().features().parallelStream()
+        List<Bucketed> hits = featureLayer.layer().features().values().parallelStream()
                 .flatMap(feature -> {
                     Geometry featureGeometry = feature.geometry();
                     List<IndexedFeature> buckets = bucketIndex.query(featureGeometry.getEnvelopeInternal());

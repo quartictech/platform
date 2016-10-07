@@ -1,25 +1,31 @@
 package io.quartic.weyl.core.geofence;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.quartic.weyl.core.geojson.SweetStyle;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.immutables.value.Value;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class GeofenceStore implements LiveLayerStoreListener {
     @SweetStyle
     @Value.Immutable
     interface AbstractViolationKey {
-        String featureId();
+        FeatureId featureId();
         GeofenceId geofenceId();
     }
 
-    private int nextViolationId = 0;
+    private final UidGenerator<ViolationId> vidGenerator = new SequenceUidGenerator<>(ViolationId::of);
 
     private final Map<ViolationKey, Violation> currentViolations = Maps.newHashMap();
     private final Set<Geofence> geofences = Sets.newHashSet();
@@ -54,37 +60,28 @@ public class GeofenceStore implements LiveLayerStoreListener {
     private GeofenceState getState(Geofence geofence, Feature feature) {
         if (geofence.type() == GeofenceType.INCLUDE &&
                 geofence.geometry().contains(feature.geometry())) {
-            return GeofenceState.of(true, String.format("Actor %s is within inclusive geofence boundary", feature.id()));
+            return GeofenceState.of(true, String.format("Actor %s is within inclusive geofence boundary", feature.externalId()));
         }
         else if (geofence.type() == GeofenceType.EXCLUDE &&
                 !geofence.geometry().contains(feature.geometry())) {
-            return GeofenceState.of(true, String.format("Actor %s is outside exclusive geofence boundary", feature.id()));
+            return GeofenceState.of(true, String.format("Actor %s is outside exclusive geofence boundary", feature.externalId()));
         }
         else {
-            return GeofenceState.of(false, String.format("Actor %s is in violation of geofence boundary", feature.id()));
+            return GeofenceState.of(false, String.format("Actor %s is in violation of geofence boundary", feature.externalId()));
         }
     }
 
     @Override
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
-        final Set<GeofenceState> states = geofences.stream()
-                .map(geofence -> getState(geofence, feature))
-                .collect(Collectors.toSet());
-
-        updateViolations(feature);
-    }
-
-    private void updateViolations(Feature feature) {
         geofences.forEach(geofence -> {
             final GeofenceState state = getState(geofence, feature);
-            final ViolationKey vk = ViolationKey.of(feature.id(), geofence.id());
+            final ViolationKey vk = ViolationKey.of(feature.uid(), geofence.id());
 
             if (state.ok()) {
                 currentViolations.remove(vk);
             } else {
                 if (!currentViolations.containsKey(vk)) {
-                    final Violation violation = Violation.of(
-                            ViolationId.of(Integer.toString(nextViolationId++)),
+                    final Violation violation = Violation.of(vidGenerator.get(),
                             state.detail());
                     currentViolations.put(vk, violation);
                     notifyListeners(violation);
