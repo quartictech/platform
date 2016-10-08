@@ -115,7 +115,7 @@ const Aggregates = ({ aggregates }) => {
   }
 
   return (
-    <table className="ui celled very compact small fixed selectable definition table">
+    <table className="ui celled very compact small fixed table">
       {
         _.chain(aggregates.data)
           .sort((a, b) => naturalsort(a.property, b.property))
@@ -132,21 +132,34 @@ const Aggregates = ({ aggregates }) => {
 };
 
 const AggregatesProperty = ({ histogram }) => (
-  <tbody>
-    <tr>
-      <td colSpan="2">{histogram.property}</td>
+  <tbody className="ui accordion" ref={x => $(x).accordion()}>
+    <tr className="title">
+      <td style={{ fontWeight: "bold" }}>
+        <i className="dropdown icon"></i>
+        {histogram.property}
+      </td>
     </tr>
-    {
-      histogram.buckets
-        .sort((a, b) => b.count - a.count)  // Highest count first
-        .map(bucket =>
-          <tr key={bucket.value}>
-            <td className="right aligned">{bucket.value}</td>
-            <td>{bucket.count}</td>
-          </tr>
-        )
-    }
+
+    <tr className="content">
+      <td>
+        <table className="ui celled very compact small fixed selectable definition table">
+          <tbody>
+            {
+              histogram.buckets
+                .sort((a, b) => b.count - a.count)  // Highest count first
+                .map(bucket =>
+                  <tr key={bucket.value}>
+                    <td className="right aligned">{bucket.value}</td>
+                    <td>{bucket.count}</td>
+                  </tr>
+                )
+            }
+          </tbody>
+        </table>
+      </td>
+    </tr>
   </tbody>
+
 );
 
 const BlessedProperties = ({ features }) => {
