@@ -95,11 +95,10 @@ public class LayerStore {
 
         layer.features().parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
-                .filter(entry -> entry.getValue().isPresent())
                 .filter(entry -> attributeSchema.attributes().get(entry.getKey()).type()
                         == AttributeType.NUMERIC)
                 .forEach(entry -> {
-                            Object value = entry.getValue().get();
+                            Object value = entry.getValue();
                             double doubleValue = Double.valueOf(value.toString());
 
                             if (!maxNumeric.containsKey(entry.getKey())) {

@@ -141,7 +141,7 @@ public class LiveLayerStoreShould {
                 .externalId("abcd")
                 .uid(FeatureId.of("1"))
                 .geometry(Utils.toJts(point()))
-                .metadata(ImmutableMap.of("timestamp", Optional.of(1234)))
+                .metadata(ImmutableMap.of("timestamp", 1234))
                 .build();
         verify(listenerA).onLiveLayerEvent(id, feature);
         verify(listenerB).onLiveLayerEvent(id, feature);

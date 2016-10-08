@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toMap;
-
 public class LiveLayerStore {
     private final FeatureStore featureStore;
     private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
@@ -148,9 +146,7 @@ public class LiveLayerStore {
                 .externalId(f.id().get())
                 .uid(featureStore.getFeatureIdGenerator().get())
                 .geometry(Utils.toJts(f.geometry()))
-                .metadata(f.properties().entrySet()
-                        .stream()
-                        .collect(toMap(Map.Entry::getKey, e -> Optional.of(e.getValue()))))
+                .metadata(f.properties())
                 .build();
     }
 
@@ -166,8 +162,8 @@ public class LiveLayerStore {
         Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
     }
 
-    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Optional<Object>> metadata) {
-        final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
+    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Object> metadata) {
+        final Map<String, Object> output = Maps.newHashMap(metadata);
         output.put("_id", featureId);  // TODO: eliminate the _id concept
         return output;
     }

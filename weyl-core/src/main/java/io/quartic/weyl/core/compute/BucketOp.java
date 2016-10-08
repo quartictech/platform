@@ -71,9 +71,9 @@ public class BucketOp {
                     bucketLayer.layer().metadata().name(),
                     bucketSpec.aggregation().toString());
 
-            Map<String, Attribute> attributeMap = Maps.newHashMap(bucketLayer.layer()
+            Map<String, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.layer()
                     .schema().attributes());
-            Attribute newAttribute = ImmutableAttribute.builder()
+            AbstractAttribute newAttribute = Attribute.builder()
                     .type(AttributeType.NUMERIC)
                     .build();
             attributeMap.put(propertyName(), newAttribute);
@@ -125,7 +125,7 @@ public class BucketOp {
                             value /= feature.geometry().getArea();
                         }
                     }
-                    Map<String, Optional<Object>> metadata = new HashMap<>(feature.metadata());
+                    Map<String, Object> metadata = new HashMap<>(feature.metadata());
                     metadata.put(propertyName(), Optional.of(value));
                     return ImmutableFeature.copyOf(feature)
                             .withUid(featureStore.getFeatureIdGenerator().get())

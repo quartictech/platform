@@ -7,7 +7,6 @@ import io.quartic.weyl.core.model.Feature;
 import org.immutables.value.Value;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Value.Immutable
 @JsonTypeName("mean")
@@ -16,8 +15,6 @@ import java.util.Optional;
 public abstract class BucketMean implements BucketAggregation {
     abstract String property();
 
-
-
     @Override
     public double aggregate(Feature bucket, Collection<Feature> features) {
         if (features.size() == 0) {
@@ -25,8 +22,7 @@ public abstract class BucketMean implements BucketAggregation {
         }
         else {
             return features.stream().map(feature -> feature.metadata().get(property()))
-                    .filter(Optional::isPresent)
-                    .mapToDouble(value -> BucketUtils.mapToDouble(value.get()))
+                    .mapToDouble(BucketUtils::mapToDouble)
                     .sum() / features.size();
         }
     }

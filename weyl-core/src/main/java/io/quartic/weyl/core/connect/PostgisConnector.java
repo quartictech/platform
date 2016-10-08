@@ -6,7 +6,7 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.weyl.core.attributes.InferAttributeSchema;
+import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 import org.skife.jdbi.v2.DBI;
@@ -56,7 +56,7 @@ public class PostgisConnector {
         }
         iterator.close();
 
-        Map<String, Attribute> attributes = InferAttributeSchema.inferSchema(features);
+        Map<String, AbstractAttribute> attributes = AttributeSchemaInferrer.inferSchema(features);
 
         AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
                 .attributes(attributes)
@@ -91,11 +91,11 @@ public class PostgisConnector {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            Map<String, Optional<Object>> attributes = Maps.newHashMap();
+            Map<String, Object> attributes = Maps.newHashMap();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
-                if (! RESERVED_KEYS.contains(entry.getKey())) {
-                    attributes.put(entry.getKey(), Optional.ofNullable(entry.getValue()));
+                if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
+                    attributes.put(entry.getKey(), entry.getValue());
                 }
             }
 
