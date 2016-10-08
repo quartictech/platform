@@ -7,6 +7,7 @@ import io.quartic.weyl.core.model.Feature;
 import org.immutables.value.Value;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @Value.Immutable
 @JsonTypeName("mean")
@@ -21,7 +22,9 @@ public abstract class BucketMean implements BucketAggregation {
             return 0;
         }
         else {
-            return features.stream().map(feature -> feature.metadata().get(property()))
+            return features.stream()
+                    .map(feature -> feature.metadata().get(property()))
+                    .filter(Objects::nonNull)
                     .mapToDouble(BucketUtils::mapToDouble)
                     .sum() / features.size();
         }

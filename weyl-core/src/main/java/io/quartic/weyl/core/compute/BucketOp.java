@@ -118,7 +118,9 @@ public class BucketOp {
         return groups.asMap().entrySet().parallelStream()
                 .map(bucketEntry -> {
                     Feature feature = bucketEntry.getKey();
-                    Double value = aggregation.aggregate(feature, bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
+                    Double value = aggregation.aggregate(
+                            feature,
+                            bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
 
                     if (bucketSpec.normalizeToArea()) {
                         if (feature.geometry().getArea() > 0) {
