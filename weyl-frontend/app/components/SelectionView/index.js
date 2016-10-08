@@ -25,7 +25,6 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             <div className="content">
               <Header
                 features={filteredFeatures}
-                loading={this.props.selection.aggregates.lifecycleState === "AGGREGATES_LOADING"}
                 onClose={this.props.onClose}
               />
               {
@@ -63,14 +62,8 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-const Header = ({ features, loading, onClose }) => (
+const Header = ({ features, onClose }) => (
   <div className="header">
-    {
-      loading
-        ? <div className="ui active indeterminate text loader">Loading...</div>
-        : null
-    }
-
     <a onClick={onClose}>
       <i className="icon close"></i>
     </a>
@@ -83,7 +76,7 @@ const Header = ({ features, loading, onClose }) => (
 );
 
 const Media = ({ features }) => {
-  // TODO: given the above check, features should be homogeneous - need to generalise this
+  // We can assume properties are homogeneous
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
 
@@ -116,19 +109,27 @@ const Image = ({ url }) => (
 
 const Aggregates = ({ aggregates }) => {
   return (
-    <table className="ui celled very compact small fixed table">
+    <div>
       {
-        _.chain(aggregates.data)
-          .sort((a, b) => naturalsort(a.property, b.property))
-          .map(histogram =>
-            <AggregatesProperty
-              key={histogram.property}
-              histogram={histogram}
-            />
-          )
-          .value()
+        (aggregates.lifecycleState === "AGGREGATES_LOADING")
+          ? <div className="ui active indeterminate massive text loader">Loading...</div>
+          : null
       }
-    </table>
+
+      <table className="ui celled very compact small fixed table">
+        {
+          _.chain(aggregates.data)
+            .sort((a, b) => naturalsort(a.property, b.property))
+            .map(histogram =>
+              <AggregatesProperty
+                key={histogram.property}
+                histogram={histogram}
+              />
+            )
+            .value()
+        }
+      </table>
+    </div>
   );
 };
 
@@ -166,7 +167,7 @@ const AggregatesProperty = ({ histogram }) => (
 );
 
 const BlessedProperties = ({ features }) => {
-  // TODO: given the above check, features should be homogeneous - need to generalise this
+  // We can assume properties are homogeneous
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
   return (
@@ -182,7 +183,7 @@ const BlessedProperties = ({ features }) => {
 };
 
 const UnblessedProperties = ({ features }) => {
-  // TODO: given the above check, features should be homogeneous - need to generalise this
+  // We can assume properties are homogeneous
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
   return (
