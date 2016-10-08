@@ -16,6 +16,8 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
       return null;
     }
 
+    const showAggregates = (displayMode(filteredFeatures) === "AGGREGATE");
+
     return (
       <div className={styles.selectionView}>
         <div className={styles.innerSelectionView}>
@@ -26,16 +28,20 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
                 loading={this.props.selection.aggregates.lifecycleState === "AGGREGATES_LOADING"}
                 onClose={this.props.onClose}
               />
-              <Media features={filteredFeatures} />
               {
-                (displayMode(filteredFeatures) === "AGGREGATE")
+                showAggregates
+                  ? null
+                  : <Media features={filteredFeatures} />
+              }
+              {
+                showAggregates
                   ? <Aggregates aggregates={this.props.selection.aggregates} />
                   : <BlessedProperties features={filteredFeatures} />
               }
             </div>
 
             {
-              (displayMode(filteredFeatures) === "AGGREGATE")
+              showAggregates
                 ? null
                 : <div className="extra content">
                     <div className="ui accordion" ref={x => $(x).accordion()}>
@@ -77,10 +83,6 @@ const Header = ({ features, loading, onClose }) => (
 );
 
 const Media = ({ features }) => {
-  if (displayMode(features) === "AGGREGATE") {
-    return <div>TODO: aggregation</div>;
-  }
-
   // TODO: given the above check, features should be homogeneous - need to generalise this
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
