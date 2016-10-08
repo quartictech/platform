@@ -33,8 +33,8 @@ import java.util.function.Supplier;
 public class WeylApplication extends Application<WeylConfiguration> {
     private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = new RandomUidGenerator<>(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-    private final FeatureStore featureStore = new FeatureStore();
-    private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore, fidGenerator);
+    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
+    private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore);
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
@@ -82,7 +82,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         environment.jersey().setUrlPattern("/api/*");
 
-        LayerStore layerStore = new LayerStore(featureStore, fidGenerator, lidGenerator, createDbiSupplier(configuration, environment));
+        LayerStore layerStore = new LayerStore(featureStore, lidGenerator, createDbiSupplier(configuration, environment));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, liveLayerStore));

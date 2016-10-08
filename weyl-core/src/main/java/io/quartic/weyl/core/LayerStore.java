@@ -25,19 +25,17 @@ public class LayerStore {
     private final Map<LayerId, Layer> rawLayers = Maps.newConcurrentMap();
     private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
     private final FeatureStore featureStore;
-    private final UidGenerator<FeatureId> fidGenerator;
     private final UidGenerator<LayerId> lidGenerator;
     private final Supplier<DBI> dbi;
 
-    public LayerStore(FeatureStore featureStore, UidGenerator<FeatureId> fidGenerator, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi) {
+    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi) {
         this.featureStore = featureStore;
-        this.fidGenerator = fidGenerator;
         this.lidGenerator = lidGenerator;
         this.dbi = dbi;
     }
 
     public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(featureStore, fidGenerator, dbi.get())
+        Optional<IndexedLayer> layer = new PostgisConnector(featureStore, dbi.get())
                 .fetch(metadata, sql)
                 .map(this::index);
 

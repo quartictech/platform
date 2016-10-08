@@ -2,6 +2,7 @@ package io.quartic.weyl.core.feature;
 
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -16,7 +17,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FeatureStoreShould {
-    private final FeatureStore store = new FeatureStore();
+    private final UidGenerator<FeatureId> fidGen = mock(UidGenerator.class);
+    private final FeatureStore store = new FeatureStore(fidGen);
 
     @Test
     public void expose_features_through_immutable_collection() throws Exception {

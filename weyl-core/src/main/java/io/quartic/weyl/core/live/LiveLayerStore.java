@@ -29,11 +29,9 @@ public class LiveLayerStore {
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
     private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
-    private final UidGenerator<FeatureId> fidGenerator;
 
-    public LiveLayerStore(FeatureStore featureStore, UidGenerator<FeatureId> fidGenerator) {
+    public LiveLayerStore(FeatureStore featureStore) {
         this.featureStore = featureStore;
-        this.fidGenerator = fidGenerator;
     }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
@@ -130,7 +128,8 @@ public class LiveLayerStore {
         final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
         liveLayerSubscriptions.get(layerId)
                 .forEach(subscription -> {
-                    Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView().compute(fidGenerator, features);
+                    Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView()
+                            .compute(featureStore.getFeatureIdGenerator(), features);
                     FeatureCollection featureCollection = FeatureCollection.of(
                             computed
                                     .map(this::fromJts)
@@ -147,7 +146,7 @@ public class LiveLayerStore {
     private io.quartic.weyl.core.model.Feature toJts(Feature f) {
         return ImmutableFeature.builder()
                 .externalId(f.id().get())
-                .uid(fidGenerator.get())
+                .uid(featureStore.getFeatureIdGenerator().get())
                 .geometry(Utils.toJts(f.geometry()))
                 .metadata(f.properties().entrySet()
                         .stream()

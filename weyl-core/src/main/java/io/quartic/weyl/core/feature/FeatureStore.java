@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.utils.UidGenerator;
 
 import java.util.*;
 
@@ -11,6 +12,15 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class FeatureStore extends AbstractMap<FeatureId, Feature> {
     private final Map<FeatureId, Feature> allFeatures = Maps.newHashMap();
+    private final UidGenerator<FeatureId> fidGenerator;
+
+    public FeatureStore(UidGenerator<FeatureId> fidGenerator) {
+        this.fidGenerator = fidGenerator;
+    }
+
+    public UidGenerator<FeatureId> getFeatureIdGenerator() {
+        return fidGenerator;
+    }
 
     public Collection<Feature> createImmutableCollection(Collection<? extends Feature> features) {
         features.forEach(this::add);
