@@ -8,6 +8,7 @@ import io.quartic.weyl.core.utils.UidGenerator;
 
 import java.util.*;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class FeatureStore extends AbstractMap<FeatureId, Feature> {
@@ -58,6 +59,7 @@ public class FeatureStore extends AbstractMap<FeatureId, Feature> {
     }
 
     private void add(Feature feature) {
+        checkArgument(!allFeatures.containsKey(feature.uid()), "Duplicate feature UID");
         allFeatures.put(feature.uid(), feature);
     }
 

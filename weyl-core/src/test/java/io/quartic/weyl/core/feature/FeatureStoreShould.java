@@ -110,6 +110,12 @@ public class FeatureStoreShould {
         assertThat(store.values(), containsInAnyOrder(featureA, featureB, featureC));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void prohibit_duplicate_ids() throws Exception {
+        store.createImmutableCollection(newArrayList(feature("42")));
+        store.createImmutableCollection(newArrayList(feature("42")));
+    }
+
     private Feature feature(String id) {
         Feature feature = mock(Feature.class);
         when(feature.uid()).thenReturn(FeatureId.of(id));
