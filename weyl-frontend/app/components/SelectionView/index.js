@@ -8,10 +8,10 @@ import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
-    const filteredSelection = this.props.selection
-      .filter(s => s.layer.visible);  // TODO: take account of actual filtering
+    const filteredFeatures = this.props.selection.features
+      .filter(f => f.layer.visible);  // TODO: take account of actual filtering
 
-    if (filteredSelection.length === 0) {
+    if (filteredFeatures.length === 0) {
       return null;
     }
 
@@ -20,9 +20,9 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
         <div className={styles.innerSelectionView}>
           <div className="ui raised fluid card">
             <div className="content">
-              <Header selection={filteredSelection} onClose={this.props.onClose} />
-              <Media selection={filteredSelection} />
-              <BlessedProperties selection={filteredSelection} />
+              <Header features={filteredFeatures} onClose={this.props.onClose} />
+              <Media features={filteredFeatures} />
+              <BlessedProperties features={filteredFeatures} />
             </div>
 
             <div className="extra content">
@@ -33,7 +33,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
                 </div>
 
                 <div className="content">
-                  <UnblessedProperties selection={filteredSelection} />
+                  <UnblessedProperties features={filteredFeatures} />
                 </div>
 
               </div>
@@ -46,30 +46,30 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-const Header = ({ selection, onClearSelectionClick }) => (
+const Header = ({ features, onClose }) => (
   <div className="header">
-    <a onClick={onClearSelectionClick}>
+    <a onClick={onClose}>
       <i className="icon close"></i>
     </a>
     {
-      (selection.length > 1)
-        ? `${selection.length} features selected`
-        : getTitle(selection[0].layer.metadata.name, selection[0].properties)
+      (features.length > 1)
+        ? `${features.length} features selected`
+        : getTitle(features[0].layer.metadata.name, features[0].properties)
     }
   </div>
 );
 
-const Media = ({ selection }) => {
-  if (displayMode(selection) === "AGGREGATE") {
+const Media = ({ features }) => {
+  if (displayMode(features) === "AGGREGATE") {
     return <div className="ui segment">TODO: aggregation</div>;
   }
 
   // TODO: given the above check, features should be homogeneous - need to generalise this
-  const properties = selection[0].properties;
-  const layerName = selection[0].layer.metadata.name;
+  const properties = features[0].properties;
+  const layerName = features[0].layer.metadata.name;
 
   if (hasImageUrl(layerName)) {
-    if (displayMode(selection) === "BASEBALL") {
+    if (displayMode(features) === "BASEBALL") {
       return (
         <div className="ui segment">
           <Image url={properties[getImageUrl(layerName)]} />
@@ -81,8 +81,8 @@ const Media = ({ selection }) => {
       <div className="ui segment">
         <table className="ui very basic very compact small fixed table">
           <tr>
-            {selection.map(s =>
-              <td key={s.properties["_id"]}><Image url={s.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
+            {features.map(f =>
+              <td key={f.properties["_id"]}><Image url={f.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
             )}
           </tr>
         </table>
@@ -97,18 +97,18 @@ const Image = ({ url }) => (
   <img className="ui fluid image" src={url} alt={url} />
 );
 
-const BlessedProperties = ({ selection }) => {
-  if (displayMode(selection) === "AGGREGATE") {
+const BlessedProperties = ({ features }) => {
+  if (displayMode(features) === "AGGREGATE") {
     return <div className="ui segment">TODO: aggregation</div>;
   }
 
   // TODO: given the above check, features should be homogeneous - need to generalise this
-  const properties = selection[0].properties;
-  const layerName = selection[0].layer.metadata.name;
+  const properties = features[0].properties;
+  const layerName = features[0].layer.metadata.name;
   return (
     <div className="ui segment">
       <PropertiesTable
-        selection={selection}
+        features={features}
         order={
           isAnythingBlessed(layerName)
             ? getBlessedPropertyOrder(layerName, properties)
@@ -119,18 +119,18 @@ const BlessedProperties = ({ selection }) => {
   );
 };
 
-const UnblessedProperties = ({ selection }) => {
-  if (displayMode(selection) === "AGGREGATE") {
+const UnblessedProperties = ({ features }) => {
+  if (displayMode(features) === "AGGREGATE") {
     return <div className="ui segment">TODO: aggregation</div>;
   }
 
   // TODO: given the above check, features should be homogeneous - need to generalise this
-  const properties = selection[0].properties;
-  const layerName = selection[0].layer.metadata.name;
+  const properties = features[0].properties;
+  const layerName = features[0].layer.metadata.name;
   return (
     <div className="ui segment">
       <PropertiesTable
-        selection={selection}
+        features={features}
         order={
           isAnythingBlessed(layerName)
             ? getUnblessedPropertyOrder(layerName, properties)
@@ -141,29 +141,29 @@ const UnblessedProperties = ({ selection }) => {
   );
 };
 
-const PropertiesTable = ({ selection, order }) => (
+const PropertiesTable = ({ features, order }) => (
   <table className="ui very basic celled very compact small fixed selectable table">
     {
-      (selection.length > 1) &&
+      (features.length > 1) &&
         <thead>
           <tr>
             <th />
-            {selection.map(s =>
-              <th key={s.properties["_id"]}>{getTitle(s.layer.metadata.name, s.properties)}</th>    // eslint-disable-line dot-notation
+            {features.map(f =>
+              <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
             )}
           </tr>
         </thead>
     }
     <tbody>
       {order
-        .filter(key => _.some(selection, s => isPropertyDisplayable(key, s.properties)))
+        .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
         .map(key =>
           <tr key={key}>
             <td className="right aligned">
               <div className="ui sub header">{key}</div>
             </td>
-            {selection.map(s =>
-              <td key={s.properties["_id"]}>{s.properties[key]}</td>    // eslint-disable-line dot-notation
+            {features.map(f =>
+              <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
             )}
           </tr>
         )
@@ -172,9 +172,9 @@ const PropertiesTable = ({ selection, order }) => (
   </table>
 );
 
-const displayMode = (selection) => {
-  const numUniqueLayers = _.chain(selection).map(s => s.layer.id).uniq().size().value();
-  const numFeatures = selection.length;
+const displayMode = (features) => {
+  const numUniqueLayers = _.chain(features).map(s => s.layer.id).uniq().size().value();
+  const numFeatures = features.length;
 
   if (numFeatures === 1) {
     return "BASEBALL";

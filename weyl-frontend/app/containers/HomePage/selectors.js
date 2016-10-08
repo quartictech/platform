@@ -28,18 +28,21 @@ export const selectSelectionIds = () => createSelector(
   (selection) => selection.ids
 );
 
-export const selectSelectionFeatures = () => createSelector(
+export const selectSelectionView = () => createSelector(
   selectSelection(),
   selectLayers(),
-  (selection, layers) => _.chain(selection.ids).keys()
-    .map(layerId => selection.ids[layerId]
-      .map(fid => ({
-        layer: layers.find(l => l.id === layerId),
-        properties: selection.features[fid],
-      }))
-    )
-    .flatten()
-    .value()
+  (selection, layers) => ({
+    features: _.chain(selection.ids).keys()
+      .map(layerId => selection.ids[layerId]
+        .map(fid => ({
+          layer: layers.find(l => l.id === layerId),
+          properties: selection.features[fid],
+        }))
+      )
+      .flatten()
+      .value(),
+    aggregates: selection.aggregates,
+  })
 );
 
 export const selectAggregatesLifecycleState = () => createSelector(

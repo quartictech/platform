@@ -20,8 +20,9 @@ const fetch = (body) => request(`${apiRootUrl}/aggregates`, {
 });
 
 function* fetchAndDispatch() {
-  const selection = yield select(selectors.selectSelectionFeatures());
-  const results = yield call(fetch, _.chain(selection).map(f => f.properties["_id"]).value());
+  const selection = yield select(selectors.selectSelectionView());
+  const results = yield call(fetch,
+    _.chain(selection.features).map(f => f.properties["_id"]).value());
 
   if (!results.err) {
     yield put(actions.aggregatesLoaded(results.data));

@@ -36,7 +36,7 @@ export default (state = initialState, action) => {
       return setAggregatesLifecycleState(state, "AGGREGATES_LOADING");
 
     case constants.AGGREGATES_LOADED:
-      // This check ensures we discard stale data
+      // This check ensures we discard data returned by stale fetches
       if (state.getIn(["aggregates", "lifecycleState"]) === "AGGREGATES_LOADING") {
         return setAggregatesLifecycleState(state, "AGGREGATES_LOADED")
           .setIn(["aggregates", "data"], action.results);
