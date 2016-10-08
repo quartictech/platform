@@ -103,33 +103,46 @@ const Image = ({ url }) => (
 );
 
 const Aggregates = ({ aggregates }) => {
+  if (aggregates.lifecycleState === "AGGREGATES_LOADING") {
+    return (
+      <div className="ui segment">
+        <div className="ui active inverted dimmer">
+          <div className="ui indeterminate text loader">Loading...</div>
+        </div>
+        <p></p>
+      </div>
+    );
+  }
+
   return (
     <table className="ui celled very compact small fixed selectable definition table">
       {
-        _.map(aggregates.data.propertyValues, (valueIds, property) =>
-          <AggregatesProperty
-            key={property}
-            property={property}
-            values={valueIds.map(vid => aggregates.data.stats[vid])}
-          />
-        )
+        _.chain(aggregates.data)
+          .sort((a, b) => naturalsort(a.property, b.property))
+          .map(histogram =>
+            <AggregatesProperty
+              key={histogram.property}
+              histogram={histogram}
+            />
+          )
+          .value()
       }
     </table>
   );
 };
 
-const AggregatesProperty = ({ property, values }) => (
+const AggregatesProperty = ({ histogram }) => (
   <tbody>
     <tr>
-      <td colSpan="2">{property}</td>
+      <td colSpan="2">{histogram.property}</td>
     </tr>
     {
-      values
+      histogram.buckets
         .sort((a, b) => b.count - a.count)  // Highest count first
-        .map(value =>
-          <tr key={value.value}>
-            <td className="right aligned">{value.value}</td>
-            <td>{value.count}</td>
+        .map(bucket =>
+          <tr key={bucket.value}>
+            <td className="right aligned">{bucket.value}</td>
+            <td>{bucket.count}</td>
           </tr>
         )
     }
@@ -198,7 +211,7 @@ const PropertiesTable = ({ features, order }) => (
 );
 
 const displayMode = (features) => {
-  const numUniqueLayers = _.chain(features).map(s => s.layer.id).uniq().size().value();
+  const numUniqueLayers = _.chain(features).map(f => f.layer.id).uniq().size().value();
   const numFeatures = features.length;
 
   if (numFeatures === 1) {

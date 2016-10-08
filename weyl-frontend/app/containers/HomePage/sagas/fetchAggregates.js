@@ -1,5 +1,5 @@
 import { take, call, fork, cancel, put, select } from "redux-saga/effects";
-import { takeLatest } from "redux-saga";
+import { takeLatest, delay } from "redux-saga";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -10,7 +10,7 @@ const _ = require("underscore");
   // TODO: how to keep this list in-sync with things that affect selection?
 const actionTypesThatAffectSelection = [constants.MAP_MOUSE_CLICK];
 
-const fetch = (body) => request(`${apiRootUrl}/aggregates`, {
+const fetch = (body) => request(`${apiRootUrl}/aggregates/histogram`, {
   method: "POST",
   headers: {
     "Accept": "application/json",

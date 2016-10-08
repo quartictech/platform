@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class FeatureStore extends AbstractMap<FeatureId, Feature> {
-    private final Map<FeatureId, Feature> allFeatures = Maps.newHashMap();
+    private final Map<FeatureId, Feature> allFeatures = Maps.newConcurrentMap();
     private final UidGenerator<FeatureId> fidGenerator;
 
     public FeatureStore(UidGenerator<FeatureId> fidGenerator) {
