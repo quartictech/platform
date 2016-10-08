@@ -21,7 +21,11 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
         <div className={styles.innerSelectionView}>
           <div className="ui raised fluid card">
             <div className="content">
-              <Header features={filteredFeatures} onClose={this.props.onClose} />
+              <Header
+                features={filteredFeatures}
+                loading={this.props.selection.aggregates.lifecycleState === "AGGREGATES_LOADING"}
+                onClose={this.props.onClose}
+              />
               <Media features={filteredFeatures} />
               {
                 (displayMode(filteredFeatures) === "AGGREGATE")
@@ -32,7 +36,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
             {
               (displayMode(filteredFeatures) === "AGGREGATE")
-                ? <div></div>
+                ? null
                 : <div className="extra content">
                     <div className="ui accordion" ref={x => $(x).accordion()}>
                       <div className="title">
@@ -53,8 +57,14 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-const Header = ({ features, onClose }) => (
+const Header = ({ features, loading, onClose }) => (
   <div className="header">
+    {
+      loading
+        ? <div className="ui active indeterminate text loader">Loading...</div>
+        : null
+    }
+
     <a onClick={onClose}>
       <i className="icon close"></i>
     </a>
@@ -103,17 +113,6 @@ const Image = ({ url }) => (
 );
 
 const Aggregates = ({ aggregates }) => {
-  if (aggregates.lifecycleState === "AGGREGATES_LOADING") {
-    return (
-      <div className="ui segment">
-        <div className="ui active inverted dimmer">
-          <div className="ui indeterminate text loader">Loading...</div>
-        </div>
-        <p></p>
-      </div>
-    );
-  }
-
   return (
     <table className="ui celled very compact small fixed table">
       {
@@ -145,14 +144,16 @@ const AggregatesProperty = ({ histogram }) => (
         <table className="ui celled very compact small fixed selectable definition table">
           <tbody>
             {
-              histogram.buckets
-                .sort((a, b) => b.count - a.count)  // Highest count first
+              _.chain(histogram.buckets)
+                .sort((a, b) => naturalsort(a.value, b.value))  // Fall back to alphabetical
+                .sort((a, b) => b.count - a.count)              // Highest count first
                 .map(bucket =>
                   <tr key={bucket.value}>
                     <td className="right aligned">{bucket.value}</td>
                     <td>{bucket.count}</td>
                   </tr>
                 )
+                .value()
             }
           </tbody>
         </table>
