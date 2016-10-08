@@ -6,6 +6,7 @@ import com.google.common.collect.Multimaps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.feature.ImmutableFeatureMap;
 import io.quartic.weyl.core.model.*;
 
 import java.util.*;

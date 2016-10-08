@@ -1,4 +1,7 @@
-package io.quartic.weyl.core.model;
+package io.quartic.weyl.core.feature;
+
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureId;
 
 import java.util.Collection;
 import java.util.Map;

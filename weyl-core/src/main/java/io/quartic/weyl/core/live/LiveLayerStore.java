@@ -5,6 +5,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import io.quartic.weyl.core.feature.FeatureMap;
+import io.quartic.weyl.core.feature.MutableFeatureMap;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
