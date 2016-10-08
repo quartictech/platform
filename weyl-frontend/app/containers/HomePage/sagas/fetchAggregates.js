@@ -1,5 +1,4 @@
 import { take, call, fork, cancel, put, select } from "redux-saga/effects";
-import { takeLatest, delay } from "redux-saga";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -22,7 +21,7 @@ const fetch = (body) => request(`${apiRootUrl}/aggregates/histogram`, {
 function* fetchAndDispatch() {
   const selection = yield select(selectors.selectSelectionView());
   const results = yield call(fetch,
-    _.chain(selection.features).map(f => f.properties["_id"]).value());
+    _.chain(selection.features).map(f => f.properties["_id"]).value()); // eslint-disable-line dot-notation
 
   if (!results.err) {
     yield put(actions.aggregatesLoaded(results.data));
@@ -38,7 +37,7 @@ export default function* () {
     // We rely on the reducer to only change the lifecycle state to AGGREGATES_REQUIRED
     // when new data is required.  This mechanim prevents every single map-click (etc.)
     // from triggering a new server request.
-    const action = yield take(actionTypesThatAffectSelection);
+    yield take(actionTypesThatAffectSelection);
     const state = yield select(selectors.selectAggregatesLifecycleState());
     if (state === "AGGREGATES_REQUIRED") {
       // We cancel *before* dispatching the lifecycle-change action.  This is to

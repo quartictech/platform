@@ -45,6 +45,7 @@ export default (state = initialState, action) => {
 
     case constants.AGGREGATES_FAILED_TO_LOAD:
       // TODO
+      return state;
 
     default:
       return state;

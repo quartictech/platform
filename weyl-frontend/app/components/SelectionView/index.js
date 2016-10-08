@@ -40,20 +40,20 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             </div>
 
             {
-              showAggregates
-                ? null
-                : <div className="extra content">
-                    <div className="ui accordion" ref={x => $(x).accordion()}>
-                      <div className="title">
-                        <i className="dropdown icon"></i>
-                        More properties
-                      </div>
+              showAggregates ? null : (
+                <div className="extra content">
+                  <div className="ui accordion" ref={x => $(x).accordion()}>
+                    <div className="title">
+                      <i className="dropdown icon"></i>
+                      More properties
+                    </div>
 
-                      <div className="content">
-                        <UnblessedProperties features={filteredFeatures} />
-                      </div>
+                    <div className="content">
+                      <UnblessedProperties features={filteredFeatures} />
                     </div>
                   </div>
+                </div>
+              )
             }
           </div>
         </div>
@@ -107,31 +107,29 @@ const Image = ({ url }) => (
   <img className="ui fluid image" src={url} alt={url} />
 );
 
-const Aggregates = ({ aggregates }) => {
-  return (
-    <div>
-      {
-        (aggregates.lifecycleState === "AGGREGATES_LOADING")
-          ? <div className="ui active indeterminate massive text loader">Loading...</div>
-          : null
-      }
+const Aggregates = ({ aggregates }) => (
+  <div>
+    {
+      (aggregates.lifecycleState === "AGGREGATES_LOADING")
+        ? <div className="ui active indeterminate massive text loader">Loading...</div>
+        : null
+    }
 
-      <table className="ui celled very compact small fixed table">
-        {
-          _.chain(aggregates.data)
-            .sort((a, b) => naturalsort(a.property, b.property))
-            .map(histogram =>
-              <AggregatesProperty
-                key={histogram.property}
-                histogram={histogram}
-              />
-            )
-            .value()
-        }
-      </table>
-    </div>
-  );
-};
+    <table className="ui celled very compact small fixed table">
+      {
+        _.chain(aggregates.data)
+          .sort((a, b) => naturalsort(a.property, b.property))
+          .map(histogram =>
+            <AggregatesProperty
+              key={histogram.property}
+              histogram={histogram}
+            />
+          )
+          .value()
+      }
+    </table>
+  </div>
+);
 
 const AggregatesProperty = ({ histogram }) => (
   <tbody className="ui accordion" ref={x => $(x).accordion()}>
