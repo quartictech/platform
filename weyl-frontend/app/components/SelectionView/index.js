@@ -8,6 +8,7 @@ import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
+    // TODO: move this into reducer
     const filteredFeatures = this.props.selection.features
       .filter(f => f.layer.visible);  // TODO: take account of actual filtering
 
@@ -22,23 +23,29 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
             <div className="content">
               <Header features={filteredFeatures} onClose={this.props.onClose} />
               <Media features={filteredFeatures} />
-              <BlessedProperties features={filteredFeatures} />
+              {
+                (displayMode(filteredFeatures) === "AGGREGATE")
+                  ? <Aggregates aggregates={this.props.selection.aggregates} />
+                  : <BlessedProperties features={filteredFeatures} />
+              }
             </div>
 
-            <div className="extra content">
-              <div className="ui accordion" ref={x => $(x).accordion()}>
-                <div className="title">
-                  <i className="dropdown icon"></i>
-                  More properties
-                </div>
+            {
+              (displayMode(filteredFeatures) === "AGGREGATE")
+                ? <div></div>
+                : <div className="extra content">
+                    <div className="ui accordion" ref={x => $(x).accordion()}>
+                      <div className="title">
+                        <i className="dropdown icon"></i>
+                        More properties
+                      </div>
 
-                <div className="content">
-                  <UnblessedProperties features={filteredFeatures} />
-                </div>
-
-              </div>
-            </div>
-
+                      <div className="content">
+                        <UnblessedProperties features={filteredFeatures} />
+                      </div>
+                    </div>
+                  </div>
+            }
           </div>
         </div>
       </div>
@@ -61,7 +68,7 @@ const Header = ({ features, onClose }) => (
 
 const Media = ({ features }) => {
   if (displayMode(features) === "AGGREGATE") {
-    return <div className="ui segment">TODO: aggregation</div>;
+    return <div>TODO: aggregation</div>;
   }
 
   // TODO: given the above check, features should be homogeneous - need to generalise this
@@ -71,22 +78,20 @@ const Media = ({ features }) => {
   if (hasImageUrl(layerName)) {
     if (displayMode(features) === "BASEBALL") {
       return (
-        <div className="ui segment">
-          <Image url={properties[getImageUrl(layerName)]} />
-        </div>
+        <Image url={properties[getImageUrl(layerName)]} />
       );
     }
 
     return (
-      <div className="ui segment">
-        <table className="ui very basic very compact small fixed table">
+      <table className="ui very basic very compact small fixed table">
+        <tbody>
           <tr>
             {features.map(f =>
               <td key={f.properties["_id"]}><Image url={f.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
             )}
           </tr>
-        </table>
-      </div>
+        </tbody>
+      </table>
     );
   }
 
@@ -97,52 +102,74 @@ const Image = ({ url }) => (
   <img className="ui fluid image" src={url} alt={url} />
 );
 
-const BlessedProperties = ({ features }) => {
-  if (displayMode(features) === "AGGREGATE") {
-    return <div className="ui segment">TODO: aggregation</div>;
-  }
+const Aggregates = ({ aggregates }) => {
+  return (
+    <table className="ui celled very compact small fixed selectable definition table">
+      {
+        _.map(aggregates.data.propertyValues, (valueIds, property) =>
+          <AggregatesProperty
+            key={property}
+            property={property}
+            values={valueIds.map(vid => aggregates.data.stats[vid])}
+          />
+        )
+      }
+    </table>
+  );
+};
 
+const AggregatesProperty = ({ property, values }) => (
+  <tbody>
+    <tr>
+      <td colSpan="2">{property}</td>
+    </tr>
+    {
+      values
+        .sort((a, b) => b.count - a.count)  // Highest count first
+        .map(value =>
+          <tr key={value.value}>
+            <td className="right aligned">{value.value}</td>
+            <td>{value.count}</td>
+          </tr>
+        )
+    }
+  </tbody>
+);
+
+const BlessedProperties = ({ features }) => {
   // TODO: given the above check, features should be homogeneous - need to generalise this
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
   return (
-    <div className="ui segment">
-      <PropertiesTable
-        features={features}
-        order={
-          isAnythingBlessed(layerName)
-            ? getBlessedPropertyOrder(layerName, properties)
-            : getUnblessedPropertyOrder(layerName, properties)
-        }
-      />
-    </div>
+    <PropertiesTable
+      features={features}
+      order={
+        isAnythingBlessed(layerName)
+          ? getBlessedPropertyOrder(layerName, properties)
+          : getUnblessedPropertyOrder(layerName, properties)
+      }
+    />
   );
 };
 
 const UnblessedProperties = ({ features }) => {
-  if (displayMode(features) === "AGGREGATE") {
-    return <div className="ui segment">TODO: aggregation</div>;
-  }
-
   // TODO: given the above check, features should be homogeneous - need to generalise this
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
   return (
-    <div className="ui segment">
-      <PropertiesTable
-        features={features}
-        order={
-          isAnythingBlessed(layerName)
-            ? getUnblessedPropertyOrder(layerName, properties)
-            : getBlessedPropertyOrder(layerName, properties)
-        }
-      />
-    </div>
+    <PropertiesTable
+      features={features}
+      order={
+        isAnythingBlessed(layerName)
+          ? getUnblessedPropertyOrder(layerName, properties)
+          : getBlessedPropertyOrder(layerName, properties)
+      }
+    />
   );
 };
 
 const PropertiesTable = ({ features, order }) => (
-  <table className="ui very basic celled very compact small fixed selectable table">
+  <table className="ui celled very compact small fixed selectable definition table">
     {
       (features.length > 1) &&
         <thead>
@@ -159,9 +186,7 @@ const PropertiesTable = ({ features, order }) => (
         .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
         .map(key =>
           <tr key={key}>
-            <td className="right aligned">
-              <div className="ui sub header">{key}</div>
-            </td>
+            <td className="right aligned">{key}</td>
             {features.map(f =>
               <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
             )}

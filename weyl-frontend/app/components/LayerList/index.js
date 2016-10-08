@@ -83,7 +83,7 @@ const LayerListItem = ({
   onLayerStyleChange,
   mode,
 }) => (
-  <div className="item" style={{ "padding-top": "10px", "padding-bottom": "10px" }}>
+  <div className="item" style={{ paddingTop: "10px", paddingBottom: "10px" }}>
     <div className="content">
       <div className="right floated">
         <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
@@ -94,7 +94,7 @@ const LayerListItem = ({
         </a>
         {layer.metadata.name}
       </div>
-      <div className="description" style={{ "margin-top": "0.2em" }}>
+      <div className="description" style={{ marginTop: "0.2em" }}>
         <a onClick={() => onButtonClick("VISIBLE")} className={(layer.visible) ? styles.enabled : ""}>
           <i className="icon eye"></i>
         </a>
