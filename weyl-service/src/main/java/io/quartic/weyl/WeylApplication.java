@@ -12,6 +12,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.FeatureId;
@@ -32,7 +33,8 @@ import java.util.function.Supplier;
 public class WeylApplication extends Application<WeylConfiguration> {
     private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = new RandomUidGenerator<>(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-    private final LiveLayerStore liveLayerStore = new LiveLayerStore(fidGenerator);
+    private final FeatureStore featureStore = new FeatureStore();
+    private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore, fidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
@@ -80,7 +82,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         environment.jersey().setUrlPattern("/api/*");
 
-        LayerStore layerStore = new LayerStore(fidGenerator, lidGenerator, createDbiSupplier(configuration, environment));
+        LayerStore layerStore = new LayerStore(featureStore, fidGenerator, lidGenerator, createDbiSupplier(configuration, environment));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, liveLayerStore));

@@ -7,6 +7,7 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.weyl.core.compute.BucketOp;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.connect.PostgisConnector;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.skife.jdbi.v2.DBI;
@@ -23,24 +24,30 @@ public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> rawLayers = Maps.newConcurrentMap();
     private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
+    private final FeatureStore featureStore;
     private final UidGenerator<FeatureId> fidGenerator;
     private final UidGenerator<LayerId> lidGenerator;
-    private Supplier<DBI> dbi;
+    private final Supplier<DBI> dbi;
 
-    public LayerStore(UidGenerator<FeatureId> fidGenerator, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi) {
+    public LayerStore(FeatureStore featureStore, UidGenerator<FeatureId> fidGenerator, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi) {
+        this.featureStore = featureStore;
         this.fidGenerator = fidGenerator;
         this.lidGenerator = lidGenerator;
         this.dbi = dbi;
     }
 
     public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(fidGenerator, dbi.get())
+        Optional<IndexedLayer> layer = new PostgisConnector(featureStore, fidGenerator, dbi.get())
                 .fetch(metadata, sql)
                 .map(this::index);
 
         layer.ifPresent(this::storeLayer);
 
         return layer;
+    }
+
+    public FeatureStore getFeatureStore() {
+        return featureStore;
     }
 
     private void storeLayer(IndexedLayer indexedLayer) {
@@ -65,7 +72,7 @@ public class LayerStore {
     }
 
      private IndexedLayer index(Layer layer) {
-         Collection<IndexedFeature> features = layer.features().values()
+         Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
                         .feature(feature)
@@ -88,7 +95,7 @@ public class LayerStore {
 
         AttributeSchema attributeSchema = layer.schema();
 
-        layer.features().values().parallelStream()
+        layer.features().parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .filter(entry -> entry.getValue().isPresent())
                 .filter(entry -> attributeSchema.attributes().get(entry.getKey()).type()

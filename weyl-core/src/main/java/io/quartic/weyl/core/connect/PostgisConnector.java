@@ -7,7 +7,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.weyl.core.attributes.InferAttributeSchema;
-import io.quartic.weyl.core.feature.ImmutableFeatureMap;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.skife.jdbi.v2.DBI;
@@ -28,11 +28,13 @@ public class PostgisConnector {
     private static final String ID_FIELD = "id";
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
+    private final FeatureStore featureStore;
     private final UidGenerator<FeatureId> fidGenerator;
     private final DBI dbi;
     private final WKBReader wkbReader;
 
-    public PostgisConnector(UidGenerator<FeatureId> fidGenerator, DBI dbi) {
+    public PostgisConnector(FeatureStore featureStore, UidGenerator<FeatureId> fidGenerator, DBI dbi) {
+        this.featureStore = featureStore;
         this.fidGenerator = fidGenerator;
         this.dbi = dbi;
         wkbReader = new WKBReader();
@@ -66,7 +68,7 @@ public class PostgisConnector {
                 .build();
 
         return Optional.of(ImmutableRawLayer.builder()
-                .features(new ImmutableFeatureMap(features))
+                .features(featureStore.createImmutableCollection(features))
                 .metadata(metadata)
                 .schema(attributeSchema)
                 .build());

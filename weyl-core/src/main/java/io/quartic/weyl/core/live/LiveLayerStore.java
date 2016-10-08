@@ -5,8 +5,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import io.quartic.weyl.core.feature.FeatureMap;
-import io.quartic.weyl.core.feature.MutableFeatureMap;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
@@ -25,21 +24,23 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toMap;
 
 public class LiveLayerStore {
+    private final FeatureStore featureStore;
     private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
     private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
     private final UidGenerator<FeatureId> fidGenerator;
 
-    public LiveLayerStore(UidGenerator<FeatureId> fidGenerator) {
+    public LiveLayerStore(FeatureStore featureStore, UidGenerator<FeatureId> fidGenerator) {
+        this.featureStore = featureStore;
         this.fidGenerator = fidGenerator;
     }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
-        FeatureMap features
+        Collection<io.quartic.weyl.core.model.Feature> features
                 = layers.containsKey(id)
                 ? layers.get(id).layer().features()
-                : new MutableFeatureMap();
+                : featureStore.createMutableCollection();
         Collection<EnrichedFeedEvent> feedEvents
                 = layers.containsKey(id)
                 ? layers.get(id).feedEvents()
@@ -76,7 +77,7 @@ public class LiveLayerStore {
         final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
 
         final LiveLayer layer = layers.get(layerId);
-        layer.layer().features().putAll(newFeatures);
+        layer.layer().features().addAll(newFeatures);
         layer.feedEvents().addAll(feedEvents);
 
         notifyListeners(layerId, newFeatures);
@@ -126,7 +127,7 @@ public class LiveLayerStore {
 
     private void notifySubscribers(LayerId layerId) {
         final LiveLayer layer = layers.get(layerId);
-        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features().values();
+        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
         liveLayerSubscriptions.get(layerId)
                 .forEach(subscription -> {
                     Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView().compute(fidGenerator, features);

@@ -2,6 +2,7 @@ package io.quartic.weyl.core.live;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.*;
 public class LiveLayerStoreShould {
     private final static LiveLayerView IDENTITY_VIEW = (gen, features) -> features.stream();
     private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
-    private final LiveLayerStore store = new LiveLayerStore(fidGenerator);
+    private final LiveLayerStore store = new LiveLayerStore(new FeatureStore(), fidGenerator);
 
     @Test
     public void list_created_layers() throws Exception {

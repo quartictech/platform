@@ -6,7 +6,7 @@ import com.google.common.collect.Multimaps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.feature.ImmutableFeatureMap;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 
 import java.util.*;
@@ -15,6 +15,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class BucketOp {
+    private final FeatureStore featureStore;
     private final IndexedLayer featureLayer;
     private final BucketSpec bucketSpec;
     private final IndexedLayer bucketLayer;
@@ -37,7 +38,8 @@ public class BucketOp {
         }
     }
 
-    private BucketOp(IndexedLayer featureLayer, IndexedLayer bucketLayer, BucketSpec bucketSpec) {
+    private BucketOp(FeatureStore featureStore, IndexedLayer featureLayer, IndexedLayer bucketLayer, BucketSpec bucketSpec) {
+        this.featureStore = featureStore;
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
@@ -52,8 +54,7 @@ public class BucketOp {
         Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketOp(featureLayer.get(), bucketLayer.get(), bucketSpec)
-                    .compute();
+            return new BucketOp(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec).compute();
         }
 
         return Optional.empty();
@@ -83,7 +84,7 @@ public class BucketOp {
                     .withPrimaryAttribute(propertyName());
 
             RawLayer layer = ImmutableRawLayer.builder()
-                    .features(new ImmutableFeatureMap(features))
+                    .features(featureStore.createImmutableCollection(features))
                     .schema(attributeSchema)
                     .metadata(LayerMetadata.builder()
                             .name(layerName)
@@ -99,7 +100,7 @@ public class BucketOp {
 
     private Collection<Feature> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-        List<Bucketed> hits = featureLayer.layer().features().values().parallelStream()
+        List<Bucketed> hits = featureLayer.layer().features().parallelStream()
                 .flatMap(feature -> {
                     Geometry featureGeometry = feature.geometry();
                     List<IndexedFeature> buckets = bucketIndex.query(featureGeometry.getEnvelopeInternal());

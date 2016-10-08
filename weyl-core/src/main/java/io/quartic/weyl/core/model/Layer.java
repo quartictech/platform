@@ -1,9 +1,9 @@
 package io.quartic.weyl.core.model;
 
-import io.quartic.weyl.core.feature.FeatureMap;
+import java.util.Collection;
 
 public interface Layer {
     AttributeSchema schema();
     LayerMetadata metadata();
-    FeatureMap features();
+    Collection<Feature> features();
 }
