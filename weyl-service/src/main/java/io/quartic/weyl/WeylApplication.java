@@ -87,6 +87,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(geofenceStore));
         environment.jersey().register(new AlertResource(alertProcessor));
+        environment.jersey().register(new AggregatesResource());
 
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
     }
