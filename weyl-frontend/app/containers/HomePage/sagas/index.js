@@ -36,16 +36,6 @@ function* runBucketComputation(action) {
   }
 }
 
-function* fetchNumericAttributes(action) {
-  console.log("Fetching numeric attributes");
-  const requestURL = `${apiRootUrl}/layer/numeric_values/${action.layerId}`;
-  const results = yield call(request, requestURL, {
-    method: "GET",
-  });
-
-  yield put(actions.loadNumericAttributesDone(results.data));
-}
-
 function* saveGeofence(action) {
   console.log("saving geofence");
   const requestURL = `${apiRootUrl}/geofence/`;
@@ -86,6 +76,5 @@ export default [
   prepare(fetchAggregates),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
-  prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),
   prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),
 ];

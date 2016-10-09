@@ -120,7 +120,6 @@ HomePage.propTypes = {
   onToggleValueVisible: React.PropTypes.func,
   selectionFeatures: React.PropTypes.array,
   onClearSelection: React.PropTypes.func,
-  numericAttributes: React.PropTypes.object,
 };
 
 const mapDispatchToProps = {
@@ -131,8 +130,6 @@ const mapDispatchToProps = {
   onBucketCompute: actions.bucketComputation,
   onUiToggle: actions.toggleUi,
   onSelectionClose: actions.clearSelection,
-  onChartLayerSelection: actions.loadNumericAttributes,
-  onChartAttributeSelection: actions.chartSelectAttribute,
   onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
   onMapLoading: actions.mapLoading,

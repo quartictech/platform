@@ -4,8 +4,6 @@ import map from "./map";
 import geofence from "./geofence";
 import ui from "./ui";
 import selection from "./selection";
-import numericAttributes from "./numericAttributes";
-import histogramChart from "./histogramChart";
 import search from "./search";
 import feed from "./feed";
 import connection from "./connection";
@@ -24,8 +22,6 @@ export default combineReducers({
   geofence,
   ui,
   selection,
-  numericAttributes,
-  histogramChart,
   search,
   feed,
   connection,
