@@ -12,7 +12,7 @@ const AttributeValue = ({
     <td>
       <div className="ui fitted toggle checkbox">
         <input type="checkbox" checked={checked} name={value} onChange={() => onClick(value)} />
-        <label></label>
+        <label htmlFor={value}></label>
       </div>
     </td>
   </tr>

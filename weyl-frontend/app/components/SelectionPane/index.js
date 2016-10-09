@@ -21,8 +21,10 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
       ? `${filteredFeatures.length} features selected`
       : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
 
+    const visible = true;
+
     return (
-      <Pane title={title} visible={true} onClose={this.props.onClose}>
+      <Pane title={title} visible={visible} onClose={this.props.onClose}>
         {
           showAggregates
             ? null
