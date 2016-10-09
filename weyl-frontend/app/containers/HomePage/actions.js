@@ -188,3 +188,16 @@ export const connectionUp = () => ({
 export const connectionDown = () => ({
   type: constants.CONNECTION_DOWN,
 });
+
+export const aggregatesLoading = () => ({
+  type: constants.AGGREGATES_LOADING,
+});
+
+export const aggregatesLoaded = (results) => ({
+  type: constants.AGGREGATES_LOADED,
+  results,
+});
+
+export const aggregatesFailedToLoad = () => ({
+  type: constants.AGGREGATES_FAILED_TO_LOAD,
+});

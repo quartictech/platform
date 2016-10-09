@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -123,7 +122,7 @@ public class LastKnownLocationAndTrackViewShould {
                 .externalId(name)
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
-                .metadata(ImmutableMap.of("name", Optional.of(name)))
+                .metadata(ImmutableMap.of("name", name))
                 .build();
     }
 

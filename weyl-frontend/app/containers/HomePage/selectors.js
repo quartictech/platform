@@ -18,28 +18,36 @@ export const selectUi = () => createSelector(
   (homeState) => homeState.get("ui").toJS()
 );
 
-export const selectSelectionIds = () => createSelector(
+export const selectSelection = () => createSelector(
   selectHome(),
-  (homeState) => homeState.getIn(["selection", "ids"]).toJS()
+  (home) => home.get("selection").toJS()
 );
 
-export const selectSelectionFeatures = () => createSelector(
-  selectHome(),
-  selectLayers(),
-  (home, layers) => {
-    const ids = home.getIn(["selection", "ids"]).toJS();
-    const features = home.getIn(["selection", "features"]).toJS();
+export const selectSelectionIds = () => createSelector(
+  selectSelection(),
+  (selection) => selection.ids
+);
 
-    return _.chain(ids).keys()
-      .map(layerId => ids[layerId]
+export const selectSelectionView = () => createSelector(
+  selectSelection(),
+  selectLayers(),
+  (selection, layers) => ({
+    features: _.chain(selection.ids).keys()
+      .map(layerId => selection.ids[layerId]
         .map(fid => ({
           layer: layers.find(l => l.id === layerId),
-          properties: features[fid],
+          properties: selection.features[fid],
         }))
       )
       .flatten()
-      .value();
-  }
+      .value(),
+    aggregates: selection.aggregates,
+  })
+);
+
+export const selectAggregatesLifecycleState = () => createSelector(
+  selectSelection(),
+  (selection) => selection.aggregates.lifecycleState
 );
 
 export const selectLiveLayerIds = () => createSelector(

@@ -12,5 +12,5 @@ import java.util.Optional;
 @JsonDeserialize(as=ImmutableAttributeSchema.class)
 public interface AttributeSchema {
     Optional<String> primaryAttribute();
-    Map<String, Attribute> attributes();
+    Map<String, AbstractAttribute> attributes();
 }
