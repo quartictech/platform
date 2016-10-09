@@ -85,7 +85,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.bottomDrawer}>
-          <Chart visible={true} layers={this.props.layers}/>
+          <Chart
+            visible={this.props.ui.panels.chart}
+            timeSeries={this.props.timeSeries}
+            onUiToggle={this.props.onUiToggle}
+          />
         </div>
 
         <div className={styles.infoBar}>
@@ -146,7 +150,7 @@ const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi(),
   selectionIds: selectors.selectSelectionIds(),
   selectionView: selectors.selectSelectionView(),
-  numericAttributes: selectors.selectNumericAttributes(),
+  timeSeries: selectors.selectTimeSeries(),
   map: selectors.selectMap(),
   geofence: selectors.selectGeofence(),
   feed: selectors.selectFeed(),

@@ -9,7 +9,16 @@ const _ = require("underscore");
   // TODO: how to keep this list in-sync with things that affect selection?
 const actionTypesThatAffectSelection = [constants.MAP_MOUSE_CLICK];
 
-const fetch = (body) => request(`${apiRootUrl}/aggregates/histogram`, {
+const fetchHistogram = (body) => request(`${apiRootUrl}/aggregates/histogram`, {
+  method: "POST",
+  headers: {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(body),
+});
+
+const fetchTimeSeries = (body) => request(`${apiRootUrl}/attributes/time_series`, {
   method: "POST",
   headers: {
     "Accept": "application/json",
@@ -20,13 +29,19 @@ const fetch = (body) => request(`${apiRootUrl}/aggregates/histogram`, {
 
 function* fetchAndDispatch() {
   const selection = yield select(selectors.selectSelectionView());
-  const results = yield call(fetch,
-    _.chain(selection.features).map(f => f.properties["_id"]).value()); // eslint-disable-line dot-notation
+  const featureIds = _.chain(selection.features).map(f => f.properties["_id"]).value(); // eslint-disable-line dot-notation
+  const histogramResults = yield call(fetchHistogram, featureIds);
+  const timeSeriesResults = yield call(fetchTimeSeries, featureIds);
 
-  if (!results.err) {
-    yield put(actions.aggregatesLoaded(results.data));
+  if (!histogramResults.err && !timeSeriesResults.err) {
+    const results = {
+      histogram: histogramResults.data,
+      timeSeries: timeSeriesResults.data,
+    }
+    yield put(actions.aggregatesLoaded(results));
   } else {
-    console.warn(results);
+    console.warn(histogramResults);
+    console.warn(timeSeriesResults);
     yield put(actions.aggregatesFailedToLoad());
   }
 }

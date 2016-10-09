@@ -62,6 +62,9 @@ public class AttributeSchemaInferrer {
         if (value instanceof Integer || value instanceof Double || value instanceof Float) {
             return AttributeType.NUMERIC;
         }
+        else if (value instanceof AbstractTimeSeriesAttribute) {
+            return AttributeType.TIME_SERES;
+        }
         else {
             String stringValue = value.toString();
             try {
