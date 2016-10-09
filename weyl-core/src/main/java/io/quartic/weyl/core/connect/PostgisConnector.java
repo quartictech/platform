@@ -30,15 +30,16 @@ public class PostgisConnector {
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
-    private static final ObjectMapper OM = new ObjectMapper();
 
     private final FeatureStore featureStore;
     private final DBI dbi;
     private final WKBReader wkbReader = new WKBReader();
+    private final ObjectMapper objectMapper;
 
-    public PostgisConnector(FeatureStore featureStore, DBI dbi) {
+    public PostgisConnector(FeatureStore featureStore, DBI dbi, ObjectMapper objectMapper) {
         this.featureStore = featureStore;
         this.dbi = dbi;
+        this.objectMapper = objectMapper;
     }
 
     public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
@@ -87,11 +88,11 @@ public class PostgisConnector {
         return Optional.empty();
     }
 
-    private static Optional<Object> readPgObject(Object value) {
+    private Optional<Object> readPgObject(Object value) {
         PGobject pgObject = (PGobject) value;
         if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
             try {
-                return Optional.of(OM.readValue(pgObject.getValue(), ComplexAttribute.class));
+                return Optional.of(objectMapper.readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
                 log.warn("exception parsing json to attribute: {}", e.toString());
                 return Optional.empty();

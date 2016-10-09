@@ -1,5 +1,6 @@
 package io.quartic.weyl.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
@@ -27,15 +28,17 @@ public class LayerStore {
     private final FeatureStore featureStore;
     private final UidGenerator<LayerId> lidGenerator;
     private final Supplier<DBI> dbi;
+    private final ObjectMapper objectMapper;
 
-    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi) {
+    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi, ObjectMapper objectMapper) {
         this.featureStore = featureStore;
         this.lidGenerator = lidGenerator;
         this.dbi = dbi;
+        this.objectMapper = objectMapper;
     }
 
     public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(featureStore, dbi.get())
+        Optional<IndexedLayer> layer = new PostgisConnector(featureStore, dbi.get(), objectMapper)
                 .fetch(metadata, sql)
                 .map(this::index);
 
