@@ -10,7 +10,7 @@ const DEFAULT_ICON = "grey map";
 const FeedEvent = ({ event }) => (
   <div className={classNames("event", styles.slideFade)}>
     <div className="label">
-      <i className={`inverted circular ${event.icon} icon`}></i>
+      <i className={`circular ${event.icon} icon`}></i>
     </div>
     <div className="content">
       <div className="summary">
@@ -40,17 +40,17 @@ const visibleEvents = (events, layers) => {
 function FeedPane({ feed, layers, visible, onUiToggle }) {
   return (
     <div className={styles.feedPane} style={{ "visibility": visible ? "visible" : "hidden" }}>
-      <div className="ui inverted raised fluid segment">
-        <h4 className="ui inverted header">
+      <div className="ui raised fluid segment">
+        <h4 className="ui header">
           <a>
-            <i className="inverted icon close" onClick={() => onUiToggle("liveFeed")}></i>
+            <i className="icon close" onClick={() => onUiToggle("liveFeed")}></i>
           </a>
           Live feed
         </h4>
 
         <ReactCSSTransitionGroup
           component="div"
-          className="ui inverted feed"
+          className="ui feed"
           transitionName="example"
           transitionEnterTimeout={500}
           transitionLeaveTimeout={500}

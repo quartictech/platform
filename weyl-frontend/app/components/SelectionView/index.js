@@ -20,7 +20,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
     return (
       <div className={styles.selectionView}>
-        <div className="ui inverted raised fluid segment">
+        <div className="ui raised fluid segment">
           <Header
             features={filteredFeatures}
             onClose={this.props.onClose}
@@ -39,7 +39,7 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
           {
             showAggregates ? null : (
               <div>
-                <div className="ui inverted accordion" ref={x => $(x).accordion()}>
+                <div className="ui accordion" ref={x => $(x).accordion()}>
                   <div className="title">
                     <i className="dropdown icon"></i>
                     More properties
@@ -59,9 +59,9 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 }
 
 const Header = ({ features, onClose }) => (
-  <h4 className="ui inverted header">
+  <h4 className="ui header">
     <a onClick={onClose}>
-      <i className="inverted icon close"></i>
+      <i className="icon close"></i>
     </a>
     {
       (features.length > 1)
@@ -84,7 +84,7 @@ const Media = ({ features }) => {
     }
 
     return (
-      <table className="ui inverted very basic very compact small fixed table">
+      <table className="ui very basic very compact small fixed table">
         <tbody>
           <tr>
             {features.map(f =>
@@ -111,7 +111,7 @@ const Aggregates = ({ aggregates }) => (
         : null
     }
 
-    <table className="ui inverted celled very compact small fixed selectable table">
+    <table className="ui celled very compact small fixed selectable table">
       {
         _.chain(aggregates.data)
           .sort((a, b) => naturalsort(a.property, b.property))
@@ -128,7 +128,7 @@ const Aggregates = ({ aggregates }) => (
 );
 
 const AggregatesProperty = ({ histogram }) => (
-  <tbody className="ui inverted accordion" ref={x => $(x).accordion()}>
+  <tbody className="ui accordion" ref={x => $(x).accordion()}>
     <tr className="title">
       <td style={{ fontWeight: "bold" }}>
         <i className="dropdown icon"></i>
@@ -193,7 +193,7 @@ const UnblessedProperties = ({ features }) => {
 };
 
 const PropertiesTable = ({ features, order }) => (
-  <table className="ui inverted celled very compact small fixed selectable definition table">
+  <table className="ui celled very compact small fixed selectable definition table">
     {
       (features.length > 1) &&
         <thead>
