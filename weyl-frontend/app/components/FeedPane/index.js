@@ -41,20 +41,22 @@ const visibleEvents = (events, layers) => {
 function FeedPane({ feed, layers, visible, onUiToggle }) {
   return (
     <Pane title="Live feed" visible={visible} onClose={() => onUiToggle("liveFeed")}>
-      <ReactCSSTransitionGroup
-        component="div"
-        className="ui feed"
-        transitionName="example"
-        transitionEnterTimeout={500}
-        transitionLeaveTimeout={500}
-      >
-        {
-          visibleEvents(feed.events, layers)
-            .map(e => (
-              <FeedEvent key={e.id} event={e} />
-            ))
-        }
-      </ReactCSSTransitionGroup>
+      <div style={{ maxHeight: "30em", overflow: "auto" }}>
+        <ReactCSSTransitionGroup
+          component="div"
+          className="ui feed"
+          transitionName="example"
+          transitionEnterTimeout={500}
+          transitionLeaveTimeout={500}
+        >
+          {
+            visibleEvents(feed.events, layers)
+              .map(e => (
+                <FeedEvent key={e.id} event={e} />
+              ))
+          }
+        </ReactCSSTransitionGroup>
+      </div>
     </Pane>
   );
 }
