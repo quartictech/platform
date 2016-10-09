@@ -13,7 +13,6 @@ import * as Plottable from "plottable";
 import "plottable/plottable.css";
 import classNames from "classnames";
 import { Dropdown } from "semantic-ui-react";
-const _ = require("underscore");
 
 const AttributePicker = ({ selected, attributes, onChange }) => {
   const options = attributes.map(attribute => ({ text: attribute, value: attribute }));
@@ -35,11 +34,15 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   constructor() {
     super();
     this.state = { selectedAttribute: undefined };
+    this.createChart();
+  }
+
+  createChart() {
     const xScale = new Plottable.Scales.Time()
       .domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
     const yScale = new Plottable.Scales.Linear();
     const xAxis = new Plottable.Axes.Time(xScale, "bottom")
-    .yAlignment("center");
+      .yAlignment("center");
 
     const yAxis = new Plottable.Axes.Numeric(yScale, "left");
 
@@ -50,11 +53,14 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     this.plot.attr("stroke", (d, i, dataset) => dataset.metadata().name, this.colorScale);
     this.plot.autorangeMode("x");
 
-    const legend = new Plottable.Components.Legend(this.colorScale);
+    const legend = new Plottable.Components.Legend(this.colorScale).xAlignment("left")
+      .maxEntriesPerRow(3);
+    // const gridlines = new Plottable.Components.Gridlines(xScale, yScale);
+    const group = new Plottable.Components.Group([this.plot, yAxis]);
     this.chart = new Plottable.Components.Table([
-      [legend, null],
-      [yAxis, this.plot],
-      [null, xAxis],
+      [legend],
+      [group],
+      [xAxis],
     ]);
   }
 
@@ -66,7 +72,6 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   getAttributes = (timeSeries) => (timeSeries !== undefined ? Object.keys(timeSeries) : []);
 
   updateChart(data) {
-    console.log("Rerendering");
     this.colorScale.domain(Object.keys(data));
     const datasets = Object.keys(data)
       .map(k => {
@@ -88,12 +93,6 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
 
   componentWillUpdate(nextProps, nextState) {
     let nextData = {};
-    if (nextProps.timeSeries != undefined &&
-      nextProps.selectedAttribute != undefined &&
-      nextProps.selectedAttribute === this.props.selectedAttribute &&
-      _.equals(Object.keys(nextProps.timeSeries), Object.keys(this.props.timeSeries))) {
-        return;
-      }
 
     if (nextProps.timeSeries !== undefined &&
         nextState.selectedAttribute !== undefined &&
