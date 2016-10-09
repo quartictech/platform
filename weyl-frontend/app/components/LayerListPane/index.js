@@ -18,30 +18,22 @@ const LayerListItemInfo = ({
   switch (mode) {
     case "FILTER":
       return (
-        <div className="ui secondary segment">
-          <div className="content">
-            <AttributeList
-              layerId={layer.id}
-              attributes={layer.attributeSchema.attributes}
-              filter={layer.filter}
-              onClick={onAttributeValueClick}
-            />
-          </div>
-        </div>
+        <AttributeList
+          layerId={layer.id}
+          attributes={layer.attributeSchema.attributes}
+          filter={layer.filter}
+          onClick={onAttributeValueClick}
+        />
       );
 
     case "STYLE":
       return (
-        <div className="ui secondary segment">
-          <div className="content">
-            <LayerStyleSettings
-              layerId={layer.id}
-              layerAttributes={layer.attributeSchema.attributes}
-              layerStyle={layer.style}
-              onChange={onLayerStyleChange}
-            />
-          </div>
-        </div>
+        <LayerStyleSettings
+          layerId={layer.id}
+          layerAttributes={layer.attributeSchema.attributes}
+          layerStyle={layer.style}
+          onChange={onLayerStyleChange}
+        />
       );
 
 
