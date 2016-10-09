@@ -12,15 +12,23 @@ import SizeMe from "react-sizeme";
 const $ = require("jquery");
 
 import LayerPicker from "../LayerPicker";
-import LayerAttributePicker from "../LayerAttributePicker";
-
-import * as histogram from "histogramjs";
-import * as d3 from "d3";
 
 import * as Plottable from "plottable";
 import "plottable/plottable.css";
 import moment from "moment";
 import classNames from "classnames";
+
+import { Dropdown } from 'semantic-ui-react'
+
+const AttributePicker = (value, attributes) => (
+  <Dropdown
+    selection
+    compact
+    className="mini"
+    options={[{"text": "Hello", "value":0}]}
+    placeholder='Pick an attribute'
+  />
+)
 
 /* eslint-enable no-param-reassign */
 class Chart extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -63,7 +71,6 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   render() {
     if (this.chart) {
       this.chart.redraw();
-      console.log("Rerendering plot");
     }
     return (
       <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.chart}>
@@ -73,7 +80,10 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
               <a>
                 <i className="icon close" onClick={() => onUiToggle("chart")}></i>
               </a>
-              Some Variable
+              Time Series
+              <div className="right floated">
+                <AttributePicker/>
+              </div>
             </div>
             <div className={styles.plotArea}>
               <svg id="example" />
