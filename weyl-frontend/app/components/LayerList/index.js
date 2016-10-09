@@ -5,6 +5,7 @@ import BucketLayerItem from "../BucketLayerItem";
 import GeofenceSettings from "../GeofenceSettings";
 import LayerStyleSettings from "../LayerStyleSettings";
 import AttributeList from "./AttributeList";
+import Pane from "../Pane";
 
 const DEFAULT_ICON = "grey map";
 
@@ -170,15 +171,11 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 
     if (this.props.layers.length > 0 || this.props.ui.layerOp != null) {
       return (
-        <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
-          <div className="ui raised compact fluid card">
-            <div className="content">
-              <div className="ui divided items">
-                {rows}
-              </div>
-            </div>
+        <Pane visible={this.props.visible}>
+          <div className="ui divided items">
+            {rows}
           </div>
-        </div>
+        </Pane>
       );
     }
     return null;

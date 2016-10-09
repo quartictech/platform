@@ -1,5 +1,6 @@
 import React from "react";
 import ReactCSSTransitionGroup from "react-addons-css-transition-group";
+import Pane from "../Pane";
 import moment from "moment";
 import styles from "./styles.css";
 import classNames from "classnames";
@@ -39,31 +40,22 @@ const visibleEvents = (events, layers) => {
 
 function FeedPane({ feed, layers, visible, onUiToggle }) {
   return (
-    <div className={styles.feedPane} style={{ "visibility": visible ? "visible" : "hidden" }}>
-      <div className="ui raised fluid segment">
-        <h4 className="ui header">
-          <a>
-            <i className="icon close" onClick={() => onUiToggle("liveFeed")}></i>
-          </a>
-          Live feed
-        </h4>
-
-        <ReactCSSTransitionGroup
-          component="div"
-          className="ui feed"
-          transitionName="example"
-          transitionEnterTimeout={500}
-          transitionLeaveTimeout={500}
-        >
-          {
-            visibleEvents(feed.events, layers)
-              .map(e => (
-                <FeedEvent key={e.id} event={e} />
-              ))
-          }
-        </ReactCSSTransitionGroup>
-      </div>
-    </div>
+    <Pane title="Live feed" visible={visible} onClose={() => onUiToggle("liveFeed")}>
+      <ReactCSSTransitionGroup
+        component="div"
+        className="ui feed"
+        transitionName="example"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={500}
+      >
+        {
+          visibleEvents(feed.events, layers)
+            .map(e => (
+              <FeedEvent key={e.id} event={e} />
+            ))
+        }
+      </ReactCSSTransitionGroup>
+    </Pane>
   );
 }
 

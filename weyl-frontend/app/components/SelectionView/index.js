@@ -1,10 +1,9 @@
 import React from "react";
 import naturalsort from "javascript-natural-sort";
+import Pane from "../Pane";
+import { defaultBehavior, curatedBehaviors } from "./behaviors";
 const $ = require("jquery");
 const _ = require("underscore");
-
-import styles from "./styles.css";
-import { defaultBehavior, curatedBehaviors } from "./behaviors";
 
 class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -18,58 +17,43 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
     const showAggregates = (displayMode(filteredFeatures) === "AGGREGATE");
 
+    const title = (filteredFeatures.length > 1)
+      ? `${filteredFeatures.length} features selected`
+      : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
+
     return (
-      <div className={styles.selectionView}>
-        <div className="ui raised fluid segment">
-          <Header
-            features={filteredFeatures}
-            onClose={this.props.onClose}
-          />
-          {
-            showAggregates
-              ? null
-              : <Media features={filteredFeatures} />
-          }
-          {
-            showAggregates
-              ? <Aggregates aggregates={this.props.selection.aggregates} />
-              : <BlessedProperties features={filteredFeatures} />
-          }
+      <Pane title={title} visible={true} onClose={this.props.onClose}>
+        {
+          showAggregates
+            ? null
+            : <Media features={filteredFeatures} />
+        }
+        {
+          showAggregates
+            ? <Aggregates aggregates={this.props.selection.aggregates} />
+            : <BlessedProperties features={filteredFeatures} />
+        }
 
-          {
-            showAggregates ? null : (
-              <div>
-                <div className="ui accordion" ref={x => $(x).accordion()}>
-                  <div className="title">
-                    <i className="dropdown icon"></i>
-                    More properties
-                  </div>
+        {
+          showAggregates ? null : (
+            <div>
+              <div className="ui accordion" ref={x => $(x).accordion()}>
+                <div className="title">
+                  <i className="dropdown icon"></i>
+                  More properties
+                </div>
 
-                  <div className="content">
-                    <UnblessedProperties features={filteredFeatures} />
-                  </div>
+                <div className="content">
+                  <UnblessedProperties features={filteredFeatures} />
                 </div>
               </div>
-            )
-          }
-        </div>
-      </div>
+            </div>
+          )
+        }
+      </Pane>
     );
   }
 }
-
-const Header = ({ features, onClose }) => (
-  <h4 className="ui header">
-    <a onClick={onClose}>
-      <i className="icon close"></i>
-    </a>
-    {
-      (features.length > 1)
-        ? `${features.length} features selected`
-        : getTitle(features[0].layer.metadata.name, features[0].properties)
-    }
-  </h4>
-);
 
 const Media = ({ features }) => {
   // We can assume properties are homogeneous
