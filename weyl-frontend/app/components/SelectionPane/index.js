@@ -5,7 +5,7 @@ import { defaultBehavior, curatedBehaviors } from "./behaviors";
 const $ = require("jquery");
 const _ = require("underscore");
 
-class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     // TODO: move this into reducer
     const filteredFeatures = this.props.selection.features
@@ -248,4 +248,4 @@ const getUnblessedPropertyOrder = (layerName, properties) => {
 const getBehavior = (layerName) =>
   ((layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior);
 
-export default SelectionView;
+export default SelectionPane;

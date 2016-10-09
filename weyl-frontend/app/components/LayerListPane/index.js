@@ -120,7 +120,7 @@ const LayerListItem = ({
   </div>
 );
 
-class LayerList extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
     this.state = {
@@ -182,4 +182,4 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
   }
 }
 
-export default LayerList;
+export default LayerListPane;
