@@ -11,6 +11,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -110,10 +111,26 @@ public class FeatureStoreShould {
         assertThat(store.values(), containsInAnyOrder(featureA, featureB, featureC));
     }
 
+    @Test
+    public void no_longer_expose_deleted_features_via_map() throws Exception {
+        final Feature featureA = feature("42");
+        final Feature featureB = feature("43");
+
+        final Collection<Feature> collection = store.createMutableCollection(newArrayList(featureA, featureB));
+        store.removeCollection(collection);
+
+        assertThat(store.values(), empty());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void prohibit_duplicate_ids() throws Exception {
         store.createImmutableCollection(newArrayList(feature("42")));
         store.createImmutableCollection(newArrayList(feature("42")));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void prohibit_deletion_via_map() throws Exception {
+        store.entrySet().remove(feature("42"));
     }
 
     private Feature feature(String id) {

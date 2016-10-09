@@ -53,6 +53,7 @@ public class LiveLayerStore {
 
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
+        featureStore.removeCollection(layers.get(id).layer().features());
         layers.remove(id);
         liveLayerSubscriptions.removeAll(id);
     }
