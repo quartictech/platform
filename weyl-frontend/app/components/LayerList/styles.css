@@ -1,12 +1,9 @@
 .layerList { /* stylelint-ignore */
-  padding-top: 10px;
+  padding: 10px 10px 0;
   width: 100%;
-}
-
-.innerLayerList {
-  pointer-events: all;
-  overflow: visible;
   max-height: 100%;
+  pointer-events: all;
+  overflow: scroll;
 }
 
 .layerListItem { /* stylelint-ignore */
