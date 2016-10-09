@@ -88,7 +88,7 @@ const Image = ({ url }) => (
 );
 
 const Aggregates = ({ aggregates }) => (
-  <div>
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
     {
       (aggregates.lifecycleState === "AGGREGATES_LOADING")
         ? <div className="ui active indeterminate massive text loader">Loading...</div>
@@ -177,32 +177,34 @@ const UnblessedProperties = ({ features }) => {
 };
 
 const PropertiesTable = ({ features, order }) => (
-  <table className="ui celled very compact small fixed selectable definition table">
-    {
-      (features.length > 1) &&
-        <thead>
-          <tr>
-            <th />
-            {features.map(f =>
-              <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
-            )}
-          </tr>
-        </thead>
-    }
-    <tbody>
-      {order
-        .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
-        .map(key =>
-          <tr key={key}>
-            <td className="right aligned">{key}</td>
-            {features.map(f =>
-              <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
-            )}
-          </tr>
-        )
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
+    <table className="ui celled very compact small fixed selectable definition table">
+      {
+        (features.length > 1) &&
+          <thead>
+            <tr>
+              <th />
+              {features.map(f =>
+                <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
+              )}
+            </tr>
+          </thead>
       }
-    </tbody>
-  </table>
+      <tbody>
+        {order
+          .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
+          .map(key =>
+            <tr key={key}>
+              <td className="right aligned">{key}</td>
+              {features.map(f =>
+                <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
+              )}
+            </tr>
+          )
+        }
+      </tbody>
+    </table>
+  </div>
 );
 
 const displayMode = (features) => {
