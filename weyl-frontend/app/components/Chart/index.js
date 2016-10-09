@@ -9,54 +9,48 @@ import React from "react";
 import styles from "./styles.css";
 
 import SizeMe from "react-sizeme";
-const $ = require("jquery");
-
-import LayerPicker from "../LayerPicker";
-
 import * as Plottable from "plottable";
 import "plottable/plottable.css";
-import moment from "moment";
 import classNames from "classnames";
+import { Dropdown } from "semantic-ui-react";
+const _ = require("underscore");
 
-import { Dropdown } from 'semantic-ui-react'
-
-const AttributePicker = ({selected, attributes, onChange}) => {
-  let options = attributes.map(attribute => ({text: attribute, value: attribute}));
+const AttributePicker = ({ selected, attributes, onChange }) => {
+  const options = attributes.map(attribute => ({ text: attribute, value: attribute }));
   return (
-  <Dropdown
-    selection
-    className="mini"
-    disabled={attributes.length == 0}
-    options={options}
-    value={selected}
-    onChange={onChange}
-    placeholder='Pick an attribute'
-  />
-)}
+    <Dropdown
+      selection
+      className="mini"
+      disabled={attributes.length === 0}
+      options={options}
+      value={selected}
+      onChange={onChange}
+      placeholder="Pick an attribute"
+    />
+);
+};
 
 /* eslint-enable no-param-reassign */
 class Chart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
     this.state = { selectedAttribute: undefined };
-    var xScale = new Plottable.Scales.Time()
-    .domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
-    var yScale = new Plottable.Scales.Linear();
-
-    var xAxis = new Plottable.Axes.Time(xScale, "bottom")
+    const xScale = new Plottable.Scales.Time()
+      .domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
+    const yScale = new Plottable.Scales.Linear();
+    const xAxis = new Plottable.Axes.Time(xScale, "bottom")
     .yAlignment("center");
 
-    var yAxis = new Plottable.Axes.Numeric(yScale, "left");
+    const yAxis = new Plottable.Axes.Numeric(yScale, "left");
 
     this.colorScale = new Plottable.Scales.Color();
     this.plot = new Plottable.Plots.Line()
-      .x(function(d) { return new Date(d.timestamp); }, xScale)
-      .y(function(d) { return d.value; }, yScale);
-    this.plot.attr("stroke", function(d, i, dataset) { return dataset.metadata().name; }, this.colorScale);
+      .x(d => new Date(d.timestamp), xScale)
+      .y(d => d.value, yScale);
+    this.plot.attr("stroke", (d, i, dataset) => dataset.metadata().name, this.colorScale);
     this.plot.autorangeMode("x");
-    //this.plot.attr("fill", function(d, i, dataset) { return dataset.metadata().name; }, this.colorScale);
 
-    let legend = new Plottable.Components.Legend(this.colorScale);
+    const legend = new Plottable.Components.Legend(this.colorScale);
     this.chart = new Plottable.Components.Table([
       [legend, null],
       [yAxis, this.plot],
@@ -66,20 +60,18 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
 
   componentDidMount() {
     this.chart.renderTo("svg#example");
-
-    window.addEventListener("resize", function() {
-      this.chart.redraw();
-    });
+    window.addEventListener("resize", () => this.chart.redraw());
   }
 
-  getAttributes = (timeSeries) => timeSeries !== undefined ?  Object.keys(timeSeries) : [];
+  getAttributes = (timeSeries) => (timeSeries !== undefined ? Object.keys(timeSeries) : []);
 
   updateChart(data) {
+    console.log("Rerendering");
     this.colorScale.domain(Object.keys(data));
-    let datasets = Object.keys(data)
+    const datasets = Object.keys(data)
       .map(k => {
-          let plottableData = data[k].series.sort( (a, b) => a.timestamp - b.timestamp);
-          return new Plottable.Dataset(plottableData, { "name": k });
+        const plottableData = data[k].series.sort((a, b) => a.timestamp - b.timestamp);
+        return new Plottable.Dataset(plottableData, { "name": k });
       });
     this.plot.datasets(datasets);
   }
@@ -87,25 +79,32 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   componentWillReceiveProps(nextProps) {
     const attributes = this.getAttributes(nextProps.timeSeries);
 
-    if (attributes.length == 0) {
+    if (attributes.length === 0) {
       this.setState({ selectedAttribute: undefined });
-    }
-    else if (this.state.selectedAttribute === undefined) {
+    } else if (this.state.selectedAttribute === undefined) {
       this.setState({ selectedAttribute: attributes[0] });
     }
   }
 
   componentWillUpdate(nextProps, nextState) {
     let nextData = {};
+    if (nextProps.timeSeries != undefined &&
+      nextProps.selectedAttribute != undefined &&
+      nextProps.selectedAttribute === this.props.selectedAttribute &&
+      _.equals(Object.keys(nextProps.timeSeries), Object.keys(this.props.timeSeries))) {
+        return;
+      }
+
     if (nextProps.timeSeries !== undefined &&
         nextState.selectedAttribute !== undefined &&
         nextState.selectedAttribute in nextProps.timeSeries) {
       nextData = nextProps.timeSeries[nextState.selectedAttribute];
     }
+
     this.updateChart(nextData);
   }
 
-  onAttributeChange({ name, value }) {
+  onAttributeChange({ value }) {
     this.setState({ selectedAttribute: value });
   }
 
@@ -127,7 +126,7 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
                 <AttributePicker
                   selected={this.state.selectedAttribute}
                   attributes={attributes}
-                  onChange={ (e, v) => this.onAttributeChange(v) }
+                  onChange={(e, v) => this.onAttributeChange(v)}
                 />
               </div>
             </div>

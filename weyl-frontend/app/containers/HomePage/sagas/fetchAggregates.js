@@ -37,7 +37,7 @@ function* fetchAndDispatch() {
     const results = {
       histogram: histogramResults.data,
       timeSeries: timeSeriesResults.data,
-    }
+    };
     yield put(actions.aggregatesLoaded(results));
   } else {
     console.warn(histogramResults);
