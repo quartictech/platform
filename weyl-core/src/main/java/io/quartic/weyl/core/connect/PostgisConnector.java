@@ -6,9 +6,9 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.weyl.core.attributes.InferAttributeSchema;
+import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.UidGenerator;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
@@ -27,14 +27,13 @@ public class PostgisConnector {
     private static final String ID_FIELD = "id";
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
-    private final UidGenerator<FeatureId> fidGenerator;
+    private final FeatureStore featureStore;
     private final DBI dbi;
-    private final WKBReader wkbReader;
+    private final WKBReader wkbReader = new WKBReader();
 
-    public PostgisConnector(UidGenerator<FeatureId> fidGenerator, DBI dbi) {
-        this.fidGenerator = fidGenerator;
+    public PostgisConnector(FeatureStore featureStore, DBI dbi) {
+        this.featureStore = featureStore;
         this.dbi = dbi;
-        wkbReader = new WKBReader();
     }
 
     public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
@@ -57,7 +56,7 @@ public class PostgisConnector {
         }
         iterator.close();
 
-        Map<String, Attribute> attributes = InferAttributeSchema.inferSchema(features);
+        Map<String, AbstractAttribute> attributes = AttributeSchemaInferrer.inferSchema(features);
 
         AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
                 .attributes(attributes)
@@ -65,7 +64,7 @@ public class PostgisConnector {
                 .build();
 
         return Optional.of(ImmutableRawLayer.builder()
-                .features(new ImmutableFeatureMap(features))
+                .features(featureStore.createImmutableCollection(features))
                 .metadata(metadata)
                 .schema(attributeSchema)
                 .build());
@@ -92,11 +91,11 @@ public class PostgisConnector {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            Map<String, Optional<Object>> attributes = Maps.newHashMap();
+            Map<String, Object> attributes = Maps.newHashMap();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
-                if (! RESERVED_KEYS.contains(entry.getKey())) {
-                    attributes.put(entry.getKey(), Optional.ofNullable(entry.getValue()));
+                if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
+                    attributes.put(entry.getKey(), entry.getValue());
                 }
             }
 
@@ -106,7 +105,7 @@ public class PostgisConnector {
             return ImmutableFeature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
-                    .uid(fidGenerator.get())
+                    .uid(featureStore.getFeatureIdGenerator().get())
                     .externalId(id)
                     .build();
         });

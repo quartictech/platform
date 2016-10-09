@@ -5,6 +5,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
@@ -20,24 +21,22 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toMap;
-
 public class LiveLayerStore {
+    private final FeatureStore featureStore;
     private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
     private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
-    private final UidGenerator<FeatureId> fidGenerator;
 
-    public LiveLayerStore(UidGenerator<FeatureId> fidGenerator) {
-        this.fidGenerator = fidGenerator;
+    public LiveLayerStore(FeatureStore featureStore) {
+        this.featureStore = featureStore;
     }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
-        FeatureMap features
+        Collection<io.quartic.weyl.core.model.Feature> features
                 = layers.containsKey(id)
                 ? layers.get(id).layer().features()
-                : new MutableFeatureMap();
+                : featureStore.createMutableCollection();
         Collection<EnrichedFeedEvent> feedEvents
                 = layers.containsKey(id)
                 ? layers.get(id).feedEvents()
@@ -54,6 +53,7 @@ public class LiveLayerStore {
 
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
+        featureStore.removeCollection(layers.get(id).layer().features());
         layers.remove(id);
         liveLayerSubscriptions.removeAll(id);
     }
@@ -74,7 +74,7 @@ public class LiveLayerStore {
         final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
 
         final LiveLayer layer = layers.get(layerId);
-        layer.layer().features().putAll(newFeatures);
+        layer.layer().features().addAll(newFeatures);
         layer.feedEvents().addAll(feedEvents);
 
         notifyListeners(layerId, newFeatures);
@@ -124,10 +124,11 @@ public class LiveLayerStore {
 
     private void notifySubscribers(LayerId layerId) {
         final LiveLayer layer = layers.get(layerId);
-        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features().values();
+        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
         liveLayerSubscriptions.get(layerId)
                 .forEach(subscription -> {
-                    Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView().compute(fidGenerator, features);
+                    Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView()
+                            .compute(featureStore.getFeatureIdGenerator(), features);
                     FeatureCollection featureCollection = FeatureCollection.of(
                             computed
                                     .map(this::fromJts)
@@ -144,11 +145,9 @@ public class LiveLayerStore {
     private io.quartic.weyl.core.model.Feature toJts(Feature f) {
         return ImmutableFeature.builder()
                 .externalId(f.id().get())
-                .uid(fidGenerator.get())
+                .uid(featureStore.getFeatureIdGenerator().get())
                 .geometry(Utils.toJts(f.geometry()))
-                .metadata(f.properties().entrySet()
-                        .stream()
-                        .collect(toMap(Map.Entry::getKey, e -> Optional.of(e.getValue()))))
+                .metadata(f.properties())
                 .build();
     }
 
@@ -164,8 +163,8 @@ public class LiveLayerStore {
         Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
     }
 
-    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Optional<Object>> metadata) {
-        final Map<String, Object> output = metadata.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().get()));
+    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Object> metadata) {
+        final Map<String, Object> output = Maps.newHashMap(metadata);
         output.put("_id", featureId);  // TODO: eliminate the _id concept
         return output;
     }

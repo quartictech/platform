@@ -9,6 +9,7 @@ import { apiRootUrl } from "../../../utils.js";
 
 import searchForLayers from "./searchForLayers";
 import manageSocket from "./manageSocket";
+import fetchAggregates from "./fetchAggregates";
 
 function* runBucketComputation(action) {
   console.log(action);
@@ -82,6 +83,7 @@ function prepare(generator) {
 
 export default [
   prepare(manageSocket),
+  prepare(fetchAggregates),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.NUMERIC_ATTRIBUTES_LOAD, fetchNumericAttributes)),

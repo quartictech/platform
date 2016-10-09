@@ -2,6 +2,7 @@ package io.quartic.weyl.core.live;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
@@ -9,6 +10,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -24,8 +26,25 @@ import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
     private final static LiveLayerView IDENTITY_VIEW = (gen, features) -> features.stream();
-    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
-    private final LiveLayerStore store = new LiveLayerStore(fidGenerator);
+    private final FeatureStore featureStore = mock(FeatureStore.class);
+    private final LiveLayerStore store = new LiveLayerStore(featureStore);
+
+    @Before
+    public void setUp() throws Exception {
+        final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
+        when(featureStore.getFeatureIdGenerator()).thenReturn(fidGenerator);
+    }
+
+    @Test
+    public void orchestrate_feature_store() throws Exception {
+        LayerId id = LayerId.of("666");
+
+        store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW);
+        verify(featureStore).createMutableCollection();
+
+        store.deleteLayer(id);
+        verify(featureStore).removeCollection(anyCollection());
+    }
 
     @Test
     public void list_created_layers() throws Exception {
@@ -140,7 +159,7 @@ public class LiveLayerStoreShould {
                 .externalId("abcd")
                 .uid(FeatureId.of("1"))
                 .geometry(Utils.toJts(point()))
-                .metadata(ImmutableMap.of("timestamp", Optional.of(1234)))
+                .metadata(ImmutableMap.of("timestamp", 1234))
                 .build();
         verify(listenerA).onLiveLayerEvent(id, feature);
         verify(listenerB).onLiveLayerEvent(id, feature);

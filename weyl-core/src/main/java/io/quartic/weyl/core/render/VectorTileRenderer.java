@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -66,8 +65,8 @@ public class VectorTileRenderer {
             layer.intersects(envelope).parallel().map( (feature) -> {
                 Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(feature.feature().metadata().size());
 
-                for (Map.Entry<String, Optional<Object>> entry : feature.feature().metadata().entrySet()) {
-                    attributes.put(entry.getKey(), entry.getValue().orElse(null));
+                for (Map.Entry<String, Object> entry : feature.feature().metadata().entrySet()) {
+                    attributes.put(entry.getKey(), entry.getValue());
                 }
 
                 attributes.put("_id", feature.feature().uid().uid());

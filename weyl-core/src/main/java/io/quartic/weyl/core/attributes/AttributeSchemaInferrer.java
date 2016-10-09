@@ -1,22 +1,18 @@
 package io.quartic.weyl.core.attributes;
 
+import io.quartic.weyl.core.model.AbstractAttribute;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.ImmutableAttribute;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class InferAttributeSchema {
-    public static Map<String, Attribute> inferSchema(Collection<Feature> features) {
+public class AttributeSchemaInferrer {
+    public static Map<String, AbstractAttribute> inferSchema(Collection<Feature> features) {
         Set<String> attributes = features.parallelStream()
-                .flatMap(feature -> feature.metadata().entrySet().stream())
-                .map(Map.Entry::getKey)
+                .flatMap(feature -> feature.metadata().keySet().stream())
                 .collect(Collectors.toSet());
 
         return attributes.parallelStream()
@@ -26,9 +22,9 @@ public class InferAttributeSchema {
 
     }
 
-    public static Attribute inferAttribute(String attribute, Collection<Feature> features) {
+    private static AbstractAttribute inferAttribute(String attribute, Collection<Feature> features) {
         Optional<Set<Object>> categories = inferCategories(attribute, features);
-        return ImmutableAttribute.builder()
+        return Attribute.builder()
                 .type(inferAttributeType(attribute, features))
                 .categories(categories)
                 .build();
@@ -37,7 +33,7 @@ public class InferAttributeSchema {
     private static Optional<Set<Object>> inferCategories(String attribute, Collection<Feature> features) {
         Set<Object> values = features.stream()
                 .map(feature -> feature.metadata().get(attribute))
-                .filter(Optional::isPresent)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         if (values.size() > 0 && values.size() < 20 && values.size() < features.size()) {
@@ -52,8 +48,8 @@ public class InferAttributeSchema {
                                                     Collection<Feature> features) {
         Set<AttributeType> attributeTypes = features.stream()
                 .map(feature -> feature.metadata().get(attribute))
-                .filter(Optional::isPresent)
-                .map(value -> InferAttributeSchema.inferValueType(value.get()))
+                .filter(Objects::nonNull)
+                .map(AttributeSchemaInferrer::inferValueType)
                 .collect(Collectors.toSet());
 
         if (attributeTypes.size() == 1) {
