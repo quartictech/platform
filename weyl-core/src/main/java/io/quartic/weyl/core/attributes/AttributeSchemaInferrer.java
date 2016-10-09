@@ -63,7 +63,7 @@ public class AttributeSchemaInferrer {
             return AttributeType.NUMERIC;
         }
         else if (value instanceof AbstractTimeSeriesAttribute) {
-            return AttributeType.TIME_SERES;
+            return AttributeType.TIME_SERIES;
         }
         else {
             String stringValue = value.toString();
