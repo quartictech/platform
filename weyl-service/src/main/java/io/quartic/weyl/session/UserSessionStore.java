@@ -7,8 +7,10 @@ public interface UserSessionStore {
     void set(SessionId sessionId, UserSession userSession);
 
     default UserSession update(SessionId sessionId, Function<UserSession, UserSession> f) {
-        UserSession newSession = f.apply(get(sessionId));
-        set(sessionId, newSession);
-        return newSession;
+        synchronized (this) {
+            UserSession newSession = f.apply(get(sessionId));
+            set(sessionId, newSession);
+            return newSession;
+        }
     }
 }
