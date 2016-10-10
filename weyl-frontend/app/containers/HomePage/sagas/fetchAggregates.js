@@ -30,8 +30,10 @@ const fetchTimeSeries = (body) => request(`${apiRootUrl}/attributes/time_series`
 function* fetchAndDispatch() {
   const selection = yield select(selectors.selectSelectionView());
   const featureIds = _.chain(selection.features).map(f => f.properties["_id"]).value(); // eslint-disable-line dot-notation
-  const histogramResults = yield call(fetchHistogram, featureIds);
-  const timeSeriesResults = yield call(fetchTimeSeries, featureIds);
+  const [histogramResults, timeSeriesResults]  = yield [
+    call(fetchHistogram, featureIds),
+    call(fetchTimeSeries, featureIds)
+  ];
 
   if (!histogramResults.err && !timeSeriesResults.err) {
     const results = {
