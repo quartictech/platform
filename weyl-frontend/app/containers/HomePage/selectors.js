@@ -57,9 +57,9 @@ export const selectLiveLayerIds = () => createSelector(
     .map(layer => layer.id)
 );
 
-export const selectNumericAttributes = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("numericAttributes").toJS()
+export const selectTimeSeries = () => createSelector(
+  selectSelection(),
+  (selection) => selection.aggregates.data.timeSeries,
 );
 
 export const selectMap = () => createSelector(

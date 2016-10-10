@@ -17,6 +17,7 @@ import SelectionView from "../../components/SelectionView";
 import MapInfo from "../../components/MapInfo";
 import FeedPane from "../../components/FeedPane";
 import ConnectionStatus from "../../components/ConnectionStatus";
+import Chart from "../../components/Chart";
 
 import styles from "./styles.css";
 
@@ -84,6 +85,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.bottomDrawer}>
+          <Chart
+            visible={this.props.ui.panels.chart}
+            timeSeries={this.props.timeSeries}
+            onUiToggle={this.props.onUiToggle}
+          />
         </div>
 
         <div className={styles.infoBar}>
@@ -114,7 +120,6 @@ HomePage.propTypes = {
   onToggleValueVisible: React.PropTypes.func,
   selectionFeatures: React.PropTypes.array,
   onClearSelection: React.PropTypes.func,
-  numericAttributes: React.PropTypes.object,
 };
 
 const mapDispatchToProps = {
@@ -125,8 +130,6 @@ const mapDispatchToProps = {
   onBucketCompute: actions.bucketComputation,
   onUiToggle: actions.toggleUi,
   onSelectionClose: actions.clearSelection,
-  onChartLayerSelection: actions.loadNumericAttributes,
-  onChartAttributeSelection: actions.chartSelectAttribute,
   onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
   onMapLoading: actions.mapLoading,
@@ -144,7 +147,7 @@ const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi(),
   selectionIds: selectors.selectSelectionIds(),
   selectionView: selectors.selectSelectionView(),
-  numericAttributes: selectors.selectNumericAttributes(),
+  timeSeries: selectors.selectTimeSeries(),
   map: selectors.selectMap(),
   geofence: selectors.selectGeofence(),
   feed: selectors.selectFeed(),

@@ -35,10 +35,10 @@
 
 .bottomDrawer {
   position: absolute;
-  left: 30vw;
+  left: 25vw;
   top: 60vh;
-  height: 30vh;
-  width: 70vw;
+  height: 40vh;
+  width: 50vw;
   display: flex;
   pointer-events: none;
   padding: 30px;
