@@ -40,7 +40,7 @@ const LayerListItemInfo = ({
     case "INFO":
       return (
         <div className="ui secondary segment">
-          <div className="content" style={{ "font-size": "0.8em" }}>
+          <div className="content" style={{ fontSize: "0.8em" }}>
             {(layer.metadata.description)}
           </div>
         </div>
