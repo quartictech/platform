@@ -1,5 +1,4 @@
 import { take, call, fork, cancel, put, select } from "redux-saga/effects";
-import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
 import request from "utils/request";

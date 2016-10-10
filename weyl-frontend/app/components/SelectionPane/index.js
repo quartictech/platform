@@ -12,20 +12,16 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
     const info = this.props.selectionInfo;
     const featureAttributes = info.data.featureAttributes;
 
+    // TODO: reconcile with visibility
     if (_.size(featureIds) === 0) {
       return null;
     }
-
     const visible = true; // TODO
-    const showHistograms = false; // TODO
     const loaded = (info.lifecycleState === "INFO_LOADED");
-    const title = "TODO"; // TODO
 
-    // const title = (filteredFeatures.length > 1)
-    //   ? `${filteredFeatures.length} features selected`
-    //   : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
-
-
+    const title = (numFeatures(featureIds) > 1)
+      ? `${numFeatures(featureIds)} features selected`
+      : getBehavior(singleLayer(featureIds, layers)).title(_.values(featureAttributes)[0]);
 
     return (
       <Pane title={title} visible={visible} onClose={this.props.onClose}>
@@ -36,25 +32,25 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         }
 
         {
-          showHistograms
+          (histogramEnabled(featureIds))
             ? <Histograms histograms={info.data.histograms} />
-            : <NonHistograms
-              layers={layers}
-              featureIds={featureIds}
-              featureAttributes={info.data.featureAttributes}
-              />
+            : <NonHistograms featureAttributes={featureAttributes} layer={singleLayer(featureIds, layers)} />
         }
       </Pane>
     );
   }
 }
 
-const NonHistograms = ({ layers, featureIds, featureAttributes }) => {
-  const layerId = _.keys(featureIds)[0];
-  const layerName = layers[layerId].metadata.name;
-  const attributeKeys = layers[layerId].attributeSchema.attributes;
-  const behavior = getBehavior(layerName, attributeKeys);
+// featureIds is an object { layerId -> [featureIds] }
+const histogramEnabled = (featureIds) =>
+  (_.size(featureIds) > 1 || numFeatures(featureIds) > 4);
 
+const numFeatures = (featureIds) => _.size(_.flatten(_.values(featureIds)));
+
+const singleLayer = (featureIds, layers) => layers[_.keys(featureIds)[0]];
+
+const NonHistograms = ({ featureAttributes, layer }) => {
+  const behavior = getBehavior(layer);
   return (
     <div>
       <Media featureAttributes={featureAttributes} behavior={behavior} />
@@ -141,6 +137,7 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => (
 const isAttributeDisplayable = (key, attributes) =>
   (key !== "_id") && (key in attributes) && (String(attributes[key]).trim() !== "");
 
+// TODO: blessed vs. non-blessed
 const Histograms = ({ histograms }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
     <table className="ui celled very compact small fixed selectable table">
@@ -191,20 +188,9 @@ const AttributeHistogram = ({ histogram }) => (
   </tbody>
 );
 
-const displayMode = (features) => {
-  const numUniqueLayers = _.chain(features).map(f => f.layer.id).uniq().size().value();
-  const numFeatures = features.length;
-
-  if (numFeatures === 1) {
-    return "BASEBALL";
-  }
-  if (numFeatures < 5 && numUniqueLayers === 1) {
-    return "SIDE_BY_SIDE";
-  }
-  return "HISTOGRAM";
-};
-
-const getBehavior = (layerName, attributeKeys) => {
+const getBehavior = (layer) => {
+  const layerName = layer.metadata.name;
+  const attributeKeys = layer.attributeSchema.attributes;
   const b = (layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior;
   return {
     title: (attributes) => b.title(attributes),

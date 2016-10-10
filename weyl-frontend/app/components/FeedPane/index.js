@@ -23,7 +23,7 @@ const FeedEvent = ({ event }) => (
 );
 
 const visibleEvents = (events, layers) => {
-  const icons = _.mapObject(layers, (v, k) => (v.metadata.icon || DEFAULT_ICON));
+  const icons = _.mapObject(layers, v => (v.metadata.icon || DEFAULT_ICON));
   const visibleLayerIds = new Set(_.values(layers).filter(layer => layer.visible).map(layer => layer.id));
 
   return _.chain(events).keys()

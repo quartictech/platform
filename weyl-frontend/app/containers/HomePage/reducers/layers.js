@@ -1,4 +1,4 @@
-import { fromJS, List, Map, Set } from "immutable";
+import { fromJS, Map, Set } from "immutable";
 import * as constants from "../constants";
 
 const colorScale = "PuRd";
