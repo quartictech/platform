@@ -1,10 +1,3 @@
-.feedPane { /* stylelint-ignore */
-  padding-top: 10px;
-  padding-bottom: 10px;
-  width: 100%;
-  pointer-events: all;
-}
-
 :global .example-enter {
   opacity: 0.01;
 }

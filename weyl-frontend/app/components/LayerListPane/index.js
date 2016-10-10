@@ -5,6 +5,7 @@ import BucketLayerItem from "../BucketLayerItem";
 import GeofenceSettings from "../GeofenceSettings";
 import LayerStyleSettings from "../LayerStyleSettings";
 import AttributeList from "./AttributeList";
+import Pane from "../Pane";
 
 const DEFAULT_ICON = "grey map";
 
@@ -17,37 +18,29 @@ const LayerListItemInfo = ({
   switch (mode) {
     case "FILTER":
       return (
-        <div className="ui secondary segment">
-          <div className="content">
-            <AttributeList
-              layerId={layer.id}
-              attributes={layer.attributeSchema.attributes}
-              filter={layer.filter}
-              onClick={onAttributeValueClick}
-            />
-          </div>
-        </div>
+        <AttributeList
+          layerId={layer.id}
+          attributes={layer.attributeSchema.attributes}
+          filter={layer.filter}
+          onClick={onAttributeValueClick}
+        />
       );
 
     case "STYLE":
       return (
-        <div className="ui secondary segment">
-          <div className="content">
-            <LayerStyleSettings
-              layerId={layer.id}
-              layerAttributes={layer.attributeSchema.attributes}
-              layerStyle={layer.style}
-              onChange={onLayerStyleChange}
-            />
-          </div>
-        </div>
+        <LayerStyleSettings
+          layerId={layer.id}
+          layerAttributes={layer.attributeSchema.attributes}
+          layerStyle={layer.style}
+          onChange={onLayerStyleChange}
+        />
       );
 
 
     case "INFO":
       return (
         <div className="ui secondary segment">
-          <div className="content" style={{ "font-size": "0.8em" }}>
+          <div className="content" style={{ fontSize: "0.8em" }}>
             {(layer.metadata.description)}
           </div>
         </div>
@@ -119,7 +112,7 @@ const LayerListItem = ({
   </div>
 );
 
-class LayerList extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
     this.state = {
@@ -170,21 +163,15 @@ class LayerList extends React.Component { // eslint-disable-line react/prefer-st
 
     if (this.props.layers.length > 0 || this.props.ui.layerOp != null) {
       return (
-        <div className={styles.layerList} style={{ "visibility": this.props.visible ? "visible" : "hidden" }}>
-          <div className={styles.innerLayerList}>
-            <div className="ui raised compact fluid card">
-              <div className="content">
-                <div className="ui divided items">
-                  {rows}
-                </div>
-              </div>
-            </div>
+        <Pane visible={this.props.visible}>
+          <div className="ui divided items">
+            {rows}
           </div>
-        </div>
+        </Pane>
       );
     }
     return null;
   }
 }
 
-export default LayerList;
+export default LayerListPane;

@@ -1,19 +1,8 @@
-/*
- * HomePage
- *
- * This is the first thing users see of our App, at the "/" route
- *
- * NOTE: while this component should technically be a stateless functional
- * component (SFC), hot reloading does not currently support SFCs. If hot
- * reloading is not a neccessity for you then you can refactor it and remove
- * the linting exception.
- */
-
 import React from "react";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
-import LayerList from "../../components/LayerList";
-import SelectionView from "../../components/SelectionView";
+import LayerListPane from "../../components/LayerListPane";
+import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import FeedPane from "../../components/FeedPane";
 import ConnectionStatus from "../../components/ConnectionStatus";
@@ -54,7 +43,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.leftDrawer}>
-          <LayerList
+          <LayerListPane
             layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
             onBucketCompute={this.props.onBucketCompute}
@@ -72,7 +61,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.rightDrawer}>
-          <SelectionView
+          <SelectionPane
             selection={this.props.selectionView}
             onClose={this.props.onSelectionClose}
           />

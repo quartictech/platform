@@ -1,14 +1,3 @@
-.layerList { /* stylelint-ignore */
-  padding-top: 10px;
-  width: 100%;
-}
-
-.innerLayerList {
-  pointer-events: all;
-  overflow: visible;
-  max-height: 100%;
-}
-
 .layerListItem { /* stylelint-ignore */
   padding-top: 10px;
 }

@@ -1,12 +1,11 @@
 import React from "react";
 import naturalsort from "javascript-natural-sort";
+import Pane from "../Pane";
+import { defaultBehavior, curatedBehaviors } from "./behaviors";
 const $ = require("jquery");
 const _ = require("underscore");
 
-import styles from "./styles.css";
-import { defaultBehavior, curatedBehaviors } from "./behaviors";
-
-class SelectionView extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     // TODO: move this into reducer
     const filteredFeatures = this.props.selection.features
@@ -18,62 +17,45 @@ class SelectionView extends React.Component { // eslint-disable-line react/prefe
 
     const showAggregates = (displayMode(filteredFeatures) === "AGGREGATE");
 
+    const title = (filteredFeatures.length > 1)
+      ? `${filteredFeatures.length} features selected`
+      : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
+
+    const visible = true;
+
     return (
-      <div className={styles.selectionView}>
-        <div className={styles.innerSelectionView}>
-          <div className="ui raised fluid card">
-            <div className="content">
-              <Header
-                features={filteredFeatures}
-                onClose={this.props.onClose}
-              />
-              {
-                showAggregates
-                  ? null
-                  : <Media features={filteredFeatures} />
-              }
-              {
-                showAggregates
-                  ? <Aggregates aggregates={this.props.selection.aggregates} />
-                  : <BlessedProperties features={filteredFeatures} />
-              }
-            </div>
+      <Pane title={title} visible={visible} onClose={this.props.onClose}>
+        {
+          showAggregates
+            ? null
+            : <Media features={filteredFeatures} />
+        }
+        {
+          showAggregates
+            ? <Aggregates aggregates={this.props.selection.aggregates} />
+            : <BlessedProperties features={filteredFeatures} />
+        }
 
-            {
-              showAggregates ? null : (
-                <div className="extra content">
-                  <div className="ui accordion" ref={x => $(x).accordion()}>
-                    <div className="title">
-                      <i className="dropdown icon"></i>
-                      More properties
-                    </div>
-
-                    <div className="content">
-                      <UnblessedProperties features={filteredFeatures} />
-                    </div>
-                  </div>
+        {
+          showAggregates ? null : (
+            <div>
+              <div className="ui accordion" ref={x => $(x).accordion()}>
+                <div className="title">
+                  <i className="dropdown icon"></i>
+                  More properties
                 </div>
-              )
-            }
-          </div>
-        </div>
-      </div>
+
+                <div className="content">
+                  <UnblessedProperties features={filteredFeatures} />
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </Pane>
     );
   }
 }
-
-const Header = ({ features, onClose }) => (
-  <div className="header">
-    <a onClick={onClose}>
-      <i className="icon close"></i>
-    </a>
-    {
-      (features.length > 1)
-        ? `${features.length} features selected`
-        : getTitle(features[0].layer.metadata.name, features[0].properties)
-    }
-  </div>
-);
 
 const Media = ({ features }) => {
   // We can assume properties are homogeneous
@@ -108,14 +90,14 @@ const Image = ({ url }) => (
 );
 
 const Aggregates = ({ aggregates }) => (
-  <div>
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
     {
       (aggregates.lifecycleState === "AGGREGATES_LOADING")
         ? <div className="ui active indeterminate massive text loader">Loading...</div>
         : null
     }
 
-    <table className="ui celled very compact small fixed table">
+    <table className="ui celled very compact small fixed selectable table">
       {
         _.chain(aggregates.data.histogram)
           .sort((a, b) => naturalsort(a.property, b.property))
@@ -197,32 +179,34 @@ const UnblessedProperties = ({ features }) => {
 };
 
 const PropertiesTable = ({ features, order }) => (
-  <table className="ui celled very compact small fixed selectable definition table">
-    {
-      (features.length > 1) &&
-        <thead>
-          <tr>
-            <th />
-            {features.map(f =>
-              <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
-            )}
-          </tr>
-        </thead>
-    }
-    <tbody>
-      {order
-        .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
-        .map(key =>
-          <tr key={key}>
-            <td className="right aligned">{key}</td>
-            {features.map(f =>
-              <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
-            )}
-          </tr>
-        )
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
+    <table className="ui celled very compact small fixed selectable definition table">
+      {
+        (features.length > 1) &&
+          <thead>
+            <tr>
+              <th />
+              {features.map(f =>
+                <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
+              )}
+            </tr>
+          </thead>
       }
-    </tbody>
-  </table>
+      <tbody>
+        {order
+          .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
+          .map(key =>
+            <tr key={key}>
+              <td className="right aligned">{key}</td>
+              {features.map(f =>
+                <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
+              )}
+            </tr>
+          )
+        }
+      </tbody>
+    </table>
+  </div>
 );
 
 const displayMode = (features) => {
@@ -268,4 +252,4 @@ const getUnblessedPropertyOrder = (layerName, properties) => {
 const getBehavior = (layerName) =>
   ((layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior);
 
-export default SelectionView;
+export default SelectionPane;
