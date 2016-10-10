@@ -128,7 +128,7 @@ public class BucketOp {
                         }
                     }
                     Map<String, Object> metadata = new HashMap<>(feature.metadata());
-                    metadata.put(propertyName(), Optional.of(value));
+                    metadata.put(propertyName(), value);
                     return ImmutableFeature.copyOf(feature)
                             .withUid(featureStore.getFeatureIdGenerator().get())
                             .withMetadata(metadata);
