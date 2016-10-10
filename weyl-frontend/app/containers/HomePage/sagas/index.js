@@ -9,7 +9,7 @@ import { apiRootUrl } from "../../../utils.js";
 
 import searchForLayers from "./searchForLayers";
 import manageSocket from "./manageSocket";
-import fetchAggregates from "./fetchAggregates";
+import fetchSelectionInfo from "./fetchSelectionInfo";
 
 function* runBucketComputation(action) {
   console.log(action);
@@ -73,7 +73,7 @@ function prepare(generator) {
 
 export default [
   prepare(manageSocket),
-  prepare(fetchAggregates),
+  prepare(fetchSelectionInfo),
   prepare(watch(constants.SEARCH, searchForLayers)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),

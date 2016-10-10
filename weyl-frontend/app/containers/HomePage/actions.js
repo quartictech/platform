@@ -168,15 +168,15 @@ export const connectionDown = () => ({
   type: constants.CONNECTION_DOWN,
 });
 
-export const aggregatesLoading = () => ({
-  type: constants.AGGREGATES_LOADING,
+export const selectionInfoLoading = () => ({
+  type: constants.SELECTION_INFO_LOADING,
 });
 
-export const aggregatesLoaded = (results) => ({
-  type: constants.AGGREGATES_LOADED,
+export const selectionInfoLoaded = (results) => ({
+  type: constants.SELECTION_INFO_LOADED,
   results,
 });
 
-export const aggregatesFailedToLoad = () => ({
-  type: constants.AGGREGATES_FAILED_TO_LOAD,
+export const selectionInfoFailedToLoad = () => ({
+  type: constants.SELECTION_INFO_FAILED_TO_LOAD,
 });

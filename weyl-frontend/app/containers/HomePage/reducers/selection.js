@@ -32,18 +32,18 @@ export default (state = initialState, action) => {
     case constants.CLEAR_SELECTION:
       return initialState;
 
-    case constants.AGGREGATES_LOADING:
-      return setAggregatesLifecycleState(state, "AGGREGATES_LOADING");
+    case constants.SELECTION_INFO_LOADING:
+      return setInfoLifecycleState(state, "INFO_LOADING");
 
-    case constants.AGGREGATES_LOADED:
+    case constants.SELECTION_INFO_LOADED:
       // This check ensures we discard data returned by stale fetches
-      if (state.getIn(["aggregates", "lifecycleState"]) === "AGGREGATES_LOADING") {
-        return setAggregatesLifecycleState(state, "AGGREGATES_LOADED")
-          .setIn(["aggregates", "data"], action.results);
+      if (state.getIn(["info", "lifecycleState"]) === "INFO_LOADING") {
+        return setInfoLifecycleState(state, "INFO_LOADED")
+          .setIn(["info", "data"], action.results);
       }
       return state;
 
-    case constants.AGGREGATES_FAILED_TO_LOAD:
+    case constants.SELECTION_INFO_FAILED_TO_LOAD:
       // TODO
       return state;
 
@@ -55,23 +55,23 @@ export default (state = initialState, action) => {
 const initialState = fromJS({
   ids: {},
   features: {},
-  aggregates: {
-    lifecycleState: "AGGREGATES_NOT_REQUIRED",
+  info: {
+    lifecycleState: "INFO_NOT_REQUIRED",
     data: {},
   },
 });
 
 const addEntry = (state, feature) =>
-  requireAggregates(state)
+  requireInfo(state)
   .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
   .setIn(["features", feature.id], feature.properties);
 
 const deleteEntry = (state, feature) =>
-  requireAggregates(state)
+  requireInfo(state)
   .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
   .deleteIn(["features", feature.id]);
 
-const requireAggregates = (state) => setAggregatesLifecycleState(state, "AGGREGATES_REQUIRED");
+const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED");
 
-const setAggregatesLifecycleState = (state, lifecycleState) => state
-  .setIn(["aggregates", "lifecycleState"], lifecycleState);
+const setInfoLifecycleState = (state, lifecycleState) => state
+  .setIn(["info", "lifecycleState"], lifecycleState);

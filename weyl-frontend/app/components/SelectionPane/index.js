@@ -15,7 +15,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
       return null;
     }
 
-    const showAggregates = (displayMode(filteredFeatures) === "AGGREGATE");
+    const showHistograms = (displayMode(filteredFeatures) === "HISTOGRAM");
 
     const title = (filteredFeatures.length > 1)
       ? `${filteredFeatures.length} features selected`
@@ -26,18 +26,21 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
     return (
       <Pane title={title} visible={visible} onClose={this.props.onClose}>
         {
-          showAggregates
+          showHistograms
             ? null
             : <Media features={filteredFeatures} />
         }
         {
-          showAggregates
-            ? <Aggregates aggregates={this.props.selection.aggregates} />
+          showHistograms
+            ? <Histograms
+                histograms={this.props.selection.info.data.histograms}
+                loaded={this.props.selection.info.lifecycleState === "INFO_LOADED"}
+              />
             : <BlessedProperties features={filteredFeatures} />
         }
 
         {
-          showAggregates ? null : (
+          showHistograms ? null : (
             <div>
               <div className="ui accordion" ref={x => $(x).accordion()}>
                 <div className="title">
@@ -89,20 +92,20 @@ const Image = ({ url }) => (
   <img className="ui fluid image" src={url} alt={url} />
 );
 
-const Aggregates = ({ aggregates }) => (
+const Histograms = ({ histograms, loaded }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
     {
-      (aggregates.lifecycleState === "AGGREGATES_LOADING")
+      (loaded)
         ? <div className="ui active indeterminate massive text loader">Loading...</div>
         : null
     }
 
     <table className="ui celled very compact small fixed selectable table">
       {
-        _.chain(aggregates.data.histogram)
+        _.chain(histograms)
           .sort((a, b) => naturalsort(a.property, b.property))
           .map(histogram =>
-            <AggregatesProperty
+            <PropertyHistogram
               key={histogram.property}
               histogram={histogram}
             />
@@ -113,7 +116,7 @@ const Aggregates = ({ aggregates }) => (
   </div>
 );
 
-const AggregatesProperty = ({ histogram }) => (
+const PropertyHistogram = ({ histogram }) => (
   <tbody className="ui accordion" ref={x => $(x).accordion()}>
     <tr className="title">
       <td style={{ fontWeight: "bold" }}>
@@ -219,7 +222,7 @@ const displayMode = (features) => {
   if (numFeatures < 5 && numUniqueLayers === 1) {
     return "SIDE_BY_SIDE";
   }
-  return "AGGREGATE";
+  return "HISTOGRAM";
 };
 
 const isPropertyDisplayable = (key, properties) =>

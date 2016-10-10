@@ -41,13 +41,13 @@ export const selectSelectionView = () => createSelector(
       )
       .flatten()
       .value(),
-    aggregates: selection.aggregates,
+    info: selection.info,
   })
 );
 
-export const selectAggregatesLifecycleState = () => createSelector(
+export const selectSelectionInfoLifecycleState = () => createSelector(
   selectSelection(),
-  (selection) => selection.aggregates.lifecycleState
+  (selection) => selection.info.lifecycleState
 );
 
 export const selectLiveLayerIds = () => createSelector(
@@ -59,7 +59,7 @@ export const selectLiveLayerIds = () => createSelector(
 
 export const selectTimeSeries = () => createSelector(
   selectSelection(),
-  (selection) => selection.aggregates.data.timeSeries,
+  (selection) => selection.info.data.timeSeries,
 );
 
 export const selectMap = () => createSelector(

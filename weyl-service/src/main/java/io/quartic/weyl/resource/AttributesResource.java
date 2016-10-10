@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
+
 @Path("/attributes")
 public class AttributesResource {
     private final FeatureStore featureStore;
@@ -20,7 +22,16 @@ public class AttributesResource {
     }
 
     @POST
-    @Path("/time_series")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<FeatureId, Map<String, Object>> getAttributes(List<FeatureId> featureIds) {
+        return featureIds.stream()
+                .map(featureStore::get)
+                .collect(toMap(Feature::uid, Feature::metadata));   // TODO: filter out internal properties
+    }
+
+    @POST
+    @Path("/time-series")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Map<String, TimeSeriesAttribute>> timeSeriesAttributes(List<FeatureId> featureIds) {
@@ -35,7 +46,7 @@ public class AttributesResource {
                 .collect(Collectors.toSet());
 
         return eligibleAttributes.stream()
-                .collect(Collectors.toMap(Function.identity(), attribute -> timeSeriesForAttribute(features, attribute)));
+                .collect(toMap(Function.identity(), attribute -> timeSeriesForAttribute(features, attribute)));
     }
 
     private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, String attribute) {
@@ -43,7 +54,7 @@ public class AttributesResource {
                 .filter(feature -> feature.metadata().containsKey("name"))
                 .filter(feature -> feature.metadata().containsKey(attribute) &&
                         feature.metadata().get(attribute) instanceof TimeSeriesAttribute)
-                .collect(Collectors.toMap(feature -> (String) feature.metadata().get("name"),
+                .collect(toMap(feature -> (String) feature.metadata().get("name"),
                         feature -> (TimeSeriesAttribute) feature.metadata().get(attribute)));
     }
 }
