@@ -22,8 +22,8 @@ const fetchFromEndpoint = (features, endpoint) => request(`${apiRootUrl}${endpoi
 });
 
 function* fetchAndDispatch() {
-  const selection = yield select(selectors.selectSelectionView());
-  const featureIds = _.chain(selection.features).map(f => f.properties["_id"]).value(); // eslint-disable-line dot-notation
+  const selectionIds = yield select(selectors.selectSelectionIds());
+  const featureIds = _.flatten(_.values(selectionIds));
 
   const results = yield _.values(thingsToFetch)
     .map(endpoint => call(fetchFromEndpoint, featureIds, endpoint));
@@ -45,8 +45,8 @@ export default function* () {
     // when new data is required.  This mechanim prevents every single map-click (etc.)
     // from triggering a new server request.
     yield take();
-    const state = yield select(selectors.selectSelectionInfoLifecycleState());
-    if (state === "INFO_REQUIRED") {
+    const info = yield select(selectors.selectSelectionInfo());
+    if (info.lifecycleState === "INFO_REQUIRED") {
       // We cancel *before* dispatching the lifecycle-change action.  This is to
       // mitigate the race-condition where a previously forked fetch completes
       // and dispatches outdated data back to the reducer.  The lifecycle

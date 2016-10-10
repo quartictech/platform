@@ -23,11 +23,8 @@ const FeedEvent = ({ event }) => (
 );
 
 const visibleEvents = (events, layers) => {
-  const icons = layers.reduce((p, layer) => {
-    p[layer.id] = (layer.metadata.icon || DEFAULT_ICON);  // eslint-disable-line no-param-reassign
-    return p;
-  }, {});
-  const visibleLayerIds = new Set(layers.filter(layer => layer.visible).map(layer => layer.id));
+  const icons = _.mapObject(layers, (v, k) => (v.metadata.icon || DEFAULT_ICON));
+  const visibleLayerIds = new Set(_.values(layers).filter(layer => layer.visible).map(layer => layer.id));
 
   return _.chain(events).keys()
     .filter(layerId => visibleLayerIds.has(layerId))
@@ -60,7 +57,5 @@ function FeedPane({ feed, layers, visible, onUiToggle }) {
     </Pane>
   );
 }
-
-// Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 export default FeedPane;

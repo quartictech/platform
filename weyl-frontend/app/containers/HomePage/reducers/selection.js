@@ -16,18 +16,8 @@ export default (state = initialState, action) => {
 
       return addEntry(initialState, action.feature);  // Clear all entries, add this one
 
-    case constants.LAYER_CLOSE: {
-      const location = ["ids", action.layerId];
-      if (state.hasIn(location)) {
-        return state.getIn(location)
-          .reduce(
-            (prevState, fid) => prevState.deleteIn(["features", fid]),
-            state
-          )
-          .deleteIn(location);
-      }
-      return state;
-    }
+    case constants.LAYER_CLOSE:
+      return state.deleteIn(["ids", action.layerId]);
 
     case constants.CLEAR_SELECTION:
       return initialState;
@@ -54,7 +44,6 @@ export default (state = initialState, action) => {
 
 const initialState = fromJS({
   ids: {},
-  features: {},
   info: {
     lifecycleState: "INFO_NOT_REQUIRED",
     data: {},
@@ -63,13 +52,11 @@ const initialState = fromJS({
 
 const addEntry = (state, feature) =>
   requireInfo(state)
-  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
-  .setIn(["features", feature.id], feature.properties);
+  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id));
 
 const deleteEntry = (state, feature) =>
   requireInfo(state)
-  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
-  .deleteIn(["features", feature.id]);
+  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id));
 
 const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED");
 

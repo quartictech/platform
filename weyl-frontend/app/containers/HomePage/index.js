@@ -62,7 +62,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.rightDrawer}>
           <SelectionPane
-            selection={this.props.selectionView}
+            selectionInfo={this.props.selectionInfo}
+            layers={this.props.layers}
             onClose={this.props.onSelectionClose}
           />
           <FeedPane
@@ -92,7 +93,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 }
 
 HomePage.propTypes = {
-  layers: React.PropTypes.array,
+  layers: React.PropTypes.object,
   layerToggleVisible: React.PropTypes.func,
   onSearch: React.PropTypes.func,
   onSelect: React.PropTypes.func,
@@ -135,7 +136,7 @@ const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers(),
   ui: selectors.selectUi(),
   selectionIds: selectors.selectSelectionIds(),
-  selectionView: selectors.selectSelectionView(),
+  selectionInfo: selectors.selectSelectionInfo(),
   timeSeries: selectors.selectTimeSeries(),
   map: selectors.selectMap(),
   geofence: selectors.selectGeofence(),

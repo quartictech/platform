@@ -7,36 +7,45 @@ const _ = require("underscore");
 
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
-    // TODO: move this into reducer
-    const filteredFeatures = this.props.selection.features
-      .filter(f => f.layer.visible);  // TODO: take account of actual filtering
+    const layers = this.props.layers;
+    const info = this.props.selectionInfo;
+    const attributes = info.data.attributes;
 
-    if (filteredFeatures.length === 0) {
+    return null;
+
+    // TODO: this is silly
+    if (!attributes || attributes.length === 0) {
       return null;
     }
 
-    const showHistograms = (displayMode(filteredFeatures) === "HISTOGRAM");
+    const visible = true; // TODO
+    const showHistograms = false; // TODO
+    const loaded = (info.lifecycleState === "INFO_LOADED");
+    const title = "TODO"; // TODO
 
-    const title = (filteredFeatures.length > 1)
-      ? `${filteredFeatures.length} features selected`
-      : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
+    // const title = (filteredFeatures.length > 1)
+    //   ? `${filteredFeatures.length} features selected`
+    //   : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
 
-    const visible = true;
+
 
     return (
       <Pane title={title} visible={visible} onClose={this.props.onClose}>
         {
+          (loaded)
+            ? null
+            : <div className="ui active indeterminate massive text loader">Loading...</div>
+        }
+
+        {
           showHistograms
             ? null
-            : <Media features={filteredFeatures} />
+            : <Media attributes={attributes} />
         }
         {
           showHistograms
-            ? <Histograms
-                histograms={this.props.selection.info.data.histograms}
-                loaded={this.props.selection.info.lifecycleState === "INFO_LOADED"}
-              />
-            : <BlessedProperties features={filteredFeatures} />
+            ? <Histograms histograms={info.data.histograms} />
+            : <BlessedAttributes attributes={attributes} />
         }
 
         {
@@ -49,7 +58,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
                 </div>
 
                 <div className="content">
-                  <UnblessedProperties features={filteredFeatures} />
+                  <UnblessedAttributes attributes={attributes} />
                 </div>
               </div>
             </div>
@@ -60,8 +69,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-const Media = ({ features }) => {
-  // We can assume properties are homogeneous
+const Media = ({ attributes }) => {
   const properties = features[0].properties;
   const layerName = features[0].layer.metadata.name;
 
@@ -77,7 +85,7 @@ const Media = ({ features }) => {
         <tbody>
           <tr>
             {features.map(f =>
-              <td key={f.properties["_id"]}><Image url={f.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
+              <td key={f.attributes["_id"]}><Image url={f.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
             )}
           </tr>
         </tbody>
@@ -92,14 +100,8 @@ const Image = ({ url }) => (
   <img className="ui fluid image" src={url} alt={url} />
 );
 
-const Histograms = ({ histograms, loaded }) => (
+const Histograms = ({ histograms }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
-    {
-      (loaded)
-        ? <div className="ui active indeterminate massive text loader">Loading...</div>
-        : null
-    }
-
     <table className="ui celled very compact small fixed selectable table">
       {
         _.chain(histograms)
@@ -149,39 +151,29 @@ const PropertyHistogram = ({ histogram }) => (
 
 );
 
-const BlessedProperties = ({ features }) => {
-  // We can assume properties are homogeneous
-  const properties = features[0].properties;
-  const layerName = features[0].layer.metadata.name;
-  return (
-    <PropertiesTable
-      features={features}
-      order={
-        isAnythingBlessed(layerName)
-          ? getBlessedPropertyOrder(layerName, properties)
-          : getUnblessedPropertyOrder(layerName, properties)
-      }
-    />
-  );
-};
+const BlessedAttributes = ({ features, layerName }) => (
+  <PropertiesTable
+    features={features}
+    order={
+      isAnythingBlessed(layerName)
+        ? getBlessedPropertyOrder(layerName, _.values(features)[0].attributes)
+        : getUnblessedPropertyOrder(layerName, _.values(features)[0].attributes)
+    }
+  />
+);
 
-const UnblessedProperties = ({ features }) => {
-  // We can assume properties are homogeneous
-  const properties = features[0].properties;
-  const layerName = features[0].layer.metadata.name;
-  return (
-    <PropertiesTable
-      features={features}
-      order={
-        isAnythingBlessed(layerName)
-          ? getUnblessedPropertyOrder(layerName, properties)
-          : getBlessedPropertyOrder(layerName, properties)
-      }
-    />
-  );
-};
+const UnblessedAttributes = ({ features, layerName }) => (
+  <PropertiesTable
+    features={features}
+    order={
+      isAnythingBlessed(layerName)
+        ? getUnblessedPropertyOrder(layerName, _.values(features)[0].attributes)
+        : getBlessedPropertyOrder(layerName, _.values(features)[0].attributes)
+    }
+  />
+);
 
-const PropertiesTable = ({ features, order }) => (
+const AttributesTable = ({ features, order }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
     <table className="ui celled very compact small fixed selectable definition table">
       {
@@ -190,19 +182,19 @@ const PropertiesTable = ({ features, order }) => (
             <tr>
               <th />
               {features.map(f =>
-                <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
+                <th key={f.attributes["_id"]}>{getTitle(f.layer.metadata.name, f.attributes)}</th>    // eslint-disable-line dot-notation
               )}
             </tr>
           </thead>
       }
       <tbody>
         {order
-          .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
+          .filter(key => _.some(features, f => isPropertyDisplayable(key, f.attributes)))
           .map(key =>
             <tr key={key}>
               <td className="right aligned">{key}</td>
               {features.map(f =>
-                <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
+                <td key={f.attributes["_id"]}>{f.attributes[key]}</td>    // eslint-disable-line dot-notation
               )}
             </tr>
           )
@@ -225,11 +217,11 @@ const displayMode = (features) => {
   return "HISTOGRAM";
 };
 
-const isPropertyDisplayable = (key, properties) =>
-  (key !== "_id") && (key in properties) && (String(properties[key]).trim() !== "");
+const isAttributeDisplayable = (key, attributes) =>
+  (key !== "_id") && (key in attributes) && (String(attributes[key]).trim() !== "");
 
-const getTitle = (layerName, properties) =>
-  getBehavior(layerName).title(properties);
+const getTitle = (layerName, attributes) =>
+  getBehavior(layerName).title(attributes);
 
 const hasImageUrl = (layerName) =>
   ("imageUrl" in getBehavior(layerName));
@@ -241,13 +233,13 @@ const isAnythingBlessed = (layerName) =>
   getBehavior(layerName).blessed.length > 0;
 
 // In the specified order
-const getBlessedPropertyOrder = (layerName, properties) =>
-  getBehavior(layerName).blessed.filter(k => k in properties);
+const getBlessedAttributeOrder = (layerName, attributes) =>
+  getBehavior(layerName).blessed.filter(k => k in attributes);
 
-// Find all other properties, and then natural-sort for convenience
-const getUnblessedPropertyOrder = (layerName, properties) => {
+// Find all other attributes, and then natural-sort for convenience
+const getUnblessedAttributeOrder = (layerName, attributes) => {
   const behavior = getBehavior(layerName);
-  return Object.keys(properties)
+  return Object.keys(attributes)
     .filter(k => (behavior.blessed.indexOf(k) === -1))
     .sort(naturalsort);
 };

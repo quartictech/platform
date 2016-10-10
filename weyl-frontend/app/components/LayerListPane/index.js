@@ -6,6 +6,7 @@ import GeofenceSettings from "../GeofenceSettings";
 import LayerStyleSettings from "../LayerStyleSettings";
 import AttributeList from "./AttributeList";
 import Pane from "../Pane";
+const _ = require("underscore");
 
 const DEFAULT_ICON = "grey map";
 
@@ -148,7 +149,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         onGeofenceChangeType={this.props.onGeofenceChangeType}
       />);
     }
-    for (const layer of this.props.layers) {
+    _.values(this.props.layers).forEach(layer =>
       rows.push(
         <LayerListItem
           key={layer.id}
@@ -158,10 +159,10 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           onLayerStyleChange={this.props.onLayerStyleChange}
           mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
         />
-      );
-    }
+      )
+    );
 
-    if (this.props.layers.length > 0 || this.props.ui.layerOp != null) {
+    if (_.size(this.props.layers) > 0 || this.props.ui.layerOp != null) {
       return (
         <Pane visible={this.props.visible}>
           <div className="ui divided items">
