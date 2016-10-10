@@ -91,27 +91,6 @@ export function clearSelection() {
   };
 }
 
-export function loadNumericAttributes(layerId) {
-  return {
-    type: constants.NUMERIC_ATTRIBUTES_LOAD,
-    layerId,
-  };
-}
-
-export function loadNumericAttributesDone(data) {
-  return {
-    type: constants.NUMERIC_ATTRIBUTES_LOADED,
-    data,
-  };
-}
-
-export function chartSelectAttribute(attribute) {
-  return {
-    type: constants.CHART_SELECT_ATTRIBUTE,
-    attribute,
-  };
-}
-
 export function mapLoading() {
   return {
     type: constants.MAP_LOADING,

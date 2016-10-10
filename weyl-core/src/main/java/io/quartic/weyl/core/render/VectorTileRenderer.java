@@ -6,6 +6,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.IndexedLayer;
 import io.quartic.weyl.core.model.LayerId;
 import no.ecc.vectortile.VectorTileEncoder;
@@ -65,9 +66,9 @@ public class VectorTileRenderer {
             layer.intersects(envelope).parallel().map( (feature) -> {
                 Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(feature.feature().metadata().size());
 
-                for (Map.Entry<String, Object> entry : feature.feature().metadata().entrySet()) {
-                    attributes.put(entry.getKey(), entry.getValue());
-                }
+                feature.feature().metadata().entrySet().stream()
+                        .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
+                        .forEach(entry -> attributes.put(entry.getKey(), entry.getValue()));
 
                 attributes.put("_id", feature.feature().uid().uid());
 

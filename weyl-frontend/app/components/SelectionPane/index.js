@@ -99,7 +99,7 @@ const Aggregates = ({ aggregates }) => (
 
     <table className="ui celled very compact small fixed selectable table">
       {
-        _.chain(aggregates.data)
+        _.chain(aggregates.data.histogram)
           .sort((a, b) => naturalsort(a.property, b.property))
           .map(histogram =>
             <AggregatesProperty

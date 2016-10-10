@@ -86,6 +86,8 @@ module.exports = (options) => ({
   // See e.g. https://github.com/pugjs/pug-loader/issues/8
   node: {
     fs: "empty",
+    net: "empty",
+    debug: "empty",
   },
   devtool: options.devtool,
   target: 'web', // Make web variables accessible to webpack, e.g. window

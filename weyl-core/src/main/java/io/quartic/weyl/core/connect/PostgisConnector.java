@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.connect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -7,14 +8,17 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
+import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
+import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +34,12 @@ public class PostgisConnector {
     private final FeatureStore featureStore;
     private final DBI dbi;
     private final WKBReader wkbReader = new WKBReader();
+    private final ObjectMapper objectMapper;
 
-    public PostgisConnector(FeatureStore featureStore, DBI dbi) {
+    public PostgisConnector(FeatureStore featureStore, DBI dbi, ObjectMapper objectMapper) {
         this.featureStore = featureStore;
         this.dbi = dbi;
+        this.objectMapper = objectMapper;
     }
 
     public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
@@ -82,6 +88,19 @@ public class PostgisConnector {
         return Optional.empty();
     }
 
+    private Optional<Object> readPgObject(Object value) {
+        PGobject pgObject = (PGobject) value;
+        if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
+            try {
+                return Optional.of(objectMapper.readValue(pgObject.getValue(), ComplexAttribute.class));
+            } catch (IOException e) {
+                log.warn("exception parsing json to attribute: {}", e.toString());
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
+    }
+
     private Optional<Feature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
@@ -95,7 +114,13 @@ public class PostgisConnector {
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
-                    attributes.put(entry.getKey(), entry.getValue());
+                    if (entry.getValue() instanceof PGobject) {
+                        readPgObject(entry.getValue())
+                                .ifPresent(attribute -> attributes.put(entry.getKey(), attribute));
+                    }
+                    else {
+                        attributes.put(entry.getKey(), entry.getValue());
+                    }
                 }
             }
 
