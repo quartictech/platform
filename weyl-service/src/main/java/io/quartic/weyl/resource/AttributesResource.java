@@ -1,5 +1,6 @@
 package io.quartic.weyl.resource;
 
+import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.Feature;
@@ -8,6 +9,7 @@ import io.quartic.weyl.core.model.FeatureId;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,7 +29,13 @@ public class AttributesResource {
     public Map<FeatureId, Map<String, Object>> getAttributes(List<FeatureId> featureIds) {
         return featureIds.stream()
                 .map(featureStore::get)
-                .collect(toMap(Feature::uid, Feature::metadata));   // TODO: filter out internal properties
+                .collect(toMap(Feature::uid, this::externalAttributes));
+    }
+
+    private Map<String, Object> externalAttributes(Feature feature) {
+        return feature.metadata().entrySet().stream()
+                .filter(e -> !(e.getValue() instanceof ComplexAttribute))
+                .collect(toMap(Entry::getKey, Entry::getValue));
     }
 
     @POST
@@ -42,7 +50,7 @@ public class AttributesResource {
         Set<String> eligibleAttributes = features.stream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
-                .map(Map.Entry::getKey)
+                .map(Entry::getKey)
                 .collect(Collectors.toSet());
 
         return eligibleAttributes.stream()

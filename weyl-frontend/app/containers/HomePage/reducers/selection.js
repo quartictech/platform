@@ -1,4 +1,4 @@
-import { Set, fromJS } from "immutable";
+import { Set, Map, fromJS } from "immutable";
 import * as constants from "../constants";
 
 export default (state = initialState, action) => {
@@ -14,7 +14,7 @@ export default (state = initialState, action) => {
           : addEntry(state, action.feature);
       }
 
-      return addEntry(initialState, action.feature);  // Clear all entries, add this one
+      return addEntry(deleteEntries(state), action.feature);  // Clear all entries, add this one
 
     case constants.LAYER_CLOSE:
       return state.deleteIn(["ids", action.layerId]);
@@ -53,6 +53,10 @@ const initialState = fromJS({
 const addEntry = (state, feature) =>
   requireInfo(state)
   .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id));
+
+const deleteEntries = (state) =>
+  requireInfo(state)
+  .set("ids", new Map());
 
 const deleteEntry = (state, feature) =>
   requireInfo(state)

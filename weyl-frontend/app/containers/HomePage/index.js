@@ -62,6 +62,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.rightDrawer}>
           <SelectionPane
+            selectedFeaturedIds={this.props.selectionIds}
             selectionInfo={this.props.selectionInfo}
             layers={this.props.layers}
             onClose={this.props.onSelectionClose}

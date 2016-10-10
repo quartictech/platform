@@ -7,7 +7,7 @@ import { apiRootUrl } from "../../../utils.js";
 const _ = require("underscore");
 
 const thingsToFetch = {
-  attributes: "/attributes",
+  featureAttributes: "/attributes",
   histograms: "/aggregates/histograms",
   timeSeries: "/attributes/time-series",
 };
