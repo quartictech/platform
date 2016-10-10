@@ -10,6 +10,7 @@ import io.quartic.weyl.core.model.ImmutableFeature;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
@@ -32,7 +33,9 @@ public class GeoJsonImporter implements Importer {
     }
 
     static MathTransform findMathTransform() throws FactoryException {
-        CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:4326");
+        // Ugh. See http://docs.geotools.org/latest/userguide/library/referencing/order.html
+        CRSAuthorityFactory factory = CRS.getAuthorityFactory(true);
+        CoordinateReferenceSystem sourceCrs = factory.createCoordinateReferenceSystem("EPSG:4326");
         CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:3857");
         return CRS.findMathTransform(sourceCrs, targetCrs);
     }
