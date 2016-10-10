@@ -1,13 +1,15 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.ImmutableLayerStats;
+import io.quartic.weyl.core.model.IndexedLayer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
@@ -18,8 +20,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -59,53 +59,6 @@ public class LayerResource {
         Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
         return bucketLayer.map(IndexedLayer::layerId)
                 .orElseThrow(() -> new ProcessingException("bucket computation failed"));
-    }
-
-    @GET
-    @Path("/numeric_values/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Double[]> numericValues(@PathParam("id") String id) {
-        IndexedLayer indexedLayer = layerStore.get(LayerId.of(id))
-                .orElseThrow(() -> new NotFoundException("no layer with id " + id));
-
-        List<String> numericAttributes = indexedLayer.layer().schema()
-                .attributes()
-                .entrySet().stream()
-                .filter( entry -> entry.getValue().type() == AttributeType.NUMERIC)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
-
-        Map<String, Double[]> result = Maps.newHashMap();
-        for (String attributeName : numericAttributes) {
-            result.put(attributeName, new Double[indexedLayer.indexedFeatures().size()]);
-        }
-
-        int index = 0;
-        for (IndexedFeature feature : indexedLayer.indexedFeatures()) {
-            for (Map.Entry<String, Object> entry : feature.feature().metadata().entrySet()) {
-
-                if (! result.containsKey(entry.getKey())) {
-                    continue;
-                }
-
-                Double assignValue = null;
-                Object value = entry.getValue();
-                if (value instanceof Double || value instanceof Float) {
-                    assignValue = (double) value;
-                }
-                else if (value instanceof Long) {
-                    assignValue = ((Long) value).doubleValue();
-                }
-                else if (value instanceof Integer) {
-                    assignValue = ((Integer) value).doubleValue();
-                }
-
-                result.get(entry.getKey())[index] = assignValue;
-            }
-            index += 1;
-        }
-
-        return result;
     }
 
     @DELETE
