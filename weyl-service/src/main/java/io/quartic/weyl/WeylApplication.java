@@ -21,6 +21,8 @@ import io.quartic.weyl.core.utils.RandomUidGenerator;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.resource.*;
+import io.quartic.weyl.session.InMemoryUserSessionStore;
+import io.quartic.weyl.session.UserSessionStore;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
@@ -84,6 +86,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().setUrlPattern("/api/*");
 
         LayerStore layerStore = new LayerStore(featureStore, lidGenerator, createDbiSupplier(configuration, environment), environment.getObjectMapper());
+        UserSessionStore userSessionStore = new InMemoryUserSessionStore();
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
@@ -92,6 +95,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AlertResource(alertProcessor));
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
+        environment.jersey().register(new FilterResource(userSessionStore));
 
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 

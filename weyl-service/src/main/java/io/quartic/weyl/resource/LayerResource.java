@@ -184,7 +184,7 @@ public class LayerResource {
         return ImmutableLayerResponse.builder()
                 .id(layer.layerId())
                 .metadata(layer.layer().metadata())
-                .stats(ImmutableLayerStats.builder().featureCount(1).build())
+                .stats(ImmutableLayerStats.builder().build())
                 .attributeSchema(layer.layer().schema())
                 .live(true)
                 .build();

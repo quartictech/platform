@@ -127,8 +127,6 @@ public class LayerStore {
                                 .maximum(maxNumeric.get(entry.getKey()))
                         .build()));
 
-        builder.featureCount(layer.features().size());
-
         return builder.build();
     }
 
