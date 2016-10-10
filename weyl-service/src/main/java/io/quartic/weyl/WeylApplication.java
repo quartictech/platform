@@ -21,6 +21,7 @@ import io.quartic.weyl.core.utils.RandomUidGenerator;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.resource.*;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -93,6 +94,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AttributesResource(featureStore));
 
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
+
+        environment.servlets().setSessionHandler(new SessionHandler());
     }
 
     // We pass a memoized supplier so we get connect-on-demand, to avoid startup failure when Postgres is down
