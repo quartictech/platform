@@ -6,6 +6,9 @@ plugins {
 
 allprojects {
     repositories {
+        maven {
+            url "http://download.osgeo.org/webdav/geotools/"
+        }
         mavenCentral()
 
         maven {

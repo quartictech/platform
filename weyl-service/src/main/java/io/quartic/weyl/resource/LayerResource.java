@@ -9,7 +9,6 @@ import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.LayerUpdateRequest;
-import io.quartic.weyl.request.PostgisImportRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
 import org.slf4j.Logger;
@@ -34,22 +33,6 @@ public class LayerResource {
     public LayerResource(LayerStore layerStore, LiveLayerStore liveLayerStore) {
         this.layerStore = layerStore;
         this.liveLayerStore = liveLayerStore;
-    }
-
-    @PUT
-    @Path("/import")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public LayerId importLayer(PostgisImportRequest request) {
-        Preconditions.checkNotNull(request.name());
-        Preconditions.checkNotNull(request.description());
-        LayerMetadata metadata = LayerMetadata.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
-        Optional<IndexedLayer> layer = layerStore.importPostgis(metadata, request.query());
-        return layer.orElseThrow(() -> new NotFoundException("Error importing layer"))
-                .layerId();
     }
 
     @PUT

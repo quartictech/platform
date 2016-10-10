@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.connect;
+package io.quartic.weyl.core.importer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class PostgisConnector {
-    private static final Logger log = LoggerFactory.getLogger(PostgisConnector.class);
+public class PostgresImporter implements Importer {
+    private static final Logger log = LoggerFactory.getLogger(PostgresImporter.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
@@ -35,48 +35,18 @@ public class PostgisConnector {
     private final DBI dbi;
     private final WKBReader wkbReader = new WKBReader();
     private final ObjectMapper objectMapper;
+    private final String sql;
 
-    public PostgisConnector(FeatureStore featureStore, DBI dbi, ObjectMapper objectMapper) {
-        this.featureStore = featureStore;
+    public static PostgresImporter fromDBI(DBI dbi, String sql, FeatureStore featureStore, ObjectMapper objectMapper) {
+       return new PostgresImporter(dbi, sql, featureStore, objectMapper);
+    }
+
+    private PostgresImporter(DBI dbi, String sql, FeatureStore featureStore, ObjectMapper objectMapper) {
         this.dbi = dbi;
+        this.sql = sql;
+        this.featureStore = featureStore;
         this.objectMapper = objectMapper;
     }
-
-    public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
-        Handle h = dbi.open();
-        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
-                sql);
-        ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
-                .iterator();
-
-        Collection<Feature> features = Lists.newArrayList();
-        int count = 0;
-        while (iterator.hasNext()) {
-            count += 1;
-            if (count % 10000 == 0) {
-                log.info("Importing feature: {}", count);
-            }
-            Optional<Feature> feature = rowToFeature(iterator.next());
-
-            feature.ifPresent(features::add);
-        }
-        iterator.close();
-
-        Map<String, AbstractAttribute> attributes = AttributeSchemaInferrer.inferSchema(features);
-
-        AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
-                .attributes(attributes)
-                .primaryAttribute(Optional.empty())
-                .build();
-
-        return Optional.of(ImmutableRawLayer.builder()
-                .features(featureStore.createImmutableCollection(features))
-                .metadata(metadata)
-                .schema(attributeSchema)
-                .build());
-    }
-
-
 
     private Optional<Geometry> parseGeometry(byte[] data) {
         try {
@@ -134,5 +104,28 @@ public class PostgisConnector {
                     .externalId(id)
                     .build();
         });
+    }
+
+    @Override
+    public Collection<Feature> get() {
+           Handle h = dbi.open();
+        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
+                sql);
+        ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
+                .iterator();
+
+        Collection<Feature> features = Lists.newArrayList();
+        int count = 0;
+        while (iterator.hasNext()) {
+            count += 1;
+            if (count % 10000 == 0) {
+                log.info("Importing feature: {}", count);
+            }
+            Optional<Feature> feature = rowToFeature(iterator.next());
+
+            feature.ifPresent(features::add);
+        }
+        iterator.close();
+        return features;
     }
 }

@@ -42,15 +42,26 @@ public final class Utils {
         }
         if (geometry instanceof Polygon) {
             Polygon polygon = (Polygon) geometry;
-            LinearRing exterior  =factory.createLinearRing(listToCoords(polygon.coordinates().get(0)));
-            LinearRing[] holes =polygon.coordinates().stream().skip(1)
+            return createPolygon(polygon.coordinates());
+        }
+        if (geometry instanceof MultiPolygon) {
+            MultiPolygon multiPolygon = (MultiPolygon) geometry;
+
+            com.vividsolutions.jts.geom.Polygon[] polygons = multiPolygon.coordinates().stream().map(Utils::createPolygon)
+                    .toArray(com.vividsolutions.jts.geom.Polygon[]::new);
+            return factory.createMultiPolygon(polygons);
+        }
+        throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
+    }
+
+    private static com.vividsolutions.jts.geom.Polygon createPolygon(List<List<List<Double>>> coordinates) {
+         LinearRing exterior = factory.createLinearRing(listToCoords(coordinates.get(0)));
+            LinearRing[] holes = coordinates.stream().skip(1)
                     .map(Utils::listToCoords)
                     .map(factory::createLinearRing)
                     .toArray(LinearRing[]::new);
 
             return factory.createPolygon(exterior, holes);
-        }
-        throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
     }
 
     public static Geometry fromJts(com.vividsolutions.jts.geom.Geometry geometry) {

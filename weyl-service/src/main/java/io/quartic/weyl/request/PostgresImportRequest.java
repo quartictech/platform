@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonSerialize(as=ImmutablePostgisImportRequest.class)
-@JsonDeserialize(as=ImmutablePostgisImportRequest.class)
-public interface PostgisImportRequest {
+@JsonDeserialize(as=ImmutablePostgresImportRequest.class)
+public interface PostgresImportRequest {
     String name();
     String description();
     String query();

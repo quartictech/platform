@@ -8,7 +8,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @Type(value = Point.class, name = "Point"),
         @Type(value = LineString.class, name = "LineString"),
-        @Type(value = Polygon.class, name = "Polygon")
+        @Type(value = Polygon.class, name = "Polygon"),
+        @Type(value = MultiPolygon.class, name = "MultiPolygon")
 })
 public interface Geometry {
 }
