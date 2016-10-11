@@ -7,8 +7,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -28,7 +27,8 @@ public class FeatureCollectionShould {
 
         FeatureCollection newCollection = collection.append(featuresToAppend);
 
-        assertThat(newCollection, contains(featuresToAppend.toArray()));
+        assertThat(newCollection, hasSize(2));
+        assertThat(newCollection, containsInAnyOrder(featuresToAppend.toArray()));
     }
 
     @Test
@@ -39,7 +39,8 @@ public class FeatureCollectionShould {
                 .append(featuresToAppend.subList(0, 2))
                 .append(featuresToAppend.subList(2, 4));
 
-        assertThat(newCollection, contains(featuresToAppend.toArray()));
+        assertThat(newCollection, hasSize(4));
+        assertThat(newCollection, containsInAnyOrder(featuresToAppend.toArray()));
     }
 
     @Test
@@ -62,9 +63,7 @@ public class FeatureCollectionShould {
 
     @Test(expected = UnsupportedOperationException.class)
     public void prohibit_modification() throws Exception {
-
         collection.add(feature());
-
     }
 
     private Feature feature() {

@@ -15,6 +15,7 @@ import static java.util.Collections.unmodifiableMap;
 public class FeatureStore extends AbstractMap<FeatureId, Feature> {
     private final Map<FeatureId, Feature> features = new MapMaker().weakValues().makeMap();
     private final UidGenerator<FeatureId> fidGenerator;
+    private final FeatureCollection emptyCollection = new FeatureCollection(this::addFeatures);
 
     public FeatureStore(UidGenerator<FeatureId> fidGenerator) {
         this.fidGenerator = fidGenerator;
@@ -25,7 +26,7 @@ public class FeatureStore extends AbstractMap<FeatureId, Feature> {
     }
 
     public FeatureCollection newCollection() {
-        return new FeatureCollection(this::addFeatures);
+        return emptyCollection;
     }
 
     private void addFeatures(Collection<Feature> features) {

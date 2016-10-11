@@ -69,7 +69,7 @@ public class LiveLayerStore {
 
         final Collection<EnrichedLiveEvent> enrichedLiveEvents = enrichLiveEvents(events);
 
-        final Collection<io.quartic.weyl.core.model.Feature> newFeatures = collectFeatures(enrichedLiveEvents);
+        final List<io.quartic.weyl.core.model.Feature> newFeatures = collectFeatures(enrichedLiveEvents);
         final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
 
         final LiveLayer layer = layers.get(layerId);
