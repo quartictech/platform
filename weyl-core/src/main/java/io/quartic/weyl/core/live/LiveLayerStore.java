@@ -121,6 +121,8 @@ public class LiveLayerStore {
         checkLayerExists(layerId);
         LiveLayerSubscription subscription = LiveLayerSubscription.of(layerId, layers.get(layerId).view(), subscriber);
         liveLayerSubscriptions.put(layerId, subscription);
+        LiveLayerState initialState = getLiveLayerState(layers.get(layerId), subscription);
+        subscriber.accept(initialState);
         return subscription;
     }
 
@@ -130,18 +132,22 @@ public class LiveLayerStore {
 
     private void notifySubscribers(LayerId layerId) {
         final LiveLayer layer = layers.get(layerId);
-        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
         liveLayerSubscriptions.get(layerId)
                 .forEach(subscription -> {
-                    Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView()
-                            .compute(featureStore.getFeatureIdGenerator(), features);
-                    FeatureCollection featureCollection = FeatureCollection.of(
-                            computed
-                                    .map(this::fromJts)
-                                    .collect(Collectors.toList()));
-                    LiveLayerState newState = LiveLayerState.of(featureCollection, layer.feedEvents());
+                    LiveLayerState newState = getLiveLayerState(layer, subscription);
                     subscription.subscriber().accept(newState);
                 });
+    }
+
+    private LiveLayerState getLiveLayerState(LiveLayer layer, LiveLayerSubscription subscription) {
+        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
+        Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView()
+                .compute(featureStore.getFeatureIdGenerator(), features);
+        FeatureCollection featureCollection = FeatureCollection.of(
+                computed
+                        .map(this::fromJts)
+                        .collect(Collectors.toList()));
+        return LiveLayerState.of(featureCollection, layer.feedEvents());
     }
 
     private void notifyListeners(LayerId layerId, Collection<io.quartic.weyl.core.model.Feature> newFeatures) {
