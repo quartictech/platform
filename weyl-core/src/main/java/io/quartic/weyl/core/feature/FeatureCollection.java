@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.concat;
 
 public class FeatureCollection extends AbstractCollection<Feature> {
@@ -16,29 +17,27 @@ public class FeatureCollection extends AbstractCollection<Feature> {
     }
 
     private final Store store;
-    private final List<Feature> features;
-    private final Iterable<Feature> prev;
+    private final Iterable<Feature> features;
     private final int size;
 
     FeatureCollection(Store store) {
-        this(store, 0, ImmutableList.of(), ImmutableList.of());
+        this(store, ImmutableList.of(), 0);
     }
 
-    private FeatureCollection(Store store, int prevSize, Iterable<Feature> prev, List<Feature> features) {
+    private FeatureCollection(Store store, Iterable<Feature> features, int size) {
         this.store = store;
-        this.prev = prev;
-        this.features = ImmutableList.copyOf(features);
-        this.size = prevSize + features.size();
+        this.features = features;
+        this.size = size;
     }
 
     public FeatureCollection append(List<Feature> features) {
         store.addAll(features);
-        return new FeatureCollection(store, size, this, features);
+        return new FeatureCollection(store, concat(this, copyOf(features)), size + features.size());
     }
 
     @Override
     public Iterator<Feature> iterator() {
-        return concat(features, prev).iterator();
+        return features.iterator();
     }
 
     @Override
