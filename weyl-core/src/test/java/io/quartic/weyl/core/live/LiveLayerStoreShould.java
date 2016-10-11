@@ -3,11 +3,9 @@ package io.quartic.weyl.core.live;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.*;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,6 +15,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -81,13 +80,19 @@ public class LiveLayerStoreShould {
     public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        final Feature feature = feature("a", Optional.of(point()));
 
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
+        store.addToLayer(id, liveEvents(feature));
 
-        verify(subscriber).accept(
-                liveLayerState(
-                        featureWithUid("a", "1", point())
+        final LiveLayerState liveLayerState = captureLiveLayerState(subscriber);
+        assertThat(liveLayerState.featureCollection().features(),
+                containsInAnyOrder(featureWithUid("a", "1", point())
+                ));
+        assertThat(liveLayerState.schema(),
+                equalTo(ImmutableAttributeSchema.builder()
+                        .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
+                        .build()
                 ));
     }
 
@@ -100,9 +105,7 @@ public class LiveLayerStoreShould {
         store.addSubscriber(id, subscriber);
         store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
 
-        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
-        verify(subscriber).accept(captor.capture());
-        assertThat(captor.getValue().featureCollection().features(),
+        assertThat(captureLiveLayerState(subscriber).featureCollection().features(),
                 containsInAnyOrder(
                         featureWithUid("a", "1", point()),
                         featureWithUid("b", "2", point())
@@ -132,9 +135,7 @@ public class LiveLayerStoreShould {
         store.addSubscriber(id, subscriber);
         store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
 
-        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
-        verify(subscriber).accept(captor.capture());
-        assertThat(captor.getValue().featureCollection().features(),
+        assertThat(captureLiveLayerState(subscriber).featureCollection().features(),
                 containsInAnyOrder(
                         featureWithUid("a", "1", point()),
                         featureWithUid("b", "2", point())
@@ -200,6 +201,12 @@ public class LiveLayerStoreShould {
         return id;
     }
 
+    private LiveLayerState captureLiveLayerState(Consumer<LiveLayerState> subscriber) {
+        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
+        verify(subscriber).accept(captor.capture());
+        return captor.getValue();
+    }
+
     private Collection<LiveEvent> liveEvents(Feature... features) {
         FeatureCollection featureCollection = FeatureCollection.of(ImmutableList.copyOf(features));
         return liveEvents(featureCollection);
@@ -208,10 +215,6 @@ public class LiveLayerStoreShould {
     private Collection<LiveEvent> liveEvents(FeatureCollection featureCollection) {
         LiveEvent liveEvent = LiveEvent.of(Instant.now(), Optional.of(featureCollection), Optional.empty());
         return ImmutableList.of(liveEvent);
-    }
-
-    private LiveLayerState liveLayerState(Feature... features) {
-        return LiveLayerState.of(featureCollection(features), ImmutableList.of());
     }
 
     private FeatureCollection featureCollection(Feature... features) {

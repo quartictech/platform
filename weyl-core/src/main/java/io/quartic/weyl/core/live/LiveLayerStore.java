@@ -5,6 +5,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
@@ -44,7 +45,7 @@ public class LiveLayerStore {
 
         Layer layer = Layer.builder()
                 .metadata(metadata)
-                .schema(ImmutableAttributeSchema.builder().build())
+                .schema(createSchema(features))
                 .features(features)
                 .build();
 
@@ -76,14 +77,23 @@ public class LiveLayerStore {
         final LiveLayer layer = layers.get(layerId);
         layer.feedEvents().addAll(feedEvents);
 
-        putLayer(layer.withLayer(
-                layer.layer().withFeatures(layer.layer().features().append(newFeatures))
+        final io.quartic.weyl.core.feature.FeatureCollection updatedFeatures = layer.layer().features().append(newFeatures);
+        putLayer(layer.withLayer(layer.layer()
+                .withFeatures(updatedFeatures)
+                .withSchema(createSchema(updatedFeatures))
         ));
 
         notifyListeners(layerId, newFeatures);
         notifySubscribers(layerId);
 
         return newFeatures.size();
+    }
+
+    private ImmutableAttributeSchema createSchema(io.quartic.weyl.core.feature.FeatureCollection updatedFeatures) {
+        return ImmutableAttributeSchema.builder()
+                .attributes(AttributeSchemaInferrer.inferSchema(updatedFeatures))
+                .primaryAttribute(Optional.empty())
+                .build();
     }
 
     private void putLayer(LiveLayer layer) {
@@ -143,7 +153,11 @@ public class LiveLayerStore {
                             computed
                                     .map(this::fromJts)
                                     .collect(Collectors.toList()));
-                    LiveLayerState newState = LiveLayerState.of(featureCollection, layer.feedEvents());
+                    LiveLayerState newState = LiveLayerState.builder()
+                            .schema(layer.layer().schema())
+                            .featureCollection(featureCollection)
+                            .feedEvents(layer.feedEvents())
+                            .build();
                     subscription.subscriber().accept(newState);
                 });
     }
