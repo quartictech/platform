@@ -10,6 +10,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -17,9 +18,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -101,8 +100,10 @@ public class LiveLayerStoreShould {
         store.addSubscriber(id, subscriber);
         store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
 
-        verify(subscriber).accept(
-                liveLayerState(
+        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
+        verify(subscriber).accept(captor.capture());
+        assertThat(captor.getValue().featureCollection().features(),
+                containsInAnyOrder(
                         featureWithUid("a", "1", point()),
                         featureWithUid("b", "2", point())
                 ));
@@ -131,8 +132,10 @@ public class LiveLayerStoreShould {
         store.addSubscriber(id, subscriber);
         store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
 
-        verify(subscriber).accept(
-                liveLayerState(
+        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
+        verify(subscriber).accept(captor.capture());
+        assertThat(captor.getValue().featureCollection().features(),
+                containsInAnyOrder(
                         featureWithUid("a", "1", point()),
                         featureWithUid("b", "2", point())
                 ));
