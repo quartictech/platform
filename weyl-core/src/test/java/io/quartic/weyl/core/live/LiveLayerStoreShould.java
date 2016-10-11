@@ -152,11 +152,11 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
 
         LiveLayerSubscription subscription = store.addSubscriber(id, subscriber);
+        verify(subscriber, times(1)).accept(any());
         store.removeSubscriber(subscription);
 
         store.addToLayer(id, liveEvents(featureCollection(featureWithUid("a", "1", point()))));
-
-        verifyZeroInteractions(subscriber);
+        verifyNoMoreInteractions(subscriber);
     }
 
     @Test
@@ -164,11 +164,12 @@ public class LiveLayerStoreShould {
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
         store.addSubscriber(id, subscriber);
+        verify(subscriber, times(1)).accept(any());
         store.deleteLayer(id);
         createLayerWithId(id);
         store.addToLayer(id, liveEvents(featureCollection(featureWithUid("a", "1", point()))));
 
-        verifyZeroInteractions(subscriber);
+        verifyNoMoreInteractions(subscriber);
     }
 
     private void createLayerWithId(LayerId id) {
