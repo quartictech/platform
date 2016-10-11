@@ -12,7 +12,7 @@ public interface IndexedLayer {
     LayerId layerId();
 
     // The layer we're indexing
-    Layer layer();
+    AbstractLayer layer();
 
     SpatialIndex spatialIndex();
 

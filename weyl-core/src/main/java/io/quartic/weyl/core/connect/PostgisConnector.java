@@ -42,7 +42,7 @@ public class PostgisConnector {
         this.objectMapper = objectMapper;
     }
 
-    public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
+    public Optional<AbstractLayer> fetch(LayerMetadata metadata, String sql) {
         Handle h = dbi.open();
         String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                 sql);
@@ -69,8 +69,8 @@ public class PostgisConnector {
                 .primaryAttribute(Optional.empty())
                 .build();
 
-        return Optional.of(ImmutableRawLayer.builder()
-                .features(featureStore.createImmutableCollection(features))
+        return Optional.of(Layer.builder()
+                .features(featureStore.newCollection().append(features))
                 .metadata(metadata)
                 .schema(attributeSchema)
                 .build());

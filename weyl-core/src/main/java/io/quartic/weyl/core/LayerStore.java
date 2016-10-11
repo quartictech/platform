@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
-    private final Map<LayerId, Layer> rawLayers = Maps.newConcurrentMap();
+    private final Map<LayerId, AbstractLayer> layers = Maps.newConcurrentMap();
     private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
     private final FeatureStore featureStore;
     private final UidGenerator<LayerId> lidGenerator;
@@ -52,7 +52,7 @@ public class LayerStore {
     }
 
     private void storeLayer(IndexedLayer indexedLayer) {
-        rawLayers.put(indexedLayer.layerId(), indexedLayer.layer());
+        layers.put(indexedLayer.layerId(), indexedLayer.layer());
         indexedLayers.put(indexedLayer.layerId(), indexedLayer);
     }
 
@@ -72,7 +72,7 @@ public class LayerStore {
         return layer;
     }
 
-     private IndexedLayer index(Layer layer) {
+     private IndexedLayer index(AbstractLayer layer) {
          Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()
@@ -90,7 +90,7 @@ public class LayerStore {
                  .build();
     }
 
-    private static LayerStats calculateStats(Layer layer) {
+    private static LayerStats calculateStats(AbstractLayer layer) {
         Map<String, Double> maxNumeric = Maps.newConcurrentMap();
         Map<String, Double> minNumeric = Maps.newConcurrentMap();
 

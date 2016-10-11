@@ -33,27 +33,26 @@ public class LiveLayerStore {
     }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
-        Collection<io.quartic.weyl.core.model.Feature> features
+        io.quartic.weyl.core.feature.FeatureCollection features
                 = layers.containsKey(id)
                 ? layers.get(id).layer().features()
-                : featureStore.createMutableCollection();
+                : featureStore.newCollection();
         Collection<EnrichedFeedEvent> feedEvents
                 = layers.containsKey(id)
                 ? layers.get(id).feedEvents()
                 : Lists.newLinkedList();
 
-        Layer layer = ImmutableRawLayer.builder()
+        Layer layer = Layer.builder()
                 .metadata(metadata)
                 .schema(ImmutableAttributeSchema.builder().build())
                 .features(features)
                 .build();
 
-        layers.put(id, LiveLayer.of(id, layer, feedEvents, view));
+        putLayer(LiveLayer.of(id, layer, feedEvents, view));
     }
 
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
-        featureStore.removeCollection(layers.get(id).layer().features());
         layers.remove(id);
         liveLayerSubscriptions.removeAll(id);
     }
@@ -74,11 +73,18 @@ public class LiveLayerStore {
         final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
 
         final LiveLayer layer = layers.get(layerId);
-        layer.layer().features().addAll(newFeatures);
         layer.feedEvents().addAll(feedEvents);
+
+        putLayer(layer.withLayer(
+                layer.layer().withFeatures(layer.layer().features().append(newFeatures))
+        ));
 
         notifyListeners(layerId, newFeatures);
         notifySubscribers(layerId);
+    }
+
+    private void putLayer(LiveLayer layer) {
+        layers.put(layer.layerId(), layer);
     }
 
     private Collection<EnrichedLiveEvent> enrichLiveEvents(Collection<LiveEvent> events) {

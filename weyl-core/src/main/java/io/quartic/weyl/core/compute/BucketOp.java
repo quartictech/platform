@@ -49,7 +49,7 @@ public class BucketOp {
         return featureLayer.layer().metadata().name();
     }
 
-    public static Optional<Layer> create(LayerStore store, BucketSpec bucketSpec) {
+    public static Optional<AbstractLayer> create(LayerStore store, BucketSpec bucketSpec) {
         Optional<IndexedLayer> featureLayer = store.get(bucketSpec.features());
         Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
 
@@ -60,7 +60,7 @@ public class BucketOp {
         return Optional.empty();
     }
 
-    Optional<Layer> compute() {
+    Optional<AbstractLayer> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
             Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
@@ -83,8 +83,8 @@ public class BucketOp {
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(propertyName());
 
-            RawLayer layer = ImmutableRawLayer.builder()
-                    .features(featureStore.createImmutableCollection(features))
+            Layer layer = Layer.builder()
+                    .features(featureStore.newCollection().append(features))
                     .schema(attributeSchema)
                     .metadata(LayerMetadata.builder()
                             .name(layerName)
