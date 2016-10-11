@@ -47,7 +47,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   getVisibleSubLayers() {
-    const visibleLayerIds = this.props.layers.filter(l => l.visible).map(l => l.id);
+    const visibleLayerIds = _.values(this.props.layers)
+      .filter(l => l.visible)
+      .map(l => l.id);
     return _.flatten(Object.keys(this.subLayers)
       .filter(id => visibleLayerIds.some(i => i === id))
       .map(id => this.subLayers[id]));
@@ -156,11 +158,9 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   deleteOldLayers(layers) {
-    const layerIds = layers.map(l => l.id);
-    const layersToDelete = Object.keys(this.subLayers)
-      .filter(id => !layerIds.some(i => i === id));
+    const layerIdsToDelete = _.keys(this.subLayers).filter(id => !(id in layers));
 
-    layersToDelete.forEach(id => {
+    layerIdsToDelete.forEach(id => {
       this.subLayers[id].forEach(subLayerId => this.map.removeLayer(subLayerId));
       this.map.removeSource(id);
       delete this.subLayers[id];
@@ -168,16 +168,16 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   addNewLayers(layers) {
-    const layersToAdd = layers.filter(layer => !(layer.id in this.subLayers));
+    const layerIdsToAdd = _.keys(layers).filter(id => !(id in this.subLayers));
 
-    layersToAdd.forEach(layer => {
-      const subLayerIds = this.createSourceAndSubLayers(layer);
-      this.subLayers[layer.id] = subLayerIds;
+    layerIdsToAdd.forEach(id => {
+      const subLayerIds = this.createSourceAndSubLayers(layers[id]);
+      this.subLayers[id] = subLayerIds;
     });
   }
 
   updateLayers(layers, selection) {
-    layers.forEach(layer => this.updateLayer(layer, selection));
+    _.values(layers).forEach(layer => this.updateLayer(layer, selection));
   }
 
   updateLayer(layer, selection) {

@@ -28,7 +28,7 @@ public class AggregatesResource {
     }
 
     @POST
-    @Path("/histogram")
+    @Path("/histograms")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Collection<AbstractHistogram> getHistogram(List<FeatureId> featureIds) {

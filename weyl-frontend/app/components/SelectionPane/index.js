@@ -7,65 +7,83 @@ const _ = require("underscore");
 
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
-    // TODO: move this into reducer
-    const filteredFeatures = this.props.selection.features
-      .filter(f => f.layer.visible);  // TODO: take account of actual filtering
+    const layers = this.props.layers;
+    const featureIds = this.props.selectedFeaturedIds;
+    const info = this.props.selectionInfo;
+    const featureAttributes = info.data.featureAttributes;
 
-    if (filteredFeatures.length === 0) {
+    // TODO: reconcile with visibility
+    if (_.size(featureIds) === 0) {
       return null;
     }
+    const visible = true; // TODO
+    const loaded = (info.lifecycleState === "INFO_LOADED");
 
-    const showAggregates = (displayMode(filteredFeatures) === "AGGREGATE");
-
-    const title = (filteredFeatures.length > 1)
-      ? `${filteredFeatures.length} features selected`
-      : getTitle(filteredFeatures[0].layer.metadata.name, filteredFeatures[0].properties);
-
-    const visible = true;
+    const title = (numFeatures(featureIds) > 1)
+      ? `${numFeatures(featureIds)} features selected`
+      : getBehavior(singleLayer(featureIds, layers)).title(_.values(featureAttributes)[0]);
 
     return (
       <Pane title={title} visible={visible} onClose={this.props.onClose}>
         {
-          showAggregates
+          (loaded)
             ? null
-            : <Media features={filteredFeatures} />
-        }
-        {
-          showAggregates
-            ? <Aggregates aggregates={this.props.selection.aggregates} />
-            : <BlessedProperties features={filteredFeatures} />
+            : <div className="ui active indeterminate massive text loader">Loading...</div>
         }
 
         {
-          showAggregates ? null : (
-            <div>
-              <div className="ui accordion" ref={x => $(x).accordion()}>
-                <div className="title">
-                  <i className="dropdown icon"></i>
-                  More properties
-                </div>
-
-                <div className="content">
-                  <UnblessedProperties features={filteredFeatures} />
-                </div>
-              </div>
-            </div>
-          )
+          (histogramEnabled(featureIds))
+            ? <Histograms histograms={info.data.histograms} />
+            : <NonHistograms featureAttributes={featureAttributes} layer={singleLayer(featureIds, layers)} />
         }
       </Pane>
     );
   }
 }
 
-const Media = ({ features }) => {
-  // We can assume properties are homogeneous
-  const properties = features[0].properties;
-  const layerName = features[0].layer.metadata.name;
+// featureIds is an object { layerId -> [featureIds] }
+const histogramEnabled = (featureIds) =>
+  (_.size(featureIds) > 1 || numFeatures(featureIds) > 4);
 
-  if (hasImageUrl(layerName)) {
-    if (displayMode(features) === "BASEBALL") {
+const numFeatures = (featureIds) => _.size(_.flatten(_.values(featureIds)));
+
+const singleLayer = (featureIds, layers) => layers[_.keys(featureIds)[0]];
+
+const NonHistograms = ({ featureAttributes, layer }) => {
+  const behavior = getBehavior(layer);
+  return (
+    <div>
+      <Media featureAttributes={featureAttributes} behavior={behavior} />
+      <AttributesTable
+        featureAttributes={featureAttributes}
+        behavior={behavior}
+        order={behavior.isAnythingBlessed ? behavior.blessedAttributeOrder : behavior.unblessedAttributeOrder}
+      />
+      <div>
+        <div className="ui accordion" ref={x => $(x).accordion()}>
+          <div className="title">
+            <i className="dropdown icon"></i>
+            More attributes
+          </div>
+
+          <div className="content">
+            <AttributesTable
+              featureAttributes={featureAttributes}
+              behavior={behavior}
+              order={behavior.isAnythingBlessed ? behavior.unblessedAttributeOrder : behavior.blessedAttributeOrder}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Media = ({ featureAttributes, behavior }) => {
+  if (behavior.imageUrlKey) {
+    if (_.size(featureAttributes) === 1) {
       return (
-        <Image url={properties[getImageUrl(layerName)]} />
+        <Image url={_.values(featureAttributes)[0][behavior.imageUrlKey]} />
       );
     }
 
@@ -73,8 +91,8 @@ const Media = ({ features }) => {
       <table className="ui very basic very compact small fixed table">
         <tbody>
           <tr>
-            {features.map(f =>
-              <td key={f.properties["_id"]}><Image url={f.properties[getImageUrl(layerName)]} /></td>    // eslint-disable-line dot-notation
+            {_.map(featureAttributes, (attrs, id) =>
+              <td key={id}><Image url={attrs[behavior.imageUrlKey]} /></td>
             )}
           </tr>
         </tbody>
@@ -89,20 +107,45 @@ const Image = ({ url }) => (
   <img className="ui fluid image" src={url} alt={url} />
 );
 
-const Aggregates = ({ aggregates }) => (
+const AttributesTable = ({ featureAttributes, behavior, order }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
-    {
-      (aggregates.lifecycleState === "AGGREGATES_LOADING")
-        ? <div className="ui active indeterminate massive text loader">Loading...</div>
-        : null
-    }
+    <table className="ui celled very compact small fixed selectable definition table">
+      {
+        (_.size(featureAttributes) > 1) &&
+          <thead>
+            <tr>
+              <th />
+              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
+            </tr>
+          </thead>
+      }
+      <tbody>
+        {order
+          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
+          .map(key => (
+            <tr key={key}>
+              <td className="right aligned">{key}</td>
+              {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+);
 
+const isAttributeDisplayable = (key, attributes) =>
+  (key !== "_id") && (key in attributes) && (String(attributes[key]).trim() !== "");
+
+// TODO: blessed vs. non-blessed
+const Histograms = ({ histograms }) => (
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
     <table className="ui celled very compact small fixed selectable table">
       {
-        _.chain(aggregates.data.histogram)
+        _.chain(histograms)
           .sort((a, b) => naturalsort(a.property, b.property))
           .map(histogram =>
-            <AggregatesProperty
+            <AttributeHistogram
               key={histogram.property}
               histogram={histogram}
             />
@@ -113,7 +156,7 @@ const Aggregates = ({ aggregates }) => (
   </div>
 );
 
-const AggregatesProperty = ({ histogram }) => (
+const AttributeHistogram = ({ histogram }) => (
   <tbody className="ui accordion" ref={x => $(x).accordion()}>
     <tr className="title">
       <td style={{ fontWeight: "bold" }}>
@@ -143,113 +186,21 @@ const AggregatesProperty = ({ histogram }) => (
       </td>
     </tr>
   </tbody>
-
 );
 
-const BlessedProperties = ({ features }) => {
-  // We can assume properties are homogeneous
-  const properties = features[0].properties;
-  const layerName = features[0].layer.metadata.name;
-  return (
-    <PropertiesTable
-      features={features}
-      order={
-        isAnythingBlessed(layerName)
-          ? getBlessedPropertyOrder(layerName, properties)
-          : getUnblessedPropertyOrder(layerName, properties)
-      }
-    />
-  );
+const getBehavior = (layer) => {
+  const layerName = layer.metadata.name;
+  const attributeKeys = layer.attributeSchema.attributes;
+  const b = (layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior;
+  return {
+    title: (attributes) => b.title(attributes),
+    imageUrlKey: b.imageUrl,
+    isAnythingBlessed: b.blessed.length > 0,
+    // In the specified order
+    blessedAttributeOrder: b.blessed.filter(k => k in attributeKeys),
+    // Find all other attributes, and then natural-sort for convenience
+    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (b.blessed.indexOf(k) === -1)).sort(naturalsort),
+  };
 };
-
-const UnblessedProperties = ({ features }) => {
-  // We can assume properties are homogeneous
-  const properties = features[0].properties;
-  const layerName = features[0].layer.metadata.name;
-  return (
-    <PropertiesTable
-      features={features}
-      order={
-        isAnythingBlessed(layerName)
-          ? getUnblessedPropertyOrder(layerName, properties)
-          : getBlessedPropertyOrder(layerName, properties)
-      }
-    />
-  );
-};
-
-const PropertiesTable = ({ features, order }) => (
-  <div style={{ maxHeight: "30em", overflow: "auto" }}>
-    <table className="ui celled very compact small fixed selectable definition table">
-      {
-        (features.length > 1) &&
-          <thead>
-            <tr>
-              <th />
-              {features.map(f =>
-                <th key={f.properties["_id"]}>{getTitle(f.layer.metadata.name, f.properties)}</th>    // eslint-disable-line dot-notation
-              )}
-            </tr>
-          </thead>
-      }
-      <tbody>
-        {order
-          .filter(key => _.some(features, f => isPropertyDisplayable(key, f.properties)))
-          .map(key =>
-            <tr key={key}>
-              <td className="right aligned">{key}</td>
-              {features.map(f =>
-                <td key={f.properties["_id"]}>{f.properties[key]}</td>    // eslint-disable-line dot-notation
-              )}
-            </tr>
-          )
-        }
-      </tbody>
-    </table>
-  </div>
-);
-
-const displayMode = (features) => {
-  const numUniqueLayers = _.chain(features).map(f => f.layer.id).uniq().size().value();
-  const numFeatures = features.length;
-
-  if (numFeatures === 1) {
-    return "BASEBALL";
-  }
-  if (numFeatures < 5 && numUniqueLayers === 1) {
-    return "SIDE_BY_SIDE";
-  }
-  return "AGGREGATE";
-};
-
-const isPropertyDisplayable = (key, properties) =>
-  (key !== "_id") && (key in properties) && (String(properties[key]).trim() !== "");
-
-const getTitle = (layerName, properties) =>
-  getBehavior(layerName).title(properties);
-
-const hasImageUrl = (layerName) =>
-  ("imageUrl" in getBehavior(layerName));
-
-const getImageUrl = (layerName) =>
-  getBehavior(layerName).imageUrl;
-
-const isAnythingBlessed = (layerName) =>
-  getBehavior(layerName).blessed.length > 0;
-
-// In the specified order
-const getBlessedPropertyOrder = (layerName, properties) =>
-  getBehavior(layerName).blessed.filter(k => k in properties);
-
-// Find all other properties, and then natural-sort for convenience
-const getUnblessedPropertyOrder = (layerName, properties) => {
-  const behavior = getBehavior(layerName);
-  return Object.keys(properties)
-    .filter(k => (behavior.blessed.indexOf(k) === -1))
-    .sort(naturalsort);
-};
-
-const getBehavior = (layerName) =>
-  ((layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior);
 
 export default SelectionPane;

@@ -8,11 +8,6 @@ export const selectLayers = () => createSelector(
   (homeState) => homeState.get("layers").toJS()
 );
 
-export const selectLayer = (layerId) => createSelector(
-  selectLayers(),
-  (layers) => layers.find(l => l.id === layerId)
-);
-
 export const selectUi = () => createSelector(
   selectHome(),
   (homeState) => homeState.get("ui").toJS()
@@ -28,38 +23,21 @@ export const selectSelectionIds = () => createSelector(
   (selection) => selection.ids
 );
 
-export const selectSelectionView = () => createSelector(
+export const selectSelectionInfo = () => createSelector(
   selectSelection(),
-  selectLayers(),
-  (selection, layers) => ({
-    features: _.chain(selection.ids).keys()
-      .map(layerId => selection.ids[layerId]
-        .map(fid => ({
-          layer: layers.find(l => l.id === layerId),
-          properties: selection.features[fid],
-        }))
-      )
-      .flatten()
-      .value(),
-    aggregates: selection.aggregates,
-  })
-);
-
-export const selectAggregatesLifecycleState = () => createSelector(
-  selectSelection(),
-  (selection) => selection.aggregates.lifecycleState
+  (selection) => selection.info
 );
 
 export const selectLiveLayerIds = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("layers").toJS()
+  selectLayers(),
+  (layers) => _.values(layers)
     .filter(layer => layer.live)
     .map(layer => layer.id)
 );
 
 export const selectTimeSeries = () => createSelector(
   selectSelection(),
-  (selection) => selection.aggregates.data.timeSeries,
+  (selection) => selection.info.data.timeSeries,
 );
 
 export const selectMap = () => createSelector(

@@ -1,4 +1,4 @@
-import { fromJS, List, Set } from "immutable";
+import { fromJS, Map, Set } from "immutable";
 import * as constants from "../constants";
 
 const colorScale = "PuRd";
@@ -58,23 +58,17 @@ const layerReducer = (state, action) => {
   }
 };
 
-const getIdx = (state, id) => state.findKey(layer => layer.get("id") === id);
-
-export default (state = new List(), action) => {
+export default (state = new Map(), action) => {
   switch (action.type) {
     case constants.LAYER_CREATE:
-      return (getIdx(state, action.id) === undefined)
-        ? state.push(newLayer(action))
-        : state;
+      return (state.has(action.id)) ? state : state.set(action.id, newLayer(action));
     case constants.LAYER_CLOSE:
-      return state.delete(getIdx(state, action.layerId));
+      return state.delete(action.layerId);
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
     case constants.LAYER_SET_DATA:
-      return state.update(
-        getIdx(state, action.layerId),
-        val => layerReducer(val, action));
+      return state.update(action.layerId, val => layerReducer(val, action));
     default:
       return state;
   }
