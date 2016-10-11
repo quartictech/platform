@@ -19,8 +19,8 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
     const visible = true; // TODO
     const loaded = (info.lifecycleState === "INFO_LOADED");
 
-    const title = (numFeatures(featureIds) > 1)
-      ? `${numFeatures(featureIds)} features selected`
+    const title = (numFeatures(featureIds) > 1 || _.size(featureAttributes) === 0)
+      ? `${numFeatures(featureIds)} feature(s) selected`
       : getBehavior(singleLayer(featureIds, layers)).title(_.values(featureAttributes)[0]);
 
     return (
