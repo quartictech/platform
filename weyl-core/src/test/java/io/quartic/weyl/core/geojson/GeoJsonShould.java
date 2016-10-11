@@ -25,28 +25,28 @@ public class GeoJsonShould {
         FeatureCollection original = FeatureCollection.of(list(
                 Feature.of(
                         Optional.empty(),
-                        Point.of(list(102.0, 0.5)),
+                        Optional.of(Point.of(list(102.0, 0.5))),
                         ImmutableMap.of()
                 ),
                 Feature.of(
                         Optional.empty(),
-                        LineString.of(list(
+                        Optional.of(LineString.of(list(
                                 list(102.0, 0.0),
                                 list(103.0, 1.0),
                                 list(104.0, 0.0),
                                 list(105.0, 1.0)
-                                )),
+                                ))),
                         ImmutableMap.of()
                 ),
                 Feature.of(
                         Optional.empty(),
-                        Polygon.of(list(list(
+                        Optional.of(Polygon.of(list(list(
                                 list(100.0, 0.0),
                                 list(101.0, 0.0),
                                 list(101.0, 1.0),
                                 list(100.0, 1.0),
                                 list(100.0, 0.0)
-                        ))),
+                        )))),
                         ImmutableMap.of()
                 )
         ));

@@ -59,8 +59,8 @@ public class LayerResourceShould {
         return ImmutableMap.of("timestamp", 12345);
     }
 
-    private Point point() {
-        return Point.of(ImmutableList.of(1.0, 2.0));
+    private Optional<Point> point() {
+        return Optional.of(Point.of(ImmutableList.of(1.0, 2.0)));
     }
 
     private LayerUpdateRequest createRequest(FeatureCollection collection) {

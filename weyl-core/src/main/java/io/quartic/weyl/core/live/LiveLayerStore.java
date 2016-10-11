@@ -64,7 +64,8 @@ public class LiveLayerStore {
                 .collect(Collectors.toList());
     }
 
-    public void addToLayer(LayerId layerId, Collection<LiveEvent> events) {
+    // Returns number of features actually added
+    public int addToLayer(LayerId layerId, Collection<LiveEvent> events) {
         checkLayerExists(layerId);
 
         final Collection<EnrichedLiveEvent> enrichedLiveEvents = enrichLiveEvents(events);
@@ -81,6 +82,8 @@ public class LiveLayerStore {
 
         notifyListeners(layerId, newFeatures);
         notifySubscribers(layerId);
+
+        return newFeatures.size();
     }
 
     private void putLayer(LiveLayer layer) {
@@ -96,6 +99,7 @@ public class LiveLayerStore {
     private List<io.quartic.weyl.core.model.Feature> collectFeatures(Collection<EnrichedLiveEvent> events) {
         return events.stream()
                 .flatMap(event -> event.liveEvent().featureCollection().map(fc -> fc.features().stream()).orElse(Stream.empty()))
+                .filter(f -> f.geometry().isPresent())  // TODO: we should handle null geometries better
                 .map(this::toJts)
                 .collect(Collectors.toList());
     }
@@ -152,7 +156,7 @@ public class LiveLayerStore {
         return ImmutableFeature.builder()
                 .externalId(f.id().get())
                 .uid(featureStore.getFeatureIdGenerator().get())
-                .geometry(Utils.toJts(f.geometry()))
+                .geometry(Utils.toJts(f.geometry().get()))  // HACK: we can assume that we've simply filtered out features with null geometries for now
                 .metadata(f.properties())
                 .build();
     }
@@ -160,7 +164,7 @@ public class LiveLayerStore {
     private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
         return Feature.of(
                 Optional.of(f.externalId()),
-                Utils.fromJts(f.geometry()),
+                Optional.of(Utils.fromJts(f.geometry())),
                 convertMetadata(f.uid(), f.metadata())
         );
     }
