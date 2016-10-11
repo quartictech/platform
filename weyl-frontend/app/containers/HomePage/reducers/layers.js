@@ -52,7 +52,9 @@ const layerReducer = (state, action) => {
         return set.add(action.value);
       });
     case constants.LAYER_SET_DATA:
-      return state.set("data", action.data);
+      return state
+        .set("data", action.data)
+        .set("attributeSchema", action.schema);
     default:
       return state;
   }

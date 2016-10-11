@@ -82,9 +82,9 @@ public class LayerResource {
                             "Features with missing ID");
                 });
 
-        liveLayerStore.addToLayer(layerId, request.events());
+        final int numFeatures = liveLayerStore.addToLayer(layerId, request.events());
 
-        log.info("Updated {} features for layerId = {}", request.events().size(), id);
+        log.info("Updated {} features for layerId = {}", numFeatures, id);
     }
 
     private void validateOrThrow(Stream<Feature> features, Predicate<Feature> predicate, String message) {

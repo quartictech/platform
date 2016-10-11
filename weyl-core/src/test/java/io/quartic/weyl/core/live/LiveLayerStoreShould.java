@@ -3,22 +3,21 @@ package io.quartic.weyl.core.live;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.*;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -56,27 +55,44 @@ public class LiveLayerStoreShould {
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_if_adding_to_non_existent_layer() throws Exception {
-        store.addToLayer(LayerId.of("666"), liveEvents(feature("a", point())));
+        store.addToLayer(LayerId.of("666"), liveEvents(feature("a", Optional.of(point()))));
     }
 
     @Test
     public void accept_if_adding_to_existing_layer() throws Exception {
         LayerId id = createLayer();
 
-        store.addToLayer(id, liveEvents(feature("a", point())));
+        int num = store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
+
+        assertThat(num, equalTo(1));
+    }
+
+    @Test
+    public void ignore_features_with_null_geometry() throws Exception {
+        LayerId id = createLayer();
+
+        int num = store.addToLayer(id, liveEvents(feature("a", Optional.empty())));
+
+        assertThat(num, equalTo(0));
     }
 
     @Test
     public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        final Feature feature = feature("a", Optional.of(point()));
 
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature));
 
-        verify(subscriber).accept(
-                liveLayerState(
-                        featureWithUid("a", "1", point())
+        final LiveLayerState liveLayerState = captureLiveLayerState(subscriber);
+        assertThat(liveLayerState.featureCollection().features(),
+                containsInAnyOrder(featureWithUid("a", "1", point())
+                ));
+        assertThat(liveLayerState.schema(),
+                equalTo(ImmutableAttributeSchema.builder()
+                        .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
+                        .build()
                 ));
     }
 
@@ -85,12 +101,12 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
-        store.addToLayer(id, liveEvents(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature("b", point())));
+        store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
 
-        verify(subscriber).accept(
-                liveLayerState(
+        assertThat(captureLiveLayerState(subscriber).featureCollection().features(),
+                containsInAnyOrder(
                         featureWithUid("a", "1", point()),
                         featureWithUid("b", "2", point())
                 ));
@@ -113,14 +129,14 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
-        store.addToLayer(id, liveEvents(feature("a", point())));
+        store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
 
         createLayer();  // Create again
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature("b", point())));
+        store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
 
-        verify(subscriber).accept(
-                liveLayerState(
+        assertThat(captureLiveLayerState(subscriber).featureCollection().features(),
+                containsInAnyOrder(
                         featureWithUid("a", "1", point()),
                         featureWithUid("b", "2", point())
                 ));
@@ -134,7 +150,7 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         store.addListener(listenerA);
         store.addListener(listenerB);
-        store.addToLayer(id, liveEvents(feature("abcd", point())));
+        store.addToLayer(id, liveEvents(feature("abcd", Optional.of(point()))));
 
         final ImmutableFeature feature = ImmutableFeature.builder()
                 .externalId("abcd")
@@ -186,6 +202,12 @@ public class LiveLayerStoreShould {
         return id;
     }
 
+    private LiveLayerState captureLiveLayerState(Consumer<LiveLayerState> subscriber) {
+        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
+        verify(subscriber, times(2)).accept(captor.capture());
+        return captor.getAllValues().get(1);    // Assume first time is initial subscribe
+    }
+
     private Collection<LiveEvent> liveEvents(Feature... features) {
         FeatureCollection featureCollection = FeatureCollection.of(ImmutableList.copyOf(features));
         return liveEvents(featureCollection);
@@ -196,20 +218,22 @@ public class LiveLayerStoreShould {
         return ImmutableList.of(liveEvent);
     }
 
-    private LiveLayerState liveLayerState(Feature... features) {
-        return LiveLayerState.of(featureCollection(features), ImmutableList.of());
-    }
-
     private FeatureCollection featureCollection(Feature... features) {
         return FeatureCollection.of(ImmutableList.copyOf(features));
     }
 
-    private Feature feature(String id, Geometry geometry) {
-        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234));
+    private Feature feature(String id, Optional<Geometry> geometry) {
+        return Feature.of(
+                Optional.of(id),
+                geometry,
+                ImmutableMap.of("timestamp", 1234));
     }
 
     private Feature featureWithUid(String id, String uid, Geometry geometry) {
-        return Feature.of(Optional.of(id), geometry, ImmutableMap.of("timestamp", 1234, "_id", FeatureId.of(uid)));
+        return Feature.of(
+                Optional.of(id),
+                Optional.of(geometry),
+                ImmutableMap.of("timestamp", 1234, "_id", FeatureId.of(uid)));
     }
 
     private Point point() {

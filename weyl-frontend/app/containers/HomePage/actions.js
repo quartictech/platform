@@ -61,12 +61,13 @@ export function layerClose(layerId) {
   };
 }
 
-export function layerSetData(layerId, data) {
+export function layerSetData(layerId, data, schema) {
   console.assert(layerId != null);
   return {
     type: constants.LAYER_SET_DATA,
     layerId,
     data,
+    schema,
   };
 }
 

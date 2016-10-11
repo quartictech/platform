@@ -90,6 +90,16 @@ const curatedBehaviors = {
       "lastoutcomecat",
     ],
   },
+
+  "Road Disruptions": {
+    title: (x) => `${x.location}`,
+    blessed: [
+      "severity",
+      "category",
+      "subcategory",
+      "currentUpdate",
+    ],
+  },
 };
 
 export {
