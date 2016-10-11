@@ -1,5 +1,7 @@
 package io.quartic.weyl.core.geojson;
+
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
@@ -7,9 +9,12 @@ import com.vividsolutions.jts.geom.LinearRing;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toCollection;
+
 public final class Utils {
     private static final GeometryFactory factory = new GeometryFactory();
     private Utils() {}
@@ -63,22 +68,48 @@ public final class Utils {
             com.vividsolutions.jts.geom.LineString string = (com.vividsolutions.jts.geom.LineString)geometry;
             return LineString.of(coordsToList(string.getCoordinates()));
         }
+        if (geometry instanceof com.vividsolutions.jts.geom.Polygon) {
+            com.vividsolutions.jts.geom.Polygon polygon = (com.vividsolutions.jts.geom.Polygon)geometry;
+
+            return Polygon.of(polygonToList(polygon));
+        }
+        if (geometry instanceof com.vividsolutions.jts.geom.MultiPolygon) {
+            com.vividsolutions.jts.geom.MultiPolygon multiPolygon = (com.vividsolutions.jts.geom.MultiPolygon)geometry;
+
+            return MultiPolygon.of(IntStream.range(0, multiPolygon.getNumGeometries())
+                    .mapToObj(i -> (com.vividsolutions.jts.geom.Polygon) multiPolygon.getGeometryN(i))
+                    .map(Utils::polygonToList)
+                    .collect(Collectors.toList()));
+        }
+
         throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
     }
+
+    private static List<List<List<Double>>> polygonToList(com.vividsolutions.jts.geom.Polygon polygon) {
+        final List<List<List<Double>>> coords = Lists.newArrayList();
+        coords.add(coordsToList(polygon.getExteriorRing().getCoordinates()));
+        return IntStream.range(0, polygon.getNumInteriorRing())
+                .mapToObj(i -> coordsToList(polygon.getInteriorRingN(i).getCoordinates()))
+                .collect(toCollection(() -> coords));
+    }
+
     private static Coordinate[] listToCoords(List<List<Double>> list) {
         return list.stream()
                 .map(Utils::listToCoord)
                 .collect(Collectors.toList())
                 .toArray(new Coordinate[0]);
     }
+
     private static Coordinate listToCoord(List<Double> list) {
         return new Coordinate(list.get(0), list.get(1));
     }
+
     private static List<List<Double>> coordsToList(Coordinate[] coordinates) {
         return Arrays.stream(coordinates)
                 .map(Utils::coordToList)
                 .collect(Collectors.toList());
     }
+
     private static List<Double> coordToList(Coordinate coordinate) {
         return ImmutableList.of(coordinate.x, coordinate.y);
     }
