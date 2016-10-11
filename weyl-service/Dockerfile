@@ -4,6 +4,7 @@ FROM openjdk:8u92-jre-alpine
 RUN apk --no-cache add bash
 
 ADD weyl-service-*.tar /
+RUN ln -s /weyl-service-* /weyl-service
 
 WORKDIR /weyl-service
 
