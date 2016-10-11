@@ -63,7 +63,7 @@ public class BucketOp {
     Optional<AbstractLayer> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            List<Feature> features = forkJoinPool.submit(this::bucketData).get();
+            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
                     featureLayer.layer().metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -98,7 +98,7 @@ public class BucketOp {
         }
     }
 
-    private List<Feature> bucketData() {
+    private Collection<Feature> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
         List<Bucketed> hits = featureLayer.layer().features().parallelStream()
                 .flatMap(feature -> {

@@ -31,7 +31,7 @@ public class FeatureCollection extends AbstractCollection<Feature> {
         this.size = size;
     }
 
-    public FeatureCollection append(List<Feature> features) {
+    public FeatureCollection append(Collection<Feature> features) {
         store.addAll(features);
         return new FeatureCollection(store, this, copyOf(features), size + features.size());
     }
