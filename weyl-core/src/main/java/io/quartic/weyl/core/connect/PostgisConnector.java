@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -42,14 +42,14 @@ public class PostgisConnector {
         this.objectMapper = objectMapper;
     }
 
-    public Optional<RawLayer> fetch(LayerMetadata metadata, String sql) {
+    public Optional<AbstractLayer> fetch(LayerMetadata metadata, String sql) {
         Handle h = dbi.open();
         String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                 sql);
         ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
                 .iterator();
 
-        Collection<Feature> features = Lists.newArrayList();
+        List<Feature> features = Lists.newArrayList();
         int count = 0;
         while (iterator.hasNext()) {
             count += 1;
@@ -69,8 +69,8 @@ public class PostgisConnector {
                 .primaryAttribute(Optional.empty())
                 .build();
 
-        return Optional.of(ImmutableRawLayer.builder()
-                .features(featureStore.createImmutableCollection(features))
+        return Optional.of(Layer.builder()
+                .features(featureStore.newCollection().append(features))
                 .metadata(metadata)
                 .schema(attributeSchema)
                 .build());

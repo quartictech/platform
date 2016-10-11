@@ -10,7 +10,7 @@ import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerViewType;
-import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.request.LayerUpdateRequest;
@@ -31,7 +31,7 @@ public class LayerResourceShould {
     @Before
     public void setUp() throws Exception {
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("666"), mock(Layer.class), ImmutableList.of(), (gen, history) -> history.stream())
+                LiveLayer.of(LayerId.of("666"), mock(AbstractLayer.class), ImmutableList.of(), (gen, history) -> history.stream())
         ));
     }
 
