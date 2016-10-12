@@ -8,6 +8,7 @@ import React from "react";
 
 import styles from "./styles.css";
 const $ = require("jquery");
+const _ = require("underscore");
 
 class LayerPicker extends React.Component { // eslint-disable-line react/prefer-stateless-function
   componentDidMount() {
@@ -27,9 +28,9 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
   render() {
     const rows = [];
 
-    for (const layer of this.props.layers) {
-      rows.push(<div className="item" key={layer.id} data-value={layer.id}>{layer.metadata.name}</div>);
-    }
+    _.values(this.props.layers).forEach(layer =>
+      rows.push(<div className="item" key={layer.id} data-value={layer.id}>{layer.metadata.name}</div>)
+    );
 
     return (
       <div className={styles.layerPicker}>
