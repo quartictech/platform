@@ -1,64 +1,29 @@
+import { Set, Map } from "immutable";
 import { createSelector } from "reselect";
 const _ = require("underscore");
 
-const selectHome = (state) => state.get("home");
+const selectHome = (state) => state.get("home").toJS();
 
-export const selectLayers = createSelector(
-  selectHome,
-  (home) => home.get("layers").toJS()
-);
+export const selectLayers = createSelector(selectHome, p => p.layers);
+export const selectUi = createSelector(selectHome, p => p.ui);
+export const selectSelection = createSelector(selectHome, p => p.selection);
+export const selectGeofence = createSelector(selectHome, p => p.geofence);
+export const selectFeed = createSelector(selectHome, p => p.feed);
+export const selectConnectionUp = createSelector(selectHome, p => p.connection);
 
-export const selectUi = createSelector(
-  selectHome,
-  (home) => home.get("ui").toJS()
-);
+export const selectSelectionIds = createSelector(selectSelection, p => p.ids);
+export const selectSelectionInfo = createSelector(selectSelection, p => p.info);
+export const selectTimeSeries = createSelector(selectSelectionInfo, p => p.data.timeSeries);
 
-export const selectSelection = createSelector(
-  selectHome,
-  (home) => home.get("selection").toJS()
-);
-
-export const selectSelectionIds = createSelector(
-  selectSelection,
-  (selection) => selection.ids
-);
-
-export const selectSelectionInfo = createSelector(
-  selectSelection,
-  (selection) => selection.info
-);
-
-export const selectLiveLayerIds = createSelector(
-  selectLayers,
+export const selectLiveLayerIds = createSelector(selectLayers,
   (layers) => _.values(layers)
     .filter(layer => layer.live)
     .map(layer => layer.id)
 );
 
-export const selectTimeSeries = createSelector(
-  selectSelection,
-  (selection) => selection.info.data.timeSeries,
-);
-
-export const selectMap = createSelector(
-  selectHome,
+export const selectMap = createSelector(selectHome,
   (home) => ({
-    ...(home.get("map").toJS()),
-    theme: home.getIn(["ui", "settings", "theme"]),
+    ...(home.map),
+    theme: home.ui.settings.theme,
   })
-);
-
-export const selectGeofence = createSelector(
-  selectHome,
-  (home) => home.get("geofence").toJS(),
-);
-
-export const selectFeed = createSelector(
-  selectHome,
-  (home) => home.get("feed").toJS(),
-);
-
-export const selectConnectionUp = createSelector(
-  selectHome,
-  (home) => home.get("connection"),
 );
