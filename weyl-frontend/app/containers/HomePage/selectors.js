@@ -1,4 +1,3 @@
-import { Set, Map } from "immutable";
 import { createSelector } from "reselect";
 const _ = require("underscore");
 
