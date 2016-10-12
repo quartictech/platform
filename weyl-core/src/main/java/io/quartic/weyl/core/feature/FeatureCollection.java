@@ -31,7 +31,7 @@ public class FeatureCollection extends AbstractCollection<Feature> {
 
     public FeatureCollection append(Collection<? extends Feature> features) {
         backer.accept(features);
-        return new FeatureCollection(backer, this, copyOf(features), size + features.size());
+        return new FeatureCollection(backer, this, reverse(copyOf(features)), size + features.size());
     }
 
     @Override
@@ -64,7 +64,7 @@ public class FeatureCollection extends AbstractCollection<Feature> {
             }
 
             private Iterator<Feature> seedIterator() {
-                return reverse(collection.features).iterator();
+                return collection.features.iterator();
             }
         };
     }
