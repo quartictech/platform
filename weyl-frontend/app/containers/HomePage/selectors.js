@@ -1,64 +1,64 @@
 import { createSelector } from "reselect";
 const _ = require("underscore");
 
-const selectHome = () => (state) => state.get("home");
+const selectHome = (state) => state.get("home");
 
-export const selectLayers = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("layers").toJS()
+export const selectLayers = createSelector(
+  selectHome,
+  (home) => home.get("layers").toJS()
 );
 
-export const selectUi = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("ui").toJS()
+export const selectUi = createSelector(
+  selectHome,
+  (home) => home.get("ui").toJS()
 );
 
-export const selectSelection = () => createSelector(
-  selectHome(),
+export const selectSelection = createSelector(
+  selectHome,
   (home) => home.get("selection").toJS()
 );
 
-export const selectSelectionIds = () => createSelector(
-  selectSelection(),
+export const selectSelectionIds = createSelector(
+  selectSelection,
   (selection) => selection.ids
 );
 
-export const selectSelectionInfo = () => createSelector(
-  selectSelection(),
+export const selectSelectionInfo = createSelector(
+  selectSelection,
   (selection) => selection.info
 );
 
-export const selectLiveLayerIds = () => createSelector(
-  selectLayers(),
+export const selectLiveLayerIds = createSelector(
+  selectLayers,
   (layers) => _.values(layers)
     .filter(layer => layer.live)
     .map(layer => layer.id)
 );
 
-export const selectTimeSeries = () => createSelector(
-  selectSelection(),
+export const selectTimeSeries = createSelector(
+  selectSelection,
   (selection) => selection.info.data.timeSeries,
 );
 
-export const selectMap = () => createSelector(
-  selectHome(),
-  (homeState) => ({
-    ...(homeState.get("map").toJS()),
-    theme: homeState.getIn(["ui", "settings", "theme"]),
+export const selectMap = createSelector(
+  selectHome,
+  (home) => ({
+    ...(home.get("map").toJS()),
+    theme: home.getIn(["ui", "settings", "theme"]),
   })
 );
 
-export const selectGeofence = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("geofence").toJS(),
+export const selectGeofence = createSelector(
+  selectHome,
+  (home) => home.get("geofence").toJS(),
 );
 
-export const selectFeed = () => createSelector(
-  selectHome(),
-  (homeState) => homeState.get("feed").toJS(),
+export const selectFeed = createSelector(
+  selectHome,
+  (home) => home.get("feed").toJS(),
 );
 
-export const selectConnectionUp = () => createSelector(
-  selectHome(),
+export const selectConnectionUp = createSelector(
+  selectHome,
   (home) => home.get("connection"),
 );

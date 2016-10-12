@@ -134,15 +134,15 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  layers: selectors.selectLayers(),
-  ui: selectors.selectUi(),
-  selectionIds: selectors.selectSelectionIds(),
-  selectionInfo: selectors.selectSelectionInfo(),
-  timeSeries: selectors.selectTimeSeries(),
-  map: selectors.selectMap(),
-  geofence: selectors.selectGeofence(),
-  feed: selectors.selectFeed(),
-  connectionUp: selectors.selectConnectionUp(),
+  layers: selectors.selectLayers,
+  ui: selectors.selectUi,
+  selectionIds: selectors.selectSelectionIds,
+  selectionInfo: selectors.selectSelectionInfo,
+  timeSeries: selectors.selectTimeSeries,
+  map: selectors.selectMap,
+  geofence: selectors.selectGeofence,
+  feed: selectors.selectFeed,
+  connectionUp: selectors.selectConnectionUp,
 });
 
 // Wrap the component to inject dispatch and state into it
