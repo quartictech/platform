@@ -41,13 +41,7 @@ public class LayerResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public LayerId importLayer(PostgisImportRequest request) {
-        Preconditions.checkNotNull(request.name());
-        Preconditions.checkNotNull(request.description());
-        LayerMetadata metadata = LayerMetadata.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
-        Optional<IndexedLayer> layer = layerStore.importPostgis(metadata, request.query());
+        Optional<IndexedLayer> layer = layerStore.importPostgis(request.metadata(), request.query());
         return layer.orElseThrow(() -> new NotFoundException("Error importing layer"))
                 .layerId();
     }
