@@ -1,24 +1,27 @@
 package io.quartic.weyl.core.feature;
 
-import io.quartic.weyl.core.feature.FeatureCollection.Store;
 import io.quartic.weyl.core.model.Feature;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.reverse;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class FeatureCollectionShould {
-    private final Store store = mock(Store.class);
-    FeatureCollection collection = new FeatureCollection(store);
+    private final Consumer<Collection<? extends Feature>> backer = mock(Consumer.class);
+    FeatureCollection collection = new FeatureCollection(backer);
 
     @Test
     public void be_empty_by_default() throws Exception {
         assertThat(collection, empty());
+        assertThat(newArrayList(collection), equalTo(newArrayList()));
     }
 
     @Test
@@ -28,7 +31,7 @@ public class FeatureCollectionShould {
         FeatureCollection newCollection = collection.append(featuresToAppend);
 
         assertThat(newCollection, hasSize(2));
-        assertThat(newCollection, containsInAnyOrder(featuresToAppend.toArray()));
+        assertThat(newCollection, contains(reverse(featuresToAppend).toArray()));
     }
 
     @Test
@@ -40,7 +43,7 @@ public class FeatureCollectionShould {
                 .append(featuresToAppend.subList(2, 4));
 
         assertThat(newCollection, hasSize(4));
-        assertThat(newCollection, containsInAnyOrder(featuresToAppend.toArray()));
+        assertThat(newCollection, contains(reverse(featuresToAppend).toArray()));
     }
 
     @Test
@@ -58,7 +61,7 @@ public class FeatureCollectionShould {
 
         collection.append(featuresToAppend);
 
-        verify(store).addAll(featuresToAppend);
+        verify(backer).accept(featuresToAppend);
     }
 
     @Test(expected = UnsupportedOperationException.class)
