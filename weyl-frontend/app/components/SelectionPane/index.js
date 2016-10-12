@@ -104,7 +104,7 @@ const Media = ({ featureAttributes, behavior }) => {
 };
 
 const Image = ({ url }) => (
-  <img className="ui fluid image" src={url} alt={url} />
+  <video className="ui fluid image" autoPlay loop src={url.replace("jpg", "mp4")} />  // TODO: this is a massive hack and needs to be removed
 );
 
 const AttributesTable = ({ featureAttributes, behavior, order }) => (
