@@ -12,6 +12,7 @@ import styles from "./styles.css";
 import LayerSearch from "../LayerSearch";
 import classNames from "classnames";
 import { themes } from "../../themes";
+const $ = require("jquery");
 
 function Toolbar(props) {
   const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
