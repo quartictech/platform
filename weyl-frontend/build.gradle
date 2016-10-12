@@ -3,6 +3,8 @@ plugins {
     id "java"
 }
 
+def env = [BUILD_VERSION: version] + System.getenv()  // See https://github.com/srs/gradle-node-plugin/issues/130
+
 task npmLint(type: NpmTask, dependsOn: npmInstall) {
   args = ["run", "lint"]
 }
@@ -10,9 +12,17 @@ task npmLint(type: NpmTask, dependsOn: npmInstall) {
 
 task npmBuild(type: NpmTask, dependsOn: npmInstall) {
   args = ["run", "build"]
+  environment = env
   // TODO: specify input files
   outputs.dir   "${buildDir}/webpack"
 }
+
+task npmStart(type: NpmTask, dependsOn: npmInstall) {
+  args = ["start"]
+  environment = env
+  // TODO: specify input files
+}
+
 
 jar {
   from npmBuild
