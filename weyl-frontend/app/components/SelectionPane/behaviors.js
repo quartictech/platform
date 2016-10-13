@@ -4,7 +4,7 @@ const PREFERRED_TITLES = [
   "name",
 ];
 
-const isUsable = (x, k) => (k in k) && (x[k].trim() !== "") && !x[k].match(/\d+/g);
+const isUsable = (x, k) => (k in x) && (x[k].trim() !== "") && !x[k].match(/\d+/g);
 
 const formatAddress = (x) => {
   const component = ["addr1", "addr2", "addr3", "addr4"].find(k => isUsable(x, k));
