@@ -12,7 +12,7 @@ const Pane = ({
       {
         title && (
           <h4 className="ui header">
-            <a href="#">
+            <a href="javascript:;">
               <i className="icon close" onClick={onClose}></i>
             </a>
             {title}
