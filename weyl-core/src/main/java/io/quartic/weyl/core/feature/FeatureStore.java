@@ -29,7 +29,7 @@ public class FeatureStore extends AbstractMap<FeatureId, Feature> {
         return emptyCollection;
     }
 
-    private void addFeatures(Collection<Feature> features) {
+    private void addFeatures(Collection<? extends Feature> features) {
         features.forEach(f -> FeatureStore.this.features.put(f.uid(), f));
     }
 
