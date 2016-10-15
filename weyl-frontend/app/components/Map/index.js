@@ -3,9 +3,6 @@ import React from "react";
 import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
-import { mapboxToken } from "../../../utils.js";
-
-mapboxgl.accessToken = mapboxToken;
 
 // TODO: there is some quite special magic going on here that throws eslint
 import { Draw } from "mapbox-gl-draw/dist/mapbox-gl-draw";  // eslint-disable-line no-unused-vars
@@ -14,7 +11,8 @@ import "mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
-import { apiRootUrl } from "../../utils.js";
+import { apiRootUrl, mapboxToken } from "../../utils.js";
+mapboxgl.accessToken = mapboxToken;
 
 const _ = require("underscore");
 
