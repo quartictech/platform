@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface AbstractLayerMetadata {
     String name();
     String description();
+    Optional<String> attribution();
     Optional<LayerIcon> icon();
 }
