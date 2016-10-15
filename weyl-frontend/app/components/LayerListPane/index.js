@@ -152,15 +152,16 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         onGeofenceChangeType={this.props.onGeofenceChangeType}
       />);
     }
-    _.values(this.props.layers).forEach(layer =>
+
+    this.props.layers.toArray().forEach(layer =>
       rows.push(
         <LayerListItem
-          key={layer.id}
-          layer={layer}
-          onButtonClick={(name) => this.onButtonClick(name, layer.id)}
+          key={layer.get("id")}
+          layer={layer.toJS()}
+          onButtonClick={(name) => this.onButtonClick(name, layer.get("id"))}
           onToggleValueVisible={this.props.onToggleValueVisible}
           onLayerStyleChange={this.props.onLayerStyleChange}
-          mode={(this.state.activeLayerId === layer.id) ? this.state.activeMode : null}
+          mode={(this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null}
         />
       )
     );

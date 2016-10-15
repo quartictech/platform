@@ -29,12 +29,27 @@ public class FeatureStore extends AbstractMap<FeatureId, Feature> {
         return emptyCollection;
     }
 
-    private void addFeatures(Collection<Feature> features) {
+    private void addFeatures(Collection<? extends Feature> features) {
         features.forEach(f -> FeatureStore.this.features.put(f.uid(), f));
     }
 
     @Override
     public Set<Entry<FeatureId, Feature>> entrySet() {
         return unmodifiableMap(features).entrySet();
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return features.containsValue(value);
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return features.containsKey(key);
+    }
+
+    @Override
+    public Feature get(Object key) {
+        return features.get(key);
     }
 }
