@@ -193,7 +193,7 @@ public class LiveLayerStoreShould {
     }
 
     private LayerMetadata metadata(String name, String description) {
-        return LayerMetadata.of(name, description, Optional.empty());
+        return LayerMetadata.of(name, description, Optional.empty(), Optional.empty());
     }
 
     private LayerId createLayer() {
