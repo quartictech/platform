@@ -14,7 +14,7 @@ build:
   stage: build
   image: quartic/uber-builder
   script:
-    - ./gradlew docker
+    - ./gradlew build docker
   except:
     - develop
 
@@ -22,7 +22,6 @@ build_and_push:
   stage: build
   image: quartic/uber-builder
   script:
-    - ./gradlew dockerPush
+    - ./gradlew build dockerPush
   only:
     - develop
-
