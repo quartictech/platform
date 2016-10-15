@@ -1,13 +1,16 @@
 package io.quartic.weyl.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
+import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.compute.BucketOp;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.connect.PostgisConnector;
+import io.quartic.weyl.core.importer.Importer;
+import io.quartic.weyl.core.importer.PostgresImporter;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.UidGenerator;
@@ -27,24 +30,35 @@ public class LayerStore {
     private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
     private final FeatureStore featureStore;
     private final UidGenerator<LayerId> lidGenerator;
-    private final Supplier<DBI> dbi;
     private final ObjectMapper objectMapper;
 
-    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator, Supplier<DBI> dbi, ObjectMapper objectMapper) {
+    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator, ObjectMapper objectMapper) {
         this.featureStore = featureStore;
         this.lidGenerator = lidGenerator;
-        this.dbi = dbi;
         this.objectMapper = objectMapper;
     }
 
-    public Optional<IndexedLayer> importPostgis(LayerMetadata metadata, String sql) {
-        Optional<IndexedLayer> layer = new PostgisConnector(featureStore, dbi.get(), objectMapper)
-                .fetch(metadata, sql)
-                .map(this::index);
+    public IndexedLayer importLayer(Importer importer, LayerMetadata metadata) {
+        Collection<Feature> features = importer.get();
+        log.info("imported {} features", features.size());
+        log.info("envelope: {}:", Iterables.getFirst(features, null).geometry().getEnvelopeInternal());
+        Map<String, AbstractAttribute> attributes = AttributeSchemaInferrer.inferSchema(features);
 
-        layer.ifPresent(this::storeLayer);
+        AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
+                .attributes(attributes)
+                .primaryAttribute(Optional.empty())
+                .build();
 
-        return layer;
+        AbstractLayer layer = Layer.builder()
+                .metadata(metadata)
+                .features(featureStore.newCollection().append(importer.get()))
+                .schema(attributeSchema)
+                .build();
+
+        IndexedLayer indexedLayer = index(layer);
+        storeLayer(indexedLayer);
+
+        return indexedLayer;
     }
 
     public FeatureStore getFeatureStore() {

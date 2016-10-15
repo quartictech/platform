@@ -82,7 +82,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         environment.jersey().setUrlPattern("/api/*");
 
-        LayerStore layerStore = new LayerStore(featureStore, lidGenerator, createDbiSupplier(configuration, environment), environment.getObjectMapper());
+        LayerStore layerStore = new LayerStore(featureStore, lidGenerator, environment.getObjectMapper());
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
@@ -91,6 +91,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AlertResource(alertProcessor));
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
+        environment.jersey().register(new ImportResource(layerStore, createDbiSupplier(configuration, environment),
+                featureStore, environment.getObjectMapper()));
 
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
     }

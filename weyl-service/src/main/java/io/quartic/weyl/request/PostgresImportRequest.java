@@ -7,9 +7,8 @@ import io.quartic.weyl.core.model.LayerMetadata;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonSerialize(as=ImmutablePostgisImportRequest.class)
-@JsonDeserialize(as=ImmutablePostgisImportRequest.class)
-public interface PostgisImportRequest {
+@JsonDeserialize(as=ImmutablePostgresImportRequest.class)
+public interface PostgresImportRequest {
     @JsonUnwrapped
     LayerMetadata metadata();
     String query();

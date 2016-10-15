@@ -50,14 +50,17 @@ public final class Utils {
         }
         throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
     }
+
     private static com.vividsolutions.jts.geom.Polygon createPolygon(List<List<List<Double>>> coordinates) {
-        LinearRing exterior = factory.createLinearRing(listToCoords(coordinates.get(0)));
-        LinearRing[] holes = coordinates.stream().skip(1)
-                .map(Utils::listToCoords)
-                .map(factory::createLinearRing)
-                .toArray(LinearRing[]::new);
-        return factory.createPolygon(exterior, holes);
+         LinearRing exterior = factory.createLinearRing(listToCoords(coordinates.get(0)));
+            LinearRing[] holes = coordinates.stream().skip(1)
+                    .map(Utils::listToCoords)
+                    .map(factory::createLinearRing)
+                    .toArray(LinearRing[]::new);
+
+            return factory.createPolygon(exterior, holes);
     }
+
     public static Geometry fromJts(com.vividsolutions.jts.geom.Geometry geometry) {
         // TODO: this is gross - can we use a visitor?
         if (geometry instanceof com.vividsolutions.jts.geom.Point) {

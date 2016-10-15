@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.connect;
+package io.quartic.weyl.core.importer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
@@ -7,10 +7,10 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.ImmutableFeature;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -19,13 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class PostgisConnector {
-    private static final Logger log = LoggerFactory.getLogger(PostgisConnector.class);
+public class PostgresImporter implements Importer {
+    private static final Logger log = LoggerFactory.getLogger(PostgresImporter.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
@@ -35,48 +35,18 @@ public class PostgisConnector {
     private final DBI dbi;
     private final WKBReader wkbReader = new WKBReader();
     private final ObjectMapper objectMapper;
+    private final String sql;
 
-    public PostgisConnector(FeatureStore featureStore, DBI dbi, ObjectMapper objectMapper) {
-        this.featureStore = featureStore;
+    public static PostgresImporter fromDBI(DBI dbi, String sql, FeatureStore featureStore, ObjectMapper objectMapper) {
+       return new PostgresImporter(dbi, sql, featureStore, objectMapper);
+    }
+
+    private PostgresImporter(DBI dbi, String sql, FeatureStore featureStore, ObjectMapper objectMapper) {
         this.dbi = dbi;
+        this.sql = sql;
+        this.featureStore = featureStore;
         this.objectMapper = objectMapper;
     }
-
-    public Optional<AbstractLayer> fetch(LayerMetadata metadata, String sql) {
-        Handle h = dbi.open();
-        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
-                sql);
-        ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
-                .iterator();
-
-        List<Feature> features = Lists.newArrayList();
-        int count = 0;
-        while (iterator.hasNext()) {
-            count += 1;
-            if (count % 10000 == 0) {
-                log.info("Importing feature: {}", count);
-            }
-            Optional<Feature> feature = rowToFeature(iterator.next());
-
-            feature.ifPresent(features::add);
-        }
-        iterator.close();
-
-        Map<String, AbstractAttribute> attributes = AttributeSchemaInferrer.inferSchema(features);
-
-        AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
-                .attributes(attributes)
-                .primaryAttribute(Optional.empty())
-                .build();
-
-        return Optional.of(Layer.builder()
-                .features(featureStore.newCollection().append(features))
-                .metadata(metadata)
-                .schema(attributeSchema)
-                .build());
-    }
-
-
 
     private Optional<Geometry> parseGeometry(byte[] data) {
         try {
@@ -134,5 +104,28 @@ public class PostgisConnector {
                     .externalId(id)
                     .build();
         });
+    }
+
+    @Override
+    public Collection<Feature> get() {
+           Handle h = dbi.open();
+        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
+                sql);
+        ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
+                .iterator();
+
+        Collection<Feature> features = Lists.newArrayList();
+        int count = 0;
+        while (iterator.hasNext()) {
+            count += 1;
+            if (count % 10000 == 0) {
+                log.info("Importing feature: {}", count);
+            }
+            Optional<Feature> feature = rowToFeature(iterator.next());
+
+            feature.ifPresent(features::add);
+        }
+        iterator.close();
+        return features;
     }
 }
