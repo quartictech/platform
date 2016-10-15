@@ -48,8 +48,7 @@ function* fetchPlaces(query) {
 
 const unpackResults = (results) => (
   results.features.map(f => ({
-    title: f.text,
-    description: f.place_name,
+    title: f.place_name,
     category: "place",
     payload: f.center,
   }))
