@@ -22,25 +22,27 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
       <div className={styles.container}>
         <ConnectionStatus connectionUp={this.props.connectionUp} />
 
-        <Toolbar
-          onSearch={this.props.onSearch}
-          onSelectLayer={this.props.onSelectLayer}
-          onSelectPlace={this.props.onSelectPlace}
-          ui={this.props.ui}
-          onUiToggle={this.props.onUiToggle}
-        />
-        <div className={styles.mapContainer}>
-          <Map
-            layers={this.props.layers.toJS()}
-            onMapLoading={this.props.onMapLoading}
-            onMapLoaded={this.props.onMapLoaded}
-            onMouseMove={this.props.onMapMouseMove}
-            onMouseClick={this.props.onMapMouseClick}
-            selection={this.props.selectionIds}
-            map={this.props.map}
-            geofence={this.props.geofence}
-            onGeofenceChange={this.props.onGeofenceChange}
+        <div className={styles.nonDrawer}>
+          <Toolbar
+            onSearch={this.props.onSearch}
+            onSelectLayer={this.props.onSelectLayer}
+            onSelectPlace={this.props.onSelectPlace}
+            ui={this.props.ui}
+            onUiToggle={this.props.onUiToggle}
           />
+          <div className={styles.mapContainer}>
+            <Map
+              layers={this.props.layers.toJS()}
+              onMapLoading={this.props.onMapLoading}
+              onMapLoaded={this.props.onMapLoaded}
+              onMouseMove={this.props.onMapMouseMove}
+              onMouseClick={this.props.onMapMouseClick}
+              selection={this.props.selectionIds}
+              map={this.props.map}
+              geofence={this.props.geofence}
+              onGeofenceChange={this.props.onGeofenceChange}
+            />
+          </div>
         </div>
 
         <div className={styles.leftDrawer}>

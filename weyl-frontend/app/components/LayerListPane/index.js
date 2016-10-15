@@ -40,11 +40,14 @@ const LayerListItemInfo = ({
 
     case "INFO":
       return (
-        <div className="ui secondary segment">
-          <div className="content" style={{ fontSize: "0.8em" }}>
-            {(layer.metadata.description)}
-          </div>
-        </div>
+        <table className="ui celled very compact small fixed selectable definition table">
+          <tbody>
+            <tr><td>Description</td><td>{layer.metadata.description}</td></tr>
+            {
+              layer.metadata.attribution && (<tr><td>Attribution</td><td>{layer.metadata.attribution}</td></tr>)
+            }
+          </tbody>
+        </table>
       );
 
     default:
