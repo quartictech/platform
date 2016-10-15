@@ -3,7 +3,9 @@ import React from "react";
 import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
-mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
+import { mapboxToken } from "../../../utils.js";
+
+mapboxgl.accessToken = mapboxToken;
 
 // TODO: there is some quite special magic going on here that throws eslint
 import { Draw } from "mapbox-gl-draw/dist/mapbox-gl-draw";  // eslint-disable-line no-unused-vars

@@ -1,9 +1,7 @@
 import { call } from "redux-saga/effects";
 import { delay } from "redux-saga";
 import request from "utils/request";
-import { apiRootUrl } from "../../../utils.js";
-
-const mapboxToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
+import { apiRootUrl, mapboxToken } from "../../../utils.js";
 
 export default function* (action) {
   yield call(delay, 500); // Debounce
