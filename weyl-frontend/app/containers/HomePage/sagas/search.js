@@ -21,14 +21,14 @@ export default function* (action) {
       live: {
         name: "Live layers",
         results: layerResults.data.filter(x => x.live).map(unpackLayer),
-      }
+      },
     },
     placeResults.err ? {} : {
       places: {
         name: "Places",
         results: unpackResults(placeResults.data),
       },
-    }
+    },
   );
 
   yield call(action.callback, { results });
