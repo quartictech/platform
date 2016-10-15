@@ -12,10 +12,8 @@ export default function* (action) {
     call(fetchPlaces, action.query),
   ];
 
-  // TODO: error-checking
-
-  const response = {
-    results: {
+  const results = Object.assign({},
+    layerResults.err ? {} : {
       layers: {
         name: "Layers",
         results: layerResults.data.filter(x => !x.live).map(unpackLayer),
@@ -23,14 +21,17 @@ export default function* (action) {
       live: {
         name: "Live layers",
         results: layerResults.data.filter(x => x.live).map(unpackLayer),
-      },
+      }
+    },
+    placeResults.err ? {} : {
       places: {
         name: "Places",
         results: unpackResults(placeResults.data),
       },
-    },
-  };
-  yield call(action.callback, response);
+    }
+  );
+
+  yield call(action.callback, { results });
 }
 
 function* fetchLayers(query) {
