@@ -18,6 +18,8 @@ class Search extends React.Component {
           case "place":
             this.props.onSelectPlace(result.payload);
             break;
+          default:
+            break;
         }
       },
     });

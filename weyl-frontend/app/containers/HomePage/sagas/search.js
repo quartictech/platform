@@ -1,14 +1,16 @@
-import { call, put } from "redux-saga/effects";
+import { call } from "redux-saga/effects";
 import { delay } from "redux-saga";
-import * as actions from "../actions";
 import request from "utils/request";
 import { apiRootUrl } from "../../../utils.js";
 
-const mapbox_token = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
+const mapboxToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
 
 export default function* (action) {
   yield call(delay, 500); // Debounce
-  const [layerResults, placeResults] = yield [ call(fetchLayers, action.query), call(fetchPlaces, action.query) ];
+  const [layerResults, placeResults] = yield [
+    call(fetchLayers, action.query),
+    call(fetchPlaces, action.query),
+  ];
 
   // TODO: error-checking
 
@@ -38,7 +40,7 @@ function* fetchLayers(query) {
 }
 
 function* fetchPlaces(query) {
-  const requestURL = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURI(query)}.json?access_token=${mapbox_token}`;
+  const requestURL = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURI(query)}.json?access_token=${mapboxToken}`;
   const results = yield call(request, requestURL, { method: "GET" });
   return results;
 }
