@@ -40,14 +40,8 @@ public class ImportResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public LayerId importPostgres(PostgresImportRequest request) {
-        Preconditions.checkNotNull(request.name());
-        Preconditions.checkNotNull(request.description());
-        LayerMetadata metadata = LayerMetadata.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
         PostgresImporter postgresImporter = PostgresImporter.fromDBI(dbiSupplier.get(), request.query(), featureStore, objectMapper);
-        IndexedLayer layer = layerStore.importLayer(postgresImporter, metadata);
+        IndexedLayer layer = layerStore.importLayer(postgresImporter, request.metadata());
         return layer.layerId();
     }
 

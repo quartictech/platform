@@ -63,6 +63,7 @@ module.exports = (options) => ({
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+        BUILD_VERSION: JSON.stringify(process.env.BUILD_VERSION),
       },
     }),
     // Some nonsense to make moment work (see https://github.com/moment/moment/issues/2979#issuecomment-189899510)

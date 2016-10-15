@@ -56,19 +56,19 @@ public class GeoJsonImporter implements Importer {
     }
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {
-        Geometry transformed;
-        try {
-            transformed = JTS.transform(Utils.toJts(f.geometry()), mathTransform);
-        } catch (TransformException e) {
-            e.printStackTrace();
-            return Optional.empty();
-        }
-        return Optional.of(ImmutableFeature.builder()
-                .externalId(f.id().get())
-                .uid(featureStore.getFeatureIdGenerator().get())
-                .geometry(transformed)
-                .metadata(f.properties())
-                .build());
+        return f.geometry().flatMap(geom -> {
+            try {
+                return Optional.of(ImmutableFeature.builder()
+                        .externalId(f.id().orElse(null))
+                        .uid(featureStore.getFeatureIdGenerator().get())
+                        .geometry(JTS.transform(Utils.toJts(geom), mathTransform))
+                        .metadata(f.properties())
+                        .build());
+            } catch (TransformException e) {
+                e.printStackTrace();
+                return Optional.empty();
+            }
+        });
     }
 
     @Override

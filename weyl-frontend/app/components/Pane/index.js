@@ -1,6 +1,9 @@
 import React from "react";
 import styles from "./styles.css";
 
+// HACK: For whatever reason, we don't get a pointer cursor on hover without this
+const nullLink = "javascript:;";  // eslint-disable-line no-script-url
+
 const Pane = ({
   title,
   visible,
@@ -12,7 +15,7 @@ const Pane = ({
       {
         title && (
           <h4 className="ui header">
-            <a>
+            <a href={nullLink}>
               <i className="icon close" onClick={onClose}></i>
             </a>
             {title}

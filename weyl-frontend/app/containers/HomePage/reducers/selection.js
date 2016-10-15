@@ -1,4 +1,4 @@
-import { Set, fromJS } from "immutable";
+import { Set, Map, fromJS } from "immutable";
 import * as constants from "../constants";
 
 export default (state = initialState, action) => {
@@ -14,36 +14,26 @@ export default (state = initialState, action) => {
           : addEntry(state, action.feature);
       }
 
-      return addEntry(initialState, action.feature);  // Clear all entries, add this one
+      return addEntry(deleteEntries(state), action.feature);  // Clear all entries, add this one
 
-    case constants.LAYER_CLOSE: {
-      const location = ["ids", action.layerId];
-      if (state.hasIn(location)) {
-        return state.getIn(location)
-          .reduce(
-            (prevState, fid) => prevState.deleteIn(["features", fid]),
-            state
-          )
-          .deleteIn(location);
-      }
-      return state;
-    }
+    case constants.LAYER_CLOSE:
+      return state.deleteIn(["ids", action.layerId]);
 
     case constants.CLEAR_SELECTION:
       return initialState;
 
-    case constants.AGGREGATES_LOADING:
-      return setAggregatesLifecycleState(state, "AGGREGATES_LOADING");
+    case constants.SELECTION_INFO_LOADING:
+      return setInfoLifecycleState(state, "INFO_LOADING");
 
-    case constants.AGGREGATES_LOADED:
+    case constants.SELECTION_INFO_LOADED:
       // This check ensures we discard data returned by stale fetches
-      if (state.getIn(["aggregates", "lifecycleState"]) === "AGGREGATES_LOADING") {
-        return setAggregatesLifecycleState(state, "AGGREGATES_LOADED")
-          .setIn(["aggregates", "data"], action.results);
+      if (state.getIn(["info", "lifecycleState"]) === "INFO_LOADING") {
+        return setInfoLifecycleState(state, "INFO_LOADED")
+          .setIn(["info", "data"], action.results);
       }
       return state;
 
-    case constants.AGGREGATES_FAILED_TO_LOAD:
+    case constants.SELECTION_INFO_FAILED_TO_LOAD:
       // TODO
       return state;
 
@@ -54,24 +44,25 @@ export default (state = initialState, action) => {
 
 const initialState = fromJS({
   ids: {},
-  features: {},
-  aggregates: {
-    lifecycleState: "AGGREGATES_NOT_REQUIRED",
+  info: {
+    lifecycleState: "INFO_NOT_REQUIRED",
     data: {},
   },
 });
 
 const addEntry = (state, feature) =>
-  requireAggregates(state)
-  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
-  .setIn(["features", feature.id], feature.properties);
+  requireInfo(state)
+  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id));
+
+const deleteEntries = (state) =>
+  requireInfo(state)
+  .set("ids", new Map());
 
 const deleteEntry = (state, feature) =>
-  requireAggregates(state)
-  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
-  .deleteIn(["features", feature.id]);
+  requireInfo(state)
+  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id));
 
-const requireAggregates = (state) => setAggregatesLifecycleState(state, "AGGREGATES_REQUIRED");
+const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED");
 
-const setAggregatesLifecycleState = (state, lifecycleState) => state
-  .setIn(["aggregates", "lifecycleState"], lifecycleState);
+const setInfoLifecycleState = (state, lifecycleState) => state
+  .setIn(["info", "lifecycleState"], lifecycleState);

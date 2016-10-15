@@ -1,5 +1,6 @@
 package io.quartic.weyl.resource;
 
+import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.Feature;
@@ -8,8 +9,11 @@ import io.quartic.weyl.core.model.FeatureId;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 @Path("/attributes")
 public class AttributesResource {
@@ -20,7 +24,22 @@ public class AttributesResource {
     }
 
     @POST
-    @Path("/time_series")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<FeatureId, Map<String, Object>> getAttributes(List<FeatureId> featureIds) {
+        return featureIds.stream()
+                .map(featureStore::get)
+                .collect(toMap(Feature::uid, this::externalAttributes));
+    }
+
+    private Map<String, Object> externalAttributes(Feature feature) {
+        return feature.metadata().entrySet().stream()
+                .filter(e -> !(e.getValue() instanceof ComplexAttribute))
+                .collect(toMap(Entry::getKey, Entry::getValue));
+    }
+
+    @POST
+    @Path("/time-series")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Map<String, TimeSeriesAttribute>> timeSeriesAttributes(List<FeatureId> featureIds) {
@@ -31,11 +50,11 @@ public class AttributesResource {
         Set<String> eligibleAttributes = features.stream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
-                .map(Map.Entry::getKey)
+                .map(Entry::getKey)
                 .collect(Collectors.toSet());
 
         return eligibleAttributes.stream()
-                .collect(Collectors.toMap(Function.identity(), attribute -> timeSeriesForAttribute(features, attribute)));
+                .collect(toMap(Function.identity(), attribute -> timeSeriesForAttribute(features, attribute)));
     }
 
     private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, String attribute) {
@@ -43,7 +62,7 @@ public class AttributesResource {
                 .filter(feature -> feature.metadata().containsKey("name"))
                 .filter(feature -> feature.metadata().containsKey(attribute) &&
                         feature.metadata().get(attribute) instanceof TimeSeriesAttribute)
-                .collect(Collectors.toMap(feature -> (String) feature.metadata().get("name"),
+                .collect(toMap(feature -> (String) feature.metadata().get("name"),
                         feature -> (TimeSeriesAttribute) feature.metadata().get(attribute)));
     }
 }

@@ -20,7 +20,7 @@ function* keepConnectionAlive(socket) {
 }
 
 function* reportStatus(socket) {
-  const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds());
+  const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds);
 
   const msg = {
     type: "ClientStatus",
@@ -31,9 +31,9 @@ function* reportStatus(socket) {
 }
 
 function* handleLayerUpdate(msg) {
-  const layer = yield select(selectors.selectLayer(msg.layerId));
-  if (layer) {
-    yield put(actions.layerSetData(msg.layerId, msg.featureCollection));
+  const layers = yield select(selectors.selectLayers);
+  if (msg.layerId in layers) {
+    yield put(actions.layerSetData(msg.layerId, msg.featureCollection, msg.schema));
     yield put(actions.feedSetData(msg.layerId, msg.feedEvents));
   } else {
     console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);

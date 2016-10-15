@@ -50,7 +50,7 @@ export function buildStyleLayers(layer) {
   if (layerName in customStyles) {
     return customStyles[layerName];
   } else if (layer.live) {
-    return liveLayerStyle;
+    return Object.assign({}, liveLayerStyle, { polygon: polygonSpec(style, attributeStats) });
   }
   return {
     point: {
@@ -72,15 +72,7 @@ export function buildStyleLayers(layer) {
       filter: filter(style.property, "Point"),
       _zorder: 1,
     },
-    polygon: {
-      type: "fill",
-      paint: {
-        "fill-color": colorStyle(style.property, style.polygon, attributeStats),
-        "fill-outline-color": style.property == null ? style.polygon["fill-outline-color"] : style.polygon.color,
-        "fill-opacity": style.opacity,
-      },
-      filter: filter(style.property, "Polygon"),
-    },
+    polygon: polygonSpec(style, attributeStats),
     line: {
       type: "line",
       paint: {
@@ -91,3 +83,13 @@ export function buildStyleLayers(layer) {
     },
   };
 }
+
+const polygonSpec = (style, attributeStats) => ({
+  type: "fill",
+  paint: {
+    "fill-color": colorStyle(style.property, style.polygon, attributeStats),
+    "fill-outline-color": style.property == null ? style.polygon["fill-outline-color"] : style.polygon.color,
+    "fill-opacity": style.opacity,
+  },
+  filter: filter(style.property, "Polygon"),
+});

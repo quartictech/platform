@@ -12,6 +12,7 @@ import styles from "./styles.css";
 import LayerSearch from "../LayerSearch";
 import classNames from "classnames";
 import { themes } from "../../themes";
+const $ = require("jquery");
 
 function Toolbar(props) {
   const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
@@ -24,7 +25,13 @@ function Toolbar(props) {
     <div className={styles.toolbar}>
       <div className="ui menu inverted attached labeled icon">
         <div className="header item">
-          <i className="icon map" /><span className={styles.brand}>Quartic</span>
+          <i
+            className="icon map"
+            data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
+            data-variation="mini"
+            ref={x => $(x).popup()}
+          />
+          <span className={styles.brand}>Quartic</span>
         </div>
 
         <div className="right menu">

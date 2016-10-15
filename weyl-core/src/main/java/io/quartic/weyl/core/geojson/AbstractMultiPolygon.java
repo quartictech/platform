@@ -6,6 +6,6 @@ import java.util.List;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractMultiPolygon  extends Geometry {
+public interface AbstractMultiPolygon extends Geometry {
     List<List<List<List<Double>>>> coordinates();
 }

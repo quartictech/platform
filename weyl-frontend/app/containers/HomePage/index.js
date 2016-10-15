@@ -62,7 +62,9 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.rightDrawer}>
           <SelectionPane
-            selection={this.props.selectionView}
+            selectedFeaturedIds={this.props.selectionIds}
+            selectionInfo={this.props.selectionInfo}
+            layers={this.props.layers}
             onClose={this.props.onSelectionClose}
           />
           <FeedPane
@@ -92,7 +94,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 }
 
 HomePage.propTypes = {
-  layers: React.PropTypes.array,
+  layers: React.PropTypes.object,
   layerToggleVisible: React.PropTypes.func,
   onSearch: React.PropTypes.func,
   onSelect: React.PropTypes.func,
@@ -132,15 +134,15 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  layers: selectors.selectLayers(),
-  ui: selectors.selectUi(),
-  selectionIds: selectors.selectSelectionIds(),
-  selectionView: selectors.selectSelectionView(),
-  timeSeries: selectors.selectTimeSeries(),
-  map: selectors.selectMap(),
-  geofence: selectors.selectGeofence(),
-  feed: selectors.selectFeed(),
-  connectionUp: selectors.selectConnectionUp(),
+  layers: selectors.selectLayers,
+  ui: selectors.selectUi,
+  selectionIds: selectors.selectSelectionIds,
+  selectionInfo: selectors.selectSelectionInfo,
+  timeSeries: selectors.selectTimeSeries,
+  map: selectors.selectMap,
+  geofence: selectors.selectGeofence,
+  feed: selectors.selectFeed,
+  connectionUp: selectors.selectConnectionUp,
 });
 
 // Wrap the component to inject dispatch and state into it

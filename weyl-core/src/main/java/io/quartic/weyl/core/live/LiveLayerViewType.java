@@ -1,7 +1,8 @@
 package io.quartic.weyl.core.live;
 
 public enum LiveLayerViewType {
-    LOCATION_AND_TRACK(new LastKnownLocationAndTrackView());
+    LOCATION_AND_TRACK(new LastKnownLocationAndTrackView()),
+    MOST_RECENT(new MostRecentGeometryView());
 
     private final LiveLayerView view;
 

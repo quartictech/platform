@@ -14,6 +14,6 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 @JsonTypeInfo(use= Id.NAME, include= As.PROPERTY, property="type")
 public interface AbstractFeature {
     Optional<String> id();      // Can't use FeatureId, because that's not a GeoJSON concept
-    Geometry geometry();
+    Optional<? extends Geometry> geometry();
     Map<String,Object> properties();
 }

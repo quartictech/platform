@@ -2,7 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.quartic.weyl.core.model.RawLayer;
+import io.quartic.weyl.core.model.AbstractLayer;
 
 import java.util.Optional;
 
@@ -11,5 +11,5 @@ import java.util.Optional;
     @JsonSubTypes.Type(BucketOp.class)
 })
 public interface LayerOp {
-    Optional<RawLayer> compute();
+    Optional<AbstractLayer> compute();
 }

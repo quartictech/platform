@@ -50,6 +50,42 @@ const greenSpacesStyles = {
   },
 };
 
+const residentialBuildingsStyles = {
+  polygon: {
+    type: "fill",
+    paint: {
+      "fill-color": "#4584A3",
+      "fill-opacity": 0.7,
+    },
+  },
+  line: {
+    type: "line",
+    paint: {
+      "line-color": "#50ADB2",
+      "line-width": 3,
+    },
+    _zorder: 1,
+  },
+};
+
+const residentialLandUseStyles = {
+  polygon: {
+    type: "fill",
+    paint: {
+      "fill-color": "#F3E4AD",
+      "fill-opacity": 0.7,
+    },
+  },
+  line: {
+    type: "line",
+    paint: {
+      "line-color": "#A3825F",
+      "line-width": 5,
+    },
+    _zorder: 1,
+  },
+};
+
 
 const nightLifeStyles = {
   // These are for the layer from OSM (polygons)
@@ -87,11 +123,11 @@ const roadsStyles = {
   line: {
     type: "line",
     paint: {
-      "line-color": "#626262",
+      "line-color": "#FF8D7C", // CAC9EF",
       "line-width": {
         stops: [
-          [5, 0.2],
-          [10, 2],
+          [5, 0.1],
+          [10, 1],
           [15, 5],
         ],
       },
@@ -177,6 +213,8 @@ const customStyles = {
   "Nightlife": nightLifeStyles,
   "Roads": roadsStyles,
   "Green Belts 2014-2015": greenSpacesStyles,
+  "Residential Buildings": residentialBuildingsStyles,
+  "Residential Land Use": residentialLandUseStyles,
 };
 
 export { customStyles, liveLayerStyle };

@@ -27,8 +27,10 @@ public class GeofenceResource {
 
     @PUT
     public void update(GeofenceRequest geofenceRequest) {
+
         Polygon[] polygons = geofenceRequest.features().features().stream()
-                .map(f -> (Polygon) Utils.toJts(f.geometry()))
+                .filter(f -> f.geometry().isPresent())
+                .map(f -> (Polygon) Utils.toJts(f.geometry().get()))
                 .toArray(Polygon[]::new);
 
         MultiPolygon multiPolygon = new GeometryFactory().createMultiPolygon(polygons);
