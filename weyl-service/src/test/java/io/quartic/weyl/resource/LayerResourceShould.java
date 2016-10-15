@@ -30,7 +30,7 @@ public class LayerResourceShould {
     public void setUp() throws Exception {
         Layer layer = Layer.of(
                 mock(AttributeSchema.class),
-                LayerMetadata.of("foo", "bar", Optional.empty()),
+                LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()),
                 mock(io.quartic.weyl.core.feature.FeatureCollection.class)
         );
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
@@ -68,7 +68,7 @@ public class LayerResourceShould {
 
     private LayerUpdateRequest createRequest(FeatureCollection collection) {
         return LayerUpdateRequest.of(
-                LayerMetadata.of("foo", "bar", Optional.empty()),
+                LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()),
                 LiveLayerViewType.LOCATION_AND_TRACK,
                 ImmutableList.of(LiveEvent.of(Instant.now(), Optional.of(collection), Optional.empty())));
     }
