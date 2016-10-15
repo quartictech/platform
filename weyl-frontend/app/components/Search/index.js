@@ -1,13 +1,7 @@
-/**
-*
-* LayerSearch
-*
-*/
-
 import React from "react";
 const $ = require("jquery");
 
-class LayerSearch extends React.Component {
+class Search extends React.Component {
   componentDidMount() {
     $(".ui.search").search({
       apiSettings: {
@@ -26,7 +20,7 @@ class LayerSearch extends React.Component {
     return (
       <div className="ui category search right aligned">
         <div className="ui icon input">
-          <input className="prompt" placeholder="Search layers.." type="text"></input>
+          <input className="prompt" placeholder="Search..." type="text"></input>
           <i className="search icon"></i>
         </div>
         <div className="results"></div>
@@ -35,4 +29,4 @@ class LayerSearch extends React.Component {
   }
 }
 
-export default LayerSearch;
+export default Search;

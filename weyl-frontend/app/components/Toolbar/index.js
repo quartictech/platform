@@ -1,15 +1,9 @@
-/**
-*
-* Toolbar
-*
-*/
-
 import React from "react";
 
 import "lato-font/css/lato-font.css";
 import styles from "./styles.css";
 
-import LayerSearch from "../LayerSearch";
+import Search from "../Search";
 import classNames from "classnames";
 import { themes } from "../../themes";
 const $ = require("jquery");
@@ -60,7 +54,7 @@ function Toolbar(props) {
             Live Feed
           </a>
           <div className="item">
-            <LayerSearch onSearch={props.onSearch} onSelect={props.onSelect} />
+            <Search onSearch={props.onSearch} onSelect={props.onSelect} />
           </div>
         </div>
       </div>
