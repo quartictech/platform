@@ -24,7 +24,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <Toolbar
           onSearch={this.props.onSearch}
-          onSelect={this.props.onSelect}
+          onSelectLayer={this.props.onSelectLayer}
+          onSelectPlace={this.props.onSelectPlace}
           ui={this.props.ui}
           onUiToggle={this.props.onUiToggle}
         />
@@ -93,29 +94,10 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 }
 
-HomePage.propTypes = {
-  layers: React.PropTypes.object,
-  layerToggleVisible: React.PropTypes.func,
-  onSearch: React.PropTypes.func,
-  onSelect: React.PropTypes.func,
-  onUiToggle: React.PropTypes.func,
-  onSelectFeatures: React.PropTypes.func,
-  onMapLoading: React.PropTypes.func,
-  onMapLoaded: React.PropTypes.func,
-  ui: React.PropTypes.object,
-  selectionIds: React.PropTypes.object,
-  map: React.PropTypes.object,
-  onBucketCompute: React.PropTypes.func,
-  onLayerStyleChange: React.PropTypes.func,
-  layerClose: React.PropTypes.func,
-  onToggleValueVisible: React.PropTypes.func,
-  selectionFeatures: React.PropTypes.array,
-  onClearSelection: React.PropTypes.func,
-};
-
 const mapDispatchToProps = {
   onSearch: actions.search,
-  onSelect: actions.layerCreate,
+  onSelectLayer: actions.layerCreate,
+  onSelectPlace: actions.mapSetLocation,
   layerToggleVisible: actions.layerToggleVisible,
   layerClose: actions.layerClose,
   onBucketCompute: actions.bucketComputation,

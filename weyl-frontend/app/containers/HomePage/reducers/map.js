@@ -5,6 +5,7 @@ const initialState = fromJS({
   style: "basic",
   ready: false,
   mouseLocation: null, // Will be {lng,lat} when known
+  targetLocation: null, // Wil be populated by place selection
 });
 
 export default (state = initialState, action) => {
@@ -15,6 +16,8 @@ export default (state = initialState, action) => {
       return state.set("ready", true);
     case constants.MAP_MOUSE_MOVE:
       return state.set("mouseLocation", action.mouseLocation);
+    case constants.MAP_SET_LOCATION:
+      return state.set("targetLocation", action.location);
     default:
       return state;
   }

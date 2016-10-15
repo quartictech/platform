@@ -11,7 +11,14 @@ class Search extends React.Component {
       },
       type: "category",
       onSelect: (result) => {
-        this.props.onSelect(result);
+        switch (result.category) {
+          case "layer":
+            this.props.onSelectLayer(result.payload);
+            break;
+          case "place":
+            this.props.onSelectPlace(result.payload);
+            break;
+        }
       },
     });
   }

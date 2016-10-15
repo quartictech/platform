@@ -54,7 +54,11 @@ function Toolbar(props) {
             Live Feed
           </a>
           <div className="item">
-            <Search onSearch={props.onSearch} onSelect={props.onSelect} />
+            <Search
+              onSearch={props.onSearch}
+              onSelectLayer={props.onSelectLayer}
+              onSelectPlace={props.onSelectPlace}
+            />
           </div>
         </div>
       </div>
