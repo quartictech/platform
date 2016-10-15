@@ -1,4 +1,4 @@
-import { fromJS, Map, Set } from "immutable";
+import { fromJS, OrderedMap, Set } from "immutable";
 import * as constants from "../constants";
 
 const colorScale = "PuRd";
@@ -60,7 +60,7 @@ const layerReducer = (state, action) => {
   }
 };
 
-export default (state = new Map(), action) => {
+export default (state = new OrderedMap(), action) => {
   switch (action.type) {
     case constants.LAYER_CREATE:
       return (state.has(action.id)) ? state : state.set(action.id, newLayer(action));

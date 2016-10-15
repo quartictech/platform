@@ -30,7 +30,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         />
         <div className={styles.mapContainer}>
           <Map
-            layers={this.props.layers}
+            layers={this.props.layers.toJS()}
             onMapLoading={this.props.onMapLoading}
             onMapLoaded={this.props.onMapLoaded}
             onMouseMove={this.props.onMapMouseMove}
@@ -64,14 +64,14 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <SelectionPane
             selectedFeaturedIds={this.props.selectionIds}
             selectionInfo={this.props.selectionInfo}
-            layers={this.props.layers}
+            layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
           <FeedPane
             feed={this.props.feed}
             visible={this.props.ui.panels.liveFeed}
             onUiToggle={this.props.onUiToggle}
-            layers={this.props.layers}
+            layers={this.props.layers.toJS()}
           />
         </div>
 

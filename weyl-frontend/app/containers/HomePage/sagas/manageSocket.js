@@ -32,7 +32,7 @@ function* reportStatus(socket) {
 
 function* handleLayerUpdate(msg) {
   const layers = yield select(selectors.selectLayers);
-  if (msg.layerId in layers) {
+  if (msg.layerId in layers.toJS()) {
     yield put(actions.layerSetData(msg.layerId, msg.featureCollection, msg.schema));
     yield put(actions.feedSetData(msg.layerId, msg.feedEvents));
   } else {
