@@ -1,6 +1,7 @@
 package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
@@ -113,10 +114,12 @@ public class LayerStore {
                 .indexedFeatures(features)
                 .layerId(layerId)
                 .layerStats(calculateStats(layer))
+                .feedEvents(ImmutableList.of())     // TODO
+                .view((g, f) -> f.stream())         // TODO
                 .build();
     }
 
-    private static SpatialIndex spatialIndex(Collection<IndexedFeature> features) {
+    public static SpatialIndex spatialIndex(Collection<IndexedFeature> features) {
         STRtree stRtree = new STRtree();
         features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
         return stRtree;

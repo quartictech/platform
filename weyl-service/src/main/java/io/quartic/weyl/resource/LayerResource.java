@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.AbstractIndexedLayer;
 import io.quartic.weyl.core.model.ImmutableLayerStats;
@@ -116,7 +115,7 @@ public class LayerResource {
                 .build();
     }
 
-    private LayerResponse createLiveLayerResponse(LiveLayer layer) {
+    private LayerResponse createLiveLayerResponse(AbstractIndexedLayer layer) {
         return ImmutableLayerResponse.builder()
                 .id(layer.layerId())
                 .metadata(layer.layer().metadata())

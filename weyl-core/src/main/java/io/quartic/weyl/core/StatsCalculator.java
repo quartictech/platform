@@ -6,7 +6,7 @@ import io.quartic.weyl.core.model.*;
 import java.util.Map;
 
 public class StatsCalculator {
-    static LayerStats calculateStats(AbstractLayer layer) {
+    public static LayerStats calculateStats(AbstractLayer layer) {
         Map<String, Double> maxNumeric = Maps.newConcurrentMap();
         Map<String, Double> minNumeric = Maps.newConcurrentMap();
 

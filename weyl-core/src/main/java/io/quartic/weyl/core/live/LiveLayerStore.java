@@ -1,10 +1,8 @@
 package io.quartic.weyl.core.live;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
+import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
@@ -22,10 +20,14 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.LayerStore.spatialIndex;
+import static io.quartic.weyl.core.StatsCalculator.calculateStats;
+
 public class LiveLayerStore {
     private final FeatureStore featureStore;
-    private final Map<LayerId, LiveLayer> layers = Maps.newHashMap();
-    private final List<LiveLayerStoreListener> listeners = Lists.newArrayList();
+    private final Map<LayerId, IndexedLayer> layers = Maps.newHashMap();
+    private final List<LiveLayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
     private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
 
@@ -34,22 +36,23 @@ public class LiveLayerStore {
     }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
-        io.quartic.weyl.core.feature.FeatureCollection features
-                = layers.containsKey(id)
-                ? layers.get(id).layer().features()
-                : featureStore.newCollection();
-        Collection<EnrichedFeedEvent> feedEvents
-                = layers.containsKey(id)
-                ? layers.get(id).feedEvents()
-                : Lists.newLinkedList();
+        if (layers.containsKey(id)) {
+            final IndexedLayer old = layers.get(id);
+            putLayer(old.withLayer(old.layer()
+                    .withMetadata(metadata))
+                    .withView(view)
+            );
+        } else {
+            io.quartic.weyl.core.feature.FeatureCollection features = featureStore.newCollection();
 
-        Layer layer = Layer.builder()
-                .metadata(metadata)
-                .schema(createSchema(features))
-                .features(features)
-                .build();
+            Layer layer = Layer.builder()
+                    .metadata(metadata)
+                    .schema(createSchema(features))
+                    .features(features)
+                    .build();
 
-        putLayer(LiveLayer.of(id, layer, feedEvents, view));
+            putLayer(index(id, layer, view));
+        }
     }
 
     public void deleteLayer(LayerId id) {
@@ -58,7 +61,7 @@ public class LiveLayerStore {
         liveLayerSubscriptions.removeAll(id);
     }
 
-    public Collection<LiveLayer> listLayers() {
+    public Collection<IndexedLayer> listLayers() {
         return layers.entrySet()
                 .stream()
                 .map(Map.Entry::getValue)
@@ -69,19 +72,23 @@ public class LiveLayerStore {
     public int addToLayer(LayerId layerId, Collection<LiveEvent> events) {
         checkLayerExists(layerId);
 
+        final IndexedLayer layer = layers.get(layerId);
+
         final Collection<EnrichedLiveEvent> enrichedLiveEvents = enrichLiveEvents(events);
 
         final List<io.quartic.weyl.core.model.Feature> newFeatures = collectFeatures(enrichedLiveEvents);
-        final List<EnrichedFeedEvent> feedEvents = collectFeedEvents(enrichedLiveEvents);
-
-        final LiveLayer layer = layers.get(layerId);
-        layer.feedEvents().addAll(feedEvents);
+        final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
+        updatedFeedEvents.addAll(collectFeedEvents(enrichedLiveEvents));    // TODO: structural sharing
 
         final io.quartic.weyl.core.feature.FeatureCollection updatedFeatures = layer.layer().features().append(newFeatures);
-        putLayer(layer.withLayer(layer.layer()
-                .withFeatures(updatedFeatures)
-                .withSchema(createSchema(updatedFeatures))
-        ));
+
+        putLayer(layer
+                .withLayer(layer.layer()
+                        .withFeatures(updatedFeatures)
+                        .withSchema(createSchema(updatedFeatures))
+                )
+                .withFeedEvents(updatedFeedEvents)
+        );
 
         notifyListeners(layerId, newFeatures);
         notifySubscribers(layerId);
@@ -96,7 +103,7 @@ public class LiveLayerStore {
                 .build();
     }
 
-    private void putLayer(LiveLayer layer) {
+    private void putLayer(IndexedLayer layer) {
         layers.put(layer.layerId(), layer);
     }
 
@@ -144,12 +151,12 @@ public class LiveLayerStore {
     }
 
     private void notifySubscribers(LayerId layerId) {
-        final LiveLayer layer = layers.get(layerId);
+        final IndexedLayer layer = layers.get(layerId);
         liveLayerSubscriptions.get(layerId)
                 .forEach(subscription -> subscription.subscriber().accept(computeLiveLayerState(layer, subscription)));
     }
 
-    private LiveLayerState computeLiveLayerState(LiveLayer layer, LiveLayerSubscription subscription) {
+    private LiveLayerState computeLiveLayerState(IndexedLayer layer, LiveLayerSubscription subscription) {
         final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
         Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView()
                 .compute(featureStore.getFeatureIdGenerator(), features);
@@ -183,6 +190,26 @@ public class LiveLayerStore {
                 Optional.of(Utils.fromJts(f.geometry())),
                 convertMetadata(f.uid(), f.metadata())
         );
+    }
+
+    private IndexedLayer index(LayerId layerId, Layer layer, LiveLayerView view) {
+        Collection<IndexedFeature> features = layer.features()
+                .stream()
+                .map(feature -> ImmutableIndexedFeature.builder()
+                        .feature(feature)
+                        .preparedGeometry(PreparedGeometryFactory.prepare(feature.geometry()))
+                        .build())
+                .collect(Collectors.toList());
+
+        return IndexedLayer.builder()
+                .layer(layer)
+                .spatialIndex(spatialIndex(features))
+                .indexedFeatures(features)
+                .layerId(layerId)
+                .layerStats(calculateStats(layer))
+                .feedEvents(ImmutableList.of())     // TODO
+                .view(view)
+                .build();
     }
 
     private void checkLayerExists(LayerId layerId) {

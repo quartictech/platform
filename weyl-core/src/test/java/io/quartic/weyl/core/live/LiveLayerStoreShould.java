@@ -37,9 +37,9 @@ public class LiveLayerStoreShould {
         store.createLayer(id1, lm1, IDENTITY_VIEW);
         store.createLayer(id2, lm2, IDENTITY_VIEW);
 
-        final Collection<LiveLayer> layers = store.listLayers();
+        final Collection<IndexedLayer> layers = store.listLayers();
 
-        assertThat(layers.stream().map(LiveLayer::layerId).collect(toList()),
+        assertThat(layers.stream().map(IndexedLayer::layerId).collect(toList()),
                 containsInAnyOrder(id1, id2));
         assertThat(layers.stream().map(l -> l.layer().metadata()).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
@@ -118,7 +118,7 @@ public class LiveLayerStoreShould {
         LayerMetadata newMetadata = metadata("cheese", "monkey");
         store.createLayer(id, newMetadata, IDENTITY_VIEW);
 
-        final Collection<LiveLayer> layers = store.listLayers();
+        final Collection<IndexedLayer> layers = store.listLayers();
 
         assertThat(layers.stream().map(l -> l.layer().metadata()).collect(toList()),
                 containsInAnyOrder(newMetadata));

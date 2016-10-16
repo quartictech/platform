@@ -2,12 +2,12 @@ package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LiveEvent;
-import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerViewType;
 import io.quartic.weyl.core.model.*;
@@ -34,7 +34,15 @@ public class LayerResourceShould {
                 mock(io.quartic.weyl.core.feature.FeatureCollection.class)
         );
         when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
-                LiveLayer.of(LayerId.of("666"), layer, ImmutableList.of(), (gen, history) -> history.stream())
+                IndexedLayer.builder()
+                        .layerId(LayerId.of("666"))
+                        .layer(layer)
+                        .feedEvents(ImmutableList.of())
+                        .view((g, f) -> f.stream())
+                        .spatialIndex(mock(SpatialIndex.class))
+                        .indexedFeatures(ImmutableList.of())
+                        .layerStats(mock(LayerStats.class))
+                        .build()
         ));
     }
 
