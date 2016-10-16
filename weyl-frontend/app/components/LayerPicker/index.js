@@ -26,11 +26,11 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
   }
 
   render() {
-    const rows = [];
-
-    _.values(this.props.layers).forEach(layer =>
-      rows.push(<div className="item" key={layer.id} data-value={layer.id}>{layer.metadata.name}</div>)
-    );
+    const rows = this.props.layers.toArray().map(layer => (
+      <div className="item" key={layer.get("id")} data-value={layer.get("id")}>
+        {layer.getIn(["metadata", "name"])}
+      </div>
+    ));
 
     return (
       <div className={styles.layerPicker}>
