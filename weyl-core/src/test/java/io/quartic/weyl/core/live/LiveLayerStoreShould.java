@@ -68,15 +68,6 @@ public class LiveLayerStoreShould {
     }
 
     @Test
-    public void ignore_features_with_null_geometry() throws Exception {
-        LayerId id = createLayer();
-
-        int num = store.addToLayer(id, liveEvents(feature("a", Optional.empty())));
-
-        assertThat(num, equalTo(0));
-    }
-
-    @Test
     public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);

@@ -107,10 +107,6 @@ public class LiveLayerStore {
         layers.put(layer.layerId(), layer);
     }
 
-    private static EnrichedFeedEvent enrichedFeedEvent(EnrichedLiveEvent liveEvent, FeedEvent feedEvent) {
-        return EnrichedFeedEvent.of(liveEvent.eventId(), liveEvent.liveEvent().timestamp(), feedEvent);
-    }
-
     public void addListener(LiveLayerStoreListener liveLayerStoreListener) {
         listeners.add(liveLayerStoreListener);
     }
