@@ -1,20 +1,19 @@
 package io.quartic.weyl.core;
 
 import com.google.common.collect.Maps;
+import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.*;
 
 import java.util.Map;
 
 public class StatsCalculator {
-    public static LayerStats calculateStats(AbstractLayer layer) {
+    public static LayerStats calculateStats(AttributeSchema schema, FeatureCollection features) {
         Map<String, Double> maxNumeric = Maps.newConcurrentMap();
         Map<String, Double> minNumeric = Maps.newConcurrentMap();
 
-        AttributeSchema attributeSchema = layer.schema();
-
-        layer.features().parallelStream()
+        features.parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())
-                .filter(entry -> attributeSchema.attributes().get(entry.getKey()).type()
+                .filter(entry -> schema.attributes().get(entry.getKey()).type()
                         == AttributeType.NUMERIC)
                 .forEach(entry -> {
                     Object value = entry.getValue();
@@ -33,7 +32,7 @@ public class StatsCalculator {
                 });
 
         ImmutableLayerStats.Builder builder = ImmutableLayerStats.builder();
-        layer.schema().attributes()
+        schema.attributes()
                 .entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().type() == AttributeType.NUMERIC)
@@ -43,7 +42,7 @@ public class StatsCalculator {
                                 .maximum(maxNumeric.get(entry.getKey()))
                                 .build()));
 
-        builder.featureCount(layer.features().size());
+        builder.featureCount(features.size());
 
         return builder.build();
     }

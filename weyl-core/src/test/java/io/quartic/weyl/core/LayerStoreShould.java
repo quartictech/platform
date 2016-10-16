@@ -42,13 +42,13 @@ public class LayerStoreShould {
         store.createLayer(id1, lm1, IDENTITY_VIEW);
         store.createLayer(id2, lm2, IDENTITY_VIEW);
 
-        final Collection<IndexedLayer> layers = store.listLayers();
+        final Collection<Layer> layers = store.listLayers();
 
-        assertThat(layers.stream().map(IndexedLayer::layerId).collect(toList()),
+        assertThat(layers.stream().map(Layer::layerId).collect(toList()),
                 containsInAnyOrder(id1, id2));
-        assertThat(layers.stream().map(l -> l.layer().metadata()).collect(toList()),
+        assertThat(layers.stream().map(Layer::metadata).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
-        assertThat(layers.stream().map(IndexedLayer::live).collect(toList()),
+        assertThat(layers.stream().map(Layer::live).collect(toList()),
                 containsInAnyOrder(false, false));
     }
 
@@ -76,8 +76,8 @@ public class LayerStoreShould {
 
         assertThat(num, equalTo(1));
 
-        final Collection<IndexedLayer> layers = store.listLayers();
-        assertThat(layers.stream().map(IndexedLayer::live).collect(toList()),
+        final Collection<Layer> layers = store.listLayers();
+        assertThat(layers.stream().map(Layer::live).collect(toList()),
                 containsInAnyOrder(true));
     }
 
@@ -122,9 +122,9 @@ public class LayerStoreShould {
         LayerMetadata newMetadata = metadata("cheese", "monkey");
         store.createLayer(id, newMetadata, IDENTITY_VIEW);
 
-        final Collection<IndexedLayer> layers = store.listLayers();
+        final Collection<Layer> layers = store.listLayers();
 
-        assertThat(layers.stream().map(l -> l.layer().metadata()).collect(toList()),
+        assertThat(layers.stream().map(Layer::metadata).collect(toList()),
                 containsInAnyOrder(newMetadata));
     }
 

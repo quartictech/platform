@@ -32,15 +32,13 @@ public class LayerResourceShould {
 
     @Before
     public void setUp() throws Exception {
-        Layer layer = Layer.of(
-                mock(AttributeSchema.class),
-                LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()),
-                mock(io.quartic.weyl.core.feature.FeatureCollection.class)
-        );
         when(layerStore.listLayers()).thenReturn(ImmutableList.of(
-                IndexedLayer.builder()
+                Layer.builder()
                         .layerId(LayerId.of("666"))
-                        .layer(layer)
+                        .metadata(LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()))
+                        .features(mock(io.quartic.weyl.core.feature.FeatureCollection.class))
+                        .schema(mock(AttributeSchema.class))
+                        .live(true)
                         .feedEvents(ImmutableList.of())
                         .view((g, f) -> f.stream())
                         .spatialIndex(mock(SpatialIndex.class))

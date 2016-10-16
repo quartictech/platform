@@ -6,10 +6,7 @@ import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveImporter;
-import io.quartic.weyl.core.model.AbstractIndexedLayer;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.IndexedLayer;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
@@ -43,9 +40,8 @@ public class LayerResource {
     @Path("/compute")
     @Produces(MediaType.APPLICATION_JSON)
     public LayerId createComputedLayer(BucketSpec bucketSpec) {
-        Optional<IndexedLayer> bucketLayer = layerStore.bucket(bucketSpec);
-        return bucketLayer.map(IndexedLayer::layerId)
-                .orElseThrow(() -> new ProcessingException("bucket computation failed"));
+        Optional<LayerId> bucketLayer = layerStore.bucket(bucketSpec);
+        return bucketLayer.orElseThrow(() -> new ProcessingException("bucket computation failed"));
     }
 
     @DELETE
@@ -97,17 +93,17 @@ public class LayerResource {
         Preconditions.checkNotNull(query);
         return layerStore.listLayers()
                 .stream()
-                .filter(layer -> layer.layer().metadata().name().toLowerCase().contains(query.toLowerCase()))
+                .filter(layer -> layer.metadata().name().toLowerCase().contains(query.toLowerCase()))
                 .map(this::createLayerResponse)
                 .collect(toList());
     }
 
-    private LayerResponse createLayerResponse(AbstractIndexedLayer layer) {
+    private LayerResponse createLayerResponse(AbstractLayer layer) {
         return ImmutableLayerResponse.builder()
                 .id(layer.layerId())
-                .metadata(layer.layer().metadata())
+                .metadata(layer.metadata())
                 .stats(layer.layerStats())
-                .attributeSchema(layer.layer().schema())
+                .attributeSchema(layer.schema())
                 .live(layer.live())
                 .build();
     }
