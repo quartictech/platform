@@ -6,11 +6,16 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.geojson.Feature;
+import io.quartic.weyl.core.geojson.FeatureCollection;
+import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LiveLayerState;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerSubscription;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.message.*;
 import org.slf4j.Logger;
@@ -19,7 +24,12 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 @Metered
 @Timed
@@ -79,7 +89,13 @@ public class UpdateServer {
     }
 
     private void sendLayerUpdate(LayerId layerId, LiveLayerState state) {
-        sendMessage(LayerUpdateMessage.of(layerId, state));
+        sendMessage(LayerUpdateMessage.builder()
+                .layerId(layerId)
+                .schema(state.schema())
+                .featureCollection(fromJts(state.featureCollection()))
+                .feedEvents(state.feedEvents())
+                .build()
+        );
     }
 
     private void sendAlert(AbstractAlert alert) {
@@ -93,4 +109,23 @@ public class UpdateServer {
             e.printStackTrace();    // TODO
         }
     }
+
+    private static FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features) {
+        return FeatureCollection.of(features.stream().map(UpdateServer::fromJts).collect(toList()));
+    }
+
+    private static Feature fromJts(io.quartic.weyl.core.model.Feature f) {
+        return Feature.of(
+                Optional.of(f.externalId()),
+                Optional.of(Utils.fromJts(f.geometry())),
+                convertMetadata(f.uid(), f.metadata())
+        );
+    }
+
+    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Object> metadata) {
+        final Map<String, Object> output = Maps.newHashMap(metadata);
+        output.put("_id", featureId);  // TODO: eliminate the _id concept
+        return output;
+    }
+
 }

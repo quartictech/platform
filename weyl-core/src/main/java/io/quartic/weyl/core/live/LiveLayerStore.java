@@ -1,27 +1,21 @@
 package io.quartic.weyl.core.live;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import io.quartic.weyl.core.AbstractLayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.IndexedLayer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.UidGenerator;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.stream.Collectors.toList;
 
 public class LiveLayerStore extends AbstractLayerStore {
     private final List<LiveLayerStoreListener> listeners = newArrayList();
@@ -45,7 +39,7 @@ public class LiveLayerStore extends AbstractLayerStore {
         final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
         updatedFeedEvents.addAll(importer.getFeedEvents());    // TODO: structural sharing
 
-        final Collection<io.quartic.weyl.core.model.Feature> newFeatures = importer.getFeatures();
+        final Collection<Feature> newFeatures = importer.getFeatures();
         final io.quartic.weyl.core.feature.FeatureCollection updatedFeatures = layer.layer().features().append(newFeatures);
 
         putLayer(layer
@@ -85,35 +79,17 @@ public class LiveLayerStore extends AbstractLayerStore {
     }
 
     private LiveLayerState computeLiveLayerState(IndexedLayer layer, LiveLayerSubscription subscription) {
-        final Collection<io.quartic.weyl.core.model.Feature> features = layer.layer().features();
-        Stream<io.quartic.weyl.core.model.Feature> computed = subscription.liveLayerView()
+        final Collection<Feature> features = layer.layer().features();
+        Stream<Feature> computed = subscription.liveLayerView()
                 .compute(featureStore.getFeatureIdGenerator(), features);
-        FeatureCollection featureCollection = FeatureCollection.of(
-                computed
-                        .map(this::fromJts)
-                        .collect(Collectors.toList()));
         return LiveLayerState.builder()
                 .schema(layer.layer().schema())
-                .featureCollection(featureCollection)
+                .featureCollection(computed.collect(toList()))
                 .feedEvents(layer.feedEvents())
                 .build();
     }
 
-    private void notifyListeners(LayerId layerId, Collection<io.quartic.weyl.core.model.Feature> newFeatures) {
+    private void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
         newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
-    }
-
-    private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
-        return Feature.of(
-                Optional.of(f.externalId()),
-                Optional.of(Utils.fromJts(f.geometry())),
-                convertMetadata(f.uid(), f.metadata())
-        );
-    }
-
-    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Object> metadata) {
-        final Map<String, Object> output = Maps.newHashMap(metadata);
-        output.put("_id", featureId);  // TODO: eliminate the _id concept
-        return output;
     }
 }
