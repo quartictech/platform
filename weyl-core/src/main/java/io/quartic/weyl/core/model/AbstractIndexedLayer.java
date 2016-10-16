@@ -2,7 +2,7 @@ package io.quartic.weyl.core.model;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.SpatialIndex;
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.live.EnrichedFeedEvent;
 import io.quartic.weyl.core.live.LiveLayerView;
 import org.immutables.value.Value;

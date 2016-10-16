@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.alert;
 
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle

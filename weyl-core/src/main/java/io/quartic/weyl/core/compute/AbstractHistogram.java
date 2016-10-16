@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.compute;
 
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.SweetStyle;
 import org.immutables.value.Value;
 
 import java.util.Collection;

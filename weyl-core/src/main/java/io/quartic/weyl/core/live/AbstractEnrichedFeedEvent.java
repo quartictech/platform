@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.live;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.SweetStyle;
 import org.immutables.value.Value;
 
 import java.time.Instant;

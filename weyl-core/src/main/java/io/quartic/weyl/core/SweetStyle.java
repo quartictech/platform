@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.geojson;
+package io.quartic.weyl.core;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
