@@ -8,8 +8,8 @@ import java.util.function.Consumer;
 
 @Value.Immutable
 @SweetStyle
-interface AbstractLiveLayerSubscription {
+interface AbstractLayerSubscription {
    LayerId layerId();
-   LiveLayerView liveLayerView();
-   Consumer<LiveLayerState> subscriber();
+   LayerView liveLayerView();
+   Consumer<LayerState> subscriber();
 }

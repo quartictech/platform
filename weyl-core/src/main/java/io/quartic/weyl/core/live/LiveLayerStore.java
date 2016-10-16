@@ -18,8 +18,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 
 public class LiveLayerStore extends AbstractLayerStore {
-    private final List<LiveLayerStoreListener> listeners = newArrayList();
-    private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
+    private final List<LayerStoreListener> listeners = newArrayList();
+    private final Multimap<LayerId, LayerSubscription> subscriptions = HashMultimap.create();
 
     public LiveLayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator) {
         super(featureStore, lidGenerator);
@@ -28,7 +28,7 @@ public class LiveLayerStore extends AbstractLayerStore {
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
         layers.remove(id);
-        liveLayerSubscriptions.removeAll(id);
+        subscriptions.removeAll(id);
     }
 
     // Returns number of features actually added
@@ -56,33 +56,33 @@ public class LiveLayerStore extends AbstractLayerStore {
         return newFeatures.size();
     }
 
-    public void addListener(LiveLayerStoreListener liveLayerStoreListener) {
-        listeners.add(liveLayerStoreListener);
+    public void addListener(LayerStoreListener layerStoreListener) {
+        listeners.add(layerStoreListener);
     }
 
-    public synchronized LiveLayerSubscription addSubscriber(LayerId layerId, Consumer<LiveLayerState> subscriber) {
+    public synchronized LayerSubscription addSubscriber(LayerId layerId, Consumer<LayerState> subscriber) {
         checkLayerExists(layerId);
-        LiveLayerSubscription subscription = LiveLayerSubscription.of(layerId, layers.get(layerId).view(), subscriber);
-        liveLayerSubscriptions.put(layerId, subscription);
+        LayerSubscription subscription = LayerSubscription.of(layerId, layers.get(layerId).view(), subscriber);
+        subscriptions.put(layerId, subscription);
         subscriber.accept(computeLiveLayerState(layers.get(layerId), subscription));
         return subscription;
     }
 
-    public synchronized void removeSubscriber(LiveLayerSubscription liveLayerSubscription) {
-        liveLayerSubscriptions.remove(liveLayerSubscription.layerId(), liveLayerSubscription);
+    public synchronized void removeSubscriber(LayerSubscription layerSubscription) {
+        subscriptions.remove(layerSubscription.layerId(), layerSubscription);
     }
 
     private void notifySubscribers(LayerId layerId) {
         final IndexedLayer layer = layers.get(layerId);
-        liveLayerSubscriptions.get(layerId)
+        subscriptions.get(layerId)
                 .forEach(subscription -> subscription.subscriber().accept(computeLiveLayerState(layer, subscription)));
     }
 
-    private LiveLayerState computeLiveLayerState(IndexedLayer layer, LiveLayerSubscription subscription) {
+    private LayerState computeLiveLayerState(IndexedLayer layer, LayerSubscription subscription) {
         final Collection<Feature> features = layer.layer().features();
         Stream<Feature> computed = subscription.liveLayerView()
                 .compute(featureStore.getFeatureIdGenerator(), features);
-        return LiveLayerState.builder()
+        return LayerState.builder()
                 .schema(layer.layer().schema())
                 .featureCollection(computed.collect(toList()))
                 .feedEvents(layer.feedEvents())

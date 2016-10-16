@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.live.LiveLayerStoreListener;
+import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class GeofenceStore implements LiveLayerStoreListener {
+public class GeofenceStore implements LayerStoreListener {
     @SweetStyle
     @Value.Immutable
     interface AbstractViolationKey {

@@ -4,7 +4,7 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.live.EnrichedFeedEvent;
-import io.quartic.weyl.core.live.LiveLayerView;
+import io.quartic.weyl.core.live.LayerView;
 import org.immutables.value.Value;
 
 import java.util.Collection;
@@ -18,7 +18,7 @@ public interface AbstractIndexedLayer {
 
     // Live features
     Collection<EnrichedFeedEvent> feedEvents();
-    LiveLayerView view();
+    LayerView view();
 
     // Static features
     SpatialIndex spatialIndex();

@@ -10,7 +10,7 @@ import java.util.List;
 
 @Value.Immutable
 @SweetStyle
-public interface AbstractLiveLayerState {
+public interface AbstractLayerState {
     AttributeSchema schema();
     Collection<Feature> featureCollection();
     List<EnrichedFeedEvent> feedEvents();

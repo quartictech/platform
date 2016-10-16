@@ -12,9 +12,9 @@ import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.live.LiveLayerState;
+import io.quartic.weyl.core.live.LayerSubscription;
+import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.live.LiveLayerSubscription;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.message.*;
@@ -39,7 +39,7 @@ public class UpdateServer {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final ObjectMapper objectMapper;
     private final LiveLayerStore liveLayerStore;
-    private List<LiveLayerSubscription> subscriptions = Lists.newArrayList();
+    private List<LayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
     public UpdateServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, AlertProcessor alertProcessor) {
@@ -88,7 +88,7 @@ public class UpdateServer {
         subscriptions.add(liveLayerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
     }
 
-    private void sendLayerUpdate(LayerId layerId, LiveLayerState state) {
+    private void sendLayerUpdate(LayerId layerId, LayerState state) {
         sendMessage(LayerUpdateMessage.builder()
                 .layerId(layerId)
                 .schema(state.schema())

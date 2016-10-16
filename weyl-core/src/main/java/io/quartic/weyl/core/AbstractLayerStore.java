@@ -10,7 +10,7 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.live.LiveLayerView;
+import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 
 public abstract class AbstractLayerStore {
-    private static final LiveLayerView IDENTITY_VIEW = (g, f) -> f.stream();
+    private static final LayerView IDENTITY_VIEW = (g, f) -> f.stream();
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
     protected final FeatureStore featureStore;
     protected final Map<LayerId, IndexedLayer> layers = Maps.newConcurrentMap();
@@ -43,7 +43,7 @@ public abstract class AbstractLayerStore {
         return layerId;
     }
 
-    public void createLayer(LayerId id, LayerMetadata metadata, LiveLayerView view) {
+    public void createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
         if (layers.containsKey(id)) {
             final IndexedLayer old = layers.get(id);
             putLayer(old
@@ -108,7 +108,7 @@ public abstract class AbstractLayerStore {
         layers.put(layer.layerId(), layer);
     }
 
-    protected IndexedLayer index(LayerId layerId, Layer layer, LiveLayerView view) {
+    protected IndexedLayer index(LayerId layerId, Layer layer, LayerView view) {
         Collection<IndexedFeature> features = layer.features()
                 .stream()
                 .map(feature -> ImmutableIndexedFeature.builder()

@@ -7,10 +7,10 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
+import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.live.LiveLayerViewType;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
@@ -83,7 +83,7 @@ public class LayerResourceShould {
     private LayerUpdateRequest createRequest(FeatureCollection collection) {
         return LayerUpdateRequest.of(
                 LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()),
-                LiveLayerViewType.LOCATION_AND_TRACK,
+                LayerViewType.LOCATION_AND_TRACK,
                 ImmutableList.of(LiveEvent.of(Instant.now(), Optional.of(collection), Optional.empty())));
     }
 }

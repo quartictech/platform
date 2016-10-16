@@ -23,7 +23,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
-    private final static LiveLayerView IDENTITY_VIEW = (gen, features) -> features.stream();
+    private final static LayerView IDENTITY_VIEW = (gen, features) -> features.stream();
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
@@ -77,16 +77,16 @@ public class LiveLayerStoreShould {
     @Test
     public void notify_subscribers_of_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
-        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        Consumer<LayerState> subscriber = mock(Consumer.class);
         LiveImporter importer = importerFor(feature("a", "1"));
 
         store.addSubscriber(id, subscriber);
         store.addToLayer(id, importer);
 
-        final LiveLayerState liveLayerState = captureLiveLayerState(subscriber);
-        assertThat(liveLayerState.featureCollection(),
+        final LayerState layerState = captureLiveLayerState(subscriber);
+        assertThat(layerState.featureCollection(),
                 containsInAnyOrder(feature("a", "1")));
-        assertThat(liveLayerState.schema(),
+        assertThat(layerState.schema(),
                 equalTo(ImmutableAttributeSchema.builder()
                         .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
                         .build()
@@ -96,7 +96,7 @@ public class LiveLayerStoreShould {
     @Test
     public void notify_subscribers_of_extra_features_added_to_layer() throws Exception {
         LayerId id = createLayer();
-        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        Consumer<LayerState> subscriber = mock(Consumer.class);
 
         store.addToLayer(id, importerFor(feature("a", "1")));
         store.addSubscriber(id, subscriber);
@@ -124,7 +124,7 @@ public class LiveLayerStoreShould {
     @Test
     public void not_delete_layer_contents_if_create_called_on_the_same_layer() throws Exception {
         LayerId id = createLayer();
-        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        Consumer<LayerState> subscriber = mock(Consumer.class);
 
         store.addToLayer(id, importerFor(feature("a", "1")));
 
@@ -141,8 +141,8 @@ public class LiveLayerStoreShould {
 
     @Test
     public void notify_listeners_on_change() throws Exception {
-        LiveLayerStoreListener listenerA = mock(LiveLayerStoreListener.class);
-        LiveLayerStoreListener listenerB = mock(LiveLayerStoreListener.class);
+        LayerStoreListener listenerA = mock(LayerStoreListener.class);
+        LayerStoreListener listenerB = mock(LayerStoreListener.class);
 
         LayerId id = createLayer();
         store.addListener(listenerA);
@@ -155,10 +155,10 @@ public class LiveLayerStoreShould {
 
     @Test
     public void not_notify_subscribers_after_unsubscribe() {
-        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        Consumer<LayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
 
-        LiveLayerSubscription subscription = store.addSubscriber(id, subscriber);
+        LayerSubscription subscription = store.addSubscriber(id, subscriber);
         verify(subscriber, times(1)).accept(any());
         store.removeSubscriber(subscription);
 
@@ -168,7 +168,7 @@ public class LiveLayerStoreShould {
 
     @Test
     public void unsubscribe_when_subscriber_deleted() {
-        Consumer<LiveLayerState> subscriber = mock(Consumer.class);
+        Consumer<LayerState> subscriber = mock(Consumer.class);
         LayerId id = createLayer();
         store.addSubscriber(id, subscriber);
         verify(subscriber, times(1)).accept(any());
@@ -208,8 +208,8 @@ public class LiveLayerStoreShould {
         return LayerMetadata.of(name, description, Optional.empty(), Optional.empty());
     }
 
-    private LiveLayerState captureLiveLayerState(Consumer<LiveLayerState> subscriber) {
-        ArgumentCaptor<LiveLayerState> captor = ArgumentCaptor.forClass(LiveLayerState.class);
+    private LayerState captureLiveLayerState(Consumer<LayerState> subscriber) {
+        ArgumentCaptor<LayerState> captor = ArgumentCaptor.forClass(LayerState.class);
         verify(subscriber, times(2)).accept(captor.capture());
         return captor.getAllValues().get(1);    // Assume first time is initial subscribe
     }
