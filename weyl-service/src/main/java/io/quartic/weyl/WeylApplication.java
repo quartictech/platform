@@ -32,11 +32,11 @@ import java.util.EnumSet;
 import java.util.function.Supplier;
 
 public class WeylApplication extends Application<WeylConfiguration> {
-    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
+    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = new RandomUidGenerator<>(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-    private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
+    private final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore);
+    private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore, lidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 

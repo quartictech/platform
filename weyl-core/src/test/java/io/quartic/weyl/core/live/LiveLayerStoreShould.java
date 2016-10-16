@@ -25,10 +25,11 @@ import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
     private final static LiveLayerView IDENTITY_VIEW = (gen, features) -> features.stream();
-    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
-    private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
+    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
+    private final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
+    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LiveLayerStore store = new LiveLayerStore(featureStore);
+    private final LiveLayerStore store = new LiveLayerStore(featureStore, lidGenerator);
 
     @Test
     public void list_created_layers() throws Exception {

@@ -11,6 +11,7 @@ import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.IndexedLayer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.UidGenerator;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,8 +27,8 @@ public class LiveLayerStore extends AbstractLayerStore {
     private final List<LiveLayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
 
-    public LiveLayerStore(FeatureStore featureStore) {
-        super(featureStore);
+    public LiveLayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator) {
+        super(featureStore, lidGenerator);
     }
 
     public void deleteLayer(LayerId id) {
