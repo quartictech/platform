@@ -32,9 +32,9 @@ import static java.util.stream.Collectors.toList;
 public class LayerStore {
     private static final LayerView IDENTITY_VIEW = (g, f) -> f.stream();
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
-    protected final FeatureStore featureStore;
-    protected final Map<LayerId, IndexedLayer> layers = Maps.newConcurrentMap();
-    protected final UidGenerator<LayerId> lidGenerator;
+    private final FeatureStore featureStore;
+    private final Map<LayerId, IndexedLayer> layers = Maps.newConcurrentMap();
+    private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = HashMultimap.create();
 
