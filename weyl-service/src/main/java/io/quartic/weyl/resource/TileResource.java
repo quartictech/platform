@@ -30,7 +30,7 @@ public class TileResource {
                            @PathParam("z") Integer z,
                            @PathParam("x") Integer x,
                            @PathParam("y") Integer y) throws ParseException, IOException {
-        AbstractIndexedLayer layer = layerStore.get(LayerId.of(layerId))
+        AbstractIndexedLayer layer = layerStore.getLayer(LayerId.of(layerId))
                 .orElseThrow(() -> new NotFoundException("No layer with id: " + layerId));
 
         return new VectorTileRenderer(ImmutableList.of(layer))

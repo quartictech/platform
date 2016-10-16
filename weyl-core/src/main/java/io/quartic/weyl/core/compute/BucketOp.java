@@ -50,8 +50,8 @@ public class BucketOp {
     }
 
     public static Optional<Layer> create(LayerStore store, BucketSpec bucketSpec) {
-        Optional<IndexedLayer> featureLayer = store.get(bucketSpec.features());
-        Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
+        Optional<IndexedLayer> featureLayer = store.getLayer(bucketSpec.features());
+        Optional<IndexedLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
             return new BucketOp(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec).compute();

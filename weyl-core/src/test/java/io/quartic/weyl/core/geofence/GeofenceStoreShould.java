@@ -2,7 +2,7 @@ package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
@@ -14,7 +14,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
-    private final GeofenceStore store = new GeofenceStore(mock(LiveLayerStore.class));
+    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class));
     private final ViolationListener listener = mock(ViolationListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
     private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);

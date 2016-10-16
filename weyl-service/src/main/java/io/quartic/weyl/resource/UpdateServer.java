@@ -7,14 +7,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
-import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.alert.AlertListener;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.live.LayerState;
-import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.message.*;
@@ -35,17 +35,19 @@ import static java.util.stream.Collectors.toList;
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/ws")
-public class UpdateServer {
+public class UpdateServer implements AlertListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final ObjectMapper objectMapper;
-    private final LiveLayerStore liveLayerStore;
+    private LayerStore layerStore;
     private List<LayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
-    public UpdateServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, AlertProcessor alertProcessor) {
+    public UpdateServer(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.liveLayerStore = liveLayerStore;
-        alertProcessor.addListener(this::sendAlert);
+    }
+
+    public void setLayerStore(LayerStore layerStore) {
+        this.layerStore = layerStore;
     }
 
     @OnOpen
@@ -79,27 +81,28 @@ public class UpdateServer {
         unsubscribeAll();
     }
 
+    @Override
+    public void onAlert(AbstractAlert alert) {
+        sendMessage(AlertMessage.of(alert));
+    }
+
     private void unsubscribeAll() {
-        subscriptions.forEach(liveLayerStore::removeSubscriber);
+        subscriptions.forEach(layerStore::removeSubscriber);
         subscriptions.clear();
     }
 
     private void subscribe(LayerId layerId) {
-        subscriptions.add(liveLayerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
+        subscriptions.add(layerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
     }
 
     private void sendLayerUpdate(LayerId layerId, LayerState state) {
         sendMessage(LayerUpdateMessage.builder()
                 .layerId(layerId)
                 .schema(state.schema())
-                .featureCollection(fromJts(state.featureCollection()))
+                .featureCollection(fromJts(state.featureCollection()))  // TODO: obviously we never want to do this with large static layers
                 .feedEvents(state.feedEvents())
                 .build()
         );
-    }
-
-    private void sendAlert(AbstractAlert alert) {
-        sendMessage(AlertMessage.of(alert));
     }
 
     private void sendMessage(SocketMessage message) {
@@ -126,6 +129,7 @@ public class UpdateServer {
         final Map<String, Object> output = Maps.newHashMap(metadata);
         output.put("_id", featureId);  // TODO: eliminate the _id concept
         return output;
+
     }
 
 }

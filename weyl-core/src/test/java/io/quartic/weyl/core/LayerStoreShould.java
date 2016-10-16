@@ -1,9 +1,10 @@
-package io.quartic.weyl.core.live;
+package io.quartic.weyl.core;
 
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
@@ -22,12 +23,12 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
-public class LiveLayerStoreShould {
+public class LayerStoreShould {
     private final static LayerView IDENTITY_VIEW = (gen, features) -> features.stream();
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LiveLayerStore store = new LiveLayerStore(featureStore, lidGenerator);
+    private final LayerStore store = new LayerStore(featureStore, lidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
@@ -47,6 +48,8 @@ public class LiveLayerStoreShould {
                 containsInAnyOrder(id1, id2));
         assertThat(layers.stream().map(l -> l.layer().metadata()).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
+        assertThat(layers.stream().map(IndexedLayer::live).collect(toList()),
+                containsInAnyOrder(false, false));
     }
 
     @Test
@@ -72,6 +75,10 @@ public class LiveLayerStoreShould {
         int num = store.addToLayer(id, importer);
 
         assertThat(num, equalTo(1));
+
+        final Collection<IndexedLayer> layers = store.listLayers();
+        assertThat(layers.stream().map(IndexedLayer::live).collect(toList()),
+                containsInAnyOrder(true));
     }
 
     @Test

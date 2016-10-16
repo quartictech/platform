@@ -16,6 +16,8 @@ public interface AbstractIndexedLayer {
     LayerId layerId();
     Layer layer();
 
+    boolean live();
+
     // Live features
     Collection<EnrichedFeedEvent> feedEvents();
     LayerView view();

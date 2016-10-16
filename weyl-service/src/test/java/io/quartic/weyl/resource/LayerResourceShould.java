@@ -10,7 +10,6 @@ import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventId;
-import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
@@ -25,10 +24,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LayerResourceShould {
-    private final LiveLayerStore liveLayerStore = mock(LiveLayerStore.class);
+    private final LayerStore layerStore = mock(LayerStore.class);
     private final LayerResource resource = new LayerResource(
-            mock(LayerStore.class),
-            liveLayerStore,
+            layerStore,
             new SequenceUidGenerator<>(FeatureId::of),
             new SequenceUidGenerator<>(LiveEventId::of));
 
@@ -39,7 +37,7 @@ public class LayerResourceShould {
                 LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()),
                 mock(io.quartic.weyl.core.feature.FeatureCollection.class)
         );
-        when(liveLayerStore.listLayers()).thenReturn(ImmutableList.of(
+        when(layerStore.listLayers()).thenReturn(ImmutableList.of(
                 IndexedLayer.builder()
                         .layerId(LayerId.of("666"))
                         .layer(layer)
