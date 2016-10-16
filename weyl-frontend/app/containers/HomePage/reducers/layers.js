@@ -1,5 +1,6 @@
 import { fromJS, OrderedMap, Set } from "immutable";
 import * as constants from "../constants";
+const _ = require("underscore");
 
 const colorScale = "PuRd";
 const defaultLayerStyle = schema => ({
@@ -23,6 +24,14 @@ const defaultLayerStyle = schema => ({
   },
 });
 
+const defaultFilter = (schema) =>
+  _.chain(schema.attributes)
+    .keys()
+    .filter(k => schema.attributes[k].categories !== null)
+    .map(k => [k, { notApplicable: false, categories: new Set() }])
+    .object()
+    .value();
+
 const newLayer = (action) => fromJS({
   id: action.id,
   metadata: action.metadata,
@@ -35,29 +44,33 @@ const newLayer = (action) => fromJS({
     type: "FeatureCollection",
     features: [],
   },   // Only relevant in the case of live layers
-  filter: {},
+  filter: defaultFilter(action.attributeSchema),
 });
 
 const layerReducer = (state, action) => {
   switch (action.type) {
     case constants.LAYER_TOGGLE_VISIBLE:
       return state.set("visible", !state.get("visible"));
+
     case constants.LAYER_SET_STYLE:
       return state.mergeIn(["style"], action.style);
+
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
       if (action.value === undefined) {
-        return state.updateIn(["filter", action.attribute, "notApplicable"], false, na => !na);
+        return state.updateIn(["filter", action.attribute, "notApplicable"], na => !na);
       }
-      return state.updateIn(["filter", action.attribute, "categories"], new Set(), set => {
-        if (set.has(action.value)) {
+      return state.updateIn(["filter", action.attribute, "categories"], set => {
+        if (set.includes(action.value)) {
           return set.remove(action.value);
         }
         return set.add(action.value);
       });
+
     case constants.LAYER_SET_DATA:
       return state
         .set("data", action.data)
         .set("attributeSchema", action.schema);
+
     default:
       return state;
   }
