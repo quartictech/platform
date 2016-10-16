@@ -288,8 +288,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   createValueFilter(spec) {
     return ["none"].concat(
       Object.keys(spec)
-        .filter(k => spec[k].length > 0)
-        .map(k => ["in", k].concat(spec[k]))
+        .filter(k => (spec[k].categories.length > 0 || spec[k].notApplicable))
+        .map(k => {
+          const catFilter = ["in", k].concat(spec[k].categories);
+          return spec[k].notApplicable ? ["any", ["!has", k], catFilter] : catFilter;
+        })
     );
   }
 
