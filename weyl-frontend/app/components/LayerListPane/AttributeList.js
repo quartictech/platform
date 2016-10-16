@@ -36,12 +36,18 @@ const AttributeValueList = ({
       <td>
         <table className="ui celled very compact small fixed selectable definition table">
           <tbody>
+            <AttributeValue
+              key="< N/A >"
+              value="< N/A >"
+              checked={!uncheckedValues.notApplicable}
+              onClick={() => onClick(attribute)} // Note no second argument to callback
+            />
             {
               values.sort(naturalsort).map(value => (
                 <AttributeValue
                   key={value}
                   value={value}
-                  checked={!uncheckedValues.some(x => x === value)}
+                  checked={!uncheckedValues.categories.some(x => x === value)}
                   onClick={(v) => onClick(attribute, v)}
                 />
               ))
@@ -70,7 +76,7 @@ const AttributeList = ({
               key={key}
               attribute={key}
               values={attributes[key].categories}
-              uncheckedValues={(key in filter) ? filter[key] : []}
+              uncheckedValues={(key in filter) ? filter[key] : defaultUncheckedValues()}
               onClick={(a, v) => onClick(layerId, a, v)}
             />
           ))
@@ -78,5 +84,11 @@ const AttributeList = ({
     </table>
   </div>
 );
+
+const defaultUncheckedValues = () => ({
+  notApplicable: false,
+  categories: [],
+});
+
 
 export default AttributeList;

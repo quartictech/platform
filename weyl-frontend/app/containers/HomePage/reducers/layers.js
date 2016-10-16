@@ -45,7 +45,10 @@ const layerReducer = (state, action) => {
     case constants.LAYER_SET_STYLE:
       return state.mergeIn(["style"], action.style);
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
-      return state.updateIn(["filter", action.attribute], new Set(), set => {
+      if (action.value === undefined) {
+        return state.updateIn(["filter", action.attribute, "notApplicable"], false, na => !na);
+      }
+      return state.updateIn(["filter", action.attribute, "categories"], new Set(), set => {
         if (set.has(action.value)) {
           return set.remove(action.value);
         }
