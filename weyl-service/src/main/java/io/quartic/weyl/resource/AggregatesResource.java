@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Path("/aggregates")
 public class AggregatesResource {
-    private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AggregatesResource.class);
     private final FeatureStore featureStore;
     private final HistogramCalculator calculator = new HistogramCalculator();
 
