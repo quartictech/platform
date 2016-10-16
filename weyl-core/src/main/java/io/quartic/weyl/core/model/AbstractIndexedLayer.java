@@ -16,9 +16,11 @@ public interface AbstractIndexedLayer {
     LayerId layerId();
     Layer layer();
 
+    // Live features
     Collection<EnrichedFeedEvent> feedEvents();
     LiveLayerView view();
 
+    // Static features
     SpatialIndex spatialIndex();
     Collection<IndexedFeature> indexedFeatures();
     LayerStats layerStats();

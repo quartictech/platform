@@ -74,12 +74,12 @@ public class LiveLayerStore {
 
         final IndexedLayer layer = layers.get(layerId);
 
-        final Collection<EnrichedLiveEvent> enrichedLiveEvents = enrichLiveEvents(events);
+        final LiveImporter importer = new LiveImporter(events, featureStore.getFeatureIdGenerator(), eidGenerator);
 
-        final List<io.quartic.weyl.core.model.Feature> newFeatures = collectFeatures(enrichedLiveEvents);
         final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-        updatedFeedEvents.addAll(collectFeedEvents(enrichedLiveEvents));    // TODO: structural sharing
+        updatedFeedEvents.addAll(importer.getFeedEvents());    // TODO: structural sharing
 
+        final Collection<io.quartic.weyl.core.model.Feature> newFeatures = importer.getFeatures();
         final io.quartic.weyl.core.feature.FeatureCollection updatedFeatures = layer.layer().features().append(newFeatures);
 
         putLayer(layer
@@ -105,29 +105,6 @@ public class LiveLayerStore {
 
     private void putLayer(IndexedLayer layer) {
         layers.put(layer.layerId(), layer);
-    }
-
-    private Collection<EnrichedLiveEvent> enrichLiveEvents(Collection<LiveEvent> events) {
-        return events.stream()
-                .map(event -> EnrichedLiveEvent.of(eidGenerator.get(), event))
-                .collect(Collectors.toList());
-    }
-
-    private List<io.quartic.weyl.core.model.Feature> collectFeatures(Collection<EnrichedLiveEvent> events) {
-        return events.stream()
-                .flatMap(event -> event.liveEvent().featureCollection().map(fc -> fc.features().stream()).orElse(Stream.empty()))
-                .filter(f -> f.geometry().isPresent())  // TODO: we should handle null geometries better
-                .map(this::toJts)
-                .collect(Collectors.toList());
-    }
-
-    private List<EnrichedFeedEvent> collectFeedEvents(Collection<EnrichedLiveEvent> events) {
-        return events.stream()
-                .flatMap(event -> event.liveEvent().feedEvent()
-                        .map(feedEvent -> Stream.of(enrichedFeedEvent(event, feedEvent)))
-                        .orElse(Stream.empty())
-                )
-                .collect(Collectors.toList());
     }
 
     private static EnrichedFeedEvent enrichedFeedEvent(EnrichedLiveEvent liveEvent, FeedEvent feedEvent) {
@@ -173,15 +150,6 @@ public class LiveLayerStore {
 
     private void notifyListeners(LayerId layerId, Collection<io.quartic.weyl.core.model.Feature> newFeatures) {
         newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
-    }
-
-    private io.quartic.weyl.core.model.Feature toJts(Feature f) {
-        return ImmutableFeature.builder()
-                .externalId(f.id().get())
-                .uid(featureStore.getFeatureIdGenerator().get())
-                .geometry(Utils.toJts(f.geometry().get()))  // HACK: we can assume that we've simply filtered out features with null geometries for now
-                .metadata(f.properties())
-                .build();
     }
 
     private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
