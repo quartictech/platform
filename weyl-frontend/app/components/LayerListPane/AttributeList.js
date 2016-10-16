@@ -1,7 +1,6 @@
 import React from "react";
 import naturalsort from "javascript-natural-sort";
 const $ = require("jquery");
-const _ = require("underscore");
 
 const AttributeValue = ({
   value,
@@ -41,7 +40,7 @@ const AttributeValueList = ({
               key="< N/A >"
               value="< N/A >"
               checked={!uncheckedValues.notApplicable}
-              onClick={(v) => onClick(attribute)} // Note no second argument to callback
+              onClick={() => onClick(attribute)} // Note no second argument to callback
             />
             {
               values.sort(naturalsort).map(value => (
