@@ -57,7 +57,7 @@ public class LayerResource {
     public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) {
         final LayerId layerId = LayerId.of(id);
 
-        layerStore.createLayer(layerId, request.metadata(), request.viewType().getLiveLayerView());
+        layerStore.createLayer(layerId, request.metadata(), request.viewType().getLayerView());
 
         request.events().forEach( event -> {
                     validateOrThrow(event.featureCollection().isPresent() ? event.featureCollection().get().features().stream() : Stream.empty(),

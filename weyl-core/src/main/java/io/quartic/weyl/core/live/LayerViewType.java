@@ -10,7 +10,7 @@ public enum LayerViewType {
         this.view = view;
     }
 
-    public LayerView getLiveLayerView() {
+    public LayerView getLayerView() {
         return view;
     }
 }
