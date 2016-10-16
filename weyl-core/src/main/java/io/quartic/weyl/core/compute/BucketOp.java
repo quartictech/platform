@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 
 public class BucketOp {
     private final FeatureStore featureStore;
-    private final IndexedLayer featureLayer;
+    private final AbstractIndexedLayer featureLayer;
     private final BucketSpec bucketSpec;
-    private final IndexedLayer bucketLayer;
+    private final AbstractIndexedLayer bucketLayer;
 
     private static class Bucketed {
         private final Feature bucket;
@@ -38,7 +38,7 @@ public class BucketOp {
         }
     }
 
-    private BucketOp(FeatureStore featureStore, IndexedLayer featureLayer, IndexedLayer bucketLayer, BucketSpec bucketSpec) {
+    private BucketOp(FeatureStore featureStore, AbstractIndexedLayer featureLayer, AbstractIndexedLayer bucketLayer, BucketSpec bucketSpec) {
         this.featureStore = featureStore;
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
@@ -49,7 +49,7 @@ public class BucketOp {
         return featureLayer.layer().metadata().name();
     }
 
-    public static Optional<AbstractLayer> create(LayerStore store, BucketSpec bucketSpec) {
+    public static Optional<Layer> create(LayerStore store, BucketSpec bucketSpec) {
         Optional<IndexedLayer> featureLayer = store.get(bucketSpec.features());
         Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
 
@@ -60,7 +60,7 @@ public class BucketOp {
         return Optional.empty();
     }
 
-    Optional<AbstractLayer> compute() {
+    Optional<Layer> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
             Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();

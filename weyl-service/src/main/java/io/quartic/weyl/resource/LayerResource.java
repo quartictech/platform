@@ -6,10 +6,10 @@ import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveLayer;
 import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.model.AbstractIndexedLayer;
 import io.quartic.weyl.core.model.ImmutableLayerStats;
 import io.quartic.weyl.core.model.IndexedLayer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
@@ -106,7 +106,7 @@ public class LayerResource {
                 .map(this::createLiveLayerResponse);
     }
 
-    private LayerResponse createStaticLayerResponse(IndexedLayer layer) {
+    private LayerResponse createStaticLayerResponse(AbstractIndexedLayer layer) {
         return ImmutableLayerResponse.builder()
                 .id(layer.layerId())
                 .metadata(layer.layer().metadata())
