@@ -1,6 +1,5 @@
 package io.quartic.weyl.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
@@ -9,33 +8,27 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.compute.BucketOp;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.importer.PostgresImporter;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.UidGenerator;
-import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
-    private final Map<LayerId, AbstractLayer> layers = Maps.newConcurrentMap();
     private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
     private final FeatureStore featureStore;
     private final UidGenerator<LayerId> lidGenerator;
-    private final ObjectMapper objectMapper;
 
-    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator, ObjectMapper objectMapper) {
+    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator) {
         this.featureStore = featureStore;
         this.lidGenerator = lidGenerator;
-        this.objectMapper = objectMapper;
     }
 
     public IndexedLayer importLayer(Importer importer, LayerMetadata metadata) {
@@ -66,7 +59,6 @@ public class LayerStore {
     }
 
     private void storeLayer(IndexedLayer indexedLayer) {
-        layers.put(indexedLayer.layerId(), indexedLayer.layer());
         indexedLayers.put(indexedLayer.layerId(), indexedLayer);
     }
 

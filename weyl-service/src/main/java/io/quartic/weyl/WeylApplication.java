@@ -82,7 +82,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         environment.jersey().setUrlPattern("/api/*");
 
-        LayerStore layerStore = new LayerStore(featureStore, lidGenerator, environment.getObjectMapper());
+        LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
