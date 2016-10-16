@@ -89,9 +89,9 @@ public class LiveLayerStore {
         return newFeatures.size();
     }
 
-    private ImmutableAttributeSchema createSchema(io.quartic.weyl.core.feature.FeatureCollection updatedFeatures) {
+    private ImmutableAttributeSchema createSchema(io.quartic.weyl.core.feature.FeatureCollection features) {
         return ImmutableAttributeSchema.builder()
-                .attributes(AttributeSchemaInferrer.inferSchema(updatedFeatures))
+                .attributes(AttributeSchemaInferrer.inferSchema(features))
                 .primaryAttribute(Optional.empty())
                 .build();
     }

@@ -1,11 +1,11 @@
 package io.quartic.weyl.core;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
-import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.compute.BucketOp;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.feature.FeatureCollection;
@@ -22,10 +22,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
+import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 
 public class LayerStore {
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
-    private final Map<LayerId, IndexedLayer> indexedLayers = Maps.newConcurrentMap();
+    private final Map<LayerId, IndexedLayer> layers = Maps.newConcurrentMap();
     private final FeatureStore featureStore;
     private final UidGenerator<LayerId> lidGenerator;
 
@@ -34,9 +35,16 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
+    public LayerId createAndImportToLayer(Importer importer, LayerMetadata metadata) {
+        final LayerId layerId = lidGenerator.get();
+        createLayer(layerId, metadata);
+        importToLayer(layerId, importer);
+        return layerId;
+    }
+
     public void createLayer(LayerId id, LayerMetadata metadata) {
-        if (indexedLayers.containsKey(id)) {
-            final IndexedLayer old = indexedLayers.get(id);
+        if (layers.containsKey(id)) {
+            final IndexedLayer old = layers.get(id);
             putLayer(old.withLayer(old.layer().withMetadata(metadata)));
         } else {
             FeatureCollection features = featureStore.newCollection();
@@ -51,27 +59,21 @@ public class LayerStore {
         }
     }
 
-    public AbstractIndexedLayer importLayer(Importer importer, LayerMetadata metadata) {
+    private void importToLayer(LayerId layerId, Importer importer) {
+        checkLayerExists(layerId);
+
         Collection<Feature> features = importer.get();
         log.info("imported {} features", features.size());
         log.info("envelope: {}:", Iterables.getFirst(features, null).geometry().getEnvelopeInternal());
-        Map<String, AbstractAttribute> attributes = AttributeSchemaInferrer.inferSchema(features);
 
-        AttributeSchema attributeSchema = ImmutableAttributeSchema.builder()
-                .attributes(attributes)
-                .primaryAttribute(Optional.empty())
-                .build();
+        final IndexedLayer layer = layers.get(layerId);
 
-        Layer layer = Layer.builder()
-                .metadata(metadata)
-                .features(featureStore.newCollection().append(importer.get()))
-                .schema(attributeSchema)
-                .build();
+        final FeatureCollection updatedFeatures = layer.layer().features().append(importer.get());
 
-        IndexedLayer indexedLayer = index(lidGenerator.get(), layer);
-        putLayer(indexedLayer);
-
-        return indexedLayer;
+        putLayer(index(layerId, layer.layer()
+                .withFeatures(updatedFeatures)
+                .withSchema(createSchema(updatedFeatures))
+        ));
     }
 
     public FeatureStore getFeatureStore() {
@@ -79,15 +81,15 @@ public class LayerStore {
     }
 
     private void putLayer(IndexedLayer indexedLayer) {
-        indexedLayers.put(indexedLayer.layerId(), indexedLayer);
+        layers.put(indexedLayer.layerId(), indexedLayer);
     }
 
     public Collection<IndexedLayer> listLayers() {
-        return indexedLayers.values();
+        return layers.values();
     }
 
     public Optional<IndexedLayer> get(LayerId layerId) {
-       return Optional.ofNullable(indexedLayers.get(layerId));
+       return Optional.ofNullable(layers.get(layerId));
     }
 
     public Optional<IndexedLayer> bucket(BucketSpec bucketSpec) {
@@ -120,10 +122,15 @@ public class LayerStore {
         return stRtree;
     }
 
-    private ImmutableAttributeSchema createSchema(io.quartic.weyl.core.feature.FeatureCollection updatedFeatures) {
+    private ImmutableAttributeSchema createSchema(io.quartic.weyl.core.feature.FeatureCollection features) {
         return ImmutableAttributeSchema.builder()
-                .attributes(AttributeSchemaInferrer.inferSchema(updatedFeatures))
+                .attributes(inferSchema(features))
                 .primaryAttribute(Optional.empty())
                 .build();
     }
+
+    private void checkLayerExists(LayerId layerId) {
+        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
+    }
+
 }
