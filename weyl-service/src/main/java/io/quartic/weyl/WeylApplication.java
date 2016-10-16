@@ -14,6 +14,7 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
@@ -33,6 +34,7 @@ import java.util.function.Supplier;
 public class WeylApplication extends Application<WeylConfiguration> {
     private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = new RandomUidGenerator<>(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+    private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
     private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore);
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
@@ -85,7 +87,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
 
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
+        environment.jersey().register(new LayerResource(layerStore, liveLayerStore, fidGenerator, eidGenerator));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(geofenceStore));
         environment.jersey().register(new AlertResource(alertProcessor));

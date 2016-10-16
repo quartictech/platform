@@ -7,6 +7,7 @@ import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
+import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -19,11 +20,14 @@ import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LiveLayerStoreShould {
     private final static LiveLayerView IDENTITY_VIEW = (gen, features) -> features.stream();
-    private final FeatureStore featureStore = new FeatureStore(new SequenceUidGenerator<>(FeatureId::of));
+    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
+    private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
+    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
     private final LiveLayerStore store = new LiveLayerStore(featureStore);
 
     @Test
@@ -55,14 +59,14 @@ public class LiveLayerStoreShould {
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_if_adding_to_non_existent_layer() throws Exception {
-        store.addToLayer(LayerId.of("666"), liveEvents(feature("a", Optional.of(point()))));
+        store.addToLayer(LayerId.of("666"), importerFor(liveEvents(feature("a", Optional.of(point())))));
     }
 
     @Test
     public void accept_if_adding_to_existing_layer() throws Exception {
         LayerId id = createLayer();
 
-        int num = store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
+        int num = store.addToLayer(id, importerFor(liveEvents(feature("a", Optional.of(point())))));
 
         assertThat(num, equalTo(1));
     }
@@ -74,7 +78,7 @@ public class LiveLayerStoreShould {
         final Feature feature = feature("a", Optional.of(point()));
 
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature));
+        store.addToLayer(id, importerFor(liveEvents(feature)));
 
         final LiveLayerState liveLayerState = captureLiveLayerState(subscriber);
         assertThat(liveLayerState.featureCollection().features(),
@@ -92,9 +96,9 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
-        store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
+        store.addToLayer(id, importerFor(liveEvents(feature("a", Optional.of(point())))));
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
+        store.addToLayer(id, importerFor(liveEvents(feature("b", Optional.of(point())))));
 
         assertThat(captureLiveLayerState(subscriber).featureCollection().features(),
                 containsInAnyOrder(
@@ -120,11 +124,11 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         Consumer<LiveLayerState> subscriber = mock(Consumer.class);
 
-        store.addToLayer(id, liveEvents(feature("a", Optional.of(point()))));
+        store.addToLayer(id, importerFor(liveEvents(feature("a", Optional.of(point())))));
 
         createLayer();  // Create again
         store.addSubscriber(id, subscriber);
-        store.addToLayer(id, liveEvents(feature("b", Optional.of(point()))));
+        store.addToLayer(id, importerFor(liveEvents(feature("b", Optional.of(point())))));
 
         assertThat(captureLiveLayerState(subscriber).featureCollection().features(),
                 containsInAnyOrder(
@@ -141,7 +145,7 @@ public class LiveLayerStoreShould {
         LayerId id = createLayer();
         store.addListener(listenerA);
         store.addListener(listenerB);
-        store.addToLayer(id, liveEvents(feature("abcd", Optional.of(point()))));
+        store.addToLayer(id, importerFor(liveEvents(feature("abcd", Optional.of(point())))));
 
         final ImmutableFeature feature = ImmutableFeature.builder()
                 .externalId("abcd")
@@ -162,7 +166,7 @@ public class LiveLayerStoreShould {
         verify(subscriber, times(1)).accept(any());
         store.removeSubscriber(subscription);
 
-        store.addToLayer(id, liveEvents(featureCollection(featureWithUid("a", "1", point()))));
+        store.addToLayer(id, importerFor(liveEvents(featureCollection(featureWithUid("a", "1", point())))));
         verifyNoMoreInteractions(subscriber);
     }
 
@@ -174,9 +178,13 @@ public class LiveLayerStoreShould {
         verify(subscriber, times(1)).accept(any());
         store.deleteLayer(id);
         createLayerWithId(id);
-        store.addToLayer(id, liveEvents(featureCollection(featureWithUid("a", "1", point()))));
+        store.addToLayer(id, importerFor(liveEvents(featureCollection(featureWithUid("a", "1", point())))));
 
         verifyNoMoreInteractions(subscriber);
+    }
+
+    private LiveImporter importerFor(Collection<LiveEvent> events) {
+        return new LiveImporter(events, fidGenerator, eidGenerator);
     }
 
     private void createLayerWithId(LayerId id) {

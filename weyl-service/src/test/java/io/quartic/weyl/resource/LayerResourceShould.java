@@ -8,9 +8,11 @@ import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LiveEvent;
+import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveLayerStore;
 import io.quartic.weyl.core.live.LiveLayerViewType;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +26,11 @@ import static org.mockito.Mockito.when;
 
 public class LayerResourceShould {
     private final LiveLayerStore liveLayerStore = mock(LiveLayerStore.class);
-    private final LayerResource resource = new LayerResource(mock(LayerStore.class), liveLayerStore);
+    private final LayerResource resource = new LayerResource(
+            mock(LayerStore.class),
+            liveLayerStore,
+            new SequenceUidGenerator<>(FeatureId::of),
+            new SequenceUidGenerator<>(LiveEventId::of));
 
     @Before
     public void setUp() throws Exception {

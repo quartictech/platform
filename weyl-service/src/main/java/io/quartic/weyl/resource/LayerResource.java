@@ -4,11 +4,11 @@ import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
+import io.quartic.weyl.core.live.LiveEventId;
+import io.quartic.weyl.core.live.LiveImporter;
 import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.model.AbstractIndexedLayer;
-import io.quartic.weyl.core.model.ImmutableLayerStats;
-import io.quartic.weyl.core.model.IndexedLayer;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
@@ -28,10 +28,14 @@ public class LayerResource {
     private static final Logger log = LoggerFactory.getLogger(LayerResource.class);
     private final LayerStore layerStore;
     private final LiveLayerStore liveLayerStore;
+    private final UidGenerator<FeatureId> fidGenerator;
+    private final UidGenerator<LiveEventId> eidGenerator;
 
-    public LayerResource(LayerStore layerStore, LiveLayerStore liveLayerStore) {
+    public LayerResource(LayerStore layerStore, LiveLayerStore liveLayerStore, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
         this.layerStore = layerStore;
         this.liveLayerStore = liveLayerStore;
+        this.fidGenerator = fidGenerator;
+        this.eidGenerator = eidGenerator;
     }
 
     @PUT
@@ -64,7 +68,9 @@ public class LayerResource {
                             "Features with missing ID");
                 });
 
-        final int numFeatures = liveLayerStore.addToLayer(layerId, request.events());
+        final LiveImporter importer = new LiveImporter(request.events(), fidGenerator, eidGenerator);
+
+        final int numFeatures = liveLayerStore.addToLayer(layerId, importer);
 
         log.info("Updated {} features for layerId = {}", numFeatures, id);
     }

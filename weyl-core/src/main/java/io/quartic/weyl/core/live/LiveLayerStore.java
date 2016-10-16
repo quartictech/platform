@@ -1,7 +1,10 @@
 package io.quartic.weyl.core.live;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import io.quartic.weyl.core.attributes.AttributeSchemaInferrer;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -9,8 +12,6 @@ import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.SequenceUidGenerator;
-import io.quartic.weyl.core.utils.UidGenerator;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +30,6 @@ public class LiveLayerStore {
     private final Map<LayerId, IndexedLayer> layers = Maps.newHashMap();
     private final List<LiveLayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LiveLayerSubscription> liveLayerSubscriptions = HashMultimap.create();
-    private final UidGenerator<LiveEventId> eidGenerator = new SequenceUidGenerator<>(LiveEventId::of);
 
     public LiveLayerStore(FeatureStore featureStore) {
         this.featureStore = featureStore;
@@ -69,12 +69,9 @@ public class LiveLayerStore {
     }
 
     // Returns number of features actually added
-    public int addToLayer(LayerId layerId, Collection<LiveEvent> events) {
+    public int addToLayer(LayerId layerId, LiveImporter importer) {
         checkLayerExists(layerId);
-
         final IndexedLayer layer = layers.get(layerId);
-
-        final LiveImporter importer = new LiveImporter(events, featureStore.getFeatureIdGenerator(), eidGenerator);
 
         final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
         updatedFeedEvents.addAll(importer.getFeedEvents());    // TODO: structural sharing
