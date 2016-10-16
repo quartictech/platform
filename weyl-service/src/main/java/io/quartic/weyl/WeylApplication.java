@@ -51,11 +51,11 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
-                .create(LiveLayerServer.class, "/ws")
+                .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new LiveLayerServer(objectMapper, liveLayerStore, alertProcessor);
+                        return (T) new UpdateServer(objectMapper, liveLayerStore, alertProcessor);
                     }
                 })
                 .build();

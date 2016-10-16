@@ -25,14 +25,14 @@ import java.util.List;
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/ws")
-public class LiveLayerServer {
-    private static final Logger LOG = LoggerFactory.getLogger(LiveLayerServer.class);
+public class UpdateServer {
+    private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final ObjectMapper objectMapper;
     private final LiveLayerStore liveLayerStore;
     private List<LiveLayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
-    public LiveLayerServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, AlertProcessor alertProcessor) {
+    public UpdateServer(ObjectMapper objectMapper, LiveLayerStore liveLayerStore, AlertProcessor alertProcessor) {
         this.objectMapper = objectMapper;
         this.liveLayerStore = liveLayerStore;
         alertProcessor.addListener(this::sendAlert);
