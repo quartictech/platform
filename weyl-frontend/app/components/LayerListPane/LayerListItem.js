@@ -19,7 +19,7 @@ const LayerListItem = ({
     <div className="content">
       <div className="right floated">
         <ThemePicker
-          icon={layer.metadata.icon}
+          icon={layer.metadata.icon || DEFAULT_ICON}
           themeIdx={layer.themeIdx}
           onClick={onLayerThemeChange}
         />
@@ -61,12 +61,12 @@ const ThemePicker = ({
   onClick,
 }) => (
   <a className="ui pointing left dropdown" ref={x => $(x).dropdown()}>
-    <i className={`circular ${icon || DEFAULT_ICON} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
+    <i className={`circular ${icon} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
     <div className="ui icon menu">
       {
         layerThemes.map((theme, idx) =>
           <div key={theme.name} className="item" onClick={() => onClick(idx)}>
-            <i className="circular map icon" style={styleFromTheme(theme)}></i>
+            <i className={`circular ${icon} icon`} style={styleFromTheme(theme)}></i>
           </div>
         )
       }
