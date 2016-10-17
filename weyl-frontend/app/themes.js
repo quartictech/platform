@@ -12,9 +12,15 @@ export const themes = {
     mapbox: "mapbox://styles/mapbox/dark-v9",
   },
   satellite: {
-    next: "light",
+    next: "blank",
     label: "Satellite",
     icon: "rocket",
     mapbox: "mapbox://styles/mapbox/satellite-streets-v9",
+  },
+  blank: {
+    next: "light",
+    label: "Blank",
+    icon: "square",
+    mapbox: "mapbox://styles/mapbox/empty-v9",
   },
 };
