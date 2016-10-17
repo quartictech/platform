@@ -2,7 +2,7 @@ package io.quartic.weyl.resource;
 
 import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.compute.BucketSpec;
+import io.quartic.weyl.core.compute.bucket.BucketSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveImporter;

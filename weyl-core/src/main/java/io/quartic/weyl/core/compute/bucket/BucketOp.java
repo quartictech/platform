@@ -1,11 +1,9 @@
-package io.quartic.weyl.core.compute;
+package io.quartic.weyl.core.compute.bucket;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.compute.SpatialJoin;
+import io.quartic.weyl.core.compute.Tuple;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 
@@ -13,7 +11,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BucketOp {
     private final FeatureStore featureStore;

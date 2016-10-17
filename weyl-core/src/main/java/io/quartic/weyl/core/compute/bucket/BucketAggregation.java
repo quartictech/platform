@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.compute;
+package io.quartic.weyl.core.compute.bucket;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

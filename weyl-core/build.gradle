@@ -6,12 +6,13 @@ apply plugin: "java"
 apply plugin: "idea"
 
 dependencies {
+    processor "org.immutables:value:2.2.10"
+
     compile "org.postgresql:postgresql:9.4.1209"
     compile "org.apache.commons:commons-io:1.3.2"
     compile "com.vividsolutions:jts:1.13"
     compile "org.postgresql:postgresql:9.4.1209"
     compile "org.jdbi:jdbi:2.75"
-    processor "org.immutables:value:2.2.10"
     compile "com.google.guava:guava:19.0"
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "no.ecc.vectortile:java-vector-tile:${vectorTileVersion}"
@@ -22,6 +23,8 @@ dependencies {
     compile "org.geotools:gt-epsg-hsql:${geoToolsVersion}"
     compile "org.geotools:gt-referencing:${geoToolsVersion}"
     compile "org.geotools:gt-geometry:${geoToolsVersion}"
+
+    compile "com.github.davidmoten:rtree:0.8-RC10"
 
     testCompile "junit:junit:4.12"
     testCompile "org.hamcrest:hamcrest-all:1.3"

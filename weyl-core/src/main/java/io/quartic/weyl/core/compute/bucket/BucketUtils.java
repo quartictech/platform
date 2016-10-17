@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.compute;
+package io.quartic.weyl.core.compute.bucket;
 
 public class BucketUtils {
     static Double mapToDouble(Object value) {

@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.compute;
+package io.quartic.weyl.core.compute.bucket;
 
 import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.model.AttributeSchema;

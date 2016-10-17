@@ -18,7 +18,7 @@ public class FeatureCollection extends AbstractCollection<Feature> {
     private final List<Feature> features;
     private final int size;
 
-    FeatureCollection(Consumer<Collection<? extends Feature>> backer) {
+    public FeatureCollection(Consumer<Collection<? extends Feature>> backer) {
         this(backer, null, ImmutableList.of(), 0);
     }
 
