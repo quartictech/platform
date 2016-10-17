@@ -13,10 +13,18 @@ const LayerListItem = ({
   onLayerStyleChange,
   mode,
 }) => (
-  <div className="item" style={{ paddingTop: "10px", paddingBottom: "10px" }}>
+  <div className="item">
     <div className="content">
       <div className="right floated">
-        <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
+        <a className="ui pointing left dropdown" ref={x => $(x).dropdown()}>
+          <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
+          <div className="ui icon menu">
+            <div className="item"><i className="circular map icon" style={{ color: "#e7298a", backgroundColor: "#67001f" }}></i></div>
+            <div className="item"><i className="circular map icon" style={{ color: "#29e78a", backgroundColor: "#00671f" }}></i></div>
+            <div className="item"><i className="circular map icon" style={{ color: "#298ae7", backgroundColor: "#001f67" }}></i></div>
+            <div className="item"><i className="circular map icon" style={{ color: "#8a29e7", backgroundColor: "#1f0067" }}></i></div>
+          </div>
+        </a>
       </div>
       <div className="ui small header">
         <a onClick={() => onButtonClick("CLOSE")}>
