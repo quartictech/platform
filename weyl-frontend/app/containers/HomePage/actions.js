@@ -20,16 +20,11 @@ export function layerCreate(result) {
   };
 }
 
-export const layerSetStyle = (layerId, attribute) => ({
+export const layerSetStyle = (layerId, key, value) => ({
   type: constants.LAYER_SET_STYLE,
   layerId,
-  attribute,
-});
-
-export const layerSetTheme = (layerId, themeIdx) => ({
-  type: constants.LAYER_SET_THEME,
-  layerId,
-  themeIdx,
+  key,
+  value,
 });
 
 export function layerToggleValueVisible(layerId, attribute, value) {

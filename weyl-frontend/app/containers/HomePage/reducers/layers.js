@@ -11,7 +11,6 @@ export default (state = new OrderedMap(), action) => {
       return state.delete(action.layerId);
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
-    case constants.LAYER_SET_THEME:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
     case constants.LAYER_SET_DATA:
       return state.update(action.layerId, val => layerReducer(val, action));
@@ -26,12 +25,17 @@ const layerReducer = (state, action) => {
       return state.set("visible", !state.get("visible"));
 
     case constants.LAYER_SET_STYLE:
-      return state.setIn(["style", "attribute"], action.attribute);
-
-    case constants.LAYER_SET_THEME:
-      return state
-        .set("themeIdx", action.themeIdx)
-        .set("style", fromJS(defaultLayerStyle(state.get("attributeSchema").toJS(), action.themeIdx)));
+      switch (action.key) {
+        case "ATTRIBUTE":
+          return state.setIn(["style", "attribute"], action.value);
+        case "THEME":
+          return state
+            .set("themeIdx", action.value)
+            .set("style", fromJS(defaultLayerStyle(state.get("attributeSchema").toJS(), action.value)));
+        default:
+          console.error("Unknown style key", action.key);
+          return state;
+      }
 
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
       if (action.value === undefined) {
