@@ -1,4 +1,5 @@
 import { fromJS, OrderedMap, Set } from "immutable";
+import { layerThemes } from "../../../themes";
 import * as constants from "../constants";
 const _ = require("underscore");
 
@@ -10,6 +11,7 @@ export default (state = new OrderedMap(), action) => {
       return state.delete(action.layerId);
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
+    case constants.LAYER_SET_THEME:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
     case constants.LAYER_SET_DATA:
       return state.update(action.layerId, val => layerReducer(val, action));
@@ -25,6 +27,11 @@ const layerReducer = (state, action) => {
 
     case constants.LAYER_SET_STYLE:
       return state.mergeIn(["style"], action.style);
+
+    case constants.LAYER_SET_THEME:
+      return state
+        .set("themeIdx", action.themeIdx)
+        .set("style", fromJS(defaultLayerStyle(state.get("attributeSchema").toJS(), action.themeIdx)));
 
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
       if (action.value === undefined) {
@@ -51,7 +58,8 @@ const newLayer = (action) => fromJS({
   id: action.id,
   metadata: action.metadata,
   visible: true,
-  style: defaultLayerStyle(action.attributeSchema),
+  themeIdx: 3,
+  style: defaultLayerStyle(action.attributeSchema, 3),
   stats: action.stats,
   attributeSchema: action.attributeSchema,
   live: action.live,
@@ -70,45 +78,23 @@ const defaultFilter = (schema) =>
     .object()
     .value();
 
-const redTheme = {
-  fill: "#67001f",
-  line: "#e7298a",
-};
-
-const greenTheme = {
-  fill: "#00671f",
-  line: "#29e78a",
-};
-
-const blueTheme = {
-  fill: "#001f67",
-  line: "#298ae7",
-};
-
-const purpleTheme = {
-  fill: "#1f0067",
-  line: "#8a29e7",
-};
-
-const theme = purpleTheme;
-
 const colorScale = "PuRd";
-const defaultLayerStyle = schema => ({
+const defaultLayerStyle = (schema, themeIdx) => ({
   type: "DEFAULT",
   property: schema.primaryAttribute,
   opacity: 0.8,
   point: {
     "circle-radius": 6,
-    "color": theme.line,
+    "color": layerThemes[themeIdx].line,
     colorScale,
   },
   polygon: {
-    "color": theme.fill,
-    "fill-outline-color": theme.line,
+    "color": layerThemes[themeIdx].fill,
+    "fill-outline-color": layerThemes[themeIdx].line,
     colorScale,
   },
   line: {
-    "color": theme.line,
+    "color": layerThemes[themeIdx].line,
     colorScale,
   },
 });

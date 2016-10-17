@@ -1,6 +1,6 @@
 import { fromJS } from "immutable";
 import * as constants from "../constants";
-import { themes } from "../../../themes";
+import { mapThemes } from "../../../themes";
 
 const initialState = fromJS({
   layerOp: null,
@@ -24,7 +24,7 @@ export default (state = initialState, action) => {
         case "geofence":
           return state.update("layerOp", val => ((val === element) ? null : element));
         case "theme":
-          return state.updateIn(["settings", "theme"], val => themes[val].next);
+          return state.updateIn(["settings", "theme"], val => mapThemes[val].next);
         default:
           return state.updateIn(["panels", element], val => !val);
       }

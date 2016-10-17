@@ -10,7 +10,7 @@ import "mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
-import { themes } from "../../themes";
+import { mapThemes } from "../../themes";
 import { apiRootUrl, mapboxToken } from "../../utils.js";
 mapboxgl.accessToken = mapboxToken;
 
@@ -58,7 +58,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   componentDidMount() {
     this.map = new mapboxgl.Map({
       container: "map-inner",
-      style: themes[this.props.map.theme].mapbox,
+      style: mapThemes[this.props.map.theme].mapbox,
       zoom: 9.7,
       center: [-0.10, 51.4800],
     });
@@ -311,7 +311,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
     if (nextProps.map.theme !== this.props.map.theme) {
       this.props.onMapLoading();
-      this.map.setStyle(themes[nextProps.map.theme].mapbox);
+      this.map.setStyle(mapThemes[nextProps.map.theme].mapbox);
     } else if (nextProps.map.ready) {
       // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox "style.load" callback)
       this.updateMap(nextProps);

@@ -1,30 +1,28 @@
 import React from "react";
 import styles from "./styles.css";
+import { layerThemes } from "../../themes";
 
 import AttributeList from "./AttributeList";
 import LayerStyleSettings from "../LayerStyleSettings";
 
-const DEFAULT_ICON = "grey map";
+const DEFAULT_ICON = "map";
 
 const LayerListItem = ({
   layer,
   onButtonClick,
   onToggleValueVisible,
   onLayerStyleChange,
+  onLayerThemeChange,
   mode,
 }) => (
   <div className="item">
     <div className="content">
       <div className="right floated">
-        <a className="ui pointing left dropdown" ref={x => $(x).dropdown()}>
-          <i className={`circular ${layer.metadata.icon || DEFAULT_ICON} icon`}></i>
-          <div className="ui icon menu">
-            <div className="item"><i className="circular map icon" style={{ color: "#e7298a", backgroundColor: "#67001f" }}></i></div>
-            <div className="item"><i className="circular map icon" style={{ color: "#29e78a", backgroundColor: "#00671f" }}></i></div>
-            <div className="item"><i className="circular map icon" style={{ color: "#298ae7", backgroundColor: "#001f67" }}></i></div>
-            <div className="item"><i className="circular map icon" style={{ color: "#8a29e7", backgroundColor: "#1f0067" }}></i></div>
-          </div>
-        </a>
+        <ThemePicker
+          icon={layer.metadata.icon}
+          themeIdx={layer.themeIdx}
+          onClick={onLayerThemeChange}
+        />
       </div>
       <div className="ui small header">
         <a onClick={() => onButtonClick("CLOSE")}>
@@ -55,6 +53,25 @@ const LayerListItem = ({
       </div>
     </div>
   </div>
+);
+
+const ThemePicker = ({
+  icon,
+  themeIdx,
+  onClick,
+}) => (
+  <a className="ui pointing left dropdown" ref={x => $(x).dropdown()}>
+    <i className={`circular ${icon || DEFAULT_ICON} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
+    <div className="ui icon menu">
+      {
+        layerThemes.map((theme, idx) =>
+          <div key={theme.name} className="item" onClick={() => onClick(idx)}>
+            <i className="circular map icon" style={styleFromTheme(theme)}></i>
+          </div>
+        )
+      }
+    </div>
+  </a>
 );
 
 const LayerListItemInfo = ({
@@ -119,6 +136,11 @@ const styleButtonStyle = (layer, mode) => (
 const infoButtonStyle = (layer, mode) => (
   (mode === "INFO") ? styles.active : ""
 );
+
+const styleFromTheme = (theme) => ({
+  color: theme.line,
+  backgroundColor: theme.fill,
+});
 
 
 export default LayerListItem;

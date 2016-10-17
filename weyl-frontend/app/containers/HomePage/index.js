@@ -54,6 +54,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             visible={this.props.ui.panels.layerList}
             onUiToggle={this.props.onUiToggle}
             onLayerStyleChange={this.props.onLayerStyleChange}
+            onLayerThemeChange={this.props.onLayerThemeChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
             onGeofenceEdit={this.props.onGeofenceEdit}
@@ -106,6 +107,7 @@ const mapDispatchToProps = {
   onUiToggle: actions.toggleUi,
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,
+  onLayerThemeChange: actions.layerSetTheme,
   onToggleValueVisible: actions.layerToggleValueVisible,
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,
