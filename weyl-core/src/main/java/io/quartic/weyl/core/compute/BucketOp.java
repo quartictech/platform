@@ -13,30 +13,13 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BucketOp {
     private final FeatureStore featureStore;
     private final AbstractLayer featureLayer;
     private final BucketSpec bucketSpec;
     private final AbstractLayer bucketLayer;
-
-    private static class Bucketed {
-        private final Feature bucket;
-        private final Feature value;
-
-        private Bucketed(Feature bucket, Feature value) {
-            this.bucket = bucket;
-            this.value = value;
-        }
-
-        Feature getBucket() {
-            return bucket;
-        }
-
-        public Feature getValue() {
-            return value;
-        }
-    }
 
     private BucketOp(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, BucketSpec bucketSpec) {
         this.featureStore = featureStore;
@@ -97,28 +80,20 @@ public class BucketOp {
     }
 
     private Collection<Feature> bucketData() {
-        SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-        List<Bucketed> hits = featureLayer.features().parallelStream()
-                .flatMap(feature -> {
-                    Geometry featureGeometry = feature.geometry();
-                    List<IndexedFeature> buckets = bucketIndex.query(featureGeometry.getEnvelopeInternal());
-
-                    return buckets.stream()
-                            .filter(hitFeature -> hitFeature.preparedGeometry().contains(featureGeometry))
-                            .map(hitFeature -> new Bucketed(hitFeature.feature(), feature));
-                })
-                .collect(Collectors.toList());
-
-        Multimap<Feature, Bucketed> groups = Multimaps.index(hits, Bucketed::getBucket);
+        // The order here is that CONTAINS applies from left -> right and
+        // the spatial index on the right layer is the one that is queried
+        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
+                SpatialJoin.SpatialPredicate.CONTAINS)
+                .collect(Collectors.groupingBy(Tuple::right));
 
         BucketAggregation aggregation = bucketSpec.aggregation();
 
-        return groups.asMap().entrySet().parallelStream()
+        return groups.entrySet().parallelStream()
                 .map(bucketEntry -> {
                     Feature feature = bucketEntry.getKey();
                     Double value = aggregation.aggregate(
                             feature,
-                            bucketEntry.getValue().stream().map(Bucketed::getValue).collect(Collectors.toList()));
+                            bucketEntry.getValue().stream().map(Tuple::left).collect(Collectors.toList()));
 
                     if (bucketSpec.normalizeToArea()) {
                         if (feature.geometry().getArea() > 0) {
