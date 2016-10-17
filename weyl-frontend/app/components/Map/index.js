@@ -3,7 +3,6 @@ import React from "react";
 import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
-mapboxgl.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
 
 // TODO: there is some quite special magic going on here that throws eslint
 import { Draw } from "mapbox-gl-draw/dist/mapbox-gl-draw";  // eslint-disable-line no-unused-vars
@@ -12,7 +11,8 @@ import "mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import SizeMe from "react-sizeme";
 import { buildStyleLayers } from "./styles.js";
 import { themes } from "../../themes";
-import { apiRootUrl } from "../../utils.js";
+import { apiRootUrl, mapboxToken } from "../../utils.js";
+mapboxgl.accessToken = mapboxToken;
 
 const _ = require("underscore");
 
@@ -305,6 +305,10 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   componentWillReceiveProps(nextProps) {
+    if (nextProps.map.targetLocation !== this.props.map.targetLocation) {
+      this.map.flyTo({ center: nextProps.map.targetLocation, zoom: 16 });
+    }
+
     if (nextProps.map.theme !== this.props.map.theme) {
       this.props.onMapLoading();
       this.map.setStyle(themes[nextProps.map.theme].mapbox);

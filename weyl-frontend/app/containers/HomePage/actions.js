@@ -9,14 +9,6 @@ export function search(query, callback) {
   };
 }
 
-export function searchDone(results, callback) {
-  return {
-    type: constants.SEARCH_DONE,
-    response: results,
-    callback,
-  };
-}
-
 export function layerCreate(result) {
   return {
     type: constants.LAYER_CREATE,
@@ -118,6 +110,11 @@ export function mapMouseClick(feature, multiSelectEnabled) {
     multiSelectEnabled,
   };
 }
+
+export const mapSetLocation = (location) => ({
+  type: constants.MAP_SET_LOCATION,
+  location,
+});
 
 export function geofenceEditStart() {
   return {

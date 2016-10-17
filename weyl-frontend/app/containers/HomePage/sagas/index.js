@@ -7,7 +7,7 @@ import * as constants from "../constants";
 import * as actions from "../actions";
 import { apiRootUrl } from "../../../utils.js";
 
-import searchForLayers from "./searchForLayers";
+import search from "./search";
 import manageSocket from "./manageSocket";
 import fetchSelectionInfo from "./fetchSelectionInfo";
 
@@ -74,7 +74,7 @@ function prepare(generator) {
 export default [
   prepare(manageSocket),
   prepare(fetchSelectionInfo),
-  prepare(watch(constants.SEARCH, searchForLayers)),
+  prepare(watch(constants.SEARCH, search)),
   prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
   prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),
 ];
