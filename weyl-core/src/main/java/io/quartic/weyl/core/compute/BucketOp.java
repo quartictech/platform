@@ -84,25 +84,25 @@ public class BucketOp {
         // the spatial index on the right layer is the one that is queried
         Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
                 SpatialJoin.SpatialPredicate.CONTAINS)
-                .collect(Collectors.groupingBy(Tuple::right));
+                .collect(Collectors.groupingBy(Tuple::left));
 
         BucketAggregation aggregation = bucketSpec.aggregation();
 
         return groups.entrySet().parallelStream()
                 .map(bucketEntry -> {
-                    Feature feature = bucketEntry.getKey();
+                    Feature bucket = bucketEntry.getKey();
                     Double value = aggregation.aggregate(
-                            feature,
-                            bucketEntry.getValue().stream().map(Tuple::left).collect(Collectors.toList()));
+                            bucket,
+                            bucketEntry.getValue().stream().map(Tuple::right).collect(Collectors.toList()));
 
                     if (bucketSpec.normalizeToArea()) {
-                        if (feature.geometry().getArea() > 0) {
-                            value /= feature.geometry().getArea();
+                        if (bucket.geometry().getArea() > 0) {
+                            value /= bucket.geometry().getArea();
                         }
                     }
-                    Map<String, Object> metadata = new HashMap<>(feature.metadata());
+                    Map<String, Object> metadata = new HashMap<>(bucket.metadata());
                     metadata.put(propertyName(), value);
-                    return ImmutableFeature.copyOf(feature)
+                    return ImmutableFeature.copyOf(bucket)
                             .withUid(featureStore.getFeatureIdGenerator().get())
                             .withMetadata(metadata);
                 })
