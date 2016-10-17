@@ -78,7 +78,6 @@ const defaultFilter = (schema) =>
     .object()
     .value();
 
-const colorScale = "PuRd";
 const defaultLayerStyle = (schema, themeIdx) => ({
   type: "DEFAULT",
   property: schema.primaryAttribute,
@@ -86,15 +85,15 @@ const defaultLayerStyle = (schema, themeIdx) => ({
   point: {
     "circle-radius": 6,
     "color": layerThemes[themeIdx].line,
-    colorScale,
+    colorScale: layerThemes[themeIdx].colorScale,
   },
   polygon: {
     "color": layerThemes[themeIdx].fill,
     "fill-outline-color": layerThemes[themeIdx].line,
-    colorScale,
+    colorScale: layerThemes[themeIdx].colorScale,
   },
   line: {
     "color": layerThemes[themeIdx].line,
-    colorScale,
+    colorScale: layerThemes[themeIdx].colorScale,
   },
 });

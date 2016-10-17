@@ -3,19 +3,6 @@ import * as chroma from "chroma-js";
 
 import { customStyles, liveLayerStyle } from "./customStyles.js";
 
-export function computeColorScaleFromBase(baseColor, step, n) {
-  let color = baseColor;
-  const result = [];
-
-  for (let i = 0; i < n; i++) {
-    result.push(color);
-    color = d3.hsl(color).darker(step);
-    result.push(color.toString());
-  }
-
-  return result;
-}
-
 function computeStops(colorScale, nStops, minValue, maxValue) {
   const result = [];
   const colors = chroma.scale(colorScale).colors(nStops);
