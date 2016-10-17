@@ -21,7 +21,9 @@ const LayerListItem = ({
         <ThemePicker
           icon={layer.metadata.icon || DEFAULT_ICON}
           themeIdx={layer.themeIdx}
-          onClick={onLayerThemeChange}
+          attributes={layer.attributeSchema.attributes}
+          onThemeClick={onLayerThemeChange}
+          onAttributeClick={onLayerStyleChange}
         />
       </div>
       <div className="ui small header">
@@ -36,9 +38,6 @@ const LayerListItem = ({
         </a>
         <a onClick={() => onButtonClick("FILTER")} className={filterButtonStyle(layer, mode)}>
           <i className="icon filter"></i>
-        </a>
-        <a onClick={() => onButtonClick("STYLE")} className={styleButtonStyle(layer, mode)}>
-          <i className="icon paint brush"></i>
         </a>
         <a onClick={() => onButtonClick("INFO")} className={infoButtonStyle(layer, mode)}>
           <i className="icon info"></i>
@@ -58,18 +57,42 @@ const LayerListItem = ({
 const ThemePicker = ({
   icon,
   themeIdx,
-  onClick,
+  attributes,
+  onThemeClick,
+  onAttributeClick,
 }) => (
   <a className="ui pointing left dropdown" ref={x => $(x).dropdown()}>
     <i className={`circular ${icon} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
-    <div className="ui icon menu">
-      {
-        layerThemes.map((theme, idx) =>
-          <div key={theme.name} className="item" onClick={() => onClick(idx)}>
-            <i className={`circular ${icon} icon`} style={styleFromTheme(theme)}></i>
-          </div>
-        )
-      }
+    <div className="ui menu">
+      <div className="item">
+        <i className="dropdown icon"></i>
+        <span className="text">Theme</span>
+        <div className="ui right icon menu">
+          {
+            layerThemes.map((theme, idx) =>
+              <div key={theme.name} className="item" onClick={() => onThemeClick(idx)}>
+                <i className={`circular ${icon} icon`} style={styleFromTheme(theme)}></i>
+              </div>
+            )
+          }
+        </div>
+      </div>
+      <div className="item">
+        <i className="dropdown icon"></i>
+        <span className="text">Colour by</span>
+        <div className="ui right vertical menu">
+          <div key="none" className="active item">None</div>
+          {
+            _.keys(attributes)
+              .filter(k => attributes[k].type === "NUMERIC")
+              .map(k =>
+                <div key={k} className="item" onClick={() => onAttributeClick(k)}>
+                  {k}
+                </div>
+              )
+          }
+        </div>
+      </div>
     </div>
   </a>
 );
@@ -90,17 +113,6 @@ const LayerListItemInfo = ({
           onClick={onAttributeValueClick}
         />
       );
-
-    case "STYLE":
-      return (
-        <LayerStyleSettings
-          layerId={layer.id}
-          layerAttributes={layer.attributeSchema.attributes}
-          layerStyle={layer.style}
-          onChange={onLayerStyleChange}
-        />
-      );
-
 
     case "INFO":
       return (
@@ -128,10 +140,6 @@ const filterButtonStyle = (layer, mode) => {
   }
   return "";
 };
-
-const styleButtonStyle = (layer, mode) => (
-  (mode === "STYLE") ? styles.active : ""
-);
 
 const infoButtonStyle = (layer, mode) => (
   (mode === "INFO") ? styles.active : ""

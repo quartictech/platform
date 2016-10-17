@@ -26,7 +26,7 @@ const layerReducer = (state, action) => {
       return state.set("visible", !state.get("visible"));
 
     case constants.LAYER_SET_STYLE:
-      return state.mergeIn(["style"], action.style);
+      return state.setIn(["style", "attribute"], action.attribute);
 
     case constants.LAYER_SET_THEME:
       return state
@@ -80,7 +80,7 @@ const defaultFilter = (schema) =>
 
 const defaultLayerStyle = (schema, themeIdx) => ({
   type: "DEFAULT",
-  property: schema.primaryAttribute,
+  attribute: schema.primaryAttribute,
   opacity: 0.8,
   point: {
     "circle-radius": 6,

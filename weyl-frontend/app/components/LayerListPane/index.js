@@ -51,7 +51,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           layer={layer.toJS()}
           onButtonClick={(name) => this.onButtonClick(name, layer.get("id"))}
           onToggleValueVisible={this.props.onToggleValueVisible}
-          onLayerStyleChange={this.props.onLayerStyleChange}
+          onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), attribute)}
           onLayerThemeChange={(idx) => this.props.onLayerThemeChange(layer.get("id"), idx)}
           mode={(this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null}
         />

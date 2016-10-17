@@ -20,10 +20,10 @@ export function layerCreate(result) {
   };
 }
 
-export const layerSetStyle = (layerId, style) => ({
+export const layerSetStyle = (layerId, attribute) => ({
   type: constants.LAYER_SET_STYLE,
   layerId,
-  style,
+  attribute,
 });
 
 export const layerSetTheme = (layerId, themeIdx) => ({
