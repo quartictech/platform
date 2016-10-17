@@ -30,7 +30,7 @@ public class SpatialJoin {
            case COVERS:
                return left.covers(right);
            default:
-               throw new IllegalArgumentException("invalid prediacte: " + predicate);
+               throw new IllegalArgumentException("invalid predicate: " + predicate);
        }
     }
 
