@@ -27,6 +27,12 @@ export const layerThemes = [
     colorScale: ["white", "#67001f"],
   },
   {
+    name: "orange",
+    fill: "#673d00",
+    line: "#e76529",
+    colorScale: ["white", "#673d00"],
+  },
+  {
     name: "green",
     fill: "#00671f",
     line: "#29e78a",
