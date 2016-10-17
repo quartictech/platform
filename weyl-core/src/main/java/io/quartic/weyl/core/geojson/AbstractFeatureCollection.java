@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.geojson;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.quartic.weyl.core.SweetStyle;
 import org.immutables.value.Value;
 
 import java.util.List;

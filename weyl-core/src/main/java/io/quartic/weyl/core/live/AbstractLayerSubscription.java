@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.live;
 
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 
@@ -8,8 +8,8 @@ import java.util.function.Consumer;
 
 @Value.Immutable
 @SweetStyle
-interface AbstractLiveLayerSubscription {
+interface AbstractLayerSubscription {
    LayerId layerId();
-   LiveLayerView liveLayerView();
-   Consumer<LiveLayerState> subscriber();
+   LayerView liveLayerView();
+   Consumer<LayerState> subscriber();
 }

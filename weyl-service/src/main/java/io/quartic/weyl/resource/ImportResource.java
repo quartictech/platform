@@ -6,17 +6,18 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.importer.GeoJsonImporter;
 import io.quartic.weyl.core.importer.PostgresImporter;
-import io.quartic.weyl.core.model.IndexedLayer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.request.GeoJsonImportRequest;
 import io.quartic.weyl.request.PostgresImportRequest;
 import org.skife.jdbi.v2.DBI;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 @Path("/import")
@@ -41,8 +42,7 @@ public class ImportResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public LayerId importPostgres(PostgresImportRequest request) {
         PostgresImporter postgresImporter = PostgresImporter.fromDBI(dbiSupplier.get(), request.query(), featureStore, objectMapper);
-        IndexedLayer layer = layerStore.importLayer(postgresImporter, request.metadata());
-        return layer.layerId();
+        return layerStore.createAndImportToLayer(postgresImporter, request.metadata());
     }
 
     @PUT
@@ -55,7 +55,6 @@ public class ImportResource {
                 .description(request.description())
                 .build();
         GeoJsonImporter geoJsonImporter = GeoJsonImporter.fromObject(request.data(), featureStore, objectMapper);
-        IndexedLayer layer = layerStore.importLayer(geoJsonImporter, metadata);
-        return layer.layerId();
+        return layerStore.createAndImportToLayer(geoJsonImporter, metadata);
     }
 }

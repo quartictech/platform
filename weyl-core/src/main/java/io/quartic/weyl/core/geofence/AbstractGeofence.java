@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.geofence;
 
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.geojson.SweetStyle;
+import io.quartic.weyl.core.SweetStyle;
 import org.immutables.value.Value;
 
 @Value.Immutable

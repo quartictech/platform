@@ -14,7 +14,7 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.live.LiveLayerStore;
+import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.RandomUidGenerator;
@@ -31,12 +31,7 @@ import java.util.EnumSet;
 import java.util.function.Supplier;
 
 public class WeylApplication extends Application<WeylConfiguration> {
-    private final UidGenerator<FeatureId> fidGenerator = new SequenceUidGenerator<>(FeatureId::of);
-    private final UidGenerator<LayerId> lidGenerator = new RandomUidGenerator<>(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LiveLayerStore liveLayerStore = new LiveLayerStore(featureStore);
-    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerStore);
-    private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+    private UpdateServer updateServer = null;   // TODO: deal with weird mutability
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -50,12 +45,13 @@ public class WeylApplication extends Application<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
+        updateServer = new UpdateServer(objectMapper);
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
-                .create(LiveLayerServer.class, "/ws")
+                .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new LiveLayerServer(objectMapper, liveLayerStore, alertProcessor);
+                        return (T) updateServer;
                     }
                 })
                 .build();
@@ -82,10 +78,21 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         environment.jersey().setUrlPattern("/api/*");
 
-        LayerStore layerStore = new LayerStore(featureStore, lidGenerator, environment.getObjectMapper());
+        final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
+        final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+        final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
+
+        final FeatureStore featureStore = new FeatureStore(fidGenerator);
+        final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
+        final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
+        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+
+        // TODO: deal with weird mutability
+        updateServer.setLayerStore(layerStore);
+        alertProcessor.addListener(updateServer);
 
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore, liveLayerStore));
+        environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(geofenceStore));
         environment.jersey().register(new AlertResource(alertProcessor));

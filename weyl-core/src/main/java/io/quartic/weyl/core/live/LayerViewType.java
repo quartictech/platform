@@ -1,16 +1,16 @@
 package io.quartic.weyl.core.live;
 
-public enum LiveLayerViewType {
+public enum LayerViewType {
     LOCATION_AND_TRACK(new LastKnownLocationAndTrackView()),
     MOST_RECENT(new MostRecentGeometryView());
 
-    private final LiveLayerView view;
+    private final LayerView view;
 
-    LiveLayerViewType(LiveLayerView view) {
+    LayerViewType(LayerView view) {
         this.view = view;
     }
 
-    public LiveLayerView getLiveLayerView() {
+    public LayerView getLayerView() {
         return view;
     }
 }

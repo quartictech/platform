@@ -1,15 +1,19 @@
 package io.quartic.weyl.message;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.quartic.weyl.core.geojson.SweetStyle;
-import io.quartic.weyl.core.live.LiveLayerState;
+import io.quartic.weyl.core.geojson.FeatureCollection;
+import io.quartic.weyl.core.SweetStyle;
+import io.quartic.weyl.core.live.EnrichedFeedEvent;
+import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
+
+import java.util.List;
 
 @SweetStyle
 @Value.Immutable
 public interface AbstractLayerUpdateMessage extends SocketMessage {
     LayerId layerId();
-    @JsonUnwrapped
-    LiveLayerState state();
+    AttributeSchema schema();
+    FeatureCollection featureCollection();
+    List<EnrichedFeedEvent> feedEvents();
 }

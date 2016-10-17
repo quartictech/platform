@@ -3,9 +3,9 @@ package io.quartic.weyl.core.geofence;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.quartic.weyl.core.geojson.SweetStyle;
-import io.quartic.weyl.core.live.LiveLayerStore;
-import io.quartic.weyl.core.live.LiveLayerStoreListener;
+import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.SweetStyle;
+import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class GeofenceStore implements LiveLayerStoreListener {
+public class GeofenceStore implements LayerStoreListener {
     @SweetStyle
     @Value.Immutable
     interface AbstractViolationKey {
@@ -31,8 +31,8 @@ public class GeofenceStore implements LiveLayerStoreListener {
     private final Set<Geofence> geofences = Sets.newHashSet();
     private final Set<ViolationListener> listeners = Sets.newHashSet();
 
-    public GeofenceStore(LiveLayerStore liveLayerStore) {
-        liveLayerStore.addListener(this);
+    public GeofenceStore(LayerStore layerStore) {
+        layerStore.addListener(this);
     }
 
     public synchronized void setGeofence(Geofence geofence) {

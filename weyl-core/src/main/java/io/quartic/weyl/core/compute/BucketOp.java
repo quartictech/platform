@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 
 public class BucketOp {
     private final FeatureStore featureStore;
-    private final IndexedLayer featureLayer;
+    private final AbstractLayer featureLayer;
     private final BucketSpec bucketSpec;
-    private final IndexedLayer bucketLayer;
+    private final AbstractLayer bucketLayer;
 
     private static class Bucketed {
         private final Feature bucket;
@@ -38,7 +38,7 @@ public class BucketOp {
         }
     }
 
-    private BucketOp(FeatureStore featureStore, IndexedLayer featureLayer, IndexedLayer bucketLayer, BucketSpec bucketSpec) {
+    private BucketOp(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, BucketSpec bucketSpec) {
         this.featureStore = featureStore;
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
@@ -46,12 +46,12 @@ public class BucketOp {
     }
 
     private String propertyName() {
-        return featureLayer.layer().metadata().name();
+        return featureLayer.metadata().name();
     }
 
-    public static Optional<AbstractLayer> create(LayerStore store, BucketSpec bucketSpec) {
-        Optional<IndexedLayer> featureLayer = store.get(bucketSpec.features());
-        Optional<IndexedLayer> bucketLayer = store.get(bucketSpec.buckets());
+    public static Optional<BucketResults> create(LayerStore store, BucketSpec bucketSpec) {
+        Optional<Layer> featureLayer = store.getLayer(bucketSpec.features());
+        Optional<Layer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
             return new BucketOp(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec).compute();
@@ -60,38 +60,36 @@ public class BucketOp {
         return Optional.empty();
     }
 
-    Optional<AbstractLayer> compute() {
+    Optional<BucketResults> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
             Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
-                    featureLayer.layer().metadata().name());
+                    featureLayer.metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
-                    featureLayer.layer().metadata().name(),
-                    bucketLayer.layer().metadata().name(),
+                    featureLayer.metadata().name(),
+                    bucketLayer.metadata().name(),
                     bucketSpec.aggregation().toString());
 
-            Map<String, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.layer()
-                    .schema().attributes());
+            Map<String, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
             AbstractAttribute newAttribute = Attribute.builder()
                     .type(AttributeType.NUMERIC)
                     .build();
             attributeMap.put(propertyName(), newAttribute);
 
-            AttributeSchema attributeSchema = ImmutableAttributeSchema
-                    .copyOf(bucketLayer.layer().schema())
+            AttributeSchema schema = ImmutableAttributeSchema
+                    .copyOf(bucketLayer.schema())
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(propertyName());
 
-            Layer layer = Layer.builder()
-                    .features(featureStore.newCollection().append(features))
-                    .schema(attributeSchema)
-                    .metadata(LayerMetadata.builder()
+            return Optional.of(BucketResults.of(
+                    LayerMetadata.builder()
                             .name(layerName)
                             .description(layerDescription)
-                            .build())
-                    .build();
-            return Optional.of(layer);
+                            .build(),
+                    features,
+                    schema
+            ));
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return Optional.empty();
@@ -100,7 +98,7 @@ public class BucketOp {
 
     private Collection<Feature> bucketData() {
         SpatialIndex bucketIndex = bucketLayer.spatialIndex();
-        List<Bucketed> hits = featureLayer.layer().features().parallelStream()
+        List<Bucketed> hits = featureLayer.features().parallelStream()
                 .flatMap(feature -> {
                     Geometry featureGeometry = feature.geometry();
                     List<IndexedFeature> buckets = bucketIndex.query(featureGeometry.getEnvelopeInternal());

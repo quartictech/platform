@@ -7,7 +7,7 @@ import io.quartic.weyl.core.utils.UidGenerator;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public interface LiveLayerView {
+public interface LayerView {
     // TODO: Figure out time-ordering here
     Stream<Feature> compute(UidGenerator<FeatureId> uidGenerator, Collection<Feature> history);
 }

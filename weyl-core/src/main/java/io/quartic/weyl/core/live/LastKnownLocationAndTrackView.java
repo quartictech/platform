@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Iterables.getLast;
 import static java.util.stream.Collectors.groupingBy;
 
-public class LastKnownLocationAndTrackView implements LiveLayerView {
+public class LastKnownLocationAndTrackView implements LayerView {
 
     private static Stream<Feature> makeTrack(UidGenerator<FeatureId> uidGenerator, List<Feature> history) {
         final Feature last = getLast(history);

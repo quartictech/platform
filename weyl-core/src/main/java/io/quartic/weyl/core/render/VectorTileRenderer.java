@@ -7,7 +7,7 @@ import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
-import io.quartic.weyl.core.model.IndexedLayer;
+import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.LayerId;
 import no.ecc.vectortile.VectorTileEncoder;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class VectorTileRenderer {
     private static final Logger log = LoggerFactory.getLogger(VectorTileRenderer.class);
-    private final Collection<IndexedLayer> layers;
+    private final Collection<AbstractLayer> layers;
 
     private static class VectorTileFeature {
         private final Map<String, Object> attributes;
@@ -44,7 +44,7 @@ public class VectorTileRenderer {
         }
     }
 
-    public VectorTileRenderer(Collection<IndexedLayer> layers) {
+    public VectorTileRenderer(Collection<AbstractLayer> layers) {
         this.layers = layers;
     }
 
@@ -57,7 +57,7 @@ public class VectorTileRenderer {
         log.info("Envelope: {}", envelope.toString());
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
-        for (IndexedLayer layer : layers) {
+        for (AbstractLayer layer : layers) {
             final LayerId layerId = layer.layerId();
             log.info("encoding layer {}", layerId);
             final AtomicInteger featureCount = new AtomicInteger();

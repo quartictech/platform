@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Iterables.getLast;
 import static java.util.stream.Collectors.groupingBy;
 
-public class MostRecentGeometryView implements LiveLayerView {
+public class MostRecentGeometryView implements LayerView {
     @Override
     public Stream<Feature> compute(UidGenerator<FeatureId> uidGenerator, Collection<Feature> history) {
         // TODO: sorting by UID is wrong - we should sort by timestamp
