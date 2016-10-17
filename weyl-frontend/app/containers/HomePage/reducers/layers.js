@@ -31,7 +31,7 @@ const layerReducer = (state, action) => {
         case "THEME":
           return state
             .set("themeIdx", action.value)
-            .set("style", fromJS(defaultLayerStyle(state.get("attributeSchema").toJS(), action.value)));
+            .set("style", fromJS(defaultLayerStyle(state.getIn(["style", "attribute"]), action.value)));
         default:
           console.error("Unknown style key", action.key);
           return state;
@@ -63,7 +63,7 @@ const newLayer = (action) => fromJS({
   metadata: action.metadata,
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(action.attributeSchema, 0),
+  style: defaultLayerStyle(action.attributeSchema.primaryAttribute, 0),
   stats: action.stats,
   attributeSchema: action.attributeSchema,
   live: action.live,
@@ -82,9 +82,9 @@ const defaultFilter = (schema) =>
     .object()
     .value();
 
-const defaultLayerStyle = (schema, themeIdx) => ({
+const defaultLayerStyle = (attribute, themeIdx) => ({
   type: "DEFAULT",
-  attribute: schema.primaryAttribute,
+  attribute,
   opacity: 0.8,
   point: {
     "circle-radius": 6,
