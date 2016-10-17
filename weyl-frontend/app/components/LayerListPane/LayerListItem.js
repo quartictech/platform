@@ -1,4 +1,6 @@
 import React from "react";
+import classNames from "classnames";
+import naturalsort from "javascript-natural-sort";
 import styles from "./styles.css";
 import { layerThemes } from "../../themes";
 
@@ -22,6 +24,7 @@ const LayerListItem = ({
           icon={layer.metadata.icon || DEFAULT_ICON}
           themeIdx={layer.themeIdx}
           attributes={layer.attributeSchema.attributes}
+          selectedAttribute={layer.style.attribute}
           onThemeClick={onLayerThemeChange}
           onAttributeClick={onLayerStyleChange}
         />
@@ -58,10 +61,11 @@ const ThemePicker = ({
   icon,
   themeIdx,
   attributes,
+  selectedAttribute,
   onThemeClick,
   onAttributeClick,
 }) => (
-  <a className="ui pointing left dropdown" ref={x => $(x).dropdown()}>
+  <a className="ui pointing left dropdown" ref={x => $(x).dropdown({ action: "hide" })}>
     <i className={`circular ${icon} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
     <div className="ui menu">
       <div className="item">
@@ -81,12 +85,13 @@ const ThemePicker = ({
         <i className="dropdown icon"></i>
         <span className="text">Colour by</span>
         <div className="ui right vertical menu">
-          <div key="none" className="active item">None</div>
+          <div key="none" className={classNames("item", { active: selectedAttribute === null })} onClick={() => onAttributeClick(null)}>None</div>
           {
             _.keys(attributes)
               .filter(k => attributes[k].type === "NUMERIC")
+              .sort(naturalsort)
               .map(k =>
-                <div key={k} className="item" onClick={() => onAttributeClick(k)}>
+                <div key={k} className={classNames("item", { active: selectedAttribute === k })} onClick={() => onAttributeClick(k)}>
                   {k}
                 </div>
               )
