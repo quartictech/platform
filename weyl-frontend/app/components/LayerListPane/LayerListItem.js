@@ -5,7 +5,8 @@ import styles from "./styles.css";
 import { layerThemes } from "../../themes";
 
 import AttributeList from "./AttributeList";
-import LayerStyleSettings from "../LayerStyleSettings";
+const $ = require("jquery");
+const _ = require("underscore");
 
 const DEFAULT_ICON = "map";
 
@@ -49,7 +50,6 @@ const LayerListItem = ({
         <LayerListItemInfo
           layer={layer}
           onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
-          onLayerStyleChange={onLayerStyleChange}
           mode={mode}
         />
       </div>
@@ -105,7 +105,6 @@ const ThemePicker = ({
 const LayerListItemInfo = ({
   layer,
   onAttributeValueClick,
-  onLayerStyleChange,
   mode,
 }) => {
   switch (mode) {
