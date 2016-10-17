@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.v2;
 
+import com.github.andrewoma.dexx.collection.Vector;
 import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
@@ -8,7 +9,7 @@ import com.github.davidmoten.rtree.internal.EntryDefault;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.SweetStyle;
-import io.quartic.weyl.core.feature.FeatureCollection;
+import io.quartic.weyl.core.live.EnrichedFeedEvent;
 import io.quartic.weyl.core.model.Feature;
 import org.immutables.value.Value;
 
@@ -18,12 +19,12 @@ import java.util.stream.Collectors;
 @SweetStyle
 @Value.Immutable
 public abstract class AbstractDefaultLayer implements Layer {
-    abstract Layer prev();
-    abstract FeatureCollection features();
+    abstract Vector<Feature> features();
+    abstract Vector<EnrichedFeedEvent> liveEvents();
     abstract RTree<Feature, Rectangle> spatialIndex();
 
     public static Layer empty() {
-        return DefaultLayer.of(null, new FeatureCollection((x) -> {}), RTree.create());
+        return DefaultLayer.o.of(null, Vector.empty(), Vector.empty(), RTree.create());
     }
 
     private Rectangle jtsToRectangle(Geometry geometry) {
@@ -39,7 +40,9 @@ public abstract class AbstractDefaultLayer implements Layer {
                         EntryDefault.entry(feature, jtsToRectangle(feature.geometry())))
                 .collect(Collectors.toList())
         );
-       return DefaultLayer.of(this, this.features().append(features), spatialIndex);
+        DefaultLayer.copyOf(this)
+                .withFeatures(Vector.factory().newBuilder()
+                        .
     }
 
     @Override
