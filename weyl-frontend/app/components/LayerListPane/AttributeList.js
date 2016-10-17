@@ -76,7 +76,7 @@ const AttributeList = ({
               key={key}
               attribute={key}
               values={attributes[key].categories}
-              uncheckedValues={(key in filter) ? filter[key] : defaultUncheckedValues()}
+              uncheckedValues={filter[key]}
               onClick={(a, v) => onClick(layerId, a, v)}
             />
           ))
@@ -84,11 +84,5 @@ const AttributeList = ({
     </table>
   </div>
 );
-
-const defaultUncheckedValues = () => ({
-  notApplicable: false,
-  categories: [],
-});
-
 
 export default AttributeList;
