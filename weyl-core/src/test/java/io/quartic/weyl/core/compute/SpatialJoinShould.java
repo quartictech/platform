@@ -68,6 +68,6 @@ public class SpatialJoinShould {
     }
 
     private Feature feature(Geometry geometry) {
-       return ImmutableFeature.of("123", FeatureId.of("123"), geometry, ImmutableMap.of());
+       return ImmutableFeature.of(Optional.of("123"), FeatureId.of("123"), geometry, ImmutableMap.of());
     }
 }
