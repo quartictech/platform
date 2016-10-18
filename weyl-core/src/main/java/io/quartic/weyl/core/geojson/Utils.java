@@ -8,47 +8,63 @@ import com.vividsolutions.jts.geom.LinearRing;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 public final class Utils {
     private static final GeometryFactory factory = new GeometryFactory();
+
     private Utils() {}
+
     public static LineString lineStringFrom(Point... points) {
         return lineStringFrom(asList(points));
     }
+
     public static LineString lineStringFrom(Iterable<Point> points) {
         return LineString.of(
                 StreamSupport.stream(points.spliterator(), true)
                         .map(Point::coordinates)
-                        .collect(Collectors.toList())
+                        .collect(toList())
         );
     }
+
     public static com.vividsolutions.jts.geom.Geometry toJts(Geometry geometry) {
         // TODO: this is gross - can we use a visitor?
         if (geometry instanceof Point) {
-            Point point = (Point)geometry;
-            return factory.createPoint(listToCoord(point.coordinates()));
+            return toJts((Point)geometry);
         }
         if (geometry instanceof LineString) {
-            LineString string = (LineString)geometry;
-            return factory.createLineString(listToCoords(string.coordinates()));
+            return toJts((LineString)geometry);
         }
         if (geometry instanceof Polygon) {
-            Polygon polygon = (Polygon) geometry;
-            return createPolygon(polygon.coordinates());
+            return toJts((Polygon) geometry);
         }
         if (geometry instanceof MultiPolygon) {
-            MultiPolygon multiPolygon = (MultiPolygon) geometry;
-            com.vividsolutions.jts.geom.Polygon[] polygons = multiPolygon.coordinates().stream().map(Utils::createPolygon)
-                    .toArray(com.vividsolutions.jts.geom.Polygon[]::new);
-            return factory.createMultiPolygon(polygons);
+            return toJts((MultiPolygon) geometry);
         }
         throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
+    }
+
+    public static com.vividsolutions.jts.geom.Point toJts(Point point) {
+        return factory.createPoint(listToCoord(point.coordinates()));
+    }
+
+    public static com.vividsolutions.jts.geom.LineString toJts(LineString string) {
+        return factory.createLineString(listToCoords(string.coordinates()));
+    }
+
+    public static com.vividsolutions.jts.geom.Polygon toJts(Polygon polygon) {
+        return createPolygon(polygon.coordinates());
+    }
+
+    public static com.vividsolutions.jts.geom.MultiPolygon toJts(MultiPolygon multiPolygon) {
+        com.vividsolutions.jts.geom.Polygon[] polygons = multiPolygon.coordinates().stream().map(Utils::createPolygon)
+                .toArray(com.vividsolutions.jts.geom.Polygon[]::new);
+        return factory.createMultiPolygon(polygons);
     }
 
     private static com.vividsolutions.jts.geom.Polygon createPolygon(List<List<List<Double>>> coordinates) {
@@ -64,28 +80,38 @@ public final class Utils {
     public static Geometry fromJts(com.vividsolutions.jts.geom.Geometry geometry) {
         // TODO: this is gross - can we use a visitor?
         if (geometry instanceof com.vividsolutions.jts.geom.Point) {
-            com.vividsolutions.jts.geom.Point point = (com.vividsolutions.jts.geom.Point)geometry;
-            return Point.of(coordToList(point.getCoordinate()));
+            return fromJts((com.vividsolutions.jts.geom.Point)geometry);
         }
         if (geometry instanceof com.vividsolutions.jts.geom.LineString) {
-            com.vividsolutions.jts.geom.LineString string = (com.vividsolutions.jts.geom.LineString)geometry;
-            return LineString.of(coordsToList(string.getCoordinates()));
+            return fromJts((com.vividsolutions.jts.geom.LineString)geometry);
         }
         if (geometry instanceof com.vividsolutions.jts.geom.Polygon) {
-            com.vividsolutions.jts.geom.Polygon polygon = (com.vividsolutions.jts.geom.Polygon)geometry;
-
-            return Polygon.of(polygonToList(polygon));
+            return fromJts((com.vividsolutions.jts.geom.Polygon)geometry);
         }
         if (geometry instanceof com.vividsolutions.jts.geom.MultiPolygon) {
-            com.vividsolutions.jts.geom.MultiPolygon multiPolygon = (com.vividsolutions.jts.geom.MultiPolygon)geometry;
-
-            return MultiPolygon.of(IntStream.range(0, multiPolygon.getNumGeometries())
-                    .mapToObj(i -> (com.vividsolutions.jts.geom.Polygon) multiPolygon.getGeometryN(i))
-                    .map(Utils::polygonToList)
-                    .collect(Collectors.toList()));
+            return fromJts((com.vividsolutions.jts.geom.MultiPolygon)geometry);
         }
 
         throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
+    }
+
+    public static Point fromJts(com.vividsolutions.jts.geom.Point point) {
+        return Point.of(coordToList(point.getCoordinate()));
+    }
+
+    public static LineString fromJts(com.vividsolutions.jts.geom.LineString string) {
+        return LineString.of(coordsToList(string.getCoordinates()));
+    }
+
+    public static Polygon fromJts(com.vividsolutions.jts.geom.Polygon polygon) {
+        return Polygon.of(polygonToList(polygon));
+    }
+
+    public static MultiPolygon fromJts(com.vividsolutions.jts.geom.MultiPolygon multiPolygon) {
+        return MultiPolygon.of(IntStream.range(0, multiPolygon.getNumGeometries())
+                .mapToObj(i -> (com.vividsolutions.jts.geom.Polygon) multiPolygon.getGeometryN(i))
+                .map(Utils::polygonToList)
+                .collect(toList()));
     }
 
     private static List<List<List<Double>>> polygonToList(com.vividsolutions.jts.geom.Polygon polygon) {
@@ -99,7 +125,7 @@ public final class Utils {
     private static Coordinate[] listToCoords(List<List<Double>> list) {
         return list.stream()
                 .map(Utils::listToCoord)
-                .collect(Collectors.toList())
+                .collect(toList())
                 .toArray(new Coordinate[0]);
     }
 
@@ -110,7 +136,7 @@ public final class Utils {
     private static List<List<Double>> coordsToList(Coordinate[] coordinates) {
         return Arrays.stream(coordinates)
                 .map(Utils::coordToList)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private static List<Double> coordToList(Coordinate coordinate) {
