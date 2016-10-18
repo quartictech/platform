@@ -40,7 +40,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               selection={this.props.selectionIds}
               map={this.props.map}
               geofence={this.props.geofence}
-              onGeofenceChange={this.props.onGeofenceChange}
+              onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
             />
           </div>
         </div>
@@ -60,6 +60,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onGeofenceSave={this.props.onGeofenceSave}
             geofence={this.props.geofence}
             onGeofenceChangeType={this.props.onGeofenceChangeType}
+            onGeofenceSetLayer={this.props.onGeofenceSetLayer}
           />
         </div>
 
@@ -113,8 +114,9 @@ const mapDispatchToProps = {
   onMapMouseClick: actions.mapMouseClick,
   onGeofenceEdit: actions.geofenceEditStart,
   onGeofenceSave: actions.geofenceEditFinish,
-  onGeofenceChange: actions.geofenceEditChange,
+  onGeofenceSetGeometry: actions.geofenceSetGeometry,
   onGeofenceChangeType: actions.geofenceChangeType,
+  onGeofenceSetLayer: actions.geofenceSetLayer,
 };
 
 const mapStateToProps = createStructuredSelector({

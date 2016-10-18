@@ -1,10 +1,6 @@
 package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
@@ -13,7 +9,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BucketOp {
     private final FeatureStore featureStore;
@@ -33,8 +28,8 @@ public class BucketOp {
     }
 
     public static Optional<BucketResults> create(LayerStore store, BucketSpec bucketSpec) {
-        Optional<Layer> featureLayer = store.getLayer(bucketSpec.features());
-        Optional<Layer> bucketLayer = store.getLayer(bucketSpec.buckets());
+        Optional<AbstractLayer> featureLayer = store.getLayer(bucketSpec.features());
+        Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
             return new BucketOp(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec).compute();

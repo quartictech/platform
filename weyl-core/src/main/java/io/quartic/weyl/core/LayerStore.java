@@ -58,14 +58,14 @@ public class LayerStore {
         );
     }
 
-    public Collection<Layer> listLayers() {
+    public Collection<AbstractLayer> listLayers() {
         return layers.entrySet()
                 .stream()
                 .map(Entry::getValue)
                 .collect(toList());
     }
 
-    public Optional<Layer> getLayer(LayerId layerId) {
+    public Optional<AbstractLayer> getLayer(LayerId layerId) {
         return Optional.ofNullable(layers.get(layerId));
     }
 

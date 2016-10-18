@@ -5,11 +5,16 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
+import io.quartic.weyl.core.geofence.GeofenceListener;
+import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
@@ -36,7 +41,7 @@ import static java.util.stream.Collectors.toList;
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/ws")
-public class UpdateServer implements AlertListener {
+public class UpdateServer implements AlertListener, GeofenceListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
@@ -89,6 +94,18 @@ public class UpdateServer implements AlertListener {
         sendMessage(AlertMessage.of(alert));
     }
 
+    @Override
+    public void onViolation(Violation violation) {
+        // Do nothing
+    }
+
+    @Override
+    public void onGeometryChange(Geometry geometry) {
+        sendMessage(GeofenceUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
+                fromJts(Optional.empty(), geometry, ImmutableMap.of())
+        ))));
+    }
+
     private void unsubscribeAll() {
         subscriptions.forEach(layerStore::removeSubscriber);
         subscriptions.clear();
@@ -125,10 +142,14 @@ public class UpdateServer implements AlertListener {
     }
 
     private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
+        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(f.uid(), f.metadata()));
+    }
+
+    private Feature fromJts(Optional<String> id, Geometry geometry, Map<String, Object> attributes) {
         return Feature.of(
-                Optional.of(f.externalId()),
-                Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),
-                convertMetadata(f.uid(), f.metadata())
+                id,
+                Optional.of(Utils.fromJts(geometryTransformer.transform(geometry))),
+                attributes
         );
     }
 
@@ -138,5 +159,4 @@ public class UpdateServer implements AlertListener {
         return output;
 
     }
-
 }

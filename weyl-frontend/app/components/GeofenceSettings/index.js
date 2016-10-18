@@ -8,6 +8,24 @@ import React from "react";
 
 import styles from "./styles.css";
 const $ = require("jquery");
+import { Dropdown } from "semantic-ui-react";
+
+const GeofenceLayerPicker = ({ visible, layers, onSelect, selected }) => {
+  if (!visible) {
+    return null;
+  }
+  const options = layers.toArray().map(layer => ({ text: layer.toJS().metadata.name, value: layer.get("id") }));
+  return (
+    <Dropdown
+      selection
+      placeholder="Pick Layer"
+      className="compact"
+      options={options}
+      onChange={(e, v) => onSelect(v.value)}
+      value={selected === null ? "" : selected}
+    />
+  );
+};
 
 const GeofenceTypeDropdown = ({ type, onTypeChange, visible }) => {
   if (visible) {
@@ -58,6 +76,12 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
                 editing={this.props.geofence.editing}
                 onEditClick={this.props.onGeofenceEdit}
                 onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)}
+              />
+              <GeofenceLayerPicker
+                visible={this.props.geofence.editing}
+                layers={this.props.layers}
+                onSelect={layerId => this.props.onGeofenceSetLayer(layerId, 50)}
+                selected={this.props.geofence.layerId}
               />
             </div>
             <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceChangeType} key="dropdown" />
