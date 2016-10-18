@@ -8,9 +8,7 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Polygon;
+import io.quartic.weyl.core.geojson.*;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
@@ -22,6 +20,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static java.util.Arrays.stream;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
@@ -32,7 +31,6 @@ public class GeofenceResourceShould {
 
     private final Polygon polyA = geojsonPolygon(5.0);
     private final Polygon polyB = geojsonPolygon(6.0);
-
 
     @Test
     public void set_geofence_based_on_features() throws Exception {
@@ -46,7 +44,7 @@ public class GeofenceResourceShould {
                 .features(features)
                 .build());
 
-        verifyGeofence();
+        verifyGeofence(polyA, polyB);
     }
 
     @Test
@@ -68,19 +66,40 @@ public class GeofenceResourceShould {
                 .layerId(layerId)
                 .build());
 
-        verifyGeofence();
+        verifyGeofence(polyA, polyB);
     }
 
-    private void verifyGeofence() {
+    @Test
+    public void ignore_non_polygons() throws Exception {
+        final FeatureCollection features = FeatureCollection.of(ImmutableList.of(
+                Feature.of(Optional.of("123"), Optional.of(polyA), ImmutableMap.of()),
+                Feature.of(Optional.of("456"), Optional.of(geojsonPoint()), ImmutableMap.of())
+        ));
+
+        resource.update(ImmutableGeofenceRequest.builder()
+                .type(GeofenceType.INCLUDE)
+                .features(features)
+                .build());
+
+        verifyGeofence(polyA);
+    }
+
+    private void verifyGeofence(Polygon... polygons) {
+        final com.vividsolutions.jts.geom.Polygon[] converted
+                = stream(polygons).map(Utils::toJts).toArray(com.vividsolutions.jts.geom.Polygon[]::new);
         verify(geofenceStore).setGeofence(Geofence.of(
                 GeofenceId.of("1"),
                 GeofenceType.INCLUDE,
-                factory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[]{toJts(polyA), toJts(polyB)})
+                factory.createMultiPolygon(converted)
         ));
     }
 
     private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.weyl.core.geojson.Geometry geometry) {
         return ImmutableFeature.of("123", FeatureId.of("abc"), toJts(geometry), ImmutableMap.of());
+    }
+
+    private Point geojsonPoint() {
+        return Point.of(newArrayList(1.0, 2.0));
     }
 
     private Polygon geojsonPolygon(double offset) {
