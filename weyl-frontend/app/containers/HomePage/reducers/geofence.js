@@ -6,6 +6,7 @@ const initialState = fromJS({
   geojson: {
     type: "FeatureCollection",
     features: [],
+    bufferDistance: 0,
   },
   type: "INCLUDE",
 });
