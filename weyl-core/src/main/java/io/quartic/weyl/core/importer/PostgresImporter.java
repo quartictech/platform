@@ -108,24 +108,25 @@ public class PostgresImporter implements Importer {
 
     @Override
     public Collection<Feature> get() {
-           Handle h = dbi.open();
-        String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
-                sql);
-        ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
-                .iterator();
+        try (Handle h = dbi.open()) {
+            String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
+                    sql);
+            ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
+                    .iterator();
 
-        Collection<Feature> features = Lists.newArrayList();
-        int count = 0;
-        while (iterator.hasNext()) {
-            count += 1;
-            if (count % 10000 == 0) {
-                log.info("Importing feature: {}", count);
+            Collection<Feature> features = Lists.newArrayList();
+            int count = 0;
+            while (iterator.hasNext()) {
+                count += 1;
+                if (count % 10000 == 0) {
+                    log.info("Importing feature: {}", count);
+                }
+                Optional<Feature> feature = rowToFeature(iterator.next());
+
+                feature.ifPresent(features::add);
             }
-            Optional<Feature> feature = rowToFeature(iterator.next());
-
-            feature.ifPresent(features::add);
+            iterator.close();
+            return features;
         }
-        iterator.close();
-        return features;
     }
 }
