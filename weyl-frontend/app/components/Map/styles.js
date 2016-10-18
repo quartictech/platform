@@ -1,20 +1,6 @@
-import * as d3 from "d3";
 import * as chroma from "chroma-js";
 
 import { customStyles, liveLayerStyle } from "./customStyles.js";
-
-export function computeColorScaleFromBase(baseColor, step, n) {
-  let color = baseColor;
-  const result = [];
-
-  for (let i = 0; i < n; i++) {
-    result.push(color);
-    color = d3.hsl(color).darker(step);
-    result.push(color.toString());
-  }
-
-  return result;
-}
 
 function computeStops(colorScale, nStops, minValue, maxValue) {
   const result = [];
@@ -26,21 +12,21 @@ function computeStops(colorScale, nStops, minValue, maxValue) {
   return result;
 }
 
-function colorStyle(property, style, attributeStats) {
-  if (property == null) {
+function colorStyle(attribute, style, attributeStats) {
+  if (attribute == null) {
     return style.color;
   }
   return {
-    "property": property,
-    "stops": computeStops(style.colorScale, 8, attributeStats[property].minimum, attributeStats[property].maximum),
+    "property": attribute,
+    "stops": computeStops(style.colorScale, 8, attributeStats[attribute].minimum, attributeStats[attribute].maximum),
   };
 }
 
-function filter(property, geomType) {
+function filter(attribute, geomType) {
   const geomFilter = ["==", "$type", geomType];
-  if (property != null) {
-    const propFilter = ["has", property];
-    return ["all", geomFilter, propFilter];
+  if (attribute != null) {
+    const attrFilter = ["has", attribute];
+    return ["all", geomFilter, attrFilter];
   }
   return geomFilter;
 }
@@ -57,10 +43,10 @@ export function buildStyleLayers(layer) {
       type: "circle",
       paint: {
         "circle-radius": style.point["circle-radius"] - 2,
-        "circle-color": colorStyle(style.property, style.point, attributeStats),
+        "circle-color": colorStyle(style.attribute, style.point, attributeStats),
         "circle-opacity": style.opacity,
       },
-      filter: filter(style.property, "Point"),
+      filter: filter(style.attribute, "Point"),
     },
     point2: {
       type: "circle",
@@ -69,14 +55,14 @@ export function buildStyleLayers(layer) {
         "circle-color": "#FFFFFF",
         "circle-opacity": style.opacity,
       },
-      filter: filter(style.property, "Point"),
+      filter: filter(style.attribute, "Point"),
       _zorder: 1,
     },
     polygon: polygonSpec(style, attributeStats),
     line: {
       type: "line",
       paint: {
-        "line-color": colorStyle(style.property, style.line, attributeStats),
+        "line-color": colorStyle(style.attribute, style.line, attributeStats),
         "line-width": 5,
       },
       filter: ["==", "$type", "LineString"],
@@ -87,9 +73,9 @@ export function buildStyleLayers(layer) {
 const polygonSpec = (style, attributeStats) => ({
   type: "fill",
   paint: {
-    "fill-color": colorStyle(style.property, style.polygon, attributeStats),
-    "fill-outline-color": style.property == null ? style.polygon["fill-outline-color"] : style.polygon.color,
+    "fill-color": colorStyle(style.attribute, style.polygon, attributeStats),
+    "fill-outline-color": style.attribute == null ? style.polygon["fill-outline-color"] : style.polygon.color,
     "fill-opacity": style.opacity,
   },
-  filter: filter(style.property, "Polygon"),
+  filter: filter(style.attribute, "Polygon"),
 });

@@ -22,13 +22,14 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static java.util.Arrays.stream;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
-    private final GeofenceResource resource = new GeofenceResource(geofenceStore, layerStore);
+    private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);
     private final GeometryFactory factory = new GeometryFactory();
 
     private final Polygon polyA = geojsonPolygon(5.0);
