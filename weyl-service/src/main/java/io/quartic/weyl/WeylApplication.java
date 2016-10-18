@@ -17,6 +17,7 @@ import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.core.utils.RandomUidGenerator;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
