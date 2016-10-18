@@ -5,11 +5,16 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
+import io.quartic.weyl.core.geofence.GeofenceListener;
+import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
@@ -35,7 +40,7 @@ import static java.util.stream.Collectors.toList;
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/ws")
-public class UpdateServer implements AlertListener {
+public class UpdateServer implements AlertListener, GeofenceListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final ObjectMapper objectMapper;
     private LayerStore layerStore;
@@ -86,6 +91,18 @@ public class UpdateServer implements AlertListener {
         sendMessage(AlertMessage.of(alert));
     }
 
+    @Override
+    public void onViolation(Violation violation) {
+        // Do nothing
+    }
+
+    @Override
+    public void onGeometryChange(Geometry geometry) {
+        sendMessage(GeofenceUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
+                Feature.of(Optional.empty(), Optional.of(Utils.fromJts(geometry)), ImmutableMap.of())
+        ))));
+    }
+
     private void unsubscribeAll() {
         subscriptions.forEach(layerStore::removeSubscriber);
         subscriptions.clear();
@@ -131,5 +148,4 @@ public class UpdateServer implements AlertListener {
         return output;
 
     }
-
 }

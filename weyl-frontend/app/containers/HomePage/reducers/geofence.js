@@ -14,7 +14,7 @@ export default (state = initialState, action) => {
   switch (action.type) {
     case constants.GEOFENCE_EDIT_START:
       return state.set("editing", true);
-    case constants.GEOFENCE_EDIT_CHANGE:
+    case constants.GEOFENCE_SET_GEOMETRY:
       return state.set("geojson", action.geojson);
     case constants.GEOFENCE_SAVE_DONE:
       return state.set("editing", false);

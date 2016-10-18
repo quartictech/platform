@@ -10,6 +10,7 @@ import { apiRootUrl } from "../../../utils.js";
 import search from "./search";
 import manageSocket from "./manageSocket";
 import fetchSelectionInfo from "./fetchSelectionInfo";
+import saveGeofence from "./saveGeofence";
 
 function* runBucketComputation(action) {
   console.log(action);
@@ -35,26 +36,6 @@ function* runBucketComputation(action) {
     }
   }
 }
-
-function* saveGeofence(action) {
-  console.log("saving geofence");
-  const requestURL = `${apiRootUrl}/geofence/`;
-  yield call(request, requestURL, {
-    method: "PUT",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      features: action.geofence.geojson,
-      type: action.geofence.type,
-      bufferDistance: 0,
-    }),
-  });
-
-  yield put(actions.geofenceSaveDone());
-}
-
 
 // ////////////////////////
 

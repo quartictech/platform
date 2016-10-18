@@ -40,6 +40,10 @@ function* handleLayerUpdate(msg) {
   }
 }
 
+function* handleGeofenceUpdate(msg) {
+  yield put(actions.geofenceSetGeometry(msg.featureCollection));
+}
+
 const createNotification = (title, body) => {
   const n = new Notification(title, { body });
   setTimeout(n.close.bind(n), 5000);
@@ -56,6 +60,9 @@ function* handleMessages(channel) {
     switch (msg.type) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
+        break;
+      case "GeofenceUpdate":
+        yield* handleGeofenceUpdate(msg);
         break;
       case "Alert":
         yield* handleAlert(msg);

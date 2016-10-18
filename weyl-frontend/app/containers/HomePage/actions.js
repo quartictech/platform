@@ -122,19 +122,14 @@ export function geofenceEditStart() {
   };
 }
 
-export function geofenceEditFinish(geofence) {
-  return {
-    type: constants.GEOFENCE_EDIT_FINISH,
-    geofence,
-  };
-}
+export const geofenceEditFinish = () => ({
+  type: constants.GEOFENCE_EDIT_FINISH,
+});
 
-export function geofenceEditChange(geojson) {
-  return {
-    type: constants.GEOFENCE_EDIT_CHANGE,
-    geojson,
-  };
-}
+export const geofenceSetGeometry = (geojson) => ({
+  type: constants.GEOFENCE_SET_GEOMETRY,
+  geojson,
+});
 
 export function geofenceChangeType(geofenceType) {
   return {

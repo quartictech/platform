@@ -40,7 +40,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               selection={this.props.selectionIds}
               map={this.props.map}
               geofence={this.props.geofence}
-              onGeofenceChange={this.props.onGeofenceChange}
+              onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
             />
           </div>
         </div>
@@ -113,7 +113,7 @@ const mapDispatchToProps = {
   onMapMouseClick: actions.mapMouseClick,
   onGeofenceEdit: actions.geofenceEditStart,
   onGeofenceSave: actions.geofenceEditFinish,
-  onGeofenceChange: actions.geofenceEditChange,
+  onGeofenceSetGeometry: actions.geofenceSetGeometry,
   onGeofenceChangeType: actions.geofenceChangeType,
 };
 
