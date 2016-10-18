@@ -48,13 +48,7 @@ public class ImportResource {
     @PUT
     @Path("/geojson")
     public LayerId importGeoJson(GeoJsonImportRequest request) throws IOException {
-        Preconditions.checkNotNull(request.name());
-        Preconditions.checkNotNull(request.description());
-        LayerMetadata metadata = LayerMetadata.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
         GeoJsonImporter geoJsonImporter = GeoJsonImporter.fromObject(request.data(), featureStore, objectMapper);
-        return layerStore.createAndImportToLayer(geoJsonImporter, metadata);
+        return layerStore.createAndImportToLayer(geoJsonImporter, request.metadata());
     }
 }
