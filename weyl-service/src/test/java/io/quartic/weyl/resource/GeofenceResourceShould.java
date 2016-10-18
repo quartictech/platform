@@ -19,6 +19,8 @@ import org.junit.Test;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
 import static java.util.Arrays.stream;
 import static org.mockito.Mockito.*;
@@ -42,6 +44,7 @@ public class GeofenceResourceShould {
         resource.update(ImmutableGeofenceRequest.builder()
                 .type(GeofenceType.INCLUDE)
                 .features(features)
+                .bufferDistance(0.0)
                 .build());
 
         verifyGeofence(polyA, polyB);
@@ -64,6 +67,7 @@ public class GeofenceResourceShould {
         resource.update(ImmutableGeofenceRequest.builder()
                 .type(GeofenceType.INCLUDE)
                 .layerId(layerId)
+                .bufferDistance(0.0)
                 .build());
 
         verifyGeofence(polyA, polyB);
@@ -79,9 +83,25 @@ public class GeofenceResourceShould {
         resource.update(ImmutableGeofenceRequest.builder()
                 .type(GeofenceType.INCLUDE)
                 .features(features)
+                .bufferDistance(0.0)
                 .build());
 
         verifyGeofence(polyA);
+    }
+
+    @Test
+    public void add_buffering_to_geometries() throws Exception {
+        final FeatureCollection features = FeatureCollection.of(ImmutableList.of(
+                Feature.of(Optional.of("456"), Optional.of(geojsonPoint()), ImmutableMap.of())
+        ));
+
+        resource.update(ImmutableGeofenceRequest.builder()
+                .type(GeofenceType.INCLUDE)
+                .features(features)
+                .bufferDistance(1.0)
+                .build());
+
+        verifyGeofence((Polygon) fromJts(bufferOp(toJts(geojsonPoint()), 1.0)));
     }
 
     private void verifyGeofence(Polygon... polygons) {

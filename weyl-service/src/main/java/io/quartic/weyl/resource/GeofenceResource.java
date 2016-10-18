@@ -21,6 +21,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import java.util.stream.Stream;
 
+import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
 
 @Path("/geofence")
@@ -37,27 +38,25 @@ public class GeofenceResource {
 
     @PUT
     public void update(GeofenceRequest request) {
-        request.features().ifPresent(f -> updateFromFeatureCollection(request.type(), f));
-        request.layerId().ifPresent(id -> updateFromLayerId(request.type(), id));
+        request.features().ifPresent(f -> update(request.type(), request.bufferDistance(), geometriesFrom(f)));
+        request.layerId().ifPresent(id -> update(request.type(), request.bufferDistance(), geometriesFrom(id)));
     }
 
-    private void updateFromFeatureCollection(GeofenceType type, FeatureCollection features) {
-        update(type, features.features().stream()
+    private Stream<Geometry> geometriesFrom(FeatureCollection features) {
+        return features.features().stream()
                 .filter(f -> f.geometry().isPresent())
-                .map(f -> toJts(f.geometry().get())));
+                .map(f -> toJts(f.geometry().get()));
     }
 
-    private void updateFromLayerId(GeofenceType type, LayerId layerId) {
-        update(type, layerStore.getLayer(layerId).get()
+    private Stream<Geometry> geometriesFrom(LayerId layerId) {
+        return layerStore.getLayer(layerId).get()
                 .features().stream()
-                .map(Feature::geometry));
+                .map(Feature::geometry);
     }
 
-    private void update(GeofenceType type, Stream<Geometry> geometries) {
-        MultiPolygon multiPolygon = new GeometryFactory().createMultiPolygon(
-                geometries
-                .filter(g -> g instanceof Polygon)
-                .map(g -> (Polygon) g)
+    private void update(GeofenceType type, double bufferDistance, Stream<Geometry> geometries) {
+        MultiPolygon multiPolygon = new GeometryFactory().createMultiPolygon(geometries
+                .map(g -> (Polygon) bufferOp(g, bufferDistance))
                 .toArray(Polygon[]::new)
         );
         geofenceStore.setGeofence(Geofence.of(gidGenerator.get(), type, multiPolygon));

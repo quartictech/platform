@@ -14,4 +14,5 @@ public interface GeofenceRequest {
     GeofenceType type();
     Optional<FeatureCollection> features();
     Optional<LayerId> layerId();
+    double bufferDistance();    // TODO: what units?
 }
