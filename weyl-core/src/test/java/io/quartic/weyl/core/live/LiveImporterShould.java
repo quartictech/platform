@@ -9,6 +9,7 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Geometry;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import org.junit.Test;
 
@@ -37,7 +38,7 @@ public class LiveImporterShould {
                 io.quartic.weyl.core.model.ImmutableFeature.builder()
                         .uid(FeatureId.of("1"))
                         .externalId("a")
-                        .geometry(factory.createPoint(new Coordinate(123.0, 456.0)))
+                        .geometry(factory.createPoint(new Coordinate(51.0, 0.1)))
                         .metadata(ImmutableMap.of("timestamp", 1234))
                         .build()
         )));
@@ -67,7 +68,8 @@ public class LiveImporterShould {
     private LiveImporter importer(Collection<LiveEvent> events) {
         return new LiveImporter(events,
                 new SequenceUidGenerator<>(FeatureId::of),
-                new SequenceUidGenerator<>(LiveEventId::of)
+                new SequenceUidGenerator<>(LiveEventId::of),
+                GeometryTransformer.webMercatorToWebMercator()
         );
     }
 
@@ -93,7 +95,7 @@ public class LiveImporterShould {
     }
 
     private Point point() {
-        return point(123.0, 456.0);
+        return point(51.0, 0.1);
     }
 
     private Point point(double x, double y) {
