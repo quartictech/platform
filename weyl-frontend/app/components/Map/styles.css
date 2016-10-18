@@ -1,5 +1,6 @@
 .mapViewport { /* stylelint-ignore */
   flex: 1;
+  background-color: #000000;
 }
 
 .map {
