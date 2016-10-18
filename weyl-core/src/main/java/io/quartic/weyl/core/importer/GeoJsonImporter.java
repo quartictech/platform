@@ -60,7 +60,7 @@ public class GeoJsonImporter implements Importer {
         return f.geometry().flatMap(geom -> {
             try {
                 return Optional.of(ImmutableFeature.builder()
-                        .externalId(f.id().orElse(null))
+                        .externalId(f.id())
                         .uid(featureStore.getFeatureIdGenerator().get())
                         .geometry(JTS.transform(Utils.toJts(geom), mathTransform))
                         .metadata(f.properties())

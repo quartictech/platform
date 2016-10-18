@@ -44,7 +44,7 @@ public class LastKnownLocationAndTrackView implements LayerView {
         // TODO: sorting by UID is wrong - we should sort by timestamp
         Map<String, List<Feature>> historyById = history.stream()
                 .sorted((a, b) -> Long.compare(Long.valueOf(a.uid().uid()), Long.valueOf(b.uid().uid())))
-                .collect(groupingBy(Feature::externalId));
+                .collect(groupingBy(feature -> feature.externalId().orElse(null)));
 
         return historyById.values()
                 .stream()

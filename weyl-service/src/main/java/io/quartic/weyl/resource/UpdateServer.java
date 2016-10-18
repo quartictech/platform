@@ -119,7 +119,7 @@ public class UpdateServer implements AlertListener {
 
     private static Feature fromJts(io.quartic.weyl.core.model.Feature f) {
         return Feature.of(
-                Optional.of(f.externalId()),
+                f.externalId(),
                 Optional.of(Utils.fromJts(f.geometry())),
                 convertMetadata(f.uid(), f.metadata())
         );
