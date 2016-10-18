@@ -2,7 +2,6 @@ package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -14,7 +13,6 @@ import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -41,17 +38,10 @@ public class LayerStore {
     private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = HashMultimap.create();
-    private final GeometryTransformer geometryTransformer;
-
-    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator,
-                      GeometryTransformer geometryTransformer) {
-        this.featureStore = featureStore;
-        this.lidGenerator = lidGenerator;
-        this.geometryTransformer = geometryTransformer;
-    }
 
     public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator) {
-        this(featureStore, lidGenerator, GeometryTransformer.webMercatortoWgs84());
+        this.featureStore = featureStore;
+        this.lidGenerator = lidGenerator;
     }
 
     public LayerId createAndImportToLayer(Importer importer, LayerMetadata metadata) {
@@ -113,24 +103,10 @@ public class LayerStore {
                 .withLive(true)
                 .withFeedEvents(updatedFeedEvents));
 
-        notifyListeners(layerId, transformFeatures(newFeatures));
+        notifyListeners(layerId, newFeatures);
         notifySubscribers(layerId);
 
         return newFeatures.size();
-    }
-
-    private Collection<Feature> transformFeatures(Collection<Feature> features) {
-        return features.stream()
-                .map(f -> {
-                    Optional<Geometry> transformed = geometryTransformer.transform(f.geometry());
-
-                    return transformed.map(
-                            t -> ImmutableFeature.copyOf(f).withGeometry(t));
-                })
-                // We just do a get() here as the features have already been transformed on the way in
-                // Any failure in the transformation would be weird
-                .map(Optional::get)
-                .collect(Collectors.toList());
     }
 
     // TODO: currently only applies to live layers

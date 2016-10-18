@@ -33,6 +33,8 @@ import java.util.function.Supplier;
 
 public class WeylApplication extends Application<WeylConfiguration> {
     private UpdateServer updateServer = null;   // TODO: deal with weird mutability
+    private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
+    private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -46,7 +48,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
-        updateServer = new UpdateServer(objectMapper);
+        updateServer = new UpdateServer(transformFromFrontend, objectMapper);
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
@@ -95,7 +97,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator));
         environment.jersey().register(new TileResource(layerStore));
-        environment.jersey().register(new GeofenceResource(geofenceStore));
+        environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore));
         environment.jersey().register(new AlertResource(alertProcessor));
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));

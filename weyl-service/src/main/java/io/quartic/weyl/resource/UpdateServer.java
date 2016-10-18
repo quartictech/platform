@@ -17,6 +17,7 @@ import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +38,14 @@ import static java.util.stream.Collectors.toList;
 @ServerEndpoint("/ws")
 public class UpdateServer implements AlertListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
+    private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
     private LayerStore layerStore;
     private List<LayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
-    public UpdateServer(ObjectMapper objectMapper) {
+    public UpdateServer(GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
+        this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
     }
 
@@ -113,14 +116,18 @@ public class UpdateServer implements AlertListener {
         }
     }
 
-    private static FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features) {
-        return FeatureCollection.of(features.stream().map(UpdateServer::fromJts).collect(toList()));
+    private FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features) {
+        return FeatureCollection.of(
+                features.stream()
+                        .map(this::fromJts)
+                        .collect(toList())
+        );
     }
 
-    private static Feature fromJts(io.quartic.weyl.core.model.Feature f) {
+    private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
         return Feature.of(
                 Optional.of(f.externalId()),
-                Optional.of(Utils.fromJts(f.geometry())),
+                Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()).get())),  // TODO: why does the transformer return an Optional?
                 convertMetadata(f.uid(), f.metadata())
         );
     }

@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Test;
@@ -29,8 +28,7 @@ public class LayerStoreShould {
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore store = new LayerStore(featureStore, lidGenerator,
-            GeometryTransformer.webMercatorToWebMercator());
+    private final LayerStore store = new LayerStore(featureStore, lidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
