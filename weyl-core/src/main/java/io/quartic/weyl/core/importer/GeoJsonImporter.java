@@ -7,12 +7,9 @@ import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CRSAuthorityFactory;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
 import java.io.IOException;
@@ -25,50 +22,35 @@ import java.util.stream.Stream;
 public class GeoJsonImporter implements Importer {
     private final FeatureCollection featureCollection;
     private final FeatureStore featureStore;
-    private final MathTransform mathTransform;
+    private final GeometryTransformer geometryTransformer;
 
     public static GeoJsonImporter fromInputStream(InputStream inputStream, FeatureStore featureStore, ObjectMapper objectMapper) throws IOException, FactoryException {
         FeatureCollection featureCollection = objectMapper.readValue(inputStream, FeatureCollection.class);
-        return new GeoJsonImporter(featureCollection, featureStore, findMathTransform());
-    }
-
-    static MathTransform findMathTransform() throws FactoryException {
-        // Ugh. See http://docs.geotools.org/latest/userguide/library/referencing/order.html
-        CRSAuthorityFactory factory = CRS.getAuthorityFactory(true);
-        CoordinateReferenceSystem sourceCrs = factory.createCoordinateReferenceSystem("EPSG:4326");
-        CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:3857");
-        return CRS.findMathTransform(sourceCrs, targetCrs);
+        return new GeoJsonImporter(featureCollection, featureStore, GeometryTransformer.wgs84toWebMercator());
     }
 
     public static GeoJsonImporter fromObject(Object value, FeatureStore featureStore, ObjectMapper objectMapper) throws IOException {
         FeatureCollection featureCollection = objectMapper.convertValue(value, FeatureCollection.class);
-        try {
-            return new GeoJsonImporter(featureCollection, featureStore, findMathTransform());
-        } catch (FactoryException e) {
-            throw new IOException(e);
-        }
+        return new GeoJsonImporter(featureCollection, featureStore, GeometryTransformer.wgs84toWebMercator());
     }
 
-    private GeoJsonImporter(FeatureCollection featureCollection, FeatureStore featureStore, MathTransform mathTransform) {
+    private GeoJsonImporter(FeatureCollection featureCollection, FeatureStore featureStore,
+                            GeometryTransformer geometryTransformer) {
         this.featureCollection = featureCollection;
         this.featureStore = featureStore;
-        this.mathTransform = mathTransform;
+        this.geometryTransformer = geometryTransformer;
     }
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {
         // TODO: We are ignoring null geometries here (as well as in the live pipeline). We should figure out something better.
-        return f.geometry().flatMap(geom -> {
-            try {
-                return Optional.of(ImmutableFeature.builder()
-                        .externalId(f.id().orElse(null))
-                        .uid(featureStore.getFeatureIdGenerator().get())
-                        .geometry(JTS.transform(Utils.toJts(geom), mathTransform))
-                        .metadata(f.properties())
-                        .build());
-            } catch (TransformException e) {
-                e.printStackTrace();
-                return Optional.empty();
-            }
+        return f.geometry().map(rawGeometry -> {
+            Geometry transformedGeometry = geometryTransformer.transform(Utils.toJts(rawGeometry));
+            return ImmutableFeature.builder()
+                    .externalId(f.id().orElse(null))
+                    .uid(featureStore.getFeatureIdGenerator().get())
+                    .geometry(transformedGeometry)
+                    .metadata(f.properties())
+                    .build();
         });
     }
 

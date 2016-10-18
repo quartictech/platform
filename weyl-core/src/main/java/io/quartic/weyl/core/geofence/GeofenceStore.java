@@ -57,37 +57,28 @@ public class GeofenceStore implements LayerStoreListener {
         listeners.remove(listener);
     }
 
-    private GeofenceState getState(Geofence geofence, Feature feature) {
-        if (geofence.type() == GeofenceType.INCLUDE &&
-                geofence.geometry().contains(feature.geometry())) {
-            return GeofenceState.of(true, String.format("Actor %s is within inclusive geofence boundary", feature.externalId()));
-        }
-        else if (geofence.type() == GeofenceType.EXCLUDE &&
-                !geofence.geometry().contains(feature.geometry())) {
-            return GeofenceState.of(true, String.format("Actor %s is outside exclusive geofence boundary", feature.externalId()));
-        }
-        else {
-            return GeofenceState.of(false, String.format("Actor %s is in violation of geofence boundary", feature.externalId()));
-        }
-    }
-
     @Override
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
         geofences.forEach(geofence -> {
-            final GeofenceState state = getState(geofence, feature);
             final ViolationKey vk = ViolationKey.of(feature.uid(), geofence.id());
 
-            if (state.ok()) {
-                currentViolations.remove(vk);
-            } else {
+            if (inViolation(geofence, feature)) {
                 if (!currentViolations.containsKey(vk)) {
                     final Violation violation = Violation.of(vidGenerator.get(),
-                            state.detail());
+                            String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()));
                     currentViolations.put(vk, violation);
                     notifyListeners(violation);
                 }
+
+            } else {
+                currentViolations.remove(vk);
             }
         });
+    }
+
+    private boolean inViolation(Geofence geofence, Feature feature) {
+        final boolean contains = geofence.geometry().contains(feature.geometry());
+        return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
     }
 
     private void notifyListeners(Violation violation) {

@@ -1,22 +1,34 @@
 package io.quartic.weyl.core.live;
 
+import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.core.utils.UidGenerator;
+import org.opengis.referencing.FactoryException;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class LiveImporter {
     private final Collection<EnrichedLiveEvent> events;
     private final UidGenerator<FeatureId> fidGenerator;
+    private final GeometryTransformer geometryTransformer;
 
-    public LiveImporter(Collection<LiveEvent> events, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
+    public LiveImporter(Collection<LiveEvent> events, UidGenerator<FeatureId> fidGenerator,
+                        UidGenerator<LiveEventId> eidGenerator, GeometryTransformer geometryTransformer) {
         this.events = enrichLiveEvents(events, eidGenerator);
         this.fidGenerator = fidGenerator;
+        this.geometryTransformer = geometryTransformer;
+    }
+
+    public LiveImporter(List<LiveEvent> events, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
+        this(events, fidGenerator, eidGenerator, GeometryTransformer.wgs84toWebMercator());
     }
 
     public Collection<EnrichedFeedEvent> getFeedEvents() {
@@ -47,10 +59,13 @@ public class LiveImporter {
     }
 
     private io.quartic.weyl.core.model.Feature toJts(io.quartic.weyl.core.geojson.Feature f) {
+        // HACK: we can assume that we've simply filtered out features with null geometries for now
+        Geometry transformed = geometryTransformer.transform(Utils.toJts(f.geometry().get()));
+
         return ImmutableFeature.builder()
                 .externalId(f.id().get())
                 .uid(fidGenerator.get())
-                .geometry(Utils.toJts(f.geometry().get()))  // HACK: we can assume that we've simply filtered out features with null geometries for now
+                .geometry(transformed)
                 .metadata(f.properties())
                 .build();
     }
