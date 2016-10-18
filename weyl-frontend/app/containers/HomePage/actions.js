@@ -105,7 +105,7 @@ export function mapMouseMove(mouseLocation) {
 export function mapMouseClick(feature, multiSelectEnabled) {
   return {
     type: constants.MAP_MOUSE_CLICK,
-    feature,
+    feature,afs
     multiSelectEnabled,
   };
 }
