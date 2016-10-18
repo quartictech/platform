@@ -1,51 +1,23 @@
 import { fromJS, OrderedMap, Set } from "immutable";
+import { layerThemes } from "../../../themes";
 import * as constants from "../constants";
 const _ = require("underscore");
 
-const colorScale = "PuRd";
-const defaultLayerStyle = schema => ({
-  type: "DEFAULT",
-  property: schema.primaryAttribute,
-  opacity: 0.8,
-  point: {
-    "circle-radius": 6,
-    "color": "#e7298a", // "#223b53",
-    colorScale,
-  },
-  polygon: {
-    "color": "#67001f", // #F2F12D",
-    "fill-outline-color": "#E0A025",
-    colorScale,
-  },
-  line: {
-    "color": "#e7298a",
-    // color: "#E0A025",
-    colorScale,
-  },
-});
-
-const defaultFilter = (schema) =>
-  _.chain(schema.attributes)
-    .keys()
-    .filter(k => schema.attributes[k].categories !== null)
-    .map(k => [k, { notApplicable: false, categories: new Set() }])
-    .object()
-    .value();
-
-const newLayer = (action) => fromJS({
-  id: action.id,
-  metadata: action.metadata,
-  visible: true,
-  style: defaultLayerStyle(action.attributeSchema),
-  stats: action.stats,
-  attributeSchema: action.attributeSchema,
-  live: action.live,
-  data: {
-    type: "FeatureCollection",
-    features: [],
-  },   // Only relevant in the case of live layers
-  filter: defaultFilter(action.attributeSchema),
-});
+export default (state = new OrderedMap(), action) => {
+  switch (action.type) {
+    case constants.LAYER_CREATE:
+      return (state.has(action.id)) ? state : state.set(action.id, newLayer(action));
+    case constants.LAYER_CLOSE:
+      return state.delete(action.layerId);
+    case constants.LAYER_TOGGLE_VISIBLE:
+    case constants.LAYER_SET_STYLE:
+    case constants.LAYER_TOGGLE_VALUE_VISIBLE:
+    case constants.LAYER_SET_DATA:
+      return state.update(action.layerId, val => layerReducer(val, action));
+    default:
+      return state;
+  }
+};
 
 const layerReducer = (state, action) => {
   switch (action.type) {
@@ -53,7 +25,17 @@ const layerReducer = (state, action) => {
       return state.set("visible", !state.get("visible"));
 
     case constants.LAYER_SET_STYLE:
-      return state.mergeIn(["style"], action.style);
+      switch (action.key) {
+        case "ATTRIBUTE":
+          return state.setIn(["style", "attribute"], action.value);
+        case "THEME":
+          return state
+            .set("themeIdx", action.value)
+            .set("style", fromJS(defaultLayerStyle(state.getIn(["style", "attribute"]), action.value)));
+        default:
+          console.error("Unknown style key", action.key);
+          return state;
+      }
 
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
       if (action.value === undefined) {
@@ -76,18 +58,46 @@ const layerReducer = (state, action) => {
   }
 };
 
-export default (state = new OrderedMap(), action) => {
-  switch (action.type) {
-    case constants.LAYER_CREATE:
-      return (state.has(action.id)) ? state : state.set(action.id, newLayer(action));
-    case constants.LAYER_CLOSE:
-      return state.delete(action.layerId);
-    case constants.LAYER_TOGGLE_VISIBLE:
-    case constants.LAYER_SET_STYLE:
-    case constants.LAYER_TOGGLE_VALUE_VISIBLE:
-    case constants.LAYER_SET_DATA:
-      return state.update(action.layerId, val => layerReducer(val, action));
-    default:
-      return state;
-  }
-};
+const newLayer = (action) => fromJS({
+  id: action.id,
+  metadata: action.metadata,
+  visible: true,
+  themeIdx: 0,
+  style: defaultLayerStyle(action.attributeSchema.primaryAttribute, 0),
+  stats: action.stats,
+  attributeSchema: action.attributeSchema,
+  live: action.live,
+  data: {
+    type: "FeatureCollection",
+    features: [],
+  },   // Only relevant in the case of live layers
+  filter: defaultFilter(action.attributeSchema),
+});
+
+const defaultFilter = (schema) =>
+  _.chain(schema.attributes)
+    .keys()
+    .filter(k => schema.attributes[k].categories !== null)
+    .map(k => [k, { notApplicable: false, categories: new Set() }])
+    .object()
+    .value();
+
+const defaultLayerStyle = (attribute, themeIdx) => ({
+  type: "DEFAULT",
+  attribute,
+  opacity: 0.8,
+  point: {
+    "circle-radius": 6,
+    "color": layerThemes[themeIdx].line,
+    "colorScale": layerThemes[themeIdx].colorScale,
+  },
+  polygon: {
+    "color": layerThemes[themeIdx].fill,
+    "fill-outline-color": layerThemes[themeIdx].line,
+    "colorScale": layerThemes[themeIdx].colorScale,
+  },
+  line: {
+    "color": layerThemes[themeIdx].line,
+    "colorScale": layerThemes[themeIdx].colorScale,
+  },
+});

@@ -12,11 +12,10 @@ import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.request.GeofenceRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -29,13 +28,13 @@ import static io.quartic.weyl.core.geojson.Utils.toJts;
 @Path("/geofence")
 @Consumes("application/json")
 public class GeofenceResource {
-    private static final Logger LOG = LoggerFactory.getLogger(GeofenceResource.class);
-
+    private final GeometryTransformer geometryTransformer;
     private final GeofenceStore geofenceStore;
     private final LayerStore layerStore;
     private final UidGenerator<GeofenceId> gidGenerator = new SequenceUidGenerator<>(GeofenceId::of);
 
-    public GeofenceResource(GeofenceStore geofenceStore, LayerStore layerStore) {
+    public GeofenceResource(GeometryTransformer geometryTransformer, GeofenceStore geofenceStore, LayerStore layerStore) {
+        this.geometryTransformer = geometryTransformer;
         this.geofenceStore = geofenceStore;
         this.layerStore = layerStore;
     }
@@ -49,7 +48,7 @@ public class GeofenceResource {
     private Stream<Geometry> geometriesFrom(FeatureCollection features) {
         return features.features().stream()
                 .filter(f -> f.geometry().isPresent())
-                .map(f -> toJts(f.geometry().get()));
+                .map(f -> geometryTransformer.transform(toJts(f.geometry().get())));
     }
 
     private Stream<Geometry> geometriesFrom(LayerId layerId) {
