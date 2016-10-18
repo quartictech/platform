@@ -10,7 +10,10 @@ import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
@@ -93,6 +96,16 @@ public class GeofenceStoreShould {
         updatePoint(true);
 
         verify(listener, times(2)).onViolation(any());
+    }
+
+    @Test
+    public void include_feature_name_in_violation_messages() throws Exception {
+        createGeofence(GeofenceType.EXCLUDE);
+        updatePoint(true);
+
+        ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
+        verify(listener).onViolation(captor.capture());
+        assertThat(captor.getValue().message(), containsString("ducks"));
     }
 
 
