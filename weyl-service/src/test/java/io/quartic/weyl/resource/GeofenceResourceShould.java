@@ -105,12 +105,15 @@ public class GeofenceResourceShould {
     }
 
     private void verifyGeofence(Polygon... polygons) {
-        final com.vividsolutions.jts.geom.Polygon[] converted
-                = stream(polygons).map(Utils::toJts).toArray(com.vividsolutions.jts.geom.Polygon[]::new);
+        final com.vividsolutions.jts.geom.MultiPolygon multiPolygon = factory.createMultiPolygon(
+                stream(polygons)
+                        .map(Utils::toJts)
+                        .toArray(com.vividsolutions.jts.geom.Polygon[]::new));
+
         verify(geofenceStore).setGeofence(Geofence.of(
                 GeofenceId.of("1"),
                 GeofenceType.INCLUDE,
-                factory.createMultiPolygon(converted)
+                multiPolygon
         ));
     }
 

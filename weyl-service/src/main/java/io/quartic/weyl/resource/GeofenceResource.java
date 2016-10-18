@@ -15,6 +15,8 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.SequenceUidGenerator;
 import io.quartic.weyl.core.utils.UidGenerator;
 import io.quartic.weyl.request.GeofenceRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -27,6 +29,8 @@ import static io.quartic.weyl.core.geojson.Utils.toJts;
 @Path("/geofence")
 @Consumes("application/json")
 public class GeofenceResource {
+    private static final Logger LOG = LoggerFactory.getLogger(GeofenceResource.class);
+
     private final GeofenceStore geofenceStore;
     private final LayerStore layerStore;
     private final UidGenerator<GeofenceId> gidGenerator = new SequenceUidGenerator<>(GeofenceId::of);
