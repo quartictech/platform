@@ -48,6 +48,8 @@ function* saveGeofence(action) {
     body: JSON.stringify({
       features: action.geofence.geojson,
       type: action.geofence.type,
+      layerId: action.geofence.layerId,
+      bufferDistance: action.geofence.bufferDistance,
     }),
   });
 

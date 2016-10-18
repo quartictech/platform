@@ -2,6 +2,7 @@ import React from "react";
 
 import styles from "./styles.css";
 const $ = require("jquery");
+import classNames from "classnames";
 
 class LayerPicker extends React.Component { // eslint-disable-line react/prefer-stateless-function
   componentDidMount() {
@@ -25,9 +26,12 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
       </div>
     ));
 
+
+    const dropdownClasses = classNames("ui", "mini", "floating", "labeled",
+      "icon", "dropdown", "button", { "disabled": this.props.layers.size === 0 });
     return (
       <div className={styles.layerPicker}>
-        <div className="ui mini floating labeled icon dropdown button" ref={(x) => (this.dropdown = x)}>
+        <div className={dropdownClasses} ref={(x) => (this.dropdown = x)}>
           <i className="filter icon"></i>
           <span className="text">{this.props.label}</span>
           <div className="menu">

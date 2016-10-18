@@ -33,11 +33,17 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   render() {
     const rows = [];
     if (this.props.ui.layerOp === "bucket") {
-      rows.push(<BucketLayerItem onCompute={this.props.onBucketCompute} layers={this.props.layers} onUiToggle={this.props.onUiToggle} key="bucket" />);
+      rows.push(<BucketLayerItem
+        onCompute={this.props.onBucketCompute}
+        layers={this.props.layers}
+        onUiToggle={this.props.onUiToggle}
+        key="bucket"
+      />);
     } else if (this.props.ui.layerOp === "geofence") {
       rows.push(<GeofenceSettings
         key="geofence"
         geofence={this.props.geofence}
+        layers={this.props.layers}
         onGeofenceEdit={this.props.onGeofenceEdit}
         onGeofenceSave={this.props.onGeofenceSave}
         onGeofenceChangeType={this.props.onGeofenceChangeType}
