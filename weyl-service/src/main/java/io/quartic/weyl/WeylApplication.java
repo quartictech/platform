@@ -93,6 +93,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         // TODO: deal with weird mutability
         updateServer.setLayerStore(layerStore);
         alertProcessor.addListener(updateServer);
+        geofenceStore.addListener(updateServer);
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator));

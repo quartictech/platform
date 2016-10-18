@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
     private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class));
-    private final ViolationListener listener = mock(ViolationListener.class);
+    private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
     private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
 
@@ -28,11 +28,18 @@ public class GeofenceStoreShould {
     }
 
     @Test
+    public void notify_on_geometry_change() throws Exception {
+        createGeofence(GeofenceType.INCLUDE);
+
+        verify(listener).onGeometryChange(fenceGeometry);
+    }
+
+    @Test
     public void not_notify_if_inside_inclusive_boundary() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
         updatePoint(true);
 
-        verifyZeroInteractions(listener);
+        verify(listener, never()).onViolation(any());
     }
 
     @Test
@@ -48,7 +55,7 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(false);
 
-        verifyZeroInteractions(listener);
+        verify(listener, never()).onViolation(any());
     }
 
     @Test
@@ -65,7 +72,7 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(false);
 
-        verifyZeroInteractions(listener);
+        verify(listener, never()).onViolation(any());
     }
 
     @Test

@@ -1,8 +1,7 @@
 package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.live.LayerStoreListener;
@@ -17,6 +16,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newHashSet;
+
 public class GeofenceStore implements LayerStoreListener {
     @SweetStyle
     @Value.Immutable
@@ -27,9 +29,9 @@ public class GeofenceStore implements LayerStoreListener {
 
     private final UidGenerator<ViolationId> vidGenerator = new SequenceUidGenerator<>(ViolationId::of);
 
-    private final Map<ViolationKey, Violation> currentViolations = Maps.newHashMap();
-    private final Set<Geofence> geofences = Sets.newHashSet();
-    private final Set<ViolationListener> listeners = Sets.newHashSet();
+    private final Map<ViolationKey, Violation> currentViolations = newHashMap();
+    private final Set<Geofence> geofences = newHashSet();
+    private final Set<GeofenceListener> listeners = newHashSet();
 
     public GeofenceStore(LayerStore layerStore) {
         layerStore.addListener(this);
@@ -38,6 +40,7 @@ public class GeofenceStore implements LayerStoreListener {
     public synchronized void setGeofence(Geofence geofence) {
         geofences.clear();
         geofences.add(geofence);
+        notifyListeners(geofence.geometry());
     }
 
     public synchronized Optional<Geofence> getGeofence() {
@@ -49,11 +52,11 @@ public class GeofenceStore implements LayerStoreListener {
         }
     }
 
-    public synchronized void addListener(ViolationListener listener) {
+    public synchronized void addListener(GeofenceListener listener) {
         listeners.add(listener);
     }
 
-    public synchronized void removeListener(ViolationListener listener) {
+    public synchronized void removeListener(GeofenceListener listener) {
         listeners.remove(listener);
     }
 
@@ -83,5 +86,9 @@ public class GeofenceStore implements LayerStoreListener {
 
     private void notifyListeners(Violation violation) {
         listeners.forEach(l -> l.onViolation(violation));
+    }
+
+    private void notifyListeners(Geometry geometry) {
+        listeners.forEach(l -> l.onGeometryChange(geometry));
     }
 }
