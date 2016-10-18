@@ -143,6 +143,14 @@ export function geofenceSaveDone() {
   };
 }
 
+export function geofenceSetLayer(layerId, bufferDistance) {
+  return {
+    type: constants.GEOFENCE_SET_LAYER,
+    layerId,
+    bufferDistance,
+  };
+}
+
 export function feedSetData(layerId, data) {
   console.assert(layerId != null);
   return {

@@ -15,9 +15,10 @@ export default function* () {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      features: geofence.geojson,
+      features: geofence.layerId === null ? geofence.geojson : null,
       type: geofence.type,
-      bufferDistance: 0,
+      layerId: geofence.layerId,
+      bufferDistance: geofence.bufferDistance,
     }),
   });
 

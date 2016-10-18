@@ -6,8 +6,9 @@ const initialState = fromJS({
   geojson: {
     type: "FeatureCollection",
     features: [],
-    bufferDistance: 0,
   },
+  bufferDistance: 0,
+  layerId: null,
   type: "INCLUDE",
 });
 
@@ -18,9 +19,13 @@ export default (state = initialState, action) => {
     case constants.GEOFENCE_SET_GEOMETRY:
       return state.set("geojson", action.geojson);
     case constants.GEOFENCE_SAVE_DONE:
-      return state.set("editing", false);
+      return state.set("layerId", null)
+        .set("editing", false);
     case constants.GEOFENCE_CHANGE_TYPE:
       return state.set("type", action.value);
+    case constants.GEOFENCE_SET_LAYER:
+      return state.set("layerId", action.layerId)
+        .set("bufferDistance", action.bufferDistance);
     default:
       return state;
   }

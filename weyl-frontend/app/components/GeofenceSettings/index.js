@@ -10,30 +10,20 @@ import styles from "./styles.css";
 const $ = require("jquery");
 import { Dropdown } from "semantic-ui-react";
 
-const GeofenceLayerItem = ({ layer, onSelect }) =>
-(
-  <Dropdown.Item
-    text={layer.metadata.name}
-    value={layer.id}
-    onClick={(e, v) => onSelect(v)}
-  />
-);
-
-const GeofenceLayerPicker = ({ visible, layers, onSelect }) => {
+const GeofenceLayerPicker = ({ visible, layers, onSelect, selected }) => {
   if (!visible) {
     return null;
   }
+  const options = layers.toArray().map(layer => ({ text: layer.toJS().metadata.name, value: layer.get("id") }));
   return (
-    <Dropdown text="From Layer" button>
-      <Dropdown.Menu>
-        {layers.toArray().map(layer =>
-          <GeofenceLayerItem
-            key={layer.get("id")}
-            layer={layer.toJS()}
-            onSelect={onSelect}
-          />)}
-      </Dropdown.Menu>
-    </Dropdown>
+    <Dropdown
+      selection
+      placeholder="Pick Layer"
+      className="compact"
+      options={options}
+      onChange={(e, v) => onSelect(v.value)}
+      value={selected === null ? "" : selected}
+    />
   );
 };
 
@@ -90,12 +80,8 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
               <GeofenceLayerPicker
                 visible={this.props.geofence.editing}
                 layers={this.props.layers}
-                onSelect={layerId =>
-                  this.props.onGeofenceSave({
-                    type: this.props.geofence.type,
-                    layerId,
-                    bufferDistance: 10,
-                  })}
+                onSelect={layerId => this.props.onGeofenceSetLayer(layerId, 50)}
+                selected={this.props.geofence.layerId}
               />
             </div>
             <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceChangeType} key="dropdown" />
