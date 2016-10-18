@@ -127,7 +127,7 @@ public class UpdateServer implements AlertListener {
     private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
         return Feature.of(
                 Optional.of(f.externalId()),
-                Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()).get())),  // TODO: why does the transformer return an Optional?
+                Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),
                 convertMetadata(f.uid(), f.metadata())
         );
     }

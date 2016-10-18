@@ -43,15 +43,14 @@ public class GeoJsonImporter implements Importer {
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {
         // TODO: We are ignoring null geometries here (as well as in the live pipeline). We should figure out something better.
-        return f.geometry().flatMap(rawGeometry -> {
-            Optional<Geometry> transformedGeometry = geometryTransformer.transform(Utils.toJts(rawGeometry));
-            return transformedGeometry.map(geometry ->
-                    ImmutableFeature.builder()
-                            .externalId(f.id().orElse(null))
-                            .uid(featureStore.getFeatureIdGenerator().get())
-                            .geometry(geometry)
-                            .metadata(f.properties())
-                            .build());
+        return f.geometry().map(rawGeometry -> {
+            Geometry transformedGeometry = geometryTransformer.transform(Utils.toJts(rawGeometry));
+            return ImmutableFeature.builder()
+                    .externalId(f.id().orElse(null))
+                    .uid(featureStore.getFeatureIdGenerator().get())
+                    .geometry(transformedGeometry)
+                    .metadata(f.properties())
+                    .build();
         });
     }
 

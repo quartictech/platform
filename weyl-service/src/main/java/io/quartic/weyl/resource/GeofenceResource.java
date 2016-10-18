@@ -33,7 +33,7 @@ public class GeofenceResource {
     public void update(GeofenceRequest geofenceRequest) {
         Polygon[] polygons = geofenceRequest.features().features().stream()
                 .filter(f -> f.geometry().isPresent())
-                .map(f -> (Polygon) geometryTransformer.transform(toJts(f.geometry().get())).get()) // TODO: deal with all the weird Optionals
+                .map(f -> (Polygon) geometryTransformer.transform(toJts(f.geometry().get())))
                 .toArray(Polygon[]::new);
 
         MultiPolygon multiPolygon = new GeometryFactory().createMultiPolygon(polygons);

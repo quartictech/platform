@@ -61,12 +61,11 @@ public class GeometryTransformer {
         }
     }
 
-    public Optional<Geometry> transform(Geometry geometry) {
+    public Geometry transform(Geometry geometry) {
         try {
-            return Optional.ofNullable(JTS.transform(geometry, transform));
+            return JTS.transform(geometry, transform);
         } catch (TransformException e) {
-            e.printStackTrace();
-            return Optional.empty();
+            throw new RuntimeException(e);
         }
     }
 }

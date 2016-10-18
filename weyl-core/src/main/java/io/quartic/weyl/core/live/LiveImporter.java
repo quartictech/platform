@@ -60,12 +60,12 @@ public class LiveImporter {
 
     private io.quartic.weyl.core.model.Feature toJts(io.quartic.weyl.core.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
-        Optional<Geometry> transformed = geometryTransformer.transform(Utils.toJts(f.geometry().get()));
+        Geometry transformed = geometryTransformer.transform(Utils.toJts(f.geometry().get()));
 
         return ImmutableFeature.builder()
                 .externalId(f.id().get())
                 .uid(fidGenerator.get())
-                .geometry(transformed.get())
+                .geometry(transformed)
                 .metadata(f.properties())
                 .build();
     }
