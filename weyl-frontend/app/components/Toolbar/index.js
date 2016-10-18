@@ -5,7 +5,7 @@ import styles from "./styles.css";
 
 import Search from "../Search";
 import classNames from "classnames";
-import { themes } from "../../themes";
+import { mapThemes } from "../../themes";
 const $ = require("jquery");
 
 function Toolbar(props) {
@@ -30,8 +30,8 @@ function Toolbar(props) {
 
         <div className="right menu">
           <a className={themeClassNames} onClick={() => props.onUiToggle("theme")}>
-            <i className={`icon ${themes[props.ui.settings.theme].icon}`}></i>
-            {themes[props.ui.settings.theme].label}
+            <i className={`icon ${mapThemes[props.ui.settings.theme].icon}`}></i>
+            {mapThemes[props.ui.settings.theme].label}
           </a>
           <a className={layerListClassNames} onClick={() => props.onUiToggle("layerList")}>
             <i className="icon list"></i>
