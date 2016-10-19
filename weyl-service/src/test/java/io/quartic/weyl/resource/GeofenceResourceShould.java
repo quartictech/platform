@@ -113,7 +113,7 @@ public class GeofenceResourceShould {
     }
 
     private Geofence geofence(Polygon polygon) {
-        return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon));
+        return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon), ImmutableMap.of());
     }
 
     private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.weyl.core.geojson.Geometry geometry) {
