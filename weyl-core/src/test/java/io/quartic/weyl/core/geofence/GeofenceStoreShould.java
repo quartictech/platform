@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.function.BiConsumer;
+
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -43,7 +45,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
         updatePoint(true);
 
-        verify(listener, never()).onViolation(any());
+        verify(listener, never()).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -51,7 +54,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
         updatePoint(false);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -59,7 +63,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(false);
 
-        verify(listener, never()).onViolation(any());
+        verify(listener, never()).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -67,7 +72,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(true);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -76,7 +82,8 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(false);
 
-        verify(listener, never()).onViolation(any());
+        verify(listener, never()).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -85,7 +92,8 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(true);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -95,7 +103,8 @@ public class GeofenceStoreShould {
         updatePoint(true);
         updatePoint(true);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -106,16 +115,33 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(true);
 
-        verify(listener, times(2)).onViolation(any());
+        verify(listener, times(2)).onViolationBegin(any());
+        verify(listener, times(1)).onViolationEnd(any());
+    }
+
+    @Test
+    public void notify_when_geofences_reset() throws Exception {
+        createGeofence(GeofenceType.EXCLUDE);
+        updatePoint(false);
+        updatePoint(true);
+        createGeofence(GeofenceType.EXCLUDE);
+
+        verify(listener, times(1)).onViolationEnd(any());
     }
 
     @Test
     public void include_relevant_details_in_violation() throws Exception {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(true);
+        updatePoint(false);
 
+        verifyViolationDetails(GeofenceListener::onViolationBegin);
+        verifyViolationDetails(GeofenceListener::onViolationEnd);
+    }
+
+    private void verifyViolationDetails(BiConsumer<GeofenceListener, Violation> consumer) {
         ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
-        verify(listener).onViolation(captor.capture());
+        consumer.accept(verify(listener), captor.capture());
         final Violation violation = captor.getValue();
         assertThat(violation.id(), equalTo(ViolationId.of("1")));
         assertThat(violation.geofenceId(), equalTo(GeofenceId.of("99")));

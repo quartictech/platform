@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptyMap;
@@ -44,6 +45,7 @@ public class GeofenceStore implements LayerStoreListener {
     }
 
     public synchronized void setGeofences(Collection<Geofence> geofences) {
+        newArrayList(this.currentViolations.keySet()).forEach(this::removeViolation);
         this.geofences.clear();
         this.geofences.addAll(geofences);
         notifyListeners(geofences);
@@ -78,22 +80,27 @@ public class GeofenceStore implements LayerStoreListener {
                         .geofenceId(geofence.id())
                         .message(String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()))
                         .build();
-                currentViolations.put(vk, violation);
-                notifyListeners(violation);
+                addViolation(vk, violation);
             } else if (!violating && previouslyViolating) {
                 LOG.info("Violation removed: externalId: {}, geofenceId: {}", feature.externalId(), geofence.id());
-                currentViolations.remove(vk);
+                removeViolation(vk);
             }
         });
+    }
+
+    private void addViolation(ViolationKey vk, Violation violation) {
+        listeners.forEach(l -> l.onViolationBegin(violation));
+        currentViolations.put(vk, violation);
+    }
+
+    private void removeViolation(ViolationKey vk) {
+        listeners.forEach(l -> l.onViolationEnd(currentViolations.get(vk)));
+        currentViolations.remove(vk);
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
         final boolean contains = geofence.geometry().contains(feature.geometry());
         return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
-    }
-
-    private void notifyListeners(Violation violation) {
-        listeners.forEach(l -> l.onViolation(violation));
     }
 
     private void notifyListeners(Collection<Geofence> geofences) {

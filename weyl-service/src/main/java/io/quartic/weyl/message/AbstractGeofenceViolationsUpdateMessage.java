@@ -4,10 +4,10 @@ import io.quartic.weyl.core.SweetStyle;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import org.immutables.value.Value;
 
-import java.util.Collection;
+import java.util.Set;
 
 @SweetStyle
 @Value.Immutable
 public interface AbstractGeofenceViolationsUpdateMessage extends SocketMessage {
-    Collection<GeofenceId> violatingGeofenceIds();
+    Set<GeofenceId> violatingGeofenceIds();
 }

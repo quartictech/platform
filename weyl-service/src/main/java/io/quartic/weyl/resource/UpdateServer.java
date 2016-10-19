@@ -5,7 +5,6 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
@@ -28,11 +27,10 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.stream.Collectors.toList;
 
 @Metered
@@ -43,8 +41,9 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
+    private final Set<Violation> violations = newHashSet();
+    private final List<LayerSubscription> subscriptions = newArrayList();
     private LayerStore layerStore;
-    private List<LayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
     public UpdateServer(GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
@@ -93,8 +92,19 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onViolation(Violation violation) {
-        // Do nothing
+    public void onViolationBegin(Violation violation) {
+        synchronized (violations) {
+            violations.add(violation);
+            sendViolationsUpdate();
+        }
+    }
+
+    @Override
+    public void onViolationEnd(Violation violation) {
+        synchronized (violations) {
+            violations.remove(violation);
+            sendViolationsUpdate();
+        }
     }
 
     @Override
@@ -109,6 +119,10 @@ public class UpdateServer implements AlertListener, GeofenceListener {
 
     private void subscribe(LayerId layerId) {
         subscriptions.add(layerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
+    }
+
+    private void sendViolationsUpdate() {
+        sendMessage(GeofenceViolationsUpdateMessage.of(violations.stream().map(Violation::geofenceId).collect(toList())));
     }
 
     private void sendLayerUpdate(LayerId layerId, LayerState state) {

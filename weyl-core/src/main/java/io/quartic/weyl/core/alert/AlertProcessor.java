@@ -15,8 +15,13 @@ public class AlertProcessor {
     public AlertProcessor(GeofenceStore geofenceStore) {
         geofenceStore.addListener(new GeofenceListener() {
             @Override
-            public void onViolation(Violation violation) {
+            public void onViolationBegin(Violation violation) {
                 createAlert(Alert.of("Geofence violation", violation.message()));
+            }
+
+            @Override
+            public void onViolationEnd(Violation violation) {
+                // Do nothing
             }
 
             @Override
