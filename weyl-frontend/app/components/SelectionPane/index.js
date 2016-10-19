@@ -103,11 +103,17 @@ const Media = ({ featureAttributes, behavior }) => {
   return null;
 };
 
-const Image = ({ url }) => (
-  url
-    ? <video className="ui fluid image" autoPlay loop src={url.replace("jpg", "mp4")} />  // TODO: this is a massive hack and needs to be removed
-    : null
-);
+const Image = ({ url }) => {
+  const isVideo = url.endsWith(".mp4");
+
+  if (!url) {
+    return null;
+  }
+
+  return (isVideo ?
+    <video className="ui fluid image" autoPlay loop src={url} />
+    : <img role="presentation" className="ui fluid image" src={url} />);
+};
 
 const AttributesTable = ({ featureAttributes, behavior, order }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
