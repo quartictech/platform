@@ -1,10 +1,10 @@
 package io.quartic.weyl.core.alert;
 
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
+import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
 import java.util.Set;
@@ -20,7 +20,7 @@ public class AlertProcessor {
             }
 
             @Override
-            public void onGeometryChange(Collection<Geometry> geometries) {
+            public void onGeometryChange(Collection<Feature> features) {
                 // Do nothing
             }
         });

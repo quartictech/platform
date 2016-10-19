@@ -13,26 +13,29 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
-    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class));
+    private final UidGenerator<FeatureId> fidGen = new SequenceUidGenerator<>(FeatureId::of);
+    private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
+    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class), fidGen);
     private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
-    private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
 
     @Before
     public void setUp() throws Exception {
         store.addListener(listener);
+        when(fenceGeometry.equals(fenceGeometry)).thenReturn(true);
     }
 
     @Test
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(ImmutableList.of(fenceGeometry));
+        verify(listener).onGeometryChange(ImmutableList.of(ImmutableFeature.of("1", FeatureId.of("1"), fenceGeometry, emptyMap())));
     }
 
     @Test

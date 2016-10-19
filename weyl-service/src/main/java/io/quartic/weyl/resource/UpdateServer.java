@@ -5,8 +5,6 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
@@ -100,10 +98,8 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onGeometryChange(Collection<Geometry> geometries) {
-        sendMessage(GeofenceUpdateMessage.of(FeatureCollection.of(geometries.stream()
-                .map(geometry -> fromJts(Optional.empty(), geometry, ImmutableMap.of()))
-                .collect(toList()))));
+    public void onGeometryChange(Collection<io.quartic.weyl.core.model.Feature> features) {
+        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features)));
     }
 
     private void unsubscribeAll() {

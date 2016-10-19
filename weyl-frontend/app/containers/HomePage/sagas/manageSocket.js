@@ -40,7 +40,12 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-function* handleGeofenceUpdate(msg) {
+function* handleGeofenceViolationsUpdate(msg) {
+  console.log("Received message", msg);
+  // TODO
+}
+
+function* handleGeofenceGeometryUpdate(msg) {
   yield put(actions.geofenceSetGeometry(msg.featureCollection));
 }
 
@@ -56,13 +61,15 @@ function* handleAlert(msg) {
 function* handleMessages(channel) {
   while (true) {
     const msg = yield take(channel);
-    console.log("Received message", msg);
     switch (msg.type) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
         break;
-      case "GeofenceUpdate":
-        yield* handleGeofenceUpdate(msg);
+      case "GeofenceViolationsUpdate":
+        yield* handleGeofenceViolationsUpdate(msg);
+        break;
+      case "GeofenceGeometryUpdate":
+        yield* handleGeofenceGeometryUpdate(msg);
         break;
       case "Alert":
         yield* handleAlert(msg);
