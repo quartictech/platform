@@ -131,7 +131,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "fill",
           "type": "fill",
           "paint": {
-            "fill-color": "#000000",
+            "fill-color": "#86C67C",
             "fill-opacity": 0.7,
           },
         },
@@ -139,7 +139,23 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "line",
           "type": "line",
           "paint": {
-            "line-color": "#000000",
+            "line-color": "#86C67C",
+            "line-width": 5,
+          },
+        },
+        {
+          "id": "fill_violated",
+          "type": "fill",
+          "paint": {
+            "fill-color": "#CC3300",
+            "fill-opacity": 0.7,
+          },
+        },
+        {
+          "id": "line_violated",
+          "type": "line",
+          "paint": {
+            "line-color": "#CC3300",
             "line-width": 5,
           },
         },
@@ -149,12 +165,19 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   updateGeofenceLayer(geofence) {
     this.map.getSource("geofence").setData(geofence.geojson);
+
     const visible = !geofence.editing;
     this.setSubLayerVisibility("geofence_fill", visible);
     this.setSubLayerVisibility("geofence_line", visible);
-    const geofenceColor = geofence.type === "INCLUDE" ? "#86C67C" : "#CC3300";
-    this.map.setPaintProperty("geofence_fill", "fill-color", geofenceColor);
-    this.map.setPaintProperty("geofence_line", "line-color", geofenceColor);
+    this.setSubLayerVisibility("geofence_fill_violated", visible);
+    this.setSubLayerVisibility("geofence_line_violated", visible);
+
+    const unviolatedFilter = ["!in", "_id"].concat(geofence.violatedIds);
+    const violatedFilter = ["in", "_id"].concat(geofence.violatedIds);
+    this.map.setFilter("geofence_fill", unviolatedFilter);
+    this.map.setFilter("geofence_line", unviolatedFilter);
+    this.map.setFilter("geofence_fill_violated", violatedFilter);
+    this.map.setFilter("geofence_line_violated", violatedFilter);
   }
 
   deleteOldLayers(layers) {

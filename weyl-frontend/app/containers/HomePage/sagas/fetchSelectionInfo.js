@@ -39,7 +39,7 @@ function* fetchAndDispatch() {
 
 export default function* () {
   let lastTask;
-  while (true) {
+  for (;;) {
     // We rely on the reducer to only change the lifecycle state to INFO_REQUIRED
     // when new data is required.  This mechanim prevents every single map-click (etc.)
     // from triggering a new server request.

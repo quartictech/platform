@@ -10,6 +10,7 @@ const initialState = fromJS({
   bufferDistance: 0,
   layerId: null,
   type: "INCLUDE",
+  violatedIds: [],
 });
 
 export default (state = initialState, action) => {
@@ -26,6 +27,8 @@ export default (state = initialState, action) => {
     case constants.GEOFENCE_SET_LAYER:
       return state.set("layerId", action.layerId)
         .set("bufferDistance", action.bufferDistance);
+    case constants.GEOFENCE_SET_VIOLATED_GEOFENCES:
+      return state.set("violatedIds", fromJS(action.violatedIds));
     default:
       return state;
   }

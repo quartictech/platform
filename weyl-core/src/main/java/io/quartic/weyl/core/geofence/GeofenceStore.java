@@ -28,7 +28,7 @@ public class GeofenceStore implements LayerStoreListener {
     @SweetStyle
     @Value.Immutable
     interface AbstractViolationKey {
-        FeatureId featureId();
+        String externalFeatureId();
         GeofenceId geofenceId();
     }
 
@@ -51,12 +51,6 @@ public class GeofenceStore implements LayerStoreListener {
         notifyListeners(geofences);
     }
 
-    public synchronized Optional<Geofence> getGeofence() {
-        return geofences.isEmpty()
-                ? Optional.empty()
-                : Optional.of(getOnlyElement(geofences));
-    }
-
     public synchronized void addListener(GeofenceListener listener) {
         listeners.add(listener);
     }
@@ -68,7 +62,7 @@ public class GeofenceStore implements LayerStoreListener {
     @Override
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
         geofences.forEach(geofence -> {
-            final ViolationKey vk = ViolationKey.of(feature.uid(), geofence.id());
+            final ViolationKey vk = ViolationKey.of(feature.externalId(), geofence.id());
             final boolean violating = inViolation(geofence, feature);
             final boolean previouslyViolating = currentViolations.containsKey(vk);
 

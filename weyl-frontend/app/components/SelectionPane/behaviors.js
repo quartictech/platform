@@ -100,6 +100,15 @@ const curatedBehaviors = {
       "currentUpdate",
     ],
   },
+
+  "Outdoor Advertising Stock London": {
+    title: (x) => `${x.Name}`,
+    blessed: [
+      "Price",
+      "Is Digital",
+    ],
+    imageUrl: "street_view",
+  },
 };
 
 export {
