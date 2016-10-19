@@ -102,14 +102,13 @@ const curatedBehaviors = {
   },
 
   "Signkick Advertising Stock London": {
-    title: (x) => `${x.name}`,
+    title: (x) => `${x.Name}`,
     blessed: [
       "Price",
       "Is Digital",
     ],
     imageUrl: "street_view",
-  }
-
+  },
 };
 
 export {

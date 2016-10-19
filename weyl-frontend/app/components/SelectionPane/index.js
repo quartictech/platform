@@ -109,11 +109,10 @@ const Image = ({ url }) => {
   if (!url) {
     return null;
   }
-  else {
-    return (isVideo ?
+
+  return (isVideo ?
     <video className="ui fluid image" autoPlay loop src={url} />
-    : <img className="ui fluid image" src={url} />);
-  }
+    : <img role="presentation" className="ui fluid image" src={url} />);
 };
 
 const AttributesTable = ({ featureAttributes, behavior, order }) => (
