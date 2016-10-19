@@ -116,10 +116,11 @@ public class GeofenceStoreShould {
 
         ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
         verify(listener).onViolation(captor.capture());
-        assertThat(captor.getValue().id(), equalTo(ViolationId.of("1")));
-        assertThat(captor.getValue().geofenceId(), equalTo(GeofenceId.of("99")));
-        assertThat(captor.getValue().featureExternalId(), equalTo("ducks"));
-        assertThat(captor.getValue().message(), containsString("ducks"));
+        final Violation violation = captor.getValue();
+        assertThat(violation.id(), equalTo(ViolationId.of("1")));
+        assertThat(violation.geofenceId(), equalTo(GeofenceId.of("99")));
+        assertThat(violation.featureExternalId(), equalTo("ducks"));
+        assertThat(violation.message(), containsString("ducks"));
     }
 
 
