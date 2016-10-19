@@ -7,7 +7,6 @@ import * as selectors from "../selectors";
 
 
 const sendMessage = (socket, msg) => {
-  console.log("Sending message", msg);
   socket.send(JSON.stringify(msg));
 };
 
@@ -56,7 +55,6 @@ function* handleAlert(msg) {
 function* handleMessages(channel) {
   for (;;) {
     const msg = yield take(channel);
-    console.log("Received message", msg);
     switch (msg.type) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);

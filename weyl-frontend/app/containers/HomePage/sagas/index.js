@@ -13,7 +13,6 @@ import fetchSelectionInfo from "./fetchSelectionInfo";
 import saveGeofence from "./saveGeofence";
 
 function* runBucketComputation(action) {
-  console.log(action);
   const requestURL = `${apiRootUrl}/layer/compute`;
   const results = yield call(request, requestURL, {
     method: "PUT",
@@ -25,7 +24,6 @@ function* runBucketComputation(action) {
   });
 
   if (!results.err) {
-    console.log(results);
     const requestURL2 = `${apiRootUrl}/layer/metadata/${results.data}`;
     const results2 = yield call(request, requestURL2, {
       method: "GET",

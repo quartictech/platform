@@ -1,7 +1,6 @@
 import * as constants from "./constants";
 
 export function search(query, callback) {
-  console.log("Search started");
   return {
     type: constants.SEARCH,
     query,
@@ -37,7 +36,6 @@ export function layerToggleValueVisible(layerId, attribute, value) {
 }
 
 export function layerToggleVisible(layerId) {
-  console.assert(layerId != null);
   return {
     type: constants.LAYER_TOGGLE_VISIBLE,
     layerId,
@@ -45,7 +43,6 @@ export function layerToggleVisible(layerId) {
 }
 
 export function layerClose(layerId) {
-  console.assert(layerId != null);
   return {
     type: constants.LAYER_CLOSE,
     layerId,
@@ -53,7 +50,6 @@ export function layerClose(layerId) {
 }
 
 export function layerSetData(layerId, data, schema) {
-  console.assert(layerId != null);
   return {
     type: constants.LAYER_SET_DATA,
     layerId,
@@ -63,7 +59,6 @@ export function layerSetData(layerId, data, schema) {
 }
 
 export function bucketComputation(computation) {
-  console.log("Bucket computation");
   return {
     type: constants.BUCKET_COMPUTATION_START,
     computation,
@@ -152,7 +147,6 @@ export function geofenceSetLayer(layerId, bufferDistance) {
 }
 
 export function feedSetData(layerId, data) {
-  console.assert(layerId != null);
   return {
     type: constants.FEED_SET_DATA,
     layerId,
