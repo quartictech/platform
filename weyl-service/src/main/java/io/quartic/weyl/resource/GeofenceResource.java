@@ -1,9 +1,6 @@
 package io.quartic.weyl.resource;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
@@ -20,6 +17,8 @@ import io.quartic.weyl.request.GeofenceRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
@@ -58,10 +57,11 @@ public class GeofenceResource {
     }
 
     private void update(GeofenceType type, double bufferDistance, Stream<Geometry> geometries) {
-        MultiPolygon multiPolygon = new GeometryFactory().createMultiPolygon(geometries
-                .map(g -> (Polygon) bufferOp(g, bufferDistance))
-                .toArray(Polygon[]::new)
-        );
-        geofenceStore.setGeofence(Geofence.of(gidGenerator.get(), type, multiPolygon));
+        Collection<Geofence> geofences = geometries
+                .map(g -> bufferOp(g, bufferDistance))
+                .filter(g -> !g.isEmpty())
+                .map(g -> Geofence.of(gidGenerator.get(), type, g))
+                .collect(Collectors.toList());
+        geofenceStore.setGeofences(geofences);
     }
 }

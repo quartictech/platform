@@ -39,7 +39,7 @@ public class UpdateServerShould {
     public void send_geofence_update() throws Exception {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
 
-        server.onGeometryChange(geometry);
+        server.onGeometryChange(ImmutableList.of(geometry));
 
         verifyMessage(GeofenceUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
                 Feature.of(Optional.empty(), Optional.of(fromJts(transformer.transform(geometry))), ImmutableMap.of())
