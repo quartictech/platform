@@ -69,9 +69,9 @@ public class UpdateServerShould {
         server.onViolationBegin(violation(geofenceIdB));
         server.onViolationEnd(violation(geofenceIdA));
 
-        verifyMessage(GeofenceViolationsUpdateMessage.of(newHashSet(geofenceIdA)));
-        verifyMessage(GeofenceViolationsUpdateMessage.of(newHashSet(geofenceIdA, geofenceIdB)));
-        verifyMessage(GeofenceViolationsUpdateMessage.of(newHashSet(geofenceIdB)));
+        verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA)));
+        verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA, geofenceIdB)));
+        verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdB)));
     }
 
     @Test

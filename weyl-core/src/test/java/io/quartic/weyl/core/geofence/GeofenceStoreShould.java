@@ -151,7 +151,7 @@ public class GeofenceStoreShould {
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry)));
+        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry, ImmutableMap.of())));
     }
 
     private void updatePoint(boolean containsResult) {

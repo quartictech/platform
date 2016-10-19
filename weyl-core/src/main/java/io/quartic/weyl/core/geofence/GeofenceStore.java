@@ -71,6 +71,8 @@ public class GeofenceStore implements LayerStoreListener {
                 final Violation violation = Violation.builder()
                         .id(vidGenerator.get())
                         .featureExternalId(feature.externalId())
+                        .featureMetadata(feature.metadata())
+                        .geofenceMetadata(geofence.metadata())
                         .geofenceId(geofence.id())
                         .message(String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()))
                         .build();
