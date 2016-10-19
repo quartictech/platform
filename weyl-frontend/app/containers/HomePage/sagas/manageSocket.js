@@ -53,7 +53,11 @@ const createNotification = (title, body) => {
 };
 
 function* handleAlert(msg) {
-  yield call(createNotification, msg.title, msg.body);
+  // TODO: it's weird that the generic alert thing has to query the geofence state
+  const geofence = yield select(selectors.selectGeofence);
+  if (geofence.alertsEnabled) {
+    yield call(createNotification, msg.title, msg.body);
+  }
 }
 
 function* handleMessages(channel) {

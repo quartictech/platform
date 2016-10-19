@@ -42,12 +42,13 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     } else if (this.props.ui.layerOp === "geofence") {
       rows.push(<GeofenceSettings
         key="geofence"
-        geofence={this.props.geofence}
         layers={this.props.layers}
+        geofence={this.props.geofence}
         onGeofenceEdit={this.props.onGeofenceEdit}
         onGeofenceSave={this.props.onGeofenceSave}
         onGeofenceChangeType={this.props.onGeofenceChangeType}
         onGeofenceSetLayer={this.props.onGeofenceSetLayer}
+        onToggleAlerts={this.props.onGeofenceToggleAlerts}
         onClose={() => this.props.onUiToggle("geofence")}
       />);
     }

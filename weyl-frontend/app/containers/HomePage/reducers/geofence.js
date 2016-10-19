@@ -11,6 +11,7 @@ const initialState = fromJS({
   layerId: null,
   type: "INCLUDE",
   violatedIds: [],
+  alertsEnabled: false,
 });
 
 export default (state = initialState, action) => {
@@ -29,6 +30,8 @@ export default (state = initialState, action) => {
         .set("bufferDistance", action.bufferDistance);
     case constants.GEOFENCE_SET_VIOLATED_GEOFENCES:
       return state.set("violatedIds", fromJS(action.violatedIds));
+    case constants.GEOFENCE_TOGGLE_ALERTS:
+      return state.update("alertsEnabled", x => !x);
     default:
       return state;
   }
