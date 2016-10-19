@@ -80,7 +80,6 @@ public class GeofenceStore implements LayerStoreListener {
                     currentViolations.put(vk, violation);
                     notifyListeners(violation);
                 }
-
             } else {
                 currentViolations.remove(vk);
             }
@@ -94,8 +93,6 @@ public class GeofenceStore implements LayerStoreListener {
         }
         catch (Throwable t) {
             t.printStackTrace();
-            LOG.info(geofence.geometry().toText());
-            LOG.info(feature.geometry().toText());
             throw t;
         }
     }

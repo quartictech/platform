@@ -2,7 +2,6 @@ package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
@@ -24,13 +23,14 @@ import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);
-    private final GeometryFactory factory = new GeometryFactory();
+    private int nextGeofenceId = 1;
 
     private final Polygon polyA = geojsonPolygon(5.0);
     private final Polygon polyB = geojsonPolygon(6.0);
@@ -106,16 +106,14 @@ public class GeofenceResourceShould {
     }
 
     private void verifyGeofence(Polygon... polygons) {
-        final com.vividsolutions.jts.geom.MultiPolygon multiPolygon = factory.createMultiPolygon(
+        verify(geofenceStore).setGeofences(
                 stream(polygons)
-                        .map(Utils::toJts)
-                        .toArray(com.vividsolutions.jts.geom.Polygon[]::new));
+                        .map(this::geofence)
+                        .collect(toList()));
+    }
 
-        verify(geofenceStore).setGeofences(ImmutableList.of(Geofence.of(
-                GeofenceId.of("1"),
-                GeofenceType.INCLUDE,
-                multiPolygon
-        )));
+    private Geofence geofence(Polygon polygon) {
+        return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon));
     }
 
     private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.weyl.core.geojson.Geometry geometry) {

@@ -1,10 +1,6 @@
 package io.quartic.weyl.resource;
 
-import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
@@ -63,6 +59,7 @@ public class GeofenceResource {
     private void update(GeofenceType type, double bufferDistance, Stream<Geometry> geometries) {
         Collection<Geofence> geofences = geometries
                 .map(g -> bufferOp(g, bufferDistance))
+                .filter(g -> !g.isEmpty())
                 .map(g -> Geofence.of(gidGenerator.get(), type, g))
                 .collect(Collectors.toList());
         geofenceStore.setGeofences(geofences);
