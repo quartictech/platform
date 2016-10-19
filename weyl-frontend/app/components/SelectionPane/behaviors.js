@@ -101,7 +101,7 @@ const curatedBehaviors = {
     ],
   },
 
-  "Signkick Advertising Stock London": {
+  "Outdoor Advertising Stock London": {
     title: (x) => `${x.Name}`,
     blessed: [
       "Price",
