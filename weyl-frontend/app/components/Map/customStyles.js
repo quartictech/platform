@@ -139,7 +139,7 @@ const liveLayerStyle = {
   point: {
     "type": "circle",
     "paint": {
-      "circle-radius": 7,
+      "circle-radius": 5,
       "circle-color": {
         property: "name",
         stops: [
@@ -155,7 +155,7 @@ const liveLayerStyle = {
   point2: {
     "type": "circle",
     "paint": {
-      "circle-radius": 9,
+      "circle-radius": 7,
       "circle-color": "#FFFFFF",
     },
     "filter": ["==", "$type", "Point"],
