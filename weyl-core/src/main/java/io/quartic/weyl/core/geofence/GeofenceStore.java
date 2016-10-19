@@ -72,8 +72,12 @@ public class GeofenceStore implements LayerStoreListener {
 
             if (violating && !previouslyViolating) {
                 LOG.info("Violation triggered: externalId: {}, geofenceId: {}", feature.externalId(), geofence.id());
-                final Violation violation = Violation.of(vidGenerator.get(),
-                        String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()));
+                final Violation violation = Violation.builder()
+                        .id(vidGenerator.get())
+                        .featureExternalId(feature.externalId())
+                        .geofenceId(geofence.id())
+                        .message(String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()))
+                        .build();
                 currentViolations.put(vk, violation);
                 notifyListeners(violation);
             } else if (!violating && previouslyViolating) {

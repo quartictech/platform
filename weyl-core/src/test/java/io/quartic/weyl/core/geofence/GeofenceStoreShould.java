@@ -15,12 +15,12 @@ import org.mockito.ArgumentCaptor;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
     private final UidGenerator<FeatureId> fidGen = new SequenceUidGenerator<>(FeatureId::of);
-    private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
     private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class), fidGen);
     private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
@@ -35,7 +35,7 @@ public class GeofenceStoreShould {
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(ImmutableList.of(ImmutableFeature.of("1", FeatureId.of("1"), fenceGeometry, emptyMap())));
+        verify(listener).onGeometryChange(ImmutableList.of(ImmutableFeature.of("99", FeatureId.of("1"), fenceGeometry, emptyMap())));
     }
 
     @Test
@@ -110,18 +110,21 @@ public class GeofenceStoreShould {
     }
 
     @Test
-    public void include_feature_name_in_violation_messages() throws Exception {
+    public void include_relevant_details_in_violation() throws Exception {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(true);
 
         ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
         verify(listener).onViolation(captor.capture());
+        assertThat(captor.getValue().id(), equalTo(ViolationId.of("1")));
+        assertThat(captor.getValue().geofenceId(), equalTo(GeofenceId.of("99")));
+        assertThat(captor.getValue().featureExternalId(), equalTo("ducks"));
         assertThat(captor.getValue().message(), containsString("ducks"));
     }
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofences(ImmutableList.of(Geofence.of(gidGen.get(), type, fenceGeometry)));
+        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry)));
     }
 
     private void updatePoint(boolean containsResult) {
