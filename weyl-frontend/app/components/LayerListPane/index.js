@@ -48,6 +48,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         onGeofenceSave={this.props.onGeofenceSave}
         onGeofenceChangeType={this.props.onGeofenceChangeType}
         onGeofenceSetLayer={this.props.onGeofenceSetLayer}
+        onClose={() => this.props.onUiToggle("geofence")}
       />);
     }
 

@@ -62,11 +62,14 @@ const GeofenceInfo = ({ geojson }) => {
   return null;
 };
 
+// HACK: For whatever reason, we don't get a pointer cursor on hover without this
+const nullLink = "javascript:;";  // eslint-disable-line no-script-url
+
 class GeofenceSettings extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     return (
       <div className={styles.geofenceSettings}>
-        <a onClick={() => this.onCancelClick()}>
+        <a href={nullLink} onClick={() => this.props.onClose()}>
           <i className="icon close"></i>
         </a><b>Geofence</b>
         <div className="ui secondary segment">

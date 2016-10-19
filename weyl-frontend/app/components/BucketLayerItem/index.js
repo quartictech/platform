@@ -12,6 +12,9 @@ const $ = require("jquery");
 import LayerPicker from "../LayerPicker";
 import LayerAttributePicker from "../LayerAttributePicker";
 
+// HACK: For whatever reason, we don't get a pointer cursor on hover without this
+const nullLink = "javascript:;";  // eslint-disable-line no-script-url
+
 class BucketLayerItem extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
     super(props);
@@ -92,7 +95,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
     }
     return (
       <div className={styles.bucketLayerItem}>
-        <a onClick={() => this.onCancelClick()}>
+        <a href={nullLink} onClick={() => this.onCancelClick()}>
           <i className="icon close"></i>
         </a><b>Bucket Layer</b>
         <div className="ui secondary segment">
