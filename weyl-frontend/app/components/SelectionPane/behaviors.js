@@ -116,7 +116,7 @@ const curatedBehaviors = {
       "route",
       "vehicle id",
     ],
-  }
+  },
 };
 
 export {
