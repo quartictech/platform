@@ -37,6 +37,10 @@ function* runBucketComputation(action) {
   }
 }
 
+function* askForNotificationPermission() {
+  yield call(Notification.requestPermission);
+}
+
 // ////////////////////////
 
 function watch(action, generator) {
@@ -54,6 +58,7 @@ function prepare(generator) {
 }
 
 export default [
+  prepare(askForNotificationPermission),
   prepare(manageSocket),
   prepare(fetchSelectionInfo),
   prepare(watch(constants.SEARCH, search)),
