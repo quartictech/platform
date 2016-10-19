@@ -10,13 +10,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
-public class BucketOp {
+public class BucketComputation implements LayerComputation {
     private final FeatureStore featureStore;
     private final AbstractLayer featureLayer;
-    private final BucketSpec bucketSpec;
+    private final AbstractBucketSpec bucketSpec;
     private final AbstractLayer bucketLayer;
 
-    private BucketOp(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, BucketSpec bucketSpec) {
+    private BucketComputation(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
         this.featureStore = featureStore;
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
@@ -27,18 +27,20 @@ public class BucketOp {
         return featureLayer.metadata().name();
     }
 
-    public static Optional<BucketResults> create(LayerStore store, BucketSpec bucketSpec) {
+    public static BucketComputation create(LayerStore store, AbstractBucketSpec bucketSpec) {
         Optional<AbstractLayer> featureLayer = store.getLayer(bucketSpec.features());
         Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketOp(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec).compute();
+            return new BucketComputation(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec);
         }
-
-        return Optional.empty();
+        else {
+            throw new RuntimeException("can't find input layers for bucket computation");
+        }
     }
 
-    Optional<BucketResults> compute() {
+    @Override
+    public Optional<ComputationResults> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
             Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
@@ -60,7 +62,7 @@ public class BucketOp {
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(propertyName());
 
-            return Optional.of(BucketResults.of(
+            return Optional.of(ComputationResults.of(
                     LayerMetadata.builder()
                             .name(layerName)
                             .description(layerDescription)

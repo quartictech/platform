@@ -12,7 +12,7 @@ import manageSocket from "./manageSocket";
 import fetchSelectionInfo from "./fetchSelectionInfo";
 import saveGeofence from "./saveGeofence";
 
-function* runBucketComputation(action) {
+function* runLayerComputation(action) {
   const requestURL = `${apiRootUrl}/layer/compute`;
   const results = yield call(request, requestURL, {
     method: "PUT",
@@ -60,6 +60,6 @@ export default [
   prepare(manageSocket),
   prepare(fetchSelectionInfo),
   prepare(watch(constants.SEARCH, search)),
-  prepare(watch(constants.BUCKET_COMPUTATION_START, runBucketComputation)),
+  prepare(watch(constants.LAYER_COMPUTATION_START, runLayerComputation)),
   prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),
 ];

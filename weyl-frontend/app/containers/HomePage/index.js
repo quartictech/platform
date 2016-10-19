@@ -49,7 +49,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <LayerListPane
             layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
-            onBucketCompute={this.props.onBucketCompute}
+            onCompute={this.props.onCompute}
             ui={this.props.ui}
             visible={this.props.ui.panels.layerList}
             onUiToggle={this.props.onUiToggle}
@@ -103,7 +103,7 @@ const mapDispatchToProps = {
   onSelectPlace: actions.mapSetLocation,
   layerToggleVisible: actions.layerToggleVisible,
   layerClose: actions.layerClose,
-  onBucketCompute: actions.bucketComputation,
+  onCompute: actions.layerComputation,
   onUiToggle: actions.toggleUi,
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,

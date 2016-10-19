@@ -30,11 +30,19 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     }
   }
 
+  onBufferCompute(layerId, bufferDistance) {
+    this.props.onCompute({
+      type: "buffer",
+      layerId,
+      bufferDistance,
+    });
+  }
+
   render() {
     const rows = [];
     if (this.props.ui.layerOp === "bucket") {
       rows.push(<BucketLayerItem
-        onCompute={this.props.onBucketCompute}
+        onCompute={this.props.onCompute}
         layers={this.props.layers}
         onUiToggle={this.props.onUiToggle}
         key="bucket"
@@ -60,6 +68,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           onToggleValueVisible={this.props.onToggleValueVisible}
           onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), "ATTRIBUTE", attribute)}
           onLayerThemeChange={(idx) => this.props.onLayerStyleChange(layer.get("id"), "THEME", idx)}
+          onBufferClick={(bufferDistance) => this.onBufferCompute(layer.get("id"), bufferDistance)}
           mode={(this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null}
         />
       )

@@ -16,6 +16,7 @@ const LayerListItem = ({
   onToggleValueVisible,
   onLayerStyleChange,
   onLayerThemeChange,
+  onBufferClick,
   mode,
 }) => (
   <div className="item">
@@ -28,6 +29,7 @@ const LayerListItem = ({
           selectedAttribute={layer.style.attribute}
           onThemeClick={onLayerThemeChange}
           onAttributeClick={onLayerStyleChange}
+          onBufferClick={onBufferClick}
         />
       </div>
       <div className="ui small header">
@@ -64,6 +66,7 @@ const ThemePicker = ({
   selectedAttribute,
   onThemeClick,
   onAttributeClick,
+  onBufferClick,
 }) => (
   <a className="ui pointing left dropdown" ref={x => $(x).dropdown({ action: "hide" })}>
     <i className={`circular ${icon} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
@@ -96,6 +99,22 @@ const ThemePicker = ({
                 </div>
               )
           }
+        </div>
+      </div>
+      <div className="item">
+        <i className="dropdown icon"></i>
+        <span className="text">Buffer</span>
+        <div className="ui menu">
+          <div className="ui action labeled input">
+            <div className="ui label">
+              m
+            </div>
+            <input placeholder="Buffer Distance..." type="number" id="buffer-distance-input" />
+
+            <button className="ui compact icon button" onClick={() => { $(".ui.dropdown").dropdown("hide"); onBufferClick($("#buffer-distance-input").val()); }}>
+              <i className="right arrow icon" style={{ paddingTop: 0, paddingBottom: 0 }}></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
