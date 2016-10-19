@@ -87,7 +87,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         final FeatureStore featureStore = new FeatureStore(fidGenerator);
         final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
-        final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
+        final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
         final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
         // TODO: deal with weird mutability

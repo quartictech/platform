@@ -80,7 +80,7 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
               <GeofenceLayerPicker
                 visible={this.props.geofence.editing}
                 layers={this.props.layers}
-                onSelect={layerId => this.props.onGeofenceSetLayer(layerId, 50)}
+                onSelect={layerId => this.props.onGeofenceSetLayer(layerId, 150)}
                 selected={this.props.geofence.layerId}
               />
             </div>

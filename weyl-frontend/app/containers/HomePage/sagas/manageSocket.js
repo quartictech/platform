@@ -39,7 +39,11 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-function* handleGeofenceUpdate(msg) {
+function* handleGeofenceViolationsUpdate(msg) {
+  yield put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
+}
+
+function* handleGeofenceGeometryUpdate(msg) {
   yield put(actions.geofenceSetGeometry(msg.featureCollection));
 }
 
@@ -59,8 +63,11 @@ function* handleMessages(channel) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
         break;
-      case "GeofenceUpdate":
-        yield* handleGeofenceUpdate(msg);
+      case "GeofenceViolationsUpdate":
+        yield* handleGeofenceViolationsUpdate(msg);
+        break;
+      case "GeofenceGeometryUpdate":
+        yield* handleGeofenceGeometryUpdate(msg);
         break;
       case "Alert":
         yield* handleAlert(msg);

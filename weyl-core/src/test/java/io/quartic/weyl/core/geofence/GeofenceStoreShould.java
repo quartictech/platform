@@ -13,26 +13,31 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.function.BiConsumer;
+
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
-    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class));
+    private final UidGenerator<FeatureId> fidGen = new SequenceUidGenerator<>(FeatureId::of);
+    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class), fidGen);
     private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
-    private final UidGenerator<GeofenceId> gidGen = new SequenceUidGenerator<>(GeofenceId::of);
 
     @Before
     public void setUp() throws Exception {
         store.addListener(listener);
+        when(fenceGeometry.equals(fenceGeometry)).thenReturn(true);
     }
 
     @Test
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(ImmutableList.of(fenceGeometry));
+        verify(listener).onGeometryChange(ImmutableList.of(ImmutableFeature.of("99", FeatureId.of("1"), fenceGeometry, emptyMap())));
     }
 
     @Test
@@ -40,7 +45,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
         updatePoint(true);
 
-        verify(listener, never()).onViolation(any());
+        verify(listener, never()).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -48,7 +54,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
         updatePoint(false);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -56,7 +63,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(false);
 
-        verify(listener, never()).onViolation(any());
+        verify(listener, never()).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -64,7 +72,8 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(true);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -73,7 +82,8 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(false);
 
-        verify(listener, never()).onViolation(any());
+        verify(listener, never()).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -82,7 +92,8 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(true);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -92,7 +103,8 @@ public class GeofenceStoreShould {
         updatePoint(true);
         updatePoint(true);
 
-        verify(listener).onViolation(any());
+        verify(listener).onViolationBegin(any());
+        verify(listener, never()).onViolationEnd(any());
     }
 
     @Test
@@ -103,22 +115,43 @@ public class GeofenceStoreShould {
         updatePoint(false);
         updatePoint(true);
 
-        verify(listener, times(2)).onViolation(any());
+        verify(listener, times(2)).onViolationBegin(any());
+        verify(listener, times(1)).onViolationEnd(any());
     }
 
     @Test
-    public void include_feature_name_in_violation_messages() throws Exception {
+    public void notify_when_geofences_reset() throws Exception {
+        createGeofence(GeofenceType.EXCLUDE);
+        updatePoint(false);
+        updatePoint(true);
+        createGeofence(GeofenceType.EXCLUDE);
+
+        verify(listener, times(1)).onViolationEnd(any());
+    }
+
+    @Test
+    public void include_relevant_details_in_violation() throws Exception {
         createGeofence(GeofenceType.EXCLUDE);
         updatePoint(true);
+        updatePoint(false);
 
+        verifyViolationDetails(GeofenceListener::onViolationBegin);
+        verifyViolationDetails(GeofenceListener::onViolationEnd);
+    }
+
+    private void verifyViolationDetails(BiConsumer<GeofenceListener, Violation> consumer) {
         ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
-        verify(listener).onViolation(captor.capture());
-        assertThat(captor.getValue().message(), containsString("ducks"));
+        consumer.accept(verify(listener), captor.capture());
+        final Violation violation = captor.getValue();
+        assertThat(violation.id(), equalTo(ViolationId.of("1")));
+        assertThat(violation.geofenceId(), equalTo(GeofenceId.of("99")));
+        assertThat(violation.featureExternalId(), equalTo("ducks"));
+        assertThat(violation.message(), containsString("ducks"));
     }
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofences(ImmutableList.of(Geofence.of(gidGen.get(), type, fenceGeometry)));
+        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry)));
     }
 
     private void updatePoint(boolean containsResult) {

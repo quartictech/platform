@@ -7,5 +7,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface AbstractViolation {
     ViolationId id();
+    GeofenceId geofenceId();
+    String featureExternalId();
     String message();
 }

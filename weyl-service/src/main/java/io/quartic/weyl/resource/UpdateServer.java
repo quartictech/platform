@@ -5,9 +5,6 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
@@ -20,7 +17,6 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
-import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
@@ -30,11 +26,11 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.stream.Collectors.toList;
 
 @Metered
@@ -45,8 +41,9 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
+    private final Set<Violation> violations = newHashSet();
+    private final List<LayerSubscription> subscriptions = newArrayList();
     private LayerStore layerStore;
-    private List<LayerSubscription> subscriptions = Lists.newArrayList();
     private Session session;
 
     public UpdateServer(GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
@@ -95,15 +92,24 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onViolation(Violation violation) {
-        // Do nothing
+    public void onViolationBegin(Violation violation) {
+        synchronized (violations) {
+            violations.add(violation);
+            sendViolationsUpdate();
+        }
     }
 
     @Override
-    public void onGeometryChange(Collection<Geometry> geometries) {
-        sendMessage(GeofenceUpdateMessage.of(FeatureCollection.of(geometries.stream()
-                .map(geometry -> fromJts(Optional.empty(), geometry, ImmutableMap.of()))
-                .collect(toList()))));
+    public void onViolationEnd(Violation violation) {
+        synchronized (violations) {
+            violations.remove(violation);
+            sendViolationsUpdate();
+        }
+    }
+
+    @Override
+    public void onGeometryChange(Collection<io.quartic.weyl.core.model.Feature> features) {
+        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features, f -> f.externalId())));  // TODO: it's silly that we use externalId for geofences, and fid for everything else
     }
 
     private void unsubscribeAll() {
@@ -115,11 +121,15 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         subscriptions.add(layerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
     }
 
+    private void sendViolationsUpdate() {
+        sendMessage(GeofenceViolationsUpdateMessage.of(violations.stream().map(Violation::geofenceId).collect(toList())));
+    }
+
     private void sendLayerUpdate(LayerId layerId, LayerState state) {
         sendMessage(LayerUpdateMessage.builder()
                 .layerId(layerId)
                 .schema(state.schema())
-                .featureCollection(fromJts(state.featureCollection()))  // TODO: obviously we never want to do this with large static layers
+                .featureCollection(fromJts(state.featureCollection(), f -> f.uid().uid()))  // TODO: obviously we never want to do this with large static layers
                 .feedEvents(state.feedEvents())
                 .build()
         );
@@ -133,16 +143,16 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         }
     }
 
-    private FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features) {
+    private FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features, Function<io.quartic.weyl.core.model.Feature, String> id) {
         return FeatureCollection.of(
                 features.stream()
-                        .map(this::fromJts)
+                        .map(f -> fromJts(f, id.apply(f)))
                         .collect(toList())
         );
     }
 
-    private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
-        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(f.uid(), f.metadata()));
+    private Feature fromJts(io.quartic.weyl.core.model.Feature f, String id) {
+        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(id, f.metadata()));
     }
 
     private Feature fromJts(Optional<String> id, Geometry geometry, Map<String, Object> attributes) {
@@ -153,10 +163,9 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         );
     }
 
-    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Object> metadata) {
+    private static Map<String, Object> convertMetadata(String id, Map<String, Object> metadata) {
         final Map<String, Object> output = Maps.newHashMap(metadata);
-        output.put("_id", featureId);  // TODO: eliminate the _id concept
+        output.put("_id", id);  // TODO: eliminate the _id concept
         return output;
-
     }
 }

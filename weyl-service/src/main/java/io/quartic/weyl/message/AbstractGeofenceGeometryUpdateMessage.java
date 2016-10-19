@@ -6,6 +6,6 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractGeofenceUpdateMessage extends SocketMessage {
+public interface AbstractGeofenceGeometryUpdateMessage extends SocketMessage {
     FeatureCollection featureCollection();
 }
