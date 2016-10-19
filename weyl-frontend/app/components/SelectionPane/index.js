@@ -104,11 +104,11 @@ const Media = ({ featureAttributes, behavior }) => {
 };
 
 const Image = ({ url }) => {
-  const isVideo = url.endsWith(".mp4");
-
   if (!url) {
     return null;
   }
+
+  const isVideo = url.endsWith(".mp4");
 
   return (isVideo ?
     <video className="ui fluid image" autoPlay loop src={url} />
