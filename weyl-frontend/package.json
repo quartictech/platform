@@ -106,6 +106,7 @@
         2,
         "always-multiline"
       ],
+      "func-names": 0,
       "import/imports-first": 0,
       "import/newline-after-import": 0,
       "import/no-extraneous-dependencies": 0,
@@ -128,7 +129,12 @@
       "jsx-a11y/role-supports-aria-props": 2,
       "max-len": 0,
       "newline-per-chained-call": 0,
-      "no-console": 1,
+      "no-console": [
+        2,
+        {
+          "allow": ["warn", "error"]
+        }
+      ],
       "no-use-before-define": 0,
       "prefer-template": 2,
       "quote-props": [

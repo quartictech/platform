@@ -9,7 +9,6 @@ class LayerPicker extends React.Component { // eslint-disable-line react/prefer-
     $(this.dropdown)
     .dropdown({
       onChange: (value) => {
-        console.log(value);
         this.props.onChange(value);
       },
     });

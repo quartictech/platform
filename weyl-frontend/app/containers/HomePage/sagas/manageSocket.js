@@ -7,12 +7,11 @@ import * as selectors from "../selectors";
 
 
 const sendMessage = (socket, msg) => {
-  console.log("Sending message", msg);
   socket.send(JSON.stringify(msg));
 };
 
 function* keepConnectionAlive(socket) {
-  while (true) {
+  for (;;) {
     const msg = { type: "Ping" };
     yield call(sendMessage, socket, msg);
     yield call(delay, 30 * 1000);
@@ -54,9 +53,8 @@ function* handleAlert(msg) {
 }
 
 function* handleMessages(channel) {
-  while (true) {
+  for (;;) {
     const msg = yield take(channel);
-    console.log("Received message", msg);
     switch (msg.type) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
@@ -75,7 +73,7 @@ function* handleMessages(channel) {
 }
 
 function* watchLayerChanges(socket) {
-  while (true) {
+  for (;;) {
     yield take([constants.LAYER_CREATE, constants.LAYER_CLOSE]);
     yield* reportStatus(socket);
   }
@@ -92,7 +90,7 @@ const createSocketChannel = (socket) =>
   });
 
 export default function* () {
-  while (true) {
+  for (;;) {
     const socket = yield call(createSocket);
     const channel = yield call(createSocketChannel, socket);
 
