@@ -92,6 +92,7 @@ const createSocketChannel = (socket) =>
   });
 
 export default function* () {
+  Notification.requestPermission();
   while (true) {
     const socket = yield call(createSocket);
     const channel = yield call(createSocketChannel, socket);

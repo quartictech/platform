@@ -100,10 +100,10 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onGeometryChange(Geometry geometry) {
-        sendMessage(GeofenceUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
-                fromJts(Optional.empty(), geometry, ImmutableMap.of())
-        ))));
+    public void onGeometryChange(Collection<Geometry> geometries) {
+        sendMessage(GeofenceUpdateMessage.of(FeatureCollection.of(geometries.stream()
+                .map(geometry -> fromJts(Optional.empty(), geometry, ImmutableMap.of()))
+                .collect(toList()))));
     }
 
     private void unsubscribeAll() {

@@ -111,11 +111,11 @@ public class GeofenceResourceShould {
                         .map(Utils::toJts)
                         .toArray(com.vividsolutions.jts.geom.Polygon[]::new));
 
-        verify(geofenceStore).setGeofence(Geofence.of(
+        verify(geofenceStore).setGeofences(ImmutableList.of(Geofence.of(
                 GeofenceId.of("1"),
                 GeofenceType.INCLUDE,
                 multiPolygon
-        ));
+        )));
     }
 
     private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.weyl.core.geojson.Geometry geometry) {

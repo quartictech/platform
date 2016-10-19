@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.geofence;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
@@ -31,7 +32,7 @@ public class GeofenceStoreShould {
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(fenceGeometry);
+        verify(listener).onGeometryChange(ImmutableList.of(fenceGeometry));
     }
 
     @Test
@@ -117,7 +118,7 @@ public class GeofenceStoreShould {
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofence(Geofence.of(gidGen.get(), type, fenceGeometry));
+        store.setGeofences(ImmutableList.of(Geofence.of(gidGen.get(), type, fenceGeometry)));
     }
 
     private void updatePoint(boolean containsResult) {

@@ -6,6 +6,7 @@ import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class AlertProcessor {
@@ -19,7 +20,7 @@ public class AlertProcessor {
             }
 
             @Override
-            public void onGeometryChange(Geometry geometry) {
+            public void onGeometryChange(Collection<Geometry> geometries) {
                 // Do nothing
             }
         });
