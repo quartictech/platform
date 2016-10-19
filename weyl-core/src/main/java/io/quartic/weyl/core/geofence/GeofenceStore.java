@@ -51,12 +51,6 @@ public class GeofenceStore implements LayerStoreListener {
         notifyListeners(geofences);
     }
 
-    public synchronized Optional<Geofence> getGeofence() {
-        return geofences.isEmpty()
-                ? Optional.empty()
-                : Optional.of(getOnlyElement(geofences));
-    }
-
     public synchronized void addListener(GeofenceListener listener) {
         listeners.add(listener);
     }
