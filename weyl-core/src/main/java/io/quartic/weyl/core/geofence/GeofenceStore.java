@@ -73,7 +73,6 @@ public class GeofenceStore implements LayerStoreListener {
         geofences.forEach(geofence -> {
             final ViolationKey vk = ViolationKey.of(feature.uid(), geofence.id());
             if (inViolation(geofence, feature)) {
-                LOG.info("{} {}", geofence, feature);
                 if (!currentViolations.containsKey(vk)) {
                     final Violation violation = Violation.of(vidGenerator.get(),
                             String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()));
@@ -87,14 +86,8 @@ public class GeofenceStore implements LayerStoreListener {
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
-        try {
-            final boolean contains = geofence.geometry().contains(feature.geometry());
-            return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
-        }
-        catch (Throwable t) {
-            t.printStackTrace();
-            throw t;
-        }
+        final boolean contains = geofence.geometry().contains(feature.geometry());
+        return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
     }
 
     private void notifyListeners(Violation violation) {
