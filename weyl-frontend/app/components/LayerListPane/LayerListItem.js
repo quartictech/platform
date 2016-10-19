@@ -10,12 +10,51 @@ const _ = require("underscore");
 
 const DEFAULT_ICON = "map";
 
+class LayerBufferMenu extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  constructor() {
+    super();
+    this.state = { bufferDistance: 100 };
+  }
+
+  onBufferClick() {
+    $(".ui.dropdown").dropdown("hide");
+    this.props.onBufferClick(this.state.bufferDistance);
+  }
+
+  render() {
+    return (
+      <div className="item">
+        <i className="dropdown icon"></i>
+        <span className="text">Buffer</span>
+        <div className="ui menu">
+          <div className="ui action labeled input">
+            <div className="ui label">
+              m
+            </div>
+            <input
+              placeholder="Buffer Distance..."
+              type="number"
+              id="buffer-distance-input"
+              value={this.state.bufferDistance}
+              onChange={(e) => this.setState({ bufferDistance: e.target.value })}
+            />
+            <button className="ui compact icon button" onClick={() => this.onBufferClick()}>
+              <i className="right arrow icon" style={{ paddingTop: 0, paddingBottom: 0 }}></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
 const LayerListItem = ({
   layer,
   onButtonClick,
   onToggleValueVisible,
   onLayerStyleChange,
   onLayerThemeChange,
+  onBufferClick,
   mode,
 }) => (
   <div className="item">
@@ -28,6 +67,7 @@ const LayerListItem = ({
           selectedAttribute={layer.style.attribute}
           onThemeClick={onLayerThemeChange}
           onAttributeClick={onLayerStyleChange}
+          onBufferClick={onBufferClick}
         />
       </div>
       <div className="ui small header">
@@ -64,6 +104,7 @@ const ThemePicker = ({
   selectedAttribute,
   onThemeClick,
   onAttributeClick,
+  onBufferClick,
 }) => (
   <a className="ui pointing left dropdown" ref={x => $(x).dropdown({ action: "hide" })}>
     <i className={`circular ${icon} icon`} style={styleFromTheme(layerThemes[themeIdx])}></i>
@@ -98,6 +139,8 @@ const ThemePicker = ({
           }
         </div>
       </div>
+      <LayerBufferMenu onBufferClick={onBufferClick} />
+
     </div>
   </a>
 );

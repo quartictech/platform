@@ -10,7 +10,7 @@ import java.util.Collection;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractBucketResults {
+public interface AbstractComputationResults {
     LayerMetadata metadata();
     Collection<Feature> features();
     AttributeSchema schema();

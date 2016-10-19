@@ -2,7 +2,8 @@ package io.quartic.weyl.resource;
 
 import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.compute.BucketSpec;
+import io.quartic.weyl.core.compute.AbstractBucketSpec;
+import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveImporter;
@@ -41,9 +42,9 @@ public class LayerResource {
     @PUT
     @Path("/compute")
     @Produces(MediaType.APPLICATION_JSON)
-    public LayerId createComputedLayer(BucketSpec bucketSpec) {
-        Optional<LayerId> bucketLayer = layerStore.bucket(bucketSpec);
-        return bucketLayer.orElseThrow(() -> new ProcessingException("bucket computation failed"));
+    public LayerId createComputedLayer(ComputationSpec computationSpec) {
+        Optional<LayerId> computedLayer = layerStore.compute(computationSpec);
+        return computedLayer.orElseThrow(() -> new ProcessingException("layer computation failed"));
     }
 
     @DELETE

@@ -57,6 +57,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
 
   onComputeClick() {
     const computeSpec = {
+      type: "bucket",
       features: this.state.selectedLayer,
       buckets: this.state.selectedBuckets,
       aggregation: {

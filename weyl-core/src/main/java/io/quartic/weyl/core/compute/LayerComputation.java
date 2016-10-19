@@ -6,10 +6,6 @@ import io.quartic.weyl.core.model.AbstractLayer;
 
 import java.util.Optional;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property="type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(BucketOp.class)
-})
-public interface LayerOp {
-    Optional<AbstractLayer> compute();
+public interface LayerComputation {
+    Optional<ComputationResults> compute();
 }

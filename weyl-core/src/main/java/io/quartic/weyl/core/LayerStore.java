@@ -5,9 +5,7 @@ import com.google.common.collect.*;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
-import io.quartic.weyl.core.compute.BucketOp;
-import io.quartic.weyl.core.compute.BucketResults;
-import io.quartic.weyl.core.compute.BucketSpec;
+import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.importer.Importer;
@@ -128,11 +126,23 @@ public class LayerStore {
         subscriptions.remove(layerSubscription.layerId(), layerSubscription);
     }
 
-    // TODO: currently only applies to static layers
-    public Optional<LayerId> bucket(BucketSpec bucketSpec) {
-        final Optional<BucketResults> results = BucketOp.create(this, bucketSpec);
+    private LayerComputation getLayerComputation(ComputationSpec computationSpec) {
+        if (computationSpec instanceof BucketSpec) {
+            return BucketComputation.create(this, (BucketSpec) computationSpec);
+        }
+        else if (computationSpec instanceof BufferSpec) {
+            return BufferComputation.create(this, (BufferSpec) computationSpec);
+        }
+        else {
+            throw new RuntimeException("invalid computation spec: " + computationSpec);
+        }
+    }
 
-        Optional<Layer> layer = results.map(r ->
+    // TODO: currently only applies to static layers
+    public Optional<LayerId> compute(ComputationSpec computationSpec) {
+        LayerComputation layerComputation = getLayerComputation(computationSpec);
+
+        Optional<Layer> layer = layerComputation.compute().map(r ->
                 updateIndicesAndStats(appendFeatures(
                         newUnindexedLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW),
                         r.features(),

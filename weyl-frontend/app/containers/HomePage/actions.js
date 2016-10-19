@@ -58,9 +58,9 @@ export function layerSetData(layerId, data, schema) {
   };
 }
 
-export function bucketComputation(computation) {
+export function layerComputation(computation) {
   return {
-    type: constants.BUCKET_COMPUTATION_START,
+    type: constants.LAYER_COMPUTATION_START,
     computation,
   };
 }
@@ -160,6 +160,14 @@ export function feedSetData(layerId, data) {
     type: constants.FEED_SET_DATA,
     layerId,
     data,
+  };
+}
+
+export function bufferLayer(layerId, bufferDistance) {
+  return {
+    type: constants.BUFFER_LAYER,
+    layerId,
+    bufferDistance,
   };
 }
 
