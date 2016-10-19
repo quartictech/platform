@@ -151,6 +151,10 @@ export const geofenceSetViolatedGeofences = (violatedIds) => ({
   violatedIds,
 });
 
+export const geofenceToggleAlerts = () => ({
+  type: constants.GEOFENCE_TOGGLE_ALERTS,
+});
+
 export function feedSetData(layerId, data) {
   return {
     type: constants.FEED_SET_DATA,
