@@ -107,7 +107,7 @@ const Image = ({ url }) => {
   if (!url) {
     return null;
   }
-  
+
   const isVideo = url.endsWith(".mp4");
 
   return (isVideo ?
