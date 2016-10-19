@@ -72,14 +72,17 @@ public class GeofenceStore implements LayerStoreListener {
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
         geofences.forEach(geofence -> {
             final ViolationKey vk = ViolationKey.of(feature.uid(), geofence.id());
-            if (inViolation(geofence, feature)) {
-                if (!currentViolations.containsKey(vk)) {
-                    final Violation violation = Violation.of(vidGenerator.get(),
-                            String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()));
-                    currentViolations.put(vk, violation);
-                    notifyListeners(violation);
-                }
-            } else {
+            final boolean violating = inViolation(geofence, feature);
+            final boolean previouslyViolating = currentViolations.containsKey(vk);
+
+            if (violating && !previouslyViolating) {
+                LOG.info("Violation triggered: externalId: {}, geofenceId: {}", feature.externalId(), geofence.id());
+                final Violation violation = Violation.of(vidGenerator.get(),
+                        String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()));
+                currentViolations.put(vk, violation);
+                notifyListeners(violation);
+            } else if (!violating && previouslyViolating) {
+                LOG.info("Violation removed: externalId: {}, geofenceId: {}", feature.externalId(), geofence.id());
                 currentViolations.remove(vk);
             }
         });
