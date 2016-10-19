@@ -17,7 +17,6 @@ import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
-import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
@@ -28,6 +27,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -109,7 +109,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
 
     @Override
     public void onGeometryChange(Collection<io.quartic.weyl.core.model.Feature> features) {
-        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features)));
+        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features, f -> f.externalId())));  // TODO: it's silly that we use externalId for geofences, and fid for everything else
     }
 
     private void unsubscribeAll() {
@@ -129,7 +129,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         sendMessage(LayerUpdateMessage.builder()
                 .layerId(layerId)
                 .schema(state.schema())
-                .featureCollection(fromJts(state.featureCollection()))  // TODO: obviously we never want to do this with large static layers
+                .featureCollection(fromJts(state.featureCollection(), f -> f.uid().uid()))  // TODO: obviously we never want to do this with large static layers
                 .feedEvents(state.feedEvents())
                 .build()
         );
@@ -143,16 +143,16 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         }
     }
 
-    private FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features) {
+    private FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features, Function<io.quartic.weyl.core.model.Feature, String> id) {
         return FeatureCollection.of(
                 features.stream()
-                        .map(this::fromJts)
+                        .map(f -> fromJts(f, id.apply(f)))
                         .collect(toList())
         );
     }
 
-    private Feature fromJts(io.quartic.weyl.core.model.Feature f) {
-        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(f.uid(), f.metadata()));
+    private Feature fromJts(io.quartic.weyl.core.model.Feature f, String id) {
+        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(id, f.metadata()));
     }
 
     private Feature fromJts(Optional<String> id, Geometry geometry, Map<String, Object> attributes) {
@@ -163,10 +163,9 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         );
     }
 
-    private static Map<String, Object> convertMetadata(FeatureId featureId, Map<String, Object> metadata) {
+    private static Map<String, Object> convertMetadata(String id, Map<String, Object> metadata) {
         final Map<String, Object> output = Maps.newHashMap(metadata);
-        output.put("_id", featureId);  // TODO: eliminate the _id concept
+        output.put("_id", id);  // TODO: eliminate the _id concept
         return output;
-
     }
 }

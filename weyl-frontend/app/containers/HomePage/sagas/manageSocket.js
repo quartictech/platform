@@ -41,8 +41,7 @@ function* handleLayerUpdate(msg) {
 }
 
 function* handleGeofenceViolationsUpdate(msg) {
-  console.log("Received message", msg);
-  // TODO
+  yield put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
 }
 
 function* handleGeofenceGeometryUpdate(msg) {

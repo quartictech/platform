@@ -151,6 +151,11 @@ export function geofenceSetLayer(layerId, bufferDistance) {
   };
 }
 
+export const geofenceSetViolatedGeofences = (violatedIds) => ({
+  type: constants.GEOFENCE_SET_VIOLATED_GEOFENCES,
+  violatedIds,
+});
+
 export function feedSetData(layerId, data) {
   console.assert(layerId != null);
   return {
