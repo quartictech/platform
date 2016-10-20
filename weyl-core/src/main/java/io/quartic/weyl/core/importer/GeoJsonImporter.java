@@ -62,6 +62,7 @@ public class GeoJsonImporter implements Importer {
     }
 
     private Object convertMetadataValue(Object value) {
+        // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             try {
                 return objectMapper.convertValue(value, ComplexAttribute.class);
