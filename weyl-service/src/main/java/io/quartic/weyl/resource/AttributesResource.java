@@ -48,6 +48,7 @@ public class AttributesResource {
                 .collect(Collectors.toSet());
 
         Set<String> eligibleAttributes = features.stream()
+                .filter(feature -> feature.metadata().containsKey("name"))
                 .flatMap(feature -> feature.metadata().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
                 .map(Entry::getKey)

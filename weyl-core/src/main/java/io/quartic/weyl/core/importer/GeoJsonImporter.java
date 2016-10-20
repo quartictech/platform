@@ -2,6 +2,7 @@ package io.quartic.weyl.core.importer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
@@ -11,34 +12,40 @@ import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.geotools.geometry.jts.JTS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GeoJsonImporter implements Importer {
+    private static final Logger LOG = LoggerFactory.getLogger(GeoJsonImporter.class);
     private final FeatureCollection featureCollection;
     private final FeatureStore featureStore;
     private final GeometryTransformer geometryTransformer;
+    private final ObjectMapper objectMapper;
 
     public static GeoJsonImporter fromInputStream(InputStream inputStream, FeatureStore featureStore, ObjectMapper objectMapper) throws IOException, FactoryException {
         FeatureCollection featureCollection = objectMapper.readValue(inputStream, FeatureCollection.class);
-        return new GeoJsonImporter(featureCollection, featureStore, GeometryTransformer.wgs84toWebMercator());
+        return new GeoJsonImporter(featureCollection, featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
     }
 
     public static GeoJsonImporter fromObject(Object value, FeatureStore featureStore, ObjectMapper objectMapper) throws IOException {
         FeatureCollection featureCollection = objectMapper.convertValue(value, FeatureCollection.class);
-        return new GeoJsonImporter(featureCollection, featureStore, GeometryTransformer.wgs84toWebMercator());
+        return new GeoJsonImporter(featureCollection, featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
     }
 
     private GeoJsonImporter(FeatureCollection featureCollection, FeatureStore featureStore,
-                            GeometryTransformer geometryTransformer) {
+                            GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
         this.featureCollection = featureCollection;
         this.featureStore = featureStore;
         this.geometryTransformer = geometryTransformer;
+        this.objectMapper = objectMapper;
     }
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {
@@ -49,9 +56,29 @@ public class GeoJsonImporter implements Importer {
                     .externalId(f.id().orElse(null))
                     .uid(featureStore.getFeatureIdGenerator().get())
                     .geometry(transformedGeometry)
-                    .metadata(f.properties())
+                    .metadata(convertMetadata(f.properties()))
                     .build();
         });
+    }
+
+    private Object convertMetadataValue(Object value) {
+        // TODO: Move this up into generic code behind the importers
+        if (value instanceof Map) {
+            try {
+                return objectMapper.convertValue(value, ComplexAttribute.class);
+            }
+            catch (IllegalArgumentException e) {
+                LOG.warn("unrecognised complex attribute type: " + value);
+                return value;
+            }
+        }
+        return value;
+    }
+
+    private Map<String, Object> convertMetadata(Map<String, Object> rawMetadata) {
+        return rawMetadata.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> convertMetadataValue(entry.getValue())));
     }
 
     @Override
