@@ -7,16 +7,15 @@ plugins {
 }
 
 dependencies {
-    processor "org.immutables:value:${immutablesVersion}"
+    processor "org.immutables:value:${versions.immutables}"
 
     compile project(":weyl-core")
     compile project(":weyl-frontend")
-    compile "io.dropwizard:dropwizard-core:${dropwizardVersion}"
-    compile "io.dropwizard:dropwizard-jdbi:${dropwizardVersion}"
-    compile "io.dropwizard:dropwizard-assets:${dropwizardVersion}"
+    compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
+    compile "io.dropwizard:dropwizard-jdbi:${versions.dropwizard}"
+    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
     compile "io.dropwizard.modules:dropwizard-java8:0.9.0-1"
     compile "com.liveperson:dropwizard-websockets:1.0.0-1"  // BEWARE! The highest version number in maven central is 1.2. This is actually an older version (and not compatible with DW 1.0)
-    compile "no.ecc.vectortile:java-vector-tile:${vectorTileVersion}"
 
     testCompile libraries.testCommon
 }
