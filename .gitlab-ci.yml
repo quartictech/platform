@@ -17,6 +17,7 @@ build:
     - ./gradlew test docker --parallel
   except:
     - develop
+    - tags
 
 build_and_push:
   stage: build
@@ -25,3 +26,4 @@ build_and_push:
     - ./gradlew test dockerPush --parallel
   only:
     - develop
+    - tags
