@@ -5,6 +5,8 @@ plugins {
 }
 
 allprojects {
+    apply from: "${rootDir}/gradle/dependencies.gradle"
+
     repositories {
         maven {
             url "http://download.osgeo.org/webdav/geotools/"
@@ -27,7 +29,6 @@ allprojects {
     targetCompatibility = 1.8
 
     version gitVersion()
-
 }
 
 
