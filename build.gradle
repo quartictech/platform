@@ -2,6 +2,7 @@ plugins {
     id "java"
     id "idea"
     id "com.palantir.git-version" version "0.5.2"
+    id "com.palantir.configuration-resolver" version "0.1.0"
 }
 
 allprojects {
@@ -27,7 +28,6 @@ allprojects {
     targetCompatibility = 1.8
 
     version gitVersion()
-
 }
 
 
