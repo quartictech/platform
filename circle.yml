@@ -21,7 +21,7 @@ test:
 
 deployment:
   hub:
-#    branch: develop
+    branch: /.*/
     commands:
       - docker tag quartic/weyl eu.gcr.io/${GCLOUD_PROJECT_ID}/weyl
       - echo $GCLOUD_SERVICE_KEY | base64 --decode > ${HOME}/gcloud-service-key.json
