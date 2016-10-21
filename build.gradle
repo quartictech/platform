@@ -7,10 +7,11 @@ plugins {
 
 allprojects {
     repositories {
+        mavenCentral()
+
         maven {
             url "http://download.osgeo.org/webdav/geotools/"
         }
-        mavenCentral()
 
         maven {
             url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
