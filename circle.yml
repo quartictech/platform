@@ -6,6 +6,12 @@ machine:
   services:
     - docker
 
+dependencies:
+  cache_directories:
+    - weyl-frontend/node_modules
+  override:
+    - ./gradlew dependencies npmInstall --parallel
+
 test:
   override:
     - ./gradlew test docker --parallel --info
