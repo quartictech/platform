@@ -6,11 +6,12 @@ plugins {
 
 allprojects {
     repositories {
-        mavenCentral()
-
+        // Has to go first because jai_core-1.1.3.jar isn't actually on MavenCentral
         maven {
             url "http://download.osgeo.org/webdav/geotools/"
         }
+
+        mavenCentral()
 
         maven {
             url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
