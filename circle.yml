@@ -23,8 +23,9 @@ deployment:
   hub:
     branch: /.*/
     commands:
-      - docker tag quartic/weyl eu.gcr.io/${GCLOUD_PROJECT_ID}/weyl
       - echo $GCLOUD_SERVICE_KEY | base64 --decode > ${HOME}/gcloud-service-key.json
       - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - sudo /opt/google-cloud-sdk/bin/gcloud config set project ${GCLOUD_PROJECT_ID}
-      - sudo /opt/google-cloud-sdk/bin/gcloud docker push eu.gcr.io/${GCLOUD_PROJECT_ID}/weyl
+      - docker login -e 1234@5678.com -u oauth2accesstoken -p "$(gcloud auth print-access-token)" https://eu.gcr.io
+      - docker tag quartic/weyl eu.gcr.io/${GCLOUD_PROJECT_ID}/weyl
+      - ./gradlew dockerPush --info
