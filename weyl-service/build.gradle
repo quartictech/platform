@@ -44,7 +44,7 @@ run {
 }
 
 docker {
-  name      "eu.gcr.io/quartic-oliver/${rootProject.name}:${version}"
+  name      "${project.dockerRepository}/${rootProject.name}:${version}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
