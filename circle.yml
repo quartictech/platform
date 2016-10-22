@@ -16,7 +16,7 @@ dependencies:
 
 test:
   override:
-    - ./gradlew test docker -PdockerRepository=eu.gcr.io/${GCLOUD_PROJECT_ID} --parallel --info
+    - ./gradlew test docker --parallel --info
   post:
     - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
