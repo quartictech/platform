@@ -9,7 +9,7 @@ const initialState = fromJS({
   },
   bufferDistance: 0,
   layerId: null,
-  type: "INCLUDE",
+  type: "EXCLUDE",
   violatedIds: [],
   alertsEnabled: false,
 });

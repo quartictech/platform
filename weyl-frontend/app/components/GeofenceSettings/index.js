@@ -28,12 +28,12 @@ const GeofenceLayerPicker = ({ visible, layers, onSelect, selected }) => {
 };
 
 const GeofenceTypeDropdown = ({ type, onTypeChange, visible }) => {
+  // TODO: re-add "INCLUDE" (removed to prevent demo freakout)
   if (visible) {
     return (
       <div className="inline field">
         <select className="ui fluid dropdown" ref={x => $(x).dropdown()} onChange={e => onTypeChange(e.currentTarget.value)} value={type}>
           <option value="EXCLUDE">Exclude</option>
-          <option value="INCLUDE">Include</option>
         </select>
       </div>
     );

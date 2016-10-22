@@ -110,6 +110,17 @@ const curatedBehaviors = {
     imageUrl: "street_view",
   },
 
+  "Current Properties London": {
+    title: (x) => `${x.property_type}`,
+    blessed: [
+      "Price",
+      "Street Name",
+      "Description",
+      "Agent Name",
+    ],
+    imageUrl: "image_url",
+  },
+
   "Buses": {
     title: (x) => `Route ${x.route} (${x["vehicle id"]})`,
     blessed: [

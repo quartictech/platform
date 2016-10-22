@@ -4,6 +4,7 @@ plugins {
     id "application"
     id "org.inferred.processors" version "1.2.3"
     id "com.palantir.docker" version "0.9.1"
+    id "com.palantir.configuration-resolver" version "0.1.0"
 }
 
 dependencies {
@@ -37,7 +38,7 @@ run {
 }
 
 docker {
-  name      "registry.gitlab.com/quartic/${rootProject.name}:${version}"
+  name      "${System.env.QUARTIC_DOCKER_REPOSITORY}/${rootProject.name}:${version}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
