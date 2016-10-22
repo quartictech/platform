@@ -6,7 +6,7 @@ machine:
   services:
     - docker
   environment:
-    - WEYL_DOCKER_REPOSITORY=eu.gcr.io/${CLOUD_PROJECT_ID}
+    WEYL_DOCKER_REPOSITORY: eu.gcr.io/${CLOUD_PROJECT_ID}
 
 dependencies:
   cache_directories:
