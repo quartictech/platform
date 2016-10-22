@@ -44,7 +44,7 @@ run {
 }
 
 docker {
-  name      "${project.dockerRepository}/${rootProject.name}:${version}"
+  name      "${System.env.WEYL_DOCKER_REPOSITORY}/${rootProject.name}:${version}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }

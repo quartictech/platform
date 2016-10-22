@@ -5,6 +5,8 @@ machine:
     version: 6.8.0
   services:
     - docker
+  environment:
+    - WEYL_DOCKER_REPOSITORY=eu.gcr.io/${CLOUD_PROJECT_ID}
 
 dependencies:
   cache_directories:
@@ -27,4 +29,4 @@ deployment:
       - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - sudo /opt/google-cloud-sdk/bin/gcloud config set project ${GCLOUD_PROJECT_ID}
       - docker login -e 1234@5678.com -u oauth2accesstoken -p "$(sudo /opt/google-cloud-sdk/bin/gcloud auth print-access-token)" https://eu.gcr.io
-      - ./gradlew dockerPush -PdockerRepository=eu.gcr.io/${GCLOUD_PROJECT_ID} --info
+      - ./gradlew dockerPush --info
