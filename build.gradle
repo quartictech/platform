@@ -5,6 +5,8 @@ plugins {
 }
 
 allprojects {
+    apply from: "${rootDir}/gradle/dependencies.gradle"
+
     repositories {
         // Has to go first because jai_core-1.1.3.jar isn't actually on MavenCentral
         maven {

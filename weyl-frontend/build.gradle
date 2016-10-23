@@ -1,29 +1,30 @@
 plugins {
     id "com.moowork.node" version "0.13"
     id "java"
+    id "idea"
 }
 
 def env = [BUILD_VERSION: version] + System.getenv()  // See https://github.com/srs/gradle-node-plugin/issues/130
 
 task npmLint(type: NpmTask, dependsOn: npmInstall) {
-  args = ["run", "lint", "--silent"]
+    args = ["run", "lint", "--silent"]
 }
 
 task npmBuild(type: NpmTask, dependsOn: npmInstall) {
-  args = ["run", "build", "--silent"]
-  environment = env + [NODE_ENV: "production"]
-  // TODO: specify input files
-  outputs.dir   "${buildDir}/webpack"
+    args = ["run", "build", "--silent"]
+    environment = env + [NODE_ENV: "production"]
+    // TODO: specify input files
+    outputs.dir   "${buildDir}/webpack"
 }
 
 task npmStart(type: NpmTask, dependsOn: npmInstall) {
-  args = ["start", "--silent"]
-  environment = env
-  // TODO: specify input files
+    args = ["start", "--silent"]
+    environment = env
+    // TODO: specify input files
 }
 
 
 jar {
-  from npmBuild
+    from npmBuild
 }
 
