@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.quartic.jester.api.DatasetId;
 import io.quartic.jester.api.DatasetMetadata;
+import io.quartic.jester.api.JesterService;
 import io.quartic.weyl.common.uid.UidGenerator;
 
 import javax.ws.rs.*;
@@ -11,8 +12,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.Collection;
 import java.util.Map;
 
-@Path("/datasets")
-public class JesterResource {
+public class JesterResource implements JesterService {
     private final Map<DatasetId, DatasetMetadata> datasets = Maps.newConcurrentMap();
     private final UidGenerator<DatasetId> didGenerator;
 

@@ -5,6 +5,8 @@ plugins {
 }
 
 dependencies {
+    processor libraries.immutables
+
     compile project(":common-core")
     compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
     compile "io.dropwizard.modules:dropwizard-java8:0.9.0-1"
