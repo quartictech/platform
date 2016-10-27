@@ -6,8 +6,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.SequenceUidGenerator;
-import io.quartic.weyl.core.utils.UidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 

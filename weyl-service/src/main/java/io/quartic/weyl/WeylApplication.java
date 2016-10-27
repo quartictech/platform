@@ -19,9 +19,9 @@ import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.core.utils.RandomUidGenerator;
-import io.quartic.weyl.core.utils.SequenceUidGenerator;
-import io.quartic.weyl.core.utils.UidGenerator;
+import io.quartic.weyl.common.uid.RandomUidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.resource.*;
 import org.skife.jdbi.v2.DBI;
 

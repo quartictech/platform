@@ -1,6 +1,4 @@
-package io.quartic.weyl.core.utils;
-
-import io.quartic.weyl.core.model.Uid;
+package io.quartic.weyl.common.uid;
 
 import java.util.UUID;
 import java.util.function.Function;

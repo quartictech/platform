@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.model;
+package io.quartic.weyl.common.uid;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

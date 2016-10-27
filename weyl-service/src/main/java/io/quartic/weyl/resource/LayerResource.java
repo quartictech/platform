@@ -2,7 +2,6 @@ package io.quartic.weyl.resource;
 
 import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.compute.AbstractBucketSpec;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveEventId;
@@ -10,7 +9,7 @@ import io.quartic.weyl.core.live.LiveImporter;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.utils.UidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;

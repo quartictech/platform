@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.live;
 
 import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
 import java.time.Instant;

@@ -1,20 +1,18 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableMap;
-import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.GeometryWithMetadata;
 import io.quartic.weyl.core.model.ImmutableGeometryWithMetadata;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.core.utils.SequenceUidGenerator;
-import io.quartic.weyl.core.utils.UidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.request.GeofenceRequest;
 
 import javax.ws.rs.Consumes;

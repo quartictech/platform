@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.compute;
 
-import io.quartic.weyl.core.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerMetadata;

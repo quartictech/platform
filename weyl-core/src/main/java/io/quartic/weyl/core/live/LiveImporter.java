@@ -6,12 +6,10 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.core.utils.UidGenerator;
-import org.opengis.referencing.FactoryException;
+import io.quartic.weyl.common.uid.UidGenerator;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

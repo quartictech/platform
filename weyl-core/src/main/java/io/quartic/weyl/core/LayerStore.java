@@ -11,7 +11,7 @@ import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.UidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

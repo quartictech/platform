@@ -1,6 +1,7 @@
 include "common-core"
 include "common-service"
-include "jester-service"
+include "jester-api"
+include "jester-application"
 include "weyl-core"
 include "weyl-service"
 include "weyl-frontend"

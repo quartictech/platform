@@ -11,7 +11,7 @@ import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.utils.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import org.junit.Before;
 import org.junit.Test;

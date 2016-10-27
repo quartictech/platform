@@ -1,4 +1,4 @@
-package io.quartic.weyl.core;
+package io.quartic.weyl.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
