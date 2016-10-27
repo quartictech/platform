@@ -18,6 +18,8 @@ public class JesterApplication extends Application<JesterConfiguration> {
 
     @Override
     public void run(JesterConfiguration configuration, Environment environment) throws Exception {
+        environment.jersey().setUrlPattern("/api/*");
+
         environment.jersey().register(new PingPongResource());
     }
 }
