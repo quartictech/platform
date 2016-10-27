@@ -1,4 +1,4 @@
-package io.quartic.weyl.response;
+package io.quartic.common.pingpong;
 
 import io.quartic.weyl.core.SweetStyle;
 import org.immutables.value.Value;

@@ -1,6 +1,4 @@
-package io.quartic.weyl.resource;
-
-import io.quartic.weyl.response.Pong;
+package io.quartic.common.pingpong;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

@@ -1,3 +1,6 @@
-include 'weyl-core'
-include 'weyl-service'
-include 'weyl-frontend'
+include "common-core"
+include "common-service"
+include "jester-service"
+include "weyl-core"
+include "weyl-service"
+include "weyl-frontend"
