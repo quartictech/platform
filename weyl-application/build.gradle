@@ -10,7 +10,7 @@ plugins {
 dependencies {
     processor libraries.immutables
 
-    compile project(":common-service")
+    compile project(":common-application")
     compile project(":weyl-core")
     compile project(":weyl-frontend")
     compile "io.dropwizard:dropwizard-jdbi:${versions.dropwizard}"
