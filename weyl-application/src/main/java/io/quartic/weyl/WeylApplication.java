@@ -22,6 +22,7 @@ import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.weyl.service.WebsocketImporterService;
 import io.quartic.weyl.resource.*;
 import org.skife.jdbi.v2.DBI;
 
@@ -76,8 +77,11 @@ public class WeylApplication extends Application<WeylConfiguration> {
         alertProcessor.addListener(updateServer);
         geofenceStore.addListener(updateServer);
 
+        WebsocketImporterService websocketImporterService = new WebsocketImporterService(layerStore, fidGenerator,
+                eidGenerator, environment.getObjectMapper());
+
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator, environment.getObjectMapper()));
+        environment.jersey().register(new LayerResource(layerStore, websocketImporterService));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));

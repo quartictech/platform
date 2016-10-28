@@ -95,7 +95,7 @@ public class WebsocketLiveImporter {
         }
     }
 
-    public static void start(URI uri, LayerId layerId, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, LayerStore layerStore, ObjectMapper objectMapper) {
-       new WebsocketLiveImporter(uri, layerId, fidGenerator, eidGenerator, objectMapper, layerStore);
+    public static WebsocketLiveImporter start(URI uri, LayerId layerId, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, LayerStore layerStore, ObjectMapper objectMapper) {
+       return new WebsocketLiveImporter(uri, layerId, fidGenerator, eidGenerator, objectMapper, layerStore);
     }
 }
