@@ -15,5 +15,5 @@ public interface AbstractLayerUpdateRequest {
     @JsonUnwrapped
     LayerMetadata metadata();
     LayerViewType viewType();
-    List<LiveEvent> events();
+    String url();
 }

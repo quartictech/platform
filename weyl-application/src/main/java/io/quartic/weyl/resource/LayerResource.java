@@ -1,11 +1,13 @@
 package io.quartic.weyl.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.live.LiveImporter;
+import io.quartic.weyl.core.live.WebsocketLiveImporter;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
@@ -13,11 +15,16 @@ import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
+import org.glassfish.tyrus.client.ClientManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Session;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -31,11 +38,13 @@ public class LayerResource {
     private final LayerStore layerStore;
     private final UidGenerator<FeatureId> fidGenerator;
     private final UidGenerator<LiveEventId> eidGenerator;
+    private final ObjectMapper objectMapper;
 
-    public LayerResource(LayerStore layerStore, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
+    public LayerResource(LayerStore layerStore, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, ObjectMapper objectMapper) {
         this.layerStore = layerStore;
         this.fidGenerator = fidGenerator;
         this.eidGenerator = eidGenerator;
+        this.objectMapper = objectMapper;
     }
 
     @PUT
@@ -61,17 +70,12 @@ public class LayerResource {
 
         layerStore.createLayer(layerId, request.metadata(), request.viewType().getLayerView());
 
-        request.events().forEach( event -> {
-                    validateOrThrow(event.featureCollection().isPresent() ? event.featureCollection().get().features().stream() : Stream.empty(),
-                            f -> !f.id().isPresent(),
-                            "Features with missing ID");
-                });
+        try {
+            WebsocketLiveImporter.start(new URI(request.url()), layerId, fidGenerator, eidGenerator, layerStore, objectMapper);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
 
-        final LiveImporter importer = new LiveImporter(request.events(), fidGenerator, eidGenerator);
-
-        final int numFeatures = layerStore.addToLayer(layerId, importer);
-
-        log.info("Updated {} features for layerId = {}", numFeatures, id);
     }
 
     private void validateOrThrow(Stream<Feature> features, Predicate<Feature> predicate, String message) {

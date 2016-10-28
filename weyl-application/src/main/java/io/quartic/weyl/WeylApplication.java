@@ -77,7 +77,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         geofenceStore.addListener(updateServer);
 
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator));
+        environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator, environment.getObjectMapper()));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
