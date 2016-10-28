@@ -1,14 +1,12 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.service.WebsocketImporterService;
 import io.quartic.weyl.request.LayerUpdateRequest;
+import io.quartic.weyl.service.WebsocketImporterService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,9 +14,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class LayerResourceShould {
     private final LayerStore layerStore = mock(LayerStore.class);
@@ -47,14 +43,6 @@ public class LayerResourceShould {
     public void create_websocket_importer() throws URISyntaxException {
         resource.updateLiveLayer("666", createRequest());
         verify(websocketImporterService).start(new URI("ws://nowhere"), LayerId.of("666"));
-    }
-
-    private ImmutableMap<String, Object> propsWithTimestamp() {
-        return ImmutableMap.of("timestamp", 12345);
-    }
-
-    private Optional<Point> point() {
-        return Optional.of(Point.of(ImmutableList.of(1.0, 2.0)));
     }
 
     private LayerUpdateRequest createRequest() {
