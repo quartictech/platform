@@ -13,12 +13,12 @@ public interface JesterService {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    DatasetId registerDataset(DatasetMetadata metadata);
+    DatasetId registerDataset(DatasetConfig config);
 
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    DatasetMetadata getDataset(@PathParam("id") String id);
+    DatasetConfig getDataset(@PathParam("id") String id);
 
     @DELETE
     @Path("/{id}")

@@ -2,9 +2,7 @@ package io.quartic.jester;
 
 import com.palantir.remoting1.jaxrs.JaxRsClient;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import io.quartic.jester.api.DatasetId;
-import io.quartic.jester.api.DatasetMetadata;
-import io.quartic.jester.api.JesterService;
+import io.quartic.jester.api.*;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -23,11 +21,14 @@ public class JesterApplicationShould {
 
     @Test
     public void foo() throws Exception {
-        final DatasetMetadata metadata = DatasetMetadata.of("Foo", "Bar", "Arlo");
+        final DatasetConfig config = DatasetConfig.of(
+                DatasetMetadata.of("Foo", "Bar", "Arlo"),
+                JdbcDatasetSource.of("a", "b", "c", "d", "e")
+        );
 
-        jester.registerDataset(metadata);
+        jester.registerDataset(config);
         final Collection<DatasetId> dids = jester.listDatasets();
 
-        assertThat(jester.getDataset(dids.iterator().next().uid()), equalTo(metadata));
+        assertThat(jester.getDataset(dids.iterator().next().uid()), equalTo(config));
     }
 }
