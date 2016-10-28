@@ -6,7 +6,7 @@ import io.quartic.jester.api.*;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.util.Collection;
+import java.util.Map;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static org.hamcrest.Matchers.equalTo;
@@ -26,9 +26,9 @@ public class JesterApplicationShould {
                 JdbcDatasetSource.of("a", "b", "c", "d", "e")
         );
 
-        jester.registerDataset(config);
-        final Collection<DatasetId> dids = jester.listDatasets();
+        DatasetId did = jester.registerDataset(config);
+        final Map<DatasetId, DatasetConfig> datasets = jester.getDatasets();
 
-        assertThat(jester.getDataset(dids.iterator().next().uid()), equalTo(config));
+        assertThat(datasets.get(did), equalTo(config));
     }
 }

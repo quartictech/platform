@@ -1,15 +1,14 @@
 package io.quartic.jester;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.quartic.jester.api.DatasetConfig;
 import io.quartic.jester.api.DatasetId;
 import io.quartic.jester.api.JesterService;
 import io.quartic.weyl.common.uid.UidGenerator;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import java.util.Collection;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.PathParam;
 import java.util.Map;
 
 public class JesterResource implements JesterService {
@@ -20,15 +19,6 @@ public class JesterResource implements JesterService {
         this.didGenerator = didGenerator;
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Collection<DatasetId> listDatasets() {
-        return ImmutableList.copyOf(datasets.keySet());
-    }
-
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public DatasetId registerDataset(DatasetConfig config) {
         // TODO: basic validation
         DatasetId id = didGenerator.get();
@@ -36,17 +26,16 @@ public class JesterResource implements JesterService {
         return id;
     }
 
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    public Map<DatasetId, DatasetConfig> getDatasets() {
+        return ImmutableMap.copyOf(datasets);
+    }
+
     public DatasetConfig getDataset(@PathParam("id") String id) {
         final DatasetId did = DatasetId.of(id);
         throwIfDatasetNotFound(did);
         return datasets.get(did);
     }
 
-    @DELETE
-    @Path("/{id}")
     public void deleteDataset(@PathParam("id") String id) {
         final DatasetId did = DatasetId.of(id);
         throwIfDatasetNotFound(did);
