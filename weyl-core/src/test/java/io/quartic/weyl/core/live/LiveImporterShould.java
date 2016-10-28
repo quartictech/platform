@@ -10,7 +10,7 @@ import io.quartic.weyl.core.geojson.Geometry;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.core.utils.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import org.junit.Test;
 
 import java.time.Instant;

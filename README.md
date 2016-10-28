@@ -2,7 +2,7 @@
 
 1. Configure the back-end:
 
-  - Copy `/weyl-service/weyl.yml.example` to `/weyl-service/weyl.yml`.
+  - Copy `/weyl-application/weyl.yml.example` to `/weyl-application/weyl.yml`.
   - Modify `applicationContextPath` as required.
 
 2. Start the back-end:

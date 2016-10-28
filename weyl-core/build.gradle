@@ -5,7 +5,9 @@ plugins {
 }
 
 dependencies {
-    processor "org.immutables:value:${versions.immutables}"
+    processor libraries.immutables
+
+    compile project(":common-core")
 
     compile "org.postgresql:postgresql:9.4.1209"
     compile "org.apache.commons:commons-io:1.3.2"
@@ -15,9 +17,6 @@ dependencies {
     compile "com.google.guava:guava:19.0"
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
-    compile "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
-    compile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
 
     compile "org.geotools:gt-epsg-hsql:${versions.geoTools}"
     compile "org.geotools:gt-referencing:${versions.geoTools}"

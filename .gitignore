@@ -18,4 +18,4 @@ _detritus
 
 # Config files
 weyl-frontend/weylConfig.js
-weyl-service/weyl.yml
+weyl-application/weyl.yml
