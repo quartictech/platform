@@ -78,7 +78,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         geofenceStore.addListener(updateServer);
 
         WebsocketImporterService websocketImporterService = new WebsocketImporterService(layerStore, fidGenerator,
-                eidGenerator, environment.getObjectMapper());
+                eidGenerator, environment.getObjectMapper(), environment.metrics());
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, websocketImporterService));

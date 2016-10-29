@@ -1,5 +1,7 @@
 package io.quartic.weyl.core.live;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.quartic.weyl.common.uid.UidGenerator;
@@ -25,14 +27,18 @@ public class WebsocketLiveImporter {
     private final ObjectMapper objectMapper;
     private final LayerStore layerStore;
     private final LayerId layerId;
+    private final Meter messageRateMeter;
 
     private WebsocketLiveImporter(URI uri, LayerId layerId, UidGenerator<FeatureId> fidGenerator,
-                                  UidGenerator<LiveEventId> eidGenerator, ObjectMapper objectMapper, LayerStore layerStore) {
+                                  UidGenerator<LiveEventId> eidGenerator, ObjectMapper objectMapper,
+                                  LayerStore layerStore, MetricRegistry metrics) {
         this.fidGenerator = fidGenerator;
         this.eidGenerator = eidGenerator;
         this.objectMapper = objectMapper;
         this.layerStore = layerStore;
         this.layerId = layerId;
+
+        messageRateMeter = metrics.meter(MetricRegistry.name(WebsocketLiveImporter.class, "messages", "rate"));
 
         ClientManager clientManager = ClientManager.createClient();
         ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
@@ -56,7 +62,6 @@ public class WebsocketLiveImporter {
         };
         clientManager.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
 
-
         try {
             clientManager.asyncConnectToServer(this, uri);
         } catch (DeploymentException e) {
@@ -76,6 +81,7 @@ public class WebsocketLiveImporter {
 
     @OnMessage
     public void onMessage(String message) {
+        messageRateMeter.mark();
         try {
             LiveEvent event = objectMapper.readValue(message, LiveEvent.class);
 
@@ -95,7 +101,9 @@ public class WebsocketLiveImporter {
         }
     }
 
-    public static WebsocketLiveImporter start(URI uri, LayerId layerId, UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, LayerStore layerStore, ObjectMapper objectMapper) {
-       return new WebsocketLiveImporter(uri, layerId, fidGenerator, eidGenerator, objectMapper, layerStore);
+    public static WebsocketLiveImporter start(URI uri, LayerId layerId, UidGenerator<FeatureId> fidGenerator,
+                                              UidGenerator<LiveEventId> eidGenerator, LayerStore layerStore,
+                                              ObjectMapper objectMapper, MetricRegistry metrics) {
+       return new WebsocketLiveImporter(uri, layerId, fidGenerator, eidGenerator, objectMapper, layerStore, metrics);
     }
 }
