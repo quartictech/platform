@@ -45,6 +45,16 @@
   padding: 30px;
 }
 
+.topDrawer {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  height: 10vh;
+  width: 98vw;
+  display: flex;
+  pointer-events: none;
+}
+
 .infoBar {
   position: absolute;
   left: 0;

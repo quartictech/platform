@@ -1,8 +1,18 @@
 .toolbar { /* stylelint-ignore */
+  pointer-events: all;
 }
 
 .brand { /* stylelint-ignore */
   text-transform: uppercase;
   text-align: center;
   vertical-align: middle;
+}
+
+img.logo {
+  height: 80%;
+  padding-bottom: 7px;
+}
+
+.tight-item {
+  padding: 5px;
 }
