@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 public interface LayerView {
+    LayerView IDENTITY_VIEW = (g, f) -> f.stream();
+
     // TODO: Figure out time-ordering here
     Stream<Feature> compute(UidGenerator<FeatureId> uidGenerator, Collection<Feature> history);
 }

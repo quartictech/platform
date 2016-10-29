@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.model;
 
+import io.quartic.jester.api.Icon;
 import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
@@ -11,5 +12,5 @@ public interface AbstractLayerMetadata {
     String name();
     String description();
     Optional<String> attribution();
-    Optional<LayerIcon> icon();
+    Optional<Icon> icon();
 }

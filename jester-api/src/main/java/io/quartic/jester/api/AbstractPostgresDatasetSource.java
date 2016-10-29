@@ -5,8 +5,7 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractJdbcDatasetSource extends DatasetSource {
-    String driverClass();
+public interface AbstractPostgresDatasetSource extends DatasetSource {
     String user();
     String password();
     String url();

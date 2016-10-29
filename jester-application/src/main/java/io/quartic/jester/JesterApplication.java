@@ -1,6 +1,5 @@
 package io.quartic.jester;
 
-import com.palantir.remoting1.servers.jersey.HttpRemotingJerseyFeature;
 import io.dropwizard.Application;
 import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
@@ -26,7 +25,6 @@ public class JesterApplication extends Application<JesterConfiguration> {
     @Override
     public void run(JesterConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().setUrlPattern("/api/*");
-        environment.jersey().register(HttpRemotingJerseyFeature.DEFAULT);
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
         environment.jersey().register(new PingPongResource());
