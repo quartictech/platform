@@ -29,6 +29,7 @@ import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
+import io.quartic.weyl.service.WebsocketImporterService;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
@@ -83,11 +84,13 @@ public class WeylApplication extends Application<WeylConfiguration> {
         alertProcessor.addListener(updateServer);
         geofenceStore.addListener(updateServer);
 
+        final WebsocketImporterService websocketImporterService = new WebsocketImporterService(layerStore, fidGenerator,
+                eidGenerator, environment.getObjectMapper(), environment.metrics());
 
         final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
 
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator));
+        environment.jersey().register(new LayerResource(layerStore, websocketImporterService));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
