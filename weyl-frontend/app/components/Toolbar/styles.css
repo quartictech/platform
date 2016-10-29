@@ -1,5 +1,8 @@
 .toolbar { /* stylelint-ignore */
   pointer-events: all;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .brand { /* stylelint-ignore */
