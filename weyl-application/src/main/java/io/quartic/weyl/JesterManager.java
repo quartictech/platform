@@ -6,11 +6,15 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.function.Function;
 
 public class JesterManager implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(JesterManager.class);
+
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
     private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories;
     private final JesterService jester;
@@ -45,7 +49,11 @@ public class JesterManager implements Runnable {
 
         final LayerId layerId = LayerId.of(id.uid());
         layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
-        layerStore.importToLayer(layerId, func.apply(config.source()));
+        try {
+            layerStore.importToLayer(layerId, func.apply(config.source()));
+        } catch (Exception e) {
+            LOG.error("Failed to import for " + id, e);
+        }
     }
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?

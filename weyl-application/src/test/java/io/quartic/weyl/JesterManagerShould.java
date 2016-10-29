@@ -66,6 +66,13 @@ public class JesterManagerShould {
         verify(layerStore).importToLayer(any(LayerId.class), eq(importerB));
     }
 
+    @Test
+    public void not_propagate_exceptions_from_failed_imports() throws Exception {
+        doThrow(new RuntimeException("Sad face")).when(layerStore).importToLayer(any(LayerId.class), any(Importer.class));
+
+        manager.run();
+    }
+
     private DatasetConfig datasetConfigA() {
         return DatasetConfig.of(
                 DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
