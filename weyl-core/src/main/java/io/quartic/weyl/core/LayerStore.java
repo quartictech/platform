@@ -26,10 +26,10 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
+import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.stream.Collectors.toList;
 
 public class LayerStore {
-    private static final LayerView IDENTITY_VIEW = (g, f) -> f.stream();
     private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
     private final FeatureStore featureStore;
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
@@ -44,9 +44,13 @@ public class LayerStore {
 
     public LayerId createAndImportToLayer(Importer importer, LayerMetadata metadata) {
         final LayerId layerId = lidGenerator.get();
-        createLayer(layerId, metadata, IDENTITY_VIEW);
+        createLayer(layerId, metadata);
         importToLayer(layerId, importer);
         return layerId;
+    }
+
+    public void createLayer(LayerId id, LayerMetadata metadata) {
+        createLayer(id, metadata, IDENTITY_VIEW);
     }
 
     public void createLayer(LayerId id, LayerMetadata metadata, LayerView view) {

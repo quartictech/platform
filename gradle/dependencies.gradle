@@ -7,6 +7,7 @@ versions.immutables = "2.3"
 versions.dropwizard = "1.0.0"
 versions.vectorTile = "1.2.1"
 versions.jackson = "2.7.6"      // This is the Jackson version that Dropwizard currently pulls in
+versions.feign = "8.18.0"
 versions.geoTools = "15.2"
 
 libraries.immutables = "org.immutables:value:${versions.immutables}"
