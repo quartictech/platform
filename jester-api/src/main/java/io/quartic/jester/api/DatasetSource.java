@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = PostgresDatasetSource.class, name = "Postgres"),
+        @JsonSubTypes.Type(value = PostgresDatasetSource.class, name = "postgres"),
+        @JsonSubTypes.Type(value = GeoJsonDatasetSource.class, name = "geojson"),
 })
 public interface DatasetSource {
 }
