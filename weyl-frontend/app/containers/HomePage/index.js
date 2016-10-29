@@ -23,13 +23,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <ConnectionStatus connectionUp={this.props.connectionUp} />
 
         <div className={styles.nonDrawer}>
-          <Toolbar
-            onSearch={this.props.onSearch}
-            onSelectLayer={this.props.onSelectLayer}
-            onSelectPlace={this.props.onSelectPlace}
-            ui={this.props.ui}
-            onUiToggle={this.props.onUiToggle}
-          />
           <div className={styles.mapContainer}>
             <Map
               layers={this.props.layers.toJS()}
@@ -43,6 +36,16 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
             />
           </div>
+        </div>
+
+        <div className={styles.topDrawer}>
+          <Toolbar
+            onSearch={this.props.onSearch}
+            onSelectLayer={this.props.onSelectLayer}
+            onSelectPlace={this.props.onSelectPlace}
+            ui={this.props.ui}
+            onUiToggle={this.props.onUiToggle}
+          />
         </div>
 
         <div className={styles.leftDrawer}>
