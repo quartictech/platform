@@ -1,32 +1,38 @@
 package io.quartic.weyl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.java8.Java8Bundle;
-import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
+import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongResource;
+import io.quartic.jester.api.DatasetSource;
+import io.quartic.jester.api.JesterService;
+import io.quartic.jester.api.PostgresDatasetSource;
+import io.quartic.weyl.common.uid.RandomUidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.importer.Importer;
+import io.quartic.weyl.core.importer.PostgresImporter;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.common.uid.RandomUidGenerator;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.resource.*;
-import org.skife.jdbi.v2.DBI;
 
 import javax.websocket.server.ServerEndpointConfig;
-import java.util.function.Supplier;
+import java.util.Map;
+import java.util.function.Function;
 
 public class WeylApplication extends Application<WeylConfiguration> {
     private UpdateServer updateServer = null;   // TODO: deal with weird mutability
@@ -60,6 +66,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     @Override
     public void run(WeylConfiguration configuration, Environment environment) throws Exception {
+        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
         final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
@@ -76,6 +83,9 @@ public class WeylApplication extends Application<WeylConfiguration> {
         alertProcessor.addListener(updateServer);
         geofenceStore.addListener(updateServer);
 
+
+        final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
+
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, fidGenerator, eidGenerator));
         environment.jersey().register(new TileResource(layerStore));
@@ -83,16 +93,16 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AlertResource(alertProcessor));
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
-        environment.jersey().register(new ImportResource(layerStore, createDbiSupplier(configuration, environment),
-                featureStore, environment.getObjectMapper()));
+        environment.jersey().register(new ImportResource(layerStore, featureStore, environment.getObjectMapper()));
 
-        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
+        environment.lifecycle().manage(new Scheduler(ImmutableList.of(
+                ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper())))
+        )));
     }
 
-    // We pass a memoized supplier so we get connect-on-demand, to avoid startup failure when Postgres is down
-    private Supplier<DBI> createDbiSupplier(WeylConfiguration configuration, Environment environment) {
-        final DBIFactory factory = new DBIFactory();
-        final Supplier<DBI> unmemoized = () -> factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
-        return Suppliers.memoize(unmemoized::get)::get;
+    private Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
+        return ImmutableMap.of(
+                PostgresDatasetSource.class, source -> PostgresImporter.create((PostgresDatasetSource)source, featureStore, objectMapper)
+        );
     }
 }

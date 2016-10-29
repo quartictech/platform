@@ -1,14 +1,13 @@
 package io.quartic.jester;
 
-import com.palantir.remoting1.jaxrs.JaxRsClient;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import io.quartic.jester.api.DatasetId;
-import io.quartic.jester.api.DatasetMetadata;
-import io.quartic.jester.api.JesterService;
+import io.quartic.common.client.ClientBuilder;
+import io.quartic.jester.api.*;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static org.hamcrest.Matchers.equalTo;
@@ -18,16 +17,18 @@ public class JesterApplicationShould {
     @ClassRule
     public static final DropwizardAppRule<JesterConfiguration> RULE =
             new DropwizardAppRule<>(JesterApplication.class, resourceFilePath("jester.yml"));
-    private final JesterService jester = JaxRsClient.builder()
-                .build(JesterService.class, "test", "http://localhost:8090/api");;
+    private final JesterService jester = ClientBuilder.build(JesterService.class, "http://localhost:8090/api");
 
     @Test
-    public void foo() throws Exception {
-        final DatasetMetadata metadata = DatasetMetadata.of("Foo", "Bar", "Arlo");
+    public void retrieve_registered_datasets() throws Exception {
+        final DatasetConfig config = DatasetConfig.of(
+                DatasetMetadata.of("Foo", "Bar", "Arlo", Optional.empty()),
+                PostgresDatasetSource.of("a", "b", "c", "d")
+        );
 
-        jester.registerDataset(metadata);
-        final Collection<DatasetId> dids = jester.listDatasets();
+        DatasetId did = jester.registerDataset(config);
+        final Map<DatasetId, DatasetConfig> datasets = jester.getDatasets();
 
-        assertThat(jester.getDataset(dids.iterator().next().uid()), equalTo(metadata));
+        assertThat(datasets.get(did), equalTo(config));
     }
 }
