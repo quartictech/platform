@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
+import io.quartic.jester.api.PostgresDatasetSource;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.Feature;
@@ -32,43 +33,43 @@ public class PostgresImporter implements Importer {
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
     private final FeatureStore featureStore;
-    private final DBI dbi;
     private final WKBReader wkbReader = new WKBReader();
     private final ObjectMapper objectMapper;
-    private final String sql;
+    private final DBI dbi;
+    private final String query;
 
-    public static PostgresImporter fromDBI(DBI dbi, String sql, FeatureStore featureStore, ObjectMapper objectMapper) {
-       return new PostgresImporter(dbi, sql, featureStore, objectMapper);
+    public static PostgresImporter create(PostgresDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
+        return new PostgresImporter(new DBI(source.url(), source.user(), source.password()), source.query(), featureStore, objectMapper);
     }
 
-    private PostgresImporter(DBI dbi, String sql, FeatureStore featureStore, ObjectMapper objectMapper) {
+    public PostgresImporter(DBI dbi, String query, FeatureStore featureStore, ObjectMapper objectMapper) {
         this.dbi = dbi;
-        this.sql = sql;
+        this.query = query;
         this.featureStore = featureStore;
         this.objectMapper = objectMapper;
     }
 
-    private Optional<Geometry> parseGeometry(byte[] data) {
-        try {
-            return Optional.of(wkbReader.read(data));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public Collection<Feature> get() {
+        try (final Handle h = dbi.open()) {
+            final String expandedQuery = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
+                    query);
+            final ResultIterator<Map<String, Object>> iterator = h.createQuery(expandedQuery).iterator();
 
-        return Optional.empty();
-    }
+            Collection<Feature> features = Lists.newArrayList();
+            int count = 0;
+            while (iterator.hasNext()) {
+                count += 1;
+                if (count % 10000 == 0) {
+                    log.info("Importing feature: {}", count);
+                }
+                Optional<Feature> feature = rowToFeature(iterator.next());
 
-    private Optional<Object> readPgObject(Object value) {
-        PGobject pgObject = (PGobject) value;
-        if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
-            try {
-                return Optional.of(objectMapper.readValue(pgObject.getValue(), ComplexAttribute.class));
-            } catch (IOException e) {
-                log.warn("exception parsing json to attribute: {}", e.toString());
-                return Optional.empty();
+                feature.ifPresent(features::add);
             }
+            iterator.close();
+            return features;
         }
-        return Optional.empty();
     }
 
     private Optional<Feature> rowToFeature(Map<String, Object> row) {
@@ -106,27 +107,26 @@ public class PostgresImporter implements Importer {
         });
     }
 
-    @Override
-    public Collection<Feature> get() {
-        try (Handle h = dbi.open()) {
-            String sqlExpanded = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
-                    sql);
-            ResultIterator<Map<String, Object>> iterator = h.createQuery(sqlExpanded)
-                    .iterator();
-
-            Collection<Feature> features = Lists.newArrayList();
-            int count = 0;
-            while (iterator.hasNext()) {
-                count += 1;
-                if (count % 10000 == 0) {
-                    log.info("Importing feature: {}", count);
-                }
-                Optional<Feature> feature = rowToFeature(iterator.next());
-
-                feature.ifPresent(features::add);
-            }
-            iterator.close();
-            return features;
+    private Optional<Geometry> parseGeometry(byte[] data) {
+        try {
+            return Optional.of(wkbReader.read(data));
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+
+        return Optional.empty();
+    }
+
+    private Optional<Object> readPgObject(Object value) {
+        PGobject pgObject = (PGobject) value;
+        if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
+            try {
+                return Optional.of(objectMapper.readValue(pgObject.getValue(), ComplexAttribute.class));
+            } catch (IOException e) {
+                log.warn("exception parsing json to attribute: {}", e.toString());
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
     }
 }

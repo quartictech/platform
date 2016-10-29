@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LayerStoreShould {
-    private final static LayerView IDENTITY_VIEW = (gen, features) -> features.stream();
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);

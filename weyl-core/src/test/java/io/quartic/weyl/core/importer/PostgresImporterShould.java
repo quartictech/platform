@@ -23,7 +23,7 @@ public class PostgresImporterShould {
         FeatureStore featureStore = mock(FeatureStore.class);
         ObjectMapper mapper = new ObjectMapper();
 
-        PostgresImporter importer = PostgresImporter.fromDBI(dbi, "SELECT * FROM foo", featureStore, mapper);
+        PostgresImporter importer = new PostgresImporter(dbi, "SELECT * FROM foo", featureStore, mapper);
 
         importer.get();
 
