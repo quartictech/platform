@@ -72,6 +72,11 @@ public class PostgresImporter implements Importer {
         }
     }
 
+    @Override
+    public void subscribe(ImporterSubscriber subscriber) {
+
+    }
+
     private Optional<Feature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 

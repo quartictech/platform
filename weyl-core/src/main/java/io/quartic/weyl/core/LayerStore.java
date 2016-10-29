@@ -10,6 +10,7 @@ import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.importer.Importer;
+import io.quartic.weyl.core.importer.ImporterSubscriber;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import org.slf4j.Logger;
@@ -43,15 +44,31 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public void createLayer(LayerId id, LayerMetadata metadata) {
-        createLayer(id, metadata, IDENTITY_VIEW);
+    public ImporterSubscriber createLayer(LayerId id, LayerMetadata metadata) {
+        return createLayer(id, metadata, IDENTITY_VIEW);
     }
 
-    public void createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
+    public ImporterSubscriber createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
         putLayer(layers.containsKey(id)
                 ? layers.get(id).withMetadata(metadata).withView(view)
                 : newUnindexedLayer(id, metadata, view)
         );
+
+        return (newFeatures, newFeedEvents) -> {
+            log.info("Accepted {} features and {} feed events", newFeatures.size(), newFeedEvents.size());
+            final Layer layer = layers.get(id); // TODO: locking?
+
+            final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
+            updatedFeedEvents.addAll(newFeedEvents);    // TODO: structural sharing
+
+            // TODO: don't want to update stats for live layers
+            putLayer(
+                    updateIndicesAndStats(appendFeatures(layer, newFeatures))
+                            .withFeedEvents(updatedFeedEvents)
+            );
+            notifyListeners(id, newFeatures);
+            notifySubscribers(id);
+        };
     }
 
     public Collection<AbstractLayer> listLayers() {
@@ -77,7 +94,6 @@ public class LayerStore {
 
         Collection<Feature> features = importer.get();
         log.info("imported {} features", features.size());
-        log.info("envelope: {}:", Iterables.getFirst(features, null).geometry().getEnvelopeInternal());
 
         final Layer layer = layers.get(layerId);
 

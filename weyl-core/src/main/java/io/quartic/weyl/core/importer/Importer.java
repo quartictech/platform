@@ -7,4 +7,5 @@ import java.util.Collection;
 
 public interface Importer {
     Collection<Feature> get() throws IOException;
+    void subscribe(ImporterSubscriber subscriber);
 }
