@@ -4,10 +4,13 @@ import com.google.common.collect.Maps;
 import io.quartic.jester.api.*;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.importer.Importer;
+import io.quartic.weyl.core.importer.Stuff;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Subscriber;
+import rx.schedulers.Schedulers;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -19,6 +22,7 @@ public class JesterManager implements Runnable {
     private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories;
     private final JesterService jester;
     private final LayerStore layerStore;
+
 
     public JesterManager(
             JesterService jester,
@@ -48,9 +52,11 @@ public class JesterManager implements Runnable {
         }
 
         final LayerId layerId = LayerId.of(id.uid());
-        layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
+        final Subscriber<Stuff> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
+
         try {
-            layerStore.importToLayer(layerId, func.apply(config.source()));
+            final Importer importer = func.apply(config.source());
+            importer.getObservable().subscribeOn(Schedulers.computation()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific importer
         } catch (Exception e) {
             LOG.error("Failed to import for " + id, e);
         }

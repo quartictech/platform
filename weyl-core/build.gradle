@@ -18,6 +18,7 @@ dependencies {
     compile "com.google.guava:guava:19.0"
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
+    compile "io.reactivex:rxjava:1.2.1"
 
     compile "org.geotools:gt-epsg-hsql:${versions.geoTools}"
     compile "org.geotools:gt-referencing:${versions.geoTools}"

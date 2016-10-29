@@ -12,6 +12,7 @@ import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -21,6 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
 
 public class GeoJsonImporter implements Importer {
     private static final Logger LOG = LoggerFactory.getLogger(GeoJsonImporter.class);
@@ -52,6 +55,18 @@ public class GeoJsonImporter implements Importer {
         return featureCollection.features().stream().map(this::toJts)
                 .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Observable<Stuff> getObservable() {
+        return Observable.create(sub -> {
+            try {
+                sub.onNext(Stuff.of(get(), emptyList()));
+                sub.onCompleted();
+            } catch (IOException e) {
+                sub.onError(e);
+            }
+        });
     }
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {

@@ -18,12 +18,12 @@ import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.emptyList;
 
 public class PostgresImporter implements Importer {
     private static final Logger log = LoggerFactory.getLogger(PostgresImporter.class);
@@ -73,8 +73,11 @@ public class PostgresImporter implements Importer {
     }
 
     @Override
-    public void subscribe(ImporterSubscriber subscriber) {
-
+    public Observable<Stuff> getObservable() {
+        return Observable.create(sub -> {
+            sub.onNext(Stuff.of(get(), emptyList()));
+            sub.onCompleted();
+        });
     }
 
     private Optional<Feature> rowToFeature(Map<String, Object> row) {
