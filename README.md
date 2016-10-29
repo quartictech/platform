@@ -7,7 +7,7 @@
 
 2. Start the back-end:
 
-        ./gradlew run -Pmemory=<MEMORY_SETTING>
+        ./gradlew run --parallel
 
 3. Start the front-end:
 

@@ -29,18 +29,18 @@ jar {
     }
 }
 
-mainClassName = "io.quartic.weyl.WeylApplication"
-applicationDefaultJvmArgs = ["-Xms8g", "-Xmx8g", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
+ext.memorySetting = System.env.WEYL_MEMORY ?: "8g"
 
-ext.memorySetting = (project.hasProperty("memory") ? project.memory : "8g")
+mainClassName = "io.quartic.weyl.WeylApplication"
+applicationDefaultJvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
+
 
 run {
   args = ["server", "weyl.yml"]
-  jvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
 }
 
 docker {
-  name      "${System.env.QUARTIC_DOCKER_REPOSITORY}/${rootProject.name}:${version}"
+  name      "${System.env.QUARTIC_DOCKER_REPOSITORY}/weyl:${version}"
   dependsOn distTar
   files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }
