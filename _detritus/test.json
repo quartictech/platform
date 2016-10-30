@@ -1,5 +1,0 @@
-{ 
-	"name": "companies by lsoa", 
-	"description": "Companies grouped by LSOA (London)", 
-	"query": "SELECT * from companies_by_lsoa_london"
-}
