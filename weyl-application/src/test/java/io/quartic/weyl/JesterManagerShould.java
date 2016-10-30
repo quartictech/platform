@@ -3,8 +3,8 @@ package io.quartic.weyl;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.jester.api.*;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.importer.SourceUpdate;
+import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -29,12 +29,12 @@ public class JesterManagerShould {
     private final LayerStore layerStore = mock(LayerStore.class);
     private final SourceUpdate updateA = createUpdate();
     private final SourceUpdate updateB = createUpdate();
-    private final Importer importerA = importerOf(updateA);
-    private final Importer importerB = importerOf(updateB);
+    private final Source sourceA = importerOf(updateA);
+    private final Source sourceB = importerOf(updateB);
 
-    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories = ImmutableMap.of(
-            SourceA.class, source -> importerA,
-            SourceB.class, source -> importerB,
+    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> importerFactories = ImmutableMap.of(
+            SourceA.class, source -> sourceA,
+            SourceB.class, source -> sourceB,
             SourceC.class, source -> { throw new RuntimeException("sad times"); }
     );
     private final JesterManager manager = new JesterManager(jester, layerStore, importerFactories);
@@ -101,9 +101,9 @@ public class JesterManagerShould {
         );
     }
 
-    private Importer importerOf(SourceUpdate update) {
-        final Importer importer = mock(Importer.class);
-        when(importer.getObservable()).thenReturn(just(update));
-        return importer;
+    private Source importerOf(SourceUpdate update) {
+        final Source source = mock(Source.class);
+        when(source.getObservable()).thenReturn(just(update));
+        return source;
     }
 }

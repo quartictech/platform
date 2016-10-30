@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import io.quartic.weyl.common.SweetStyle;
 import io.quartic.weyl.core.live.EnrichedFeedEvent;

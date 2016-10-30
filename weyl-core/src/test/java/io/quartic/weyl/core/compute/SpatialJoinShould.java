@@ -9,7 +9,7 @@ import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.importer.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.model.*;
 import org.hamcrest.Matchers;
 import org.junit.Test;

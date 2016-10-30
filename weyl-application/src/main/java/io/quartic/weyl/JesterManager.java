@@ -3,8 +3,8 @@ package io.quartic.weyl;
 import com.google.common.collect.Maps;
 import io.quartic.jester.api.*;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.importer.SourceUpdate;
+import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.slf4j.Logger;
@@ -19,7 +19,7 @@ public class JesterManager implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(JesterManager.class);
 
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
-    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories;
+    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> sourceFactories;
     private final JesterService jester;
     private final LayerStore layerStore;
 
@@ -27,10 +27,10 @@ public class JesterManager implements Runnable {
     public JesterManager(
             JesterService jester,
             LayerStore layerStore,
-            Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories) {
+            Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> sourceFactories) {
         this.jester = jester;
         this.layerStore = layerStore;
-        this.importerFactories = importerFactories;
+        this.sourceFactories = sourceFactories;
     }
 
     @Override
@@ -47,16 +47,16 @@ public class JesterManager implements Runnable {
 
     private void createAndImportLayer(DatasetId id, DatasetConfig config) {
         try {
-            final Function<DatasetSource, Importer> func = importerFactories.get(config.source().getClass());
+            final Function<DatasetSource, Source> func = sourceFactories.get(config.source().getClass());
             if (func == null) {
                 throw new IllegalArgumentException("Unrecognised config type " + config.source().getClass());
             }
 
-            final Importer importer = func.apply(config.source());
+            final Source source = func.apply(config.source());
 
             final LayerId layerId = LayerId.of(id.uid());
             final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
-            importer.getObservable().subscribeOn(Schedulers.computation()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific importer
+            source.getObservable().subscribeOn(Schedulers.computation()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
             LOG.error("Error creating layer for dataset " + id, e);
         }

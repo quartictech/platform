@@ -13,6 +13,8 @@ import io.quartic.weyl.core.geojson.Geometry;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +58,7 @@ public class GeoJsonImporterShould {
 
         TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
 
-        new GeoJsonImporter(
+        new GeoJsonSource(
                 new URL("http://localhost:" + wireMockRule.port()),
                 store, GeometryTransformer.webMercatorToWebMercator(), OBJECT_MAPPER)
                 .getObservable().subscribe(subscriber);

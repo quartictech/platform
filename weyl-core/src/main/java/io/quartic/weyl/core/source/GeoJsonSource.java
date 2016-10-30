@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
@@ -25,23 +25,23 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
-public class GeoJsonImporter implements Importer {
-    private static final Logger LOG = LoggerFactory.getLogger(GeoJsonImporter.class);
+public class GeoJsonSource implements Source {
+    private static final Logger LOG = LoggerFactory.getLogger(GeoJsonSource.class);
     private final FeatureStore featureStore;
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
     private final URL url;
 
-    public static GeoJsonImporter create(GeoJsonDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
+    public static GeoJsonSource create(GeoJsonDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
         try {
-            return new GeoJsonImporter(new URL(source.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
+            return new GeoJsonSource(new URL(source.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Source URL malformed", e);
         }
     }
 
-    public GeoJsonImporter(URL url, FeatureStore featureStore,
-                            GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
+    public GeoJsonSource(URL url, FeatureStore featureStore,
+                         GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
         this.url = url;
         this.featureStore = featureStore;
         this.geometryTransformer = geometryTransformer;

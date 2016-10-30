@@ -12,7 +12,7 @@ import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.importer.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import org.slf4j.Logger;

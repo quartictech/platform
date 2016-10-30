@@ -1,7 +1,7 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import rx.Observable;
 
-public interface Importer {
+public interface Source {
     Observable<SourceUpdate> getObservable();
 }
