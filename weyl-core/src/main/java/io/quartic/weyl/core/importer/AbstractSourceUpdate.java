@@ -9,8 +9,7 @@ import java.util.Collection;
 
 @SweetStyle
 @Value.Immutable
-// TODO: sensible name
-public interface AbstractStuff {
+public interface AbstractSourceUpdate {
     // TODO: not Collections
     Collection<Feature> features();
     Collection<EnrichedFeedEvent> feedEvents();

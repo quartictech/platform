@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.jester.api.*;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.importer.Stuff;
+import io.quartic.weyl.core.importer.SourceUpdate;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -27,10 +27,10 @@ public class JesterManagerShould {
 
     private final JesterService jester = mock(JesterService.class);
     private final LayerStore layerStore = mock(LayerStore.class);
-    private final Stuff stuffA = stuff();
-    private final Stuff stuffB = stuff();
-    private final Importer importerA = importerOf(stuffA);
-    private final Importer importerB = importerOf(stuffB);
+    private final SourceUpdate updateA = createUpdate();
+    private final SourceUpdate updateB = createUpdate();
+    private final Importer importerA = importerOf(updateA);
+    private final Importer importerB = importerOf(updateB);
 
     private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories = ImmutableMap.of(
             SourceA.class, source -> importerA,
@@ -41,20 +41,20 @@ public class JesterManagerShould {
 
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
-        final TestSubscriber<Stuff> subscriber = TestSubscriber.create();
+        final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         when(layerStore.createLayer(any(), any())).thenReturn(subscriber);
         when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
 
         manager.run();
 
         verify(layerStore).createLayer(LayerId.of("123"), LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()));
-        subscriber.assertValue(stuffA);
+        subscriber.assertValue(updateA);
     }
 
 
     @Test
     public void only_process_each_dataset_once() throws Exception {
-        final TestSubscriber<Stuff> subscriber = TestSubscriber.create();
+        final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         when(layerStore.createLayer(any(), any())).thenReturn(subscriber);
         when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
 
@@ -66,8 +66,8 @@ public class JesterManagerShould {
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
-        final TestSubscriber<Stuff> subscriberA = TestSubscriber.create();
-        final TestSubscriber<Stuff> subscriberB = TestSubscriber.create();
+        final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();
+        final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
         when(layerStore.createLayer(eq(LayerId.of("123")), any())).thenReturn(subscriberA);
         when(layerStore.createLayer(eq(LayerId.of("456")), any())).thenReturn(subscriberB);
         when(jester.getDatasets())
@@ -78,9 +78,9 @@ public class JesterManagerShould {
         manager.run();
 
         verify(layerStore).createLayer(eq(LayerId.of("123")), any(LayerMetadata.class));
-        subscriberA.assertValue(stuffA);
+        subscriberA.assertValue(updateA);
         verify(layerStore).createLayer(eq(LayerId.of("456")), any(LayerMetadata.class));
-        subscriberB.assertValue(stuffB);
+        subscriberB.assertValue(updateB);
     }
 
     @Test
@@ -90,8 +90,8 @@ public class JesterManagerShould {
         manager.run();
     }
 
-    private Stuff stuff() {
-        return Stuff.of(newArrayList(mock(Feature.class)), emptyList());
+    private SourceUpdate createUpdate() {
+        return SourceUpdate.of(newArrayList(mock(Feature.class)), emptyList());
     }
 
     private DatasetConfig datasetConfig(DatasetSource source) {
@@ -101,9 +101,9 @@ public class JesterManagerShould {
         );
     }
 
-    private Importer importerOf(Stuff stuff) {
+    private Importer importerOf(SourceUpdate update) {
         final Importer importer = mock(Importer.class);
-        when(importer.getObservable()).thenReturn(just(stuff));
+        when(importer.getObservable()).thenReturn(just(update));
         return importer;
     }
 }

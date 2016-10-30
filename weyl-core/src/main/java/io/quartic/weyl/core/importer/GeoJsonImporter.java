@@ -49,24 +49,23 @@ public class GeoJsonImporter implements Importer {
     }
 
     @Override
-    public Collection<io.quartic.weyl.core.model.Feature> get() throws IOException {
-        final FeatureCollection featureCollection = objectMapper.readValue(url, FeatureCollection.class);
-
-        return featureCollection.features().stream().map(this::toJts)
-                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public Observable<Stuff> getObservable() {
+    public Observable<SourceUpdate> getObservable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(Stuff.of(get(), emptyList()));
+                sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
                 sub.onCompleted();
             } catch (IOException e) {
                 sub.onError(e);
             }
         });
+    }
+
+    private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {
+        final FeatureCollection featureCollection = objectMapper.readValue(url, FeatureCollection.class);
+
+        return featureCollection.features().stream().map(this::toJts)
+                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
+                .collect(Collectors.toList());
     }
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {

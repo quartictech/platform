@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
+import rx.observers.Subscribers;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -25,7 +26,7 @@ public class PostgresImporterShould {
 
         PostgresImporter importer = new PostgresImporter(dbi, "SELECT * FROM foo", featureStore, mapper);
 
-        importer.get();
+        importer.getObservable().subscribe(Subscribers.empty());
 
         verify(handle).close();
     }

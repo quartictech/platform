@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import io.quartic.jester.api.*;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.importer.Stuff;
+import io.quartic.weyl.core.importer.SourceUpdate;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class JesterManager implements Runnable {
             final Importer importer = func.apply(config.source());
 
             final LayerId layerId = LayerId.of(id.uid());
-            final Subscriber<Stuff> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
+            final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
             importer.getObservable().subscribeOn(Schedulers.computation()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific importer
         } catch (Exception e) {
             LOG.error("Error creating layer for dataset " + id, e);

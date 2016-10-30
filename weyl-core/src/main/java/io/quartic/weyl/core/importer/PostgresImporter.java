@@ -50,7 +50,14 @@ public class PostgresImporter implements Importer {
     }
 
     @Override
-    public Collection<Feature> get() {
+    public Observable<SourceUpdate> getObservable() {
+        return Observable.create(sub -> {
+            sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+            sub.onCompleted();
+        });
+    }
+
+    private Collection<Feature> importAllFeatures() {
         try (final Handle h = dbi.open()) {
             final String expandedQuery = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                     query);
@@ -70,14 +77,6 @@ public class PostgresImporter implements Importer {
             iterator.close();
             return features;
         }
-    }
-
-    @Override
-    public Observable<Stuff> getObservable() {
-        return Observable.create(sub -> {
-            sub.onNext(Stuff.of(get(), emptyList()));
-            sub.onCompleted();
-        });
     }
 
     private Optional<Feature> rowToFeature(Map<String, Object> row) {

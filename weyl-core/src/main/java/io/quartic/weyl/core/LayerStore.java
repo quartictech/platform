@@ -12,7 +12,7 @@ import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.importer.Stuff;
+import io.quartic.weyl.core.importer.SourceUpdate;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import org.slf4j.Logger;
@@ -46,17 +46,17 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<Stuff> createLayer(LayerId id, LayerMetadata metadata) {
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata) {
         return createLayer(id, metadata, IDENTITY_VIEW);
     }
 
-    public Subscriber<Stuff> createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
         putLayer(layers.containsKey(id)
                 ? layers.get(id).withMetadata(metadata).withView(view)
                 : newUnindexedLayer(id, metadata, view)
         );
 
-        return new Subscriber<Stuff>() {
+        return new Subscriber<SourceUpdate>() {
             @Override
             public void onCompleted() {
                 // TODO
@@ -68,19 +68,19 @@ public class LayerStore {
             }
 
             @Override
-            public void onNext(Stuff stuff) {
-                LOG.info("Accepted {} features and {} feed events", stuff.features().size(), stuff.feedEvents().size());
+            public void onNext(SourceUpdate update) {
+                LOG.info("Accepted {} features and {} feed events", update.features().size(), update.feedEvents().size());
                 final Layer layer = layers.get(id); // TODO: locking?
 
                 final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-                updatedFeedEvents.addAll(stuff.feedEvents());    // TODO: structural sharing
+                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
 
                 // TODO: don't want to update stats for live layers
                 putLayer(
-                        updateIndicesAndStats(appendFeatures(layer, stuff.features()))
+                        updateIndicesAndStats(appendFeatures(layer, update.features()))
                                 .withFeedEvents(updatedFeedEvents)
                 );
-                notifyListeners(id, stuff.features());
+                notifyListeners(id, update.features());
                 notifySubscribers(id);
             }
         };
