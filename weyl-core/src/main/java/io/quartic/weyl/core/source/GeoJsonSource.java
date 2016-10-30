@@ -8,6 +8,7 @@ import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
+import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
@@ -63,6 +64,11 @@ public class GeoJsonSource implements Source {
     @Override
     public boolean indexable() {
         return true;
+    }
+
+    @Override
+    public LayerViewType viewType() {
+        return LayerViewType.MOST_RECENT;
     }
 
     private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {

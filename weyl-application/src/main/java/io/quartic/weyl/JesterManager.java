@@ -58,7 +58,11 @@ public class JesterManager implements Runnable {
             final Source source = func.apply(config.locator());
 
             final LayerId layerId = LayerId.of(id.uid());
-            final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()), source.indexable());
+            final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(
+                    layerId,
+                    datasetMetadataFrom(config.metadata()),
+                    source.indexable(),
+                    source.viewType().getLayerView());
             source.getObservable().subscribeOn(scheduler).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
             LOG.error("Error creating layer for dataset " + id, e);

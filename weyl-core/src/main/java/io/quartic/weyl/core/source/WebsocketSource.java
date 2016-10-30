@@ -4,6 +4,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.jester.api.WebsocketDatasetLocator;
+import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.glassfish.tyrus.client.ClientManager;
@@ -59,6 +60,11 @@ public abstract class WebsocketSource implements Source {
     @Override
     public boolean indexable() {
         return false;
+    }
+
+    @Override
+    public LayerViewType viewType() {
+        return LayerViewType.LOCATION_AND_TRACK;
     }
 
     private ClientManager createClientManager() {
