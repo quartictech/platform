@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-import requests
 import random
 import time
 import json
 import csv
 import os.path
 
-API_ROOT = "http://localhost:8080/api"
-LAYER_ID = "6666"
+import asyncio
+import websockets
+
+
 
 def random_message():
     return " ".join([
@@ -28,25 +29,15 @@ def read_pubs(fname):
 def delete_layer():
     requests.delete("{}/layer/live/{}".format(API_ROOT, LAYER_ID))
 
-def post_event(user, geojson, message):
-    r = requests.post("{}/layer/live/{}".format(API_ROOT, LAYER_ID),
-        json={
-            'name': 'Pub tour',
-            'description': 'A weird gimpy little test',
-            'icon': 'brown beer',
-            'viewType': 'LOCATION_AND_TRACK',
-            'events': [
-                {
+async def post_event(ws, user, geojson, message):
+    await ws.send(json.dumps({
                     "timestamp": int(round(time.time() * 1000)),
                     "featureCollection": geojson,
                     "feedEvent": {
                         "source": user,
                         "message": message,
                     } if message else None
-                }
-            ]}
-        )
-    print(r.text)
+                    }))
 
 def make_geojson(p, name, id):
     return {"type": "FeatureCollection", "features": [{
@@ -63,16 +54,15 @@ def make_geojson(p, name, id):
                 }]}
 
 STEPS = 50
-if __name__ == "__main__":
-    delete_layer()
-    pubs = read_pubs(os.path.join(os.path.dirname(__file__), "pubs.csv"))
+pubs = read_pubs(os.path.join(os.path.dirname(__file__), "pubs.csv"))
+
+async def socket(ws, path):
     p = (-0.1408, 51.5193)
     start = p
     target = None
     progress = 0
     noise_scale = 0.001
     arlo_noise_scale = noise_scale
-
     while True:
         if target is None or progress >= STEPS:
             progress = 0
@@ -80,7 +70,7 @@ if __name__ == "__main__":
             print("New target: {}".format(pub))
             target = pub["geojson"]["coordinates"]
             msg = "Heading to pub {}".format(pub["name"])
-            post_event("arlo", make_geojson(pub["geojson"]["coordinates"], "Arlo", pub["name"]), msg)
+            await post_event(ws, "arlo", make_geojson(pub["geojson"]["coordinates"], "Arlo", pub["name"]), msg)
             start = p
             arlo_noise_scale *= 1.1
 
@@ -89,7 +79,13 @@ if __name__ == "__main__":
         p = start[0] + (random.random() * noise_scale) + (scale * dx), start[1] + (random.random() * noise_scale) + (scale * dy)
         print("location: {}".format(p))
 
-        post_event("alex", make_geojson(p, "Alex", "alex"), random_message() if random.random() > 0.9 else None)
-        post_event("arlo", make_geojson((p[0] + random.random() * arlo_noise_scale, p[1] + random.random() * arlo_noise_scale), "Arlo", "arlo"), random_message() if random.random() > 0.99 else None)
-        time.sleep(1)
+        await post_event(ws, "alex", make_geojson(p, "Alex", "alex"), random_message() if random.random() > 0.9 else None)
+        await post_event(ws, "arlo", make_geojson((p[0] + random.random() * arlo_noise_scale, p[1] + random.random() * arlo_noise_scale), "Arlo", "arlo"), random_message() if random.random() > 0.99 else None)
+        await asyncio.sleep(1)
         progress += 1
+
+
+if __name__ == "__main__":
+    start_server = websockets.serve(socket, 'localhost', 5000)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
