@@ -84,7 +84,7 @@ public class LayerResource {
                 .metadata(layer.metadata())
                 .stats(layer.layerStats())
                 .attributeSchema(layer.schema())
-                .live(layer.live())
+                .live(!layer.indexable())
                 .build();
     }
 }

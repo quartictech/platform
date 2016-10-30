@@ -115,7 +115,7 @@ public class LayerStore {
         final Collection<Feature> newFeatures = importer.getFeatures();
 
         putLayer(appendFeatures(layer, newFeatures)
-                .withLive(true)
+                .withIndexable(false)
                 .withFeedEvents(updatedFeedEvents));
 
         notifyListeners(layerId, newFeatures);
@@ -187,7 +187,7 @@ public class LayerStore {
         return Layer.builder()
                 .layerId(layerId)
                 .metadata(metadata)
-                .live(false)
+                .indexable(true)
                 .schema(createSchema(features))
                 .features(features)
                 .feedEvents(ImmutableList.of())

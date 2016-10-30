@@ -105,8 +105,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
     private Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
         return ImmutableMap.of(
                 PostgresDatasetSource.class, source -> PostgresSource.create((PostgresDatasetSource)source, featureStore, objectMapper),
-                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, objectMapper),
-                WebsocketDatasetSource.class, source -> XXX),
+                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, objectMapper)
+//                WebsocketDatasetSource.class, source -> XXX),
         );
     }
 }

@@ -48,8 +48,8 @@ public class LayerStoreShould {
                 containsInAnyOrder(id1, id2));
         assertThat(layers.stream().map(AbstractLayer::metadata).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
-        assertThat(layers.stream().map(AbstractLayer::live).collect(toList()),
-                containsInAnyOrder(false, false));
+        assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
+                containsInAnyOrder(true, true));
     }
 
     @Test
@@ -77,8 +77,8 @@ public class LayerStoreShould {
         assertThat(num, equalTo(1));
 
         final Collection<AbstractLayer> layers = store.listLayers();
-        assertThat(layers.stream().map(AbstractLayer::live).collect(toList()),
-                containsInAnyOrder(true));
+        assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
+                containsInAnyOrder(false));
     }
 
     @Test

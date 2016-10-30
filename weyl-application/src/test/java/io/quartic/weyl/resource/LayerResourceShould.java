@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
+import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static org.mockito.Mockito.*;
 
 public class LayerResourceShould {
@@ -29,9 +30,9 @@ public class LayerResourceShould {
                         .metadata(LayerMetadata.of("foo", "bar", Optional.empty(), Optional.empty()))
                         .features(mock(io.quartic.weyl.core.feature.FeatureCollection.class))
                         .schema(mock(AttributeSchema.class))
-                        .live(true)
+                        .indexable(false)
                         .feedEvents(ImmutableList.of())
-                        .view((g, f) -> f.stream())
+                        .view(IDENTITY_VIEW)
                         .spatialIndex(mock(SpatialIndex.class))
                         .indexedFeatures(ImmutableList.of())
                         .layerStats(mock(LayerStats.class))

@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public interface AbstractLayer {
     LayerId layerId();
     LayerMetadata metadata();
-    boolean live();
+    boolean indexable();
     AttributeSchema schema();
     FeatureCollection features();
 
