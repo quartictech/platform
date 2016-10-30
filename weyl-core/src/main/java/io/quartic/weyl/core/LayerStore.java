@@ -73,27 +73,6 @@ public class LayerStore {
         subscriptions.removeAll(id);
     }
 
-    // TODO: currently only applies to live layers
-    // Returns number of features actually added
-    public int addToLayer(LayerId layerId, LiveImporter importer) {
-        checkLayerExists(layerId);
-        final Layer layer = layers.get(layerId);
-
-        final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-        updatedFeedEvents.addAll(importer.getFeedEvents());    // TODO: structural sharing
-
-        final Collection<Feature> newFeatures = importer.getFeatures();
-
-        putLayer(appendFeatures(layer, newFeatures)
-                .withIndexable(false)
-                .withFeedEvents(updatedFeedEvents));
-
-        notifyListeners(layerId, newFeatures);
-        notifySubscribers(layerId);
-
-        return newFeatures.size();
-    }
-
     public void addListener(LayerStoreListener layerStoreListener) {
         listeners.add(layerStoreListener);
     }
