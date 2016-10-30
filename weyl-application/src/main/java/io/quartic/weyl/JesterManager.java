@@ -46,19 +46,19 @@ public class JesterManager implements Runnable {
     }
 
     private void createAndImportLayer(DatasetId id, DatasetConfig config) {
-        final Function<DatasetSource, Importer> func = importerFactories.get(config.source().getClass());
-        if (func == null) {
-            throw new IllegalArgumentException("Unrecognised config type " + config.source().getClass());
-        }
-
-        final LayerId layerId = LayerId.of(id.uid());
-        final Subscriber<Stuff> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
-
         try {
+            final Function<DatasetSource, Importer> func = importerFactories.get(config.source().getClass());
+            if (func == null) {
+                throw new IllegalArgumentException("Unrecognised config type " + config.source().getClass());
+            }
+
             final Importer importer = func.apply(config.source());
+
+            final LayerId layerId = LayerId.of(id.uid());
+            final Subscriber<Stuff> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
             importer.getObservable().subscribeOn(Schedulers.computation()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific importer
         } catch (Exception e) {
-            LOG.error("Failed to import for " + id, e);
+            LOG.error("Error creating layer for dataset " + id, e);
         }
     }
 

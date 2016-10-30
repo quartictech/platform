@@ -12,7 +12,6 @@ import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.importer.Stuff;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
@@ -20,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Subscriber;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,7 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.stream.Collectors.toList;
 
 public class LayerStore {
-    private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final FeatureStore featureStore;
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final UidGenerator<LayerId> lidGenerator;
@@ -66,12 +64,12 @@ public class LayerStore {
 
             @Override
             public void onError(Throwable e) {
-                // TODO
+                LOG.error("Subscription error for layer " + id, e);
             }
 
             @Override
             public void onNext(Stuff stuff) {
-                log.info("Accepted {} features and {} feed events", stuff.features().size(), stuff.feedEvents().size());
+                LOG.info("Accepted {} features and {} feed events", stuff.features().size(), stuff.feedEvents().size());
                 final Layer layer = layers.get(id); // TODO: locking?
 
                 final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
@@ -103,18 +101,6 @@ public class LayerStore {
         checkLayerExists(id);
         layers.remove(id);
         subscriptions.removeAll(id);
-    }
-
-    // TODO: currently only applies to static layers
-    public void importToLayer(LayerId layerId, Importer importer) throws IOException {
-        checkLayerExists(layerId);
-
-        Collection<Feature> features = importer.get();
-        log.info("imported {} features", features.size());
-
-        final Layer layer = layers.get(layerId);
-
-        putLayer(updateIndicesAndStats(appendFeatures(layer, features)));
     }
 
     // TODO: currently only applies to live layers
