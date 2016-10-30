@@ -97,12 +97,12 @@ public class WeylApplication extends Application<WeylConfiguration> {
         )));
     }
 
-    private Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
+    private Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
         return ImmutableMap.of(
-                PostgresDatasetSource.class, source -> PostgresSource.create((PostgresDatasetSource)source, featureStore, environment.getObjectMapper()),
-                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, environment.getObjectMapper()),
-                WebsocketDatasetSource.class, source -> ImmutableWebsocketSource.builder()
-                        .source((WebsocketDatasetSource)source)
+                PostgresDatasetLocator.class, locator -> PostgresSource.create((PostgresDatasetLocator)locator, featureStore, environment.getObjectMapper()),
+                GeoJsonDatasetLocator.class, locator -> GeoJsonSource.create((GeoJsonDatasetLocator)locator, featureStore, environment.getObjectMapper()),
+                WebsocketDatasetLocator.class, locator -> ImmutableWebsocketSource.builder()
+                        .locator((WebsocketDatasetLocator)locator)
                         .converter(new LiveEventConverter(fidGenerator, eidGenerator))
                         .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())

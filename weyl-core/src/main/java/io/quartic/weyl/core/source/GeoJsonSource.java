@@ -2,7 +2,7 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.jester.api.GeoJsonDatasetSource;
+import io.quartic.jester.api.GeoJsonDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
@@ -32,9 +32,9 @@ public class GeoJsonSource implements Source {
     private final ObjectMapper objectMapper;
     private final URL url;
 
-    public static GeoJsonSource create(GeoJsonDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
+    public static GeoJsonSource create(GeoJsonDatasetLocator locator, FeatureStore featureStore, ObjectMapper objectMapper) {
         try {
-            return new GeoJsonSource(new URL(source.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
+            return new GeoJsonSource(new URL(locator.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Source URL malformed", e);
         }

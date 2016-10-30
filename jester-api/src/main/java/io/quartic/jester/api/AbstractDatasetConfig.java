@@ -7,5 +7,5 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface AbstractDatasetConfig {
     DatasetMetadata metadata();
-    DatasetSource source();
+    DatasetLocator locator();
 }

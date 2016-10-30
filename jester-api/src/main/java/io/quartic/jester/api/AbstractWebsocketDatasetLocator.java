@@ -5,6 +5,6 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractWebsocketDatasetSource extends DatasetSource {
+public interface AbstractWebsocketDatasetLocator extends DatasetLocator {
     String url();
 }

@@ -3,7 +3,7 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.jester.api.WebsocketDatasetSource;
+import io.quartic.jester.api.WebsocketDatasetLocator;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.glassfish.tyrus.client.ClientManager;
@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 @Value.Immutable
 public abstract class WebsocketSource implements Source {
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSource.class);
-    protected abstract WebsocketDatasetSource source();
+    protected abstract WebsocketDatasetLocator locator();
     protected abstract LiveEventConverter converter();
     protected abstract ObjectMapper objectMapper();
     protected abstract MetricRegistry metrics();
@@ -49,7 +49,7 @@ public abstract class WebsocketSource implements Source {
 
             final ClientManager clientManager = createClientManager();
             try {
-                clientManager.connectToServer(endpoint, new URI(source().url()));
+                clientManager.connectToServer(endpoint, new URI(locator().url()));
             } catch (URISyntaxException | DeploymentException | IOException e) {
                 sub.onError(e);
             }

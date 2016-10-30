@@ -22,9 +22,9 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class JesterManagerShould {
-    private static class SourceA implements DatasetSource {}
-    private static class SourceB implements DatasetSource {}
-    private static class SourceC implements DatasetSource {}
+    private static class LocatorA implements DatasetLocator {}
+    private static class SourceB implements DatasetLocator {}
+    private static class LocatorC implements DatasetLocator {}
 
     private final JesterService jester = mock(JesterService.class);
     private final LayerStore layerStore = mock(LayerStore.class);
@@ -33,10 +33,10 @@ public class JesterManagerShould {
     private final Source sourceA = importerOf(updateA, true);
     private final Source sourceB = importerOf(updateB, false);
 
-    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> importerFactories = ImmutableMap.of(
-            SourceA.class, source -> sourceA,
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> importerFactories = ImmutableMap.of(
+            LocatorA.class, source -> sourceA,
             SourceB.class, source -> sourceB,
-            SourceC.class, source -> { throw new RuntimeException("sad times"); }
+            LocatorC.class, source -> { throw new RuntimeException("sad times"); }
     );
     private final JesterManager manager = new JesterManager(jester, layerStore, importerFactories, Schedulers.immediate()); // Force onto same thread for synchronous behaviour
 
@@ -44,7 +44,7 @@ public class JesterManagerShould {
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         when(layerStore.createLayer(any(), any(), anyBoolean())).thenReturn(subscriber);
-        when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
+        when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())));
 
         manager.run();
 
@@ -57,7 +57,7 @@ public class JesterManagerShould {
     public void only_process_each_dataset_once() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         when(layerStore.createLayer(any(), any(), anyBoolean())).thenReturn(subscriber);
-        when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
+        when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())));
 
         manager.run();
         manager.run();
@@ -72,7 +72,7 @@ public class JesterManagerShould {
         when(layerStore.createLayer(eq(LayerId.of("123")), any(), anyBoolean())).thenReturn(subscriberA);
         when(layerStore.createLayer(eq(LayerId.of("456")), any(), anyBoolean())).thenReturn(subscriberB);
         when(jester.getDatasets())
-                .thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())))
+                .thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())))
                 .thenReturn(ImmutableMap.of(DatasetId.of("456"), datasetConfig(new SourceB())));
 
         manager.run();
@@ -86,7 +86,7 @@ public class JesterManagerShould {
 
     @Test
     public void not_propagate_exceptions() throws Exception {
-        when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceC())));
+        when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorC())));
 
         manager.run();
     }
@@ -95,7 +95,7 @@ public class JesterManagerShould {
         return SourceUpdate.of(newArrayList(mock(Feature.class)), emptyList());
     }
 
-    private DatasetConfig datasetConfig(DatasetSource source) {
+    private DatasetConfig datasetConfig(DatasetLocator source) {
         return DatasetConfig.of(
                 DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
                 source

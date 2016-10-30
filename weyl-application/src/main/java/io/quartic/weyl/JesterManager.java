@@ -19,7 +19,7 @@ public class JesterManager implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(JesterManager.class);
 
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
-    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> sourceFactories;
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> sourceFactories;
     private final JesterService jester;
     private final LayerStore layerStore;
     private final Scheduler scheduler;
@@ -28,7 +28,7 @@ public class JesterManager implements Runnable {
     public JesterManager(
             JesterService jester,
             LayerStore layerStore,
-            Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> sourceFactories,
+            Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> sourceFactories,
             Scheduler scheduler) {
         this.jester = jester;
         this.layerStore = layerStore;
@@ -50,12 +50,12 @@ public class JesterManager implements Runnable {
 
     private void createAndImportLayer(DatasetId id, DatasetConfig config) {
         try {
-            final Function<DatasetSource, Source> func = sourceFactories.get(config.source().getClass());
+            final Function<DatasetLocator, Source> func = sourceFactories.get(config.locator().getClass());
             if (func == null) {
-                throw new IllegalArgumentException("Unrecognised config type " + config.source().getClass());
+                throw new IllegalArgumentException("Unrecognised config type " + config.locator().getClass());
             }
 
-            final Source source = func.apply(config.source());
+            final Source source = func.apply(config.locator());
 
             final LayerId layerId = LayerId.of(id.uid());
             final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()), source.indexable());

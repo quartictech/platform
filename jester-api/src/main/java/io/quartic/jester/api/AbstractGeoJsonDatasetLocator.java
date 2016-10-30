@@ -5,6 +5,6 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractGeoJsonDatasetSource extends DatasetSource {
+public interface AbstractGeoJsonDatasetLocator extends DatasetLocator {
     String url();
 }
