@@ -10,6 +10,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,7 @@ public class JesterManagerShould {
             SourceB.class, source -> sourceB,
             SourceC.class, source -> { throw new RuntimeException("sad times"); }
     );
-    private final JesterManager manager = new JesterManager(jester, layerStore, importerFactories);
+    private final JesterManager manager = new JesterManager(jester, layerStore, importerFactories, Schedulers.immediate()); // Force onto same thread for synchronous behaviour
 
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {

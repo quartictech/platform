@@ -32,6 +32,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
 import io.quartic.weyl.service.WebsocketImporterService;
+import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
@@ -99,8 +100,10 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
 
+
+
         environment.lifecycle().manage(new Scheduler(ImmutableList.of(
-                ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper())))
+                ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper()), Schedulers.computation()))
         )));
     }
 
