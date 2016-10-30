@@ -192,6 +192,28 @@ public class LayerStoreShould {
         verifyNoMoreInteractions(subscriber);
     }
 
+    @Test
+    public void calculate_indices_for_indexable_layer() throws Exception {
+        assertThatLayerIndexedFeaturesHasSize(true, 1);
+    }
+
+    @Test
+    public void not_calculate_indices_for_non_indexable_layer() throws Exception {
+        assertThatLayerIndexedFeaturesHasSize(false, 0);
+    }
+
+    private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
+
+        Observable.just(
+                updateFor(feature("a", "1"))
+        ).subscribe(sub);
+
+        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+
+        assertThat(layer.indexedFeatures(), hasSize(size));
+    }
+
     private SourceUpdate updateFor(Feature... features) {
         return updateFor(asList(features), newArrayList());
     }
@@ -218,7 +240,11 @@ public class LayerStoreShould {
     }
 
     private Subscriber<SourceUpdate> createLayer(LayerId id) {
-        return store.createLayer(id, metadata("foo", "bar"), true, IDENTITY_VIEW);
+        return createLayer(id, true);
+    }
+
+    private Subscriber<SourceUpdate> createLayer(LayerId id, boolean indexable) {
+        return store.createLayer(id, metadata("foo", "bar"), indexable, IDENTITY_VIEW);
     }
 
     private LayerMetadata metadata(String name, String description) {

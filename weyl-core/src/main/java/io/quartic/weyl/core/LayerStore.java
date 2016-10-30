@@ -52,35 +52,8 @@ public class LayerStore {
 
     public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable, LayerView view) {
         checkLayerNotExists(id);
-
         putLayer(newLayer(id, metadata, indexable, view));
-
-        return new Subscriber<SourceUpdate>() {
-            @Override
-            public void onCompleted() {
-                // TODO
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                LOG.error("Subscription error for layer " + id, e);
-            }
-
-            @Override
-            public void onNext(SourceUpdate update) {
-                LOG.info("Accepted {} features and {} feed events", update.features().size(), update.feedEvents().size());
-                final Layer layer = layers.get(id); // TODO: locking?
-
-                final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
-
-                final Layer updatedLayer = appendFeatures(layer, update.features()).withFeedEvents(updatedFeedEvents);
-
-                putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-                notifyListeners(id, update.features());
-                notifySubscribers(id);
-            }
-        };
+        return subscriber(id, indexable);
     }
 
     public Collection<AbstractLayer> listLayers() {
@@ -149,7 +122,6 @@ public class LayerStore {
         }
     }
 
-    // TODO: currently only applies to indexable layers
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
         LayerComputation layerComputation = getLayerComputation(computationSpec);
 
@@ -259,5 +231,34 @@ public class LayerStore {
                 .featureCollection(computed.collect(toList()))
                 .feedEvents(layer.feedEvents())
                 .build();
+    }
+
+    private Subscriber<SourceUpdate> subscriber(final LayerId id, final boolean indexable) {
+        return new Subscriber<SourceUpdate>() {
+            @Override
+            public void onCompleted() {
+                // TODO
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                LOG.error("Subscription error for layer " + id, e);
+            }
+
+            @Override
+            public void onNext(SourceUpdate update) {
+                LOG.info("Accepted {} features and {} feed events", update.features().size(), update.feedEvents().size());
+                final Layer layer = layers.get(id); // TODO: locking?
+
+                final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
+                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
+
+                final Layer updatedLayer = appendFeatures(layer, update.features()).withFeedEvents(updatedFeedEvents);
+
+                putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
+                notifyListeners(id, update.features());
+                notifySubscribers(id);
+            }
+        };
     }
 }
