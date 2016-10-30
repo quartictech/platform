@@ -3,13 +3,12 @@ package io.quartic.weyl.resource;
 import com.google.common.base.Preconditions;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.ComputationSpec;
-import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.service.WebsocketImporterService;
 import io.quartic.weyl.request.LayerUpdateRequest;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
+import io.quartic.weyl.service.WebsocketImporterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +18,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -59,12 +56,6 @@ public class LayerResource {
         layerStore.createLayer(layerId, request.metadata(), request.viewType().getLayerView());
 
         webSocketImporterService.start(new URI(request.url()), layerId);
-    }
-
-    private void validateOrThrow(Stream<Feature> features, Predicate<Feature> predicate, String message) {
-        if (features.anyMatch(predicate)) {
-            throw new NotAcceptableException(message);
-        }
     }
 
     @GET

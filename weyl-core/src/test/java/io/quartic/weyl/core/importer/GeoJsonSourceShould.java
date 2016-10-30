@@ -1,7 +1,5 @@
 package io.quartic.weyl.core.importer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
@@ -26,6 +24,7 @@ import java.util.Optional;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
 import static java.util.Collections.emptyList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
@@ -33,9 +32,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class GeoJsonImporterShould {
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new Jdk8Module());
-
+public class GeoJsonSourceShould {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(DYNAMIC_PORT);
 

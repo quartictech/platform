@@ -12,10 +12,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.jester.api.DatasetSource;
-import io.quartic.jester.api.GeoJsonDatasetSource;
-import io.quartic.jester.api.JesterService;
-import io.quartic.jester.api.PostgresDatasetSource;
+import io.quartic.jester.api.*;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
@@ -100,8 +97,6 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
 
-
-
         environment.lifecycle().manage(new Scheduler(ImmutableList.of(
                 ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper()), Schedulers.computation()))
         )));
@@ -110,7 +105,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
     private Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
         return ImmutableMap.of(
                 PostgresDatasetSource.class, source -> PostgresSource.create((PostgresDatasetSource)source, featureStore, objectMapper),
-                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, objectMapper)
+                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, objectMapper),
+                WebsocketDatasetSource.class, source -> XXX),
         );
     }
 }

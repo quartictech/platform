@@ -17,7 +17,7 @@ dependencies {
     compile "org.jdbi:jdbi:2.75"
     compile "com.google.guava:guava:19.0"
     compile "org.slf4j:slf4j-api:1.7.21"
-    compile "org.glassfish.tyrus:tyrus-client:1.13"
+    compile "org.glassfish.tyrus:tyrus-client:${versions.tyrus}"
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
     compile "io.reactivex:rxjava:1.2.1"
     compile "io.dropwizard.metrics:metrics-core:${versions.metrics}"
@@ -28,6 +28,8 @@ dependencies {
 
     testCompile libraries.testCommon
     testCompile "com.github.tomakehurst:wiremock:2.2.2"
+    testCompile "org.glassfish.tyrus:tyrus-server:${versions.tyrus}"
+    testCompile "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}"
 }
 
 
