@@ -42,7 +42,7 @@ public class LayerResourceShould {
 
     @Test
     public void create_websocket_importer() throws URISyntaxException {
-        resource.updateLiveLayer("666", createRequest());
+        resource.createLiveLayer("666", createRequest());
         verify(websocketImporterService).start(new URI("ws://nowhere"), LayerId.of("666"));
     }
 

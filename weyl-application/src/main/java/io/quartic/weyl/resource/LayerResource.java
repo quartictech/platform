@@ -50,10 +50,10 @@ public class LayerResource {
     @POST
     @Path("/live/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) throws URISyntaxException {
+    public void createLiveLayer(@PathParam("id") String id, LayerUpdateRequest request) throws URISyntaxException {
         final LayerId layerId = LayerId.of(id);
 
-        layerStore.createLayer(layerId, request.metadata(), request.viewType().getLayerView());
+        layerStore.createLayer(layerId, request.metadata(), false, request.viewType().getLayerView());
 
         webSocketImporterService.start(new URI(request.url()), layerId);
     }

@@ -43,12 +43,12 @@ public class JesterManagerShould {
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any())).thenReturn(subscriber);
+        when(layerStore.createLayer(any(), any(), true)).thenReturn(subscriber);
         when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
 
         manager.run();
 
-        verify(layerStore).createLayer(LayerId.of("123"), LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()));
+        verify(layerStore).createLayer(LayerId.of("123"), LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()), true);
         subscriber.assertValue(updateA);
     }
 
@@ -56,21 +56,21 @@ public class JesterManagerShould {
     @Test
     public void only_process_each_dataset_once() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any())).thenReturn(subscriber);
+        when(layerStore.createLayer(any(), any(), true)).thenReturn(subscriber);
         when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
 
         manager.run();
         manager.run();
 
-        verify(layerStore, times(1)).createLayer(any(LayerId.class), any(LayerMetadata.class));
+        verify(layerStore, times(1)).createLayer(any(LayerId.class), any(LayerMetadata.class), true);
     }
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
         final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();
         final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
-        when(layerStore.createLayer(eq(LayerId.of("123")), any())).thenReturn(subscriberA);
-        when(layerStore.createLayer(eq(LayerId.of("456")), any())).thenReturn(subscriberB);
+        when(layerStore.createLayer(eq(LayerId.of("123")), any(), true)).thenReturn(subscriberA);
+        when(layerStore.createLayer(eq(LayerId.of("456")), any(), true)).thenReturn(subscriberB);
         when(jester.getDatasets())
                 .thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())))
                 .thenReturn(ImmutableMap.of(DatasetId.of("456"), datasetConfig(new SourceB())));
@@ -78,9 +78,9 @@ public class JesterManagerShould {
         manager.run();
         manager.run();
 
-        verify(layerStore).createLayer(eq(LayerId.of("123")), any(LayerMetadata.class));
+        verify(layerStore).createLayer(eq(LayerId.of("123")), any(LayerMetadata.class), true);
         subscriberA.assertValue(updateA);
-        verify(layerStore).createLayer(eq(LayerId.of("456")), any(LayerMetadata.class));
+        verify(layerStore).createLayer(eq(LayerId.of("456")), any(LayerMetadata.class), true);
         subscriberB.assertValue(updateB);
     }
 

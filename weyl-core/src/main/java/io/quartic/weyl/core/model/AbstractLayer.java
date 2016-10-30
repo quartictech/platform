@@ -21,11 +21,10 @@ public interface AbstractLayer {
     AttributeSchema schema();
     FeatureCollection features();
 
-    // Live features
     Collection<EnrichedFeedEvent> feedEvents();
     LayerView view();
 
-    // Static features
+    // Index features
     SpatialIndex spatialIndex();
     Collection<IndexedFeature> indexedFeatures();
     LayerStats layerStats();
