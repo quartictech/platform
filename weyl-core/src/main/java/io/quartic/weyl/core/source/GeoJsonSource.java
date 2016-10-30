@@ -60,6 +60,11 @@ public class GeoJsonSource implements Source {
         });
     }
 
+    @Override
+    public boolean indexable() {
+        return true;
+    }
+
     private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {
         final FeatureCollection featureCollection = objectMapper.readValue(url, FeatureCollection.class);
 

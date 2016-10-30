@@ -30,8 +30,8 @@ public class JesterManagerShould {
     private final LayerStore layerStore = mock(LayerStore.class);
     private final SourceUpdate updateA = createUpdate();
     private final SourceUpdate updateB = createUpdate();
-    private final Source sourceA = importerOf(updateA);
-    private final Source sourceB = importerOf(updateB);
+    private final Source sourceA = importerOf(updateA, true);
+    private final Source sourceB = importerOf(updateB, false);
 
     private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> importerFactories = ImmutableMap.of(
             SourceA.class, source -> sourceA,
@@ -43,7 +43,7 @@ public class JesterManagerShould {
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), true)).thenReturn(subscriber);
+        when(layerStore.createLayer(any(), any(), anyBoolean())).thenReturn(subscriber);
         when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
 
         manager.run();
@@ -56,21 +56,21 @@ public class JesterManagerShould {
     @Test
     public void only_process_each_dataset_once() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), true)).thenReturn(subscriber);
+        when(layerStore.createLayer(any(), any(), anyBoolean())).thenReturn(subscriber);
         when(jester.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())));
 
         manager.run();
         manager.run();
 
-        verify(layerStore, times(1)).createLayer(any(LayerId.class), any(LayerMetadata.class), true);
+        verify(layerStore, times(1)).createLayer(any(LayerId.class), any(LayerMetadata.class), eq(true));
     }
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
         final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();
         final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
-        when(layerStore.createLayer(eq(LayerId.of("123")), any(), true)).thenReturn(subscriberA);
-        when(layerStore.createLayer(eq(LayerId.of("456")), any(), true)).thenReturn(subscriberB);
+        when(layerStore.createLayer(eq(LayerId.of("123")), any(), anyBoolean())).thenReturn(subscriberA);
+        when(layerStore.createLayer(eq(LayerId.of("456")), any(), anyBoolean())).thenReturn(subscriberB);
         when(jester.getDatasets())
                 .thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new SourceA())))
                 .thenReturn(ImmutableMap.of(DatasetId.of("456"), datasetConfig(new SourceB())));
@@ -78,9 +78,9 @@ public class JesterManagerShould {
         manager.run();
         manager.run();
 
-        verify(layerStore).createLayer(eq(LayerId.of("123")), any(LayerMetadata.class), true);
+        verify(layerStore).createLayer(eq(LayerId.of("123")), any(LayerMetadata.class), eq(true));
         subscriberA.assertValue(updateA);
-        verify(layerStore).createLayer(eq(LayerId.of("456")), any(LayerMetadata.class), true);
+        verify(layerStore).createLayer(eq(LayerId.of("456")), any(LayerMetadata.class), eq(false));
         subscriberB.assertValue(updateB);
     }
 
@@ -102,9 +102,10 @@ public class JesterManagerShould {
         );
     }
 
-    private Source importerOf(SourceUpdate update) {
+    private Source importerOf(SourceUpdate update, boolean indexable) {
         final Source source = mock(Source.class);
         when(source.getObservable()).thenReturn(just(update));
+        when(source.indexable()).thenReturn(indexable);
         return source;
     }
 }

@@ -3,12 +3,14 @@ package io.quartic.weyl.core.importer;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.quartic.jester.api.WebsocketDatasetSource;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Geometry;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
+import io.quartic.weyl.core.source.ImmutableWebsocketSource;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.WebsocketSource;
 import org.glassfish.tyrus.server.Server;
@@ -21,8 +23,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -46,12 +46,8 @@ public class WebsocketSourceShould {
             }
         }
 
-        public URI uri() {
-            try {
-                return new URI("ws://localhost:" + server.getPort() + "/ws");
-            } catch (URISyntaxException e) {
-                throw new RuntimeException("Unexpected URI error", e);
-            }
+        public String uri() {
+            return "ws://localhost:" + server.getPort() + "/ws";
         }
 
         @Override
@@ -75,11 +71,12 @@ public class WebsocketSourceShould {
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
         when(converter.toUpdate(any())).thenReturn(update);
 
-        final WebsocketSource source = new WebsocketSource(
-                server.uri(),
-                converter,
-                OBJECT_MAPPER,
-                mock(MetricRegistry.class, RETURNS_DEEP_STUBS));
+        final WebsocketSource source = ImmutableWebsocketSource.builder()
+                .source(WebsocketDatasetSource.of(server.uri()))
+                .converter(converter)
+                .objectMapper(OBJECT_MAPPER)
+                .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
+                .build();
 
         TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         source.getObservable().subscribe(subscriber);

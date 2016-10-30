@@ -60,6 +60,11 @@ public class PostgresSource implements Source {
         });
     }
 
+    @Override
+    public boolean indexable() {
+        return true;
+    }
+
     private Collection<Feature> importAllFeatures() {
         try (final Handle h = dbi.open()) {
             final String expandedQuery = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
