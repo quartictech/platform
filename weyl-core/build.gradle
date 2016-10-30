@@ -26,6 +26,7 @@ dependencies {
     compile "org.geotools:gt-geometry:${versions.geoTools}"
 
     testCompile libraries.testCommon
+    testCompile "com.github.tomakehurst:wiremock:2.2.2"
 }
 
 

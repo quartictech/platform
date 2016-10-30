@@ -13,6 +13,7 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.jester.api.DatasetSource;
+import io.quartic.jester.api.GeoJsonDatasetSource;
 import io.quartic.jester.api.JesterService;
 import io.quartic.jester.api.PostgresDatasetSource;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
@@ -22,6 +23,7 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.importer.GeoJsonImporter;
 import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.importer.PostgresImporter;
 import io.quartic.weyl.core.live.LiveEventId;
@@ -87,8 +89,6 @@ public class WeylApplication extends Application<WeylConfiguration> {
         final WebsocketImporterService websocketImporterService = new WebsocketImporterService(layerStore, fidGenerator,
                 eidGenerator, environment.getObjectMapper(), environment.metrics());
 
-        final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
-
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore, websocketImporterService));
         environment.jersey().register(new TileResource(layerStore));
@@ -96,7 +96,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AlertResource(alertProcessor));
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
-        environment.jersey().register(new ImportResource(layerStore, featureStore, environment.getObjectMapper()));
+
+        final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
 
         environment.lifecycle().manage(new Scheduler(ImmutableList.of(
                 ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper())))
@@ -105,7 +106,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     private Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
         return ImmutableMap.of(
-                PostgresDatasetSource.class, source -> PostgresImporter.create((PostgresDatasetSource)source, featureStore, objectMapper)
+                PostgresDatasetSource.class, source -> PostgresImporter.create((PostgresDatasetSource)source, featureStore, objectMapper),
+                GeoJsonDatasetSource.class, source -> GeoJsonImporter.create((GeoJsonDatasetSource)source, featureStore, objectMapper)
         );
     }
 }
