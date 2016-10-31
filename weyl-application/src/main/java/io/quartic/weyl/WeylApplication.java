@@ -23,15 +23,16 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.importer.GeoJsonImporter;
-import io.quartic.weyl.core.importer.Importer;
-import io.quartic.weyl.core.importer.PostgresImporter;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.PostgresSource;
+import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
 import io.quartic.weyl.service.WebsocketImporterService;
+import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
@@ -99,15 +100,17 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
 
+
+
         environment.lifecycle().manage(new Scheduler(ImmutableList.of(
-                ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper())))
+                ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper()), Schedulers.computation()))
         )));
     }
 
-    private Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
+    private Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
         return ImmutableMap.of(
-                PostgresDatasetSource.class, source -> PostgresImporter.create((PostgresDatasetSource)source, featureStore, objectMapper),
-                GeoJsonDatasetSource.class, source -> GeoJsonImporter.create((GeoJsonDatasetSource)source, featureStore, objectMapper)
+                PostgresDatasetSource.class, source -> PostgresSource.create((PostgresDatasetSource)source, featureStore, objectMapper),
+                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, objectMapper)
         );
     }
 }

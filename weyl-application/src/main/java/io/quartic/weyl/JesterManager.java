@@ -3,11 +3,14 @@ package io.quartic.weyl;
 import com.google.common.collect.Maps;
 import io.quartic.jester.api.*;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.importer.Importer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.SourceUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Scheduler;
+import rx.Subscriber;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -16,17 +19,21 @@ public class JesterManager implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(JesterManager.class);
 
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
-    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories;
+    private final Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> sourceFactories;
     private final JesterService jester;
     private final LayerStore layerStore;
+    private final Scheduler scheduler;
+
 
     public JesterManager(
             JesterService jester,
             LayerStore layerStore,
-            Map<Class<? extends DatasetSource>, Function<DatasetSource, Importer>> importerFactories) {
+            Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> sourceFactories,
+            Scheduler scheduler) {
         this.jester = jester;
         this.layerStore = layerStore;
-        this.importerFactories = importerFactories;
+        this.sourceFactories = sourceFactories;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -42,17 +49,19 @@ public class JesterManager implements Runnable {
     }
 
     private void createAndImportLayer(DatasetId id, DatasetConfig config) {
-        final Function<DatasetSource, Importer> func = importerFactories.get(config.source().getClass());
-        if (func == null) {
-            throw new IllegalArgumentException("Unrecognised config type " + config.source().getClass());
-        }
-
-        final LayerId layerId = LayerId.of(id.uid());
-        layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
         try {
-            layerStore.importToLayer(layerId, func.apply(config.source()));
+            final Function<DatasetSource, Source> func = sourceFactories.get(config.source().getClass());
+            if (func == null) {
+                throw new IllegalArgumentException("Unrecognised config type " + config.source().getClass());
+            }
+
+            final Source source = func.apply(config.source());
+
+            final LayerId layerId = LayerId.of(id.uid());
+            final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(layerId, datasetMetadataFrom(config.metadata()));
+            source.getObservable().subscribeOn(scheduler).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
-            LOG.error("Failed to import for " + id, e);
+            LOG.error("Error creating layer for dataset " + id, e);
         }
     }
 

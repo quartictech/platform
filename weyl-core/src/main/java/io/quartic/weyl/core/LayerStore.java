@@ -1,7 +1,10 @@
 package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -9,13 +12,13 @@ import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.importer.Importer;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Subscriber;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +34,7 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.stream.Collectors.toList;
 
 public class LayerStore {
-    private static final Logger log = LoggerFactory.getLogger(LayerStore.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final FeatureStore featureStore;
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final UidGenerator<LayerId> lidGenerator;
@@ -43,15 +46,44 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public void createLayer(LayerId id, LayerMetadata metadata) {
-        createLayer(id, metadata, IDENTITY_VIEW);
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata) {
+        return createLayer(id, metadata, IDENTITY_VIEW);
     }
 
-    public void createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
         putLayer(layers.containsKey(id)
                 ? layers.get(id).withMetadata(metadata).withView(view)
                 : newUnindexedLayer(id, metadata, view)
         );
+
+        return new Subscriber<SourceUpdate>() {
+            @Override
+            public void onCompleted() {
+                // TODO
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                LOG.error("Subscription error for layer " + id, e);
+            }
+
+            @Override
+            public void onNext(SourceUpdate update) {
+                LOG.info("Accepted {} features and {} feed events", update.features().size(), update.feedEvents().size());
+                final Layer layer = layers.get(id); // TODO: locking?
+
+                final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
+                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
+
+                // TODO: don't want to update stats for live layers
+                putLayer(
+                        updateIndicesAndStats(appendFeatures(layer, update.features()))
+                                .withFeedEvents(updatedFeedEvents)
+                );
+                notifyListeners(id, update.features());
+                notifySubscribers(id);
+            }
+        };
     }
 
     public Collection<AbstractLayer> listLayers() {
@@ -69,19 +101,6 @@ public class LayerStore {
         checkLayerExists(id);
         layers.remove(id);
         subscriptions.removeAll(id);
-    }
-
-    // TODO: currently only applies to static layers
-    public void importToLayer(LayerId layerId, Importer importer) throws IOException {
-        checkLayerExists(layerId);
-
-        Collection<Feature> features = importer.get();
-        log.info("imported {} features", features.size());
-        log.info("envelope: {}:", Iterables.getFirst(features, null).geometry().getEnvelopeInternal());
-
-        final Layer layer = layers.get(layerId);
-
-        putLayer(updateIndicesAndStats(appendFeatures(layer, features)));
     }
 
     // TODO: currently only applies to live layers

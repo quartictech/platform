@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
@@ -18,6 +18,7 @@ import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -25,8 +26,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class PostgresImporter implements Importer {
-    private static final Logger log = LoggerFactory.getLogger(PostgresImporter.class);
+import static java.util.Collections.emptyList;
+
+public class PostgresSource implements Source {
+    private static final Logger log = LoggerFactory.getLogger(PostgresSource.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
@@ -38,11 +41,11 @@ public class PostgresImporter implements Importer {
     private final DBI dbi;
     private final String query;
 
-    public static PostgresImporter create(PostgresDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
-        return new PostgresImporter(new DBI(source.url(), source.user(), source.password()), source.query(), featureStore, objectMapper);
+    public static PostgresSource create(PostgresDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
+        return new PostgresSource(new DBI(source.url(), source.user(), source.password()), source.query(), featureStore, objectMapper);
     }
 
-    public PostgresImporter(DBI dbi, String query, FeatureStore featureStore, ObjectMapper objectMapper) {
+    public PostgresSource(DBI dbi, String query, FeatureStore featureStore, ObjectMapper objectMapper) {
         this.dbi = dbi;
         this.query = query;
         this.featureStore = featureStore;
@@ -50,7 +53,14 @@ public class PostgresImporter implements Importer {
     }
 
     @Override
-    public Collection<Feature> get() {
+    public Observable<SourceUpdate> getObservable() {
+        return Observable.create(sub -> {
+            sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+            sub.onCompleted();
+        });
+    }
+
+    private Collection<Feature> importAllFeatures() {
         try (final Handle h = dbi.open()) {
             final String expandedQuery = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
                     query);

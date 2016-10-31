@@ -19,6 +19,7 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "org.glassfish.tyrus:tyrus-client:1.13"
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
+    compile "io.reactivex:rxjava:1.2.1"
     compile "io.dropwizard.metrics:metrics-core:${versions.metrics}"
 
     compile "org.geotools:gt-epsg-hsql:${versions.geoTools}"

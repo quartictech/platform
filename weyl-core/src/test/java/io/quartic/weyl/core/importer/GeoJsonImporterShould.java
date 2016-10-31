@@ -13,9 +13,12 @@ import io.quartic.weyl.core.geojson.Geometry;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Rule;
 import org.junit.Test;
+import rx.observers.TestSubscriber;
 
 import java.net.URL;
 import java.util.Optional;
@@ -24,10 +27,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static java.util.Collections.emptyList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,12 +56,16 @@ public class GeoJsonImporterShould {
         FeatureStore store = mock(FeatureStore.class);
         when(store.getFeatureIdGenerator()).thenReturn(SequenceUidGenerator.of(FeatureId::of));
 
-        GeoJsonImporter importer = new GeoJsonImporter(
-                new URL("http://localhost:" + wireMockRule.port()),
-                store, GeometryTransformer.webMercatorToWebMercator(), OBJECT_MAPPER);
+        TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
 
-        assertThat(importer.get(), contains(
-                ImmutableFeature.of("abc", FeatureId.of("1"), toJts(geometry), ImmutableMap.of())
+        new GeoJsonSource(
+                new URL("http://localhost:" + wireMockRule.port()),
+                store, GeometryTransformer.webMercatorToWebMercator(), OBJECT_MAPPER)
+                .getObservable().subscribe(subscriber);
+
+        subscriber.assertValue(SourceUpdate.of(
+                newArrayList(ImmutableFeature.of("abc", FeatureId.of("1"), toJts(geometry), ImmutableMap.of())),
+                emptyList()
         ));
     }
 }

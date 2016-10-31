@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
@@ -12,6 +12,7 @@ import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -22,23 +23,25 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GeoJsonImporter implements Importer {
-    private static final Logger LOG = LoggerFactory.getLogger(GeoJsonImporter.class);
+import static java.util.Collections.emptyList;
+
+public class GeoJsonSource implements Source {
+    private static final Logger LOG = LoggerFactory.getLogger(GeoJsonSource.class);
     private final FeatureStore featureStore;
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
     private final URL url;
 
-    public static GeoJsonImporter create(GeoJsonDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
+    public static GeoJsonSource create(GeoJsonDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
         try {
-            return new GeoJsonImporter(new URL(source.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
+            return new GeoJsonSource(new URL(source.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Source URL malformed", e);
         }
     }
 
-    public GeoJsonImporter(URL url, FeatureStore featureStore,
-                            GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
+    public GeoJsonSource(URL url, FeatureStore featureStore,
+                         GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
         this.url = url;
         this.featureStore = featureStore;
         this.geometryTransformer = geometryTransformer;
@@ -46,7 +49,18 @@ public class GeoJsonImporter implements Importer {
     }
 
     @Override
-    public Collection<io.quartic.weyl.core.model.Feature> get() throws IOException {
+    public Observable<SourceUpdate> getObservable() {
+        return Observable.create(sub -> {
+            try {
+                sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+                sub.onCompleted();
+            } catch (IOException e) {
+                sub.onError(e);
+            }
+        });
+    }
+
+    private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {
         final FeatureCollection featureCollection = objectMapper.readValue(url, FeatureCollection.class);
 
         return featureCollection.features().stream().map(this::toJts)
