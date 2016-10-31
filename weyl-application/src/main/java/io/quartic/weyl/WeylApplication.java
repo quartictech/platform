@@ -12,10 +12,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.jester.api.DatasetSource;
-import io.quartic.jester.api.GeoJsonDatasetSource;
-import io.quartic.jester.api.JesterService;
-import io.quartic.jester.api.PostgresDatasetSource;
+import io.quartic.jester.api.*;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
@@ -23,15 +20,13 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.PostgresSource;
-import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
-import io.quartic.weyl.service.WebsocketImporterService;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
@@ -42,6 +37,10 @@ public class WeylApplication extends Application<WeylConfiguration> {
     private UpdateServer updateServer = null;   // TODO: deal with weird mutability
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
+    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
+    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+    private final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
+
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -73,10 +72,6 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
-        final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-        final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
-
         final FeatureStore featureStore = new FeatureStore(fidGenerator);
         final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
         final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
@@ -87,11 +82,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         alertProcessor.addListener(updateServer);
         geofenceStore.addListener(updateServer);
 
-        final WebsocketImporterService websocketImporterService = new WebsocketImporterService(layerStore, fidGenerator,
-                eidGenerator, environment.getObjectMapper(), environment.metrics());
-
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore, websocketImporterService));
+        environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
@@ -100,17 +92,21 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
 
-
-
         environment.lifecycle().manage(new Scheduler(ImmutableList.of(
-                ScheduleItem.of(2, new JesterManager(jester, layerStore, createImporterFactories(featureStore, environment.getObjectMapper()), Schedulers.computation()))
+                ScheduleItem.of(2, new JesterManager(jester, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation()))
         )));
     }
 
-    private Map<Class<? extends DatasetSource>, Function<DatasetSource, Source>> createImporterFactories(FeatureStore featureStore, ObjectMapper objectMapper) {
+    private Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
         return ImmutableMap.of(
-                PostgresDatasetSource.class, source -> PostgresSource.create((PostgresDatasetSource)source, featureStore, objectMapper),
-                GeoJsonDatasetSource.class, source -> GeoJsonSource.create((GeoJsonDatasetSource)source, featureStore, objectMapper)
+                PostgresDatasetLocator.class, locator -> PostgresSource.create((PostgresDatasetLocator)locator, featureStore, environment.getObjectMapper()),
+                GeoJsonDatasetLocator.class, locator -> GeoJsonSource.create((GeoJsonDatasetLocator)locator, featureStore, environment.getObjectMapper()),
+                WebsocketDatasetLocator.class, locator -> ImmutableWebsocketSource.builder()
+                        .locator((WebsocketDatasetLocator)locator)
+                        .converter(new LiveEventConverter(fidGenerator, eidGenerator))
+                        .objectMapper(environment.getObjectMapper())
+                        .metrics(environment.metrics())
+                        .build()
         );
     }
 }

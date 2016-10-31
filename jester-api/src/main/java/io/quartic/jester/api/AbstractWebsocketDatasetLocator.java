@@ -5,9 +5,6 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractPostgresDatasetSource extends DatasetSource {
-    String user();
-    String password();
+public interface AbstractWebsocketDatasetLocator extends DatasetLocator {
     String url();
-    String query();
 }

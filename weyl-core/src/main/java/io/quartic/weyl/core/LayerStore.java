@@ -46,44 +46,14 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata) {
-        return createLayer(id, metadata, IDENTITY_VIEW);
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable) {
+        return createLayer(id, metadata, indexable, IDENTITY_VIEW);
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view) {
-        putLayer(layers.containsKey(id)
-                ? layers.get(id).withMetadata(metadata).withView(view)
-                : newUnindexedLayer(id, metadata, view)
-        );
-
-        return new Subscriber<SourceUpdate>() {
-            @Override
-            public void onCompleted() {
-                // TODO
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                LOG.error("Subscription error for layer " + id, e);
-            }
-
-            @Override
-            public void onNext(SourceUpdate update) {
-                LOG.info("Accepted {} features and {} feed events", update.features().size(), update.feedEvents().size());
-                final Layer layer = layers.get(id); // TODO: locking?
-
-                final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
-
-                // TODO: don't want to update stats for live layers
-                putLayer(
-                        updateIndicesAndStats(appendFeatures(layer, update.features()))
-                                .withFeedEvents(updatedFeedEvents)
-                );
-                notifyListeners(id, update.features());
-                notifySubscribers(id);
-            }
-        };
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable, LayerView view) {
+        checkLayerNotExists(id);
+        putLayer(newLayer(id, metadata, indexable, view));
+        return subscriber(id, indexable);
     }
 
     public Collection<AbstractLayer> listLayers() {
@@ -103,33 +73,10 @@ public class LayerStore {
         subscriptions.removeAll(id);
     }
 
-    // TODO: currently only applies to live layers
-    // Returns number of features actually added
-    public int addToLayer(LayerId layerId, LiveImporter importer) {
-        checkLayerExists(layerId);
-        final Layer layer = layers.get(layerId);
-
-        final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-        updatedFeedEvents.addAll(importer.getFeedEvents());    // TODO: structural sharing
-
-        final Collection<Feature> newFeatures = importer.getFeatures();
-
-        putLayer(appendFeatures(layer, newFeatures)
-                .withLive(true)
-                .withFeedEvents(updatedFeedEvents));
-
-        notifyListeners(layerId, newFeatures);
-        notifySubscribers(layerId);
-
-        return newFeatures.size();
-    }
-
-    // TODO: currently only applies to live layers
     public void addListener(LayerStoreListener layerStoreListener) {
         listeners.add(layerStoreListener);
     }
 
-    // TODO: currently only applies to live layers
     public synchronized LayerSubscription addSubscriber(LayerId layerId, Consumer<LayerState> subscriber) {
         checkLayerExists(layerId);
         LayerSubscription subscription = LayerSubscription.of(layerId, layers.get(layerId).view(), subscriber);
@@ -138,7 +85,6 @@ public class LayerStore {
         return subscription;
     }
 
-    // TODO: currently only applies to live layers
     public synchronized void removeSubscriber(LayerSubscription layerSubscription) {
         subscriptions.remove(layerSubscription.layerId(), layerSubscription);
     }
@@ -155,13 +101,12 @@ public class LayerStore {
         }
     }
 
-    // TODO: currently only applies to static layers
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
         LayerComputation layerComputation = getLayerComputation(computationSpec);
 
         Optional<Layer> layer = layerComputation.compute().map(r ->
                 updateIndicesAndStats(appendFeatures(
-                        newUnindexedLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW),
+                        newLayer(lidGenerator.get(), r.metadata(), true, IDENTITY_VIEW),
                         r.features(),
                         r.schema()))
         );
@@ -177,17 +122,21 @@ public class LayerStore {
         Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
     }
 
+    private void checkLayerNotExists(LayerId layerId) {
+        Preconditions.checkArgument(!layers.containsKey(layerId), "Already have layer with id=" + layerId.uid());
+    }
+
     private void putLayer(Layer layer) {
         layers.put(layer.layerId(), layer);
     }
 
-    private Layer newUnindexedLayer(LayerId layerId, LayerMetadata metadata, LayerView view) {
+    private Layer newLayer(LayerId layerId, LayerMetadata metadata, boolean indexable, LayerView view) {
         final FeatureCollection features = featureStore.newCollection();
         final AttributeSchema schema = createSchema(features);
         return Layer.builder()
                 .layerId(layerId)
                 .metadata(metadata)
-                .live(false)
+                .indexable(indexable)
                 .schema(createSchema(features))
                 .features(features)
                 .feedEvents(ImmutableList.of())
@@ -261,5 +210,34 @@ public class LayerStore {
                 .featureCollection(computed.collect(toList()))
                 .feedEvents(layer.feedEvents())
                 .build();
+    }
+
+    private Subscriber<SourceUpdate> subscriber(final LayerId id, final boolean indexable) {
+        return new Subscriber<SourceUpdate>() {
+            @Override
+            public void onCompleted() {
+                // TODO
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                LOG.error("Subscription error for layer " + id, e);
+            }
+
+            @Override
+            public void onNext(SourceUpdate update) {
+                LOG.info("Accepted {} features and {} feed events", update.features().size(), update.feedEvents().size());
+                final Layer layer = layers.get(id); // TODO: locking?
+
+                final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
+                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
+
+                final Layer updatedLayer = appendFeatures(layer, update.features()).withFeedEvents(updatedFeedEvents);
+
+                putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
+                notifyListeners(id, update.features());
+                notifySubscribers(id);
+            }
+        };
     }
 }

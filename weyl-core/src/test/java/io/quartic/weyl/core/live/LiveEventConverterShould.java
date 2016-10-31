@@ -4,17 +4,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Geometry;
 import io.quartic.weyl.core.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -22,19 +22,24 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class LiveImporterShould {
+public class LiveEventConverterShould {
     public static final Instant TIMESTAMP = Instant.now();
     private final GeometryFactory factory = new GeometryFactory();
+    private final LiveEventConverter converter = new LiveEventConverter(
+            new SequenceUidGenerator<>(FeatureId::of),
+            new SequenceUidGenerator<>(LiveEventId::of),
+            GeometryTransformer.webMercatorToWebMercator()
+    );
 
     // TODO: multiple LiveEvents
 
     @Test
     public void convert_features() throws Exception {
-        final Collection<LiveEvent> events = liveEvents(geojsonFeature("a", Optional.of(point())));
+        final LiveEvent event = liveEvent(geojsonFeature("a", Optional.of(point())));
 
-        LiveImporter importer = importer(events);
+        final SourceUpdate update = converter.toUpdate(event);
 
-        assertThat(importer.getFeatures(), equalTo(ImmutableList.of(
+        assertThat(update.features(), equalTo(ImmutableList.of(
                 io.quartic.weyl.core.model.ImmutableFeature.builder()
                         .uid(FeatureId.of("1"))
                         .externalId("a")
@@ -46,45 +51,37 @@ public class LiveImporterShould {
 
     @Test
     public void ignore_features_with_null_geometry() throws Exception {
-        final Collection<LiveEvent> events = liveEvents(geojsonFeature("a", Optional.empty()));
+        final LiveEvent event = liveEvent(geojsonFeature("a", Optional.empty()));
 
-        LiveImporter importer = importer(events);
+        final SourceUpdate update = converter.toUpdate(event);
 
-        assertThat(importer.getFeatures(), empty());
+        assertThat(update.features(), empty());
     }
 
     @Test
     public void enrich_events() throws Exception {
         final FeedEvent feedEvent = FeedEvent.of("abc", "def", ImmutableMap.of("a", 999));
-        final Collection<LiveEvent> events = liveEvents(feedEvent);
+        final LiveEvent event = liveEvent(feedEvent);
 
-        LiveImporter importer = importer(events);
+        final SourceUpdate update = converter.toUpdate(event);
 
-        assertThat(importer.getFeedEvents(), equalTo(ImmutableList.of(
+        assertThat(update.feedEvents(), equalTo(ImmutableList.of(
                 EnrichedFeedEvent.of(LiveEventId.of("1"), TIMESTAMP, feedEvent)
         )));
     }
 
-    private LiveImporter importer(Collection<LiveEvent> events) {
-        return new LiveImporter(events,
-                new SequenceUidGenerator<>(FeatureId::of),
-                new SequenceUidGenerator<>(LiveEventId::of),
-                GeometryTransformer.webMercatorToWebMercator()
-        );
-    }
-
-    private Collection<LiveEvent> liveEvents(Feature... features) {
-        return ImmutableList.of(LiveEvent.of(
+    private LiveEvent liveEvent(Feature... features) {
+        return LiveEvent.of(
                 Instant.now(),
                 Optional.of(FeatureCollection.of(newArrayList(features))),
-                Optional.empty()));
+                Optional.empty());
     }
 
-    private Collection<LiveEvent> liveEvents(FeedEvent feedEvent) {
-        return ImmutableList.of(LiveEvent.of(
+    private LiveEvent liveEvent(FeedEvent feedEvent) {
+        return LiveEvent.of(
                 TIMESTAMP,
                 Optional.empty(),
-                Optional.of(feedEvent)));
+                Optional.of(feedEvent));
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {

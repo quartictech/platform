@@ -51,7 +51,7 @@ public class SpatialJoinShould {
 
     private AbstractLayer makeLayer(Collection<Feature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
-        final Subscriber<SourceUpdate> subscriber = store.createLayer(layerId, LayerMetadata.of("test", "test", Optional.empty(), Optional.empty()));
+        final Subscriber<SourceUpdate> subscriber = store.createLayer(layerId, LayerMetadata.of("test", "test", Optional.empty(), Optional.empty()), true);
 
         Observable.just(SourceUpdate.of(features, emptyList()))
                 .subscribe(subscriber);

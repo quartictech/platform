@@ -12,7 +12,7 @@ import rx.observers.Subscribers;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class PostgresImporterShould {
+public class PostgresSourceShould {
     @Test
     public void close_connection_when_done() throws Exception {
         DBI dbi = mock(DBI.class);

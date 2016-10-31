@@ -2,12 +2,13 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.jester.api.GeoJsonDatasetSource;
+import io.quartic.jester.api.GeoJsonDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
+import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
@@ -32,9 +33,9 @@ public class GeoJsonSource implements Source {
     private final ObjectMapper objectMapper;
     private final URL url;
 
-    public static GeoJsonSource create(GeoJsonDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
+    public static GeoJsonSource create(GeoJsonDatasetLocator locator, FeatureStore featureStore, ObjectMapper objectMapper) {
         try {
-            return new GeoJsonSource(new URL(source.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
+            return new GeoJsonSource(new URL(locator.url()), featureStore, GeometryTransformer.wgs84toWebMercator(), objectMapper);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Source URL malformed", e);
         }
@@ -58,6 +59,16 @@ public class GeoJsonSource implements Source {
                 sub.onError(e);
             }
         });
+    }
+
+    @Override
+    public boolean indexable() {
+        return true;
+    }
+
+    @Override
+    public LayerViewType viewType() {
+        return LayerViewType.MOST_RECENT;
     }
 
     private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {

@@ -3,21 +3,29 @@ package io.quartic.weyl.core;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import rx.Observable;
+import rx.Subscriber;
+import rx.subjects.PublishSubject;
 
+import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -25,6 +33,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LayerStoreShould {
+    public static final Instant INSTANT = Instant.now();
+    public static final LayerId LAYER_ID = LayerId.of("666");
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
@@ -39,8 +49,8 @@ public class LayerStoreShould {
         LayerId id1 = LayerId.of("666");
         LayerId id2 = LayerId.of("777");
 
-        store.createLayer(id1, lm1, IDENTITY_VIEW);
-        store.createLayer(id2, lm2, IDENTITY_VIEW);
+        store.createLayer(id1, lm1, true, IDENTITY_VIEW);
+        store.createLayer(id2, lm2, true, IDENTITY_VIEW);
 
         final Collection<AbstractLayer> layers = store.listLayers();
 
@@ -48,51 +58,50 @@ public class LayerStoreShould {
                 containsInAnyOrder(id1, id2));
         assertThat(layers.stream().map(AbstractLayer::metadata).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
-        assertThat(layers.stream().map(AbstractLayer::live).collect(toList()),
-                containsInAnyOrder(false, false));
+        assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
+                containsInAnyOrder(true, true));
     }
 
     @Test
     public void not_list_layer_once_deleted() throws Exception {
-        LayerId id = createLayer();
-        store.deleteLayer(id);
+        createLayer(LAYER_ID);
+        store.deleteLayer(LAYER_ID);
 
         assertThat(store.listLayers(), empty());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void throw_if_adding_to_non_existent_layer() throws Exception {
-        LiveImporter importer = importerFor(feature("a", "1"));
+    @Test
+    public void add_observed_features_and_events_to_layer() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        store.addToLayer(LayerId.of("666"), importer);
+        Observable.just(
+                updateFor(newArrayList(feature("a", "1")), newArrayList(event("789"))),
+                updateFor(newArrayList(feature("b", "2")), newArrayList(event("987")))
+        ).subscribe(sub);
+
+        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+        assertThat(layer.features(),
+                containsInAnyOrder(feature("a", "1"), feature("b", "2")));
+        assertThat(layer.feedEvents(),
+                containsInAnyOrder(event("789"), event("987")));
     }
 
     @Test
-    public void accept_if_adding_to_existing_layer() throws Exception {
-        LayerId id = createLayer();
-        LiveImporter importer = importerFor(feature("a", "1"));
+    public void notify_subscribers_of_observed_features_and_events() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        int num = store.addToLayer(id, importer);
-
-        assertThat(num, equalTo(1));
-
-        final Collection<AbstractLayer> layers = store.listLayers();
-        assertThat(layers.stream().map(AbstractLayer::live).collect(toList()),
-                containsInAnyOrder(true));
-    }
-
-    @Test
-    public void notify_subscribers_of_features_added_to_layer() throws Exception {
-        LayerId id = createLayer();
         Consumer<LayerState> subscriber = mock(Consumer.class);
-        LiveImporter importer = importerFor(feature("a", "1"));
+        store.addSubscriber(LAYER_ID, subscriber);
 
-        store.addSubscriber(id, subscriber);
-        store.addToLayer(id, importer);
+        Observable.just(
+                updateFor(newArrayList(feature("a", "1")), newArrayList(event("789")))
+        ).subscribe(sub);
 
         final LayerState layerState = captureLiveLayerState(subscriber);
         assertThat(layerState.featureCollection(),
                 containsInAnyOrder(feature("a", "1")));
+        assertThat(layerState.feedEvents(),
+                containsInAnyOrder(event("789")));
         assertThat(layerState.schema(),
                 equalTo(ImmutableAttributeSchema.builder()
                         .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
@@ -100,14 +109,21 @@ public class LayerStoreShould {
                 ));
     }
 
+    // TODO: using subjects is kind of gross (see e.g. http://tomstechnicalblog.blogspot.co.uk/2016/03/rxjava-problem-with-subjects.html)
+    // Luckily, this should go away once we model downstream stuff reactively too
     @Test
-    public void notify_subscribers_of_extra_features_added_to_layer() throws Exception {
-        LayerId id = createLayer();
-        Consumer<LayerState> subscriber = mock(Consumer.class);
+    public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        store.addToLayer(id, importerFor(feature("a", "1")));
-        store.addSubscriber(id, subscriber);
-        store.addToLayer(id, importerFor(feature("b", "2")));
+        PublishSubject<SourceUpdate> subject = PublishSubject.create();
+        subject.subscribe(sub);
+
+        subject.onNext(updateFor(feature("a", "1")));   // Observed before
+
+        Consumer<LayerState> subscriber = mock(Consumer.class);
+        store.addSubscriber(LAYER_ID, subscriber);
+
+        subject.onNext(updateFor(feature("b", "2")));   // Observed after
 
         assertThat(captureLiveLayerState(subscriber).featureCollection(),
                 containsInAnyOrder(
@@ -116,80 +132,94 @@ public class LayerStoreShould {
                 ));
     }
 
-    @Test
-    public void update_metadata_if_create_called_on_the_same_layer() throws Exception {
-        LayerId id = createLayer();
-        LayerMetadata newMetadata = metadata("cheese", "monkey");
-        store.createLayer(id, newMetadata, IDENTITY_VIEW);
-
-        final Collection<AbstractLayer> layers = store.listLayers();
-
-        assertThat(layers.stream().map(AbstractLayer::metadata).collect(toList()),
-                containsInAnyOrder(newMetadata));
+    @Test(expected = IllegalArgumentException.class)
+    public void throw_if_create_called_on_an_existing_layer() throws Exception {
+        createLayer(LAYER_ID);
+        createLayer(LAYER_ID);
     }
 
-    @Test
-    public void not_delete_layer_contents_if_create_called_on_the_same_layer() throws Exception {
-        LayerId id = createLayer();
-        Consumer<LayerState> subscriber = mock(Consumer.class);
 
-        store.addToLayer(id, importerFor(feature("a", "1")));
-
-        createLayer();  // Create again
-        store.addSubscriber(id, subscriber);
-        store.addToLayer(id, importerFor(feature("b", "2")));
-
-        assertThat(captureLiveLayerState(subscriber).featureCollection(),
-                containsInAnyOrder(
-                        feature("a", "1"),
-                        feature("b", "2")
-                ));
-    }
 
     @Test
     public void notify_listeners_on_change() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+
         LayerStoreListener listenerA = mock(LayerStoreListener.class);
         LayerStoreListener listenerB = mock(LayerStoreListener.class);
-
-        LayerId id = createLayer();
         store.addListener(listenerA);
         store.addListener(listenerB);
-        store.addToLayer(id, importerFor(feature("a", "1")));
 
-        verify(listenerA).onLiveLayerEvent(id, feature("a", "1"));
-        verify(listenerB).onLiveLayerEvent(id, feature("a", "1"));
+        Observable.just(
+                updateFor(feature("a", "1"))
+        ).subscribe(sub);
+
+        verify(listenerA).onLiveLayerEvent(LAYER_ID, feature("a", "1"));
+        verify(listenerB).onLiveLayerEvent(LAYER_ID, feature("a", "1"));
     }
 
     @Test
     public void not_notify_subscribers_after_unsubscribe() {
-        Consumer<LayerState> subscriber = mock(Consumer.class);
-        LayerId id = createLayer();
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        LayerSubscription subscription = store.addSubscriber(id, subscriber);
+        Consumer<LayerState> subscriber = mock(Consumer.class);
+        LayerSubscription subscription = store.addSubscriber(LAYER_ID, subscriber);
         verify(subscriber, times(1)).accept(any());
         store.removeSubscriber(subscription);
 
-        store.addToLayer(id, importerFor(feature("a", "1")));
+        Observable.just(
+                updateFor(feature("a", "1"))
+        ).subscribe(sub);
+
         verifyNoMoreInteractions(subscriber);
     }
 
     @Test
     public void unsubscribe_when_subscriber_deleted() {
+        createLayer(LAYER_ID);
+
         Consumer<LayerState> subscriber = mock(Consumer.class);
-        LayerId id = createLayer();
-        store.addSubscriber(id, subscriber);
+        store.addSubscriber(LAYER_ID, subscriber);
         verify(subscriber, times(1)).accept(any());
-        store.deleteLayer(id);
-        createLayerWithId(id);
-        store.addToLayer(id, importerFor(feature("a", "1")));
+
+        // Delete and recreate
+        store.deleteLayer(LAYER_ID);
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+
+        Observable.just(
+                updateFor(feature("a", "1"))
+        ).subscribe(sub);
 
         verifyNoMoreInteractions(subscriber);
     }
 
-    private LiveImporter importerFor(Feature... features) {
-        LiveImporter importer = mock(LiveImporter.class);
-        when(importer.getFeatures()).thenReturn(asList(features));
-        return importer;
+    @Test
+    public void calculate_indices_for_indexable_layer() throws Exception {
+        assertThatLayerIndexedFeaturesHasSize(true, 1);
+    }
+
+    @Test
+    public void not_calculate_indices_for_non_indexable_layer() throws Exception {
+        assertThatLayerIndexedFeaturesHasSize(false, 0);
+    }
+
+    private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
+
+        Observable.just(
+                updateFor(feature("a", "1"))
+        ).subscribe(sub);
+
+        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+
+        assertThat(layer.indexedFeatures(), hasSize(size));
+    }
+
+    private SourceUpdate updateFor(Feature... features) {
+        return updateFor(asList(features), newArrayList());
+    }
+
+    private SourceUpdate updateFor(List<Feature> features, List<EnrichedFeedEvent> events) {
+        return SourceUpdate.of(features, events);
     }
 
     private Feature feature(String externalId, String uid) {
@@ -201,14 +231,20 @@ public class LayerStoreShould {
                 .build();
     }
 
-    private LayerId createLayer() {
-        final LayerId id = LayerId.of("666");
-        createLayerWithId(id);
-        return id;
+    private EnrichedFeedEvent event(String id) {
+        return EnrichedFeedEvent.builder()
+                .id(LiveEventId.of(id))
+                .feedEvent(FeedEvent.of("foo", "bar", emptyMap()))
+                .timestamp(INSTANT)
+                .build();
     }
 
-    private void createLayerWithId(LayerId id) {
-        store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW);
+    private Subscriber<SourceUpdate> createLayer(LayerId id) {
+        return createLayer(id, true);
+    }
+
+    private Subscriber<SourceUpdate> createLayer(LayerId id, boolean indexable) {
+        return store.createLayer(id, metadata("foo", "bar"), indexable, IDENTITY_VIEW);
     }
 
     private LayerMetadata metadata(String name, String description) {

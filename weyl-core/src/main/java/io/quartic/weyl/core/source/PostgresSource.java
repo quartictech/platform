@@ -7,9 +7,10 @@ import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.jester.api.PostgresDatasetSource;
+import io.quartic.jester.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import org.postgresql.util.PGobject;
@@ -41,8 +42,8 @@ public class PostgresSource implements Source {
     private final DBI dbi;
     private final String query;
 
-    public static PostgresSource create(PostgresDatasetSource source, FeatureStore featureStore, ObjectMapper objectMapper) {
-        return new PostgresSource(new DBI(source.url(), source.user(), source.password()), source.query(), featureStore, objectMapper);
+    public static PostgresSource create(PostgresDatasetLocator locator, FeatureStore featureStore, ObjectMapper objectMapper) {
+        return new PostgresSource(new DBI(locator.url(), locator.user(), locator.password()), locator.query(), featureStore, objectMapper);
     }
 
     public PostgresSource(DBI dbi, String query, FeatureStore featureStore, ObjectMapper objectMapper) {
@@ -58,6 +59,16 @@ public class PostgresSource implements Source {
             sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
             sub.onCompleted();
         });
+    }
+
+    @Override
+    public boolean indexable() {
+        return true;
+    }
+
+    @Override
+    public LayerViewType viewType() {
+        return LayerViewType.MOST_RECENT;
     }
 
     private Collection<Feature> importAllFeatures() {

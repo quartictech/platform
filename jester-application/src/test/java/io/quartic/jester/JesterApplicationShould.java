@@ -23,7 +23,7 @@ public class JesterApplicationShould {
     public void retrieve_registered_datasets() throws Exception {
         final DatasetConfig config = DatasetConfig.of(
                 DatasetMetadata.of("Foo", "Bar", "Arlo", Optional.empty()),
-                PostgresDatasetSource.of("a", "b", "c", "d")
+                PostgresDatasetLocator.of("a", "b", "c", "d")
         );
 
         DatasetId did = jester.registerDataset(config);
