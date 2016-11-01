@@ -1,7 +1,6 @@
 package io.quartic.weyl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
@@ -10,11 +9,9 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.catalogue.api.*;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
@@ -26,9 +23,14 @@ import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.source.*;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.ImmutableWebsocketSource;
+import io.quartic.weyl.core.source.PostgresSource;
+import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
+import io.quartic.weyl.scheduler.ScheduleItem;
+import io.quartic.weyl.scheduler.Scheduler;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
@@ -94,9 +96,10 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
         final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
 
-        environment.lifecycle().manage(new Scheduler(ImmutableList.of(
-                ScheduleItem.of(2, new CatalogueManager(catalogue, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation()))
-        )));
+        environment.lifecycle().manage(Scheduler.builder()
+                .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(catalogue, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation())))
+                .build()
+        );
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {

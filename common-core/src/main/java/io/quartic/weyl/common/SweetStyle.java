@@ -6,6 +6,9 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @JsonSerialize
 @Value.Style(
+        add = "*",
+        addAll = "all*",
+        depluralize = true,
         allParameters = true,
         jdkOnly = true,
         typeAbstract = "Abstract*",
