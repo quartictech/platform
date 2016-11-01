@@ -3,7 +3,7 @@ package io.quartic.weyl.core.importer;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.jester.api.WebsocketDatasetLocator;
+import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Geometry;

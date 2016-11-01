@@ -2,7 +2,7 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.jester.api.GeoJsonDatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;

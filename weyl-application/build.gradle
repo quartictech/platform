@@ -11,7 +11,7 @@ dependencies {
     processor libraries.immutables
 
     compile project(":common-application")
-    compile project(":jester-api")
+    compile project(":catalogue-api")
     compile project(":weyl-core")
     compile project(":weyl-frontend")
 
