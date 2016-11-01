@@ -18,7 +18,7 @@ public final class ClientBuilder {
                 .encoder(new JacksonEncoder(OBJECT_MAPPER))
                 .decoder(new JacksonDecoder(OBJECT_MAPPER))
                 .logger(new Slf4jLogger(ClientBuilder.class))
-                .logLevel(Logger.Level.BASIC)
+                .logLevel(Logger.Level.FULL)
                 .target(clazz, url);
     }
 }

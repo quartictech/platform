@@ -40,7 +40,7 @@ public class CatalogueManager implements Runnable {
 
     @Override
     public void run() {
-        // TODO: exception handling
+        // TODO: this is fairly ghetto - we rely on exception handling in Scheduler as our retry policy (no backoff, etc.)
         final Map<DatasetId, DatasetConfig> datasets = catalogue.getDatasets();
         datasets.entrySet().stream()
                 .filter(e -> !this.datasets.containsKey(e.getKey()))
