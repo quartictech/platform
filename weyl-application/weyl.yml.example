@@ -1,31 +1,10 @@
-jesterUrl: http://localhost:8090/api
+catalogueUrl: http://localhost:8090/api
 
 server:
-#  softNofileLimit: 1000
-#  hardNofileLimit: 1000
   applicationContextPath: /
   applicationConnectors:
     - type: http
       port: 8080
-    - type: https
-      port: 8443
-      keyStorePath: example.keystore
-      keyStorePassword: example
-      validateCerts: false
-      validatePeers: false
-    #this requires the alpn-boot library on the JVM's boot classpath
-    #- type: h2
-    #  port: 8445
-    #  keyStorePath: example.keystore
-    #  keyStorePassword: example
-    #  validateCerts: false
-    #  validatePeers: false
   adminConnectors:
     - type: http
       port: 8081
-    - type: https
-      port: 8444
-      keyStorePath: example.keystore
-      keyStorePassword: example
-      validateCerts: false
-      validatePeers: false

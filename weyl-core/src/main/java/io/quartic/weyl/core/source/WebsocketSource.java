@@ -3,7 +3,7 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.jester.api.WebsocketDatasetLocator;
+import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;

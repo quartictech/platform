@@ -1,6 +1,5 @@
-package io.quartic.weyl.core.model;
+package io.quartic.catalogue.api;
 
-import io.quartic.catalogue.api.Icon;
 import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
@@ -8,9 +7,9 @@ import java.util.Optional;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractLayerMetadata {
+public interface AbstractDatasetMetadata {
     String name();
     String description();
-    Optional<String> attribution();
+    String attribution();
     Optional<Icon> icon();
 }

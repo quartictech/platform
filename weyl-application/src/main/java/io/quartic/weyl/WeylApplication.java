@@ -12,7 +12,9 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.jester.api.*;
+import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
@@ -90,10 +92,10 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
 
-        final JesterService jester = ClientBuilder.build(JesterService.class, configuration.getJesterUrl());
+        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
 
         environment.lifecycle().manage(new Scheduler(ImmutableList.of(
-                ScheduleItem.of(2, new JesterManager(jester, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation()))
+                ScheduleItem.of(2, new CatalogueManager(catalogue, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation()))
         )));
     }
 
