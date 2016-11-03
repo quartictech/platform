@@ -110,7 +110,12 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
-                GeoJsonDatasetLocator.class, config -> GeoJsonSource.create((GeoJsonDatasetLocator)config.locator(), featureStore, environment.getObjectMapper()),
+                GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                        .name(config.metadata().name())
+                        .locator((GeoJsonDatasetLocator)config.locator())
+                        .featureStore(featureStore)
+                        .objectMapper(environment.getObjectMapper())
+                        .build(),
                 WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
                         .locator((WebsocketDatasetLocator)config.locator())
