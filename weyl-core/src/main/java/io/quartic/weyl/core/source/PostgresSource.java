@@ -30,7 +30,7 @@ import java.util.Set;
 import static java.util.Collections.emptyList;
 
 public class PostgresSource implements Source {
-    private static final Logger log = LoggerFactory.getLogger(PostgresSource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PostgresSource.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
@@ -82,7 +82,7 @@ public class PostgresSource implements Source {
             while (iterator.hasNext()) {
                 count += 1;
                 if (count % 10000 == 0) {
-                    log.info("Importing feature: {}", count);
+                    LOG.info("Importing feature: {}", count);
                 }
                 Optional<Feature> feature = rowToFeature(iterator.next());
 
@@ -97,7 +97,7 @@ public class PostgresSource implements Source {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
-            log.error("Missing required geometry field: " + GEOM_WKB_FIELD);
+            LOG.error("Missing required geometry field: " + GEOM_WKB_FIELD);
             return Optional.empty();
         }
 
@@ -144,7 +144,7 @@ public class PostgresSource implements Source {
             try {
                 return Optional.of(objectMapper.readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
-                log.warn("exception parsing json to attribute: {}", e.toString());
+                LOG.warn("exception parsing json to attribute: {}", e.toString());
                 return Optional.empty();
             }
         }
