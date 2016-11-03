@@ -13,6 +13,7 @@ import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -29,28 +30,26 @@ import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
-public class PostgresSource implements Source {
-    private static final Logger log = LoggerFactory.getLogger(PostgresSource.class);
+@Value.Immutable
+public abstract class PostgresSource implements Source {
+    public static ImmutablePostgresSource.Builder builder() {
+        return ImmutablePostgresSource.builder();
+    }
+
+    private static final Logger LOG = LoggerFactory.getLogger(PostgresSource.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
     private static final String ID_FIELD = "id";
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
-    private final FeatureStore featureStore;
     private final WKBReader wkbReader = new WKBReader();
-    private final ObjectMapper objectMapper;
-    private final DBI dbi;
-    private final String query;
-
-    public static PostgresSource create(PostgresDatasetLocator locator, FeatureStore featureStore, ObjectMapper objectMapper) {
-        return new PostgresSource(new DBI(locator.url(), locator.user(), locator.password()), locator.query(), featureStore, objectMapper);
-    }
-
-    public PostgresSource(DBI dbi, String query, FeatureStore featureStore, ObjectMapper objectMapper) {
-        this.dbi = dbi;
-        this.query = query;
-        this.featureStore = featureStore;
-        this.objectMapper = objectMapper;
+    protected abstract String name();
+    protected abstract PostgresDatasetLocator locator();
+    protected abstract FeatureStore featureStore();
+    protected abstract ObjectMapper objectMapper();
+    @Value.Default
+    protected DBI dbi() {
+        return new DBI(locator().url(), locator().user(), locator().password());
     }
 
     @Override
@@ -72,17 +71,18 @@ public class PostgresSource implements Source {
     }
 
     private Collection<Feature> importAllFeatures() {
-        try (final Handle h = dbi.open()) {
-            final String expandedQuery = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL",
-                    query);
-            final ResultIterator<Map<String, Object>> iterator = h.createQuery(expandedQuery).iterator();
+        try (final Handle h = dbi().open()) {
+            LOG.info("[{}] Connection established", name());
+
+            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
+            final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
             Collection<Feature> features = Lists.newArrayList();
             int count = 0;
             while (iterator.hasNext()) {
                 count += 1;
                 if (count % 10000 == 0) {
-                    log.info("Importing feature: {}", count);
+                    LOG.info("[{}] Importing feature: {}", name(), count);
                 }
                 Optional<Feature> feature = rowToFeature(iterator.next());
 
@@ -97,7 +97,7 @@ public class PostgresSource implements Source {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
-            log.error("Missing required geometry field: " + GEOM_WKB_FIELD);
+            LOG.error("[{}] Missing required geometry field: " + GEOM_WKB_FIELD, name());
             return Optional.empty();
         }
 
@@ -122,7 +122,7 @@ public class PostgresSource implements Source {
             return ImmutableFeature.builder()
                     .geometry(geometry)
                     .metadata(attributes)
-                    .uid(featureStore.getFeatureIdGenerator().get())
+                    .uid(featureStore().getFeatureIdGenerator().get())
                     .externalId(id)
                     .build();
         });
@@ -142,9 +142,9 @@ public class PostgresSource implements Source {
         PGobject pgObject = (PGobject) value;
         if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
             try {
-                return Optional.of(objectMapper.readValue(pgObject.getValue(), ComplexAttribute.class));
+                return Optional.of(objectMapper().readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
-                log.warn("exception parsing json to attribute: {}", e.toString());
+                LOG.warn("[{}] Exception parsing json to attribute: {}", name(), e.toString());
                 return Optional.empty();
             }
         }

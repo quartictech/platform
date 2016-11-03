@@ -72,6 +72,7 @@ public class WebsocketSourceShould {
         when(converter.toUpdate(any())).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
+                .name("Budgie")
                 .locator(WebsocketDatasetLocator.of(server.uri()))
                 .converter(converter)
                 .objectMapper(OBJECT_MAPPER)

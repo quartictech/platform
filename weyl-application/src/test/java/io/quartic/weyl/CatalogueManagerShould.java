@@ -36,10 +36,10 @@ public class CatalogueManagerShould {
     private final Source sourceA = importerOf(updateA, true);
     private final Source sourceB = importerOf(updateB, false);
 
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> importerFactories = ImmutableMap.of(
-            LocatorA.class, locator -> sourceA,
-            LocatorB.class, locator -> sourceB,
-            LocatorC.class, locator -> { throw new RuntimeException("sad times"); }
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> importerFactories = ImmutableMap.of(
+            LocatorA.class, config -> sourceA,
+            LocatorB.class, config -> sourceB,
+            LocatorC.class, config -> { throw new RuntimeException("sad times"); }
     );
     private final CatalogueManager manager = new CatalogueManager(catalogue, layerStore, importerFactories, Schedulers.immediate()); // Force onto same thread for synchronous behaviour
 

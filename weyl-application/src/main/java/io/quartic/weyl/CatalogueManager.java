@@ -2,8 +2,6 @@ package io.quartic.weyl;
 
 import com.google.common.collect.Maps;
 import io.quartic.catalogue.api.*;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -21,7 +19,7 @@ public class CatalogueManager implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueManager.class);
 
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> sourceFactories;
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories;
     private final CatalogueService catalogue;
     private final LayerStore layerStore;
     private final Scheduler scheduler;
@@ -30,7 +28,7 @@ public class CatalogueManager implements Runnable {
     public CatalogueManager(
             CatalogueService catalogue,
             LayerStore layerStore,
-            Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> sourceFactories,
+            Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories,
             Scheduler scheduler) {
         this.catalogue = catalogue;
         this.layerStore = layerStore;
@@ -52,12 +50,12 @@ public class CatalogueManager implements Runnable {
 
     private void createAndImportLayer(DatasetId id, DatasetConfig config) {
         try {
-            final Function<DatasetLocator, Source> func = sourceFactories.get(config.locator().getClass());
+            final Function<DatasetConfig, Source> func = sourceFactories.get(config.locator().getClass());
             if (func == null) {
                 throw new IllegalArgumentException("Unrecognised config type " + config.locator().getClass());
             }
 
-            final Source source = func.apply(config.locator());
+            final Source source = func.apply(config);
 
             final LayerId layerId = LayerId.of(id.uid());
             final Subscriber<SourceUpdate> subscriber = layerStore.createLayer(
@@ -65,9 +63,12 @@ public class CatalogueManager implements Runnable {
                     datasetMetadataFrom(config.metadata()),
                     source.indexable(),
                     source.viewType().getLayerView());
+
+            LOG.info("[{}] Created layer", config.metadata().name());
+
             source.getObservable().subscribeOn(scheduler).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
-            LOG.error("Error creating layer for dataset " + id, e);
+            LOG.error("[{}] Error creating layer for dataset " + id, e);
         }
     }
 

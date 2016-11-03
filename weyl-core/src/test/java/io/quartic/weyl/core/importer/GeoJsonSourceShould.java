@@ -3,6 +3,7 @@ package io.quartic.weyl.core.importer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
+import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Feature;
@@ -18,7 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
-import java.net.URL;
 import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -55,9 +55,13 @@ public class GeoJsonSourceShould {
 
         TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
 
-        new GeoJsonSource(
-                new URL("http://localhost:" + wireMockRule.port()),
-                store, GeometryTransformer.webMercatorToWebMercator(), OBJECT_MAPPER)
+        GeoJsonSource.builder()
+                .name("Budgie")
+                .locator(GeoJsonDatasetLocator.of("http://localhost:" + wireMockRule.port()))
+                .featureStore(store)
+                .objectMapper(OBJECT_MAPPER)
+                .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())
+                .build()
                 .getObservable().subscribe(subscriber);
 
         subscriber.assertValue(SourceUpdate.of(

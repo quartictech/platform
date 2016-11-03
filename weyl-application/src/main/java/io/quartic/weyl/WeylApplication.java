@@ -24,9 +24,9 @@ import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.ImmutableWebsocketSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
 import io.quartic.weyl.scheduler.ScheduleItem;
@@ -35,6 +35,7 @@ import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 public class WeylApplication extends Application<WeylConfiguration> {
@@ -97,17 +98,32 @@ public class WeylApplication extends Application<WeylConfiguration> {
         final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
 
         environment.lifecycle().manage(Scheduler.builder()
-                .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(catalogue, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation())))
+                .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
+                        catalogue,
+                        layerStore,
+                        createSourceFactories(featureStore, environment),
+                        Schedulers.from(Executors.newScheduledThreadPool(2)))))
                 .build()
         );
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
+    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, locator -> PostgresSource.create((PostgresDatasetLocator)locator, featureStore, environment.getObjectMapper()),
-                GeoJsonDatasetLocator.class, locator -> GeoJsonSource.create((GeoJsonDatasetLocator)locator, featureStore, environment.getObjectMapper()),
-                WebsocketDatasetLocator.class, locator -> ImmutableWebsocketSource.builder()
-                        .locator((WebsocketDatasetLocator)locator)
+                PostgresDatasetLocator.class, config -> PostgresSource.builder()
+                        .name(config.metadata().name())
+                        .locator((PostgresDatasetLocator)config.locator())
+                        .featureStore(featureStore)
+                        .objectMapper(environment.getObjectMapper())
+                        .build(),
+                GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                        .name(config.metadata().name())
+                        .locator((GeoJsonDatasetLocator)config.locator())
+                        .featureStore(featureStore)
+                        .objectMapper(environment.getObjectMapper())
+                        .build(),
+                WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
+                        .name(config.metadata().name())
+                        .locator((WebsocketDatasetLocator)config.locator())
                         .converter(new LiveEventConverter(fidGenerator, eidGenerator))
                         .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())
