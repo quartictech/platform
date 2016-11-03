@@ -24,9 +24,9 @@ import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.ImmutableWebsocketSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
 import io.quartic.weyl.scheduler.ScheduleItem;
@@ -104,9 +104,13 @@ public class WeylApplication extends Application<WeylConfiguration> {
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetLocator, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, locator -> PostgresSource.create((PostgresDatasetLocator)locator, featureStore, environment.getObjectMapper()),
+                PostgresDatasetLocator.class, locator -> PostgresSource.builder()
+                        .locator((PostgresDatasetLocator)locator)
+                        .featureStore(featureStore)
+                        .objectMapper(environment.getObjectMapper())
+                        .build(),
                 GeoJsonDatasetLocator.class, locator -> GeoJsonSource.create((GeoJsonDatasetLocator)locator, featureStore, environment.getObjectMapper()),
-                WebsocketDatasetLocator.class, locator -> ImmutableWebsocketSource.builder()
+                WebsocketDatasetLocator.class, locator -> WebsocketSource.builder()
                         .locator((WebsocketDatasetLocator)locator)
                         .converter(new LiveEventConverter(fidGenerator, eidGenerator))
                         .objectMapper(environment.getObjectMapper())

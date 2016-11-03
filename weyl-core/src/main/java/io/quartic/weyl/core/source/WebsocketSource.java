@@ -21,6 +21,10 @@ import java.net.URISyntaxException;
 
 @Value.Immutable
 public abstract class WebsocketSource implements Source {
+    public static ImmutableWebsocketSource.Builder builder() {
+        return ImmutableWebsocketSource.builder();
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSource.class);
     protected abstract WebsocketDatasetLocator locator();
     protected abstract LiveEventConverter converter();

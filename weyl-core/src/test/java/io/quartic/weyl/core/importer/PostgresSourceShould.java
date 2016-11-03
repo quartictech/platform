@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.importer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.source.PostgresSource;
 import org.junit.Test;
@@ -25,7 +26,12 @@ public class PostgresSourceShould {
         FeatureStore featureStore = mock(FeatureStore.class);
         ObjectMapper mapper = new ObjectMapper();
 
-        PostgresSource importer = new PostgresSource(dbi, "SELECT * FROM foo", featureStore, mapper);
+        PostgresSource importer = PostgresSource.builder()
+                .locator(PostgresDatasetLocator.of("foo", "bar", "baz", "SELECT * FROM foo"))
+                .dbi(dbi)
+                .featureStore(featureStore)
+                .objectMapper(mapper)
+                .build();
 
         importer.getObservable().subscribe(Subscribers.empty());
 
