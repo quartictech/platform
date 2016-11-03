@@ -27,6 +27,7 @@ public class PostgresSourceShould {
         ObjectMapper mapper = new ObjectMapper();
 
         PostgresSource importer = PostgresSource.builder()
+                .name("Budgie")
                 .locator(PostgresDatasetLocator.of("foo", "bar", "baz", "SELECT * FROM foo"))
                 .dbi(dbi)
                 .featureStore(featureStore)

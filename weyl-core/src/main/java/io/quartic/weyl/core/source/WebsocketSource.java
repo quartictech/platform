@@ -26,6 +26,7 @@ public abstract class WebsocketSource implements Source {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSource.class);
+    protected abstract String name();
     protected abstract WebsocketDatasetLocator locator();
     protected abstract LiveEventConverter converter();
     protected abstract ObjectMapper objectMapper();
@@ -77,13 +78,13 @@ public abstract class WebsocketSource implements Source {
 
             @Override
             public boolean onDisconnect(CloseReason closeReason) {
-                LOG.info("Disconnecting: {}", closeReason);
+                LOG.info("[{}] Disconnecting: {}", name(), closeReason);
                 return true;
             }
 
             @Override
             public boolean onConnectFailure(Exception exception) {
-                LOG.info("Connection failure: {}", exception);
+                LOG.info("[{}] Connection failure: {}", name(), exception);
                 return true;
             }
 

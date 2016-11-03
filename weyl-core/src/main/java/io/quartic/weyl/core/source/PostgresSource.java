@@ -43,6 +43,7 @@ public abstract class PostgresSource implements Source {
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
     private final WKBReader wkbReader = new WKBReader();
+    protected abstract String name();
     protected abstract PostgresDatasetLocator locator();
     protected abstract FeatureStore featureStore();
     protected abstract ObjectMapper objectMapper();
@@ -71,6 +72,8 @@ public abstract class PostgresSource implements Source {
 
     private Collection<Feature> importAllFeatures() {
         try (final Handle h = dbi().open()) {
+            LOG.info("[{}] Connection established", name());
+
             final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
@@ -79,7 +82,7 @@ public abstract class PostgresSource implements Source {
             while (iterator.hasNext()) {
                 count += 1;
                 if (count % 10000 == 0) {
-                    LOG.info("Importing feature: {}", count);
+                    LOG.info("[{}] Importing feature: {}", name(), count);
                 }
                 Optional<Feature> feature = rowToFeature(iterator.next());
 
@@ -94,7 +97,7 @@ public abstract class PostgresSource implements Source {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
-            LOG.error("Missing required geometry field: " + GEOM_WKB_FIELD);
+            LOG.error("[{}] Missing required geometry field: " + GEOM_WKB_FIELD, name());
             return Optional.empty();
         }
 
@@ -141,7 +144,7 @@ public abstract class PostgresSource implements Source {
             try {
                 return Optional.of(objectMapper().readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
-                LOG.warn("exception parsing json to attribute: {}", e.toString());
+                LOG.warn("[{}] Exception parsing json to attribute: {}", name(), e.toString());
                 return Optional.empty();
             }
         }
