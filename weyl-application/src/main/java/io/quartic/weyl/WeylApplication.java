@@ -35,6 +35,7 @@ import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 public class WeylApplication extends Application<WeylConfiguration> {
@@ -97,7 +98,11 @@ public class WeylApplication extends Application<WeylConfiguration> {
         final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
 
         environment.lifecycle().manage(Scheduler.builder()
-                .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(catalogue, layerStore, createSourceFactories(featureStore, environment), Schedulers.computation())))
+                .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
+                        catalogue,
+                        layerStore,
+                        createSourceFactories(featureStore, environment),
+                        Schedulers.from(Executors.newScheduledThreadPool(2)))))
                 .build()
         );
     }
