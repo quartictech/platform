@@ -13,6 +13,8 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
 
+    compile libraries.rxjava
+
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 }

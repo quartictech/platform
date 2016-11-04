@@ -11,8 +11,10 @@ versions.feign = "8.18.0"
 versions.geoTools = "15.2"
 versions.metrics = "3.1.2"
 versions.tyrus = "1.13"
+versions.rxjava = "1.2.1"
 
 libraries.immutables = "org.immutables:value:${versions.immutables}"
+libraries.rxjava = "io.reactivex:rxjava:${versions.rxjava}"
 
 libraries.testCommon = [
         "junit:junit:4.12",
