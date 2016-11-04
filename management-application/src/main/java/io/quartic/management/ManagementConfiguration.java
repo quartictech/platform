@@ -1,4 +1,4 @@
-package io.quartic.catalogue;
+package io.quartic.management;
 
 import io.dropwizard.Configuration;
 

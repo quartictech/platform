@@ -1,4 +1,4 @@
-package io.quartic.catalogue;
+package io.quartic.management;
 
 import io.dropwizard.Application;
 import io.dropwizard.java8.Java8Bundle;
@@ -25,12 +25,13 @@ public class ManagementApplication extends Application<ManagementConfiguration> 
 
     @Override
     public void run(ManagementConfiguration configuration, Environment environment) throws Exception {
+        GcsConnector gcsConnector = new GcsConnector();
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
         environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
 
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new ManagementResource(didGenerator));
+        environment.jersey().register(new ManagementResource(gcsConnector));
     }
 }

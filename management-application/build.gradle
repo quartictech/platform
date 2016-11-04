@@ -13,6 +13,8 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
 
+    compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
+
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 }
@@ -25,7 +27,7 @@ jar {
 
 ext.memorySetting = System.env.MANAGEMENT_MEMORY ?: "64m"
 
-mainClassName = "io.quartic.catalogue.ManagementApplication"
+mainClassName = "io.quartic.management.ManagementApplication"
 applicationDefaultJvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
 
 
