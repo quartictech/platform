@@ -10,7 +10,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.StorageObject;
-import io.quartic.weyl.common.SweetStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,12 +22,12 @@ import java.util.Optional;
 public class GcsConnector {
     private static final Logger LOG = LoggerFactory.getLogger(GcsConnector.class);
     private final Storage storage;
+    private final String bucketName;
 
     private static Storage buildService() throws IOException, GeneralSecurityException {
         HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
         JsonFactory jsonFactory = new JacksonFactory();
         GoogleCredential credential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
-        LOG.info("credentials: {}", credential);
 
         // Depending on the environment that provides the default credentials (for
         // example: Compute Engine, App Engine), the credentials may require us to
@@ -44,8 +43,9 @@ public class GcsConnector {
                 .build();
     }
 
-    public GcsConnector() throws IOException, GeneralSecurityException {
+    public GcsConnector(String bucketName) throws IOException, GeneralSecurityException {
         this.storage = buildService();
+        this.bucketName = bucketName;
     }
 
     public Optional<InputStreamWithContentType> get(String objectName) throws IOException {
@@ -62,7 +62,7 @@ public class GcsConnector {
         InputStreamContent inputStreamContent = new InputStreamContent(contentType, inputStream);
         StorageObject objectMetadata = new StorageObject()
                 .setName(objectName);
-        Storage.Objects.Insert insert = storage.objects().insert("quartic-test", objectMetadata, inputStreamContent);
+        Storage.Objects.Insert insert = storage.objects().insert(bucketName, objectMetadata, inputStreamContent);
         insert.execute();
     }
 }
