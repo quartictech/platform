@@ -5,12 +5,9 @@ plugins {
 }
 
 dependencies {
-    processor libraries.immutables
+    compile libraries.immutables
 
     compile project(":common-core")
-    compile project(":model")
-
-    compile "javax.ws.rs:javax.ws.rs-api:2.0.1"
 }
 
 
