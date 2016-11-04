@@ -53,7 +53,7 @@ public class LiveEventConverter {
         return EnrichedFeedEvent.of(liveEvent.eventId(), liveEvent.liveEvent().timestamp(), feedEvent);
     }
 
-    private io.quartic.weyl.core.model.Feature toJts(io.quartic.weyl.core.geojson.Feature f) {
+    private io.quartic.weyl.core.model.Feature toJts(io.quartic.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         Geometry transformed = geometryTransformer.transform(Utils.toJts(f.geometry().get()));
 

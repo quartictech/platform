@@ -1,5 +1,6 @@
 include "common-core"
 include "common-application"
+include "data-model"
 include "catalogue-api"
 include "catalogue-application"
 include "weyl-core"
