@@ -11,6 +11,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
+import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
@@ -86,6 +87,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         updateServer.setLayerStore(layerStore);
         alertProcessor.addListener(updateServer);
         geofenceStore.addListener(updateServer);
+
+        environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
