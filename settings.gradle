@@ -1,8 +1,11 @@
 include "common-core"
 include "common-application"
+
+include "terminator-application"
+
 include "catalogue-api"
 include "catalogue-application"
+
 include "weyl-core"
 include "weyl-application"
 include "weyl-frontend"
-include "terminator-application"
