@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
+import java.util.Optional;
 
 public class GcsConnector {
     private static final Logger LOG = LoggerFactory.getLogger(GcsConnector.class);
@@ -47,10 +48,14 @@ public class GcsConnector {
         this.storage = buildService();
     }
 
-    public InputStreamWithContentType get(String objectName) throws IOException {
+    public Optional<InputStreamWithContentType> get(String objectName) throws IOException {
         Storage.Objects.Get get = storage.objects().get("quartic-test", objectName);
-        HttpResponse httpResponse = get.executeMedia();
-        return InputStreamWithContentType.of(httpResponse.getContentType(), httpResponse.getContent());
+        try {
+            HttpResponse httpResponse = get.executeMedia();
+            return Optional.of(InputStreamWithContentType.of(httpResponse.getContentType(), httpResponse.getContent()));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
     }
 
     public void put(String contentType, String objectName, InputStream inputStream) throws IOException {

@@ -1,13 +1,11 @@
 package io.quartic.management;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Path("/")
@@ -29,11 +27,13 @@ public class ManagementResource {
     @GET
     @Path("/file/{fileName}")
     public Response download(@PathParam("fileName") String fileName) throws IOException {
-        InputStreamWithContentType file = gcsConnector.get(fileName);
-        return Response.ok()
-                .header("Content-Type", file.contentType())
-                .entity(file.inputStream())
-                .build();
+        Optional<InputStreamWithContentType> file = gcsConnector.get(fileName);
+
+        return file.map( f ->
+            Response.ok()
+                .header("Content-Type", f.contentType())
+                .entity(f.inputStream())
+                .build()).orElseThrow(NotFoundException::new);
     }
 
     @PUT
