@@ -5,6 +5,8 @@ import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.catalogue.api.DatasetId;
@@ -12,7 +14,6 @@ import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
 
 public class ManagementApplication extends Application<ManagementConfiguration> {
-    private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetId::of);
 
     public static void main(String[] args) throws Exception {
         new ManagementApplication().run(args);
@@ -31,7 +32,8 @@ public class ManagementApplication extends Application<ManagementConfiguration> 
 
         environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
 
+        CatalogueService catalogueService = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new ManagementResource(gcsConnector));
+        environment.jersey().register(new ManagementResource(catalogueService, gcsConnector));
     }
 }

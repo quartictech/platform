@@ -1,5 +1,7 @@
 package io.quartic.management;
 
+import io.quartic.catalogue.api.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -11,9 +13,35 @@ import java.util.UUID;
 @Path("/")
 public class ManagementResource {
     private final GcsConnector gcsConnector;
+    private final CatalogueService catalogueService;
 
-    public ManagementResource(GcsConnector gcsConnector) {
+    public ManagementResource(CatalogueService catalogueService, GcsConnector gcsConnector) {
+        this.catalogueService = catalogueService;
         this.gcsConnector = gcsConnector;
+    }
+
+    @PUT
+    @Path("/dataset")
+    public String createDataset(CreateDatasetRequest createDatasetRequest) {
+        DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
+                    @Override
+                    public DatasetConfig visit(AbstractCreateStaticDatasetRequest request) {
+                        return DatasetConfig.of(
+                                request.metadata(),
+                                CloudGeojsonDatasetLocator.of("/file/" + request.fileName())
+                        );
+                    }
+
+                    @Override
+                    public DatasetConfig visit(AbstractCreateLiveDatasetRequest request) {
+                        return DatasetConfig.of(
+                                request.metadata(),
+                                TerminatorDatasetLocator.of("/api/" + UUID.randomUUID())
+                        );
+                    }
+        });
+        DatasetId datasetId = catalogueService.registerDataset(datasetConfig);
+        return datasetId.uid();
     }
 
     @PUT
@@ -34,11 +62,5 @@ public class ManagementResource {
                 .header("Content-Type", f.contentType())
                 .entity(f.inputStream())
                 .build()).orElseThrow(NotFoundException::new);
-    }
-
-    @PUT
-    @Path("/live")
-    public Response createLiveEndpoint() {
-        return null;
     }
 }

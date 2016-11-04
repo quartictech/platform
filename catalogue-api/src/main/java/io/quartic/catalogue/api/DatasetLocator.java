@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = PostgresDatasetLocator.class, name = "postgres"),
         @JsonSubTypes.Type(value = GeoJsonDatasetLocator.class, name = "geojson"),
         @JsonSubTypes.Type(value = WebsocketDatasetLocator.class, name = "websocket"),
+        @JsonSubTypes.Type(value = TerminatorDatasetLocator.class, name = "terminator"),
 })
 public interface DatasetLocator {
 }
