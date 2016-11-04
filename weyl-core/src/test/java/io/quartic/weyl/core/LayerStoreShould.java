@@ -3,6 +3,7 @@ package io.quartic.weyl.core;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.model.FeedEvent;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.feature.FeatureStore;

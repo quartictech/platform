@@ -8,7 +8,7 @@ dependencies {
     processor libraries.immutables
 
     compile project(":common-core")
-    compile project(":data-model")
+    compile project(":model")
 
     compile "javax.ws.rs:javax.ws.rs-api:2.0.1"
 }

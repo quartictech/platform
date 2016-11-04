@@ -1,6 +1,8 @@
 package io.quartic.weyl.core.live;
 
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.model.FeedEvent;
+import io.quartic.model.LiveEvent;
 import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.Feature;

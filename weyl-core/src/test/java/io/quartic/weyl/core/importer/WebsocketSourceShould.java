@@ -8,7 +8,7 @@ import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
-import io.quartic.weyl.core.live.LiveEvent;
+import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.source.ImmutableWebsocketSource;
 import io.quartic.weyl.core.source.SourceUpdate;

@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.live;
+package io.quartic.model;
 
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.common.SweetStyle;
