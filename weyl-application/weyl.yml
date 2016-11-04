@@ -1,4 +1,5 @@
 catalogueUrl: http://localhost:8090/api
+cloudStorageUrl: http://localhost:8100/api
 
 server:
   applicationContextPath: /

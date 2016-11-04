@@ -29,7 +29,7 @@ public class ManagementResource {
                     public DatasetConfig visit(AbstractCreateStaticDatasetRequest request) {
                         return DatasetConfig.of(
                                 request.metadata(),
-                                CloudGeojsonDatasetLocator.of("/file/" + request.fileName())
+                                CloudGeoJsonDatasetLocator.of("/file/" + request.fileName())
                         );
                     }
 

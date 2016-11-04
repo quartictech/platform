@@ -104,13 +104,13 @@ public class WeylApplication extends Application<WeylConfiguration> {
                 .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
                         catalogue,
                         layerStore,
-                        createSourceFactories(featureStore, environment),
+                        createSourceFactories(featureStore, environment, configuration),
                         Schedulers.from(Executors.newScheduledThreadPool(2)))))
                 .build()
         );
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
+    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(FeatureStore featureStore, Environment environment, WeylConfiguration configuration) {
         return ImmutableMap.of(
                 PostgresDatasetLocator.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
@@ -120,7 +120,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .build(),
                 GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
-                        .locator((GeoJsonDatasetLocator)config.locator())
+                        .url(((GeoJsonDatasetLocator) config.locator()).url())
                         .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
@@ -130,7 +130,14 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .converter(new LiveEventConverter(fidGenerator, eidGenerator))
                         .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())
-                        .build()
+                        .build(),
+                CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                        .name(config.metadata().name())
+                        .url(configuration.getCloudStorageUrl() +
+                                ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                    .featureStore(featureStore)
+                    .objectMapper(environment.getObjectMapper())
+                    .build()
         );
     }
 }
