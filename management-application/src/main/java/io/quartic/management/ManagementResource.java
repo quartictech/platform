@@ -21,6 +21,7 @@ public class ManagementResource {
     }
 
     @PUT
+    @Consumes("application/json")
     @Path("/dataset")
     public String createDataset(CreateDatasetRequest createDatasetRequest) {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
