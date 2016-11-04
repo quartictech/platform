@@ -69,7 +69,7 @@ public abstract class WebsocketSource implements Source {
 
     @Override
     public LayerViewType viewType() {
-        return LayerViewType.LOCATION_AND_TRACK;
+        return LayerViewType.MOST_RECENT;
     }
 
     private ClientManager createClientManager() {
