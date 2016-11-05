@@ -13,6 +13,7 @@ dependencies {
     compile project(":common-application")
     compile project(":model")
     compile project(":catalogue-api")
+    compile project(":terminator-api")
 
     compile libraries.rxjava
     compile libraries.dropwizardWebsockets

@@ -3,6 +3,7 @@ include "common-application"
 
 include "model"
 
+include "terminator-api"
 include "terminator-application"
 
 include "catalogue-api"
