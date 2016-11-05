@@ -39,6 +39,8 @@ public class TerminatorApplication extends Application<TerminatorConfiguration> 
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(terminator);
+
+        catalogue.start();
     }
 
     private ServerEndpointConfig createSocketServer(TerminatorResource terminator, ObjectMapper objectMapper) {
