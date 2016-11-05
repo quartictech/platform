@@ -3,6 +3,7 @@ package io.quartic.terminator;
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
+import io.quartic.catalogue.api.DatasetId;
 import io.quartic.model.LiveEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +18,10 @@ import javax.websocket.server.ServerEndpoint;
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/ws")
-public class SocketServer implements Subscriber<LiveEvent> {
+public class SocketServer {
     private static final Logger LOG = LoggerFactory.getLogger(SocketServer.class);
 
-    private final
-
     private Session session;
-
 
     @OnOpen
     public void onOpen(final Session session, EndpointConfig config) {
@@ -31,9 +29,23 @@ public class SocketServer implements Subscriber<LiveEvent> {
         LOG.info("[{}] Open", session.getId());
     }
 
+    public Subscriber<LiveEvent> createEventSubscriber(DatasetId id) {
+        return new Subscriber<LiveEvent>() {
+            @Override
+            public void onCompleted() {
+                // TODO
+                add();
+            }
 
+            @Override
+            public void onError(Throwable e) {
+                // TODO
+            }
 
-    public void doStuff() {
-
+            @Override
+            public void onNext(LiveEvent liveEvent) {
+                // TODO
+            }
+        };
     }
 }

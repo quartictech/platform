@@ -19,7 +19,7 @@ public class TerminatorApplication extends Application<TerminatorConfiguration> 
 
     @Override
     public void run(TerminatorConfiguration configuration, Environment environment) throws Exception {
-        environment.jersey().setUrlPattern("/api/*");
+        environment.jersey().setUrlPattern("/*");   // Note: *not* /api/*
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
         environment.jersey().register(new PingPongResource());
