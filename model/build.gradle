@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    compile libraries.immutables
+    processor libraries.immutables
 
     compile project(":common-core")
 }
