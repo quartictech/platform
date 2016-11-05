@@ -16,7 +16,7 @@ dependencies {
     compile "com.vividsolutions:jts:1.13"
     compile "org.postgresql:postgresql:9.4.1209"
     compile "org.jdbi:jdbi:2.75"
-    compile "com.google.guava:guava:19.0"
+    compile libraries.guava
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "org.glassfish.tyrus:tyrus-client:${versions.tyrus}"
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
