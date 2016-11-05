@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
@@ -10,9 +10,6 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
-import io.quartic.weyl.core.source.ImmutableWebsocketSource;
-import io.quartic.weyl.core.source.SourceUpdate;
-import io.quartic.weyl.core.source.WebsocketSource;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Rule;
 import org.junit.Test;
