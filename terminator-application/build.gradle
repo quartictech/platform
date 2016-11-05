@@ -14,6 +14,7 @@ dependencies {
     compile project(":catalogue-api")
 
     compile libraries.rxjava
+    compile libraries.dropwizardWebsockets
 
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
