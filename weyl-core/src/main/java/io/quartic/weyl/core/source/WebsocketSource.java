@@ -47,7 +47,7 @@ public abstract class WebsocketSource implements Source {
                         try {
                             sub.onNext(converter().toUpdate(objectMapper().readValue(message, LiveEvent.class)));
                         } catch (IOException e) {
-                            e.printStackTrace();    // TODO
+                            LOG.error("Error handling message", e);
                         }
                     });
                 }

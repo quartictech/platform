@@ -19,7 +19,8 @@ dependencies {
     compile libraries.dropwizardWebsockets
 
     testCompile libraries.testCommon
-    testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile libraries.wiremock
+    testCompile libraries.dropwizardTesting
 }
 
 jar {

@@ -28,7 +28,7 @@ public class TerminatorApplication extends Application<TerminatorConfiguration> 
 
     @Override
     public void run(TerminatorConfiguration configuration, Environment environment) throws Exception {
-        environment.jersey().setUrlPattern("/*");   // Note: *not* /api/*
+        environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
         final CatalogueProxy catalogue = CatalogueProxy.builder()

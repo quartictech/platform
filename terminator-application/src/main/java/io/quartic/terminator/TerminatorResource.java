@@ -8,12 +8,8 @@ import rx.subjects.PublishSubject;
 import rx.subjects.SerializedSubject;
 
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 
-@Path("/datasets")
-public class TerminatorResource {
+public class TerminatorResource implements TerminatorService {
     private final SerializedSubject<FeatureCollectionWithDatasetId, FeatureCollectionWithDatasetId> subject
             = PublishSubject.<FeatureCollectionWithDatasetId>create().toSerialized();
     private final CatalogueProxy catalogue;
@@ -22,9 +18,8 @@ public class TerminatorResource {
         this.catalogue = catalogue;
     }
 
-    @POST
-    @Path("/{id}")
-    public void postToDataset(@PathParam("id") String id, FeatureCollection featureCollection) {
+    @Override
+    public void postToDataset(String id, FeatureCollection featureCollection) {
         final DatasetId datasetId = DatasetId.of(id);
         if (catalogue.datasets().containsKey(datasetId)) {
             subject.onNext(FeatureCollectionWithDatasetId.of(datasetId, featureCollection));
@@ -33,7 +28,7 @@ public class TerminatorResource {
         }
     }
 
-    Observable<FeatureCollectionWithDatasetId> featureCollectionsWithDatasetIds() {
+    public Observable<FeatureCollectionWithDatasetId> featureCollectionsWithDatasetIds() {
         return subject;
     }
 }

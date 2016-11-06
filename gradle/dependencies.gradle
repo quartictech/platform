@@ -17,6 +17,15 @@ libraries.guava = "com.google.guava:guava:19.0"
 libraries.immutables = "org.immutables:value:${versions.immutables}"
 libraries.rxjava = "io.reactivex:rxjava:${versions.rxjava}"
 libraries.dropwizardWebsockets = "com.liveperson:dropwizard-websockets:1.0.0-1"  // BEWARE! The highest version number in maven central is 1.2. This is actually an older version (and not compatible with DW 1.0)
+libraries.dropwizardTesting = "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+libraries.wiremock = "com.github.tomakehurst:wiremock:2.2.2"
+
+libraries.tyrus = [
+        client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
+        server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
+        containerClient: "org.glassfish.tyrus:tyrus-container-grizzly-client:${versions.tyrus}",
+        containerServer: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}",
+]
 
 libraries.testCommon = [
         "junit:junit:4.12",
