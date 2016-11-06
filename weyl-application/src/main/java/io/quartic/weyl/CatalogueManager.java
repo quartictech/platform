@@ -66,7 +66,7 @@ public class CatalogueManager implements Runnable {
 
             LOG.info("[{}] Created layer", config.metadata().name());
 
-            source.getObservable().subscribeOn(scheduler).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
+            source.observable().subscribeOn(scheduler).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
             LOG.error("[{}] Error creating layer for dataset " + id, e);
         }

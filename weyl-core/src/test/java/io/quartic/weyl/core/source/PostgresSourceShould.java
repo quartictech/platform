@@ -33,7 +33,7 @@ public class PostgresSourceShould {
                 .objectMapper(mapper)
                 .build();
 
-        importer.getObservable().subscribe(Subscribers.empty());
+        importer.observable().subscribe(Subscribers.empty());
 
         verify(handle).close();
     }

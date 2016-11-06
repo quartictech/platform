@@ -1,65 +1,66 @@
 package io.quartic.weyl.core.source;
 
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 
-import javax.websocket.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.Optional;
+
+import static rx.Observable.empty;
+import static rx.Observable.just;
 
 @Value.Immutable
 public abstract class WebsocketSource implements Source {
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketSource.class);
+
     public static ImmutableWebsocketSource.Builder builder() {
         return ImmutableWebsocketSource.builder();
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebsocketSource.class);
     protected abstract String name();
     protected abstract WebsocketDatasetLocator locator();
     protected abstract LiveEventConverter converter();
     protected abstract ObjectMapper objectMapper();
     protected abstract MetricRegistry metrics();
-    @Value.Derived
-    protected Meter messageRateMeter() {
-        return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate"));
+
+    @Value.Default
+    protected WebsocketListener listener() {
+        return WebsocketListener.builder()
+                .name(name())
+                .url(locator().url())
+                .metrics(metrics())
+                .build();
     }
 
+    @Value.Lazy
     @Override
-    public Observable<SourceUpdate> getObservable() {
-        return Observable.create(sub -> {
-            final Endpoint endpoint = new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    session.addMessageHandler(String.class, message -> {
-                        messageRateMeter().mark();
-                        try {
-                            sub.onNext(converter().toUpdate(objectMapper().readValue(message, LiveEvent.class)));
-                        } catch (IOException e) {
-                            LOG.error("Error handling message", e);
-                        }
-                    });
-                }
-            };
+    public Observable<SourceUpdate> observable() {
+        return listener()
+                .observable()
+                .flatMap(this::convert);
+    }
 
-            final ClientManager clientManager = createClientManager();
-            try {
-                clientManager.connectToServer(endpoint, new URI(locator().url()));
-            } catch (URISyntaxException | DeploymentException | IOException e) {
-                sub.onError(e);
-            }
-        });
+    private Observable<SourceUpdate> convert(String message) {
+        try {
+            return just(converter().toUpdate(LiveEvent.of(
+                    Instant.now(),
+                    Optional.of(objectMapper().readValue(message, FeatureCollection.class)),
+                    Optional.empty()
+            )));
+        } catch (IOException e) {
+            LOG.error("Error converting message", e);
+            return empty();
+        }
     }
 
     @Override
@@ -70,30 +71,5 @@ public abstract class WebsocketSource implements Source {
     @Override
     public LayerViewType viewType() {
         return LayerViewType.LOCATION_AND_TRACK;
-    }
-
-    private ClientManager createClientManager() {
-        ClientManager clientManager = ClientManager.createClient();
-        ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
-
-            @Override
-            public boolean onDisconnect(CloseReason closeReason) {
-                LOG.info("[{}] Disconnecting: {}", name(), closeReason);
-                return true;
-            }
-
-            @Override
-            public boolean onConnectFailure(Exception exception) {
-                LOG.info("[{}] Connection failure: {}", name(), exception);
-                return true;
-            }
-
-            @Override
-            public long getDelay() {
-                return 1;
-            }
-        };
-        clientManager.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
-        return clientManager;
     }
 }

@@ -53,7 +53,7 @@ public abstract class PostgresSource implements Source {
     }
 
     @Override
-    public Observable<SourceUpdate> getObservable() {
+    public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
             sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
             sub.onCompleted();

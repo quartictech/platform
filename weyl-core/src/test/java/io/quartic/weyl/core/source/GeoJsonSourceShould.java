@@ -60,7 +60,7 @@ public class GeoJsonSourceShould {
                 .objectMapper(OBJECT_MAPPER)
                 .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())
                 .build()
-                .getObservable().subscribe(subscriber);
+                .observable().subscribe(subscriber);
 
         subscriber.assertValue(SourceUpdate.of(
                 newArrayList(ImmutableFeature.of("abc", FeatureId.of("1"), toJts(geometry), ImmutableMap.of())),

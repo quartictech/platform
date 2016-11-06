@@ -10,87 +10,58 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExternalResource;
+import org.mockito.ArgumentCaptor;
 import rx.observers.TestSubscriber;
 
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static rx.Observable.just;
 
 public class WebsocketSourceShould {
-    final static LiveEvent EVENT = liveEvent(geojsonFeature("a", Optional.of(point())));
-
-    public static class WebsocketServerRule extends ExternalResource {
-        private Server server;
-
-        @ServerEndpoint("/ws")
-        public static class DummyEndpoint {
-            @OnOpen
-            public void onOpen(Session session) throws IOException {
-                session.getBasicRemote().sendText(OBJECT_MAPPER.writeValueAsString(EVENT));
-            }
-        }
-
-        public String uri() {
-            return "ws://localhost:" + server.getPort() + "/ws";
-        }
-
-        @Override
-        protected void before() throws Throwable {
-            server = new Server("localhost", -1, "", null, DummyEndpoint.class);
-            server.start();
-        }
-
-        @Override
-        protected void after() {
-            server.stop();
-        }
-    }
-
-    @Rule
-    public WebsocketServerRule server = new WebsocketServerRule();
+    final static FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", Optional.of(point())));
 
     @Test
     public void import_things() throws Exception {
+        final WebsocketListener listener = mock(WebsocketListener.class);
         final LiveEventConverter converter = mock(LiveEventConverter.class);
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
+
+        when(listener.observable()).thenReturn(just(OBJECT_MAPPER.writeValueAsString(FEATURE_COLLECTION)));
         when(converter.toUpdate(any())).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .name("Budgie")
-                .locator(WebsocketDatasetLocator.of(server.uri()))
                 .converter(converter)
                 .objectMapper(OBJECT_MAPPER)
+                .listener(listener)
+                .locator(WebsocketDatasetLocator.of("whatever"))
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
 
         TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        source.getObservable().subscribe(subscriber);
-
+        source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
-        subscriber.assertValue(update);
-        verify(converter).toUpdate(EVENT);
+
+        ArgumentCaptor<LiveEvent> captor = ArgumentCaptor.forClass(LiveEvent.class);
+        verify(converter).toUpdate(captor.capture());
+        assertThat(captor.getValue().featureCollection(), equalTo(Optional.of(FEATURE_COLLECTION)));
+        assertThat(captor.getValue().feedEvent(), equalTo(Optional.empty()));
+        assertThat(subscriber.getOnNextEvents().get(0), is(update));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)
 
-    private static LiveEvent liveEvent(Feature... features) {
-        return LiveEvent.of(
-                Instant.now(),
-                Optional.of(FeatureCollection.of(newArrayList(features))),
-                Optional.empty());
+    private static FeatureCollection featureCollection(Feature... features) {
+        return FeatureCollection.of(newArrayList(features));
     }
 
     private static Feature geojsonFeature(String id, Optional<Geometry> geometry) {

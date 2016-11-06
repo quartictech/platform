@@ -53,7 +53,7 @@ public abstract class GeoJsonSource implements Source {
     }
 
     @Override
-    public Observable<SourceUpdate> getObservable() {
+    public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
             try {
                 sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
