@@ -56,6 +56,17 @@ public class CatalogueProxyShould {
     }
 
     @Test
+    public void not_slam_the_catalogue_on_error() throws Exception {
+        when(catalogue.getDatasets())
+                .thenThrow(new RuntimeException("oops"));
+
+        proxy.start();
+        Thread.sleep(100);
+
+        verify(catalogue, atMost(11)).getDatasets();
+    }
+
+    @Test
     public void expose_returned_datasets() throws Exception {
         final ImmutableMap<DatasetId, DatasetConfig> datasets = ImmutableMap.of(
                 DatasetId.of("123"),

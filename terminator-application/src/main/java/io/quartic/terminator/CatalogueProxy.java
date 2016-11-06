@@ -9,7 +9,9 @@ import io.quartic.common.client.ClientBuilder;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Func1;
 
 import java.util.Map;
 
@@ -41,8 +43,8 @@ public abstract class CatalogueProxy {
     public void start() {
         fromCallable(() -> catalogue().getDatasets())
                 .doOnError((e) -> LOG.error("Error polling catalogue", e))
-                .repeatWhen(o -> o.delay(pollPeriodMilliseconds(), MILLISECONDS))
-                .retry()
+                .repeatWhen(pollDelay())
+                .retryWhen(pollDelay())
                 .subscribe(new Subscriber<Map<DatasetId, DatasetConfig>>() {
                     @Override
                     public void onCompleted() {
@@ -63,6 +65,10 @@ public abstract class CatalogueProxy {
                     }
                 });
 
+    }
+
+    private Func1<Observable<?>, Observable<?>> pollDelay() {
+        return o -> o.delay(pollPeriodMilliseconds(), MILLISECONDS);
     }
 
     public Map<DatasetId, DatasetConfig> datasets() {
