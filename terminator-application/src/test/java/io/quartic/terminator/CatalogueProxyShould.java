@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class CatalogueProxyShould {
-    private static final int SLEEP_PERIOD_MILLISECONDS = 100;
+    private static final int SLEEP_PERIOD_MILLISECONDS = 250;
     private static final long POLL_PERIOD_MILLISECONDS = 10;
 
     private final CatalogueService catalogue = mock(CatalogueService.class);
