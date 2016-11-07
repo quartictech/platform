@@ -55,7 +55,7 @@ public class GeoJsonSourceShould {
 
         GeoJsonSource.builder()
                 .name("Budgie")
-                .locator(GeoJsonDatasetLocator.of("http://localhost:" + wireMockRule.port()))
+                .url("http://localhost:" + wireMockRule.port())
                 .featureStore(store)
                 .objectMapper(OBJECT_MAPPER)
                 .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())

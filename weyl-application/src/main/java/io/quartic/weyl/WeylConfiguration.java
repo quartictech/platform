@@ -2,9 +2,21 @@ package io.quartic.weyl;
 
 import io.dropwizard.Configuration;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 public class WeylConfiguration extends Configuration {
+    @Valid
+    @NotNull
     private String catalogueUrl;
+
+    @Valid
+    @NotNull
     private String terminatorUrl;
+
+    @Valid
+    @NotNull
+    private String cloudStorageUrl;
 
     public String getCatalogueUrl() {
         return catalogueUrl;
@@ -20,5 +32,13 @@ public class WeylConfiguration extends Configuration {
 
     public void setTerminatorUrl(String terminatorUrl) {
         this.terminatorUrl = terminatorUrl;
+    }
+
+    public String getCloudStorageUrl() {
+        return cloudStorageUrl;
+    }
+
+    public void setCloudStorageUrl(String cloudStorageUrl) {
+        this.cloudStorageUrl = cloudStorageUrl;
     }
 }
