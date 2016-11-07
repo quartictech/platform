@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.geojson;
+package io.quartic.geojson;
 
 import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;

@@ -6,10 +6,10 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Geometry;
-import io.quartic.weyl.core.geojson.Point;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.Geometry;
+import io.quartic.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.source.GeoJsonSource;
@@ -57,7 +57,7 @@ public class GeoJsonSourceShould {
 
         GeoJsonSource.builder()
                 .name("Budgie")
-                .locator(GeoJsonDatasetLocator.of("http://localhost:" + wireMockRule.port()))
+                .url("http://localhost:" + wireMockRule.port())
                 .featureStore(store)
                 .objectMapper(OBJECT_MAPPER)
                 .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())

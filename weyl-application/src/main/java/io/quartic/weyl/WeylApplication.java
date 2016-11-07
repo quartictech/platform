@@ -11,6 +11,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
+import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
@@ -85,6 +86,8 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
+        environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
+
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
@@ -99,13 +102,13 @@ public class WeylApplication extends Application<WeylConfiguration> {
                 .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
                         catalogue,
                         layerStore,
-                        createSourceFactories(featureStore, environment),
+                        createSourceFactories(featureStore, environment, configuration),
                         Schedulers.from(Executors.newScheduledThreadPool(2)))))
                 .build()
         );
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(FeatureStore featureStore, Environment environment) {
+    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(FeatureStore featureStore, Environment environment, WeylConfiguration configuration) {
         return ImmutableMap.of(
                 PostgresDatasetLocator.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
@@ -115,7 +118,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .build(),
                 GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
-                        .locator((GeoJsonDatasetLocator)config.locator())
+                        .url(((GeoJsonDatasetLocator) config.locator()).url())
                         .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
@@ -125,7 +128,14 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .converter(new LiveEventConverter(fidGenerator, eidGenerator))
                         .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())
-                        .build()
+                        .build(),
+                CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                        .name(config.metadata().name())
+                        .url(configuration.getCloudStorageUrl() +
+                                ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                    .featureStore(featureStore)
+                    .objectMapper(environment.getObjectMapper())
+                    .build()
         );
     }
 }
