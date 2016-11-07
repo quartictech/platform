@@ -10,17 +10,18 @@ dependencies {
     compile project(":common-core")
     compile project(":model")
     compile project(":catalogue-api")  // TODO: this is probably wrong - should move the dataset types to common
+    compile project(":terminator-api")
 
     compile "org.postgresql:postgresql:9.4.1209"
     compile "org.apache.commons:commons-io:1.3.2"
     compile "com.vividsolutions:jts:1.13"
     compile "org.postgresql:postgresql:9.4.1209"
     compile "org.jdbi:jdbi:2.75"
-    compile "com.google.guava:guava:19.0"
+    compile libraries.guava
     compile "org.slf4j:slf4j-api:1.7.21"
-    compile "org.glassfish.tyrus:tyrus-client:${versions.tyrus}"
+    compile libraries.tyrus.client
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
-    compile "io.reactivex:rxjava:1.2.1"
+    compile libraries.rxjava
     compile "io.dropwizard.metrics:metrics-core:${versions.metrics}"
 
     compile "org.geotools:gt-epsg-hsql:${versions.geoTools}"
@@ -28,9 +29,9 @@ dependencies {
     compile "org.geotools:gt-geometry:${versions.geoTools}"
 
     testCompile libraries.testCommon
-    testCompile "com.github.tomakehurst:wiremock:2.2.2"
-    testCompile "org.glassfish.tyrus:tyrus-server:${versions.tyrus}"
-    testCompile "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}"
+    testCompile libraries.wiremock
+    testCompile libraries.tyrus.server
+    testCompile libraries.tyrus.containerServer
 }
 
 

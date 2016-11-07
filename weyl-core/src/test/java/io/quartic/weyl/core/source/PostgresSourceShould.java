@@ -1,9 +1,8 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.source.PostgresSource;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -34,7 +33,7 @@ public class PostgresSourceShould {
                 .objectMapper(mapper)
                 .build();
 
-        importer.getObservable().subscribe(Subscribers.empty());
+        importer.observable().subscribe(Subscribers.empty());
 
         verify(handle).close();
     }

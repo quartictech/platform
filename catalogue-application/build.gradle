@@ -14,7 +14,7 @@ dependencies {
     compile project(":catalogue-api")
 
     testCompile libraries.testCommon
-    testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile libraries.dropwizardTesting
 }
 
 jar {

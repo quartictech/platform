@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.catalogue.api;
 
 import io.quartic.weyl.common.SweetStyle;
 import io.quartic.weyl.common.uid.Uid;
@@ -6,5 +6,5 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractTerminatorEndpointId extends Uid {
+public interface AbstractTerminationId extends Uid {
 }

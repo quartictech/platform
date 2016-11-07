@@ -24,10 +24,7 @@ import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.live.LiveEventId;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.PostgresSource;
-import io.quartic.weyl.core.source.Source;
-import io.quartic.weyl.core.source.WebsocketSource;
+import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
 import io.quartic.weyl.scheduler.ScheduleItem;
@@ -104,13 +101,26 @@ public class WeylApplication extends Application<WeylConfiguration> {
                 .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
                         catalogue,
                         layerStore,
-                        createSourceFactories(featureStore, environment, configuration),
+                        createSourceFactories(configuration, environment, featureStore),
                         Schedulers.from(Executors.newScheduledThreadPool(2)))))
                 .build()
         );
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(FeatureStore featureStore, Environment environment, WeylConfiguration configuration) {
+    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
+            WeylConfiguration configuration,
+            Environment environment,
+            FeatureStore featureStore
+    ) {
+        final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator);
+
+        final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
+                .url(configuration.getTerminatorUrl())
+                .converter(converter)
+                .objectMapper(environment.getObjectMapper())
+                .metrics(environment.metrics())
+                .build();
+
         return ImmutableMap.of(
                 PostgresDatasetLocator.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
@@ -126,18 +136,18 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .build(),
                 WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
-                        .locator((WebsocketDatasetLocator)config.locator())
-                        .converter(new LiveEventConverter(fidGenerator, eidGenerator))
+                        .locator((WebsocketDatasetLocator) config.locator())
+                        .converter(converter)
                         .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())
                         .build(),
+                TerminatorDatasetLocator.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
                 CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
-                        .url(configuration.getCloudStorageUrl() +
-                                ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                    .featureStore(featureStore)
-                    .objectMapper(environment.getObjectMapper())
-                    .build()
+                        .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                        .featureStore(featureStore)
+                        .objectMapper(environment.getObjectMapper())
+                        .build()
         );
     }
 }

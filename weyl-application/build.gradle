@@ -17,7 +17,7 @@ dependencies {
 
     compile "io.dropwizard:dropwizard-jdbi:${versions.dropwizard}"
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
-    compile "com.liveperson:dropwizard-websockets:1.0.0-1"  // BEWARE! The highest version number in maven central is 1.2. This is actually an older version (and not compatible with DW 1.0)
+    compile libraries.dropwizardWebsockets
 
     compile "org.glassfish.tyrus:tyrus-container-grizzly-client:1.13"
 

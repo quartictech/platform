@@ -49,6 +49,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     public UpdateServer(GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
+        LOG.info("Creating UpdateServer");
     }
 
     public void setLayerStore(LayerStore layerStore) {

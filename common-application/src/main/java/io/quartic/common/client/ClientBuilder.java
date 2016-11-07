@@ -2,6 +2,7 @@ package io.quartic.common.client;
 
 import feign.Feign;
 import feign.Logger;
+import feign.Retryer;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import feign.jaxrs.JAXRSContract;
@@ -17,6 +18,7 @@ public final class ClientBuilder {
                 .contract(new JAXRSContract())
                 .encoder(new JacksonEncoder(OBJECT_MAPPER))
                 .decoder(new JacksonDecoder(OBJECT_MAPPER))
+                .retryer(new Retryer.Default(0, 0, 1))
                 .logger(new Slf4jLogger(ClientBuilder.class))
                 .logLevel(Logger.Level.BASIC)
                 .target(clazz, url);

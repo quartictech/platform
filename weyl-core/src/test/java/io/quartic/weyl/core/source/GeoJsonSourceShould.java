@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.importer;
+package io.quartic.weyl.core.source;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -12,8 +12,6 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,7 +60,7 @@ public class GeoJsonSourceShould {
                 .objectMapper(OBJECT_MAPPER)
                 .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())
                 .build()
-                .getObservable().subscribe(subscriber);
+                .observable().subscribe(subscriber);
 
         subscriber.assertValue(SourceUpdate.of(
                 newArrayList(ImmutableFeature.of("abc", FeatureId.of("1"), toJts(geometry), ImmutableMap.of())),
