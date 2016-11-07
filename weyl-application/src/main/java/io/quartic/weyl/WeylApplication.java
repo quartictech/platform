@@ -37,12 +37,16 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 public class WeylApplication extends Application<WeylConfiguration> {
-    private UpdateServer updateServer = null;   // TODO: deal with weird mutability
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
     private final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
+
+    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
+    private final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
+    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
+    private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
 
     public static void main(String[] args) throws Exception {
@@ -57,13 +61,17 @@ public class WeylApplication extends Application<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
-        updateServer = new UpdateServer(transformFromFrontend, objectMapper);
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
                     @Override
+                    @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) updateServer;
+                        return (T) new UpdateServer(layerStore,
+                                geofenceStore,
+                                alertProcessor,
+                                transformFromFrontend,
+                                objectMapper);
                     }
                 })
                 .build();
@@ -74,16 +82,6 @@ public class WeylApplication extends Application<WeylConfiguration> {
     public void run(WeylConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
-
-        final FeatureStore featureStore = new FeatureStore(fidGenerator);
-        final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
-        final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
-        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
-
-        // TODO: deal with weird mutability
-        updateServer.setLayerStore(layerStore);
-        alertProcessor.addListener(updateServer);
-        geofenceStore.addListener(updateServer);
 
         environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
 
