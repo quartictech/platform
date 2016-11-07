@@ -10,7 +10,9 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
+import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceListener;
+import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
@@ -43,23 +45,26 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final ObjectMapper objectMapper;
     private final Set<Violation> violations = newHashSet();
     private final List<LayerSubscription> subscriptions = newArrayList();
+    private final GeofenceStore geofenceStore;
+    private final AlertProcessor alertProcessor;
     private LayerStore layerStore;
     private Session session;
 
-    public UpdateServer(GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
+    public UpdateServer(LayerStore layerStore, GeofenceStore geofenceStore, AlertProcessor alertProcessor, GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
+        this.layerStore = layerStore;
+        this.geofenceStore = geofenceStore;
+        this.alertProcessor = alertProcessor;
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
         LOG.info("Creating UpdateServer");
     }
 
-    public void setLayerStore(LayerStore layerStore) {
-        this.layerStore = layerStore;
-    }
-
     @OnOpen
     public void onOpen(final Session session, EndpointConfig config) {
-        this.session = session;
         LOG.info("[{}] Open", session.getId());
+        this.session = session;
+        alertProcessor.addListener(this);
+        geofenceStore.addListener(this);
     }
 
     @OnMessage
@@ -84,6 +89,8 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         LOG.info("[{}] Close", session.getId());
+        alertProcessor.removeListener(this);
+        geofenceStore.removeListener(this);
         unsubscribeAll();
     }
 
