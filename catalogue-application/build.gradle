@@ -7,6 +7,8 @@ plugins {
     id "com.palantir.configuration-resolver" version "0.1.0"
 }
 
+apply from: "../gradle/distribution.gradle"
+
 dependencies {
     processor libraries.immutables
 
