@@ -10,7 +10,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Path("/")
 public class ManagementResource {
@@ -27,7 +26,7 @@ public class ManagementResource {
     @PUT
     @Consumes("application/json")
     @Path("/dataset")
-    public String createDataset(CreateDatasetRequest createDatasetRequest) {
+    public DatasetId createDataset(CreateDatasetRequest createDatasetRequest) {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
                     @Override
                     public DatasetConfig visit(AbstractCreateStaticDatasetRequest request) {
@@ -46,10 +45,10 @@ public class ManagementResource {
                     }
         });
         DatasetId datasetId = catalogueService.registerDataset(datasetConfig);
-        return datasetId.uid();
+        return datasetId;
     }
 
-    @PUT
+    @POST
     @Path("/file")
     public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
         CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
