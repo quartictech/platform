@@ -4,16 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.geofence.GeofenceId;
-import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.geofence.ViolationId;
+import io.quartic.weyl.core.geofence.*;
 import io.quartic.weyl.core.geojson.Feature;
 import io.quartic.weyl.core.geojson.FeatureCollection;
 import io.quartic.weyl.core.model.FeatureId;
@@ -25,6 +23,7 @@ import io.quartic.weyl.message.GeofenceViolationsUpdateMessage;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.util.Collections;
@@ -47,6 +46,19 @@ public class UpdateServerShould {
     @Before
     public void setUp() throws Exception {
         server.onOpen(session, mock(EndpointConfig.class));
+    }
+
+    @Test
+    public void add_listener_on_open() {
+        verify(geofenceStore).addListener(server);
+        verify(alertProcessor).addListener(server);
+    }
+
+    @Test
+    public void remove_listener_on_close() {
+        server.onClose(session, mock(CloseReason.class));
+        verify(geofenceStore).removeListener(server);
+        verify(alertProcessor).removeListener(server);
     }
 
     @Test
