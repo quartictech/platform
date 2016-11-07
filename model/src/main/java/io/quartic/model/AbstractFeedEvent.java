@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.live;
+package io.quartic.model;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

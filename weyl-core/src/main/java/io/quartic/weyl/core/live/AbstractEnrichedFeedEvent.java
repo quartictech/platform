@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.live;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.quartic.model.FeedEvent;
 import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 

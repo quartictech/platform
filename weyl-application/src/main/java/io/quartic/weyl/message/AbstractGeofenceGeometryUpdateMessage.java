@@ -1,7 +1,7 @@
 package io.quartic.weyl.message;
 
 import io.quartic.weyl.common.SweetStyle;
-import io.quartic.weyl.core.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollection;
 import org.immutables.value.Value;
 
 @SweetStyle

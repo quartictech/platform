@@ -6,7 +6,7 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.core.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.model.GeometryWithMetadata;
 import io.quartic.weyl.core.model.ImmutableGeometryWithMetadata;
 import io.quartic.weyl.core.model.LayerId;

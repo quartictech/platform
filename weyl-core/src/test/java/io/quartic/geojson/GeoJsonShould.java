@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.geojson;
+package io.quartic.geojson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
