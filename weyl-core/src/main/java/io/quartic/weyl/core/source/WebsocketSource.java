@@ -4,7 +4,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.immutables.value.Value;
@@ -13,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Optional;
 
 import static rx.Observable.empty;
 import static rx.Observable.just;
@@ -52,11 +49,7 @@ public abstract class WebsocketSource implements Source {
 
     private Observable<SourceUpdate> convert(String message) {
         try {
-            return just(converter().toUpdate(LiveEvent.of(
-                    Instant.now(),
-                    Optional.of(objectMapper().readValue(message, FeatureCollection.class)),
-                    Optional.empty()
-            )));
+            return just(converter().updateFrom(objectMapper().readValue(message, FeatureCollection.class)));
         } catch (IOException e) {
             LOG.error("Error converting message", e);
             return empty();
@@ -70,6 +63,6 @@ public abstract class WebsocketSource implements Source {
 
     @Override
     public LayerViewType viewType() {
-        return LayerViewType.LOCATION_AND_TRACK;
+        return LayerViewType.MOST_RECENT;
     }
 }

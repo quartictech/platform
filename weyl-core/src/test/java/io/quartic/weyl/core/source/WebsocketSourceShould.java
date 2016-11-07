@@ -8,10 +8,8 @@ import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
-import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import rx.observers.TestSubscriber;
 
 import java.util.Optional;
@@ -19,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,7 +33,7 @@ public class WebsocketSourceShould {
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
 
         when(listener.observable()).thenReturn(just(OBJECT_MAPPER.writeValueAsString(FEATURE_COLLECTION)));
-        when(converter.toUpdate(any())).thenReturn(update);
+        when(converter.updateFrom(any(FeatureCollection.class))).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .name("Budgie")
@@ -51,10 +48,7 @@ public class WebsocketSourceShould {
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
-        ArgumentCaptor<LiveEvent> captor = ArgumentCaptor.forClass(LiveEvent.class);
-        verify(converter).toUpdate(captor.capture());
-        assertThat(captor.getValue().featureCollection(), equalTo(Optional.of(FEATURE_COLLECTION)));
-        assertThat(captor.getValue().feedEvent(), equalTo(Optional.empty()));
+        verify(converter).updateFrom(FEATURE_COLLECTION);
         assertThat(subscriber.getOnNextEvents().get(0), is(update));
     }
 
