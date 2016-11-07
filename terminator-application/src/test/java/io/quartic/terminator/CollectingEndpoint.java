@@ -8,6 +8,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
@@ -34,6 +35,18 @@ public class CollectingEndpoint<T> extends Endpoint {
                 }
             }
         });
+    }
+
+    public boolean awaitMessages(int expected, long timeout, TimeUnit unit) {
+        while (timeout != 0 && messages.size() < expected) {
+            try {
+                unit.sleep(1);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException("Interrupted", e);
+            }
+            timeout--;
+        }
+        return messages.size() >= expected;
     }
 
     public List<T> messages() {

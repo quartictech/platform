@@ -29,6 +29,7 @@ import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.Collections.emptyMap;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.contains;
@@ -67,6 +68,7 @@ public class TerminatorApplicationShould {
                 .connectToServer(collector, new URI("ws://localhost:" + APP_PORT + "/ws"));
 
         terminator.postToDataset(TERMINATION_ID, featureCollection());
+        collector.awaitMessages(1, 250, MILLISECONDS);
 
         assertThat(collector.messages(), contains(FeatureCollectionWithTerminationId.of(TerminationId.of(TERMINATION_ID), featureCollection())));
     }
