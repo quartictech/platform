@@ -53,11 +53,11 @@ public class SocketServer {
         subscriber.unsubscribe();
     }
 
-    public Subscriber<FeatureCollectionWithTerminationId> subscriber(Session session) {
+    private Subscriber<FeatureCollectionWithTerminationId> subscriber(Session session) {
         return new Subscriber<FeatureCollectionWithTerminationId>() {
             @Override
             public void onCompleted() {
-                LOG.error("Unexpectedly call to onCompleted");
+                LOG.error("Unexpected call to onCompleted");
             }
 
             @Override
