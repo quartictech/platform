@@ -7,22 +7,27 @@ import org.junit.Test;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Collections.emptyMap;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class CatalogueProxyShould {
+    private static final int SLEEP_PERIOD_MILLISECONDS = 100;
+    private static final long POLL_PERIOD_MILLISECONDS = 10;
+
     private final CatalogueService catalogue = mock(CatalogueService.class);
     private final CatalogueProxy proxy = CatalogueProxy.builder()
             .catalogue(catalogue)
-            .pollPeriodMilliseconds(10)
+            .pollPeriodMilliseconds(POLL_PERIOD_MILLISECONDS)
             .build();
 
     @Test
     public void poll_catalogue_repeatedly() throws Exception {
         proxy.start();
-        Thread.sleep(100);
+        Thread.sleep(SLEEP_PERIOD_MILLISECONDS);
 
         verify(catalogue, atLeast(2)).getDatasets();
     }
@@ -30,7 +35,10 @@ public class CatalogueProxyShould {
     @Test
     public void not_slam_the_catalogue_after_it_blocks_for_a_while() throws Exception {
         final AtomicInteger i = new AtomicInteger();
+        final MinDiffTracker tracker = new MinDiffTracker();
+
         when(catalogue.getDatasets()).then(invocation -> {
+            tracker.tick();
             if (i.getAndIncrement() == 1) { // Don't delay the very first one, because that delays the TestSubscriber subscription
                 Thread.sleep(70);
             }
@@ -38,9 +46,9 @@ public class CatalogueProxyShould {
         });
 
         proxy.start();
-        Thread.sleep(100);
+        Thread.sleep(SLEEP_PERIOD_MILLISECONDS);
 
-        verify(catalogue, atMost(5)).getDatasets(); // The naive approach would just slam it with a bunch of backed-up calls
+        assertThat(tracker.min(), greaterThanOrEqualTo(POLL_PERIOD_MILLISECONDS));
     }
 
     @Test
@@ -50,20 +58,24 @@ public class CatalogueProxyShould {
                 .thenReturn(emptyMap());
 
         proxy.start();
-        Thread.sleep(100);
+        Thread.sleep(SLEEP_PERIOD_MILLISECONDS);
 
         verify(catalogue, atLeast(2)).getDatasets();
     }
 
     @Test
     public void not_slam_the_catalogue_on_error() throws Exception {
-        when(catalogue.getDatasets())
-                .thenThrow(new RuntimeException("oops"));
+        final MinDiffTracker tracker = new MinDiffTracker();
+
+        when(catalogue.getDatasets()).then(invocation -> {
+            tracker.tick();
+            throw new RuntimeException("oops");
+        });
 
         proxy.start();
-        Thread.sleep(100);
+        Thread.sleep(SLEEP_PERIOD_MILLISECONDS);
 
-        verify(catalogue, atMost(11)).getDatasets();
+        assertThat(tracker.min(), greaterThanOrEqualTo(POLL_PERIOD_MILLISECONDS));
     }
 
     @Test
@@ -78,8 +90,24 @@ public class CatalogueProxyShould {
         when(catalogue.getDatasets()).thenReturn(datasets);
 
         proxy.start();
-        Thread.sleep(100);
+        Thread.sleep(SLEEP_PERIOD_MILLISECONDS);
 
         assertThat(proxy.terminationIds(), Matchers.contains(terminationId));
+    }
+
+    public static class MinDiffTracker {
+        private final AtomicLong prev = new AtomicLong();
+        private final AtomicLong min = new AtomicLong(Long.MAX_VALUE);
+
+        public void tick() {
+            final long now = System.currentTimeMillis();
+            final long diff = now - prev.get();
+            prev.set(now);
+            min.set((diff < min.get()) ? diff : min.get());
+        }
+
+        public long min() {
+            return min.get();
+        }
     }
 }
