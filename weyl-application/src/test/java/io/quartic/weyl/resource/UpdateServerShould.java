@@ -7,8 +7,11 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceId;
+import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geofence.ViolationId;
 import io.quartic.weyl.core.geojson.Feature;
@@ -36,7 +39,10 @@ public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final GeometryTransformer transformer = webMercatortoWgs84();
-    private final UpdateServer server = new UpdateServer(transformer, objectMapper);
+    private final LayerStore layerStore = mock(LayerStore.class);
+    private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
+    private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
+    private final UpdateServer server = new UpdateServer(layerStore, geofenceStore, alertProcessor, transformer, objectMapper);
 
     @Before
     public void setUp() throws Exception {
