@@ -26,14 +26,6 @@ public class ManagementResource {
         this.gcsConnector = gcsConnector;
     }
 
-    @POST
-    @Path("/file")
-    public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
-        CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
-        gcsConnector.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());
-        return cloudStorageId;
-    }
-
     @PUT
     @Path("/dataset")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -56,6 +48,14 @@ public class ManagementResource {
             }
         });
         return catalogueService.registerDataset(datasetConfig);
+    }
+
+    @POST
+    @Path("/file")
+    public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
+        CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
+        gcsConnector.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());
+        return cloudStorageId;
     }
 
     @GET
