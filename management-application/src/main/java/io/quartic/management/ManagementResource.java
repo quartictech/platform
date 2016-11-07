@@ -1,6 +1,8 @@
 package io.quartic.management;
 
 import io.quartic.catalogue.api.*;
+import io.quartic.weyl.common.uid.RandomUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -14,6 +16,8 @@ import java.util.UUID;
 public class ManagementResource {
     private final GcsConnector gcsConnector;
     private final CatalogueService catalogueService;
+    private final UidGenerator<CloudStorageId> cloudStorageIdGenerator = RandomUidGenerator.of(CloudStorageId::of);
+    private final UidGenerator<TerminatorEndpointId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminatorEndpointId::of);
 
     public ManagementResource(CatalogueService catalogueService, GcsConnector gcsConnector) {
         this.catalogueService = catalogueService;
@@ -37,7 +41,7 @@ public class ManagementResource {
                     public DatasetConfig visit(AbstractCreateLiveDatasetRequest request) {
                         return DatasetConfig.of(
                                 request.metadata(),
-                                TerminatorDatasetLocator.of("/api/" + UUID.randomUUID())
+                                TerminatorDatasetLocator.of("/api/" + terminatorEndpointIdGenerator.get().uid())
                         );
                     }
         });
@@ -47,10 +51,10 @@ public class ManagementResource {
 
     @PUT
     @Path("/file")
-    public String uploadFile(@Context HttpServletRequest request) throws IOException {
-        String fileName = UUID.randomUUID().toString();
-        gcsConnector.put(request.getContentType(), fileName, request.getInputStream());
-        return fileName;
+    public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
+        CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
+        gcsConnector.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());
+        return cloudStorageId;
     }
 
     @GET
