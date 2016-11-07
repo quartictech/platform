@@ -36,20 +36,12 @@ public abstract class GeoJsonSource implements Source {
     private static final Logger LOG = LoggerFactory.getLogger(GeoJsonSource.class);
 
     protected abstract String name();
-    protected abstract GeoJsonDatasetLocator locator();
+    protected abstract String url();
     protected abstract FeatureStore featureStore();
     protected abstract ObjectMapper objectMapper();
     @Value.Default
     protected GeometryTransformer geometryTransformer() {
         return GeometryTransformer.wgs84toWebMercator();
-    }
-    @Value.Derived
-    protected URL url() {
-        try {
-            return new URL(locator().url());
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Source URL malformed", e);
-        }
     }
 
     @Override
@@ -75,11 +67,15 @@ public abstract class GeoJsonSource implements Source {
     }
 
     private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {
-        final FeatureCollection featureCollection = objectMapper().readValue(url(), FeatureCollection.class);
+        final FeatureCollection featureCollection = objectMapper().readValue(parseURL(url()), FeatureCollection.class);
 
         return featureCollection.features().stream().map(this::toJts)
                 .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
                 .collect(Collectors.toList());
+    }
+
+    private URL parseURL(String url) throws MalformedURLException {
+        return new URL(url);
     }
 
     private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {
