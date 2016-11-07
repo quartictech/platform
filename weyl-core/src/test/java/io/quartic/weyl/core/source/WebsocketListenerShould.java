@@ -21,7 +21,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
 public class WebsocketListenerShould {
-
+    private static final int TIMEOUT_MILLISECONDS = 250;
     private WebsocketListener listener;
 
     public static class WebsocketServerRule extends ExternalResource {
@@ -70,7 +70,7 @@ public class WebsocketListenerShould {
 
         TestSubscriber<String> subscriber = TestSubscriber.create();
         listener.observable().subscribe(subscriber);
-        subscriber.awaitValueCount(1, 100, MILLISECONDS);
+        subscriber.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
         assertThat(subscriber.getOnNextEvents(), contains("foo", "bar"));
     }
@@ -83,8 +83,8 @@ public class WebsocketListenerShould {
         TestSubscriber<String> subB = TestSubscriber.create();
         listener.observable().subscribe(subA);
         listener.observable().subscribe(subB);
-        subA.awaitValueCount(1, 100, MILLISECONDS);
-        subB.awaitValueCount(1, 100, MILLISECONDS);
+        subA.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
+        subB.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
         assertThat(server.numConnections(), equalTo(1));
     }
