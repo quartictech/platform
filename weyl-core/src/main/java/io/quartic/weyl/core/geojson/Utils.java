@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
+import io.quartic.geojson.*;
 
 import java.util.Arrays;
 import java.util.List;

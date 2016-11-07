@@ -1,6 +1,6 @@
-package io.quartic.weyl.core.live;
+package io.quartic.model;
 
-import io.quartic.weyl.core.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 

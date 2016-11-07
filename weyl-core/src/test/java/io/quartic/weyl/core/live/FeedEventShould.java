@@ -2,12 +2,13 @@ package io.quartic.weyl.core.live;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import io.quartic.model.FeedEvent;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 public class FeedEventShould {
     @Test

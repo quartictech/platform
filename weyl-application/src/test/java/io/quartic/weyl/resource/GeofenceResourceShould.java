@@ -7,10 +7,10 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.core.geojson.Feature;
-import io.quartic.weyl.core.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Point;
-import io.quartic.weyl.core.geojson.Polygon;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.Polygon;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
@@ -122,7 +122,7 @@ public class GeofenceResourceShould {
         return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon), metadata);
     }
 
-    private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.weyl.core.geojson.Geometry geometry) {
+    private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
         return ImmutableFeature.of("123", FeatureId.of("abc"), toJts(geometry), FEATURE_METADATA);
     }
 
