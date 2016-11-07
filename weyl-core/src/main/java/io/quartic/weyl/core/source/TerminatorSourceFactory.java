@@ -2,8 +2,8 @@ package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.terminator.api.FeatureCollectionWithDatasetId;
+import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.immutables.value.Value;
@@ -39,25 +39,25 @@ public abstract class TerminatorSourceFactory {
     }
 
     @Value.Derived
-    protected Observable<FeatureCollectionWithDatasetId> collections() {
+    protected Observable<FeatureCollectionWithTerminationId> collections() {
         return listener().observable().flatMap(this::convert);
     }
 
-    private Observable<FeatureCollectionWithDatasetId> convert(String message) {
+    private Observable<FeatureCollectionWithTerminationId> convert(String message) {
         try {
-            return just(objectMapper().readValue(message, FeatureCollectionWithDatasetId.class));
+            return just(objectMapper().readValue(message, FeatureCollectionWithTerminationId.class));
         } catch (IOException e) {
             LOG.error("Error converting message", e);
             return empty();
         }
     }
 
-    public Source sourceFor(DatasetId id) {
+    public Source sourceFor(TerminatorDatasetLocator locator) {
         return new Source() {
             @Override
             public Observable<SourceUpdate> observable() {
                 return collections()
-                        .filter(fcwdi -> fcwdi.datasetId().equals(id))
+                        .filter(fcwi -> fcwi.terminationId().equals(locator.id()))  // TODO: this scales linearly with the number of datasets, which isn't great
                         .map(fcwdi -> converter().updateFrom(fcwdi.featureCollection()));
             }
 

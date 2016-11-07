@@ -4,12 +4,13 @@ import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.TerminationId;
+import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
-import io.quartic.terminator.api.FeatureCollectionWithDatasetId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -32,14 +33,14 @@ public class TerminatorSourceFactoryShould {
     public void import_things() throws Exception {
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
         final FeatureCollection collection = featureCollection(geojsonFeature("a", Optional.of(point())));
-        final DatasetId datasetId = DatasetId.of("123");
+        final TerminatorDatasetLocator locator = TerminatorDatasetLocator.of(TerminationId.of("123"));
 
-        when(listener.observable()).thenReturn(just(message(datasetId, collection)));
+        when(listener.observable()).thenReturn(just(message(locator.id(), collection)));
         when(converter.updateFrom(collection)).thenReturn(update);
 
         final TerminatorSourceFactory factory = createFactory();
 
-        assertBehaviourForSource(update, collection, factory.sourceFor(datasetId));
+        assertBehaviourForSource(update, collection, factory.sourceFor(locator));
     }
 
     @Test
@@ -48,20 +49,20 @@ public class TerminatorSourceFactoryShould {
         final SourceUpdate updateB = SourceUpdate.of(newArrayList(), newArrayList());
         final FeatureCollection collectionA = featureCollection(geojsonFeature("a", Optional.of(point())));
         final FeatureCollection collectionB = featureCollection(geojsonFeature("b", Optional.of(point())));
-        final DatasetId datasetIdA = DatasetId.of("123");
-        final DatasetId datasetIdB = DatasetId.of("456");
+        final TerminatorDatasetLocator locatorA = TerminatorDatasetLocator.of(TerminationId.of("123"));
+        final TerminatorDatasetLocator locatorB = TerminatorDatasetLocator.of(TerminationId.of("456"));
 
         when(listener.observable()).thenReturn(just(
-                message(datasetIdA, collectionA),
-                message(datasetIdB, collectionB)
+                message(locatorA.id(), collectionA),
+                message(locatorB.id(), collectionB)
         ));
         when(converter.updateFrom(collectionA)).thenReturn(updateA);
         when(converter.updateFrom(collectionB)).thenReturn(updateB);
 
         final TerminatorSourceFactory factory = createFactory();
 
-        assertBehaviourForSource(updateA, collectionA, factory.sourceFor(datasetIdA));
-        assertBehaviourForSource(updateB, collectionB, factory.sourceFor(datasetIdB));
+        assertBehaviourForSource(updateA, collectionA, factory.sourceFor(locatorA));
+        assertBehaviourForSource(updateB, collectionB, factory.sourceFor(locatorB));
     }
 
     private void assertBehaviourForSource(SourceUpdate update, FeatureCollection collection, Source source) {
@@ -70,9 +71,9 @@ public class TerminatorSourceFactoryShould {
         assertThat(result, is(update));
     }
 
-    private String message(DatasetId datasetId, FeatureCollection featureCollection) throws JsonProcessingException {
+    private String message(TerminationId terminationId, FeatureCollection featureCollection) throws JsonProcessingException {
         return OBJECT_MAPPER.writeValueAsString(
-                FeatureCollectionWithDatasetId.of(datasetId, featureCollection)
+                FeatureCollectionWithTerminationId.of(terminationId, featureCollection)
         );
     }
 

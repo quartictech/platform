@@ -1,4 +1,5 @@
 catalogueUrl: http://localhost:8090/api
+terminatorUrl: ws://localhost:8110/ws
 
 server:
   applicationContextPath: /

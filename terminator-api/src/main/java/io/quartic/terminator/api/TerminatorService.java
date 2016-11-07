@@ -1,4 +1,4 @@
-package io.quartic.terminator;
+package io.quartic.terminator.api;
 
 import io.quartic.geojson.FeatureCollection;
 

@@ -1,8 +1,9 @@
 package io.quartic.terminator;
 
-import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.TerminationId;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.terminator.api.FeatureCollectionWithDatasetId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
+import io.quartic.terminator.api.TerminatorService;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.SerializedSubject;
@@ -10,8 +11,8 @@ import rx.subjects.SerializedSubject;
 import javax.ws.rs.NotFoundException;
 
 public class TerminatorResource implements TerminatorService {
-    private final SerializedSubject<FeatureCollectionWithDatasetId, FeatureCollectionWithDatasetId> subject
-            = PublishSubject.<FeatureCollectionWithDatasetId>create().toSerialized();
+    private final SerializedSubject<FeatureCollectionWithTerminationId, FeatureCollectionWithTerminationId> subject
+            = PublishSubject.<FeatureCollectionWithTerminationId>create().toSerialized();
     private final CatalogueProxy catalogue;
 
     public TerminatorResource(CatalogueProxy catalogue) {
@@ -20,15 +21,18 @@ public class TerminatorResource implements TerminatorService {
 
     @Override
     public void postToDataset(String id, FeatureCollection featureCollection) {
-        final DatasetId datasetId = DatasetId.of(id);
-        if (catalogue.datasets().containsKey(datasetId)) {
-            subject.onNext(FeatureCollectionWithDatasetId.of(datasetId, featureCollection));
+        final TerminationId terminationId = TerminationId.of(id);
+
+        // TODO: validate that IDs are present on each feature?
+
+        if (catalogue.terminationIds().contains(terminationId)) {
+            subject.onNext(FeatureCollectionWithTerminationId.of(terminationId, featureCollection));
         } else {
             throw new NotFoundException("Dataset " + id + " not found");
         }
     }
 
-    public Observable<FeatureCollectionWithDatasetId> featureCollectionsWithDatasetIds() {
+    public Observable<FeatureCollectionWithTerminationId> featureCollections() {
         return subject;
     }
 }

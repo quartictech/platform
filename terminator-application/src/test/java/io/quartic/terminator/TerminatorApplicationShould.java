@@ -5,15 +5,13 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.testing.DropwizardTestSupport;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Point;
-import io.quartic.terminator.api.FeatureCollectionWithDatasetId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
+import io.quartic.terminator.api.TerminatorService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,7 +35,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class TerminatorApplicationShould {
-    private static final String DATASET_ID = "123";
+    private static final String TERMINATION_ID = "123";
     private static final int APP_PORT = 8110;
 
     @Rule
@@ -64,13 +62,13 @@ public class TerminatorApplicationShould {
     public void forward_data_from_endpoint_to_websocket() throws Exception {
         TerminatorService terminator = ClientBuilder.build(TerminatorService.class, "http://localhost:" + APP_PORT + "/api");
 
-        CollectingEndpoint<FeatureCollectionWithDatasetId> collector = new CollectingEndpoint<>(FeatureCollectionWithDatasetId.class);
+        CollectingEndpoint<FeatureCollectionWithTerminationId> collector = new CollectingEndpoint<>(FeatureCollectionWithTerminationId.class);
         ContainerProvider.getWebSocketContainer()
                 .connectToServer(collector, new URI("ws://localhost:" + APP_PORT + "/ws"));
 
-        terminator.postToDataset(DATASET_ID, featureCollection());
+        terminator.postToDataset(TERMINATION_ID, featureCollection());
 
-        assertThat(collector.messages(), contains(FeatureCollectionWithDatasetId.of(DatasetId.of(DATASET_ID), featureCollection())));
+        assertThat(collector.messages(), contains(FeatureCollectionWithTerminationId.of(TerminationId.of(TERMINATION_ID), featureCollection())));
     }
 
     private ResponseDefinitionBuilder jsonFrom(Object object) throws JsonProcessingException {
@@ -81,10 +79,10 @@ public class TerminatorApplicationShould {
 
     private Map<DatasetId, DatasetConfig> datasets() {
         return ImmutableMap.of(
-                DatasetId.of(DATASET_ID),
+                DatasetId.of("xyz"),
                 DatasetConfig.of(
                         DatasetMetadata.of("Foo", "Bar", "Baz", Optional.empty()),
-                        TerminatorDatasetLocator.builder().build()
+                        TerminatorDatasetLocator.of(TerminationId.of(TERMINATION_ID))
                 )
         );
     }

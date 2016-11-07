@@ -2,13 +2,13 @@ package io.quartic.terminator;
 
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.*;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Collections.emptyMap;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -67,18 +67,19 @@ public class CatalogueProxyShould {
     }
 
     @Test
-    public void expose_returned_datasets() throws Exception {
+    public void expose_returned_ids() throws Exception {
+        final TerminationId terminationId = TerminationId.of("456");
         final ImmutableMap<DatasetId, DatasetConfig> datasets = ImmutableMap.of(
                 DatasetId.of("123"),
                 DatasetConfig.of(
                         DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
-                        mock(DatasetLocator.class)
+                        TerminatorDatasetLocator.of(terminationId)
                 ));
         when(catalogue.getDatasets()).thenReturn(datasets);
 
         proxy.start();
         Thread.sleep(100);
 
-        assertThat(proxy.datasets(), equalTo(datasets));
+        assertThat(proxy.terminationIds(), Matchers.contains(terminationId));
     }
 }

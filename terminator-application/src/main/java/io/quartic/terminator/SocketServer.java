@@ -6,7 +6,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
-import io.quartic.terminator.api.FeatureCollectionWithDatasetId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -25,11 +25,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class SocketServer {
     private static final Logger LOG = LoggerFactory.getLogger(SocketServer.class);
 
-    private final Observable<FeatureCollectionWithDatasetId> observable;
+    private final Observable<FeatureCollectionWithTerminationId> observable;
     private final ObjectMapper objectMapper;
-    private final Map<String, Subscriber<FeatureCollectionWithDatasetId>> subscribers = Maps.newConcurrentMap();
+    private final Map<String, Subscriber<FeatureCollectionWithTerminationId>> subscribers = Maps.newConcurrentMap();
 
-    public SocketServer(Observable<FeatureCollectionWithDatasetId> observable, ObjectMapper objectMapper) {
+    public SocketServer(Observable<FeatureCollectionWithTerminationId> observable, ObjectMapper objectMapper) {
         this.observable = observable;
         this.objectMapper = objectMapper;
     }
@@ -39,7 +39,7 @@ public class SocketServer {
         LOG.info("[{}] Open", session.getId());
         checkArgument(!subscribers.containsKey(session.getId()), "Session already registered");
 
-        final Subscriber<FeatureCollectionWithDatasetId> subscriber = subscriber(session);
+        final Subscriber<FeatureCollectionWithTerminationId> subscriber = subscriber(session);
         observable.subscribe(subscriber);
         subscribers.put(session.getId(), subscriber);
     }
@@ -49,12 +49,12 @@ public class SocketServer {
         LOG.info("[{}] Close", session.getId());
         checkArgument(subscribers.containsKey(session.getId()), "Session not registered");
 
-        final Subscriber<FeatureCollectionWithDatasetId> subscriber = subscribers.remove(session.getId());
+        final Subscriber<FeatureCollectionWithTerminationId> subscriber = subscribers.remove(session.getId());
         subscriber.unsubscribe();
     }
 
-    public Subscriber<FeatureCollectionWithDatasetId> subscriber(Session session) {
-        return new Subscriber<FeatureCollectionWithDatasetId>() {
+    public Subscriber<FeatureCollectionWithTerminationId> subscriber(Session session) {
+        return new Subscriber<FeatureCollectionWithTerminationId>() {
             @Override
             public void onCompleted() {
                 LOG.error("Unexpectedly call to onCompleted");
@@ -66,7 +66,7 @@ public class SocketServer {
             }
 
             @Override
-            public void onNext(FeatureCollectionWithDatasetId fcwdi) {
+            public void onNext(FeatureCollectionWithTerminationId fcwdi) {
                 try {
                     session.getAsyncRemote().sendText(objectMapper.writeValueAsString(fcwdi));
                 } catch (JsonProcessingException e) {

@@ -44,7 +44,7 @@ public class TerminatorApplication extends Application<TerminatorConfiguration> 
     }
 
     private ServerEndpointConfig createSocketServer(TerminatorResource terminator, ObjectMapper objectMapper) {
-        final SocketServer socketServer = new SocketServer(terminator.featureCollectionsWithDatasetIds(), objectMapper);
+        final SocketServer socketServer = new SocketServer(terminator.featureCollections(), objectMapper);
         return ServerEndpointConfig.Builder
                 .create(SocketServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
