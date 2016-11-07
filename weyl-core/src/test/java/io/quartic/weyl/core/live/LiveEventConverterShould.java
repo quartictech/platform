@@ -36,10 +36,10 @@ public class LiveEventConverterShould {
     // TODO: multiple LiveEvents
 
     @Test
-    public void convert_features() throws Exception {
-        final LiveEvent event = liveEvent(geojsonFeature("a", Optional.of(point())));
+    public void convert_just_features() throws Exception {
+        final FeatureCollection collection = featureCollectionOf(geojsonFeature("a", Optional.of(point())));
 
-        final SourceUpdate update = converter.toUpdate(event);
+        final SourceUpdate update = converter.updateFrom(collection);
 
         assertThat(update.features(), equalTo(ImmutableList.of(
                 io.quartic.weyl.core.model.ImmutableFeature.builder()
@@ -53,9 +53,9 @@ public class LiveEventConverterShould {
 
     @Test
     public void ignore_features_with_null_geometry() throws Exception {
-        final LiveEvent event = liveEvent(geojsonFeature("a", Optional.empty()));
+        final FeatureCollection collection = featureCollectionOf(geojsonFeature("a", Optional.empty()));
 
-        final SourceUpdate update = converter.toUpdate(event);
+        final SourceUpdate update = converter.updateFrom(collection);
 
         assertThat(update.features(), empty());
     }
@@ -65,18 +65,15 @@ public class LiveEventConverterShould {
         final FeedEvent feedEvent = FeedEvent.of("abc", "def", ImmutableMap.of("a", 999));
         final LiveEvent event = liveEvent(feedEvent);
 
-        final SourceUpdate update = converter.toUpdate(event);
+        final SourceUpdate update = converter.updateFrom(event);
 
         assertThat(update.feedEvents(), equalTo(ImmutableList.of(
                 EnrichedFeedEvent.of(LiveEventId.of("1"), TIMESTAMP, feedEvent)
         )));
     }
 
-    private LiveEvent liveEvent(Feature... features) {
-        return LiveEvent.of(
-                Instant.now(),
-                Optional.of(FeatureCollection.of(newArrayList(features))),
-                Optional.empty());
+    private FeatureCollection featureCollectionOf(Feature... features) {
+        return FeatureCollection.of(newArrayList(features));
     }
 
     private LiveEvent liveEvent(FeedEvent feedEvent) {

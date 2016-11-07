@@ -12,6 +12,10 @@ public class WeylConfiguration extends Configuration {
 
     @Valid
     @NotNull
+    private String terminatorUrl;
+
+    @Valid
+    @NotNull
     private String cloudStorageUrl;
 
     public String getCatalogueUrl() {
@@ -22,6 +26,14 @@ public class WeylConfiguration extends Configuration {
         this.catalogueUrl = catalogueUrl;
     }
 
+    public String getTerminatorUrl() {
+        return terminatorUrl;
+    }
+
+    public void setTerminatorUrl(String terminatorUrl) {
+        this.terminatorUrl = terminatorUrl;
+    }
+
     public String getCloudStorageUrl() {
         return cloudStorageUrl;
     }
@@ -29,5 +41,4 @@ public class WeylConfiguration extends Configuration {
     public void setCloudStorageUrl(String cloudStorageUrl) {
         this.cloudStorageUrl = cloudStorageUrl;
     }
-
 }

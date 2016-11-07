@@ -115,7 +115,7 @@ public class CatalogueManagerShould {
 
     private Source importerOf(SourceUpdate update, boolean indexable) {
         final Source source = mock(Source.class);
-        when(source.getObservable()).thenReturn(just(update));
+        when(source.observable()).thenReturn(just(update));
         when(source.indexable()).thenReturn(indexable);
         when(source.viewType()).thenReturn(LOCATION_AND_TRACK);
         return source;

@@ -56,6 +56,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         this.alertProcessor = alertProcessor;
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
+        LOG.info("Creating UpdateServer");
     }
 
     @OnOpen

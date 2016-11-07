@@ -1,0 +1,17 @@
+catalogueUrl: http://localhost:8090/api
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8110
+  adminConnectors:
+    - type: http
+      port: 8111
+
+logging:
+  level: INFO
+  loggers:
+    io.dropwizard: INFO
+  appenders:
+    - type: console

@@ -4,7 +4,7 @@ import io.quartic.weyl.core.live.LayerViewType;
 import rx.Observable;
 
 public interface Source {
-    Observable<SourceUpdate> getObservable();
+    Observable<SourceUpdate> observable();
     boolean indexable();
     LayerViewType viewType();
 }

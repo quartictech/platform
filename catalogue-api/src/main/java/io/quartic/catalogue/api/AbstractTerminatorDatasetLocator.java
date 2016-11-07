@@ -6,5 +6,5 @@ import org.immutables.value.Value;
 @SweetStyle
 @Value.Immutable
 public interface AbstractTerminatorDatasetLocator extends DatasetLocator {
-    String path();
+    TerminationId id();
 }
