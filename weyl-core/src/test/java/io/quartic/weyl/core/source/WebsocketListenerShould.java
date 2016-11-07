@@ -70,7 +70,7 @@ public class WebsocketListenerShould {
 
         TestSubscriber<String> subscriber = TestSubscriber.create();
         listener.observable().subscribe(subscriber);
-        subscriber.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
+        subscriber.awaitValueCount(2, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
         assertThat(subscriber.getOnNextEvents(), contains("foo", "bar"));
     }
