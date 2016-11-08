@@ -15,7 +15,7 @@ public final class ClientBuilder {
     private ClientBuilder() {}
 
     public static <T> T build(Class<T> target, Class<?> owner, String url) {
-        return build(target, userAgentFor(owner), url);
+        return build(target, Utils.userAgentFor(owner), url);
     }
 
     private static <T> T build(Class<T> target, String userAgent, String url) {
@@ -28,18 +28,6 @@ public final class ClientBuilder {
                 .logger(new Slf4jLogger(ClientBuilder.class))
                 .logLevel(Logger.Level.BASIC)
                 .target(target, url);
-    }
-
-    public static String userAgentFor(Class<?> clazz) {
-        final String version = clazz.getPackage().getImplementationVersion();
-        return strippedName(clazz)
-                + "/" + ((version == null) ? "unknown" : version)
-                + " (Java " + System.getProperty("java.version") + ")";
-    }
-
-    private static String strippedName(Class<?> clazz) {
-        final String name = clazz.getSimpleName();
-        return name.replaceAll("Application$", "");
     }
 
 }

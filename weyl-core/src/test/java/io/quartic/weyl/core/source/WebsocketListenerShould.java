@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.MetricRegistry;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,7 +23,6 @@ import static org.mockito.Mockito.mock;
 
 public class WebsocketListenerShould {
     private static final int TIMEOUT_MILLISECONDS = 250;
-    private WebsocketListener listener;
 
     public static class WebsocketServerRule extends ExternalResource {
         private Server server;
@@ -66,7 +66,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void emit_items_from_socket() throws Exception {
-        listener = createListener();
+        final WebsocketListener listener = createListener();
 
         TestSubscriber<String> subscriber = TestSubscriber.create();
         listener.observable().subscribe(subscriber);
@@ -77,7 +77,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void only_create_one_connection_if_multiple_subscribers() throws Exception {
-        listener = createListener();
+        final WebsocketListener listener = createListener();
 
         TestSubscriber<String> subA = TestSubscriber.create();
         TestSubscriber<String> subB = TestSubscriber.create();
@@ -98,6 +98,7 @@ public class WebsocketListenerShould {
 
     private WebsocketListener createListener() {
         return WebsocketListener.builder()
+                .websocketFactory(new WebsocketClientSessionFactory(getClass()))
                 .name("Budgie")
                 .url(server.uri())
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))

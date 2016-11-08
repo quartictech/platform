@@ -11,6 +11,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
@@ -112,11 +113,14 @@ public class WeylApplication extends Application<WeylConfiguration> {
     ) {
         final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator);
 
+        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
+
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .url(configuration.getTerminatorUrl())
                 .converter(converter)
                 .objectMapper(environment.getObjectMapper())
                 .metrics(environment.metrics())
+                .websocketFactory(websocketFactory)
                 .build();
 
         return ImmutableMap.of(
@@ -138,6 +142,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
                         .converter(converter)
                         .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())
+                        .websocketFactory(websocketFactory)
                         .build(),
                 TerminatorDatasetLocator.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
                 CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()

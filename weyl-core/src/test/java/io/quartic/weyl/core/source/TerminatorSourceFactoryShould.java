@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.TerminationId;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
@@ -91,6 +92,7 @@ public class TerminatorSourceFactoryShould {
                 .listener(listener)
                 .url("whatever")
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
+                .websocketFactory(mock(WebsocketClientSessionFactory.class))
                 .build();
     }
 

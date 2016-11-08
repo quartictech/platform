@@ -3,6 +3,7 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
@@ -29,10 +30,12 @@ public abstract class WebsocketSource implements Source {
     protected abstract LiveEventConverter converter();
     protected abstract ObjectMapper objectMapper();
     protected abstract MetricRegistry metrics();
+    protected abstract WebsocketClientSessionFactory websocketFactory();
 
     @Value.Default
     protected WebsocketListener listener() {
         return WebsocketListener.builder()
+                .websocketFactory(websocketFactory())
                 .name(name())
                 .url(locator().url())
                 .metrics(metrics())

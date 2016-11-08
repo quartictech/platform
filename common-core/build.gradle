@@ -8,6 +8,8 @@ dependencies {
     compile libraries.immutables
 
     compile libraries.guava
+    compile libraries.websocket
+    compile libraries.tyrus.client
 
     compile "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
     compile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
