@@ -83,7 +83,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
+        environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueUrl()));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
@@ -93,7 +93,7 @@ public class WeylApplication extends Application<WeylConfiguration> {
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
 
-        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
+        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
 
         environment.lifecycle().manage(Scheduler.builder()
                 .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
