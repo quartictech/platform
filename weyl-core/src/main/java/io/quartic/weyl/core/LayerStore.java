@@ -1,10 +1,7 @@
 package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -12,9 +9,9 @@ import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.source.SourceUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Subscriber;
@@ -39,7 +36,7 @@ public class LayerStore {
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
-    private final Multimap<LayerId, LayerSubscription> subscriptions = HashMultimap.create();
+    private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
     public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator) {
         this.featureStore = featureStore;
@@ -73,7 +70,7 @@ public class LayerStore {
         subscriptions.removeAll(id);
     }
 
-    public void addListener(LayerStoreListener layerStoreListener) {
+    public synchronized void addListener(LayerStoreListener layerStoreListener) {
         listeners.add(layerStoreListener);
     }
 
@@ -191,13 +188,13 @@ public class LayerStore {
         return stRtree;
     }
 
-    private void notifySubscribers(LayerId layerId) {
+    private synchronized void notifySubscribers(LayerId layerId) {
         final Layer layer = layers.get(layerId);
         subscriptions.get(layerId)
                 .forEach(subscription -> subscription.subscriber().accept(computeLayerState(layer, subscription)));
     }
 
-    private void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
+    private synchronized void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
         newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
     }
 
