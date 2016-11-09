@@ -13,3 +13,15 @@ logging:
     io.dropwizard: INFO
   appenders:
     - type: console
+
+metrics:
+  reporters:
+    - type: influxdb
+      protocol: https
+      host: monitoring-influxdb
+      port: 8086
+      database: k8s
+      auth: root:root
+      tags:
+        host: catalogue
+        environment: staging
