@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -36,6 +38,7 @@ import static org.mockito.Mockito.*;
 public class LayerStoreShould {
     public static final Instant INSTANT = Instant.now();
     public static final LayerId LAYER_ID = LayerId.of("666");
+    public static final LayerId OTHER_LAYER_ID = LayerId.of("777");
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
@@ -47,16 +50,13 @@ public class LayerStoreShould {
         final LayerMetadata lm1 = metadata("foo", "bar");
         final LayerMetadata lm2 = metadata("cheese", "monkey");
 
-        LayerId id1 = LayerId.of("666");
-        LayerId id2 = LayerId.of("777");
-
-        store.createLayer(id1, lm1, true, IDENTITY_VIEW);
-        store.createLayer(id2, lm2, true, IDENTITY_VIEW);
+        store.createLayer(LAYER_ID, lm1, true, IDENTITY_VIEW);
+        store.createLayer(OTHER_LAYER_ID, lm2, true, IDENTITY_VIEW);
 
         final Collection<AbstractLayer> layers = store.listLayers();
 
         assertThat(layers.stream().map(AbstractLayer::layerId).collect(toList()),
-                containsInAnyOrder(id1, id2));
+                containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
         assertThat(layers.stream().map(AbstractLayer::metadata).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
         assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
@@ -110,6 +110,70 @@ public class LayerStoreShould {
                 ));
     }
 
+    @Test
+    public void handle_concurrent_subscription_changes() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addSubscriber(LAYER_ID, mock(Consumer.class)));    // Emulate concurrent subscription change
+
+        Consumer<LayerState> subscriber = mock(Consumer.class);
+        store.addSubscriber(LAYER_ID, subscriber);
+        store.addSubscriber(LAYER_ID, mock(Consumer.class));
+
+        doAnswer(invocation -> {
+            onTrigger.trigger();
+            Thread.sleep(30);
+            return null;
+        }).when(subscriber).accept(any());
+
+        assertCanRunToCompletion(sub);
+    }
+
+    @Test
+    public void handle_concurrent_listener_changes() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addListener(mock(LayerStoreListener.class)));    // Emulate concurrent subscription change
+
+        LayerStoreListener listener = mock(LayerStoreListener.class);
+        store.addListener(listener);
+        store.addListener(mock(LayerStoreListener.class));
+
+        doAnswer(invocation -> {
+            onTrigger.trigger();
+            Thread.sleep(30);
+            return null;
+        }).when(listener).onLiveLayerEvent(any(), any());
+
+        assertCanRunToCompletion(sub);
+    }
+
+    private void assertCanRunToCompletion(Subscriber<SourceUpdate> sub) {
+        final AtomicBoolean completed = new AtomicBoolean(false);
+        Observable.just(updateFor(feature("a", "1")), updateFor(feature("b", "2")))
+                .doOnCompleted(() -> completed.set(true))
+                .subscribe(sub);
+
+        assertThat(completed.get(), equalTo(true)); // This won't be complete if there was an error
+    }
+
+    private static class DoOnTrigger {
+        private final CountDownLatch latch = new CountDownLatch(1);
+
+        public DoOnTrigger(Runnable runnable) {
+            new Thread(() -> {
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                runnable.run();
+            }).start();
+        }
+
+        public void trigger() {
+            latch.countDown();
+        }
+    }
+
     // TODO: using subjects is kind of gross (see e.g. http://tomstechnicalblog.blogspot.co.uk/2016/03/rxjava-problem-with-subjects.html)
     // Luckily, this should go away once we model downstream stuff reactively too
     @Test
@@ -138,8 +202,6 @@ public class LayerStoreShould {
         createLayer(LAYER_ID);
         createLayer(LAYER_ID);
     }
-
-
 
     @Test
     public void notify_listeners_on_change() throws Exception {
