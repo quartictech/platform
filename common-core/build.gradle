@@ -7,10 +7,21 @@ plugins {
 dependencies {
     compile libraries.immutables
 
+    compile libraries.guava
+    compile libraries.websocket
+    compile libraries.tyrus.client
+
     compile "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
     compile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
+
+    compile "com.netflix.feign:feign-core:${versions.feign}"
+    compile("com.netflix.feign:feign-jaxrs:${versions.feign}") {
+        exclude group: "javax.ws.rs", module: "jsr311-api"      // This is JAX-RS 1.0, which conflicts with Jersey reliance on 2.0
+    }
+    compile "com.netflix.feign:feign-jackson:${versions.feign}"
+    compile "com.netflix.feign:feign-slf4j:${versions.feign}"
 
     testCompile libraries.testCommon
 }

@@ -3,6 +3,7 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
@@ -28,10 +29,12 @@ public abstract class TerminatorSourceFactory {
     protected abstract MetricRegistry metrics();
     protected abstract LiveEventConverter converter();
     protected abstract ObjectMapper objectMapper();
+    protected abstract WebsocketClientSessionFactory websocketFactory();
 
     @Value.Default
     protected WebsocketListener listener() {
         return WebsocketListener.builder()
+                .websocketFactory(websocketFactory())
                 .name(getClass().getSimpleName())
                 .url(url())
                 .metrics(metrics())
