@@ -26,8 +26,8 @@ public abstract class CatalogueProxy {
         return ImmutableCatalogueProxy.builder();
     }
 
-    protected static CatalogueService catalogueFromUrl(String url) {
-        return ClientBuilder.build(CatalogueService.class, url);
+    protected static CatalogueService catalogueFromUrl(Class<?> owner, String url) {
+        return ClientBuilder.build(CatalogueService.class, owner, url);
     }
 
     public static final int DEFAULT_POLL_PERIOD_MILLISECONDS = 2000;

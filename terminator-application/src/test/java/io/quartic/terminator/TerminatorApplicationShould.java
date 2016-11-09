@@ -61,7 +61,7 @@ public class TerminatorApplicationShould {
 
     @Test
     public void forward_data_from_endpoint_to_websocket() throws Exception {
-        TerminatorService terminator = ClientBuilder.build(TerminatorService.class, "http://localhost:" + APP_PORT + "/api");
+        TerminatorService terminator = ClientBuilder.build(TerminatorService.class, getClass(), "http://localhost:" + APP_PORT + "/api");
 
         CollectingEndpoint<FeatureCollectionWithTerminationId> collector = new CollectingEndpoint<>(FeatureCollectionWithTerminationId.class);
         ContainerProvider.getWebSocketContainer()
