@@ -17,7 +17,7 @@ logging:
 metrics:
   reporters:
     - type: influxdb
-      protocol: https
+      protocol: http
       host: monitoring-influxdb
       port: 8086
       database: k8s
