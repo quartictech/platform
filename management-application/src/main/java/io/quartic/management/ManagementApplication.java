@@ -9,9 +9,6 @@ import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.weyl.common.uid.RandomUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
 
 public class ManagementApplication extends Application<ManagementConfiguration> {
 
@@ -30,9 +27,9 @@ public class ManagementApplication extends Application<ManagementConfiguration> 
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        environment.healthChecks().register("catalogue", new PingPongHealthCheck(configuration.getCatalogueUrl()));
+        environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueUrl()));
 
-        CatalogueService catalogueService = ClientBuilder.build(CatalogueService.class, configuration.getCatalogueUrl());
+        CatalogueService catalogueService = ClientBuilder.build(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new ManagementResource(catalogueService, gcsConnector));
     }

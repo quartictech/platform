@@ -2,16 +2,15 @@ package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import org.immutables.value.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rx.Observable;
 
-import javax.websocket.*;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 @Value.Immutable
@@ -20,11 +19,10 @@ public abstract class WebsocketListener {
         return ImmutableWebsocketListener.builder();
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebsocketListener.class);
-
     protected abstract String name();
     protected abstract String url();
     protected abstract MetricRegistry metrics();
+    protected abstract WebsocketClientSessionFactory websocketFactory();
 
     @Value.Derived
     protected Meter messageRateMeter() {
@@ -44,37 +42,11 @@ public abstract class WebsocketListener {
                 }
             };
 
-            final ClientManager clientManager = createClientManager();
             try {
-                clientManager.connectToServer(endpoint, new URI(url()));
+                websocketFactory().create(endpoint, url(), name());
             } catch (URISyntaxException | DeploymentException | IOException e) {
                 sub.onError(e);
             }
         }).share();
-    }
-
-    private ClientManager createClientManager() {
-        ClientManager clientManager = ClientManager.createClient();
-        ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
-
-            @Override
-            public boolean onDisconnect(CloseReason closeReason) {
-                LOG.info("[{}] Disconnecting: {}", name(), closeReason);
-                return true;
-            }
-
-            @Override
-            public boolean onConnectFailure(Exception exception) {
-                LOG.info("[{}] Connection failure: {}", name(), exception);
-                return true;
-            }
-
-            @Override
-            public long getDelay() {
-                return 1;
-            }
-        };
-        clientManager.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
-        return clientManager;
     }
 }

@@ -32,7 +32,7 @@ public class TerminatorApplication extends Application<TerminatorConfiguration> 
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
         final CatalogueProxy catalogue = CatalogueProxy.builder()
-                .catalogue(catalogueFromUrl(configuration.getCatalogueUrl()))
+                .catalogue(catalogueFromUrl(getClass(), configuration.getCatalogueUrl()))
                 .build();
         final TerminatorResource terminator = new TerminatorResource(catalogue);
         websocketBundle.addEndpoint(createSocketServer(terminator, environment.getObjectMapper()));

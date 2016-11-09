@@ -19,7 +19,6 @@ dependencies {
     compile "org.jdbi:jdbi:2.75"
     compile libraries.guava
     compile "org.slf4j:slf4j-api:1.7.21"
-    compile libraries.tyrus.client
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
     compile libraries.rxjava
     compile "io.dropwizard.metrics:metrics-core:${versions.metrics}"
