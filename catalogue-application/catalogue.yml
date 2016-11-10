@@ -6,10 +6,3 @@ server:
   adminConnectors:
     - type: http
       port: 8091
-
-logging:
-  level: INFO
-  loggers:
-    io.dropwizard: INFO
-  appenders:
-    - type: console

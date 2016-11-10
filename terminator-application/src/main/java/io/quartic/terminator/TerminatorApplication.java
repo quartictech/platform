@@ -1,28 +1,31 @@
 package io.quartic.terminator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dropwizard.Application;
-import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
+import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
 
 import javax.websocket.server.ServerEndpointConfig;
 
 import static io.quartic.terminator.CatalogueProxy.catalogueFromUrl;
 
-public class TerminatorApplication extends Application<TerminatorConfiguration> {
+public class TerminatorApplication extends ApplicationBase<TerminatorConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
 
     public static void main(String[] args) throws Exception {
         new TerminatorApplication().run(args);
     }
 
+    public TerminatorApplication() {
+        super("terminator");
+    }
+
     @Override
     public void initialize(Bootstrap<TerminatorConfiguration> bootstrap) {
-        bootstrap.addBundle(new Java8Bundle());
+        super.initialize(bootstrap);
         bootstrap.addBundle(websocketBundle);
     }
 

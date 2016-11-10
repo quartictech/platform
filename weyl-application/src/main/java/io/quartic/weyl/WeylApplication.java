@@ -2,14 +2,13 @@ package io.quartic.weyl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.*;
+import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
@@ -37,7 +36,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-public class WeylApplication extends Application<WeylConfiguration> {
+public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
@@ -49,15 +48,19 @@ public class WeylApplication extends Application<WeylConfiguration> {
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
-
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
     }
 
+
+    public WeylApplication() {
+        super("weyl");
+    }
+
     @Override
     public void initialize(Bootstrap<WeylConfiguration> bootstrap) {
+        super.initialize(bootstrap);
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
-        bootstrap.addBundle(new Java8Bundle());
         bootstrap.addBundle(configureWebsockets(bootstrap.getObjectMapper()));
     }
 
