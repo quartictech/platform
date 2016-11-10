@@ -15,8 +15,6 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
 
-    runtime libraries.dropwizardMetricsInfluxdb
-
     testCompile libraries.testCommon
     testCompile libraries.dropwizardTesting
 }

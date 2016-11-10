@@ -1,25 +1,22 @@
 package io.quartic.catalogue;
 
-import io.dropwizard.Application;
-import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
-import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.catalogue.api.DatasetId;
+import io.quartic.common.application.ApplicationBase;
+import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.weyl.common.uid.RandomUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
 
-public class CatalogueApplication extends Application<CatalogueConfiguration> {
+public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetId::of);
+
+    public CatalogueApplication() {
+        super("catalogue");
+    }
 
     public static void main(String[] args) throws Exception {
         new CatalogueApplication().run(args);
-    }
-
-    @Override
-    public void initialize(Bootstrap<CatalogueConfiguration> bootstrap) {
-        bootstrap.addBundle(new Java8Bundle());
     }
 
     @Override

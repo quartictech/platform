@@ -1,0 +1,19 @@
+logging:
+  level: INFO
+  loggers:
+    io.dropwizard: INFO
+  appenders:
+    - type: console
+
+<#if ENABLE_METRICS??>
+metrics:
+  reporters:
+    - type: influxdb
+      protocol: http
+      host: ${INFLUX_HOST}
+      port: ${INFLUX_PORT}
+      database: ${INFLUX_DB}
+      auth: ${INFLUX_AUTH}
+      tags:
+        host: ${APPLICATION_NAME}
+</#if>
