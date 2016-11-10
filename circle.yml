@@ -10,7 +10,7 @@ dependencies:
   cache_directories:
     - weyl-frontend/node_modules
   override:
-    - ./gradlew resolveConfigurations --parallel
+    - ./gradlew resolveConfigurations npmInstall --parallel
 
 test:
   override:
