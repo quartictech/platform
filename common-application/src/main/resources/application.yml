@@ -15,5 +15,5 @@ metrics:
       database: ${INFLUX_DB}
       auth: ${INFLUX_AUTH}
       tags:
-        host: ${APPLICATION_NAME}
+        application: ${APPLICATION_NAME}
 </#if>
