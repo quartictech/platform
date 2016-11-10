@@ -11,12 +11,12 @@ import io.quartic.weyl.common.uid.UidGenerator;
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetId::of);
 
-    public CatalogueApplication() {
-        super("catalogue");
-    }
-
     public static void main(String[] args) throws Exception {
         new CatalogueApplication().run(args);
+    }
+
+    public CatalogueApplication() {
+        super("catalogue");
     }
 
     @Override

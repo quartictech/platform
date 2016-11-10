@@ -1,24 +1,20 @@
 package io.quartic.management;
 
-import io.dropwizard.Application;
-import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
-import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 
-public class ManagementApplication extends Application<ManagementConfiguration> {
-
+public class ManagementApplication extends ApplicationBase<ManagementConfiguration> {
     public static void main(String[] args) throws Exception {
         new ManagementApplication().run(args);
     }
 
-    @Override
-    public void initialize(Bootstrap<ManagementConfiguration> bootstrap) {
-        bootstrap.addBundle(new Java8Bundle());
+    public ManagementApplication() {
+        super("management");
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.quartic.common.application;
 
 import de.thomaskrille.dropwizard_template_config.TemplateConfigBundle;
-import de.thomaskrille.dropwizard_template_config.TemplateConfigBundleConfiguration;
 import io.dropwizard.Application;
 import io.dropwizard.Configuration;
 import io.dropwizard.java8.Java8Bundle;
@@ -30,8 +29,7 @@ public abstract class ApplicationBase<T extends Configuration> extends Applicati
         ));
 
         bootstrap.addBundle(new Java8Bundle());
-        bootstrap.addBundle(new TemplateConfigBundle(new TemplateConfigBundleConfiguration()
-        ));
+        bootstrap.addBundle(new TemplateConfigBundle());
     }
 
     private String getBaseConfig() {
