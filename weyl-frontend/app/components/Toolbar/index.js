@@ -17,7 +17,7 @@ function Toolbar(props) {
   const chartClassNames = classNames("item", { "active": props.ui.panels.chart });
   const themeClassNames = classNames("item");
 
-  const itemStyle = { "padding-top": "7px", "padding-bottom": "0px" };
+  const itemStyle = { paddingTop: "7px", paddingBottom: "0px" };
 
   return (
     <div className={styles.toolbar}>
