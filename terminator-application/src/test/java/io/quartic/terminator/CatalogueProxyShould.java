@@ -3,6 +3,7 @@ package io.quartic.terminator;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.*;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -23,6 +24,11 @@ public class CatalogueProxyShould {
             .catalogue(catalogue)
             .pollPeriodMilliseconds(POLL_PERIOD_MILLISECONDS)
             .build();
+
+    @After
+    public void after() throws Exception {
+        proxy.close();
+    }
 
     @Test
     public void poll_catalogue_repeatedly() throws Exception {

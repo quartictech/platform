@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.functions.Func1;
 
 import java.util.Map;
@@ -19,8 +20,9 @@ import static java.util.stream.Collectors.toList;
 import static rx.Observable.fromCallable;
 
 @Value.Immutable
-public abstract class CatalogueProxy {
+public abstract class CatalogueProxy implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueProxy.class);
+    private Subscription subscription = null;
 
     public static ImmutableCatalogueProxy.Builder builder() {
         return ImmutableCatalogueProxy.builder();
@@ -41,7 +43,7 @@ public abstract class CatalogueProxy {
     private final Set<TerminationId> terminationIds = Sets.newHashSet();
 
     public void start() {
-        fromCallable(() -> catalogue().getDatasets())
+        subscription = fromCallable(() -> catalogue().getDatasets())
                 .doOnError((e) -> LOG.error("Error polling catalogue", e))
                 .repeatWhen(pollDelay())
                 .retryWhen(pollDelay())
@@ -63,13 +65,21 @@ public abstract class CatalogueProxy {
                             terminationIds.addAll(
                                     datasets.values().stream()
                                             .filter(config -> config.locator() instanceof TerminatorDatasetLocator)
-                                            .map(config -> ((TerminatorDatasetLocator)config.locator()).id())
+                                            .map(config -> ((TerminatorDatasetLocator) config.locator()).id())
                                             .collect(toList())
                             );
                         }
                     }
                 });
 
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (subscription != null) {
+            subscription.unsubscribe();
+            subscription = null;
+        }
     }
 
     private Func1<Observable<?>, Observable<?>> pollDelay() {
