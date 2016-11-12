@@ -1,4 +1,4 @@
-package io.quartic.weyl.common.serdes;
+package io.quartic.common.serdes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;

@@ -27,7 +27,7 @@ import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.dropwizard.testing.ConfigOverride.config;
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
-import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;

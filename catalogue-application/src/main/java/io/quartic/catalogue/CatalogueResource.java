@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.common.uid.UidGenerator;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.PathParam;

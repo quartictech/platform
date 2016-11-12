@@ -1,7 +1,7 @@
 package io.quartic.weyl.scheduler;
 
 import io.dropwizard.lifecycle.Managed;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
