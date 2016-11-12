@@ -24,6 +24,7 @@ dependencies {
     compile "com.netflix.feign:feign-jackson:${versions.feign}"
     compile "com.netflix.feign:feign-slf4j:${versions.feign}"
 
+    testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile libraries.tyrus.server
     testCompile libraries.tyrus.containerServer

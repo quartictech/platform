@@ -1,17 +1,10 @@
 package io.quartic.common.client;
 
-import org.glassfish.tyrus.server.Server;
+import io.quartic.common.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExternalResource;
 import rx.observers.TestSubscriber;
-
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
@@ -20,48 +13,13 @@ import static org.junit.Assert.assertThat;
 public class WebsocketListenerShould {
     private static final int TIMEOUT_MILLISECONDS = 250;
 
-    public static class WebsocketServerRule extends ExternalResource {
-        private Server server;
-
-        // TODO: This use of statics is utterly gross, but unclear how to avoid the static endpoint class
-        private static final AtomicInteger numConnections = new AtomicInteger();
-
-        @ServerEndpoint("/ws")
-        public static class DummyEndpoint {
-            @OnOpen
-            public void onOpen(Session session) throws IOException {
-                numConnections.incrementAndGet();
-                session.getBasicRemote().sendText("foo");
-                session.getBasicRemote().sendText("bar");
-            }
-        }
-
-        public String uri() {
-            return "ws://localhost:" + server.getPort() + "/ws";
-        }
-
-        @Override
-        protected void before() throws Throwable {
-            numConnections.set(0);
-            server = new Server("localhost", -1, "", null, DummyEndpoint.class);
-            server.start();
-        }
-
-        @Override
-        protected void after() {
-            server.stop();
-        }
-
-        public int numConnections() {
-            return numConnections.get();
-        }
-    }
-
     @Rule
     public WebsocketServerRule server = new WebsocketServerRule();
 
     @Test
     public void emit_items_from_socket() throws Exception {
+        server.setMessages("foo", "bar");
+
         final WebsocketListener listener = createListener();
 
         TestSubscriber<String> subscriber = TestSubscriber.create();

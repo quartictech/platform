@@ -1,0 +1,17 @@
+plugins {
+    id "java"
+    id "idea"
+    id "org.inferred.processors" version "1.2.3"
+}
+
+dependencies {
+    compile libraries.immutables
+
+    compile libraries.junit
+    compile libraries.guava
+    compile libraries.websocket
+    compile libraries.tyrus.server
+    compile libraries.tyrus.containerServer
+}
+
+
