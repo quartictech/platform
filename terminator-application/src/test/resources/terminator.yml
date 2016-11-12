@@ -1,4 +1,4 @@
-catalogueWatchUrl: http://localhost:8090/api
+catalogueWatchUrl: ws://localhost:8090/api/datasets/watch
 
 server:
   applicationContextPath: /
