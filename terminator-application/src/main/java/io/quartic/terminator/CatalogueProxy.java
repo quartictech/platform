@@ -50,12 +50,12 @@ public abstract class CatalogueProxy implements AutoCloseable {
                 .subscribe(new Subscriber<Map<DatasetId, DatasetConfig>>() {
                     @Override
                     public void onCompleted() {
-                        LOG.error("Unexpectedly call to onCompleted");
+                        LOG.error("Unexpected call to onCompleted");
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        LOG.error("Unexpectedly call to onError", e);
+                        LOG.error("Unexpected call to onError", e);
                     }
 
                     @Override
