@@ -20,7 +20,7 @@ import static rx.Observable.just;
 public class CatalogueWatcherShould {
     private final WebsocketListener listener = mock(WebsocketListener.class);
     private final CatalogueWatcher proxy = CatalogueWatcher.builder()
-            .catalogueApiRoot("XXX")
+            .catalogueWatchUrl("XXX")
             .objectMapper(OBJECT_MAPPER)
             .listener(listener)
             .websocketFactory(mock(WebsocketClientSessionFactory.class))
@@ -53,7 +53,7 @@ public class CatalogueWatcherShould {
                 DatasetId.of("123"),
                 DatasetConfig.of(
                         DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
-                        mock(DatasetLocator.class)
+                        PostgresDatasetLocator.of("a", "b", "c", "d")
                 ));
         when(listener.observable()).thenReturn(just(OBJECT_MAPPER.writeValueAsString(datasets)));
 

@@ -37,7 +37,7 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogue = CatalogueWatcher.builder()
-                .catalogueApiRoot(configuration.getCatalogueUrl())
+                .catalogueWatchUrl(configuration.getCatalogueWatchUrl())
                 .websocketFactory(websocketFactory)
                 .objectMapper(environment.getObjectMapper())
                 .build();

@@ -3,13 +3,13 @@ package io.quartic.terminator;
 import io.dropwizard.Configuration;
 
 public class TerminatorConfiguration extends Configuration {
-    private String catalogueUrl;
+    private String catalogueWatchUrl;
 
-    public String getCatalogueUrl() {
-        return catalogueUrl;
+    public String getCatalogueWatchUrl() {
+        return catalogueWatchUrl;
     }
 
-    public void setCatalogueUrl(String catalogueUrl) {
-        this.catalogueUrl = catalogueUrl;
+    public void setCatalogueWatchUrl(String catalogueWatchUrl) {
+        this.catalogueWatchUrl = catalogueWatchUrl;
     }
 }

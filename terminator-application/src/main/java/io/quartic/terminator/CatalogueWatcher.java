@@ -34,7 +34,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         return ImmutableCatalogueWatcher.builder();
     }
 
-    protected abstract String catalogueApiRoot();
+    protected abstract String catalogueWatchUrl();
     protected abstract ObjectMapper objectMapper();
     protected abstract WebsocketClientSessionFactory websocketFactory();
 
@@ -43,7 +43,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         return WebsocketListener.builder()
                 .websocketFactory(websocketFactory())
                 .name(this.getClass().getSimpleName())
-                .url(catalogueApiRoot() + "/datasets/watch")
+                .url(catalogueWatchUrl())
                 .build();
     }
 
