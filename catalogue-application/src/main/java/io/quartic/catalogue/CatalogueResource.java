@@ -1,45 +1,87 @@
 package io.quartic.catalogue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.common.uid.UidGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.PathParam;
 import java.util.Map;
+import java.util.Set;
 
-public class CatalogueResource implements CatalogueService {
+public class CatalogueResource extends Endpoint implements CatalogueService {
+    private static final Logger LOG = LoggerFactory.getLogger(CatalogueService.class);
+
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newConcurrentMap();
     private final UidGenerator<DatasetId> didGenerator;
+    private final ObjectMapper objectMapper;
+    private final Set<Session> sessions = Sets.newHashSet();
 
-    public CatalogueResource(UidGenerator<DatasetId> didGenerator) {
+    public CatalogueResource(UidGenerator<DatasetId> didGenerator, ObjectMapper objectMapper) {
         this.didGenerator = didGenerator;
+        this.objectMapper = objectMapper;
     }
 
-    public DatasetId registerDataset(DatasetConfig config) {
+    public synchronized DatasetId registerDataset(DatasetConfig config) {
         // TODO: basic validation
         DatasetId id = didGenerator.get();
         datasets.put(id, config);
+        updateClients();
         return id;
     }
 
-    public Map<DatasetId, DatasetConfig> getDatasets() {
+    public synchronized void deleteDataset(@PathParam("id") String id) {
+        final DatasetId did = DatasetId.of(id);
+        throwIfDatasetNotFound(did);
+        datasets.remove(did);
+        updateClients();
+    }
+
+    public synchronized Map<DatasetId, DatasetConfig> getDatasets() {
         return ImmutableMap.copyOf(datasets);
     }
 
-    public DatasetConfig getDataset(@PathParam("id") String id) {
+    public synchronized DatasetConfig getDataset(@PathParam("id") String id) {
         final DatasetId did = DatasetId.of(id);
         throwIfDatasetNotFound(did);
         return datasets.get(did);
     }
 
-    public void deleteDataset(@PathParam("id") String id) {
-        final DatasetId did = DatasetId.of(id);
-        throwIfDatasetNotFound(did);
-        datasets.remove(did);
+    @Override
+    public synchronized void onOpen(Session session, EndpointConfig config) {
+        LOG.info("[{}] Open", session.getId());
+        updateClient(session);
+        sessions.add(session);
+    }
+
+    @Override
+    public synchronized void onClose(Session session, CloseReason closeReason) {
+        LOG.info("[{}] Close", session.getId());
+        sessions.remove(session);
+    }
+
+    private void updateClients() {
+        sessions.forEach(this::updateClient);
+    }
+
+    private void updateClient(Session session) {
+        try {
+            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
+        } catch (JsonProcessingException e) {
+            LOG.error("Error producing JSON", e);
+        }
     }
 
     private void throwIfDatasetNotFound(DatasetId id) {

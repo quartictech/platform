@@ -1,14 +1,21 @@
 package io.quartic.catalogue;
 
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 
+import javax.websocket.server.ServerEndpointConfig;
+
+import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
+
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
+    private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
     private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetId::of);
 
     public static void main(String[] args) throws Exception {
@@ -20,11 +27,21 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
     }
 
     @Override
+    public void initialize(Bootstrap<CatalogueConfiguration> bootstrap) {
+        super.initialize(bootstrap);
+        bootstrap.addBundle(websocketBundle);
+    }
+
+    @Override
     public void run(CatalogueConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
+        final CatalogueResource catalogue = new CatalogueResource(didGenerator, environment.getObjectMapper());
+
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new CatalogueResource(didGenerator));
+        environment.jersey().register(catalogue);
+
+        websocketBundle.addEndpoint(createEndpointConfig("/api/datasets/watch", catalogue));
     }
 }
