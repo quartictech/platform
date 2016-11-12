@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toCollection;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -52,17 +52,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         subscription = listener()
                 .observable()
                 .flatMap(this::convert)
-                .subscribe(datasets -> {
-                    synchronized (terminationIds) {
-                        terminationIds.clear();
-                        terminationIds.addAll(
-                                datasets.values().stream()
-                                        .filter(config -> config.locator() instanceof TerminatorDatasetLocator)
-                                        .map(config -> ((TerminatorDatasetLocator) config.locator()).id())
-                                        .collect(toList())
-                        );
-                    }
-                });
+                .subscribe(this::update);
     }
 
     @Override
@@ -74,12 +64,23 @@ public abstract class CatalogueWatcher implements AutoCloseable {
     }
 
     private Observable<Map<DatasetId, DatasetConfig>> convert(String message) {
+        final MapType mapType = objectMapper().getTypeFactory()
+                .constructMapType(Map.class, DatasetId.class, DatasetConfig.class);
         try {
-            final MapType mapType = objectMapper().getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class);
             return just(objectMapper().readValue(message, mapType));
         } catch (IOException e) {
             LOG.error("Error converting message", e);
             return empty();
+        }
+    }
+
+    private void update(Map<DatasetId, DatasetConfig> datasets) {
+        synchronized (terminationIds) {
+            terminationIds.clear();
+            datasets.values().stream()
+                    .filter(config -> config.locator() instanceof TerminatorDatasetLocator)
+                    .map(config -> ((TerminatorDatasetLocator) config.locator()).id())
+                    .collect(toCollection(() -> terminationIds));
         }
     }
 
