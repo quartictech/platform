@@ -1,8 +1,7 @@
-package io.quartic.weyl.core.source;
+package io.quartic.common.client;
 
-import com.codahale.metrics.MetricRegistry;
-import io.quartic.common.client.WebsocketClientSessionFactory;
 import org.glassfish.tyrus.server.Server;
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -16,10 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
 
 public class WebsocketListenerShould {
     private static final int TIMEOUT_MILLISECONDS = 250;
@@ -86,14 +82,14 @@ public class WebsocketListenerShould {
         subA.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
         subB.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
-        assertThat(server.numConnections(), equalTo(1));
+        assertThat(server.numConnections(), Matchers.equalTo(1));
     }
 
     @Test
     public void not_connect_to_websocket_if_no_subscribers() throws Exception {
         createListener();
 
-        assertThat(server.numConnections(), equalTo(0));
+        assertThat(server.numConnections(), Matchers.equalTo(0));
     }
 
     private WebsocketListener createListener() {
@@ -101,7 +97,6 @@ public class WebsocketListenerShould {
                 .websocketFactory(new WebsocketClientSessionFactory(getClass()))
                 .name("Budgie")
                 .url(server.uri())
-                .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
     }
 }

@@ -1,8 +1,5 @@
-package io.quartic.weyl.core.source;
+package io.quartic.common.client;
 
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.MetricRegistry;
-import io.quartic.common.client.WebsocketClientSessionFactory;
 import org.immutables.value.Value;
 import rx.Observable;
 
@@ -21,13 +18,7 @@ public abstract class WebsocketListener {
 
     protected abstract String name();
     protected abstract String url();
-    protected abstract MetricRegistry metrics();
     protected abstract WebsocketClientSessionFactory websocketFactory();
-
-    @Value.Derived
-    protected Meter messageRateMeter() {
-        return metrics().meter(MetricRegistry.name(WebsocketListener.class, "messages", "rate"));
-    }
 
     @Value.Lazy
     public Observable<String> observable() {
@@ -35,10 +26,7 @@ public abstract class WebsocketListener {
             final Endpoint endpoint = new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
-                    session.addMessageHandler(String.class, message -> {
-                        messageRateMeter().mark();
-                        sub.onNext(message);
-                    });
+                    session.addMessageHandler(String.class, sub::onNext);
                 }
             };
 

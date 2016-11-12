@@ -1,9 +1,11 @@
 package io.quartic.weyl.core.source;
 
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
@@ -37,13 +39,20 @@ public abstract class TerminatorSourceFactory {
                 .websocketFactory(websocketFactory())
                 .name(getClass().getSimpleName())
                 .url(url())
-                .metrics(metrics())
                 .build();
     }
 
     @Value.Derived
+    protected Meter messageRateMeter() {
+        return metrics().meter(MetricRegistry.name(TerminatorSourceFactory.class, "messages", "rate"));
+    }
+
+    @Value.Derived
     protected Observable<FeatureCollectionWithTerminationId> collections() {
-        return listener().observable().flatMap(this::convert);
+        return listener()
+                .observable()
+                .doOnNext(s -> messageRateMeter().mark())
+                .flatMap(this::convert);
     }
 
     private Observable<FeatureCollectionWithTerminationId> convert(String message) {

@@ -8,6 +8,7 @@ dependencies {
     compile libraries.immutables
 
     compile libraries.guava
+    compile libraries.rxjava
     compile libraries.websocket
     compile libraries.tyrus.client
 
@@ -24,6 +25,8 @@ dependencies {
     compile "com.netflix.feign:feign-slf4j:${versions.feign}"
 
     testCompile libraries.testCommon
+    testCompile libraries.tyrus.server
+    testCompile libraries.tyrus.containerServer
 }
 
 

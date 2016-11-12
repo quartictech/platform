@@ -29,8 +29,6 @@ dependencies {
 
     testCompile libraries.testCommon
     testCompile libraries.wiremock
-    testCompile libraries.tyrus.server
-    testCompile libraries.tyrus.containerServer
 }
 
 

@@ -1,9 +1,11 @@
 package io.quartic.weyl.core.source;
 
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
@@ -38,8 +40,12 @@ public abstract class WebsocketSource implements Source {
                 .websocketFactory(websocketFactory())
                 .name(name())
                 .url(locator().url())
-                .metrics(metrics())
                 .build();
+    }
+
+    @Value.Derived
+    protected Meter messageRateMeter() {
+        return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate"));
     }
 
     @Value.Lazy
@@ -47,6 +53,7 @@ public abstract class WebsocketSource implements Source {
     public Observable<SourceUpdate> observable() {
         return listener()
                 .observable()
+                .doOnNext(s -> messageRateMeter().mark())
                 .flatMap(this::convert);
     }
 

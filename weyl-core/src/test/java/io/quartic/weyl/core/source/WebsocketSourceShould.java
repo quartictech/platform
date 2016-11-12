@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
