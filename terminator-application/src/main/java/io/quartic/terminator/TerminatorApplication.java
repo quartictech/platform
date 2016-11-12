@@ -5,12 +5,12 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.common.application.ApplicationBase;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.pingpong.PingPongResource;
 
 import javax.websocket.server.ServerEndpointConfig;
 
 import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
-import static io.quartic.terminator.CatalogueProxy.catalogueFromUrl;
 
 public class TerminatorApplication extends ApplicationBase<TerminatorConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -34,8 +34,12 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final CatalogueProxy catalogue = CatalogueProxy.builder()
-                .catalogue(catalogueFromUrl(getClass(), configuration.getCatalogueUrl()))
+        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
+
+        final CatalogueWatcher catalogue = CatalogueWatcher.builder()
+                .catalogueApiRoot(configuration.getCatalogueUrl())
+                .websocketFactory(websocketFactory)
+                .objectMapper(environment.getObjectMapper())
                 .build();
         final TerminatorResource terminator = new TerminatorResource(catalogue);
         websocketBundle.addEndpoint(

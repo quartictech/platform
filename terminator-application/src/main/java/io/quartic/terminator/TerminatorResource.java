@@ -13,9 +13,9 @@ import javax.ws.rs.NotFoundException;
 public class TerminatorResource implements TerminatorService {
     private final SerializedSubject<FeatureCollectionWithTerminationId, FeatureCollectionWithTerminationId> subject
             = PublishSubject.<FeatureCollectionWithTerminationId>create().toSerialized();
-    private final CatalogueProxy catalogue;
+    private final CatalogueWatcher catalogue;
 
-    public TerminatorResource(CatalogueProxy catalogue) {
+    public TerminatorResource(CatalogueWatcher catalogue) {
         this.catalogue = catalogue;
     }
 

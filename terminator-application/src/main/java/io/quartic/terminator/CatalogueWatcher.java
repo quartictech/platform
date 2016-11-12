@@ -1,52 +1,58 @@
 package io.quartic.terminator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import io.quartic.catalogue.api.*;
-import io.quartic.common.client.ClientBuilder;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.TerminationId;
+import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
-import rx.functions.Func1;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
-import static rx.Observable.fromCallable;
+import static rx.Observable.empty;
+import static rx.Observable.just;
 
 @Value.Immutable
-public abstract class CatalogueProxy implements AutoCloseable {
-    private static final Logger LOG = LoggerFactory.getLogger(CatalogueProxy.class);
+public abstract class CatalogueWatcher implements AutoCloseable {
+    private static final Logger LOG = LoggerFactory.getLogger(CatalogueWatcher.class);
     private Subscription subscription = null;
 
-    public static ImmutableCatalogueProxy.Builder builder() {
-        return ImmutableCatalogueProxy.builder();
+    public static ImmutableCatalogueWatcher.Builder builder() {
+        return ImmutableCatalogueWatcher.builder();
     }
 
-    protected static CatalogueService catalogueFromUrl(Class<?> owner, String url) {
-        return ClientBuilder.build(CatalogueService.class, owner, url);
-    }
+    protected abstract String catalogueApiRoot();
+    protected abstract ObjectMapper objectMapper();
+    protected abstract WebsocketClientSessionFactory websocketFactory();
 
-    public static final int DEFAULT_POLL_PERIOD_MILLISECONDS = 2000;
-
-    protected abstract CatalogueService catalogue();
     @Value.Default
-    protected long pollPeriodMilliseconds() {
-        return DEFAULT_POLL_PERIOD_MILLISECONDS;
+    protected WebsocketListener listener() {
+        return WebsocketListener.builder()
+                .websocketFactory(websocketFactory())
+                .name(this.getClass().getSimpleName())
+                .url(catalogueApiRoot() + "/datasets/watch")
+                .build();
     }
 
     private final Set<TerminationId> terminationIds = Sets.newHashSet();
 
     public void start() {
-        subscription = fromCallable(() -> catalogue().getDatasets())
-                .doOnError((e) -> LOG.error("Error polling catalogue: {}", e.getMessage()))
-                .repeatWhen(pollDelay())
-                .retryWhen(pollDelay())
+        subscription = listener()
+                .observable()
+                .flatMap(this::convert)
                 .subscribe(new Subscriber<Map<DatasetId, DatasetConfig>>() {
                     @Override
                     public void onCompleted() {
@@ -71,7 +77,6 @@ public abstract class CatalogueProxy implements AutoCloseable {
                         }
                     }
                 });
-
     }
 
     @Override
@@ -82,8 +87,14 @@ public abstract class CatalogueProxy implements AutoCloseable {
         }
     }
 
-    private Func1<Observable<?>, Observable<?>> pollDelay() {
-        return o -> o.delay(pollPeriodMilliseconds(), MILLISECONDS);
+    private Observable<Map<DatasetId, DatasetConfig>> convert(String message) {
+        try {
+            final MapType mapType = objectMapper().getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class);
+            return just(objectMapper().readValue(message, mapType));
+        } catch (IOException e) {
+            LOG.error("Error converting message", e);
+            return empty();
+        }
     }
 
     public Set<TerminationId> terminationIds() {
