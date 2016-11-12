@@ -14,7 +14,6 @@ import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.Subscriber;
 import rx.Subscription;
 
 import java.io.IOException;
@@ -53,28 +52,15 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         subscription = listener()
                 .observable()
                 .flatMap(this::convert)
-                .subscribe(new Subscriber<Map<DatasetId, DatasetConfig>>() {
-                    @Override
-                    public void onCompleted() {
-                        LOG.error("Unexpected call to onCompleted");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        LOG.error("Unexpected call to onError", e);
-                    }
-
-                    @Override
-                    public void onNext(Map<DatasetId, DatasetConfig> datasets) {
-                        synchronized (terminationIds) {
-                            terminationIds.clear();
-                            terminationIds.addAll(
-                                    datasets.values().stream()
-                                            .filter(config -> config.locator() instanceof TerminatorDatasetLocator)
-                                            .map(config -> ((TerminatorDatasetLocator) config.locator()).id())
-                                            .collect(toList())
-                            );
-                        }
+                .subscribe(datasets -> {
+                    synchronized (terminationIds) {
+                        terminationIds.clear();
+                        terminationIds.addAll(
+                                datasets.values().stream()
+                                        .filter(config -> config.locator() instanceof TerminatorDatasetLocator)
+                                        .map(config -> ((TerminatorDatasetLocator) config.locator()).id())
+                                        .collect(toList())
+                        );
                     }
                 });
     }
