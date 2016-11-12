@@ -44,7 +44,7 @@ public abstract class CatalogueProxy implements AutoCloseable {
 
     public void start() {
         subscription = fromCallable(() -> catalogue().getDatasets())
-                .doOnError((e) -> LOG.error("Error polling catalogue", e))
+                .doOnError((e) -> LOG.error("Error polling catalogue: {}", e.getMessage()))
                 .repeatWhen(pollDelay())
                 .retryWhen(pollDelay())
                 .subscribe(new Subscriber<Map<DatasetId, DatasetConfig>>() {
