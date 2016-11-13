@@ -3,7 +3,7 @@ package io.quartic.weyl.core.feature;
 import com.google.common.collect.MapMaker;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 
 import java.util.AbstractMap;
 import java.util.Collection;

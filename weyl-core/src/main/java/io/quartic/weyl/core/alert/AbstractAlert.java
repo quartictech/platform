@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.alert;
 
-import io.quartic.common.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle

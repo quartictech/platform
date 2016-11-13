@@ -1,6 +1,6 @@
 package io.quartic.geojson;
 
-import io.quartic.common.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
 import java.util.List;

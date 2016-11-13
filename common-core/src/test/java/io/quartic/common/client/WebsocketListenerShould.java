@@ -1,6 +1,6 @@
 package io.quartic.common.client;
 
-import io.quartic.common.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import io.quartic.common.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
 import org.immutables.value.Value;
@@ -8,7 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
-import static io.quartic.common.serdes.ObjectMappers.encode;
+import static io.quartic.weyl.common.serdes.ObjectMappers.encode;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;

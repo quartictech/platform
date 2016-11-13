@@ -2,7 +2,7 @@ package io.quartic.weyl.message;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.quartic.weyl.core.alert.AbstractAlert;
-import io.quartic.common.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle

@@ -9,7 +9,7 @@ import feign.jaxrs.JAXRSContract;
 import feign.slf4j.Slf4jLogger;
 
 import static com.google.common.net.HttpHeaders.USER_AGENT;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
 public final class ClientBuilder {
     private ClientBuilder() {}

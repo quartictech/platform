@@ -1,8 +1,8 @@
 package io.quartic.management;
 
 import io.quartic.catalogue.api.*;
-import io.quartic.common.uid.RandomUidGenerator;
-import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.common.uid.RandomUidGenerator;
+import io.quartic.weyl.common.uid.UidGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;

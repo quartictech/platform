@@ -1,4 +1,4 @@
-package io.quartic.common.uid;
+package io.quartic.weyl.common.uid;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;

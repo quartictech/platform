@@ -13,7 +13,7 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 

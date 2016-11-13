@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
 public class CollectingEndpoint<T> extends Endpoint {
     private final Class<? extends T> clazz;

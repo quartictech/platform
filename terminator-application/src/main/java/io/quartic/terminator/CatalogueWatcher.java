@@ -15,7 +15,7 @@ import rx.Subscription;
 import java.util.Map;
 import java.util.Set;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.stream.Collectors.toCollection;
 
 @Value.Immutable

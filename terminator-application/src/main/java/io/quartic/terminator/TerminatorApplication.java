@@ -4,17 +4,13 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 
 import javax.websocket.server.ServerEndpointConfig;
-import java.util.Map;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
 
 public class TerminatorApplication extends ApplicationBase<TerminatorConfiguration> {

@@ -6,7 +6,7 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.common.uid.SequenceUidGenerator;
+import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import org.junit.Test;
 
 import javax.websocket.CloseReason;
@@ -15,7 +15,7 @@ import javax.websocket.Session;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.Collections.emptyMap;
 import static org.mockito.Mockito.*;
 

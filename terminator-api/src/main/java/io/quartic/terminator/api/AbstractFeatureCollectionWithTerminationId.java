@@ -2,7 +2,7 @@ package io.quartic.terminator.api;
 
 import io.quartic.catalogue.api.TerminationId;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.common.SweetStyle;
+import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle
