@@ -133,6 +133,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .objectMapper(environment.getObjectMapper())
                         .build(),
                 WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
+                        .name(config.metadata().name())
                         .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(converter)
                         .metrics(environment.metrics())
