@@ -13,10 +13,10 @@ import javax.ws.rs.NotFoundException;
 public class TerminatorResource implements TerminatorService {
     private final SerializedSubject<FeatureCollectionWithTerminationId, FeatureCollectionWithTerminationId> subject
             = PublishSubject.<FeatureCollectionWithTerminationId>create().toSerialized();
-    private final CatalogueWatcher catalogue;
+    private final CatalogueWatcher catalogueWatcher;
 
-    public TerminatorResource(CatalogueWatcher catalogue) {
-        this.catalogue = catalogue;
+    public TerminatorResource(CatalogueWatcher catalogueWatcher) {
+        this.catalogueWatcher = catalogueWatcher;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class TerminatorResource implements TerminatorService {
 
         // TODO: validate that IDs are present on each feature?
 
-        if (catalogue.terminationIds().contains(terminationId)) {
+        if (catalogueWatcher.terminationIds().contains(terminationId)) {
             subject.onNext(FeatureCollectionWithTerminationId.of(terminationId, featureCollection));
         } else {
             throw new NotFoundException("Dataset " + id + " not found");

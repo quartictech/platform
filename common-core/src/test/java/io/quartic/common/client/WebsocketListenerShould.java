@@ -1,11 +1,14 @@
 package io.quartic.common.client;
 
+import io.quartic.common.SweetStyle;
 import io.quartic.common.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
+import org.immutables.value.Value;
 import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
+import static io.quartic.common.serdes.ObjectMappers.encode;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -18,23 +21,36 @@ public class WebsocketListenerShould {
 
     @Test
     public void emit_items_from_socket() throws Exception {
-        server.setMessages("foo", "bar");
+        server.setMessages(encode(TestThing.of("foo")), encode(TestThing.of("bar")));
 
-        final WebsocketListener listener = createListener();
+        final WebsocketListener<TestThing> listener = createListener();
 
-        TestSubscriber<String> subscriber = TestSubscriber.create();
+        TestSubscriber<TestThing> subscriber = TestSubscriber.create();
         listener.observable().subscribe(subscriber);
         subscriber.awaitValueCount(2, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
-        assertThat(subscriber.getOnNextEvents(), contains("foo", "bar"));
+        assertThat(subscriber.getOnNextEvents(), contains(TestThing.of("foo"), TestThing.of("bar")));
+    }
+
+    @Test
+    public void skip_undecodable_items() throws Exception {
+        server.setMessages("bad", encode(TestThing.of("bar")));
+
+        final WebsocketListener<TestThing> listener = createListener();
+
+        TestSubscriber<TestThing> subscriber = TestSubscriber.create();
+        listener.observable().subscribe(subscriber);
+        subscriber.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
+
+        assertThat(subscriber.getOnNextEvents(), contains(TestThing.of("bar")));
     }
 
     @Test
     public void only_create_one_connection_if_multiple_subscribers() throws Exception {
-        final WebsocketListener listener = createListener();
+        final WebsocketListener<TestThing> listener = createListener();
 
-        TestSubscriber<String> subA = TestSubscriber.create();
-        TestSubscriber<String> subB = TestSubscriber.create();
+        TestSubscriber<TestThing> subA = TestSubscriber.create();
+        TestSubscriber<TestThing> subB = TestSubscriber.create();
         listener.observable().subscribe(subA);
         listener.observable().subscribe(subB);
         subA.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
@@ -50,11 +66,13 @@ public class WebsocketListenerShould {
         assertThat(server.numConnections(), Matchers.equalTo(0));
     }
 
-    private WebsocketListener createListener() {
-        return WebsocketListener.builder()
-                .websocketFactory(new WebsocketClientSessionFactory(getClass()))
-                .name("Budgie")
-                .url(server.uri())
-                .build();
+    private WebsocketListener<TestThing> createListener() {
+        return WebsocketListener.of(server.uri(), TestThing.class, getClass());
+    }
+
+    @SweetStyle
+    @Value.Immutable
+    interface AbstractTestThing {
+        String name();
     }
 }

@@ -9,13 +9,14 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -27,14 +28,14 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
-import io.quartic.weyl.scheduler.ScheduleItem;
-import io.quartic.weyl.scheduler.Scheduler;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
@@ -51,7 +52,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
     }
-
 
     public WeylApplication() {
         super("weyl");
@@ -87,7 +87,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueUrl()));
+        environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueWatchUrl()));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
@@ -97,16 +97,19 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
 
-        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
-
-        environment.lifecycle().manage(Scheduler.builder()
-                .scheduleItem(ScheduleItem.of(2000, new CatalogueManager(
-                        catalogue,
-                        layerStore,
-                        createSourceFactories(configuration, environment, featureStore),
-                        Schedulers.from(Executors.newScheduledThreadPool(2)))))
-                .build()
+        final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = WebsocketListener.of(
+                configuration.getCatalogueWatchUrl(),
+                OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class),
+                getClass()
         );
+        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
+                .listener(listener)
+                .sourceFactories(createSourceFactories(configuration, environment, featureStore))
+                .layerStore(layerStore)
+                .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
+                .build();
+
+        catalogueWatcher.start();
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
@@ -119,11 +122,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
-                .url(configuration.getTerminatorUrl())
+                .listener(WebsocketListener.of(configuration.getTerminatorUrl(), FeatureCollectionWithTerminationId.class, getClass()))
                 .converter(converter)
-                .objectMapper(environment.getObjectMapper())
                 .metrics(environment.metrics())
-                .websocketFactory(websocketFactory)
                 .build();
 
         return ImmutableMap.of(
@@ -143,9 +144,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .name(config.metadata().name())
                         .locator((WebsocketDatasetLocator) config.locator())
                         .converter(converter)
-                        .objectMapper(environment.getObjectMapper())
                         .metrics(environment.metrics())
-                        .websocketFactory(websocketFactory)
                         .build(),
                 TerminatorDatasetLocator.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
                 CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()

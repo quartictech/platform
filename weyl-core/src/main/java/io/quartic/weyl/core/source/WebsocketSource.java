@@ -2,9 +2,7 @@ package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
-import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LayerViewType;
@@ -13,11 +11,6 @@ import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-
-import java.io.IOException;
-
-import static rx.Observable.empty;
-import static rx.Observable.just;
 
 @Value.Immutable
 public abstract class WebsocketSource implements Source {
@@ -30,17 +23,11 @@ public abstract class WebsocketSource implements Source {
     protected abstract String name();
     protected abstract WebsocketDatasetLocator locator();
     protected abstract LiveEventConverter converter();
-    protected abstract ObjectMapper objectMapper();
     protected abstract MetricRegistry metrics();
-    protected abstract WebsocketClientSessionFactory websocketFactory();
 
     @Value.Default
-    protected WebsocketListener listener() {
-        return WebsocketListener.builder()
-                .websocketFactory(websocketFactory())
-                .name(name())
-                .url(locator().url())
-                .build();
+    protected WebsocketListener<FeatureCollection> listener() {
+        return WebsocketListener.of(locator().url(), FeatureCollection.class, getClass());
     }
 
     @Value.Derived
@@ -54,16 +41,7 @@ public abstract class WebsocketSource implements Source {
         return listener()
                 .observable()
                 .doOnNext(s -> messageRateMeter().mark())
-                .flatMap(this::convert);
-    }
-
-    private Observable<SourceUpdate> convert(String message) {
-        try {
-            return just(converter().updateFrom(objectMapper().readValue(message, FeatureCollection.class)));
-        } catch (IOException e) {
-            LOG.error("Error converting message", e);
-            return empty();
-        }
+                .map(fc -> converter().updateFrom(fc));
     }
 
     @Override

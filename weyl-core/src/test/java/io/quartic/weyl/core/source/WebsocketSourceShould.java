@@ -4,7 +4,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
-import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
@@ -18,7 +17,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,25 +24,23 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class WebsocketSourceShould {
-    final static FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", Optional.of(point())));
+    private final static FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", Optional.of(point())));
 
     @Test
     public void import_things() throws Exception {
-        final WebsocketListener listener = mock(WebsocketListener.class);
+        final WebsocketListener<FeatureCollection> listener = mock(WebsocketListener.class);
         final LiveEventConverter converter = mock(LiveEventConverter.class);
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
 
-        when(listener.observable()).thenReturn(just(OBJECT_MAPPER.writeValueAsString(FEATURE_COLLECTION)));
+        when(listener.observable()).thenReturn(just(FEATURE_COLLECTION));
         when(converter.updateFrom(any(FeatureCollection.class))).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .name("Budgie")
                 .converter(converter)
-                .objectMapper(OBJECT_MAPPER)
                 .listener(listener)
                 .locator(WebsocketDatasetLocator.of("whatever"))
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
-                .websocketFactory(mock(WebsocketClientSessionFactory.class))
                 .build();
 
         TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();

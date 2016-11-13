@@ -5,12 +5,13 @@ plugins {
 }
 
 dependencies {
-    compile libraries.immutables
+    processor libraries.immutables
 
     compile libraries.guava
     compile libraries.rxjava
     compile libraries.websocket
     compile libraries.tyrus.client
+    runtime libraries.tyrus.containerClient
 
     compile "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
     compile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"

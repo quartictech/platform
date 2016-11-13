@@ -1,57 +1,39 @@
 package io.quartic.terminator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.TerminationId;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
-import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 import rx.Subscription;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toCollection;
-import static rx.Observable.empty;
-import static rx.Observable.just;
 
 @Value.Immutable
 public abstract class CatalogueWatcher implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueWatcher.class);
+
+    public static CatalogueWatcher of(WebsocketListener<Map<DatasetId, DatasetConfig>> listener) {
+        return ImmutableCatalogueWatcher.of(listener);
+    }
+
     private Subscription subscription = null;
-
-    public static ImmutableCatalogueWatcher.Builder builder() {
-        return ImmutableCatalogueWatcher.builder();
-    }
-
-    protected abstract String catalogueWatchUrl();
-    protected abstract ObjectMapper objectMapper();
-    protected abstract WebsocketClientSessionFactory websocketFactory();
-
-    @Value.Default
-    protected WebsocketListener listener() {
-        return WebsocketListener.builder()
-                .websocketFactory(websocketFactory())
-                .name(this.getClass().getSimpleName())
-                .url(catalogueWatchUrl())
-                .build();
-    }
-
     private final Set<TerminationId> terminationIds = Sets.newHashSet();
+
+    @Value.Parameter
+    protected abstract WebsocketListener<Map<DatasetId, DatasetConfig>> listener();
 
     public void start() {
         subscription = listener()
                 .observable()
-                .flatMap(this::convert)
                 .subscribe(this::update);
     }
 
@@ -63,18 +45,8 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         }
     }
 
-    private Observable<Map<DatasetId, DatasetConfig>> convert(String message) {
-        final MapType mapType = objectMapper().getTypeFactory()
-                .constructMapType(Map.class, DatasetId.class, DatasetConfig.class);
-        try {
-            return just(objectMapper().readValue(message, mapType));
-        } catch (IOException e) {
-            LOG.error("Error converting message", e);
-            return empty();
-        }
-    }
-
     private void update(Map<DatasetId, DatasetConfig> datasets) {
+        LOG.info("Received catalogue update");
         synchronized (terminationIds) {
             terminationIds.clear();
             datasets.values().stream()

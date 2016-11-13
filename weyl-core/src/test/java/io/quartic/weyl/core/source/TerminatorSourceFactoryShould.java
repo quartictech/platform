@@ -1,12 +1,10 @@
 package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.TerminationId;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
-import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
@@ -21,14 +19,13 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class TerminatorSourceFactoryShould {
-    private final WebsocketListener listener = mock(WebsocketListener.class);
+    private final WebsocketListener<FeatureCollectionWithTerminationId> listener = mock(WebsocketListener.class);
     private final LiveEventConverter converter = mock(LiveEventConverter.class);
 
     @Test
@@ -37,7 +34,9 @@ public class TerminatorSourceFactoryShould {
         final FeatureCollection collection = featureCollection(geojsonFeature("a", Optional.of(point())));
         final TerminatorDatasetLocator locator = TerminatorDatasetLocator.of(TerminationId.of("123"));
 
-        when(listener.observable()).thenReturn(just(message(locator.id(), collection)));
+        when(listener.observable()).thenReturn(just(
+                FeatureCollectionWithTerminationId.of(locator.id(), collection)
+        ));
         when(converter.updateFrom(collection)).thenReturn(update);
 
         final TerminatorSourceFactory factory = createFactory();
@@ -55,8 +54,8 @@ public class TerminatorSourceFactoryShould {
         final TerminatorDatasetLocator locatorB = TerminatorDatasetLocator.of(TerminationId.of("456"));
 
         when(listener.observable()).thenReturn(just(
-                message(locatorA.id(), collectionA),
-                message(locatorB.id(), collectionB)
+                FeatureCollectionWithTerminationId.of(locatorA.id(), collectionA),
+                FeatureCollectionWithTerminationId.of(locatorB.id(), collectionB)
         ));
         when(converter.updateFrom(collectionA)).thenReturn(updateA);
         when(converter.updateFrom(collectionB)).thenReturn(updateB);
@@ -73,12 +72,6 @@ public class TerminatorSourceFactoryShould {
         assertThat(result, is(update));
     }
 
-    private String message(TerminationId terminationId, FeatureCollection featureCollection) throws JsonProcessingException {
-        return OBJECT_MAPPER.writeValueAsString(
-                FeatureCollectionWithTerminationId.of(terminationId, featureCollection)
-        );
-    }
-
     private SourceUpdate collectUpdate(Source source) {
         TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         source.observable().subscribe(subscriber);
@@ -89,11 +82,8 @@ public class TerminatorSourceFactoryShould {
     private TerminatorSourceFactory createFactory() {
         return TerminatorSourceFactory.builder()
                 .converter(converter)
-                .objectMapper(OBJECT_MAPPER)
                 .listener(listener)
-                .url("whatever")
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
-                .websocketFactory(mock(WebsocketClientSessionFactory.class))
                 .build();
     }
 

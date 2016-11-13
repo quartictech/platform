@@ -4,12 +4,16 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.Map;
 
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
 
 public class TerminatorApplication extends ApplicationBase<TerminatorConfiguration> {
@@ -34,21 +38,20 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
-
-        final CatalogueWatcher catalogue = CatalogueWatcher.builder()
-                .catalogueWatchUrl(configuration.getCatalogueWatchUrl())
-                .websocketFactory(websocketFactory)
-                .objectMapper(environment.getObjectMapper())
-                .build();
-        final TerminatorResource terminator = new TerminatorResource(catalogue);
+        final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = WebsocketListener.of(
+                configuration.getCatalogueWatchUrl(),
+                OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class),
+                getClass()
+        );
+        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.of(listener);
+        final TerminatorResource terminator = new TerminatorResource(catalogueWatcher);
         websocketBundle.addEndpoint(
                 createEndpointConfig("/ws", new SocketServer(terminator.featureCollections(), environment.getObjectMapper())));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(terminator);
 
-        catalogue.start();
+        catalogueWatcher.start();
     }
 
 }
