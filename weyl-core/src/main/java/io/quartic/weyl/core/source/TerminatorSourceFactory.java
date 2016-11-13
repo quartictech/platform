@@ -22,7 +22,7 @@ public abstract class TerminatorSourceFactory {
 
     protected abstract MetricRegistry metrics();
     protected abstract LiveEventConverter converter();
-    protected abstract WebsocketListener<FeatureCollectionWithTerminationId> listener();
+    protected abstract WebsocketListener.Factory listenerFactory();
 
     @Value.Derived
     protected Meter messageRateMeter() {
@@ -31,7 +31,7 @@ public abstract class TerminatorSourceFactory {
 
     @Value.Derived
     protected Observable<FeatureCollectionWithTerminationId> collections() {
-        return listener()
+        return listenerFactory().create(FeatureCollectionWithTerminationId.class)
                 .observable()
                 .doOnNext(s -> messageRateMeter().mark());
     }

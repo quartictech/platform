@@ -12,6 +12,7 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.live.LiveEventConverter;
+import org.junit.Before;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
@@ -26,7 +27,13 @@ import static rx.Observable.just;
 
 public class TerminatorSourceFactoryShould {
     private final WebsocketListener<FeatureCollectionWithTerminationId> listener = mock(WebsocketListener.class);
+    private final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
     private final LiveEventConverter converter = mock(LiveEventConverter.class);
+
+    @Before
+    public void before() throws Exception {
+        when(listenerFactory.create(FeatureCollectionWithTerminationId.class)).thenReturn(listener);
+    }
 
     @Test
     public void import_things() throws Exception {
@@ -82,7 +89,7 @@ public class TerminatorSourceFactoryShould {
     private TerminatorSourceFactory createFactory() {
         return TerminatorSourceFactory.builder()
                 .converter(converter)
-                .listener(listener)
+                .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
     }

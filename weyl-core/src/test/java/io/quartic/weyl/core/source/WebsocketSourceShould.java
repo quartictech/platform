@@ -28,15 +28,17 @@ public class WebsocketSourceShould {
     @Test
     public void import_things() throws Exception {
         final WebsocketListener<FeatureCollection> listener = mock(WebsocketListener.class);
+        final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
         final LiveEventConverter converter = mock(LiveEventConverter.class);
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
 
+        when(listenerFactory.create(FeatureCollection.class)).thenReturn(listener);
         when(listener.observable()).thenReturn(just(FEATURE_COLLECTION));
         when(converter.updateFrom(any(FeatureCollection.class))).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .converter(converter)
-                .listener(listener)
+                .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
 

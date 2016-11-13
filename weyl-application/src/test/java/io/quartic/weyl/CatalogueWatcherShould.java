@@ -1,5 +1,6 @@
 package io.quartic.weyl;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
@@ -13,6 +14,7 @@ import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
@@ -33,6 +35,7 @@ public class CatalogueWatcherShould {
     private static class LocatorC implements DatasetLocator {}
 
     private final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = mock(WebsocketListener.class);
+    private final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final SourceUpdate updateA = createUpdate();
     private final SourceUpdate updateB = createUpdate();
@@ -46,11 +49,16 @@ public class CatalogueWatcherShould {
     );
 
     private final CatalogueWatcher watcher = CatalogueWatcher.builder()
-            .listener(listener)
+            .listenerFactory(listenerFactory)
             .sourceFactories(sourceFactories)
             .layerStore(layerStore)
             .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
             .build();
+
+    @Before
+    public void before() throws Exception {
+        when(listenerFactory.create(any(JavaType.class))).thenReturn((WebsocketListener)listener);
+    }
 
     @After
     public void after() throws Exception {
@@ -90,7 +98,7 @@ public class CatalogueWatcherShould {
                 anyBoolean(),
                 any());
     }
-    
+
     @Test
     public void process_datasets_appearing_later() throws Exception {
         final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();

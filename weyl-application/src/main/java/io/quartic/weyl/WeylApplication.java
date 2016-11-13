@@ -16,7 +16,6 @@ import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -34,8 +33,6 @@ import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
-
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
@@ -99,13 +96,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
-        final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = WebsocketListener.of(
-                configuration.getCatalogueWatchUrl(),
-                OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class),
-                websocketFactory
-        );
         final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
-                .listener(listener)
+                .listenerFactory(WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory))
                 .sourceFactories(createSourceFactories(configuration, environment, featureStore, websocketFactory))
                 .layerStore(layerStore)
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
@@ -122,7 +114,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator);
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
-                .listener(WebsocketListener.of(configuration.getTerminatorUrl(), FeatureCollectionWithTerminationId.class, websocketFactory))
+                .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
                 .converter(converter)
                 .metrics(environment.metrics())
                 .build();
@@ -130,7 +122,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return ImmutableMap.of(
                 PostgresDatasetLocator.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
-                        .locator((PostgresDatasetLocator)config.locator())
+                        .locator((PostgresDatasetLocator) config.locator())
                         .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
@@ -141,7 +133,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .objectMapper(environment.getObjectMapper())
                         .build(),
                 WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
-                        .listener(WebsocketListener.of(((WebsocketDatasetLocator) config.locator()).url(), io.quartic.geojson.FeatureCollection.class, websocketFactory))
+                        .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(converter)
                         .metrics(environment.metrics())
                         .build(),

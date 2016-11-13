@@ -15,21 +15,27 @@ import rx.Subscription;
 import java.util.Map;
 import java.util.Set;
 
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.stream.Collectors.toCollection;
 
 @Value.Immutable
 public abstract class CatalogueWatcher implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueWatcher.class);
 
-    public static CatalogueWatcher of(WebsocketListener<Map<DatasetId, DatasetConfig>> listener) {
-        return ImmutableCatalogueWatcher.of(listener);
+    public static CatalogueWatcher of(WebsocketListener.Factory listenerFactory) {
+        return ImmutableCatalogueWatcher.of(listenerFactory);
     }
 
     private Subscription subscription = null;
     private final Set<TerminationId> terminationIds = Sets.newHashSet();
 
     @Value.Parameter
-    protected abstract WebsocketListener<Map<DatasetId, DatasetConfig>> listener();
+    protected abstract WebsocketListener.Factory listenerFactory();
+
+    @Value.Lazy
+    protected WebsocketListener<Map<DatasetId, DatasetConfig>> listener() {
+        return listenerFactory().create(OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
+    }
 
     public void start() {
         subscription = listener()

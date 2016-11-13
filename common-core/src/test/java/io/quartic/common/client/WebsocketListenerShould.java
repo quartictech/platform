@@ -67,7 +67,8 @@ public class WebsocketListenerShould {
     }
 
     private WebsocketListener<TestThing> createListener() {
-        return WebsocketListener.of(server.uri(), TestThing.class, new WebsocketClientSessionFactory(getClass()));
+        return WebsocketListener.Factory.of(server.uri(), new WebsocketClientSessionFactory(getClass()))
+                .create(TestThing.class);
     }
 
     @SweetStyle

@@ -21,15 +21,28 @@ import static rx.Observable.just;
 public abstract class WebsocketListener<T> {
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketListener.class);
 
-    public static <T> WebsocketListener<T> of(String url, Class<T> type, WebsocketClientSessionFactory websocketFactory) {
-        return of(url, OBJECT_MAPPER.getTypeFactory().uncheckedSimpleType(type), websocketFactory);
-    }
+    @Value.Immutable
+    public static abstract class Factory {
+        public static Factory of(String url, WebsocketClientSessionFactory websocketFactory) {
+            return ImmutableFactory.of(url, websocketFactory);
+        }
 
-    public static <T> WebsocketListener<T> of(String url, JavaType type, WebsocketClientSessionFactory websocketFactory) {
-        return ImmutableWebsocketListener.<T>builder().type(type)
-                .url(url)
-                .websocketFactory(websocketFactory)
-                .build();
+        @Value.Parameter
+        protected abstract String url();
+
+        @Value.Parameter
+        protected abstract WebsocketClientSessionFactory websocketFactory();
+
+        public <T> WebsocketListener<T> create(Class<T> type) {
+            return create(OBJECT_MAPPER.getTypeFactory().uncheckedSimpleType(type));
+        }
+
+        public <T> WebsocketListener<T> create(JavaType type) {
+            return ImmutableWebsocketListener.<T>builder().type(type)
+                    .url(url())
+                    .websocketFactory(websocketFactory())
+                    .build();
+        }
     }
 
     protected abstract JavaType type();

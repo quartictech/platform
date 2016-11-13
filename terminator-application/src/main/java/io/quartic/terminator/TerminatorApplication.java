@@ -39,12 +39,10 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = WebsocketListener.of(
+        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.of(WebsocketListener.Factory.of(
                 configuration.getCatalogueWatchUrl(),
-                OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class),
                 new WebsocketClientSessionFactory(getClass())
-        );
-        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.of(listener);
+        ));
         final TerminatorResource terminator = new TerminatorResource(catalogueWatcher);
         websocketBundle.addEndpoint(
                 createEndpointConfig("/ws", new SocketServer(terminator.featureCollections(), environment.getObjectMapper())));

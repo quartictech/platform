@@ -21,7 +21,7 @@ public abstract class WebsocketSource implements Source {
 
     protected abstract LiveEventConverter converter();
     protected abstract MetricRegistry metrics();
-    protected abstract WebsocketListener<FeatureCollection> listener();
+    protected abstract WebsocketListener.Factory listenerFactory();
 
     @Value.Derived
     protected Meter messageRateMeter() {
@@ -31,7 +31,7 @@ public abstract class WebsocketSource implements Source {
     @Value.Lazy
     @Override
     public Observable<SourceUpdate> observable() {
-        return listener()
+        return listenerFactory().create(FeatureCollection.class)
                 .observable()
                 .doOnNext(s -> messageRateMeter().mark())
                 .map(fc -> converter().updateFrom(fc));

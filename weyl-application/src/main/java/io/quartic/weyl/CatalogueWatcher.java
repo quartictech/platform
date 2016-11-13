@@ -21,6 +21,8 @@ import rx.Subscription;
 import java.util.Map;
 import java.util.function.Function;
 
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+
 @Value.Immutable
 public abstract class CatalogueWatcher implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueWatcher.class);
@@ -35,7 +37,12 @@ public abstract class CatalogueWatcher implements AutoCloseable {
     protected abstract Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories();
     protected abstract LayerStore layerStore();
     protected abstract Scheduler scheduler();
-    protected abstract WebsocketListener<Map<DatasetId, DatasetConfig>> listener();
+    protected abstract WebsocketListener.Factory listenerFactory();
+
+    @Value.Lazy
+    protected WebsocketListener<Map<DatasetId, DatasetConfig>> listener() {
+        return listenerFactory().create(OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
+    }
 
     public void start() {
         subscription = listener()
