@@ -3,7 +3,6 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
@@ -36,10 +35,8 @@ public class WebsocketSourceShould {
         when(converter.updateFrom(any(FeatureCollection.class))).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
-                .name("Budgie")
                 .converter(converter)
                 .listener(listener)
-                .locator(WebsocketDatasetLocator.of("whatever"))
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
 

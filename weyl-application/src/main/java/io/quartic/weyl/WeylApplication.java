@@ -97,14 +97,16 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new AggregatesResource(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
 
+        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
+
         final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = WebsocketListener.of(
                 configuration.getCatalogueWatchUrl(),
                 OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class),
-                getClass()
+                websocketFactory
         );
         final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
                 .listener(listener)
-                .sourceFactories(createSourceFactories(configuration, environment, featureStore))
+                .sourceFactories(createSourceFactories(configuration, environment, featureStore, websocketFactory))
                 .layerStore(layerStore)
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
@@ -115,14 +117,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
-            FeatureStore featureStore
-    ) {
+            FeatureStore featureStore,
+            WebsocketClientSessionFactory websocketFactory) {
         final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator);
 
-        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
-
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
-                .listener(WebsocketListener.of(configuration.getTerminatorUrl(), FeatureCollectionWithTerminationId.class, getClass()))
+                .listener(WebsocketListener.of(configuration.getTerminatorUrl(), FeatureCollectionWithTerminationId.class, websocketFactory))
                 .converter(converter)
                 .metrics(environment.metrics())
                 .build();
@@ -141,8 +141,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .objectMapper(environment.getObjectMapper())
                         .build(),
                 WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
-                        .name(config.metadata().name())
-                        .locator((WebsocketDatasetLocator) config.locator())
+                        .listener(WebsocketListener.of(((WebsocketDatasetLocator) config.locator()).url(), io.quartic.geojson.FeatureCollection.class, websocketFactory))
                         .converter(converter)
                         .metrics(environment.metrics())
                         .build(),

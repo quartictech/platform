@@ -21,20 +21,18 @@ import static rx.Observable.just;
 public abstract class WebsocketListener<T> {
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketListener.class);
 
-    public static <T> WebsocketListener<T> of(String url, Class<T> type, Class<?> owner) {
-        return of(url, OBJECT_MAPPER.getTypeFactory().uncheckedSimpleType(type), owner);
+    public static <T> WebsocketListener<T> of(String url, Class<T> type, WebsocketClientSessionFactory websocketFactory) {
+        return of(url, OBJECT_MAPPER.getTypeFactory().uncheckedSimpleType(type), websocketFactory);
     }
 
-    public static <T> WebsocketListener<T> of(String url, JavaType type, Class<?> owner) {
+    public static <T> WebsocketListener<T> of(String url, JavaType type, WebsocketClientSessionFactory websocketFactory) {
         return ImmutableWebsocketListener.<T>builder().type(type)
-                .name(owner.getSimpleName())
                 .url(url)
-                .websocketFactory(new WebsocketClientSessionFactory(owner))
+                .websocketFactory(websocketFactory)
                 .build();
     }
 
     protected abstract JavaType type();
-    protected abstract String name();
     protected abstract String url();
     protected abstract WebsocketClientSessionFactory websocketFactory();
 
@@ -49,7 +47,7 @@ public abstract class WebsocketListener<T> {
             };
 
             try {
-                websocketFactory().create(endpoint, url(), name());
+                websocketFactory().create(endpoint, url());
             } catch (URISyntaxException | DeploymentException | IOException e) {
                 sub.onError(e);
             }

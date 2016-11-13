@@ -7,6 +7,7 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.application.ApplicationBase;
+import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 
@@ -41,7 +42,7 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = WebsocketListener.of(
                 configuration.getCatalogueWatchUrl(),
                 OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class),
-                getClass()
+                new WebsocketClientSessionFactory(getClass())
         );
         final CatalogueWatcher catalogueWatcher = CatalogueWatcher.of(listener);
         final TerminatorResource terminator = new TerminatorResource(catalogueWatcher);

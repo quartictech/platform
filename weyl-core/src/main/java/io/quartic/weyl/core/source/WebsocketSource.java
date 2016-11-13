@@ -2,7 +2,6 @@ package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.live.LayerViewType;
@@ -20,15 +19,9 @@ public abstract class WebsocketSource implements Source {
         return ImmutableWebsocketSource.builder();
     }
 
-    protected abstract String name();
-    protected abstract WebsocketDatasetLocator locator();
     protected abstract LiveEventConverter converter();
     protected abstract MetricRegistry metrics();
-
-    @Value.Default
-    protected WebsocketListener<FeatureCollection> listener() {
-        return WebsocketListener.of(locator().url(), FeatureCollection.class, getClass());
-    }
+    protected abstract WebsocketListener<FeatureCollection> listener();
 
     @Value.Derived
     protected Meter messageRateMeter() {
