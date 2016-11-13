@@ -8,10 +8,12 @@ import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
+import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -23,20 +25,24 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class WebsocketSourceShould {
-    private final static FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", Optional.of(point())));
+    private final static LiveEvent LIVE_EVENT = LiveEvent.of(
+            Instant.now(),
+            Optional.of(featureCollection(geojsonFeature("a", Optional.of(point())))),
+            Optional.empty());
 
     @Test
     public void import_things() throws Exception {
-        final WebsocketListener<FeatureCollection> listener = mock(WebsocketListener.class);
+        final WebsocketListener<LiveEvent> listener = mock(WebsocketListener.class);
         final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
         final LiveEventConverter converter = mock(LiveEventConverter.class);
         final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
 
-        when(listenerFactory.create(FeatureCollection.class)).thenReturn(listener);
-        when(listener.observable()).thenReturn(just(FEATURE_COLLECTION));
-        when(converter.updateFrom(any(FeatureCollection.class))).thenReturn(update);
+        when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
+        when(listener.observable()).thenReturn(just(LIVE_EVENT));
+        when(converter.updateFrom(any(LiveEvent.class))).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
+                .name("test")
                 .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
@@ -46,7 +52,7 @@ public class WebsocketSourceShould {
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
-        verify(converter).updateFrom(FEATURE_COLLECTION);
+        verify(converter).updateFrom(LIVE_EVENT);
         assertThat(subscriber.getOnNextEvents().get(0), is(update));
     }
 
