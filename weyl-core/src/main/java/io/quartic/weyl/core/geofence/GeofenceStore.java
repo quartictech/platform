@@ -1,14 +1,14 @@
 package io.quartic.weyl.core.geofence;
 
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.common.uid.SequenceUidGenerator;
+import io.quartic.common.uid.UidGenerator;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

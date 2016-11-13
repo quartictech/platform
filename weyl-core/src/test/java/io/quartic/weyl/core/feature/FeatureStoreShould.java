@@ -4,7 +4,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.common.uid.UidGenerator;
 import org.junit.Test;
 
 import java.util.Map;

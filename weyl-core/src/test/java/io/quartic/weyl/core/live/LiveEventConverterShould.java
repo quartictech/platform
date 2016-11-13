@@ -10,7 +10,7 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.model.FeedEvent;
 import io.quartic.model.LiveEvent;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
+import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
