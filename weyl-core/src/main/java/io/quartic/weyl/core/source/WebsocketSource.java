@@ -3,7 +3,7 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.immutables.value.Value;
@@ -31,7 +31,7 @@ public abstract class WebsocketSource implements Source {
     @Value.Lazy
     @Override
     public Observable<SourceUpdate> observable() {
-        return listenerFactory().create(FeatureCollection.class)
+        return listenerFactory().create(LiveEvent.class)
                 .observable()
                 .doOnNext(s -> messageRateMeter().mark())
                 .map(fc -> converter().updateFrom(fc));
