@@ -50,7 +50,10 @@ const rootRoute = {
   childRoutes: createRoutes(store),
 };
 
-console.log("%c" +  // eslint-disable-line no-console
+const style1 = "color: #dd137b";
+const style2 = "color: #5e686e";
+const style3 = `${style1}; font-weight: bold`;
+console.log("%c\n" +  // eslint-disable-line no-console
   "                #######                \n" +
   "            /#  ##########*            \n" +
   "         #####  ##############         \n" +
@@ -68,16 +71,18 @@ console.log("%c" +  // eslint-disable-line no-console
   "     /########  ###############(       \n" +
   "         #####  ##############,####.   \n" +
   "            /#  ##########*       /#   \n" +
-  "                #######                ",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b", "color: #5e686e",
-  "color: #dd137b",
+  "                #######                \n" +
+  "\n" +
+  "          %chttps://quartic.io",
+  style1, style2,
+  style1, style2,
+  style1, style2,
+  style1, style2,
+  style1, style2,
+  style1, style2,
+  style1, style2,
+  style1, style2,
+  style1, style3,
 );
 
 
