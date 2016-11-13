@@ -46,22 +46,32 @@ public class WebsocketClientSessionFactory {
 
             @Override
             public boolean onDisconnect(CloseReason closeReason) {
-                LOG.info("Disconnecting: {}", closeReason);
+                LOG.warn("Disconnecting: {}", closeReason);
                 return true;
             }
 
             @Override
             public boolean onConnectFailure(Exception exception) {
-                LOG.info("Connection failure: {}", exception);
+                LOG.warn("Connection failure: {}\n{}",
+                        exception.getMessage(),
+                        formatStackTrace(exception.getStackTrace()));
                 return true;
             }
 
             @Override
             public long getDelay() {
-                return 1;
+                return 5;
             }
         };
         clientManager.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
         return clientManager;
+    }
+
+    private String formatStackTrace(StackTraceElement[] stackTrace) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < Math.min(3, stackTrace.length); i++) {
+            sb.append("\tat " + stackTrace[i] + "\n");
+        }
+        return sb.append("\t...").toString();
     }
 }
