@@ -16,4 +16,5 @@ metrics:
       auth: ${INFLUX_AUTH}
       tags:
         application: ${APPLICATION_NAME}
+        namespace: ${NAMESPACE}
 </#if>
