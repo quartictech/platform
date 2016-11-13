@@ -224,8 +224,8 @@ public class LayerStore {
             @Override
             public void onNext(SourceUpdate update) {
                 final Layer layer = layers.get(id); // TODO: locking?
-                LOG.info("Accepted {} features and {} feed events for layer {}", update.features().size(),
-                        update.feedEvents().size(), layer.metadata().name());
+                LOG.info("[{}] Accepted {} features and {} feed events", layer.metadata().name(), update.features().size(),
+                        update.feedEvents().size());
 
                 final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
                 updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
