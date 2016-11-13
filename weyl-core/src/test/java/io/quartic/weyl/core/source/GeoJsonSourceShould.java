@@ -3,7 +3,6 @@ package io.quartic.weyl.core.source;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.geojson.Feature;

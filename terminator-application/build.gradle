@@ -18,6 +18,7 @@ dependencies {
     compile libraries.rxjava
     compile libraries.dropwizardWebsockets
 
+    testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile libraries.wiremock
     testCompile libraries.dropwizardTesting

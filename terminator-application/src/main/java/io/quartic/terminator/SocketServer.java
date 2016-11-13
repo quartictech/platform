@@ -13,7 +13,6 @@ import rx.Observable;
 import rx.Subscriber;
 
 import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -21,8 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Metered
 @Timed
 @ExceptionMetered
-@ServerEndpoint("/ws")
-public class SocketServer {
+public class SocketServer extends Endpoint {
     private static final Logger LOG = LoggerFactory.getLogger(SocketServer.class);
 
     private final Observable<FeatureCollectionWithTerminationId> observable;

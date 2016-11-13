@@ -1,15 +1,20 @@
 package io.quartic.weyl;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
@@ -24,32 +29,49 @@ import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
-public class CatalogueManagerShould {
+public class CatalogueWatcherShould {
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
     private static class LocatorC implements DatasetLocator {}
 
-    private final CatalogueService catalogue = mock(CatalogueService.class);
+    private final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = mock(WebsocketListener.class);
+    private final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final SourceUpdate updateA = createUpdate();
     private final SourceUpdate updateB = createUpdate();
     private final Source sourceA = importerOf(updateA, true);
     private final Source sourceB = importerOf(updateB, false);
 
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> importerFactories = ImmutableMap.of(
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceA,
             LocatorB.class, config -> sourceB,
             LocatorC.class, config -> { throw new RuntimeException("sad times"); }
     );
-    private final CatalogueManager manager = new CatalogueManager(catalogue, layerStore, importerFactories, Schedulers.immediate()); // Force onto same thread for synchronous behaviour
+
+    private final CatalogueWatcher watcher = CatalogueWatcher.builder()
+            .listenerFactory(listenerFactory)
+            .sourceFactories(sourceFactories)
+            .layerStore(layerStore)
+            .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
+            .build();
+
+    @Before
+    public void before() throws Exception {
+        when(listenerFactory.create(any(JavaType.class))).thenReturn((WebsocketListener)listener);
+    }
+
+    @After
+    public void after() throws Exception {
+        watcher.close();
+    }
 
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         when(layerStore.createLayer(any(), any(), anyBoolean(), any())).thenReturn(subscriber);
-        when(catalogue.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())));
+        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
 
-        manager.run();
+        watcher.start();
 
         verify(layerStore).createLayer(
                 LayerId.of("123"),
@@ -59,15 +81,16 @@ public class CatalogueManagerShould {
         subscriber.assertValue(updateA);
     }
 
-
     @Test
     public void only_process_each_dataset_once() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         when(layerStore.createLayer(any(), any(), anyBoolean(), any())).thenReturn(subscriber);
-        when(catalogue.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())));
+        when(listener.observable()).thenReturn(just(
+                ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
+                ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))
+        ));
 
-        manager.run();
-        manager.run();
+        watcher.start();
 
         verify(layerStore, times(1)).createLayer(
                 any(),
@@ -82,24 +105,17 @@ public class CatalogueManagerShould {
         final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
         when(layerStore.createLayer(eq(LayerId.of("123")), any(), anyBoolean(), any())).thenReturn(subscriberA);
         when(layerStore.createLayer(eq(LayerId.of("456")), any(), anyBoolean(), any())).thenReturn(subscriberB);
-        when(catalogue.getDatasets())
-                .thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())))
-                .thenReturn(ImmutableMap.of(DatasetId.of("456"), datasetConfig(new LocatorB())));
+        when(listener.observable()).thenReturn(just(
+                ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
+                ImmutableMap.of(DatasetId.of("456"), datasetConfig(new LocatorB()))
+        ));
 
-        manager.run();
-        manager.run();
+        watcher.start();
 
         verify(layerStore).createLayer(eq(LayerId.of("123")), any(), eq(true), any());
         subscriberA.assertValue(updateA);
         verify(layerStore).createLayer(eq(LayerId.of("456")), any(), eq(false), any());
         subscriberB.assertValue(updateB);
-    }
-
-    @Test
-    public void not_propagate_exceptions() throws Exception {
-        when(catalogue.getDatasets()).thenReturn(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorC())));
-
-        manager.run();
     }
 
     private SourceUpdate createUpdate() {

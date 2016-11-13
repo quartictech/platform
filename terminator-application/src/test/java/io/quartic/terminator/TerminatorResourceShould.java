@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TerminatorResourceShould {
-    private final CatalogueProxy catalogue = mock(CatalogueProxy.class);
+    private final CatalogueWatcher catalogue = mock(CatalogueWatcher.class);
     private final TerminatorResource resource = new TerminatorResource(catalogue);
 
     @Test

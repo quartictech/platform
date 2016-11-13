@@ -1,16 +1,17 @@
 package io.quartic.terminator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.common.application.ApplicationBase;
+import io.quartic.common.client.WebsocketClientSessionFactory;
+import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 
 import javax.websocket.server.ServerEndpointConfig;
 
-import static io.quartic.terminator.CatalogueProxy.catalogueFromUrl;
+import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
 
 public class TerminatorApplication extends ApplicationBase<TerminatorConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -34,28 +35,18 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final CatalogueProxy catalogue = CatalogueProxy.builder()
-                .catalogue(catalogueFromUrl(getClass(), configuration.getCatalogueUrl()))
-                .build();
-        final TerminatorResource terminator = new TerminatorResource(catalogue);
-        websocketBundle.addEndpoint(createSocketServer(terminator, environment.getObjectMapper()));
+        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.of(WebsocketListener.Factory.of(
+                configuration.getCatalogueWatchUrl(),
+                new WebsocketClientSessionFactory(getClass())
+        ));
+        final TerminatorResource terminator = new TerminatorResource(catalogueWatcher);
+        websocketBundle.addEndpoint(
+                createEndpointConfig("/ws", new SocketServer(terminator.featureCollections(), environment.getObjectMapper())));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(terminator);
 
-        catalogue.start();
+        catalogueWatcher.start();
     }
 
-    private ServerEndpointConfig createSocketServer(TerminatorResource terminator, ObjectMapper objectMapper) {
-        final SocketServer socketServer = new SocketServer(terminator.featureCollections(), objectMapper);
-        return ServerEndpointConfig.Builder
-                .create(SocketServer.class, "/ws")
-                .configurator(new ServerEndpointConfig.Configurator() {
-                    @Override
-                    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) socketServer;
-                    }
-                })
-                .build();
-    }
 }
