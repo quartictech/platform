@@ -15,10 +15,10 @@ public class ConversionUtils {
         return rawMetadata.entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> ConversionUtils.convertMetadataValue(objectMapper, entry.getValue())));
+                        entry -> ConversionUtils.convertMetadataValue(objectMapper, entry.getKey(), entry.getValue())));
     }
 
-    static Object convertMetadataValue(ObjectMapper objectMapper, Object value) {
+    static Object convertMetadataValue(ObjectMapper objectMapper, String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             System.out.println(value);
@@ -26,7 +26,7 @@ public class ConversionUtils {
                 return objectMapper.convertValue(value, ComplexAttribute.class);
             }
             catch (IllegalArgumentException e) {
-                LOG.info("balls: " + e);
+                LOG.warn("couldn't convert object field {}. Exception: {}", key, e);
                 return value;
             }
         }

@@ -75,7 +75,7 @@ public class UpdateServerShould {
         server.onGeometryChange(ImmutableList.of(feature));
 
         verifyMessage(GeofenceGeometryUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("456"), Optional.of(fromJts(transformer.transform(geometry))), ImmutableMap.of("_id", "123"))
+                Feature.of(Optional.of("456"), Optional.of(fromJts(transformer.transform(geometry))), ImmutableMap.of("_externalId", "123", "_id", "123"))
         ))));
     }
 
