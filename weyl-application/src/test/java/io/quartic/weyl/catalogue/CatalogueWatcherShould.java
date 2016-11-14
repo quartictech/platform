@@ -2,7 +2,6 @@ package io.quartic.weyl.catalogue;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
@@ -18,7 +17,6 @@ import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
 
@@ -26,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.catalogue.ExtensionParser.EXTENSION_KEY;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static java.util.Collections.emptyList;
@@ -101,7 +100,7 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-        verify(layerStore, Mockito.times(1)).createLayer(
+        verify(layerStore, times(1)).createLayer(
                 any(),
                 any(),
                 anyBoolean(),
@@ -135,12 +134,11 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-
         verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, extension()));
     }
 
     private SourceUpdate createUpdate() {
-        return SourceUpdate.of(Lists.newArrayList(mock(Feature.class)), emptyList());
+        return SourceUpdate.of(newArrayList(mock(Feature.class)), emptyList());
     }
 
     private DatasetConfig datasetConfig(DatasetLocator source) {
