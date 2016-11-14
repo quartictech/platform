@@ -31,7 +31,6 @@ public class LiveEventConverterShould {
     private final LiveEventConverter converter = new LiveEventConverter(
             new SequenceUidGenerator<>(FeatureId::of),
             new SequenceUidGenerator<>(LiveEventId::of),
-            new ObjectMapper(),
             GeometryTransformer.webMercatorToWebMercator()
     );
 

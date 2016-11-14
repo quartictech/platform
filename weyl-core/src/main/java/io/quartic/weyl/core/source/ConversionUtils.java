@@ -21,7 +21,6 @@ public class ConversionUtils {
     static Object convertMetadataValue(ObjectMapper objectMapper, String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
-            System.out.println(value);
             try {
                 return objectMapper.convertValue(value, ComplexAttribute.class);
             }

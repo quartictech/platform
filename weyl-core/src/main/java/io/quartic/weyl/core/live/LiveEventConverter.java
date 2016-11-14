@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.model.LiveEvent;
+import io.quartic.weyl.common.serdes.ObjectMappers;
 import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
@@ -26,17 +27,15 @@ public class LiveEventConverter {
     private final UidGenerator<FeatureId> fidGenerator;
     private final UidGenerator<LiveEventId> eidGenerator;
     private final GeometryTransformer geometryTransformer;
-    private final ObjectMapper objectMapper;
 
-    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, ObjectMapper objectMapper) {
-        this(fidGenerator, eidGenerator, objectMapper, GeometryTransformer.wgs84toWebMercator());
+    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
+        this(fidGenerator, eidGenerator, GeometryTransformer.wgs84toWebMercator());
     }
 
     public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator,
-                              ObjectMapper objectMapper, GeometryTransformer geometryTransformer) {
+                              GeometryTransformer geometryTransformer) {
         this.fidGenerator = fidGenerator;
         this.eidGenerator = eidGenerator;
-        this.objectMapper = objectMapper;
         this.geometryTransformer = geometryTransformer;
     }
 
@@ -84,7 +83,7 @@ public class LiveEventConverter {
                 .externalId(f.id().get())
                 .uid(fidGenerator.get())
                 .geometry(transformed)
-                .metadata(ConversionUtils.convertMetadata(objectMapper, f.properties()))
+                .metadata(ConversionUtils.convertMetadata(ObjectMappers.OBJECT_MAPPER, f.properties()))
                 .build();
     }
 }
