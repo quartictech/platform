@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.live;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -30,6 +31,7 @@ public class LiveEventConverterShould {
     private final LiveEventConverter converter = new LiveEventConverter(
             new SequenceUidGenerator<>(FeatureId::of),
             new SequenceUidGenerator<>(LiveEventId::of),
+            new ObjectMapper(),
             GeometryTransformer.webMercatorToWebMercator()
     );
 

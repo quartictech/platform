@@ -1,18 +1,22 @@
 package io.quartic.weyl.core.live;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.source.ConversionUtils;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -22,14 +26,17 @@ public class LiveEventConverter {
     private final UidGenerator<FeatureId> fidGenerator;
     private final UidGenerator<LiveEventId> eidGenerator;
     private final GeometryTransformer geometryTransformer;
+    private final ObjectMapper objectMapper;
 
-    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
-        this(fidGenerator, eidGenerator, GeometryTransformer.wgs84toWebMercator());
+    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, ObjectMapper objectMapper) {
+        this(fidGenerator, eidGenerator, objectMapper, GeometryTransformer.wgs84toWebMercator());
     }
 
-    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator, GeometryTransformer geometryTransformer) {
+    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator,
+                              ObjectMapper objectMapper, GeometryTransformer geometryTransformer) {
         this.fidGenerator = fidGenerator;
         this.eidGenerator = eidGenerator;
+        this.objectMapper = objectMapper;
         this.geometryTransformer = geometryTransformer;
     }
 
@@ -68,6 +75,7 @@ public class LiveEventConverter {
                 .collect(toList());
     }
 
+
     private io.quartic.weyl.core.model.Feature toJts(io.quartic.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         Geometry transformed = geometryTransformer.transform(Utils.toJts(f.geometry().get()));
@@ -76,7 +84,7 @@ public class LiveEventConverter {
                 .externalId(f.id().get())
                 .uid(fidGenerator.get())
                 .geometry(transformed)
-                .metadata(f.properties())
+                .metadata(ConversionUtils.convertMetadata(objectMapper, f.properties()))
                 .build();
     }
 }

@@ -109,7 +109,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Environment environment,
             FeatureStore featureStore,
             WebsocketClientSessionFactory websocketFactory) {
-        final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator);
+        final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator, environment.getObjectMapper());
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))

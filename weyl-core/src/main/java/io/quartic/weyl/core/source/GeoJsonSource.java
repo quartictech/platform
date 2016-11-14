@@ -86,28 +86,12 @@ public abstract class GeoJsonSource implements Source {
                     .externalId(f.id().orElse(null))
                     .uid(featureStore().getFeatureIdGenerator().get())
                     .geometry(transformedGeometry)
-                    .metadata(convertMetadata(f.properties()))
+                    .metadata(ConversionUtils.convertMetadata(objectMapper(), f.properties()))
                     .build();
         });
     }
 
-    private Object convertMetadataValue(Object value) {
-        // TODO: Move this up into generic code behind the importers
-        if (value instanceof Map) {
-            try {
-                return objectMapper().convertValue(value, ComplexAttribute.class);
-            }
-            catch (IllegalArgumentException e) {
-                LOG.warn("[{}] Unrecognised complex attribute type: {}", name(), value);
-                return value;
-            }
-        }
-        return value;
-    }
 
-    private Map<String, Object> convertMetadata(Map<String, Object> rawMetadata) {
-        return rawMetadata.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> convertMetadataValue(entry.getValue())));
-    }
+
+
 }
