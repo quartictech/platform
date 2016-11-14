@@ -89,7 +89,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(new AggregatesResource(featureStore));
+        environment.jersey().register(AggregatesResource.of(featureStore));
         environment.jersey().register(new AttributesResource(featureStore));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
