@@ -61,11 +61,6 @@ public abstract class GeoJsonSource implements Source {
         return true;
     }
 
-    @Override
-    public LayerViewType viewType() {
-        return LayerViewType.MOST_RECENT;
-    }
-
     private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {
         final FeatureCollection featureCollection = objectMapper().readValue(parseURL(url()), FeatureCollection.class);
 

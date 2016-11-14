@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -24,7 +25,8 @@ public class CatalogueApplicationShould {
     public void retrieve_registered_datasets() throws Exception {
         final DatasetConfig config = DatasetConfig.of(
                 DatasetMetadata.of("Foo", "Bar", "Arlo", Optional.empty()),
-                PostgresDatasetLocator.of("a", "b", "c", "d")
+                PostgresDatasetLocator.of("a", "b", "c", "d"),
+                emptyMap()
         );
 
         DatasetId did = catalogue.registerDataset(config);
