@@ -84,13 +84,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
+        final FeatureStoreQuerier featureStoreQuerier = new FeatureStoreQuerier(featureStore);
+
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(AggregatesResource.of(featureStore));
-        environment.jersey().register(new AttributesResource(featureStore));
+        environment.jersey().register(AggregatesResource.of(featureStoreQuerier));
+        environment.jersey().register(new AttributesResource(featureStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 

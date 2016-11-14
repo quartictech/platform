@@ -2,20 +2,18 @@ package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.compute.AbstractHistogram;
 import io.quartic.weyl.core.compute.HistogramCalculator;
-import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
 
@@ -24,12 +22,12 @@ import static java.util.stream.Collectors.toList;
 public abstract class AggregatesResource {
     private static final Logger LOG = LoggerFactory.getLogger(AggregatesResource.class);
 
-    public static AggregatesResource of(FeatureStore featureStore) {
-        return ImmutableAggregatesResource.of(featureStore);
+    public static AggregatesResource of(FeatureStoreQuerier querier) {
+        return ImmutableAggregatesResource.of(querier);
     }
 
     @Value.Parameter
-    protected abstract FeatureStore featureStore();
+    protected abstract FeatureStoreQuerier querier();
     @Value.Default
     protected HistogramCalculator calculator() {
         return new HistogramCalculator();
@@ -42,27 +40,6 @@ public abstract class AggregatesResource {
     public Collection<AbstractHistogram> getHistogram(List<FeatureId> featureIds) {
         LOG.info("Histogramming {} features", featureIds.size());
 
-        final List<Entry<FeatureId, Feature>> features = map(featureIds, id -> new AbstractMap.SimpleEntry<>(id, featureStore().get(id)));
-        throwIfAnyMissing(features);
-
-        return calculator().calculate(map(features, Entry::getValue));
-    }
-
-    private void throwIfAnyMissing(List<Entry<FeatureId, Feature>> features) {
-        final List<FeatureId> missingIds = features.stream()
-                .filter(e -> e.getValue() == null)
-                .map(Entry::getKey)
-                .collect(toList());
-
-        if (!missingIds.isEmpty()) {
-            final List<String> rawIds = map(missingIds, FeatureId::uid);
-            final String message = String.format("Histogram could not find featureIds: %s", rawIds);
-            LOG.error(message);
-            throw new NotFoundException(message);
-        }
-    }
-
-    private <T, U> List<U> map(Collection<T> items, Function<T, U> func) {
-        return items.stream().map(func).collect(toList());
+        return calculator().calculate(querier().retrieveFeaturesOrThrow(featureIds).collect(toList()));
     }
 }
