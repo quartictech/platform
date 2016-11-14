@@ -19,13 +19,14 @@ public abstract class WebsocketSource implements Source {
         return ImmutableWebsocketSource.builder();
     }
 
+    protected abstract String name();
     protected abstract LiveEventConverter converter();
     protected abstract MetricRegistry metrics();
     protected abstract WebsocketListener.Factory listenerFactory();
 
     @Value.Derived
     protected Meter messageRateMeter() {
-        return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate"));
+        return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate", name()));
     }
 
     @Value.Lazy

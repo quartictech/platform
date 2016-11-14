@@ -42,6 +42,7 @@ public class WebsocketSourceShould {
         when(converter.updateFrom(any(LiveEvent.class))).thenReturn(update);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
+                .name("test")
                 .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
