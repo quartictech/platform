@@ -11,6 +11,7 @@ import org.junit.Test;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertThat;
@@ -60,7 +61,8 @@ public class CatalogueWatcherShould {
                 DatasetId.of("123"),
                 DatasetConfig.of(
                         DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
-                        locator
+                        locator,
+                        emptyMap()
                 ));
     }
 }

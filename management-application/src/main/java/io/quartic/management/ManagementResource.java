@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Optional;
 
+import static java.util.Collections.emptyMap;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 @Path("/")
@@ -35,7 +36,8 @@ public class ManagementResource {
             public DatasetConfig visit(AbstractCreateStaticDatasetRequest request) {
                 return DatasetConfig.of(
                         request.metadata(),
-                        CloudGeoJsonDatasetLocator.of("/file/" + request.fileName())
+                        CloudGeoJsonDatasetLocator.of("/file/" + request.fileName()),
+                        emptyMap()
                 );
             }
 
@@ -43,7 +45,8 @@ public class ManagementResource {
             public DatasetConfig visit(AbstractCreateLiveDatasetRequest request) {
                 return DatasetConfig.of(
                         request.metadata(),
-                        TerminatorDatasetLocator.of(terminatorEndpointIdGenerator.get())
+                        TerminatorDatasetLocator.of(terminatorEndpointIdGenerator.get()),
+                        emptyMap()
                 );
             }
         });

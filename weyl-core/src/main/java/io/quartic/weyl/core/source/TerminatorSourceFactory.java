@@ -5,7 +5,6 @@ import com.codahale.metrics.MetricRegistry;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
-import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -48,11 +47,6 @@ public abstract class TerminatorSourceFactory {
             @Override
             public boolean indexable() {
                 return false;
-            }
-
-            @Override
-            public LayerViewType viewType() {
-                return LayerViewType.MOST_RECENT;
             }
         };
     }

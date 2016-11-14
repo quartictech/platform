@@ -4,7 +4,6 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.model.LiveEvent;
-import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -41,10 +40,5 @@ public abstract class WebsocketSource implements Source {
     @Override
     public boolean indexable() {
         return false;
-    }
-
-    @Override
-    public LayerViewType viewType() {
-        return LayerViewType.MOST_RECENT;
     }
 }

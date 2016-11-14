@@ -75,6 +75,10 @@ public class CatalogueResourceShould {
     }
 
     private DatasetConfig config(String name) {
-        return DatasetConfig.of(DatasetMetadata.of(name, "bar", "baz", Optional.empty()), mock(DatasetLocator.class));
+        return DatasetConfig.of(
+                DatasetMetadata.of(name, "bar", "baz", Optional.empty()),
+                mock(DatasetLocator.class),
+                emptyMap()
+        );
     }
 }
