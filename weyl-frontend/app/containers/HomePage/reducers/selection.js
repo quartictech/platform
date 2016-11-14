@@ -38,8 +38,8 @@ export default (state = initialState, action) => {
       return state;
 
     case constants.SELECTION_INFO_FAILED_TO_LOAD:
-      // TODO
-      return state;
+      // Best course of action right now is just to deselect everything
+      return initialState;
 
     default:
       return state;
