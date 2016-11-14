@@ -72,7 +72,8 @@ public class TerminatorApplicationShould {
                 DatasetId.of("xyz"),
                 DatasetConfig.of(
                         DatasetMetadata.of("Foo", "Bar", "Baz", Optional.empty()),
-                        TerminatorDatasetLocator.of(TerminationId.of(TERMINATION_ID))
+                        TerminatorDatasetLocator.of(TerminationId.of(TERMINATION_ID)),
+                        emptyMap()
                 )
         );
     }
