@@ -35,6 +35,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const feature = (features.length > 0)
       ? {
         id: features[0].properties["_id"],  // eslint-disable-line dot-notation
+        // TODO: Hack for ids
+        externalId: features[0].properties["_externalId"], // eslint-disable-line dot-notation
         layerId: features[0].layer.source,
         properties: features[0].properties,
       }
