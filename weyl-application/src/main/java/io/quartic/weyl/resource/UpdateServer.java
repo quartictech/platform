@@ -5,6 +5,7 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
@@ -35,6 +36,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -147,10 +149,14 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         );
     }
 
-    // TODO: This is a hack for live update of selection
+    // TODO: This is a hack for live update of selection. We are also assuming uid monotonic increasing which is NAUGHTY
     private Map<String, ? extends FeatureId> computeExternalIdToFeatureIdMapping(LayerState state) {
         return state.featureCollection().stream()
-                .collect(toMap(io.quartic.weyl.core.model.Feature::externalId, io.quartic.weyl.core.model.Feature::uid));
+                .collect(groupingBy(io.quartic.weyl.core.model.Feature::externalId))
+                .entrySet()
+                .stream()
+                // HACK!!!
+                .collect(toMap(Map.Entry::getKey, entry -> Iterables.getFirst(entry.getValue(), null).uid()));
     }
 
     private void sendMessage(SocketMessage message) {

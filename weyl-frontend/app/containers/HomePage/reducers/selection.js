@@ -82,7 +82,6 @@ const remapSelection = (state, action) => {
       (newId, extId) => {
         if (m.has(extId)) {
           m = m.set(extId, newId);
-          stuffChanged = true;
         }
       });
     return m;
