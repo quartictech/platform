@@ -43,9 +43,9 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable, LayerView view) {
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, boolean indexable) {
         checkLayerNotExists(id);
-        putLayer(newLayer(id, metadata, indexable, view));
+        putLayer(newLayer(id, metadata, view, indexable));
         return subscriber(id, indexable);
     }
 
@@ -99,7 +99,7 @@ public class LayerStore {
 
         Optional<Layer> layer = layerComputation.compute().map(r ->
                 updateIndicesAndStats(appendFeatures(
-                        newLayer(lidGenerator.get(), r.metadata(), true, IDENTITY_VIEW),
+                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, true),
                         r.features(),
                         r.schema()))
         );
@@ -123,7 +123,7 @@ public class LayerStore {
         layers.put(layer.layerId(), layer);
     }
 
-    private Layer newLayer(LayerId layerId, LayerMetadata metadata, boolean indexable, LayerView view) {
+    private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, boolean indexable) {
         final FeatureCollection features = featureStore.newCollection();
         final AttributeSchema schema = createSchema(features);
         return Layer.builder()

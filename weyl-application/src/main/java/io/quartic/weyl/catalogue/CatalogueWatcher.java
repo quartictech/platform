@@ -89,8 +89,8 @@ public abstract class CatalogueWatcher implements AutoCloseable {
             final Subscriber<SourceUpdate> subscriber = layerStore().createLayer(
                     layerId,
                     datasetMetadataFrom(config.metadata()),
-                    source.indexable(),
-                    extension.viewType().getLayerView());
+                    extension.viewType().getLayerView(), source.indexable()
+            );
 
             LOG.info(format("[%s] Created layer", name));
 

@@ -50,8 +50,8 @@ public class LayerStoreShould {
         final LayerMetadata lm1 = metadata("foo", "bar");
         final LayerMetadata lm2 = metadata("cheese", "monkey");
 
-        store.createLayer(LAYER_ID, lm1, true, IDENTITY_VIEW);
-        store.createLayer(OTHER_LAYER_ID, lm2, true, IDENTITY_VIEW);
+        store.createLayer(LAYER_ID, lm1, IDENTITY_VIEW, true);
+        store.createLayer(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, true);
 
         final Collection<AbstractLayer> layers = store.listLayers();
 
@@ -307,7 +307,7 @@ public class LayerStoreShould {
     }
 
     private Subscriber<SourceUpdate> createLayer(LayerId id, boolean indexable) {
-        return store.createLayer(id, metadata("foo", "bar"), indexable, IDENTITY_VIEW);
+        return store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW, indexable);
     }
 
     private LayerMetadata metadata(String name, String description) {
