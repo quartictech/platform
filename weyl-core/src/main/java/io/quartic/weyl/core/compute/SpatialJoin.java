@@ -2,7 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.IndexedFeature;

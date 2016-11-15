@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.model;
 
 import io.quartic.catalogue.api.Icon;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
 import java.util.Optional;
