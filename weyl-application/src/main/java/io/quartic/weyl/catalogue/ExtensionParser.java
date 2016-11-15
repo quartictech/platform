@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.lang.String.format;
 
 class ExtensionParser {

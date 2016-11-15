@@ -1,7 +1,7 @@
 package io.quartic.management;
 
 import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle

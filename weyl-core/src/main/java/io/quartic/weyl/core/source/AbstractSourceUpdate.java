@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.source;
 
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.live.EnrichedFeedEvent;
 import io.quartic.weyl.core.model.Feature;
 import org.immutables.value.Value;

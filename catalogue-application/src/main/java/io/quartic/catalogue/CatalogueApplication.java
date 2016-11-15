@@ -7,8 +7,8 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.weyl.common.uid.RandomUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.common.uid.RandomUidGenerator;
+import io.quartic.common.uid.UidGenerator;
 
 import javax.websocket.server.ServerEndpointConfig;
 

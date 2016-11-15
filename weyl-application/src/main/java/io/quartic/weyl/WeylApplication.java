@@ -12,10 +12,10 @@ import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
+import io.quartic.common.uid.RandomUidGenerator;
+import io.quartic.common.uid.SequenceUidGenerator;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.common.uid.RandomUidGenerator;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -79,13 +79,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
+        final FeatureStoreQuerier featureStoreQuerier = new FeatureStoreQuerier(featureStore);
+
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(new AggregatesResource(featureStore));
-        environment.jersey().register(new AttributesResource(featureStore));
+        environment.jersey().register(AggregatesResource.of(featureStoreQuerier));
+        environment.jersey().register(new AttributesResource(featureStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 

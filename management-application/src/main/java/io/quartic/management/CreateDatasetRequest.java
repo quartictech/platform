@@ -2,7 +2,6 @@ package io.quartic.management;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.quartic.catalogue.api.DatasetMetadata;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes({

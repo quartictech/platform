@@ -1,12 +1,13 @@
 package io.quartic.geojson;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
 import java.util.List;
 
-import static com.fasterxml.jackson.annotation.JsonTypeInfo.*;
+import static com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 @SweetStyle
 @Value.Immutable
