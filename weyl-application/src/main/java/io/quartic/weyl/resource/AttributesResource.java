@@ -34,7 +34,7 @@ public class AttributesResource {
 
     private Map<String, Object> externalAttributes(Feature feature) {
         return feature.metadata().entrySet().stream()
-                .filter(e -> !(e.getValue() instanceof ComplexAttribute))
+                .filter(e -> !(e.getValue() instanceof ComplexAttribute || e.getValue() instanceof Map))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }
 

@@ -39,8 +39,8 @@ async def post_event(ws, user, geojson, message):
                     } if message else None
                     }))
 
-def make_geojson(p, name, id):
-    return {"type": "FeatureCollection", "features": [{
+def make_geojson(p, name, id, blood_alcohol=None):
+    geojson = {"type": "FeatureCollection", "features": [{
                 "type": "Feature",
                 "id": id,
                 "geometry": {
@@ -49,13 +49,18 @@ def make_geojson(p, name, id):
                     },
                 "properties": {
                     "name": name,
-                    "timestamp": int(round(time.time() * 1000))
+                    "timestamp": int(round(time.time() * 1000)),
                     }
-                }]}
+                    }]}
+    if blood_alcohol:
+        geojson["features"][0]["properties"]["Blood Alcohol Level"] = {
+                            "type": "timeseries",
+                            "series": blood_alcohol
+                            }
+    return geojson
 
 STEPS = 50
 pubs = read_pubs(os.path.join(os.path.dirname(__file__), "pubs.csv"))
-
 async def socket(ws, path):
     p = (-0.1408, 51.5193)
     start = p
@@ -63,6 +68,10 @@ async def socket(ws, path):
     progress = 0
     noise_scale = 0.001
     arlo_noise_scale = noise_scale
+    arlo_blood_alcohol = []
+    alex_blood_alcohol = []
+    arlo_bah = 0
+    alex_bah = 0
     while True:
         if target is None or progress >= STEPS:
             progress = 0
@@ -79,9 +88,24 @@ async def socket(ws, path):
         p = start[0] + (random.random() * noise_scale) + (scale * dx), start[1] + (random.random() * noise_scale) + (scale * dy)
         print("location: {}".format(p))
 
-        await post_event(ws, "alex", make_geojson(p, "Alex", "alex"), random_message() if random.random() > 0.9 else None)
-        await post_event(ws, "arlo", make_geojson((p[0] + random.random() * arlo_noise_scale, p[1] + random.random() * arlo_noise_scale), "Arlo", "arlo"), random_message() if random.random() > 0.99 else None)
-        await asyncio.sleep(1)
+        arlo_blood_alcohol.append({
+            "timestamp": time.time()*1000,
+            "value": arlo_bah
+        })
+
+        alex_blood_alcohol.append({
+            "timestamp": time.time()*1000,
+            "value": alex_bah
+        })
+        arlo_bah += random.random() * 0.05
+        alex_bah += random.random() * 0.03
+        if arlo_bah > 1: arlo_bah = 1
+        if alex_bah > 1: alex_bah = 1
+        await post_event(ws, "alex", make_geojson(p, "Alex", "alex", alex_blood_alcohol), random_message() if random.random() > 0.9 else None)
+        await post_event(ws, "arlo",
+            make_geojson((p[0] + random.random() * arlo_noise_scale,
+                          p[1] + random.random() * arlo_noise_scale), "Arlo", "arlo", arlo_blood_alcohol), random_message() if random.random() > 0.99 else None)
+        await asyncio.sleep(5)
         progress += 1
 
 

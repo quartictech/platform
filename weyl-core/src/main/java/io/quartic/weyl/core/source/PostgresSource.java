@@ -10,7 +10,6 @@ import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import org.immutables.value.Value;
@@ -63,11 +62,6 @@ public abstract class PostgresSource implements Source {
     @Override
     public boolean indexable() {
         return true;
-    }
-
-    @Override
-    public LayerViewType viewType() {
-        return LayerViewType.MOST_RECENT;
     }
 
     private Collection<Feature> importAllFeatures() {

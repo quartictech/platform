@@ -1,4 +1,4 @@
-package io.quartic.weyl;
+package io.quartic.weyl.catalogue;
 
 import com.google.common.collect.Maps;
 import io.quartic.catalogue.api.DatasetConfig;
@@ -9,6 +9,7 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.immutables.value.Value;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static java.lang.String.format;
 
 @Value.Immutable
 public abstract class CatalogueWatcher implements AutoCloseable {
@@ -38,6 +40,11 @@ public abstract class CatalogueWatcher implements AutoCloseable {
     protected abstract LayerStore layerStore();
     protected abstract Scheduler scheduler();
     protected abstract WebsocketListener.Factory listenerFactory();
+
+    @Value.Default
+    protected ExtensionParser extensionParser() {
+        return new ExtensionParser();
+    }
 
     @Value.Lazy
     protected WebsocketListener<Map<DatasetId, DatasetConfig>> listener() {
@@ -75,20 +82,21 @@ public abstract class CatalogueWatcher implements AutoCloseable {
                 throw new IllegalArgumentException("Unrecognised config type " + config.locator().getClass());
             }
 
+            final String name = config.metadata().name();
+            final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
             final Source source = func.apply(config);
-
             final LayerId layerId = LayerId.of(id.uid());
             final Subscriber<SourceUpdate> subscriber = layerStore().createLayer(
                     layerId,
                     datasetMetadataFrom(config.metadata()),
                     source.indexable(),
-                    source.viewType().getLayerView());
+                    extension.viewType().getLayerView());
 
-            LOG.info("[{}] Created layer", config.metadata().name());
+            LOG.info(format("[%s] Created layer", name));
 
             source.observable().subscribeOn(scheduler()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
-            LOG.error("[{}] Error creating layer for dataset " + id, e);
+            LOG.error(format("[%s] Error creating layer for dataset", id), e);
         }
     }
 

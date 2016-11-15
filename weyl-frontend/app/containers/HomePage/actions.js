@@ -78,6 +78,15 @@ export function clearSelection() {
   };
 }
 
+// TODO: This is a hack for live selection
+export function remapSelection(layerId, externalIdToFeatureId) {
+  return {
+    type: constants.SELECTION_REMAP,
+    layerId,
+    externalIdToFeatureId,
+  };
+}
+
 export function mapLoading() {
   return {
     type: constants.MAP_LOADING,

@@ -1,8 +1,12 @@
 import { Set, Map, fromJS } from "immutable";
 import * as constants from "../constants";
+const _ = require("underscore");
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case constants.SELECTION_REMAP:
+      return remapSelection(state, action);
+
     case constants.MAP_MOUSE_CLICK:
       if (!action.feature) {
         return initialState;  // Clear everything
@@ -44,23 +48,67 @@ export default (state = initialState, action) => {
 
 const initialState = fromJS({
   ids: {},
+  externalIdToFeatureId: {},
   info: {
     lifecycleState: "INFO_NOT_REQUIRED",
     data: {},
   },
 });
 
+// TODO: This whole thing is a hack for the current id situation
+const remapSelection = (state, action) => {
+  let stuffChanged = false;
+  const newState = state.updateIn(["ids", action.layerId],
+    ids => {
+      let s = ids;
+
+      if (!s) return s;
+
+      _.each(action.externalIdToFeatureId, (newId, extId) => {
+        const currentId = state.getIn(["externalIdToFeatureId", action.layerId, extId]);
+        if (s.has(currentId)) {
+          s = s.delete(currentId).add(newId);
+          stuffChanged = true;
+        }
+      });
+      return s;
+    }
+  )
+  .updateIn(["externalIdToFeatureId", action.layerId],
+  externalIdToFeatureId => {
+    let m = externalIdToFeatureId;
+    if (!m) return m;
+    _.each(action.externalIdToFeatureId,
+      (newId, extId) => {
+        if (m.has(extId)) {
+          m = m.set(extId, newId);
+        }
+      });
+    return m;
+  });
+
+  if (stuffChanged) {
+    return requireInfo(newState);
+  }
+  return newState;
+};
+
 const addEntry = (state, feature) =>
   requireInfo(state)
-  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id));
+  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
+  .updateIn(["externalIdToFeatureId", feature.layerId], new Map(),
+    externalIds => (feature.externalId ? externalIds.set(feature.externalId, feature.id) : externalIds));
 
 const deleteEntries = (state) =>
   requireInfo(state)
-  .set("ids", new Map());
+  .set("ids", new Map())
+  .set("externalIdToFeatureId", new Map());
 
 const deleteEntry = (state, feature) =>
   requireInfo(state)
-  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id));
+  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
+  .updateIn(["externalIdToFeatureId", feature.layerId],
+    externalIds => (feature.externalId ? externalIds.delete(feature.externalId) : externalIds));
 
 const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED");
 

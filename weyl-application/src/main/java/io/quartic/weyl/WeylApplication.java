@@ -11,11 +11,11 @@ import io.quartic.catalogue.api.*;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -83,8 +83,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     public void run(WeylConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
-
-        environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueWatchUrl()));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
