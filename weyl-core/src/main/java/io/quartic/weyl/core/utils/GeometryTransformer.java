@@ -9,8 +9,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
-import java.util.Optional;
-
 public class GeometryTransformer {
     private final MathTransform transform;
 

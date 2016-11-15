@@ -4,6 +4,7 @@ logging:
     io.dropwizard: INFO
   appenders:
     - type: console
+      logFormat: "%-5p [%d] %c{5}: %m%n%rEx"
 
 <#if ENABLE_METRICS??>
 metrics:

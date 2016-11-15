@@ -20,18 +20,13 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         new TerminatorApplication().run(args);
     }
 
-    public TerminatorApplication() {
-        super("terminator");
-    }
-
     @Override
-    public void initialize(Bootstrap<TerminatorConfiguration> bootstrap) {
-        super.initialize(bootstrap);
+    public void initializeApplication(Bootstrap<TerminatorConfiguration> bootstrap) {
         bootstrap.addBundle(websocketBundle);
     }
 
     @Override
-    public void run(TerminatorConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(TerminatorConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 

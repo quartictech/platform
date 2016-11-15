@@ -1,12 +1,10 @@
 package io.quartic.weyl.core.live;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.common.serdes.ObjectMappers;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.model.LiveEvent;
-import io.quartic.weyl.common.serdes.ObjectMappers;
-import io.quartic.weyl.common.uid.UidGenerator;
-import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
@@ -17,7 +15,6 @@ import io.quartic.weyl.core.utils.GeometryTransformer;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;

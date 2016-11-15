@@ -12,10 +12,10 @@ import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
+import io.quartic.common.uid.RandomUidGenerator;
+import io.quartic.common.uid.SequenceUidGenerator;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.common.uid.RandomUidGenerator;
-import io.quartic.weyl.common.uid.SequenceUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -50,13 +50,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         new WeylApplication().run(args);
     }
 
-    public WeylApplication() {
-        super("weyl");
-    }
-
     @Override
-    public void initialize(Bootstrap<WeylConfiguration> bootstrap) {
-        super.initialize(bootstrap);
+    public void initializeApplication(Bootstrap<WeylConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
         bootstrap.addBundle(configureWebsockets(bootstrap.getObjectMapper()));
     }
@@ -80,7 +75,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     @Override
-    public void run(WeylConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 

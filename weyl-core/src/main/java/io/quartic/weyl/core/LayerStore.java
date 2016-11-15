@@ -1,11 +1,14 @@
 package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;

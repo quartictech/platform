@@ -1,7 +1,7 @@
 package io.quartic.weyl.message;
 
+import io.quartic.common.SweetStyle;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.common.SweetStyle;
 import io.quartic.weyl.core.live.EnrichedFeedEvent;
 import io.quartic.weyl.core.model.AbstractAttributeSchema;
 import io.quartic.weyl.core.model.FeatureId;
