@@ -43,10 +43,6 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable) {
-        return createLayer(id, metadata, indexable, IDENTITY_VIEW);
-    }
-
     public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable, LayerView view) {
         checkLayerNotExists(id);
         putLayer(newLayer(id, metadata, indexable, view));
@@ -134,7 +130,7 @@ public class LayerStore {
                 .layerId(layerId)
                 .metadata(metadata)
                 .indexable(indexable)
-                .schema(createSchema(features))
+                .schema(schema)
                 .features(features)
                 .feedEvents(ImmutableList.of())
                 .view(view)

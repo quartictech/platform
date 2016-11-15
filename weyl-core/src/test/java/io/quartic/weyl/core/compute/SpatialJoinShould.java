@@ -9,8 +9,8 @@ import io.quartic.weyl.common.uid.SequenceUidGenerator;
 import io.quartic.weyl.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.source.SourceUpdate;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import rx.Observable;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -51,7 +52,7 @@ public class SpatialJoinShould {
 
     private AbstractLayer makeLayer(Collection<Feature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
-        final Subscriber<SourceUpdate> subscriber = store.createLayer(layerId, LayerMetadata.of("test", "test", Optional.empty(), Optional.empty()), true);
+        final Subscriber<SourceUpdate> subscriber = store.createLayer(layerId, LayerMetadata.of("test", "test", Optional.empty(), Optional.empty()), true, IDENTITY_VIEW);
 
         Observable.just(SourceUpdate.of(features, emptyList()))
                 .subscribe(subscriber);
