@@ -15,14 +15,12 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":weyl-core")
-    compile project(":weyl-frontend")
+    runtime project(":weyl-frontend")
 
+    compile "org.glassfish.tyrus:tyrus-container-grizzly-client:1.13"
     compile "io.dropwizard:dropwizard-jdbi:${versions.dropwizard}"
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
     compile libraries.dropwizardWebsockets
-
-    compile "org.glassfish.tyrus:tyrus-container-grizzly-client:1.13"
-
 
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"

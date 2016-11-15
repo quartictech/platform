@@ -1,18 +1,16 @@
 package io.quartic.weyl.core.feature;
 
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.common.uid.UidGenerator;
 import org.junit.Test;
 
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 

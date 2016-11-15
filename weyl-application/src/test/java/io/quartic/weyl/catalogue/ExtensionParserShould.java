@@ -6,9 +6,9 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.catalogue.ExtensionParser.DEFAULT_EXTENSION;
 import static io.quartic.weyl.catalogue.ExtensionParser.EXTENSION_KEY;
-import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;

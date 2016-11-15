@@ -1,17 +1,12 @@
 package io.quartic.common.client;
 
+import io.quartic.common.ApplicationDetails;
+
 public final class Utils {
     private Utils() {}
 
     public static String userAgentFor(Class<?> clazz) {
-        final String version = clazz.getPackage().getImplementationVersion();
-        return strippedName(clazz)
-                + "/" + ((version == null) ? "unknown" : version)
-                + " (Java " + System.getProperty("java.version") + ")";
-    }
-
-    private static String strippedName(Class<?> clazz) {
-        final String name = clazz.getSimpleName();
-        return name.replaceAll("Application$", "");
+        final ApplicationDetails details = ApplicationDetails.of(clazz);
+        return details.name() + "/" + details.version() + " (Java " + details.javaVersion() + ")";
     }
 }

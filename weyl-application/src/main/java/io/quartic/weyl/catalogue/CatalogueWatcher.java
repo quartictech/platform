@@ -22,7 +22,7 @@ import rx.Subscription;
 import java.util.Map;
 import java.util.function.Function;
 
-import static io.quartic.weyl.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.lang.String.format;
 
 @Value.Immutable

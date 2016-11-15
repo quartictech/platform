@@ -1,7 +1,7 @@
 package io.quartic.weyl.request;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.quartic.weyl.common.SweetStyle;
+import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.LayerMetadata;
 import org.immutables.value.Value;

@@ -1,9 +1,8 @@
 package io.quartic.catalogue;
 
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import io.quartic.common.client.ClientBuilder;
 import io.quartic.catalogue.api.*;
-import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.common.client.ClientBuilder;
 import org.junit.ClassRule;
 import org.junit.Test;
 
