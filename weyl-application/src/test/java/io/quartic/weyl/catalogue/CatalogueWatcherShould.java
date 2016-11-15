@@ -32,6 +32,10 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class CatalogueWatcherShould {
+
+    private static final AttributeName IMAGE_ATTRIBUTE = AttributeName.of("image_attr");
+    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeName.of("cool_attr"), AttributeName.of("slick_attr") };
+
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
     private static class LocatorC implements DatasetLocator {}
@@ -84,8 +88,8 @@ public class CatalogueWatcherShould {
                 LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
                 AttributeSchema.builder()
-                        .imageAttribute("image_attr")
-                        .blessedAttribute("cool_attr", "slick_attr")
+                        .imageAttribute(IMAGE_ATTRIBUTE)
+                        .blessedAttribute(BLESSED_ATTRIBUTES)
                         .build(),
                 true
         );
@@ -155,8 +159,8 @@ public class CatalogueWatcherShould {
     private MapDatasetExtension extension() {
         return MapDatasetExtension.builder()
                 .viewType(LOCATION_AND_TRACK)
-                .imageAttribute("image_attr")
-                .blessedAttribute("cool_attr", "slick_attr")
+                .imageAttribute(IMAGE_ATTRIBUTE)
+                .blessedAttribute(BLESSED_ATTRIBUTES)
                 .build();
     }
 

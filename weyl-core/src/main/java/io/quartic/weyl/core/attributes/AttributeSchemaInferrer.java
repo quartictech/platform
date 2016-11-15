@@ -1,17 +1,14 @@
 package io.quartic.weyl.core.attributes;
 
-import io.quartic.weyl.core.model.AbstractAttribute;
-import io.quartic.weyl.core.model.Attribute;
-import io.quartic.weyl.core.model.AttributeType;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.*;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class AttributeSchemaInferrer {
-    public static Map<String, AbstractAttribute> inferSchema(Collection<Feature> features) {
-        Set<String> attributes = features.parallelStream()
+    public static Map<AttributeName, AbstractAttribute> inferSchema(Collection<Feature> features) {
+        Set<AttributeName> attributes = features.parallelStream()
                 .flatMap(feature -> feature.metadata().keySet().stream())
                 .collect(Collectors.toSet());
 
@@ -22,7 +19,7 @@ public class AttributeSchemaInferrer {
 
     }
 
-    private static AbstractAttribute inferAttribute(String attribute, Collection<Feature> features) {
+    private static AbstractAttribute inferAttribute(AttributeName attribute, Collection<Feature> features) {
         Optional<Set<Object>> categories = inferCategories(attribute, features);
         return Attribute.builder()
                 .type(inferAttributeType(attribute, features))
@@ -30,7 +27,7 @@ public class AttributeSchemaInferrer {
                 .build();
     }
 
-    private static Optional<Set<Object>> inferCategories(String attribute, Collection<Feature> features) {
+    private static Optional<Set<Object>> inferCategories(AttributeName attribute, Collection<Feature> features) {
         Set<Object> values = features.stream()
                 .map(feature -> feature.metadata().get(attribute))
                 .filter(Objects::nonNull)
@@ -44,7 +41,7 @@ public class AttributeSchemaInferrer {
         }
     }
 
-    private static AttributeType inferAttributeType(String attribute,
+    private static AttributeType inferAttributeType(AttributeName attribute,
                                                     Collection<Feature> features) {
         Set<AttributeType> attributeTypes = features.stream()
                 .map(feature -> feature.metadata().get(attribute))

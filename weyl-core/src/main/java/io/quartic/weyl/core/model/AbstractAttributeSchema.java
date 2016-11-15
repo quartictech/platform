@@ -10,8 +10,9 @@ import java.util.Optional;
 @SweetStyle
 @Value.Immutable
 public interface AbstractAttributeSchema {
-    Optional<String> primaryAttribute();
-    Optional<String> imageAttribute();
-    List<String> blessedAttributes();
-    Map<String, AbstractAttribute> attributes();
+    Optional<AttributeName> titleAttribute();
+    Optional<AttributeName> primaryAttribute();
+    Optional<AttributeName> imageAttribute();
+    List<AttributeName> blessedAttributes();
+    Map<AttributeName, AbstractAttribute> attributes();
 }

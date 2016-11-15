@@ -2,20 +2,23 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.AttributeName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 public class ConversionUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ConversionUtils.class);
 
-    public static Map<String, Object> convertMetadata(ObjectMapper objectMapper, Map<String, Object> rawMetadata) {
+    public static Map<AttributeName, Object> convertMetadata(ObjectMapper objectMapper, Map<String, Object> rawMetadata) {
         return rawMetadata.entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> ConversionUtils.convertMetadataValue(objectMapper, entry.getKey(), entry.getValue())));
+                .collect(toMap(
+                        e -> AttributeName.of(e.getKey()),
+                        e -> ConversionUtils.convertMetadataValue(objectMapper, e.getKey(), e.getValue())));
     }
 
     static Object convertMetadataValue(ObjectMapper objectMapper, String key, Object value) {

@@ -151,10 +151,10 @@ const Histograms = ({ histograms }) => (
     <table className="ui celled very compact small fixed selectable table">
       {
         _.chain(histograms)
-          .sort((a, b) => naturalsort(a.property, b.property))
+          .sort((a, b) => naturalsort(a.attribute, b.attribute))
           .map(histogram =>
             <AttributeHistogram
-              key={histogram.property}
+              key={histogram.attribute}
               histogram={histogram}
             />
           )
@@ -169,7 +169,7 @@ const AttributeHistogram = ({ histogram }) => (
     <tr className="title">
       <td style={{ fontWeight: "bold" }}>
         <i className="dropdown icon"></i>
-        {histogram.property}
+        {histogram.attribute}
       </td>
     </tr>
 

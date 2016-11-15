@@ -3,6 +3,7 @@ package io.quartic.weyl.core.compute;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
@@ -17,54 +18,56 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class HistogramCalculatorShould {
+    private static final AttributeName SPECIES = AttributeName.of("species");
+    private static final AttributeName NAME = AttributeName.of("name");
     private final HistogramCalculator calculator = new HistogramCalculator();
 
     @Test
     public void count_distinct_values_for_property() throws Exception {
         List<Feature> features = newArrayList(
-                feature(ImmutableMap.of("name", "Alice")),
-                feature(ImmutableMap.of("name", "Bob")),
-                feature(ImmutableMap.of("name", "Alice"))
+                feature(ImmutableMap.of(NAME, "Alice")),
+                feature(ImmutableMap.of(NAME, "Bob")),
+                feature(ImmutableMap.of(NAME, "Alice"))
         );
 
         assertThat(calculator.calculate(features),
                 equalTo(ImmutableSet.of(
-                    Histogram.of("name", ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L)))
+                    Histogram.of(NAME, ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L)))
                 )));
     }
 
     @Test
     public void count_distinct_values_for_multiple_properties() throws Exception {
         List<Feature> features = newArrayList(
-                feature(ImmutableMap.of("name", "Alice", "species", "dog")),
-                feature(ImmutableMap.of("name", "Bob", "species", "dog")),
-                feature(ImmutableMap.of("name", "Alice", "species", "cat"))
+                feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
+                feature(ImmutableMap.of(NAME, "Bob", SPECIES, "dog")),
+                feature(ImmutableMap.of(NAME, "Alice", SPECIES, "cat"))
         );
 
         assertThat(calculator.calculate(features),
                 equalTo(ImmutableSet.of(
-                        Histogram.of("name", ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L))),
-                        Histogram.of("species", ImmutableSet.of(Bucket.of("dog", 2L), Bucket.of("cat", 1L)))
+                        Histogram.of(NAME, ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L))),
+                        Histogram.of(SPECIES, ImmutableSet.of(Bucket.of("dog", 2L), Bucket.of("cat", 1L)))
                 )));
     }
 
     @Test
     public void handle_missing_properties() throws Exception {
         List<Feature> features = newArrayList(
-                feature(ImmutableMap.of("name", "Alice", "species", "dog")),
-                feature(ImmutableMap.of("name", "Bob")),
-                feature(ImmutableMap.of("name", "Alice", "species", "cat"))
+                feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
+                feature(ImmutableMap.of(NAME, "Bob")),
+                feature(ImmutableMap.of(NAME, "Alice", SPECIES, "cat"))
         );
 
         assertThat(calculator.calculate(features),
                 equalTo(ImmutableSet.of(
-                        Histogram.of("name", ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L))),
-                        Histogram.of("species", ImmutableSet.of(Bucket.of("dog", 1L), Bucket.of("cat", 1L)))
+                        Histogram.of(NAME, ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L))),
+                        Histogram.of(SPECIES, ImmutableSet.of(Bucket.of("dog", 1L), Bucket.of("cat", 1L)))
                 )));
     }
 
 
-    private Feature feature(Map<String, ?> properties) {
+    private Feature feature(Map<AttributeName, ?> properties) {
         return ImmutableFeature.builder()
                 .uid(FeatureId.of("abc"))
                 .externalId("def")

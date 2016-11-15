@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
@@ -16,11 +18,10 @@ import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
@@ -36,9 +37,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 
 @Metered
 @Timed
@@ -187,11 +186,11 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         );
     }
 
-    private static Map<String, Object> convertMetadata(String externalId, String id, Map<String, Object> metadata) {
+    private static Map<String, Object> convertMetadata(String externalId, String id, Map<AttributeName, Object> metadata) {
         final Map<String, Object> output = Maps.newHashMap();
         metadata.entrySet().stream()
                         .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
-                        .forEach(entry -> output.put(entry.getKey(), entry.getValue()));
+                        .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
         output.put("_id", id);  // TODO: eliminate the _id concept
         output.put("_externalId", externalId);
         return output;

@@ -8,5 +8,5 @@ import java.util.Map;
 @Value.Immutable
 public interface GeometryWithMetadata {
     @Value.Parameter Geometry geometry();
-    @Value.Parameter Map<String, Object> metadata();
+    @Value.Parameter Map<AttributeName, Object> metadata();
 }

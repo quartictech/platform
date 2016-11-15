@@ -40,6 +40,7 @@ public class LayerStoreShould {
     public static final Instant INSTANT = Instant.now();
     public static final LayerId LAYER_ID = LayerId.of("666");
     public static final LayerId OTHER_LAYER_ID = LayerId.of("777");
+    private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
@@ -84,7 +85,7 @@ public class LayerStoreShould {
         Observable.just(updateFor(feature("a", "1"))).subscribe(sub);
 
         final AbstractLayer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.schema().blessedAttributes(), Matchers.contains("blah"));
+        assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeName.of("blah")));
     }
 
     @Test
@@ -120,7 +121,7 @@ public class LayerStoreShould {
         assertThat(layerState.feedEvents(),
                 containsInAnyOrder(event("789")));
         assertThat(layerState.schema(),
-                equalTo(schema("blah").withAttributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))));
+                equalTo(schema("blah").withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, Attribute.of(NUMERIC, Optional.empty())))));
     }
 
     @Test
@@ -303,7 +304,7 @@ public class LayerStoreShould {
                 .externalId(externalId)
                 .uid(FeatureId.of(uid))
                 .geometry(factory.createPoint(new Coordinate(123.0, 456.0)))
-                .metadata(ImmutableMap.of("timestamp", 1234))
+                .metadata(ImmutableMap.of(ATTRIBUTE_NAME, 1234))
                 .build();
     }
 
@@ -324,7 +325,7 @@ public class LayerStoreShould {
     }
 
     private AttributeSchema schema(String blessed) {
-        return AttributeSchema.builder().blessedAttribute(blessed).build();
+        return AttributeSchema.builder().blessedAttribute(AttributeName.of(blessed)).build();
     }
 
     private LayerMetadata metadata(String name, String description) {

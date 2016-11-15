@@ -20,18 +20,18 @@ public class AttributeSchemaInferrerShould {
     @Test
     public void ignore_missing_properties() throws Exception {
         List<Feature> features = Lists.newArrayList(
-                feature(ImmutableMap.of("a", 123, "b", 456)),
-                feature(ImmutableMap.of("a", 789))              // b is missing here
+                feature(ImmutableMap.of(AttributeName.of("a"), 123, AttributeName.of("b"), 456)),
+                feature(ImmutableMap.of(AttributeName.of("a"), 789))              // b is missing here
         );
 
         assertThat(inferSchema(features),
                 equalTo(ImmutableMap.of(
-                        "a", Attribute.of(AttributeType.NUMERIC, Optional.empty()),
-                        "b", Attribute.of(AttributeType.NUMERIC, Optional.of(ImmutableSet.of(456)))
+                        AttributeName.of("a"), Attribute.of(AttributeType.NUMERIC, Optional.empty()),
+                        AttributeName.of("b"), Attribute.of(AttributeType.NUMERIC, Optional.of(ImmutableSet.of(456)))
                 )));
     }
 
-    private Feature feature(Map<String, ?> properties) {
+    private Feature feature(Map<AttributeName, ?> properties) {
         return ImmutableFeature.builder()
                 .uid(FeatureId.of("123"))
                 .externalId("abc")

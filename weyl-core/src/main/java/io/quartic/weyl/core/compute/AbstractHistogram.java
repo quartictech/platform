@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.compute;
 
 import io.quartic.weyl.common.SweetStyle;
+import io.quartic.weyl.core.model.AttributeName;
 import org.immutables.value.Value;
 
 import java.util.Collection;
@@ -15,6 +16,6 @@ public interface AbstractHistogram {
         Long count();
     }
 
-    String property();
+    AttributeName attribute();
     Collection<Bucket> buckets();
 }

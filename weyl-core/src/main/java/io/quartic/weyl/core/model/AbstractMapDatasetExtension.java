@@ -14,6 +14,6 @@ public interface AbstractMapDatasetExtension {
     default LayerViewType viewType() {
         return LayerViewType.MOST_RECENT;
     }
-    Optional<String> imageAttribute();
-    List<String> blessedAttributes();
+    Optional<AttributeName> imageAttribute();
+    List<AttributeName> blessedAttributes();
 }
