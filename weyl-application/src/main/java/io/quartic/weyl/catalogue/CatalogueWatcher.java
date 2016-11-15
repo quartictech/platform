@@ -7,7 +7,7 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.ImmutableAttributeSchema;
+import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.MapDatasetExtension;
@@ -91,7 +91,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
                     layerId,
                     datasetMetadataFrom(config.metadata()),
                     extension.viewType().getLayerView(),
-                    ImmutableAttributeSchema.builder()
+                    AttributeSchema.builder()
                             .imageAttribute(extension.imageAttribute())
                             .blessedAttributes(extension.blessedAttributes())
                             .build(),

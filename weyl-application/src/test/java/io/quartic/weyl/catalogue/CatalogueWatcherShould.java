@@ -83,9 +83,9 @@ public class CatalogueWatcherShould {
                 LayerId.of("123"),
                 LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
-                ImmutableAttributeSchema.builder()
+                AttributeSchema.builder()
                         .imageAttribute("image_attr")
-                        .addBlessedAttributes("cool_attr", "slick_attr")
+                        .blessedAttribute("cool_attr", "slick_attr")
                         .build(),
                 true
         );

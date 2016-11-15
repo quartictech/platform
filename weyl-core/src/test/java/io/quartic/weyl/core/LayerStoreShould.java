@@ -104,7 +104,7 @@ public class LayerStoreShould {
         assertThat(layerState.feedEvents(),
                 containsInAnyOrder(event("789")));
         assertThat(layerState.schema(),
-                equalTo(ImmutableAttributeSchema.builder()
+                equalTo(AttributeSchema.builder()
                         .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
                         .build()
                 ));

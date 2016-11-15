@@ -57,7 +57,7 @@ public class BucketComputation implements LayerComputation {
                     .build();
             attributeMap.put(propertyName(), newAttribute);
 
-            AttributeSchema schema = ImmutableAttributeSchema
+            AttributeSchema schema = AttributeSchema
                     .copyOf(bucketLayer.schema())
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(propertyName());

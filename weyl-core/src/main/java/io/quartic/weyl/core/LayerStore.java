@@ -165,12 +165,12 @@ public class LayerStore {
                 .withLayerStats(calculateStats(layer.schema(), layer.features()));
     }
 
-    private ImmutableAttributeSchema blankSchema() {
-        return ImmutableAttributeSchema.builder().build();
+    private AttributeSchema blankSchema() {
+        return AttributeSchema.builder().build();
     }
 
-    private ImmutableAttributeSchema createSchema(FeatureCollection features) {
-        return ImmutableAttributeSchema.builder()
+    private AttributeSchema createSchema(FeatureCollection features) {
+        return AttributeSchema.builder()
                 .attributes(inferSchema(features))
                 .primaryAttribute(Optional.empty())
                 .build();
