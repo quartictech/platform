@@ -43,10 +43,6 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, boolean indexable) {
-        return createLayer(id, metadata, view, blankSchema(), indexable);
-    }
-
     public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         checkLayerNotExists(id);
         putLayer(newLayer(id, metadata, view, schema, indexable));
