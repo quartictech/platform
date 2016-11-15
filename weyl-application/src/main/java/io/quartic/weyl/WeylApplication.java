@@ -50,13 +50,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         new WeylApplication().run(args);
     }
 
-    public WeylApplication() {
-        super("weyl");
-    }
-
     @Override
-    public void initialize(Bootstrap<WeylConfiguration> bootstrap) {
-        super.initialize(bootstrap);
+    public void initializeApplication(Bootstrap<WeylConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
         bootstrap.addBundle(configureWebsockets(bootstrap.getObjectMapper()));
     }
@@ -80,7 +75,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     @Override
-    public void run(WeylConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
