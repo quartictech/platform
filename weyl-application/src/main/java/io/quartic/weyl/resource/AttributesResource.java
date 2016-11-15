@@ -2,7 +2,6 @@ package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 
@@ -19,22 +18,22 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 @Path("/attributes")
 public class AttributesResource {
-    private final FeatureStore featureStore;
+    private final FeatureStoreQuerier querier;
 
-    public AttributesResource(FeatureStore featureStore) {
-        this.featureStore = featureStore;
+    public AttributesResource(FeatureStoreQuerier querier) {
+        this.querier = querier;
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Map<FeatureId, Map<String, Object>> getAttributes(List<FeatureId> featureIds) {
-        return featureIds.stream()
-                .map(featureStore::get)
+        return querier.retrieveFeaturesOrThrow(featureIds)
                 .collect(toMap(Feature::uid, this::externalAttributes));
     }
 
@@ -49,9 +48,7 @@ public class AttributesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, Map<String, TimeSeriesAttribute>> timeSeriesAttributes(List<FeatureId> featureIds) {
-        Collection<Feature> features = featureIds.stream()
-                .map(featureStore::get)
-                .collect(Collectors.toSet());
+        Collection<Feature> features = querier.retrieveFeaturesOrThrow(featureIds).collect(toList());
 
         Set<String> eligibleAttributes = features.stream()
                 .filter(feature -> feature.metadata().containsKey("name"))
