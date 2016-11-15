@@ -1,6 +1,5 @@
 package io.quartic.common;
 
-import io.quartic.weyl.common.SweetStyle;
 import org.immutables.value.Value;
 
 @SweetStyle
