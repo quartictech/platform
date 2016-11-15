@@ -47,6 +47,7 @@ public class CatalogueWatcherShould {
     private final SourceUpdate updateB = createUpdate();
     private final Source sourceA = importerOf(updateA, true);
     private final Source sourceB = importerOf(updateB, false);
+    private final String rawExtension = "raw";
 
     private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceA,
@@ -65,7 +66,7 @@ public class CatalogueWatcherShould {
     @Before
     public void before() throws Exception {
         when(listenerFactory.create(any(JavaType.class))).thenReturn((WebsocketListener)listener);
-        when(extensionParser.parse(any(), any())).thenReturn(MapDatasetExtension.of(LOCATION_AND_TRACK));
+        when(extensionParser.parse(any(), any())).thenReturn(extension());
     }
 
     @After
@@ -134,7 +135,7 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-        verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, extension()));
+        verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, rawExtension));
     }
 
     private SourceUpdate createUpdate() {
@@ -145,12 +146,14 @@ public class CatalogueWatcherShould {
         return DatasetConfig.of(
                 DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
                 source,
-                ImmutableMap.of(EXTENSION_KEY, extension())
+                ImmutableMap.of(EXTENSION_KEY, rawExtension)
         );
     }
 
     private MapDatasetExtension extension() {
-        return MapDatasetExtension.of(LOCATION_AND_TRACK);
+        return MapDatasetExtension.builder()
+                .viewType(LOCATION_AND_TRACK)
+                .build();
     }
 
     private Source importerOf(SourceUpdate update, boolean indexable) {

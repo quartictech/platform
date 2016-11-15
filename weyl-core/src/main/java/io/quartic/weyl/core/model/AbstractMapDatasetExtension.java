@@ -4,6 +4,9 @@ import io.quartic.weyl.common.SweetStyle;
 import io.quartic.weyl.core.live.LayerViewType;
 import org.immutables.value.Value;
 
+import java.util.List;
+import java.util.Optional;
+
 @SweetStyle
 @Value.Immutable
 public interface AbstractMapDatasetExtension {
@@ -11,4 +14,6 @@ public interface AbstractMapDatasetExtension {
     default LayerViewType viewType() {
         return LayerViewType.MOST_RECENT;
     }
+    Optional<String> imageAttribute();
+    List<String> blessedAttributes();
 }
