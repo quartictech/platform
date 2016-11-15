@@ -8,10 +8,7 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.MapDatasetExtension;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.After;
@@ -77,7 +74,7 @@ public class CatalogueWatcherShould {
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), any(), anyBoolean())).thenReturn(subscriber);
+        whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
@@ -85,7 +82,12 @@ public class CatalogueWatcherShould {
         verify(layerStore).createLayer(
                 LayerId.of("123"),
                 LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()),
-                LOCATION_AND_TRACK.getLayerView(), true
+                LOCATION_AND_TRACK.getLayerView(),
+                ImmutableAttributeSchema.builder()
+                        .imageAttribute("image_attr")
+                        .addBlessedAttributes("cool_attr", "slick_attr")
+                        .build(),
+                true
         );
         subscriber.assertValue(updateA);
     }
@@ -93,7 +95,7 @@ public class CatalogueWatcherShould {
     @Test
     public void only_process_each_dataset_once() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), any(), anyBoolean())).thenReturn(subscriber);
+        whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))
@@ -101,19 +103,15 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-        verify(layerStore, times(1)).createLayer(
-                any(),
-                any(),
-                any(), anyBoolean()
-        );
+        verify(layerStore, times(1)).createLayer(any(), any(), any(), any(), anyBoolean());
     }
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
         final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();
         final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
-        when(layerStore.createLayer(eq(LayerId.of("123")), any(), any(), anyBoolean())).thenReturn(subscriberA);
-        when(layerStore.createLayer(eq(LayerId.of("456")), any(), any(), anyBoolean())).thenReturn(subscriberB);
+        whenCreateLayerThenReturn("123", subscriberA);
+        whenCreateLayerThenReturn("456", subscriberB);
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetId.of("456"), datasetConfig(new LocatorB()))
@@ -121,21 +119,25 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-        verify(layerStore).createLayer(eq(LayerId.of("123")), any(), any(), eq(true));
+        verify(layerStore).createLayer(eq(LayerId.of("123")), any(), any(), any(), eq(true));
         subscriberA.assertValue(updateA);
-        verify(layerStore).createLayer(eq(LayerId.of("456")), any(), any(), eq(false));
+        verify(layerStore).createLayer(eq(LayerId.of("456")), any(), any(), any(), eq(false));
         subscriberB.assertValue(updateB);
     }
 
     @Test
     public void pass_config_fields_to_extension_parser() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), any(), anyBoolean())).thenReturn(subscriber);
+        whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
 
         verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, rawExtension));
+    }
+
+    private void whenCreateLayerThenReturn(String layerId, TestSubscriber<SourceUpdate> subscriber) {
+        when(layerStore.createLayer(eq(LayerId.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(subscriber);
     }
 
     private SourceUpdate createUpdate() {
@@ -153,6 +155,8 @@ public class CatalogueWatcherShould {
     private MapDatasetExtension extension() {
         return MapDatasetExtension.builder()
                 .viewType(LOCATION_AND_TRACK)
+                .imageAttribute("image_attr")
+                .blessedAttribute("cool_attr", "slick_attr")
                 .build();
     }
 

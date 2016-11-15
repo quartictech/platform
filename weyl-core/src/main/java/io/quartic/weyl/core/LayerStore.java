@@ -44,8 +44,12 @@ public class LayerStore {
     }
 
     public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, boolean indexable) {
+        return createLayer(id, metadata, view, blankSchema(), indexable);
+    }
+
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         checkLayerNotExists(id);
-        putLayer(newLayer(id, metadata, view, indexable));
+        putLayer(newLayer(id, metadata, view, schema, indexable));
         return subscriber(id, indexable);
     }
 
@@ -99,7 +103,7 @@ public class LayerStore {
 
         Optional<Layer> layer = layerComputation.compute().map(r ->
                 updateIndicesAndStats(appendFeatures(
-                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, true),
+                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, blankSchema(), true),
                         r.features(),
                         r.schema()))
         );
@@ -123,9 +127,8 @@ public class LayerStore {
         layers.put(layer.layerId(), layer);
     }
 
-    private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, boolean indexable) {
+    private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         final FeatureCollection features = featureStore.newCollection();
-        final AttributeSchema schema = createSchema(features);
         return Layer.builder()
                 .layerId(layerId)
                 .metadata(metadata)
@@ -160,6 +163,10 @@ public class LayerStore {
                 .withSpatialIndex(spatialIndex(indexedFeatures))
                 .withIndexedFeatures(indexedFeatures)
                 .withLayerStats(calculateStats(layer.schema(), layer.features()));
+    }
+
+    private ImmutableAttributeSchema blankSchema() {
+        return ImmutableAttributeSchema.builder().build();
     }
 
     private ImmutableAttributeSchema createSchema(FeatureCollection features) {
