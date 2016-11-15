@@ -13,12 +13,8 @@ public class ManagementApplication extends ApplicationBase<ManagementConfigurati
         new ManagementApplication().run(args);
     }
 
-    public ManagementApplication() {
-        super("management");
-    }
-
     @Override
-    public void run(ManagementConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(ManagementConfiguration configuration, Environment environment) throws Exception {
         GcsConnector gcsConnector = new GcsConnector(configuration.getBucketName());
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
