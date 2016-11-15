@@ -24,30 +24,6 @@ const curatedTitles = {
   "Buses": (x) => `Route ${x.route} (${x["vehicle id"]})`,
 };
 
-// // TODO: delete once disruptions data in
-// "Road Disruptions": {
-//   title: (x) => `${x.location}`,
-//   blessed: [
-//     "severity",
-//     "category",
-//     "subcategory",
-//     "currentUpdate",
-//   ],
-// },
-//
-// // TODO: add properties integration
-// "Current Properties London": {
-//   title: (x) => `${x.property_type}`,
-//   blessed: [
-//     "Price",
-//     "Street Name",
-//     "Description",
-//     "Agent Name",
-//   ],
-//   imageUrl: "image_url",
-// },
-//
-
 export {
   curatedTitles,
   defaultTitle,
