@@ -7,8 +7,8 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.weyl.common.uid.RandomUidGenerator;
-import io.quartic.weyl.common.uid.UidGenerator;
+import io.quartic.common.uid.RandomUidGenerator;
+import io.quartic.common.uid.UidGenerator;
 
 import javax.websocket.server.ServerEndpointConfig;
 
@@ -22,18 +22,13 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
         new CatalogueApplication().run(args);
     }
 
-    public CatalogueApplication() {
-        super("catalogue");
-    }
-
     @Override
-    public void initialize(Bootstrap<CatalogueConfiguration> bootstrap) {
-        super.initialize(bootstrap);
+    public void initializeApplication(Bootstrap<CatalogueConfiguration> bootstrap) {
         bootstrap.addBundle(websocketBundle);
     }
 
     @Override
-    public void run(CatalogueConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(CatalogueConfiguration configuration, Environment environment) throws Exception {
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
