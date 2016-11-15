@@ -6,7 +6,8 @@ import org.immutables.value.Value;
 
 import java.util.List;
 
-import static com.fasterxml.jackson.annotation.JsonTypeInfo.*;
+import static com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 @SweetStyle
 @Value.Immutable
