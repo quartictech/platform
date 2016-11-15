@@ -17,7 +17,6 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.PathParam;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +41,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
         return id;
     }
 
-    public synchronized void deleteDataset(@PathParam("id") String id) {
+    public synchronized void deleteDataset(String id) {
         final DatasetId did = DatasetId.of(id);
         throwIfDatasetNotFound(did);
         datasets.remove(did);
@@ -53,7 +52,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
         return ImmutableMap.copyOf(datasets);
     }
 
-    public synchronized DatasetConfig getDataset(@PathParam("id") String id) {
+    public synchronized DatasetConfig getDataset(String id) {
         final DatasetId did = DatasetId.of(id);
         throwIfDatasetNotFound(did);
         return datasets.get(did);
