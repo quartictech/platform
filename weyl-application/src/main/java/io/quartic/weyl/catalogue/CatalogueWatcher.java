@@ -91,10 +91,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
                     layerId,
                     datasetMetadataFrom(config.metadata()),
                     extension.viewType().getLayerView(),
-                    AttributeSchema.builder()
-                            .imageAttribute(extension.imageAttribute())
-                            .blessedAttributes(extension.blessedAttributes())
-                            .build(),
+                    schemaFrom(extension),
                     source.indexable()
             );
 
@@ -104,6 +101,14 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
         }
+    }
+
+    private AttributeSchema schemaFrom(MapDatasetExtension extension) {
+        return AttributeSchema.builder()
+                .titleAttribute(extension.titleAttribute())
+                .imageAttribute(extension.imageAttribute())
+                .blessedAttributes(extension.blessedAttributes())
+                .build();
     }
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?

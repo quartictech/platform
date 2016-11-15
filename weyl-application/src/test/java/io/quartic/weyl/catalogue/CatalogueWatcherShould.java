@@ -33,6 +33,7 @@ import static rx.Observable.just;
 
 public class CatalogueWatcherShould {
 
+    private static final AttributeName TITLE_ATTRIBUTE = AttributeName.of("title_attr");
     private static final AttributeName IMAGE_ATTRIBUTE = AttributeName.of("image_attr");
     private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeName.of("cool_attr"), AttributeName.of("slick_attr") };
 
@@ -88,6 +89,7 @@ public class CatalogueWatcherShould {
                 LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
                 AttributeSchema.builder()
+                        .titleAttribute(TITLE_ATTRIBUTE)
                         .imageAttribute(IMAGE_ATTRIBUTE)
                         .blessedAttribute(BLESSED_ATTRIBUTES)
                         .build(),
@@ -159,6 +161,7 @@ public class CatalogueWatcherShould {
     private MapDatasetExtension extension() {
         return MapDatasetExtension.builder()
                 .viewType(LOCATION_AND_TRACK)
+                .titleAttribute(TITLE_ATTRIBUTE)
                 .imageAttribute(IMAGE_ATTRIBUTE)
                 .blessedAttribute(BLESSED_ATTRIBUTES)
                 .build();
