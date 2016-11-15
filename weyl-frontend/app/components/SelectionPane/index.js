@@ -1,7 +1,7 @@
 import React from "react";
 import naturalsort from "javascript-natural-sort";
 import Pane from "../Pane";
-import { defaultBehavior, curatedBehaviors } from "./behaviors";
+import { defaultTitle, curatedTitles } from "./behaviors";
 const $ = require("jquery");
 const _ = require("underscore");
 
@@ -151,10 +151,10 @@ const Histograms = ({ histograms }) => (
     <table className="ui celled very compact small fixed selectable table">
       {
         _.chain(histograms)
-          .sort((a, b) => naturalsort(a.property, b.property))
+          .sort((a, b) => naturalsort(a.attribute, b.attribute))
           .map(histogram =>
             <AttributeHistogram
-              key={histogram.property}
+              key={histogram.attribute}
               histogram={histogram}
             />
           )
@@ -169,7 +169,7 @@ const AttributeHistogram = ({ histogram }) => (
     <tr className="title">
       <td style={{ fontWeight: "bold" }}>
         <i className="dropdown icon"></i>
-        {histogram.property}
+        {histogram.attribute}
       </td>
     </tr>
 
@@ -198,16 +198,17 @@ const AttributeHistogram = ({ histogram }) => (
 
 const getBehavior = (layer) => {
   const layerName = layer.metadata.name;
-  const attributeKeys = layer.attributeSchema.attributes;
-  const b = (layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior;
+  const schema = layer.attributeSchema;
+  const attributeKeys = schema.attributes;
+  const nonCuratedTitle = (schema.titleAttribute ? ((x) => x[schema.titleAttribute]) : defaultTitle);
   return {
-    title: (attributes) => b.title(attributes),
-    imageUrlKey: b.imageUrl,
-    isAnythingBlessed: b.blessed.length > 0,
+    title: (layerName in curatedTitles) ? curatedTitles[layerName] : nonCuratedTitle,
+    imageUrlKey: schema.imageAttribute,
+    isAnythingBlessed: schema.blessedAttributes.length > 0,
     // In the specified order
-    blessedAttributeOrder: b.blessed.filter(k => k in attributeKeys),
+    blessedAttributeOrder: schema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
-    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (b.blessed.indexOf(k) === -1)).sort(naturalsort),
+    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (schema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
   };
 };
 

@@ -23,8 +23,8 @@ public class BucketComputation implements LayerComputation {
         this.bucketSpec = bucketSpec;
     }
 
-    private String propertyName() {
-        return featureLayer.metadata().name();
+    private AttributeName attributeName() {
+        return AttributeName.of(featureLayer.metadata().name());
     }
 
     public static BucketComputation create(LayerStore store, AbstractBucketSpec bucketSpec) {
@@ -51,16 +51,16 @@ public class BucketComputation implements LayerComputation {
                     bucketLayer.metadata().name(),
                     bucketSpec.aggregation().toString());
 
-            Map<String, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
+            Map<AttributeName, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
             AbstractAttribute newAttribute = Attribute.builder()
                     .type(AttributeType.NUMERIC)
                     .build();
-            attributeMap.put(propertyName(), newAttribute);
+            attributeMap.put(attributeName(), newAttribute);
 
-            AttributeSchema schema = ImmutableAttributeSchema
+            AttributeSchema schema = AttributeSchema
                     .copyOf(bucketLayer.schema())
                     .withAttributes(attributeMap)
-                    .withPrimaryAttribute(propertyName());
+                    .withPrimaryAttribute(attributeName());
 
             return Optional.of(ComputationResults.of(
                     LayerMetadata.builder()
@@ -97,8 +97,8 @@ public class BucketComputation implements LayerComputation {
                             value /= bucket.geometry().getArea();
                         }
                     }
-                    Map<String, Object> metadata = new HashMap<>(bucket.metadata());
-                    metadata.put(propertyName(), value);
+                    Map<AttributeName, Object> metadata = new HashMap<>(bucket.metadata());
+                    metadata.put(attributeName(), value);
                     return ImmutableFeature.copyOf(bucket)
                             .withUid(featureStore.getFeatureIdGenerator().get())
                             .withMetadata(metadata);

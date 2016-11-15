@@ -7,16 +7,16 @@ import io.quartic.weyl.core.model.*;
 import java.util.Map;
 
 public class StatsCalculator {
-    private static AbstractAttribute getAttribute(AttributeSchema schema, String name) {
-        if (! schema.attributes().containsKey(name)) {
-            throw new IllegalStateException("attribute not present in schema: " + name);
+    private static AbstractAttribute getAttribute(AbstractAttributeSchema schema, AttributeName name) {
+        if (!schema.attributes().containsKey(name)) {
+            throw new IllegalStateException("Attribute not present in schema: " + name.name());
         }
         return schema.attributes().get(name);
     }
 
-    public static LayerStats calculateStats(AttributeSchema schema, FeatureCollection features) {
-        Map<String, Double> maxNumeric = Maps.newConcurrentMap();
-        Map<String, Double> minNumeric = Maps.newConcurrentMap();
+    public static LayerStats calculateStats(AbstractAttributeSchema schema, FeatureCollection features) {
+        Map<AttributeName, Double> maxNumeric = Maps.newConcurrentMap();
+        Map<AttributeName, Double> minNumeric = Maps.newConcurrentMap();
 
         features.parallelStream()
                 .flatMap(feature -> feature.metadata().entrySet().stream())

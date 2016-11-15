@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.ImmutableFeature;
@@ -122,7 +123,7 @@ public class LastKnownLocationAndTrackViewShould {
                 .externalId(name)
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
-                .metadata(ImmutableMap.of("name", name))
+                .metadata(ImmutableMap.of(AttributeName.of("name"), name))
                 .build();
     }
 

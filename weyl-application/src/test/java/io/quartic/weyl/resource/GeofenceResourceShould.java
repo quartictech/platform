@@ -11,10 +11,7 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.core.model.AbstractLayer;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.ImmutableGeofenceRequest;
 import org.junit.Test;
 
@@ -32,7 +29,7 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
-    private static final ImmutableMap<String, Object> FEATURE_METADATA = ImmutableMap.of("some_prop", 76);
+    private static final ImmutableMap<AttributeName, Object> FEATURE_METADATA = ImmutableMap.of(AttributeName.of("some_prop"), 76);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);
@@ -111,14 +108,14 @@ public class GeofenceResourceShould {
         verifyGeofence(emptyMap(), (Polygon) fromJts(bufferOp(toJts(geojsonPoint()), 1.0)));
     }
 
-    private void verifyGeofence(Map<String, Object> metadata, Polygon... polygons) {
+    private void verifyGeofence(Map<AttributeName, Object> metadata, Polygon... polygons) {
         verify(geofenceStore).setGeofences(
                 stream(polygons)
                         .map(p -> geofenceOf(metadata, p))
                         .collect(toList()));
     }
 
-    private Geofence geofenceOf(Map<String, Object> metadata, Polygon polygon) {
+    private Geofence geofenceOf(Map<AttributeName, Object> metadata, Polygon polygon) {
         return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon), metadata);
     }
 

@@ -7,10 +7,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 public final class ObjectMappers {
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new Jdk8Module())
-            .registerModule(new JavaTimeModule());
+            .registerModule(new JavaTimeModule())
+            .setSerializationInclusion(Include.NON_EMPTY);
 
     private ObjectMappers() {}
 

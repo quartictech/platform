@@ -3,13 +3,15 @@ set -eu
 
 curl -H Content-Type:application/json -XPUT http://localhost:8090/api/datasets -d '{
     "metadata": {
-        "attribution": "Quartic",
-        "description": "Pub Tour",
-        "icon": "location arrow",
-        "name": "Pub Tour"
+      "name": "Pub Tour",
+      "description": "Arlo and Alex go wild",
+      "attribution": "Quartic",
+      "icon": "beer"
     },
     "map": {
-        "viewType": "LOCATION_AND_TRACK"
+        "viewType": "LOCATION_AND_TRACK",
+        "titleAttribute": "name",
+        "blessedAttributes": [ "name" ]
     },
     "locator": {
         "type": "websocket",

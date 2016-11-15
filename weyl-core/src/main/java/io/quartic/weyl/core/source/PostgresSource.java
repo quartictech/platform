@@ -10,6 +10,7 @@ import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.ImmutableFeature;
 import org.immutables.value.Value;
@@ -96,16 +97,17 @@ public abstract class PostgresSource implements Source {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            Map<String, Object> attributes = Maps.newHashMap();
+            Map<AttributeName, Object> attributes = Maps.newHashMap();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
+                    final AttributeName name = AttributeName.of(entry.getKey());
                     if (entry.getValue() instanceof PGobject) {
                         readPgObject(entry.getValue())
-                                .ifPresent(attribute -> attributes.put(entry.getKey(), attribute));
+                                .ifPresent(attribute -> attributes.put(name, attribute));
                     }
                     else {
-                        attributes.put(entry.getKey(), entry.getValue());
+                        attributes.put(name, entry.getValue());
                     }
                 }
             }

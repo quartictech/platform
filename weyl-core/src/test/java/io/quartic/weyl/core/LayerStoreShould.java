@@ -10,6 +10,7 @@ import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rx.Observable;
@@ -39,6 +40,7 @@ public class LayerStoreShould {
     public static final Instant INSTANT = Instant.now();
     public static final LayerId LAYER_ID = LayerId.of("666");
     public static final LayerId OTHER_LAYER_ID = LayerId.of("777");
+    private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
@@ -50,8 +52,11 @@ public class LayerStoreShould {
         final LayerMetadata lm1 = metadata("foo", "bar");
         final LayerMetadata lm2 = metadata("cheese", "monkey");
 
-        store.createLayer(LAYER_ID, lm1, true, IDENTITY_VIEW);
-        store.createLayer(OTHER_LAYER_ID, lm2, true, IDENTITY_VIEW);
+        final AttributeSchema as1 = schema("foo");
+        final AttributeSchema as2 = schema("bar");
+
+        store.createLayer(LAYER_ID, lm1, IDENTITY_VIEW, as1, true);
+        store.createLayer(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true);
 
         final Collection<AbstractLayer> layers = store.listLayers();
 
@@ -61,6 +66,8 @@ public class LayerStoreShould {
                 containsInAnyOrder(lm1, lm2));
         assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
                 containsInAnyOrder(true, true));
+        assertThat(layers.stream().map(AbstractLayer::schema).collect(toList()),
+                containsInAnyOrder(as1, as2));
     }
 
     @Test
@@ -69,6 +76,16 @@ public class LayerStoreShould {
         store.deleteLayer(LAYER_ID);
 
         assertThat(store.listLayers(), empty());
+    }
+
+    @Test
+    public void preserve_core_schema_info_upon_update() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+
+        Observable.just(updateFor(feature("a", "1"))).subscribe(sub);
+
+        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+        assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeName.of("blah")));
     }
 
     @Test
@@ -104,10 +121,7 @@ public class LayerStoreShould {
         assertThat(layerState.feedEvents(),
                 containsInAnyOrder(event("789")));
         assertThat(layerState.schema(),
-                equalTo(ImmutableAttributeSchema.builder()
-                        .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
-                        .build()
-                ));
+                equalTo(schema("blah").withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, Attribute.of(NUMERIC, Optional.empty())))));
     }
 
     @Test
@@ -290,7 +304,7 @@ public class LayerStoreShould {
                 .externalId(externalId)
                 .uid(FeatureId.of(uid))
                 .geometry(factory.createPoint(new Coordinate(123.0, 456.0)))
-                .metadata(ImmutableMap.of("timestamp", 1234))
+                .metadata(ImmutableMap.of(ATTRIBUTE_NAME, 1234))
                 .build();
     }
 
@@ -307,7 +321,11 @@ public class LayerStoreShould {
     }
 
     private Subscriber<SourceUpdate> createLayer(LayerId id, boolean indexable) {
-        return store.createLayer(id, metadata("foo", "bar"), indexable, IDENTITY_VIEW);
+        return store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW, schema("blah"), indexable);
+    }
+
+    private AttributeSchema schema(String blessed) {
+        return AttributeSchema.builder().blessedAttribute(AttributeName.of(blessed)).build();
     }
 
     private LayerMetadata metadata(String name, String description) {

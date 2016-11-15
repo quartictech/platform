@@ -8,10 +8,7 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.MapDatasetExtension;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.After;
@@ -35,6 +32,11 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class CatalogueWatcherShould {
+
+    private static final AttributeName TITLE_ATTRIBUTE = AttributeName.of("title_attr");
+    private static final AttributeName IMAGE_ATTRIBUTE = AttributeName.of("image_attr");
+    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeName.of("cool_attr"), AttributeName.of("slick_attr") };
+
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
     private static class LocatorC implements DatasetLocator {}
@@ -47,6 +49,7 @@ public class CatalogueWatcherShould {
     private final SourceUpdate updateB = createUpdate();
     private final Source sourceA = importerOf(updateA, true);
     private final Source sourceB = importerOf(updateB, false);
+    private final String rawExtension = "raw";
 
     private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceA,
@@ -65,7 +68,7 @@ public class CatalogueWatcherShould {
     @Before
     public void before() throws Exception {
         when(listenerFactory.create(any(JavaType.class))).thenReturn((WebsocketListener)listener);
-        when(extensionParser.parse(any(), any())).thenReturn(MapDatasetExtension.of(LOCATION_AND_TRACK));
+        when(extensionParser.parse(any(), any())).thenReturn(extension());
     }
 
     @After
@@ -76,7 +79,7 @@ public class CatalogueWatcherShould {
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), anyBoolean(), any())).thenReturn(subscriber);
+        whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
@@ -84,15 +87,21 @@ public class CatalogueWatcherShould {
         verify(layerStore).createLayer(
                 LayerId.of("123"),
                 LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()),
-                true,
-                LOCATION_AND_TRACK.getLayerView());
+                LOCATION_AND_TRACK.getLayerView(),
+                AttributeSchema.builder()
+                        .titleAttribute(TITLE_ATTRIBUTE)
+                        .imageAttribute(IMAGE_ATTRIBUTE)
+                        .blessedAttribute(BLESSED_ATTRIBUTES)
+                        .build(),
+                true
+        );
         subscriber.assertValue(updateA);
     }
 
     @Test
     public void only_process_each_dataset_once() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), anyBoolean(), any())).thenReturn(subscriber);
+        whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))
@@ -100,19 +109,15 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-        verify(layerStore, times(1)).createLayer(
-                any(),
-                any(),
-                anyBoolean(),
-                any());
+        verify(layerStore, times(1)).createLayer(any(), any(), any(), any(), anyBoolean());
     }
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
         final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();
         final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
-        when(layerStore.createLayer(eq(LayerId.of("123")), any(), anyBoolean(), any())).thenReturn(subscriberA);
-        when(layerStore.createLayer(eq(LayerId.of("456")), any(), anyBoolean(), any())).thenReturn(subscriberB);
+        whenCreateLayerThenReturn("123", subscriberA);
+        whenCreateLayerThenReturn("456", subscriberB);
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetId.of("456"), datasetConfig(new LocatorB()))
@@ -120,21 +125,25 @@ public class CatalogueWatcherShould {
 
         watcher.start();
 
-        verify(layerStore).createLayer(eq(LayerId.of("123")), any(), eq(true), any());
+        verify(layerStore).createLayer(eq(LayerId.of("123")), any(), any(), any(), eq(true));
         subscriberA.assertValue(updateA);
-        verify(layerStore).createLayer(eq(LayerId.of("456")), any(), eq(false), any());
+        verify(layerStore).createLayer(eq(LayerId.of("456")), any(), any(), any(), eq(false));
         subscriberB.assertValue(updateB);
     }
 
     @Test
     public void pass_config_fields_to_extension_parser() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        when(layerStore.createLayer(any(), any(), anyBoolean(), any())).thenReturn(subscriber);
+        whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
 
-        verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, extension()));
+        verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, rawExtension));
+    }
+
+    private void whenCreateLayerThenReturn(String layerId, TestSubscriber<SourceUpdate> subscriber) {
+        when(layerStore.createLayer(eq(LayerId.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(subscriber);
     }
 
     private SourceUpdate createUpdate() {
@@ -145,12 +154,17 @@ public class CatalogueWatcherShould {
         return DatasetConfig.of(
                 DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
                 source,
-                ImmutableMap.of(EXTENSION_KEY, extension())
+                ImmutableMap.of(EXTENSION_KEY, rawExtension)
         );
     }
 
     private MapDatasetExtension extension() {
-        return MapDatasetExtension.of(LOCATION_AND_TRACK);
+        return MapDatasetExtension.builder()
+                .viewType(LOCATION_AND_TRACK)
+                .titleAttribute(TITLE_ATTRIBUTE)
+                .imageAttribute(IMAGE_ATTRIBUTE)
+                .blessedAttribute(BLESSED_ATTRIBUTES)
+                .build();
     }
 
     private Source importerOf(SourceUpdate update, boolean indexable) {

@@ -21,6 +21,7 @@ import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
@@ -185,11 +186,11 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         );
     }
 
-    private static Map<String, Object> convertMetadata(String externalId, String id, Map<String, Object> metadata) {
+    private static Map<String, Object> convertMetadata(String externalId, String id, Map<AttributeName, Object> metadata) {
         final Map<String, Object> output = Maps.newHashMap();
         metadata.entrySet().stream()
                         .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
-                        .forEach(entry -> output.put(entry.getKey(), entry.getValue()));
+                        .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
         output.put("_id", id);  // TODO: eliminate the _id concept
         output.put("_externalId", externalId);
         return output;

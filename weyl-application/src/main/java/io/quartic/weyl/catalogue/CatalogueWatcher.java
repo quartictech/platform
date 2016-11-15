@@ -7,6 +7,7 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.MapDatasetExtension;
@@ -89,8 +90,10 @@ public abstract class CatalogueWatcher implements AutoCloseable {
             final Subscriber<SourceUpdate> subscriber = layerStore().createLayer(
                     layerId,
                     datasetMetadataFrom(config.metadata()),
-                    source.indexable(),
-                    extension.viewType().getLayerView());
+                    extension.viewType().getLayerView(),
+                    schemaFrom(extension),
+                    source.indexable()
+            );
 
             LOG.info(format("[%s] Created layer", name));
 
@@ -98,6 +101,14 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
         }
+    }
+
+    private AttributeSchema schemaFrom(MapDatasetExtension extension) {
+        return AttributeSchema.builder()
+                .titleAttribute(extension.titleAttribute())
+                .imageAttribute(extension.imageAttribute())
+                .blessedAttributes(extension.blessedAttributes())
+                .build();
     }
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?

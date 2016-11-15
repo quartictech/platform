@@ -11,6 +11,7 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.model.FeedEvent;
 import io.quartic.model.LiveEvent;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
@@ -46,7 +47,7 @@ public class LiveEventConverterShould {
                         .uid(FeatureId.of("1"))
                         .externalId("a")
                         .geometry(factory.createPoint(new Coordinate(51.0, 0.1)))
-                        .metadata(ImmutableMap.of("timestamp", 1234))
+                        .metadata(ImmutableMap.of(AttributeName.of("timestamp"), 1234))
                         .build()
         )));
     }

@@ -46,13 +46,9 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable) {
-        return createLayer(id, metadata, indexable, IDENTITY_VIEW);
-    }
-
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, boolean indexable, LayerView view) {
+    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         checkLayerNotExists(id);
-        putLayer(newLayer(id, metadata, indexable, view));
+        putLayer(newLayer(id, metadata, view, schema, indexable));
         return subscriber(id, indexable);
     }
 
@@ -101,14 +97,14 @@ public class LayerStore {
         }
     }
 
+    // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
         LayerComputation layerComputation = getLayerComputation(computationSpec);
 
         Optional<Layer> layer = layerComputation.compute().map(r ->
                 updateIndicesAndStats(appendFeatures(
-                        newLayer(lidGenerator.get(), r.metadata(), true, IDENTITY_VIEW),
-                        r.features(),
-                        r.schema()))
+                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
+                        r.features()))
         );
         layer.ifPresent(this::putLayer);
         return layer.map(Layer::layerId);
@@ -130,14 +126,13 @@ public class LayerStore {
         layers.put(layer.layerId(), layer);
     }
 
-    private Layer newLayer(LayerId layerId, LayerMetadata metadata, boolean indexable, LayerView view) {
+    private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         final FeatureCollection features = featureStore.newCollection();
-        final AttributeSchema schema = createSchema(features);
         return Layer.builder()
                 .layerId(layerId)
                 .metadata(metadata)
                 .indexable(indexable)
-                .schema(createSchema(features))
+                .schema(schema)
                 .features(features)
                 .feedEvents(ImmutableList.of())
                 .view(view)
@@ -151,14 +146,7 @@ public class LayerStore {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         return layer
                 .withFeatures(updatedFeatures)
-                .withSchema(createSchema(updatedFeatures));
-    }
-
-    private Layer appendFeatures(Layer layer, Collection<Feature> features, AttributeSchema schema) {
-        final FeatureCollection updatedFeatures = layer.features().append(features);
-        return layer
-                .withFeatures(updatedFeatures)
-                .withSchema(schema);
+                .withSchema(layer.schema().withAttributes(inferSchema(updatedFeatures)));
     }
 
     private Layer updateIndicesAndStats(Layer layer) {
@@ -169,11 +157,8 @@ public class LayerStore {
                 .withLayerStats(calculateStats(layer.schema(), layer.features()));
     }
 
-    private ImmutableAttributeSchema createSchema(FeatureCollection features) {
-        return ImmutableAttributeSchema.builder()
-                .attributes(inferSchema(features))
-                .primaryAttribute(Optional.empty())
-                .build();
+    private AttributeSchema blankSchema() {
+        return AttributeSchema.builder().build();
     }
 
     private static Collection<IndexedFeature> indexedFeatures(FeatureCollection features) {

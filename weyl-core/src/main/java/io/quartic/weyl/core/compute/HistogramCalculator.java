@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.compute;
 
 import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
@@ -10,7 +11,7 @@ import static java.util.stream.Collectors.*;
 
 public class HistogramCalculator {
     public Collection<AbstractHistogram> calculate(Collection<? extends Feature> features) {
-        final Map<String, Map<Object, Long>> counts = features.stream()
+        final Map<AttributeName, Map<Object, Long>> counts = features.stream()
                 .flatMap(f -> f.metadata().entrySet().stream())
                 .filter(entry -> ! (entry.getValue() instanceof ComplexAttribute))
                 .collect(groupingBy(Map.Entry::getKey,
