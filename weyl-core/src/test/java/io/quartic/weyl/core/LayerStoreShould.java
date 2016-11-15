@@ -10,6 +10,7 @@ import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rx.Observable;
@@ -50,8 +51,11 @@ public class LayerStoreShould {
         final LayerMetadata lm1 = metadata("foo", "bar");
         final LayerMetadata lm2 = metadata("cheese", "monkey");
 
-        store.createLayer(LAYER_ID, lm1, IDENTITY_VIEW, true);
-        store.createLayer(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, true);
+        final AttributeSchema as1 = schema("foo");
+        final AttributeSchema as2 = schema("bar");
+
+        store.createLayer(LAYER_ID, lm1, IDENTITY_VIEW, as1, true);
+        store.createLayer(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true);
 
         final Collection<AbstractLayer> layers = store.listLayers();
 
@@ -61,6 +65,8 @@ public class LayerStoreShould {
                 containsInAnyOrder(lm1, lm2));
         assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
                 containsInAnyOrder(true, true));
+        assertThat(layers.stream().map(AbstractLayer::schema).collect(toList()),
+                containsInAnyOrder(as1, as2));
     }
 
     @Test
@@ -69,6 +75,16 @@ public class LayerStoreShould {
         store.deleteLayer(LAYER_ID);
 
         assertThat(store.listLayers(), empty());
+    }
+
+    @Test
+    public void preserve_core_schema_info_upon_update() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+
+        Observable.just(updateFor(feature("a", "1"))).subscribe(sub);
+
+        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+        assertThat(layer.schema().blessedAttributes(), Matchers.contains("blah"));
     }
 
     @Test
@@ -104,10 +120,7 @@ public class LayerStoreShould {
         assertThat(layerState.feedEvents(),
                 containsInAnyOrder(event("789")));
         assertThat(layerState.schema(),
-                equalTo(AttributeSchema.builder()
-                        .attributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))
-                        .build()
-                ));
+                equalTo(schema("blah").withAttributes(ImmutableMap.of("timestamp", Attribute.of(NUMERIC, Optional.empty())))));
     }
 
     @Test
@@ -307,7 +320,11 @@ public class LayerStoreShould {
     }
 
     private Subscriber<SourceUpdate> createLayer(LayerId id, boolean indexable) {
-        return store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW, indexable);
+        return store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW, schema("blah"), indexable);
+    }
+
+    private AttributeSchema schema(String blessed) {
+        return AttributeSchema.builder().blessedAttribute(blessed).build();
     }
 
     private LayerMetadata metadata(String name, String description) {

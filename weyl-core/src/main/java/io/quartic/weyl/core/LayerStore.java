@@ -98,14 +98,14 @@ public class LayerStore {
         }
     }
 
+    // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
         LayerComputation layerComputation = getLayerComputation(computationSpec);
 
         Optional<Layer> layer = layerComputation.compute().map(r ->
                 updateIndicesAndStats(appendFeatures(
-                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, blankSchema(), true),
-                        r.features(),
-                        r.schema()))
+                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
+                        r.features()))
         );
         layer.ifPresent(this::putLayer);
         return layer.map(Layer::layerId);
@@ -147,14 +147,7 @@ public class LayerStore {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         return layer
                 .withFeatures(updatedFeatures)
-                .withSchema(createSchema(updatedFeatures));
-    }
-
-    private Layer appendFeatures(Layer layer, Collection<Feature> features, AttributeSchema schema) {
-        final FeatureCollection updatedFeatures = layer.features().append(features);
-        return layer
-                .withFeatures(updatedFeatures)
-                .withSchema(schema);
+                .withSchema(layer.schema().withAttributes(inferSchema(updatedFeatures)));
     }
 
     private Layer updateIndicesAndStats(Layer layer) {
@@ -167,13 +160,6 @@ public class LayerStore {
 
     private AttributeSchema blankSchema() {
         return AttributeSchema.builder().build();
-    }
-
-    private AttributeSchema createSchema(FeatureCollection features) {
-        return AttributeSchema.builder()
-                .attributes(inferSchema(features))
-                .primaryAttribute(Optional.empty())
-                .build();
     }
 
     private static Collection<IndexedFeature> indexedFeatures(FeatureCollection features) {
