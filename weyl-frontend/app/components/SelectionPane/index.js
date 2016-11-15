@@ -201,7 +201,9 @@ const getBehavior = (layer) => {
   const schema = layer.attributeSchema;
   const attributeKeys = schema.attributes;
   return {
-    title: (layerName in curatedTitles) ? curatedTitles[layerName] : defaultTitle,
+    title: (layerName in curatedTitles)
+      ? curatedTitles[layerName]
+      : (schema.titleAttribute ? ((x) => x[schema.titleAttribute]) : defaultTitle),
     imageUrlKey: schema.imageAttribute,
     isAnythingBlessed: schema.blessedAttributes.length > 0,
     // In the specified order

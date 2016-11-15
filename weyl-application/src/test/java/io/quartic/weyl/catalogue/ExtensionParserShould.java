@@ -36,14 +36,17 @@ public class ExtensionParserShould {
         final Map<String, Object> raw = ImmutableMap.of("viewType", "LOCATION_AND_TRACK");
 
         assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtension.of(LOCATION_AND_TRACK, Optional.empty(), emptyList())));
+                equalTo(MapDatasetExtension.of(LOCATION_AND_TRACK, Optional.empty(), Optional.empty(), emptyList())));
     }
 
     @Test
     public void return_extension_when_parseable_2() throws Exception {
-        final Map<String, Object> raw = ImmutableMap.of("viewType", "LOCATION_AND_TRACK", "imageAttribute", "foo");
+        final Map<String, Object> raw = ImmutableMap.of(
+                "viewType", "LOCATION_AND_TRACK",
+                "titleAttribute", "foo"
+        );
 
         assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtension.of(LOCATION_AND_TRACK, Optional.of(AttributeName.of("foo")), emptyList())));
+                equalTo(MapDatasetExtension.of(LOCATION_AND_TRACK, Optional.of(AttributeName.of("foo")), Optional.empty(), emptyList())));
     }
 }

@@ -19,20 +19,14 @@ const defaultTitle = (x) => {
 };
 
 const curatedTitles = {
-  "Jamcams": (x) => x.view,
-  "Postcode Districts": (x) => x.name,
-  "Public Land Assets": (x) => x.holdingname,
   "London House Sales": formatAddress,
-  "Nightlife": (x) => x.name,
   "London Crime": (x) => `${x.crimetype} (${x.monthyear})`,
-  "Road Disruptions": (x) => `${x.location}`,
-  "Outdoor Advertising Stock London": (x) => `${x.Name}`,
-  "Current Properties London": (x) => `${x.property_type}`,
   "Buses": (x) => `Route ${x.route} (${x["vehicle id"]})`,
 };
 
 // // TODO: delete once disruptions data in
 // "Road Disruptions": {
+//   title: (x) => `${x.location}`,
 //   blessed: [
 //     "severity",
 //     "category",
@@ -43,6 +37,7 @@ const curatedTitles = {
 //
 // // TODO: add properties integration
 // "Current Properties London": {
+//   title: (x) => `${x.property_type}`,
 //   blessed: [
 //     "Price",
 //     "Street Name",
