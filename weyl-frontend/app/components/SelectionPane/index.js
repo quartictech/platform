@@ -1,7 +1,7 @@
 import React from "react";
 import naturalsort from "javascript-natural-sort";
 import Pane from "../Pane";
-import { defaultBehavior, curatedBehaviors } from "./behaviors";
+import { defaultTitle, curatedTitles } from "./behaviors";
 const $ = require("jquery");
 const _ = require("underscore");
 
@@ -198,16 +198,16 @@ const AttributeHistogram = ({ histogram }) => (
 
 const getBehavior = (layer) => {
   const layerName = layer.metadata.name;
-  const attributeKeys = layer.attributeSchema.attributes;
-  const b = (layerName in curatedBehaviors) ? curatedBehaviors[layerName] : defaultBehavior;
+  const schema = layer.attributeSchema;
+  const attributeKeys = schema.attributes;
   return {
-    title: (attributes) => b.title(attributes),
-    imageUrlKey: b.imageUrl,
-    isAnythingBlessed: b.blessed.length > 0,
+    title: (layerName in curatedTitles) ? curatedTitles[layerName] : defaultTitle,
+    imageUrlKey: schema.imageAttribute,
+    isAnythingBlessed: schema.blessedAttributes.length > 0,
     // In the specified order
-    blessedAttributeOrder: b.blessed.filter(k => k in attributeKeys),
+    blessedAttributeOrder: schema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
-    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (b.blessed.indexOf(k) === -1)).sort(naturalsort),
+    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (schema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
   };
 };
 

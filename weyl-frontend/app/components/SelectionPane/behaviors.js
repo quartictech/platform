@@ -18,119 +18,42 @@ const defaultTitle = (x) => {
   return (title !== undefined) ? x[title] : "<< Unknown title >>";
 };
 
-const defaultBehavior = {
-  title: defaultTitle,
-  blessed: [],
+const curatedTitles = {
+  "Jamcams": (x) => x.view,
+  "Postcode Districts": (x) => x.name,
+  "Public Land Assets": (x) => x.holdingname,
+  "London House Sales": formatAddress,
+  "Nightlife": (x) => x.name,
+  "London Crime": (x) => `${x.crimetype} (${x.monthyear})`,
+  "Road Disruptions": (x) => `${x.location}`,
+  "Outdoor Advertising Stock London": (x) => `${x.Name}`,
+  "Current Properties London": (x) => `${x.property_type}`,
+  "Buses": (x) => `Route ${x.route} (${x["vehicle id"]})`,
 };
 
-const curatedBehaviors = {
-  "Jamcams": {
-    title: (x) => x.view,
-    blessed: [
-      "location",
-      "date",
-      "postcode",
-    ],
-    imageUrl: "videofile",
-  },
-
-  "London Boroughs": {
-    title: defaultTitle,
-    blessed: [
-      "hectares",
-      "political control in council",
-      "average age 2015",
-      "crime rates per thousand population 2014/15",
-    ],
-  },
-
-  "Postcode Districts": {
-    title: (x) => x.name,
-    blessed: [
-      "gid",
-    ],
-  },
-
-  "Public Land Assets": {
-    title: (x) => x.holdingname,
-    blessed: [
-      "description",
-      "assetcategory",
-      "owner",
-    ],
-  },
-
-  "London House Sales": {
-    title: formatAddress,
-    blessed: [
-      "addr1",
-      "addr2",
-      "addr3",
-      "addr4",
-      "postcode",
-      "price",
-      "dateprocessed",
-    ],
-  },
-
-  "Nightlife": {
-    title: (x) => x.name,
-    blessed: [
-      "operator",
-      "amenity",
-      "building",
-    ],
-  },
-
-  "London Crime": {
-    title: (x) => `${x.crimetype} (${x.monthyear})`,
-    blessed: [
-      "location",
-      "fallswithin",
-      "lastoutcomecat",
-    ],
-  },
-
-  "Road Disruptions": {
-    title: (x) => `${x.location}`,
-    blessed: [
-      "severity",
-      "category",
-      "subcategory",
-      "currentUpdate",
-    ],
-  },
-
-  "Outdoor Advertising Stock London": {
-    title: (x) => `${x.Name}`,
-    blessed: [
-      "Price",
-      "Is Digital",
-    ],
-    imageUrl: "street_view",
-  },
-
-  "Current Properties London": {
-    title: (x) => `${x.property_type}`,
-    blessed: [
-      "Price",
-      "Street Name",
-      "Description",
-      "Agent Name",
-    ],
-    imageUrl: "image_url",
-  },
-
-  "Buses": {
-    title: (x) => `Route ${x.route} (${x["vehicle id"]})`,
-    blessed: [
-      "route",
-      "vehicle id",
-    ],
-  },
-};
+// // TODO: delete once disruptions data in
+// "Road Disruptions": {
+//   blessed: [
+//     "severity",
+//     "category",
+//     "subcategory",
+//     "currentUpdate",
+//   ],
+// },
+//
+// // TODO: add properties integration
+// "Current Properties London": {
+//   blessed: [
+//     "Price",
+//     "Street Name",
+//     "Description",
+//     "Agent Name",
+//   ],
+//   imageUrl: "image_url",
+// },
+//
 
 export {
-  defaultBehavior,
-  curatedBehaviors,
+  curatedTitles,
+  defaultTitle,
 };
