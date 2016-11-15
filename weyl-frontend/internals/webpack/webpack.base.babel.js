@@ -4,6 +4,7 @@
 
 const path = require('path');
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = (options) => ({
   entry: options.entry,
@@ -68,6 +69,8 @@ module.exports = (options) => ({
     }),
     // Some nonsense to make moment work (see https://github.com/moment/moment/issues/2979#issuecomment-189899510)
     new webpack.ContextReplacementPlugin(/\.\/locale$/, 'empty-module', false, /js$/),
+
+    new CopyWebpackPlugin([{ from: 'static' }]),
   ]),
   postcss: () => options.postcssPlugins,
   resolve: {

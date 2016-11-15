@@ -3,7 +3,6 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // PostCSS plugins
 const cssnext = require('postcss-cssnext');
@@ -78,8 +77,6 @@ module.exports = require('./webpack.base.babel')({
       },
       inject: true,
     }),
-
-    new CopyWebpackPlugin([{ from: 'static' }]),
 
     // Extract the CSS into a seperate file
     new ExtractTextPlugin('[name].[contenthash].css'),
