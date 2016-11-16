@@ -13,22 +13,22 @@ import static java.util.stream.Collectors.toMap;
 public class ConversionUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ConversionUtils.class);
 
-    public static Map<AttributeName, Object> convertMetadata(ObjectMapper objectMapper, Map<String, Object> rawMetadata) {
-        return rawMetadata.entrySet()
+    public static Map<AttributeName, Object> convertAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
+        return rawAttributes.entrySet()
                 .stream()
                 .collect(toMap(
                         e -> AttributeName.of(e.getKey()),
-                        e -> ConversionUtils.convertMetadataValue(objectMapper, e.getKey(), e.getValue())));
+                        e -> ConversionUtils.convertAttributeValue(objectMapper, e.getKey(), e.getValue())));
     }
 
-    static Object convertMetadataValue(ObjectMapper objectMapper, String key, Object value) {
+    static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             try {
                 return objectMapper.convertValue(value, ComplexAttribute.class);
             }
             catch (IllegalArgumentException e) {
-                LOG.warn("couldn't convert object field {}. Exception: {}", key, e);
+                LOG.warn("couldn't convert attribute {}. Exception: {}", key, e);
                 return value;
             }
         }

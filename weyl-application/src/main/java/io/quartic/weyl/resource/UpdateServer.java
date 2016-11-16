@@ -175,7 +175,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private Feature fromJts(io.quartic.weyl.core.model.Feature f, String id) {
-        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(f.externalId(), id, f.metadata()));
+        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(f.externalId(), id, f.attributes()));
     }
 
     private Feature fromJts(Optional<String> id, Geometry geometry, Map<String, Object> attributes) {

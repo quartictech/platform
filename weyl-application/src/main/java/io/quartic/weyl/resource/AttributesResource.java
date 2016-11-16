@@ -40,7 +40,7 @@ public class AttributesResource {
     }
 
     private Map<AttributeName, Object> externalAttributes(Feature feature) {
-        return feature.metadata().entrySet().stream()
+        return feature.attributes().entrySet().stream()
                 .filter(e -> !(e.getValue() instanceof ComplexAttribute || e.getValue() instanceof Map))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }
@@ -53,8 +53,8 @@ public class AttributesResource {
         Collection<Feature> features = querier.retrieveFeaturesOrThrow(featureIds).collect(toList());
 
         Set<AttributeName> eligibleAttributes = features.stream()
-                .filter(feature -> feature.metadata().containsKey(NAME))
-                .flatMap(feature -> feature.metadata().entrySet().stream())
+                .filter(feature -> feature.attributes().containsKey(NAME))
+                .flatMap(feature -> feature.attributes().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
                 .map(Entry::getKey)
                 .collect(Collectors.toSet());
@@ -66,11 +66,11 @@ public class AttributesResource {
     // Map of { name -> timeseries }
     private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, AttributeName attribute) {
         return features.stream()
-                .filter(feature -> feature.metadata().containsKey(NAME))
-                .filter(feature -> feature.metadata().containsKey(attribute) &&
-                        feature.metadata().get(attribute) instanceof TimeSeriesAttribute)
+                .filter(feature -> feature.attributes().containsKey(NAME))
+                .filter(feature -> feature.attributes().containsKey(attribute) &&
+                        feature.attributes().get(attribute) instanceof TimeSeriesAttribute)
                 .collect(toMap(
-                        feature -> (String) feature.metadata().get(NAME),
-                        feature -> (TimeSeriesAttribute) feature.metadata().get(attribute)));
+                        feature -> (String) feature.attributes().get(NAME),
+                        feature -> (TimeSeriesAttribute) feature.attributes().get(attribute)));
     }
 }

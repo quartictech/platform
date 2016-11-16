@@ -163,7 +163,7 @@ public class GeofenceStoreShould {
                         .externalId("ducks")
                         .uid(FeatureId.of("123"))
                         .geometry(point)
-                        .metadata(ImmutableMap.of())
+                        .attributes(ImmutableMap.of())
                         .build());
     }
 }

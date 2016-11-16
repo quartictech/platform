@@ -66,9 +66,9 @@ public class VectorTileRenderer {
 
             Stopwatch stopwatch = Stopwatch.createStarted();
             layer.intersects(envelope).parallel().map( (feature) -> {
-                Map<AttributeName, Object> attributes = Maps.newHashMapWithExpectedSize(feature.feature().metadata().size());
+                Map<AttributeName, Object> attributes = Maps.newHashMapWithExpectedSize(feature.feature().attributes().size());
 
-                feature.feature().metadata().entrySet().stream()
+                feature.feature().attributes().entrySet().stream()
                         .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
                         .forEach(entry -> attributes.put(entry.getKey(), entry.getValue()));
 

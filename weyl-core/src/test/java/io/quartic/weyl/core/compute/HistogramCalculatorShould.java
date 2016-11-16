@@ -23,7 +23,7 @@ public class HistogramCalculatorShould {
     private final HistogramCalculator calculator = new HistogramCalculator();
 
     @Test
-    public void count_distinct_values_for_property() throws Exception {
+    public void count_distinct_values_for_attribute() throws Exception {
         List<Feature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice")),
                 feature(ImmutableMap.of(NAME, "Bob")),
@@ -37,7 +37,7 @@ public class HistogramCalculatorShould {
     }
 
     @Test
-    public void count_distinct_values_for_multiple_properties() throws Exception {
+    public void count_distinct_values_for_multiple_attributes() throws Exception {
         List<Feature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Bob", SPECIES, "dog")),
@@ -52,7 +52,7 @@ public class HistogramCalculatorShould {
     }
 
     @Test
-    public void handle_missing_properties() throws Exception {
+    public void handle_missing_attributes() throws Exception {
         List<Feature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Bob")),
@@ -67,12 +67,12 @@ public class HistogramCalculatorShould {
     }
 
 
-    private Feature feature(Map<AttributeName, ?> properties) {
+    private Feature feature(Map<AttributeName, ?> attributes) {
         return ImmutableFeature.builder()
                 .uid(FeatureId.of("abc"))
                 .externalId("def")
                 .geometry(mock(Geometry.class))
-                .putAllMetadata(properties)
+                .attributes(attributes)
                 .build();
     }
 }

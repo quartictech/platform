@@ -117,7 +117,7 @@ public abstract class PostgresSource implements Source {
 
             return ImmutableFeature.builder()
                     .geometry(geometry)
-                    .metadata(attributes)
+                    .attributes(attributes)
                     .uid(featureStore().getFeatureIdGenerator().get())
                     .externalId(id)
                     .build();

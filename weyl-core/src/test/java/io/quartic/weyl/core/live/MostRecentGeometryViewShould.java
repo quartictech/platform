@@ -104,7 +104,7 @@ public class MostRecentGeometryViewShould {
                 .externalId(name)
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
-                .metadata(ImmutableMap.of(AttributeName.of("name"), name))
+                .attributes(ImmutableMap.of(AttributeName.of("name"), name))
                 .build();
     }
 

@@ -34,7 +34,7 @@ public class LastKnownLocationAndTrackView implements LayerView {
                                         .collect(Collectors.toList())
                                         .toArray(new Coordinate[0])
                         ))
-                        .metadata(last.metadata())
+                        .attributes(last.attributes())
                         .build()
         );
     }

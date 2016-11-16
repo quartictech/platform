@@ -77,7 +77,7 @@ public abstract class GeoJsonSource implements Source {
                     .externalId(f.id().orElse(null))
                     .uid(featureStore().getFeatureIdGenerator().get())
                     .geometry(transformedGeometry)
-                    .metadata(ConversionUtils.convertMetadata(objectMapper(), f.properties()))
+                    .attributes(ConversionUtils.convertAttributes(objectMapper(), f.properties()))
                     .build();
         });
     }

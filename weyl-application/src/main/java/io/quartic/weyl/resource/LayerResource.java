@@ -35,7 +35,7 @@ public class LayerResource {
     }
 
     @GET
-    @Path("/metadata/{id}")
+    @Path("/attributes/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public LayerResponse getLayer(@PathParam("id") String id) {
         return layerStore.getLayer(LayerId.of(id))
