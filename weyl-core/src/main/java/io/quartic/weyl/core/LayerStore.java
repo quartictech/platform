@@ -85,27 +85,13 @@ public class LayerStore {
         subscriptions.remove(layerSubscription.layerId(), layerSubscription);
     }
 
-    private LayerComputation getLayerComputation(ComputationSpec computationSpec) {
-        if (computationSpec instanceof BucketSpec) {
-            return BucketComputation.create(this, (BucketSpec) computationSpec);
-        }
-        else if (computationSpec instanceof BufferSpec) {
-            return BufferComputation.create(this, (BufferSpec) computationSpec);
-        }
-        else {
-            throw new RuntimeException("invalid computation spec: " + computationSpec);
-        }
-    }
-
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        LayerComputation layerComputation = getLayerComputation(computationSpec);
-
-        Optional<Layer> layer = layerComputation.compute().map(r ->
-                updateIndicesAndStats(appendFeatures(
+        Optional<Layer> layer = BufferComputationUtils.compute(this, computationSpec)
+                .map(r -> updateIndicesAndStats(appendFeatures(
                         newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
                         r.features()))
-        );
+                );
         layer.ifPresent(this::putLayer);
         return layer.map(Layer::layerId);
     }
@@ -155,10 +141,6 @@ public class LayerStore {
                 .withSpatialIndex(spatialIndex(indexedFeatures))
                 .withIndexedFeatures(indexedFeatures)
                 .withLayerStats(calculateStats(layer.schema(), layer.features()));
-    }
-
-    private AttributeSchema blankSchema() {
-        return AttributeSchema.builder().build();
     }
 
     private static Collection<IndexedFeature> indexedFeatures(FeatureCollection features) {
