@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.AbstractNakedFeature;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -18,11 +18,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.quartic.weyl.core.source.ConversionUtils.convertToModelAttributes;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 @Value.Immutable
 public abstract class GeoJsonSource implements Source {
@@ -34,7 +34,6 @@ public abstract class GeoJsonSource implements Source {
 
     protected abstract String name();
     protected abstract String url();
-    protected abstract FeatureStore featureStore();
     protected abstract ObjectMapper objectMapper();
     @Value.Default
     protected GeometryTransformer geometryTransformer() {
@@ -58,28 +57,27 @@ public abstract class GeoJsonSource implements Source {
         return true;
     }
 
-    private Collection<io.quartic.weyl.core.model.Feature> importAllFeatures() throws IOException {
+    private Collection<AbstractNakedFeature> importAllFeatures() throws IOException {
         final FeatureCollection featureCollection = objectMapper().readValue(parseURL(url()), FeatureCollection.class);
 
         return featureCollection.features().stream().map(this::toJts)
                 .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private URL parseURL(String url) throws MalformedURLException {
         return new URL(url);
     }
 
-    private Optional<io.quartic.weyl.core.model.Feature> toJts(Feature f) {
+    private Optional<NakedFeature> toJts(Feature f) {
         // TODO: We are ignoring null geometries here (as well as in the live pipeline). We should figure out something better.
         return f.geometry().map(rawGeometry -> {
             Geometry transformedGeometry = geometryTransformer().transform(Utils.toJts(rawGeometry));
-            return ImmutableFeature.builder()
-                    .externalId(f.id().orElse(null))
-                    .uid(featureStore().getFeatureIdGenerator().get())
-                    .geometry(transformedGeometry)
-                    .attributes(convertToModelAttributes(objectMapper(), f.properties()))
-                    .build();
+            return NakedFeature.of(
+                    f.id().orElse(null),
+                    transformedGeometry,
+                    convertToModelAttributes(objectMapper(), f.properties())
+            );
         });
     }
 

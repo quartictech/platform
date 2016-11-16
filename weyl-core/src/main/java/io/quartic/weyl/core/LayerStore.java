@@ -9,7 +9,8 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.*;
+import io.quartic.weyl.core.compute.BufferComputationUtils;
+import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
@@ -200,12 +201,23 @@ public class LayerStore {
                 final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
                 updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
 
-                final Layer updatedLayer = appendFeatures(layer, update.features()).withFeedEvents(updatedFeedEvents);
+                final Collection<Feature> elaboratedFeatures = elaborate(update.features());
+                final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures).withFeedEvents(updatedFeedEvents);
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-                notifyListeners(id, update.features());
+                notifyListeners(id, elaboratedFeatures);
                 notifySubscribers(id);
             }
         };
+    }
+
+    // TODO: this is going to double memory usage?
+    private Collection<Feature> elaborate(Collection<AbstractNakedFeature> features) {
+        return features.stream().map(f -> ImmutableFeature.of(
+                f.externalId(),
+                featureStore.getFeatureIdGenerator().get(),
+                f.geometry(),
+                f.attributes()
+        )).collect(toList());
     }
 }

@@ -12,7 +12,7 @@ import io.quartic.geojson.Point;
 import io.quartic.model.FeedEvent;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Test;
@@ -29,7 +29,6 @@ public class LiveEventConverterShould {
     public static final Instant TIMESTAMP = Instant.now();
     private final GeometryFactory factory = new GeometryFactory();
     private final LiveEventConverter converter = new LiveEventConverter(
-            new SequenceUidGenerator<>(FeatureId::of),
             new SequenceUidGenerator<>(LiveEventId::of),
             GeometryTransformer.webMercatorToWebMercator()
     );
@@ -43,12 +42,7 @@ public class LiveEventConverterShould {
         final SourceUpdate update = converter.updateFrom(collection);
 
         assertThat(update.features(), equalTo(ImmutableList.of(
-                io.quartic.weyl.core.model.ImmutableFeature.builder()
-                        .uid(FeatureId.of("1"))
-                        .externalId("a")
-                        .geometry(factory.createPoint(new Coordinate(51.0, 0.1)))
-                        .attributes(ImmutableMap.of(AttributeName.of("timestamp"), 1234))
-                        .build()
+                NakedFeature.of("a", factory.createPoint(new Coordinate(51.0, 0.1)), ImmutableMap.of(AttributeName.of("timestamp"), 1234))
         )));
     }
 
