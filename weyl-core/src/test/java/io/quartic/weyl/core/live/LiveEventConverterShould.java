@@ -47,7 +47,7 @@ public class LiveEventConverterShould {
                         .uid(FeatureId.of("1"))
                         .externalId("a")
                         .geometry(factory.createPoint(new Coordinate(51.0, 0.1)))
-                        .metadata(ImmutableMap.of(AttributeName.of("timestamp"), 1234))
+                        .attributes(ImmutableMap.of(AttributeName.of("timestamp"), 1234))
                         .build()
         )));
     }

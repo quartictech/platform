@@ -13,5 +13,5 @@ interface AbstractGeofence {
     GeofenceId id();
     GeofenceType type();
     Geometry geometry();
-    Map<AttributeName, Object> metadata();
+    Map<AttributeName, Object> attributes();
 }

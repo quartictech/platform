@@ -12,7 +12,7 @@ public interface AbstractViolation {
     ViolationId id();
     GeofenceId geofenceId();
     String featureExternalId();
-    Map<AttributeName, Object> featureMetadata();
-    Map<AttributeName, Object> geofenceMetadata();
+    Map<AttributeName, Object> featureAttributes();
+    Map<AttributeName, Object> geofenceAttributes();
     String message();
 }

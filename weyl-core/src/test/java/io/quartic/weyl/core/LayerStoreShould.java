@@ -304,7 +304,7 @@ public class LayerStoreShould {
                 .externalId(externalId)
                 .uid(FeatureId.of(uid))
                 .geometry(factory.createPoint(new Coordinate(123.0, 456.0)))
-                .metadata(ImmutableMap.of(ATTRIBUTE_NAME, 1234))
+                .attributes(ImmutableMap.of(ATTRIBUTE_NAME, 1234))
                 .build();
     }
 

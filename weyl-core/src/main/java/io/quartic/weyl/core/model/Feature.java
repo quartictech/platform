@@ -11,5 +11,5 @@ public interface Feature {
     @Value.Parameter FeatureId uid();    // Must be unique
 
     @Value.Parameter Geometry geometry();
-    @Value.Parameter Map<AttributeName, Object> metadata();
+    @Value.Parameter Map<AttributeName, Object> attributes();
 }

@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 
 public class AttributeSchemaInferrerShould {
     @Test
-    public void ignore_missing_properties() throws Exception {
+    public void ignore_missing_attributes() throws Exception {
         List<Feature> features = Lists.newArrayList(
                 feature(ImmutableMap.of(AttributeName.of("a"), 123, AttributeName.of("b"), 456)),
                 feature(ImmutableMap.of(AttributeName.of("a"), 789))              // b is missing here
@@ -31,12 +31,12 @@ public class AttributeSchemaInferrerShould {
                 )));
     }
 
-    private Feature feature(Map<AttributeName, ?> properties) {
+    private Feature feature(Map<AttributeName, ?> attributes) {
         return ImmutableFeature.builder()
                 .uid(FeatureId.of("123"))
                 .externalId("abc")
                 .geometry(mock(Geometry.class))
-                .metadata(properties)
+                .attributes(attributes)
                 .build();
     }
 }

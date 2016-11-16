@@ -97,11 +97,11 @@ public class BucketComputation implements LayerComputation {
                             value /= bucket.geometry().getArea();
                         }
                     }
-                    Map<AttributeName, Object> metadata = new HashMap<>(bucket.metadata());
-                    metadata.put(attributeName(), value);
+                    Map<AttributeName, Object> attributes = new HashMap<>(bucket.attributes());
+                    attributes.put(attributeName(), value);
                     return ImmutableFeature.copyOf(bucket)
                             .withUid(featureStore.getFeatureIdGenerator().get())
-                            .withMetadata(metadata);
+                            .withAttributes(attributes);
                 })
                 .collect(Collectors.toList());
     }

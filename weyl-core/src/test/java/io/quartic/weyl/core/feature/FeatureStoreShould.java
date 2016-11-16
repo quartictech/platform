@@ -54,7 +54,7 @@ public class FeatureStoreShould {
                 .externalId(id)
                 .uid(FeatureId.of(id))
                 .geometry(mock(Geometry.class))
-                .metadata(mock(Map.class))
+                .attributes(mock(Map.class))
                 .build();
     }
 }

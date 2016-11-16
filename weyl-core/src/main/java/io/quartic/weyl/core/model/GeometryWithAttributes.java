@@ -6,7 +6,7 @@ import org.immutables.value.Value;
 import java.util.Map;
 
 @Value.Immutable
-public interface GeometryWithMetadata {
+public interface GeometryWithAttributes {
     @Value.Parameter Geometry geometry();
-    @Value.Parameter Map<AttributeName, Object> metadata();
+    @Value.Parameter Map<AttributeName, Object> attributes();
 }

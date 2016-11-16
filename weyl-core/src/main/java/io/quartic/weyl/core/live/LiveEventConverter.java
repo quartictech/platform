@@ -80,7 +80,7 @@ public class LiveEventConverter {
                 .externalId(f.id().get())
                 .uid(fidGenerator.get())
                 .geometry(transformed)
-                .metadata(ConversionUtils.convertMetadata(ObjectMappers.OBJECT_MAPPER, f.properties()))
+                .attributes(ConversionUtils.convertAttributes(ObjectMappers.OBJECT_MAPPER, f.properties()))
                 .build();
     }
 }

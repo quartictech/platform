@@ -9,8 +9,8 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.core.model.GeometryWithMetadata;
-import io.quartic.weyl.core.model.ImmutableGeometryWithMetadata;
+import io.quartic.weyl.core.model.GeometryWithAttributes;
+import io.quartic.weyl.core.model.ImmutableGeometryWithAttributes;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.request.GeofenceRequest;
@@ -45,24 +45,24 @@ public class GeofenceResource {
         request.layerId().ifPresent(id -> update(request.type(), request.bufferDistance(), geometriesFrom(id)));
     }
 
-    private Stream<GeometryWithMetadata> geometriesFrom(FeatureCollection features) {
+    private Stream<GeometryWithAttributes> geometriesFrom(FeatureCollection features) {
         return features.features().stream()
                 .filter(f -> f.geometry().isPresent())
                 .map(f -> geometryTransformer.transform(toJts(f.geometry().get())))
-                .map(g -> ImmutableGeometryWithMetadata.of(g, ImmutableMap.of()));
+                .map(g -> ImmutableGeometryWithAttributes.of(g, ImmutableMap.of()));
     }
 
-    private Stream<GeometryWithMetadata> geometriesFrom(LayerId layerId) {
+    private Stream<GeometryWithAttributes> geometriesFrom(LayerId layerId) {
         return layerStore.getLayer(layerId).get()
                 .features().stream()
-                .map(f -> ImmutableGeometryWithMetadata.of(f.geometry(), f.metadata()));
+                .map(f -> ImmutableGeometryWithAttributes.of(f.geometry(), f.attributes()));
     }
 
-    private void update(GeofenceType type, double bufferDistance, Stream<GeometryWithMetadata> geometries) {
+    private void update(GeofenceType type, double bufferDistance, Stream<GeometryWithAttributes> geometries) {
         Collection<Geofence> geofences = geometries
-                .map(g -> ImmutableGeometryWithMetadata.copyOf(g).withGeometry(bufferOp(g.geometry(), bufferDistance)))
+                .map(g -> ImmutableGeometryWithAttributes.copyOf(g).withGeometry(bufferOp(g.geometry(), bufferDistance)))
                 .filter(g -> !g.geometry().isEmpty())
-                .map(g -> Geofence.of(gidGenerator.get(), type, g.geometry(), g.metadata()))
+                .map(g -> Geofence.of(gidGenerator.get(), type, g.geometry(), g.attributes()))
                 .collect(Collectors.toList());
         geofenceStore.setGeofences(geofences);
     }
