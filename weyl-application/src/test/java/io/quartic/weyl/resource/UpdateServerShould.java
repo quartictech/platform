@@ -16,8 +16,8 @@ import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geofence.ViolationId;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.AlertMessage;
 import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
@@ -65,7 +65,7 @@ public class UpdateServerShould {
     @Test
     public void send_geofence_geometry_update() throws Exception {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
-        final io.quartic.weyl.core.model.Feature feature = ImmutableFeature.of(
+        final AbstractFeature feature = io.quartic.weyl.core.model.Feature.of(
                 "123",
                 FeatureId.of("456"),
                 geometry,

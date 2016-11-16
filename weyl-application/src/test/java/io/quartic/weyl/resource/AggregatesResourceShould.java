@@ -1,7 +1,7 @@
 package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.compute.HistogramCalculator;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.FeatureId;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class AggregatesResourceShould {
     @Test
     public void run_calculator_if_all_features_found() throws Exception {
         final FeatureId id = FeatureId.of("123");
-        final Feature feature = mock(Feature.class);
+        final AbstractFeature feature = mock(AbstractFeature.class);
         when(querier.retrieveFeaturesOrThrow(newArrayList(id))).thenReturn(newArrayList(feature).stream());
 
         resource.getHistogram(newArrayList(id));

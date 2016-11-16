@@ -9,10 +9,10 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,8 +37,8 @@ public class MostRecentGeometryViewShould {
 
     @Test
     public void produce_point_for_a_single_point_feature() {
-        Feature feature = locationFeature("alex", 123, 100, 100);
-        List<Feature> features = invokeView(ImmutableList.of(feature));
+        AbstractFeature feature = locationFeature("alex", 123, 100, 100);
+        List<AbstractFeature> features = invokeView(ImmutableList.of(feature));
 
         assertThat(features.size(), equalTo(1));
         assertThat(Iterables.getOnlyElement(features), equalTo(feature));
@@ -46,14 +46,14 @@ public class MostRecentGeometryViewShould {
 
     @Test
     public void produce_polygon_for_a_single_polygon_feature() {
-        Feature feature = polygonFeature("alex", 123, new Coordinate[]{
+        AbstractFeature feature = polygonFeature("alex", 123, new Coordinate[]{
                 new Coordinate(1, 1),
                 new Coordinate(1, 2),
                 new Coordinate(2, 2),
                 new Coordinate(2, 1),
                 new Coordinate(1, 1)
         });
-        List<Feature> features = invokeView(ImmutableList.of(feature));
+        List<AbstractFeature> features = invokeView(ImmutableList.of(feature));
 
         assertThat(features.size(), equalTo(1));
         assertThat(Iterables.getOnlyElement(features), equalTo(feature));
@@ -61,9 +61,9 @@ public class MostRecentGeometryViewShould {
 
     @Test
     public void produce_most_recent_polygon_for_multiple_polygon_features() {
-        List<Feature> features = Lists.newArrayList();
+        List<AbstractFeature> features = Lists.newArrayList();
         for (int i = 0 ; i < 10 ; i++) {
-            Feature feature = polygonFeature("alex", 123, new Coordinate[]{
+            AbstractFeature feature = polygonFeature("alex", 123, new Coordinate[]{
                     new Coordinate(i + 1, i + 1),
                     new Coordinate(i + 1, i + 2),
                     new Coordinate(i + 2, i + 2),
@@ -72,35 +72,35 @@ public class MostRecentGeometryViewShould {
             });
             features.add(feature);
         }
-        Feature oliverCurrent = locationFeature("oliver", 456, 100, 100);
-        Feature alexCurrent = Iterables.getLast(features);
+        AbstractFeature oliverCurrent = locationFeature("oliver", 456, 100, 100);
+        AbstractFeature alexCurrent = Iterables.getLast(features);
         features.add(oliverCurrent);
-        List<Feature> newFeatures = invokeView(features);
+        List<AbstractFeature> newFeatures = invokeView(features);
 
         assertThat(newFeatures.size(), equalTo(2));
         assertThat(newFeatures, containsInAnyOrder(alexCurrent, oliverCurrent));
     }
 
-    private List<Feature> invokeView(List<Feature> input) {
+    private List<AbstractFeature> invokeView(List<AbstractFeature> input) {
         return new MostRecentGeometryView()
                 .compute(uidGen, input)
                 .collect(Collectors.toList());
     }
 
-    private Feature locationFeature(String name, int uid, double x, double y) {
+    private AbstractFeature locationFeature(String name, int uid, double x, double y) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(coordinate(x, y));
         return featureWithName(name, uid, geometry);
     }
 
-    private Feature polygonFeature(String name, int uid, Coordinate[] coordinates) {
+    private AbstractFeature polygonFeature(String name, int uid, Coordinate[] coordinates) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPolygon(coordinates);
         return featureWithName(name, uid, geometry);
     }
 
-    private Feature featureWithName(String name, int uid, Geometry geometry) {
-        return ImmutableFeature.builder()
+    private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
+        return Feature.builder()
                 .externalId(name)
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)

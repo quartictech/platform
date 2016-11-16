@@ -87,8 +87,8 @@ public class SpatialJoinShould {
        return NakedFeature.of("123", geometry, ImmutableMap.of());
     }
 
-    private Feature feature(NakedFeature feature, String id) {
-        return ImmutableFeature.of(
+    private AbstractFeature feature(NakedFeature feature, String id) {
+        return Feature.of(
                 feature.externalId(),
                 FeatureId.of(id),
                 feature.geometry(),

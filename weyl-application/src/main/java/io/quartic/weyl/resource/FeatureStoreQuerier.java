@@ -1,7 +1,7 @@
 package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.FeatureId;
 import org.slf4j.Logger;
 
@@ -25,16 +25,16 @@ public class FeatureStoreQuerier {
         this.featureStore = featureStore;
     }
 
-    public Stream<Feature> retrieveFeaturesOrThrow(List<FeatureId> featureIds) {
+    public Stream<AbstractFeature> retrieveFeaturesOrThrow(List<FeatureId> featureIds) {
         LOG.info("Retrieving {} features", featureIds.size());
 
-        final List<Entry<FeatureId, Feature>> features = map(featureIds, id -> new AbstractMap.SimpleEntry<>(id, featureStore.get(id)));
+        final List<Entry<FeatureId, AbstractFeature>> features = map(featureIds, id -> new AbstractMap.SimpleEntry<>(id, featureStore.get(id)));
         throwIfAnyMissing(features);
 
         return features.stream().map(Entry::getValue);
     }
 
-    private void throwIfAnyMissing(List<Entry<FeatureId, Feature>> features) {
+    private void throwIfAnyMissing(List<Entry<FeatureId, AbstractFeature>> features) {
         final List<FeatureId> missingIds = features.stream()
                 .filter(e -> e.getValue() == null)
                 .map(Entry::getKey)

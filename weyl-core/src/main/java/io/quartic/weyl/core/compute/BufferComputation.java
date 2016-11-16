@@ -3,9 +3,9 @@ package io.quartic.weyl.core.compute;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerMetadata;
 
 import java.util.Collection;
@@ -25,8 +25,8 @@ public class BufferComputation implements LayerComputation {
 
     @Override
     public Optional<ComputationResults> compute() {
-        Collection<Feature> bufferedFeatures = layer.features().parallelStream()
-                .map(feature -> ImmutableFeature.copyOf(feature)
+        Collection<AbstractFeature> bufferedFeatures = layer.features().parallelStream()
+                .map(feature -> Feature.copyOf(feature)
                         .withUid(featureStore.getFeatureIdGenerator().get())
                         .withGeometry(BufferOp.bufferOp(feature.geometry(), bufferDistance)))
                 .collect(Collectors.toList());

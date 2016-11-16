@@ -18,6 +18,7 @@ import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
@@ -122,7 +123,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onGeometryChange(Collection<io.quartic.weyl.core.model.Feature> features) {
+    public void onGeometryChange(Collection<AbstractFeature> features) {
         sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features, f -> f.externalId())));  // TODO: it's silly that we use externalId for geofences, and fid for everything else
     }
 
@@ -153,7 +154,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     // TODO: This is a hack for live update of selection. We are also assuming uid monotonic increasing which is NAUGHTY
     private Map<String, ? extends FeatureId> computeExternalIdToFeatureIdMapping(LayerState state) {
         return state.featureCollection().stream()
-                .collect(groupingBy(io.quartic.weyl.core.model.Feature::externalId))
+                .collect(groupingBy(AbstractFeature::externalId))
                 .entrySet()
                 .stream()
                 // HACK!!!
@@ -168,7 +169,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         }
     }
 
-    private FeatureCollection fromJts(Collection<io.quartic.weyl.core.model.Feature> features, Function<io.quartic.weyl.core.model.Feature, String> id) {
+    private FeatureCollection fromJts(Collection<AbstractFeature> features, Function<AbstractFeature, String> id) {
         return FeatureCollection.of(
                 features.stream()
                         .map(f -> fromJts(f, id.apply(f)))
@@ -176,7 +177,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         );
     }
 
-    private Feature fromJts(io.quartic.weyl.core.model.Feature f, String id) {
+    private Feature fromJts(AbstractFeature f, String id) {
         return Feature.of(
                 Optional.of(f.externalId()),
                 Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),

@@ -1,7 +1,7 @@
 package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.FeatureId;
 import org.junit.Test;
 
@@ -23,7 +23,7 @@ public class FeatureStoreQuerierShould {
     public void throw_if_any_feature_not_found() throws Exception {
         final FeatureId existingId = FeatureId.of("123");
         final FeatureId missingId = FeatureId.of("456");
-        when(store.get(existingId)).thenReturn(mock(Feature.class));
+        when(store.get(existingId)).thenReturn(mock(AbstractFeature.class));
         when(store.get(missingId)).thenReturn(null);
 
         querier.retrieveFeaturesOrThrow(newArrayList(existingId, missingId));
@@ -32,7 +32,7 @@ public class FeatureStoreQuerierShould {
     @Test
     public void retrieve_all_features_if_all_found() throws Exception {
         final FeatureId id = FeatureId.of("123");
-        final Feature feature = mock(Feature.class);
+        final AbstractFeature feature = mock(AbstractFeature.class);
         when(store.get(id)).thenReturn(feature);
 
         assertThat(querier.retrieveFeaturesOrThrow(newArrayList(id)).collect(toList()),

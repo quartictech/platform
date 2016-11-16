@@ -129,7 +129,7 @@ public class LayerStore {
                 .build();
     }
 
-    private Layer appendFeatures(Layer layer, Collection<Feature> features) {
+    private Layer appendFeatures(Layer layer, Collection<AbstractFeature> features) {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         return layer
                 .withFeatures(updatedFeatures)
@@ -165,13 +165,13 @@ public class LayerStore {
                 .forEach(subscription -> subscription.subscriber().accept(computeLayerState(layer, subscription)));
     }
 
-    private synchronized void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
+    private synchronized void notifyListeners(LayerId layerId, Collection<AbstractFeature> newFeatures) {
         newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
     }
 
     private LayerState computeLayerState(Layer layer, LayerSubscription subscription) {
-        final Collection<Feature> features = layer.features();
-        Stream<Feature> computed = subscription.liveLayerView()
+        final Collection<AbstractFeature> features = layer.features();
+        Stream<AbstractFeature> computed = subscription.liveLayerView()
                 .compute(featureStore.getFeatureIdGenerator(), features);
         return LayerState.builder()
                 .schema(layer.schema())
@@ -201,7 +201,7 @@ public class LayerStore {
                 final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
                 updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
 
-                final Collection<Feature> elaboratedFeatures = elaborate(update.features());
+                final Collection<AbstractFeature> elaboratedFeatures = elaborate(update.features());
                 final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures).withFeedEvents(updatedFeedEvents);
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
@@ -212,8 +212,8 @@ public class LayerStore {
     }
 
     // TODO: this is going to double memory usage?
-    private Collection<Feature> elaborate(Collection<AbstractNakedFeature> features) {
-        return features.stream().map(f -> ImmutableFeature.of(
+    private Collection<AbstractFeature> elaborate(Collection<AbstractNakedFeature> features) {
+        return features.stream().map(f -> Feature.of(
                 f.externalId(),
                 featureStore.getFeatureIdGenerator().get(),
                 f.geometry(),

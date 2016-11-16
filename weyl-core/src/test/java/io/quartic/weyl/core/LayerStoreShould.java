@@ -307,8 +307,8 @@ public class LayerStoreShould {
         );
     }
 
-    private Feature feature(String externalId, String uid) {
-        return ImmutableFeature.of(
+    private AbstractFeature feature(String externalId, String uid) {
+        return Feature.of(
                 externalId,
                 FeatureId.of(uid),
                 factory.createPoint(new Coordinate(123.0, 456.0)),

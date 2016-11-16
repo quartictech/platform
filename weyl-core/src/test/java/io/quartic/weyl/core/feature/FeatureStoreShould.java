@@ -2,9 +2,9 @@ package io.quartic.weyl.core.feature;
 
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import org.junit.Test;
 
 import java.util.Map;
@@ -25,8 +25,8 @@ public class FeatureStoreShould {
 
     @Test
     public void expose_features_appended_to_collection() throws Exception {
-        final Feature featureA = feature("42");
-        final Feature featureB = feature("43");
+        final AbstractFeature featureA = feature("42");
+        final AbstractFeature featureB = feature("43");
 
         store.newCollection().append(newArrayList(featureA, featureB));
 
@@ -48,9 +48,9 @@ public class FeatureStoreShould {
         store.entrySet().remove(feature("42"));
     }
 
-    private Feature feature(String id) {
+    private AbstractFeature feature(String id) {
         // Don't use mocks, because Mockito retains references, which means the weak-reference stuff doesn't happen
-        return ImmutableFeature.builder()
+        return Feature.builder()
                 .externalId(id)
                 .uid(FeatureId.of(id))
                 .geometry(mock(Geometry.class))

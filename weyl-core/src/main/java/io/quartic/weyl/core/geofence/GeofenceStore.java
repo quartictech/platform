@@ -5,9 +5,9 @@ import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.live.LayerStoreListener;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ public class GeofenceStore implements LayerStoreListener {
     }
 
     @Override
-    public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
+    public synchronized void onLiveLayerEvent(LayerId layerId, AbstractFeature feature) {
         geofences.forEach(geofence -> {
             final ViolationKey vk = ViolationKey.of(feature.externalId(), geofence.id());
             final boolean violating = inViolation(geofence, feature);
@@ -95,14 +95,14 @@ public class GeofenceStore implements LayerStoreListener {
         currentViolations.remove(vk);
     }
 
-    private boolean inViolation(Geofence geofence, Feature feature) {
+    private boolean inViolation(Geofence geofence, AbstractFeature feature) {
         final boolean contains = geofence.geometry().contains(feature.geometry());
         return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
     }
 
     private void notifyListeners(Collection<Geofence> geofences) {
         listeners.forEach(l -> l.onGeometryChange(geofences.stream()
-                .map(g -> ImmutableFeature.of(g.id().uid(), fidGenerator.get(), g.geometry(), emptyMap()))
+                .map(g -> Feature.of(g.id().uid(), fidGenerator.get(), g.geometry(), emptyMap()))
                 .collect(toList())));
     }
 

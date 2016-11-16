@@ -2,8 +2,8 @@ package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 
 import javax.ws.rs.Consumes;
@@ -36,10 +36,10 @@ public class AttributesResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Map<FeatureId, Map<AttributeName, Object>> getAttributes(List<FeatureId> featureIds) {
         return querier.retrieveFeaturesOrThrow(featureIds)
-                .collect(toMap(Feature::uid, this::externalAttributes));
+                .collect(toMap(AbstractFeature::uid, this::externalAttributes));
     }
 
-    private Map<AttributeName, Object> externalAttributes(Feature feature) {
+    private Map<AttributeName, Object> externalAttributes(AbstractFeature feature) {
         return feature.attributes().entrySet().stream()
                 .filter(e -> !(e.getValue() instanceof ComplexAttribute || e.getValue() instanceof Map))
                 .collect(toMap(Entry::getKey, Entry::getValue));
@@ -50,7 +50,7 @@ public class AttributesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Map<AttributeName, Map<String, TimeSeriesAttribute>> timeSeriesAttributes(List<FeatureId> featureIds) {
-        Collection<Feature> features = querier.retrieveFeaturesOrThrow(featureIds).collect(toList());
+        Collection<AbstractFeature> features = querier.retrieveFeaturesOrThrow(featureIds).collect(toList());
 
         Set<AttributeName> eligibleAttributes = features.stream()
                 .filter(feature -> feature.attributes().containsKey(NAME))
@@ -64,7 +64,7 @@ public class AttributesResource {
     }
 
     // Map of { name -> timeseries }
-    private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, AttributeName attribute) {
+    private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<AbstractFeature> features, AttributeName attribute) {
         return features.stream()
                 .filter(feature -> feature.attributes().containsKey(NAME))
                 .filter(feature -> feature.attributes().containsKey(attribute) &&

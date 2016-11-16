@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 
 import java.util.Collection;
 import java.util.Set;
@@ -25,7 +25,7 @@ public class AlertProcessor {
             }
 
             @Override
-            public void onGeometryChange(Collection<Feature> features) {
+            public void onGeometryChange(Collection<AbstractFeature> features) {
                 // Do nothing
             }
         });

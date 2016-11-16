@@ -2,7 +2,7 @@ package io.quartic.weyl.core.feature;
 
 import com.google.common.collect.MapMaker;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.FeatureId;
 
 import java.util.AbstractMap;
@@ -12,8 +12,8 @@ import java.util.Set;
 
 import static java.util.Collections.unmodifiableMap;
 
-public class FeatureStore extends AbstractMap<FeatureId, Feature> {
-    private final Map<FeatureId, Feature> features = new MapMaker().weakValues().makeMap();
+public class FeatureStore extends AbstractMap<FeatureId, AbstractFeature> {
+    private final Map<FeatureId, AbstractFeature> features = new MapMaker().weakValues().makeMap();
     private final UidGenerator<FeatureId> fidGenerator;
     private final FeatureCollection emptyCollection = new FeatureCollection(this::addFeatures);
 
@@ -29,12 +29,12 @@ public class FeatureStore extends AbstractMap<FeatureId, Feature> {
         return emptyCollection;
     }
 
-    private void addFeatures(Collection<? extends Feature> features) {
+    private void addFeatures(Collection<? extends AbstractFeature> features) {
         features.forEach(f -> FeatureStore.this.features.put(f.uid(), f));
     }
 
     @Override
-    public Set<Entry<FeatureId, Feature>> entrySet() {
+    public Set<Entry<FeatureId, AbstractFeature>> entrySet() {
         return unmodifiableMap(features).entrySet();
     }
 
@@ -49,7 +49,7 @@ public class FeatureStore extends AbstractMap<FeatureId, Feature> {
     }
 
     @Override
-    public Feature get(Object key) {
+    public AbstractFeature get(Object key) {
         return features.get(key);
     }
 }

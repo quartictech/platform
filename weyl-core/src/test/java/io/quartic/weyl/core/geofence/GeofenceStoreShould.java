@@ -6,8 +6,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class GeofenceStoreShould {
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(ImmutableList.of(ImmutableFeature.of("99", FeatureId.of("1"), fenceGeometry, emptyMap())));
+        verify(listener).onGeometryChange(ImmutableList.of(Feature.of("99", FeatureId.of("1"), fenceGeometry, emptyMap())));
     }
 
     @Test
@@ -159,7 +159,7 @@ public class GeofenceStoreShould {
         when(fenceGeometry.contains(point)).thenReturn(containsResult);
         store.onLiveLayerEvent(
                 LayerId.of("666"),
-                ImmutableFeature.builder()
+                Feature.builder()
                         .externalId("ducks")
                         .uid(FeatureId.of("123"))
                         .geometry(point)
