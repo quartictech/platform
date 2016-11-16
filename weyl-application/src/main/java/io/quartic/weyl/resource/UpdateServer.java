@@ -6,22 +6,18 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
-import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
@@ -37,6 +33,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
 import static java.util.stream.Collectors.*;
 
 @Metered
@@ -54,13 +51,18 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private LayerStore layerStore;
     private Session session;
 
-    public UpdateServer(LayerStore layerStore, GeofenceStore geofenceStore, AlertProcessor alertProcessor, GeometryTransformer geometryTransformer, ObjectMapper objectMapper) {
+    public UpdateServer(
+            LayerStore layerStore,
+            GeofenceStore geofenceStore,
+            AlertProcessor alertProcessor,
+            GeometryTransformer geometryTransformer,
+            ObjectMapper objectMapper
+    ) {
         this.layerStore = layerStore;
         this.geofenceStore = geofenceStore;
         this.alertProcessor = alertProcessor;
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
-        LOG.info("Creating UpdateServer");
     }
 
     @OnOpen
@@ -175,24 +177,10 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private Feature fromJts(io.quartic.weyl.core.model.Feature f, String id) {
-        return fromJts(Optional.of(f.externalId()), f.geometry(), convertMetadata(f.externalId(), id, f.attributes()));
-    }
-
-    private Feature fromJts(Optional<String> id, Geometry geometry, Map<String, Object> attributes) {
         return Feature.of(
-                id,
-                Optional.of(Utils.fromJts(geometryTransformer.transform(geometry))),
-                attributes
+                Optional.of(f.externalId()),
+                Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),
+                convertFromModelAttributes(f.attributes(), id, f.externalId())
         );
-    }
-
-    private static Map<String, Object> convertMetadata(String externalId, String id, Map<AttributeName, Object> metadata) {
-        final Map<String, Object> output = Maps.newHashMap();
-        metadata.entrySet().stream()
-                        .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
-                        .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_id", id);  // TODO: eliminate the _id concept
-        output.put("_externalId", externalId);
-        return output;
     }
 }

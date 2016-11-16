@@ -8,20 +8,21 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static java.util.stream.Collectors.toMap;
 
 public class ConversionUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ConversionUtils.class);
 
-    public static Map<AttributeName, Object> convertAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
+    public static Map<AttributeName, Object> convertToModelAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
         return rawAttributes.entrySet()
                 .stream()
                 .collect(toMap(
                         e -> AttributeName.of(e.getKey()),
-                        e -> ConversionUtils.convertAttributeValue(objectMapper, e.getKey(), e.getValue())));
+                        e -> convertAttributeValue(objectMapper, e.getKey(), e.getValue())));
     }
 
-    static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
+    private static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             try {
@@ -33,5 +34,15 @@ public class ConversionUtils {
             }
         }
         return value;
+    }
+
+    public static Map<String, Object> convertFromModelAttributes(Map<AttributeName, Object> modelAttributes, String id, String externalId) {
+        final Map<String, Object> output = newHashMap();
+        modelAttributes.entrySet().stream()
+                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
+                .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
+        output.put("_id", id);  // TODO: eliminate the _id concept
+        output.put("_externalId", externalId);
+        return output;
     }
 }

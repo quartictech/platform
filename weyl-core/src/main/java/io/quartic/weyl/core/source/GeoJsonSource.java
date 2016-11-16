@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.quartic.weyl.core.source.ConversionUtils.convertToModelAttributes;
 import static java.util.Collections.emptyList;
 
 @Value.Immutable
@@ -77,7 +78,7 @@ public abstract class GeoJsonSource implements Source {
                     .externalId(f.id().orElse(null))
                     .uid(featureStore().getFeatureIdGenerator().get())
                     .geometry(transformedGeometry)
-                    .attributes(ConversionUtils.convertAttributes(objectMapper(), f.properties()))
+                    .attributes(convertToModelAttributes(objectMapper(), f.properties()))
                     .build();
         });
     }

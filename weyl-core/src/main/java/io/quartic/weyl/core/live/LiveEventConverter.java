@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+import static io.quartic.weyl.core.source.ConversionUtils.convertToModelAttributes;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
@@ -80,7 +81,7 @@ public class LiveEventConverter {
                 .externalId(f.id().get())
                 .uid(fidGenerator.get())
                 .geometry(transformed)
-                .attributes(ConversionUtils.convertAttributes(ObjectMappers.OBJECT_MAPPER, f.properties()))
+                .attributes(convertToModelAttributes(ObjectMappers.OBJECT_MAPPER, f.properties()))
                 .build();
     }
 }
