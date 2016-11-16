@@ -107,6 +107,7 @@ const deleteEntries = (state) =>
 const deleteEntry = (state, feature) =>
   requireInfo(state)
   .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
+  .update("ids", ids => (ids.get(feature.layerId).isEmpty() ? ids.delete(feature.layerId) : ids))
   .updateIn(["externalIdToFeatureId", feature.layerId],
     externalIds => (feature.externalId ? externalIds.delete(feature.externalId) : externalIds));
 
