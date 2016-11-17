@@ -87,7 +87,7 @@ public class SpatialJoinShould {
 
     private AbstractFeature feature(NakedFeature feature, String layerId, String id) {
         return Feature.of(
-                EntityId.of(LayerId.of(layerId) + "/" + feature.externalId()),
+                EntityId.of(layerId + "/" + feature.externalId()),
                 FeatureId.of(id),
                 feature.geometry(),
                 feature.attributes()
