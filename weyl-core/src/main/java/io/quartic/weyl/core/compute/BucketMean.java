@@ -24,7 +24,7 @@ public abstract class BucketMean implements BucketAggregation {
         }
         else {
             return features.stream()
-                    .map(feature -> feature.attributes().get(attribute()))
+                    .map(feature -> feature.attributes().attributes().get(attribute()))
                     .filter(Objects::nonNull)
                     .mapToDouble(BucketUtils::mapToDouble)
                     .sum() / features.size();

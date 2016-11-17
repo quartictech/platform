@@ -15,10 +15,7 @@ import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geofence.ViolationId;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.AlertMessage;
 import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
@@ -29,11 +26,11 @@ import org.junit.Test;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import java.util.Collections;
 import java.util.Optional;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static org.mockito.Mockito.*;
 
@@ -70,7 +67,7 @@ public class UpdateServerShould {
                 EntityId.of(LayerId.of("xyz"), "123"),
                 FeatureId.of("456"),
                 geometry,
-                Collections.emptyMap()
+                EMPTY_ATTRIBUTES
         );
 
         server.onGeometryChange(ImmutableList.of(feature));
@@ -115,6 +112,8 @@ public class UpdateServerShould {
                 .id(ViolationId.of("1"))
                 .entityId(EntityId.of(LayerId.of("abc"), "42"))
                 .geofenceId(geofenceId)
+                .featureAttributes(EMPTY_ATTRIBUTES)
+                .geofenceAttributes(EMPTY_ATTRIBUTES)
                 .message("Hmmm")
                 .build();
     }

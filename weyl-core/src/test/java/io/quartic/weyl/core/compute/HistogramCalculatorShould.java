@@ -68,7 +68,7 @@ public class HistogramCalculatorShould {
                 .uid(FeatureId.of("abc"))
                 .entityId(EntityId.of(LayerId.of("def"), "ghi"))
                 .geometry(mock(Geometry.class))
-                .attributes(attributes)
+                .attributes(Attributes.of(attributes))
                 .build();
     }
 }

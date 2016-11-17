@@ -38,12 +38,14 @@ public class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final FeatureStore featureStore;
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
+    private final AttributesStore attributesStore;
     private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
-    public LayerStore(FeatureStore featureStore, UidGenerator<LayerId> lidGenerator) {
+    public LayerStore(FeatureStore featureStore, AttributesStore attributesStore, UidGenerator<LayerId> lidGenerator) {
         this.featureStore = featureStore;
+        this.attributesStore = attributesStore;
         this.lidGenerator = lidGenerator;
     }
 
@@ -196,6 +198,7 @@ public class LayerStore {
                 LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
 
                 final Collection<AbstractFeature> elaboratedFeatures = elaborate(id, update.features());
+                attributesStore.putAll(elaboratedFeatures);
                 final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);

@@ -11,21 +11,21 @@ const thingsToFetch = {
   timeSeries: "/attributes/time-series",
 };
 
-const fetchFromEndpoint = (features, endpoint) => request(`${apiRootUrl}${endpoint}`, {
+const fetchFromEndpoint = (entityIds, endpoint) => request(`${apiRootUrl}${endpoint}`, {
   method: "POST",
   headers: {
     "Accept": "application/json",
     "Content-Type": "application/json",
   },
-  body: JSON.stringify(features),
+  body: JSON.stringify(entityIds),
 });
 
 function* fetchAndDispatch() {
-  const selectionIds = yield select(selectors.selectSelectionIds);
-  const featureIds = _.flatten(_.values(selectionIds));
+  const selectedIds = yield select(selectors.selectSelectedEntityIds);
+  const entityIds = _.flatten(_.values(selectedIds));
 
   const results = yield _.values(thingsToFetch)
-    .map(endpoint => call(fetchFromEndpoint, featureIds, endpoint));
+    .map(endpoint => call(fetchFromEndpoint, entityIds, endpoint));
 
   if (_.some(results, r => r.err)) {
     results.forEach(r => console.warn(r));

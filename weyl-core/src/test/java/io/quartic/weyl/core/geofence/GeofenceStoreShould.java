@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
@@ -16,7 +15,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.function.BiConsumer;
 
-import static java.util.Collections.emptyMap;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -39,7 +38,7 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
 
         verify(listener).onGeometryChange(ImmutableList.of(
-                Feature.of(EntityId.of(LayerId.of("geofence"), "99"), FeatureId.of("1"), fenceGeometry, emptyMap())
+                Feature.of(EntityId.of(LayerId.of("geofence"), "99"), FeatureId.of("1"), fenceGeometry, EMPTY_ATTRIBUTES)
         ));
     }
 
@@ -154,7 +153,7 @@ public class GeofenceStoreShould {
 
 
     private void createGeofence(GeofenceType type) {
-        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry, ImmutableMap.of())));
+        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry, EMPTY_ATTRIBUTES)));
     }
 
     private void updatePoint(boolean containsResult) {
@@ -166,7 +165,7 @@ public class GeofenceStoreShould {
                         .entityId(entityId())
                         .uid(FeatureId.of("123"))
                         .geometry(point)
-                        .attributes(ImmutableMap.of())
+                        .attributes(EMPTY_ATTRIBUTES)
                         .build());
     }
 

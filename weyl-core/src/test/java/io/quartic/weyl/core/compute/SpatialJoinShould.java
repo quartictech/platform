@@ -1,12 +1,12 @@
 package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.AttributesStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
@@ -22,14 +22,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.mockito.Mockito.mock;
 
 public class SpatialJoinShould {
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore store = new LayerStore(featureStore, lidGenerator);
+    private final LayerStore store = new LayerStore(featureStore, mock(AttributesStore.class), lidGenerator);
 
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {
@@ -82,7 +84,7 @@ public class SpatialJoinShould {
     }
 
     private NakedFeature feature(Geometry geometry) {
-       return NakedFeature.of("123", geometry, ImmutableMap.of());
+       return NakedFeature.of("123", geometry, EMPTY_ATTRIBUTES);
     }
 
     private AbstractFeature feature(NakedFeature feature, String layerId, String id) {

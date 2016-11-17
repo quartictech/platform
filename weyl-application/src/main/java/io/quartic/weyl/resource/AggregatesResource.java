@@ -22,12 +22,12 @@ import static java.util.stream.Collectors.toList;
 public abstract class AggregatesResource {
     private static final Logger LOG = LoggerFactory.getLogger(AggregatesResource.class);
 
-    public static AggregatesResource of(FeatureStoreQuerier querier) {
+    public static AggregatesResource of(AttributesStoreQuerier querier) {
         return ImmutableAggregatesResource.of(querier);
     }
 
     @Value.Parameter
-    protected abstract FeatureStoreQuerier querier();
+    protected abstract AttributesStoreQuerier querier();
     @Value.Default
     protected HistogramCalculator calculator() {
         return new HistogramCalculator();

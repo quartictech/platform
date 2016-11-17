@@ -19,7 +19,7 @@ public class StatsCalculator {
         Map<AttributeName, Double> minNumeric = Maps.newConcurrentMap();
 
         features.parallelStream()
-                .flatMap(feature -> feature.attributes().entrySet().stream())
+                .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
                 .filter(entry -> getAttribute(schema, entry.getKey()).type() == AttributeType.NUMERIC)
                 .forEach(entry -> {
                     Object value = entry.getValue();

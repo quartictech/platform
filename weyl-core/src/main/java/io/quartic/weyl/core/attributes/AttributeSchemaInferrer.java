@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class AttributeSchemaInferrer {
     public static Map<AttributeName, AbstractAttribute> inferSchema(Collection<AbstractFeature> features) {
         Set<AttributeName> attributes = features.parallelStream()
-                .flatMap(feature -> feature.attributes().keySet().stream())
+                .flatMap(feature -> feature.attributes().attributes().keySet().stream())
                 .collect(Collectors.toSet());
 
         return attributes.parallelStream()
@@ -29,7 +29,7 @@ public class AttributeSchemaInferrer {
 
     private static Optional<Set<Object>> inferCategories(AttributeName attribute, Collection<AbstractFeature> features) {
         Set<Object> values = features.stream()
-                .map(feature -> feature.attributes().get(attribute))
+                .map(feature -> feature.attributes().attributes().get(attribute))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -44,7 +44,7 @@ public class AttributeSchemaInferrer {
     private static AttributeType inferAttributeType(AttributeName attribute,
                                                     Collection<AbstractFeature> features) {
         Set<AttributeType> attributeTypes = features.stream()
-                .map(feature -> feature.attributes().get(attribute))
+                .map(feature -> feature.attributes().attributes().get(attribute))
                 .filter(Objects::nonNull)
                 .map(AttributeSchemaInferrer::inferValueType)
                 .collect(Collectors.toSet());

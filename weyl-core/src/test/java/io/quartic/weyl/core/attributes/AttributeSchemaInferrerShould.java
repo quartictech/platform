@@ -20,8 +20,8 @@ public class AttributeSchemaInferrerShould {
     @Test
     public void ignore_missing_attributes() throws Exception {
         List<AbstractFeature> features = Lists.newArrayList(
-                feature(ImmutableMap.of(AttributeName.of("a"), 123, AttributeName.of("b"), 456)),
-                feature(ImmutableMap.of(AttributeName.of("a"), 789))              // b is missing here
+                feature(ImmutableMap.of("a", 123, "b", 456)),
+                feature(ImmutableMap.of("a", 789))              // b is missing here
         );
 
         assertThat(inferSchema(features),
@@ -31,12 +31,15 @@ public class AttributeSchemaInferrerShould {
                 )));
     }
 
-    private AbstractFeature feature(Map<AttributeName, ?> attributes) {
+    private AbstractFeature feature(Map<String, ?> attributes) {
+        final Attributes.Builder builder = Attributes.builder();
+        attributes.forEach((k, v) -> builder.attribute(AttributeName.of(k), v));
+
         return Feature.builder()
                 .uid(FeatureId.of("123"))
                 .entityId(EntityId.of(LayerId.of("xyz"), "abc"))
                 .geometry(mock(Geometry.class))
-                .attributes(attributes)
+                .attributes(builder.build())
                 .build();
     }
 }

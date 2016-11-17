@@ -5,8 +5,6 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.model.*;
 import org.junit.Test;
 
-import java.util.Map;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -52,7 +50,7 @@ public class FeatureStoreShould {
                 .entityId(EntityId.of(LayerId.of("foo"), id))
                 .uid(FeatureId.of(id))
                 .geometry(mock(Geometry.class))
-                .attributes(mock(Map.class))
+                .attributes(mock(AbstractAttributes.class))
                 .build();
     }
 }

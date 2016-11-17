@@ -17,7 +17,7 @@ import java.util.Set;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static java.util.Collections.emptyMap;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static java.util.stream.Collectors.toList;
 
 public class GeofenceStore implements LayerStoreListener {
@@ -103,7 +103,7 @@ public class GeofenceStore implements LayerStoreListener {
                         EntityId.of(LayerId.of("geofence"), g.id().uid()),
                         fidGenerator.get(),
                         g.geometry(),
-                        emptyMap())
+                        EMPTY_ATTRIBUTES)
                 )
                 .collect(toList())));
     }

@@ -10,7 +10,7 @@ import static org.mockito.Mockito.*;
 
 public class AggregatesResourceShould {
 
-    private final FeatureStoreQuerier querier = mock(FeatureStoreQuerier.class);
+    private final AttributesStoreQuerier querier = mock(AttributesStoreQuerier.class);
     private final HistogramCalculator calculator = mock(HistogramCalculator.class);
     private final AggregatesResource resource = ImmutableAggregatesResource.builder()
             .querier(querier)

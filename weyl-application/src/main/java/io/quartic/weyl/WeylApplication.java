@@ -16,6 +16,7 @@ import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
+import io.quartic.weyl.core.AttributesStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -40,7 +41,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
+    private final AttributesStore attributesStore = new AttributesStore();
+    private final LayerStore layerStore = new LayerStore(featureStore, attributesStore, lidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
@@ -77,21 +79,21 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        final FeatureStoreQuerier featureStoreQuerier = new FeatureStoreQuerier(featureStore);
+        final AttributesStoreQuerier attributesStoreQuerier = new AttributesStoreQuerier(featureStore, attributesStore);
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(AggregatesResource.of(featureStoreQuerier));
-        environment.jersey().register(new AttributesResource(featureStoreQuerier));
+        environment.jersey().register(AggregatesResource.of(attributesStoreQuerier));
+        environment.jersey().register(new AttributesResource(attributesStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory))
-                .sourceFactories(createSourceFactories(configuration, environment, featureStore, websocketFactory))
+                .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
                 .layerStore(layerStore)
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
@@ -102,7 +104,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
-            FeatureStore featureStore,
             WebsocketClientSessionFactory websocketFactory) {
         final LiveEventConverter converter = new LiveEventConverter();
 

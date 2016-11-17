@@ -25,9 +25,9 @@ import static java.util.stream.Collectors.toMap;
 @Path("/attributes")
 public class AttributesResource {
     private static final AttributeName NAME = AttributeName.of("name");
-    private final FeatureStoreQuerier querier;
+    private final AttributesStoreQuerier querier;
 
-    public AttributesResource(FeatureStoreQuerier querier) {
+    public AttributesResource(AttributesStoreQuerier querier) {
         this.querier = querier;
     }
 
@@ -40,7 +40,7 @@ public class AttributesResource {
     }
 
     private Map<AttributeName, Object> externalAttributes(AbstractFeature feature) {
-        return feature.attributes().entrySet().stream()
+        return feature.attributes().attributes().entrySet().stream()
                 .filter(e -> !(e.getValue() instanceof ComplexAttribute || e.getValue() instanceof Map))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }
@@ -53,8 +53,8 @@ public class AttributesResource {
         Collection<AbstractFeature> features = querier.retrieveFeaturesOrThrow(featureIds).collect(toList());
 
         Set<AttributeName> eligibleAttributes = features.stream()
-                .filter(feature -> feature.attributes().containsKey(NAME))
-                .flatMap(feature -> feature.attributes().entrySet().stream())
+                .filter(feature -> feature.attributes().attributes().containsKey(NAME))
+                .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
                 .map(Entry::getKey)
                 .collect(Collectors.toSet());
@@ -66,11 +66,11 @@ public class AttributesResource {
     // Map of { name -> timeseries }
     private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<AbstractFeature> features, AttributeName attribute) {
         return features.stream()
-                .filter(feature -> feature.attributes().containsKey(NAME))
-                .filter(feature -> feature.attributes().containsKey(attribute) &&
-                        feature.attributes().get(attribute) instanceof TimeSeriesAttribute)
+                .filter(feature -> feature.attributes().attributes().containsKey(NAME))
+                .filter(feature -> feature.attributes().attributes().containsKey(attribute) &&
+                        feature.attributes().attributes().get(attribute) instanceof TimeSeriesAttribute)
                 .collect(toMap(
-                        feature -> (String) feature.attributes().get(NAME),
-                        feature -> (TimeSeriesAttribute) feature.attributes().get(attribute)));
+                        feature -> (String) feature.attributes().attributes().get(NAME),
+                        feature -> (TimeSeriesAttribute) feature.attributes().attributes().get(attribute)));
     }
 }

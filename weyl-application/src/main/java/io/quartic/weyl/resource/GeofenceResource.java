@@ -1,6 +1,5 @@
 package io.quartic.weyl.resource;
 
-import com.google.common.collect.ImmutableMap;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.FeatureCollection;
@@ -24,6 +23,7 @@ import java.util.stream.Stream;
 
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 
 @Path("/geofence")
 @Consumes("application/json")
@@ -49,7 +49,7 @@ public class GeofenceResource {
         return features.features().stream()
                 .filter(f -> f.geometry().isPresent())
                 .map(f -> geometryTransformer.transform(toJts(f.geometry().get())))
-                .map(g -> ImmutableGeometryWithAttributes.of(g, ImmutableMap.of()));
+                .map(g -> ImmutableGeometryWithAttributes.of(g, EMPTY_ATTRIBUTES));
     }
 
     private Stream<GeometryWithAttributes> geometriesFrom(LayerId layerId) {

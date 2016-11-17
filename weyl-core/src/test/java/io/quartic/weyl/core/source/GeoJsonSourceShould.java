@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.mockito.Mockito.mock;
@@ -60,7 +61,7 @@ public class GeoJsonSourceShould {
                 .observable().subscribe(subscriber);
 
         subscriber.assertValue(SourceUpdate.of(
-                newArrayList(NakedFeature.of("abc", toJts(geometry), ImmutableMap.of()))
+                newArrayList(NakedFeature.of("abc", toJts(geometry), EMPTY_ATTRIBUTES))
         ));
     }
 }
