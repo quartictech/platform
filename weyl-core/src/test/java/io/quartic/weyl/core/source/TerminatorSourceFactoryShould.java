@@ -37,7 +37,7 @@ public class TerminatorSourceFactoryShould {
 
     @Test
     public void import_things() throws Exception {
-        final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
+        final SourceUpdate update = SourceUpdate.of(newArrayList());
         final FeatureCollection collection = featureCollection(geojsonFeature("a", Optional.of(point())));
         final TerminatorDatasetLocator locator = TerminatorDatasetLocator.of(TerminationId.of("123"));
 
@@ -53,8 +53,8 @@ public class TerminatorSourceFactoryShould {
 
     @Test
     public void demultiplex_to_multiple_sources() throws Exception {
-        final SourceUpdate updateA = SourceUpdate.of(newArrayList(), newArrayList());
-        final SourceUpdate updateB = SourceUpdate.of(newArrayList(), newArrayList());
+        final SourceUpdate updateA = SourceUpdate.of(newArrayList());
+        final SourceUpdate updateB = SourceUpdate.of(newArrayList());
         final FeatureCollection collectionA = featureCollection(geojsonFeature("a", Optional.of(point())));
         final FeatureCollection collectionB = featureCollection(geojsonFeature("b", Optional.of(point())));
         final TerminatorDatasetLocator locatorA = TerminatorDatasetLocator.of(TerminationId.of("123"));

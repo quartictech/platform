@@ -4,7 +4,6 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.feature.FeatureCollection;
-import io.quartic.weyl.core.live.EnrichedFeedEvent;
 import io.quartic.weyl.core.live.LayerView;
 import org.immutables.value.Value;
 
@@ -21,7 +20,6 @@ public interface AbstractLayer {
     AttributeSchema schema();
     FeatureCollection features();
 
-    Collection<EnrichedFeedEvent> feedEvents();
     LayerView view();
 
     // Index features

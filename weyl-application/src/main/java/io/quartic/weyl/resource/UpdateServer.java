@@ -142,7 +142,6 @@ public class UpdateServer implements AlertListener, GeofenceListener {
                 .layerId(layerId)
                 .schema(state.schema())
                 .featureCollection(fromJts(state.featureCollection(), f -> f.uid().uid()))  // TODO: obviously we never want to do this with large static layers
-                .feedEvents(state.feedEvents())
                 .externalIdToFeatureIdMapping(computeExternalIdToFeatureIdMapping(state))
                 .build()
         );

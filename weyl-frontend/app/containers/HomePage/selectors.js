@@ -9,7 +9,6 @@ export const selectLayers = createSelector(selectHomeImmutable, p => p.get("laye
 export const selectUi = createSelector(selectHome, p => p.ui);
 export const selectSelection = createSelector(selectHome, p => p.selection);
 export const selectGeofence = createSelector(selectHome, p => p.geofence);
-export const selectFeed = createSelector(selectHome, p => p.feed);
 export const selectConnectionUp = createSelector(selectHome, p => p.connection);
 
 export const selectSelectionIds = createSelector(selectSelection, p => p.ids);

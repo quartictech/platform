@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
-import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SpatialJoinShould {
@@ -59,8 +58,7 @@ public class SpatialJoinShould {
                 AttributeSchema.builder().build(),
                 true);
 
-        Observable.just(SourceUpdate.of(features, emptyList()))
-                .subscribe(subscriber);
+        Observable.just(SourceUpdate.of(features)).subscribe(subscriber);
 
         return store.getLayer(layerId).get();
     }

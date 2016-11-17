@@ -134,7 +134,6 @@ public class LayerStore {
                 .indexable(indexable)
                 .schema(schema)
                 .features(features)
-                .feedEvents(ImmutableList.of())
                 .view(view)
                 .spatialIndex(spatialIndex(ImmutableList.of()))
                 .indexedFeatures(ImmutableList.of())
@@ -193,7 +192,6 @@ public class LayerStore {
         return LayerState.builder()
                 .schema(layer.schema())
                 .featureCollection(computed.collect(toList()))
-                .feedEvents(layer.feedEvents())
                 .build();
     }
 
@@ -212,13 +210,9 @@ public class LayerStore {
             @Override
             public void onNext(SourceUpdate update) {
                 final Layer layer = layers.get(id); // TODO: locking?
-                LOG.info("[{}] Accepted {} features and {} feed events", layer.metadata().name(), update.features().size(),
-                        update.feedEvents().size());
+                LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
 
-                final List<EnrichedFeedEvent> updatedFeedEvents = newArrayList(layer.feedEvents());
-                updatedFeedEvents.addAll(update.feedEvents());    // TODO: structural sharing
-
-                final Layer updatedLayer = appendFeatures(layer, update.features()).withFeedEvents(updatedFeedEvents);
+                final Layer updatedLayer = appendFeatures(layer, update.features());
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
                 notifyListeners(id, update.features());

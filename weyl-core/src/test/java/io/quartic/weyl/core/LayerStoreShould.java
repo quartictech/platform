@@ -5,9 +5,10 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.model.FeedEvent;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.live.*;
+import io.quartic.weyl.core.live.LayerState;
+import io.quartic.weyl.core.live.LayerStoreListener;
+import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.hamcrest.Matchers;
@@ -19,17 +20,14 @@ import rx.subjects.PublishSubject;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -89,37 +87,33 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void add_observed_features_and_events_to_layer() throws Exception {
+    public void add_observed_features_to_layer() throws Exception {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
-                updateFor(newArrayList(feature("a", "1")), newArrayList(event("789"))),
-                updateFor(newArrayList(feature("b", "2")), newArrayList(event("987")))
+                updateFor(feature("a", "1")),
+                updateFor(feature("b", "2"))
         ).subscribe(sub);
 
         final AbstractLayer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(),
                 containsInAnyOrder(feature("a", "1"), feature("b", "2")));
-        assertThat(layer.feedEvents(),
-                containsInAnyOrder(event("789"), event("987")));
     }
 
     @Test
-    public void notify_subscribers_of_observed_features_and_events() throws Exception {
+    public void notify_subscribers_of_observed_features() throws Exception {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         store.addSubscriber(LAYER_ID, subscriber);
 
         Observable.just(
-                updateFor(newArrayList(feature("a", "1")), newArrayList(event("789")))
+                updateFor(feature("a", "1"))
         ).subscribe(sub);
 
         final LayerState layerState = captureLiveLayerState(subscriber);
         assertThat(layerState.featureCollection(),
                 containsInAnyOrder(feature("a", "1")));
-        assertThat(layerState.feedEvents(),
-                containsInAnyOrder(event("789")));
         assertThat(layerState.schema(),
                 equalTo(schema("blah").withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, Attribute.of(NUMERIC, Optional.empty())))));
     }
@@ -292,11 +286,7 @@ public class LayerStoreShould {
     }
 
     private SourceUpdate updateFor(Feature... features) {
-        return updateFor(asList(features), newArrayList());
-    }
-
-    private SourceUpdate updateFor(List<Feature> features, List<EnrichedFeedEvent> events) {
-        return SourceUpdate.of(features, events);
+        return SourceUpdate.of(asList(features));
     }
 
     private Feature feature(String externalId, String uid) {
@@ -305,14 +295,6 @@ public class LayerStoreShould {
                 .uid(FeatureId.of(uid))
                 .geometry(factory.createPoint(new Coordinate(123.0, 456.0)))
                 .attributes(ImmutableMap.of(ATTRIBUTE_NAME, 1234))
-                .build();
-    }
-
-    private EnrichedFeedEvent event(String id) {
-        return EnrichedFeedEvent.builder()
-                .id(LiveEventId.of(id))
-                .feedEvent(FeedEvent.of("foo", "bar", emptyMap()))
-                .timestamp(INSTANT)
                 .build();
     }
 
