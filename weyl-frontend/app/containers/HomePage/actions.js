@@ -164,14 +164,6 @@ export const geofenceToggleAlerts = () => ({
   type: constants.GEOFENCE_TOGGLE_ALERTS,
 });
 
-export function feedSetData(layerId, data) {
-  return {
-    type: constants.FEED_SET_DATA,
-    layerId,
-    data,
-  };
-}
-
 export function bufferLayer(layerId, bufferDistance) {
   return {
     type: constants.BUFFER_LAYER,

@@ -6,12 +6,10 @@ import io.quartic.weyl.core.model.AbstractFeature;
 import org.immutables.value.Value;
 
 import java.util.Collection;
-import java.util.List;
 
 @Value.Immutable
 @SweetStyle
 public interface AbstractLayerState {
     AbstractAttributeSchema schema();
     Collection<AbstractFeature> featureCollection();
-    List<EnrichedFeedEvent> feedEvents();
 }

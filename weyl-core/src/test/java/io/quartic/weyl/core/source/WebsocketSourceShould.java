@@ -27,15 +27,15 @@ import static rx.Observable.just;
 public class WebsocketSourceShould {
     private final static LiveEvent LIVE_EVENT = LiveEvent.of(
             Instant.now(),
-            Optional.of(featureCollection(geojsonFeature("a", Optional.of(point())))),
-            Optional.empty());
+            Optional.of(featureCollection(geojsonFeature("a", Optional.of(point()))))
+    );
 
     @Test
     public void import_things() throws Exception {
         final WebsocketListener<LiveEvent> listener = mock(WebsocketListener.class);
         final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
         final LiveEventConverter converter = mock(LiveEventConverter.class);
-        final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
+        final SourceUpdate update = SourceUpdate.of(newArrayList());
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
         when(listener.observable()).thenReturn(just(LIVE_EVENT));

@@ -11,38 +11,29 @@ import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.stream.Stream;
 
 import static io.quartic.weyl.core.source.ConversionUtils.convertToModelAttributes;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public class LiveEventConverter {
-    private final UidGenerator<LiveEventId> eidGenerator;
     private final GeometryTransformer geometryTransformer;
 
-    public LiveEventConverter(UidGenerator<LiveEventId> eidGenerator) {
-        this(eidGenerator, GeometryTransformer.wgs84toWebMercator());
+    public LiveEventConverter() {
+        this(GeometryTransformer.wgs84toWebMercator());
     }
 
-    public LiveEventConverter(UidGenerator<LiveEventId> eidGenerator,
-                              GeometryTransformer geometryTransformer) {
-        this.eidGenerator = eidGenerator;
+    public LiveEventConverter(GeometryTransformer geometryTransformer) {
         this.geometryTransformer = geometryTransformer;
     }
 
     public SourceUpdate updateFrom(FeatureCollection featureCollection) {
-        return SourceUpdate.of(
-                convertFeatures(featureCollection.features().stream()),
-                emptyList());
+        return SourceUpdate.of(convertFeatures(featureCollection.features().stream()));
     }
 
     public SourceUpdate updateFrom(LiveEvent event) {
-        return SourceUpdate.of(
-                convertFeatures(getFeatureStream(event)),
-                enrichEvents(event));
+        return SourceUpdate.of(convertFeatures(getFeatureStream(event)));
     }
 
     private Stream<Feature> getFeatureStream(LiveEvent event) {
@@ -55,16 +46,6 @@ public class LiveEventConverter {
         return featureStream
                 .filter(f -> f.geometry().isPresent())  // TODO: we should handle null geometries better
                 .map(this::toJts)
-                .collect(toList());
-    }
-
-    private Collection<EnrichedFeedEvent> enrichEvents(LiveEvent event) {
-        final LiveEventId eventId = eidGenerator.get();
-        final Instant timestamp = event.timestamp();
-
-        return event.feedEvent()
-                .map(feedEvent -> Stream.of(EnrichedFeedEvent.of(eventId, timestamp, feedEvent)))
-                .orElse(Stream.empty())
                 .collect(toList());
     }
 

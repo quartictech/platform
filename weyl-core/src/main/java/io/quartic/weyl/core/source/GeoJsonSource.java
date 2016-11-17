@@ -44,7 +44,7 @@ public abstract class GeoJsonSource implements Source {
     public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+                sub.onNext(SourceUpdate.of(importAllFeatures()));
                 sub.onCompleted();
             } catch (IOException e) {
                 sub.onError(e);

@@ -4,7 +4,6 @@ import Toolbar from "../../components/Toolbar";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
-import FeedPane from "../../components/FeedPane";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
 
@@ -75,12 +74,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
-          <FeedPane
-            feed={this.props.feed}
-            visible={this.props.ui.panels.liveFeed}
-            onUiToggle={this.props.onUiToggle}
-            layers={this.props.layers.toJS()}
-          />
         </div>
 
         <div className={styles.bottomDrawer}>
@@ -132,7 +125,6 @@ const mapStateToProps = createStructuredSelector({
   timeSeries: selectors.selectTimeSeries,
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
-  feed: selectors.selectFeed,
   connectionUp: selectors.selectConnectionUp,
 });
 

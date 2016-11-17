@@ -24,7 +24,6 @@ import java.util.function.Function;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.catalogue.ExtensionParser.EXTENSION_KEY;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
-import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -147,7 +146,7 @@ public class CatalogueWatcherShould {
     }
 
     private SourceUpdate createUpdate() {
-        return SourceUpdate.of(newArrayList(mock(AbstractNakedFeature.class)), emptyList());
+        return SourceUpdate.of(newArrayList(mock(AbstractNakedFeature.class)));
     }
 
     private DatasetConfig datasetConfig(DatasetLocator source) {

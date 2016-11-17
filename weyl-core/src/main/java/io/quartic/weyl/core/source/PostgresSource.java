@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Collections.emptyList;
-
 @Value.Immutable
 public abstract class PostgresSource implements Source {
     public static ImmutablePostgresSource.Builder builder() {
@@ -53,7 +51,7 @@ public abstract class PostgresSource implements Source {
     @Override
     public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+            sub.onNext(SourceUpdate.of(importAllFeatures()));
             sub.onCompleted();
         });
     }

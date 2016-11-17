@@ -10,14 +10,6 @@ import websockets
 
 
 
-def random_message():
-    return " ".join([
-        random.choice(["@arlo", "@oliver", "@david.cameron"]),
-        random.choice(["why are you such", "I wish you were more of", "don't you think I'm"]),
-        random.choice(["an irritating person?", "an amazing guy?", "a dreamer?"]),
-        random.choice(["I find that charming.", "I find that irritating.", "You go girl.", "I miss Jade Goodie ;-(", "Good for you mate!", "Jesus be praised!"])
-        ])
-
 def read_pubs(fname):
     pubs = []
     with open(fname) as f:
@@ -29,14 +21,10 @@ def read_pubs(fname):
 def delete_layer():
     requests.delete("{}/layer/live/{}".format(API_ROOT, LAYER_ID))
 
-async def post_event(ws, user, geojson, message):
+async def post_event(ws, user, geojson):
     await ws.send(json.dumps({
                     "timestamp": int(round(time.time() * 1000)),
                     "featureCollection": geojson,
-                    "feedEvent": {
-                        "source": user,
-                        "message": message,
-                    } if message else None
                     }))
 
 def make_geojson(p, name, id, blood_alcohol=None):
@@ -79,7 +67,7 @@ async def socket(ws, path):
             print("New target: {}".format(pub))
             target = pub["geojson"]["coordinates"]
             msg = "Heading to pub {}".format(pub["name"])
-            await post_event(ws, "arlo", make_geojson(pub["geojson"]["coordinates"], "Arlo", pub["name"]), msg)
+            await post_event(ws, "arlo", make_geojson(pub["geojson"]["coordinates"], "Arlo", pub["name"]))
             start = p
             arlo_noise_scale *= 1.1
 
@@ -101,10 +89,10 @@ async def socket(ws, path):
         alex_bah += random.random() * 0.03
         if arlo_bah > 1: arlo_bah = 1
         if alex_bah > 1: alex_bah = 1
-        await post_event(ws, "alex", make_geojson(p, "Alex", "alex", alex_blood_alcohol), random_message() if random.random() > 0.9 else None)
+        await post_event(ws, "alex", make_geojson(p, "Alex", "alex", alex_blood_alcohol))
         await post_event(ws, "arlo",
             make_geojson((p[0] + random.random() * arlo_noise_scale,
-                          p[1] + random.random() * arlo_noise_scale), "Arlo", "arlo", arlo_blood_alcohol), random_message() if random.random() > 0.99 else None)
+                          p[1] + random.random() * arlo_noise_scale), "Arlo", "arlo", arlo_blood_alcohol))
         await asyncio.sleep(5)
         progress += 1
 
