@@ -35,7 +35,8 @@ export function nodesReducer(state = initialState, action: I.NodeAction = {}) {
 }
 
 /** Async --> Thunk */
-export function getNodes(): Redux.Dispatch {
+// TODO: Fix types!
+export function getNodes(): Redux.Dispatch<any> {
   return dispatch => {
     dispatch(getNodesRequest());
     return fetch(`${API_URL}/index.json`).then(res => {

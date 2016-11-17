@@ -3,7 +3,8 @@ import { routerReducer } from 'react-router-redux';
 import { nodesReducer } from './modules/nodes';
 import { routesReducer } from './modules/routes';
 
-const rootReducer: Redux.Reducer = combineReducers({
+// TODO: Fix type!
+const rootReducer: Redux.Reducer<any> = combineReducers({
   routing: routerReducer,
   nodes: nodesReducer,
   routes: routesReducer

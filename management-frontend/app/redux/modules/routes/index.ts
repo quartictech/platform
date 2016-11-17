@@ -39,7 +39,8 @@ export function routesReducer(
 }
 
 /** Async --> Thunk */
-export function getRoutes(node: string): Redux.Dispatch {
+// TODO fix type!
+export function getRoutes(node: string): Redux.Dispatch<any> {
   return dispatch => {
     dispatch(getRoutesRequest());
     return fetch(`${API_URL}/${node}.json`).then(res => {

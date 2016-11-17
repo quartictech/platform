@@ -7,9 +7,10 @@ import { Grid, Col } from 'react-bootstrap';
 import * as Blueprint from "@blueprintjs/core";
 const { Menu, MenuItem, MenuDivider } = Blueprint;
 
+// TODO: fix types!
 interface IProps {
-  getNodes: Redux.ActionCreator;
-  push: Redux.ActionCreator;
+  getNodes: Redux.ActionCreator<any>;
+  push: Redux.ActionCreator<any>;
 }
 
 class Home extends React.Component<IProps, any> {

@@ -8,7 +8,8 @@ import { configureStore } from './redux/store';
 import { getRoutes } from './routes';
 
 import "@blueprintjs/core/dist/blueprint.css"
-const store: Redux.Store = configureStore();
+// TODO: fix type!
+const store: Redux.Store<any> = configureStore();
 const history = syncHistoryWithStore(browserHistory, store);
 
 const component = (

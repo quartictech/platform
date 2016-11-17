@@ -9,7 +9,8 @@ const router = routerMiddleware(browserHistory);
 /**
  * Creates a Redux Store from the given initialState
  */
-export function configureStore(initialState?: Object): Redux.Store {
+ // TODO: fix type!
+export function configureStore(initialState?: Object): Redux.Store<any> {
 	const env: string = process.env.NODE_ENV;
 
   let middlewares: any[] = [router, thunk];
@@ -23,7 +24,8 @@ export function configureStore(initialState?: Object): Redux.Store {
 	)(createStore);
 
   /** Final Redux Store!!! */
-	const store: Redux.Store = finalCreateStore(rootReducer, initialState);
+	// TODO: fix type!
+	const store: Redux.Store<any> = finalCreateStore(rootReducer, initialState);
 
   /** Adds Hot Reloading Capability to Reducers in Dev. Mode */
 	if (env === 'development' && (module as any).hot) {

@@ -11,12 +11,11 @@
     "experimentalDecorators": true,
     "noImplicitAny": false,
     "removeComments": true,
-    "jsx": "react"
+    "jsx": "react",
+		"types": ["node", "jasmine", "redux", "core-js"]
   },
   "exclude": [
     "node_modules",
-    "public",
-    "typings/main",
-    "typings/main.d.ts"
+    "public"
   ]
 }

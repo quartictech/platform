@@ -96,7 +96,7 @@ describe('Routes Module: Action Creators', () => {
       store.dispatch(action)
         .then(() => expect(store.getActions()).to.eql(expectedActions))
         .then(() => done())
-        .catch(err => done(err));
+        .catch(err => done.fail(err));
     });
 
     it('dispatches getRoutesFailure on failed reqs', (done) => {
@@ -116,7 +116,7 @@ describe('Routes Module: Action Creators', () => {
       store.dispatch(action)
         .then(() => expect(store.getActions()).to.eql(expectedActions))
         .then(() => done())
-        .catch(err => done(err));
+        .catch(err => done.fail(err));
     });
   });
 

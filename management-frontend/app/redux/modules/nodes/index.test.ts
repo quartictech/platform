@@ -85,7 +85,7 @@ describe('Nodes Module: Action Creators', () => {
       store.dispatch(action)
         .then(() => expect(store.getActions()).to.eql(expectedActions))
         .then(() => done())
-        .catch(err => done(err));
+        .catch((err:string) => done.fail(err));
     });
 
     it('dispatches getNodesFailure on failed reqs', (done) => {
@@ -107,7 +107,7 @@ describe('Nodes Module: Action Creators', () => {
       store.dispatch(action)
         .then(() => expect(store.getActions()).to.eql(expectedActions))
         .then(() => done())
-        .catch(err => done(err));
+        .catch(err => done.fail(err));
     });
 
   });
