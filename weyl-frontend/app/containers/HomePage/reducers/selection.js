@@ -1,6 +1,5 @@
 import { Set, Map, fromJS } from "immutable";
 import * as constants from "../constants";
-const _ = require("underscore");
 
 export default (state = initialState, action) => {
   switch (action.type) {
