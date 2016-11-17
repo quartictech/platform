@@ -9,8 +9,6 @@ import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
-import io.quartic.model.FeedEvent;
-import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.source.SourceUpdate;
@@ -30,14 +28,13 @@ public class LiveEventConverterShould {
     private final GeometryFactory factory = new GeometryFactory();
     private final LiveEventConverter converter = new LiveEventConverter(
             new SequenceUidGenerator<>(FeatureId::of),
-            new SequenceUidGenerator<>(LiveEventId::of),
             GeometryTransformer.webMercatorToWebMercator()
     );
 
     // TODO: multiple LiveEvents
 
     @Test
-    public void convert_just_features() throws Exception {
+    public void convert_features() throws Exception {
         final FeatureCollection collection = featureCollectionOf(geojsonFeature("a", Optional.of(point())));
 
         final SourceUpdate update = converter.updateFrom(collection);
@@ -61,27 +58,8 @@ public class LiveEventConverterShould {
         assertThat(update.features(), empty());
     }
 
-    @Test
-    public void enrich_events() throws Exception {
-        final FeedEvent feedEvent = FeedEvent.of("abc", "def", ImmutableMap.of("a", 999));
-        final LiveEvent event = liveEvent(feedEvent);
-
-        final SourceUpdate update = converter.updateFrom(event);
-
-        assertThat(update.feedEvents(), equalTo(ImmutableList.of(
-                EnrichedFeedEvent.of(LiveEventId.of("1"), TIMESTAMP, feedEvent)
-        )));
-    }
-
     private FeatureCollection featureCollectionOf(Feature... features) {
         return FeatureCollection.of(newArrayList(features));
-    }
-
-    private LiveEvent liveEvent(FeedEvent feedEvent) {
-        return LiveEvent.of(
-                TIMESTAMP,
-                Optional.empty(),
-                Optional.of(feedEvent));
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {

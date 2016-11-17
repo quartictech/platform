@@ -21,8 +21,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
-
 @Value.Immutable
 public abstract class GeoJsonSource implements Source {
     public static ImmutableGeoJsonSource.Builder builder() {
@@ -44,7 +42,7 @@ public abstract class GeoJsonSource implements Source {
     public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+                sub.onNext(SourceUpdate.of(importAllFeatures()));
                 sub.onCompleted();
             } catch (IOException e) {
                 sub.onError(e);

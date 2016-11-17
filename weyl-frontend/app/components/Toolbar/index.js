@@ -13,7 +13,6 @@ function Toolbar(props) {
   const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
   const geofenceClassNames = classNames("item", { "active": props.ui.layerOp === "geofence" });
   const layerListClassNames = classNames("item", { "active": props.ui.panels.layerList });
-  const liveFeedClassNames = classNames("item", { "active": props.ui.panels.liveFeed });
   const chartClassNames = classNames("item", { "active": props.ui.panels.chart });
   const themeClassNames = classNames("item");
 
@@ -57,10 +56,6 @@ function Toolbar(props) {
             <a className={chartClassNames} onClick={() => props.onUiToggle("chart")} style={itemStyle}>
               <i className="icon area chart"></i>
               Chart
-            </a>
-            <a className={liveFeedClassNames} onClick={() => props.onUiToggle("liveFeed")} style={itemStyle}>
-              <i className="icon feed"></i>
-              Live Feed
             </a>
             <div className="item" style={itemStyle}>
               <Search

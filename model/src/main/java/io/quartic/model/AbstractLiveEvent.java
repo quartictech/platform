@@ -12,5 +12,4 @@ import java.util.Optional;
 public interface AbstractLiveEvent {
     Instant timestamp();
     Optional<FeatureCollection> featureCollection();
-    Optional<FeedEvent> feedEvent();
 }

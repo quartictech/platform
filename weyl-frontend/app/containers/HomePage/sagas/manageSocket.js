@@ -34,7 +34,6 @@ function* handleLayerUpdate(msg) {
   if (msg.layerId in layers.toJS()) {
     yield put(actions.layerSetData(msg.layerId, msg.featureCollection, msg.schema));
     yield put(actions.remapSelection(msg.layerId, msg.externalIdToFeatureIdMapping));
-    yield put(actions.feedSetData(msg.layerId, msg.feedEvents));
   } else {
     console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);
   }

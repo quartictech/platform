@@ -13,39 +13,30 @@ import io.quartic.weyl.core.source.ConversionUtils;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public class LiveEventConverter {
     private final UidGenerator<FeatureId> fidGenerator;
-    private final UidGenerator<LiveEventId> eidGenerator;
     private final GeometryTransformer geometryTransformer;
 
-    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator) {
-        this(fidGenerator, eidGenerator, GeometryTransformer.wgs84toWebMercator());
+    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator) {
+        this(fidGenerator, GeometryTransformer.wgs84toWebMercator());
     }
 
-    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, UidGenerator<LiveEventId> eidGenerator,
-                              GeometryTransformer geometryTransformer) {
+    public LiveEventConverter(UidGenerator<FeatureId> fidGenerator, GeometryTransformer geometryTransformer) {
         this.fidGenerator = fidGenerator;
-        this.eidGenerator = eidGenerator;
         this.geometryTransformer = geometryTransformer;
     }
 
     public SourceUpdate updateFrom(FeatureCollection featureCollection) {
-        return SourceUpdate.of(
-                convertFeatures(featureCollection.features().stream()),
-                emptyList());
+        return SourceUpdate.of(convertFeatures(featureCollection.features().stream()));
     }
 
     public SourceUpdate updateFrom(LiveEvent event) {
-        return SourceUpdate.of(
-                convertFeatures(getFeatureStream(event)),
-                enrichEvents(event));
+        return SourceUpdate.of(convertFeatures(getFeatureStream(event)));
     }
 
     private Stream<io.quartic.geojson.Feature> getFeatureStream(LiveEvent event) {
@@ -60,17 +51,6 @@ public class LiveEventConverter {
                 .map(this::toJts)
                 .collect(toList());
     }
-
-    private Collection<EnrichedFeedEvent> enrichEvents(LiveEvent event) {
-        final LiveEventId eventId = eidGenerator.get();
-        final Instant timestamp = event.timestamp();
-
-        return event.feedEvent()
-                .map(feedEvent -> Stream.of(EnrichedFeedEvent.of(eventId, timestamp, feedEvent)))
-                .orElse(Stream.empty())
-                .collect(toList());
-    }
-
 
     private io.quartic.weyl.core.model.Feature toJts(io.quartic.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
