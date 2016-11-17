@@ -32,9 +32,9 @@ public class AttributesResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<FeatureId, Attributes> getAttributes(List<EntityId> entityIds) {
+    public Map<EntityId, Attributes> getAttributes(List<EntityId> entityIds) {
         return querier.retrieveEntitiesOrThrow(entityIds)
-                .collect(toMap(AbstractFeature::uid, this::externalAttributes));
+                .collect(toMap(AbstractFeature::entityId, this::externalAttributes));
     }
 
     private Attributes externalAttributes(AbstractFeature feature) {
