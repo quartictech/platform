@@ -173,7 +173,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.setSubLayerVisibility("geofence_line_violated", visible);
 
     const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violatedIds);
-    const violatedFilter = ["in", "_entitylId"].concat(geofence.violatedIds);
+    const violatedFilter = ["in", "_entityId"].concat(geofence.violatedIds);
     this.map.setFilter("geofence_fill", unviolatedFilter);
     this.map.setFilter("geofence_line", unviolatedFilter);
     this.map.setFilter("geofence_fill_violated", violatedFilter);
