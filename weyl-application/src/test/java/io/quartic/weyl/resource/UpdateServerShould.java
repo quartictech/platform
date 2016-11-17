@@ -11,11 +11,10 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.geofence.GeofenceId;
-import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.geofence.ViolationId;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.geofence.*;
+import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.AlertMessage;
 import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
@@ -83,12 +82,14 @@ public class UpdateServerShould {
 
     @Test
     public void send_geofence_violation_update_accounting_for_cumulative_changes() throws Exception {
-        final GeofenceId geofenceIdA = GeofenceId.of("38");
-        final GeofenceId geofenceIdB = GeofenceId.of("37");
+        final EntityId geofenceIdA = EntityId.of("37");
+        final EntityId geofenceIdB = EntityId.of("38");
+        final Violation violationA = violation(geofenceIdA);
+        final Violation violationB = violation(geofenceIdB);
 
-        server.onViolationBegin(violation(geofenceIdA));
-        server.onViolationBegin(violation(geofenceIdB));
-        server.onViolationEnd(violation(geofenceIdA));
+        server.onViolationBegin(violationA);
+        server.onViolationBegin(violationB);
+        server.onViolationEnd(violationA);
 
         verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA)));
         verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA, geofenceIdB)));
@@ -107,14 +108,13 @@ public class UpdateServerShould {
         verify(session.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(expected));
     }
 
-    private Violation violation(GeofenceId geofenceId) {
-        return Violation.builder()
-                .id(ViolationId.of("1"))
-                .entityId(EntityId.of("abc"))
-                .geofenceId(geofenceId)
-                .featureAttributes(EMPTY_ATTRIBUTES)
-                .geofenceAttributes(EMPTY_ATTRIBUTES)
-                .message("Hmmm")
-                .build();
+    private Violation violation(EntityId geofenceId) {
+        final AbstractGeofence geofence = mock(AbstractGeofence.class, RETURNS_DEEP_STUBS);
+        when(geofence.feature().entityId()).thenReturn(geofenceId);
+        return Violation.of(
+                mock(AbstractFeature.class),
+                geofence,
+                "Hmmm"
+        );
     }
 }

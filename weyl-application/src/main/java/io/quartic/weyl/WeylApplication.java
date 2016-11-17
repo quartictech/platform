@@ -41,7 +41,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private final EntityStore entityStore = new EntityStore();
     private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator, fidGenerator);
-    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
+    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {
