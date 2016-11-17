@@ -4,7 +4,7 @@ server:
   applicationContextPath: /
   applicationConnectors:
     - type: http
-      port: 8110
+      port: 0
   adminConnectors:
     - type: http
-      port: 8111
+      port: 0
