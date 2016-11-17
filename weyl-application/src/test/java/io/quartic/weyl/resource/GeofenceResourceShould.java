@@ -120,7 +120,7 @@ public class GeofenceResourceShould {
 
     private AbstractFeature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
         return io.quartic.weyl.core.model.Feature.of(
-                EntityId.of(LayerId.of("xyz"), "123"),
+                EntityId.of("xyz"),
                 FeatureId.of("abc"),
                 toJts(geometry),
                 FEATURE_ATTRIBUTES);

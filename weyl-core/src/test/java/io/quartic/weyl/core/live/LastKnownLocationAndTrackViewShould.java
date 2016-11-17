@@ -116,7 +116,7 @@ public class LastKnownLocationAndTrackViewShould {
 
     private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
         return Feature.builder()
-                .entityId(EntityId.of(LayerId.of("foo"), name))
+                .entityId(EntityId.of("foo/" + name))
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
                 .attributes(Attributes.builder().attribute(AttributeName.of("name"), name).build())

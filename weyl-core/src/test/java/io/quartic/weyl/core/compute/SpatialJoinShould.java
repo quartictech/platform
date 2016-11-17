@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.AttributesStore;
+import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
@@ -31,7 +31,7 @@ public class SpatialJoinShould {
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore store = new LayerStore(featureStore, mock(AttributesStore.class), lidGenerator);
+    private final LayerStore store = new LayerStore(featureStore, mock(EntityStore.class), lidGenerator);
 
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {
@@ -89,7 +89,7 @@ public class SpatialJoinShould {
 
     private AbstractFeature feature(NakedFeature feature, String layerId, String id) {
         return Feature.of(
-                EntityId.of(LayerId.of(layerId), feature.externalId()),
+                EntityId.of(LayerId.of(layerId) + "/" + feature.externalId()),
                 FeatureId.of(id),
                 feature.geometry(),
                 feature.attributes()

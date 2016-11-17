@@ -97,7 +97,7 @@ public class MostRecentGeometryViewShould {
 
     private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
         return Feature.builder()
-                .entityId(EntityId.of(LayerId.of("blah"), name))
+                .entityId(EntityId.of("blah/" + name))
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
                 .attributes(Attributes.builder().attribute(AttributeName.of("name"), name).build())

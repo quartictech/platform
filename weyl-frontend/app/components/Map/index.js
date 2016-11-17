@@ -35,7 +35,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const feature = (features.length > 0)
       ? {
         id: features[0].properties["_id"],  // eslint-disable-line dot-notation
-        externalId: features[0].properties["_externalId"], // eslint-disable-line dot-notation
         entityId: features[0].properties["_entityId"], // eslint-disable-line dot-notation
         layerId: features[0].layer.source,
         properties: features[0].properties,
@@ -174,8 +173,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.setSubLayerVisibility("geofence_fill_violated", visible);
     this.setSubLayerVisibility("geofence_line_violated", visible);
 
-    const unviolatedFilter = ["!in", "_externalId"].concat(geofence.violatedIds);
-    const violatedFilter = ["in", "_externalId"].concat(geofence.violatedIds);
+    const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violatedIds);
+    const violatedFilter = ["in", "_entitylId"].concat(geofence.violatedIds);
     this.map.setFilter("geofence_fill", unviolatedFilter);
     this.map.setFilter("geofence_line", unviolatedFilter);
     this.map.setFilter("geofence_fill_violated", violatedFilter);

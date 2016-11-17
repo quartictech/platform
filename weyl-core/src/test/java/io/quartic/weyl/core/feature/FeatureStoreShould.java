@@ -47,7 +47,7 @@ public class FeatureStoreShould {
     private AbstractFeature feature(String id) {
         // Don't use mocks, because Mockito retains references, which means the weak-reference stuff doesn't happen
         return Feature.builder()
-                .entityId(EntityId.of(LayerId.of("foo"), id))
+                .entityId(EntityId.of("foo"))
                 .uid(FeatureId.of(id))
                 .geometry(mock(Geometry.class))
                 .attributes(mock(AbstractAttributes.class))

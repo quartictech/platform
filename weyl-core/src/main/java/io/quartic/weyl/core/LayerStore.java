@@ -38,14 +38,14 @@ public class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final FeatureStore featureStore;
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final AttributesStore attributesStore;
+    private final EntityStore entityStore;
     private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
-    public LayerStore(FeatureStore featureStore, AttributesStore attributesStore, UidGenerator<LayerId> lidGenerator) {
+    public LayerStore(FeatureStore featureStore, EntityStore entityStore, UidGenerator<LayerId> lidGenerator) {
         this.featureStore = featureStore;
-        this.attributesStore = attributesStore;
+        this.entityStore = entityStore;
         this.lidGenerator = lidGenerator;
     }
 
@@ -198,7 +198,7 @@ public class LayerStore {
                 LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
 
                 final Collection<AbstractFeature> elaboratedFeatures = elaborate(id, update.features());
-                attributesStore.putAll(elaboratedFeatures);
+                entityStore.putAll(elaboratedFeatures);
                 final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
@@ -211,7 +211,7 @@ public class LayerStore {
     // TODO: this is going to double memory usage?
     private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
         return features.stream().map(f -> Feature.of(
-                EntityId.of(layerId, f.externalId()),
+                EntityId.of(layerId + "/" + f.externalId()),
                 featureStore.getFeatureIdGenerator().get(),
                 f.geometry(),
                 f.attributes()

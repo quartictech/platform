@@ -1,8 +1,7 @@
 package io.quartic.weyl.resource;
 
-import io.quartic.weyl.core.AttributesStore;
+import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.AbstractAttributes;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.FeatureId;
@@ -19,24 +18,24 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class AttributesStoreQuerier {
-    private static final Logger LOG = getLogger(AttributesStoreQuerier.class);
+public class EntityStoreQuerier {
+    private static final Logger LOG = getLogger(EntityStoreQuerier.class);
 
     private final FeatureStore featureStore;
-    private final AttributesStore attributesStore;
+    private final EntityStore entityStore;
 
-    public AttributesStoreQuerier(FeatureStore featureStore, AttributesStore attributesStore) {
+    public EntityStoreQuerier(FeatureStore featureStore, EntityStore entityStore) {
         this.featureStore = featureStore;
-        this.attributesStore = attributesStore;
+        this.entityStore = entityStore;
     }
 
-    public Stream<AbstractAttributes> retrieveAttributesOrThrow(List<EntityId> entityIds) {
+    public Stream<AbstractFeature> retrieveEntitiesOrThrow(List<EntityId> entityIds) {
         LOG.info("Retrieving {} entities", entityIds.size());
 
-        final List<Entry<EntityId, AbstractAttributes>> attributes = map(entityIds, id -> new SimpleEntry<>(id, attributesStore.get(id)));
-        throwIfAnyAttributesMissing(attributes);
+        final List<Entry<EntityId, AbstractFeature>> entities = map(entityIds, id -> new SimpleEntry<>(id, entityStore.get(id)));
+        throwIfAnyEntitiesMissing(entities);
 
-        return attributes.stream().map(Entry::getValue);
+        return entities.stream().map(Entry::getValue);
     }
 
     public Stream<AbstractFeature> retrieveFeaturesOrThrow(List<FeatureId> featureIds) {
@@ -48,8 +47,8 @@ public class AttributesStoreQuerier {
         return features.stream().map(Entry::getValue);
     }
 
-    private void throwIfAnyAttributesMissing(List<Entry<EntityId, AbstractAttributes>> attributes) {
-        final List<EntityId> missingIds = attributes.stream()
+    private void throwIfAnyEntitiesMissing(List<Entry<EntityId, AbstractFeature>> entities) {
+        final List<EntityId> missingIds = entities.stream()
                 .filter(e -> e.getValue() == null)
                 .map(Entry::getKey)
                 .collect(toList());

@@ -64,7 +64,7 @@ public class UpdateServerShould {
     public void send_geofence_geometry_update() throws Exception {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
         final AbstractFeature feature = io.quartic.weyl.core.model.Feature.of(
-                EntityId.of(LayerId.of("xyz"), "123"),
+                EntityId.of("xyz/123"),
                 FeatureId.of("456"),
                 geometry,
                 EMPTY_ATTRIBUTES
@@ -76,15 +76,15 @@ public class UpdateServerShould {
                 Feature.of(
                         Optional.empty(),
                         Optional.of(fromJts(transformer.transform(geometry))),
-                        ImmutableMap.of("_entityId", "xyz/123", "_externalId", "123", "_id", "456")
+                        ImmutableMap.of("_entityId", "xyz/123", "_id", "456")
                 )
         ))));
     }
 
     @Test
     public void send_geofence_violation_update_accounting_for_cumulative_changes() throws Exception {
-        final GeofenceId geofenceIdA = GeofenceId.of("37");
-        final GeofenceId geofenceIdB = GeofenceId.of("38");
+        final GeofenceId geofenceIdA = GeofenceId.of("38");
+        final GeofenceId geofenceIdB = GeofenceId.of("37");
 
         server.onViolationBegin(violation(geofenceIdA));
         server.onViolationBegin(violation(geofenceIdB));
@@ -110,7 +110,7 @@ public class UpdateServerShould {
     private Violation violation(GeofenceId geofenceId) {
         return Violation.builder()
                 .id(ViolationId.of("1"))
-                .entityId(EntityId.of(LayerId.of("abc"), "42"))
+                .entityId(EntityId.of("abc"))
                 .geofenceId(geofenceId)
                 .featureAttributes(EMPTY_ATTRIBUTES)
                 .geofenceAttributes(EMPTY_ATTRIBUTES)

@@ -2,7 +2,7 @@ package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.compute.AbstractHistogram;
 import io.quartic.weyl.core.compute.HistogramCalculator;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.EntityId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +22,12 @@ import static java.util.stream.Collectors.toList;
 public abstract class AggregatesResource {
     private static final Logger LOG = LoggerFactory.getLogger(AggregatesResource.class);
 
-    public static AggregatesResource of(AttributesStoreQuerier querier) {
+    public static AggregatesResource of(EntityStoreQuerier querier) {
         return ImmutableAggregatesResource.of(querier);
     }
 
     @Value.Parameter
-    protected abstract AttributesStoreQuerier querier();
+    protected abstract EntityStoreQuerier querier();
     @Value.Default
     protected HistogramCalculator calculator() {
         return new HistogramCalculator();
@@ -37,9 +37,8 @@ public abstract class AggregatesResource {
     @Path("/histograms")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<AbstractHistogram> getHistogram(List<FeatureId> featureIds) {
-        LOG.info("Histogramming {} features", featureIds.size());
-
-        return calculator().calculate(querier().retrieveFeaturesOrThrow(featureIds).collect(toList()));
+    public Collection<AbstractHistogram> getHistogram(List<EntityId> entityIds) {
+        LOG.info("Histogramming {} entities", entityIds.size());
+        return calculator().calculate(querier().retrieveEntitiesOrThrow(entityIds).collect(toList()));
     }
 }

@@ -42,8 +42,8 @@ public class LayerStoreShould {
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final AttributesStore attributesStore = mock(AttributesStore.class);
-    private final LayerStore store = new LayerStore(featureStore, attributesStore, lidGenerator);
+    private final EntityStore entityStore = mock(EntityStore.class);
+    private final LayerStore store = new LayerStore(featureStore, entityStore, lidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
@@ -108,7 +108,7 @@ public class LayerStoreShould {
         Observable.just(updateFor(feature("a"), feature("b"))).subscribe(sub);
 
 
-        verify(attributesStore).putAll(newArrayList(feature("a", "1"), feature("b", "2")));
+        verify(entityStore).putAll(newArrayList(feature("a", "1"), feature("b", "2")));
     }
 
     @Test
@@ -310,7 +310,7 @@ public class LayerStoreShould {
 
     private AbstractFeature feature(String externalId, String uid) {
         return Feature.of(
-                EntityId.of(LAYER_ID, externalId),
+                EntityId.of(LAYER_ID + "/" + externalId),
                 FeatureId.of(uid),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()

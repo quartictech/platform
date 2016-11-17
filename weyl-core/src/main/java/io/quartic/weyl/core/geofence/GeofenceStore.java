@@ -100,7 +100,7 @@ public class GeofenceStore implements LayerStoreListener {
     private void notifyListeners(Collection<Geofence> geofences) {
         listeners.forEach(l -> l.onGeometryChange(geofences.stream()
                 .map(g -> Feature.of(
-                        EntityId.of(LayerId.of("geofence"), g.id().uid()),
+                        EntityId.of("geofence/" + g.id().uid()),
                         fidGenerator.get(),
                         g.geometry(),
                         EMPTY_ATTRIBUTES)

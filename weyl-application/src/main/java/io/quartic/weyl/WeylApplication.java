@@ -16,7 +16,7 @@ import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.core.AttributesStore;
+import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.feature.FeatureStore;
@@ -41,8 +41,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final AttributesStore attributesStore = new AttributesStore();
-    private final LayerStore layerStore = new LayerStore(featureStore, attributesStore, lidGenerator);
+    private final EntityStore entityStore = new EntityStore();
+    private final LayerStore layerStore = new LayerStore(featureStore, entityStore, lidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
@@ -79,15 +79,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        final AttributesStoreQuerier attributesStoreQuerier = new AttributesStoreQuerier(featureStore, attributesStore);
+        final EntityStoreQuerier entityStoreQuerier = new EntityStoreQuerier(featureStore, entityStore);
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(AggregatesResource.of(attributesStoreQuerier));
-        environment.jersey().register(new AttributesResource(attributesStoreQuerier));
+        environment.jersey().register(AggregatesResource.of(entityStoreQuerier));
+        environment.jersey().register(new AttributesResource(entityStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 

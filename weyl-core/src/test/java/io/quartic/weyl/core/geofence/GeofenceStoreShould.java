@@ -38,7 +38,7 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
 
         verify(listener).onGeometryChange(ImmutableList.of(
-                Feature.of(EntityId.of(LayerId.of("geofence"), "99"), FeatureId.of("1"), fenceGeometry, EMPTY_ATTRIBUTES)
+                Feature.of(EntityId.of("geofence/99"), FeatureId.of("1"), fenceGeometry, EMPTY_ATTRIBUTES)
         ));
     }
 
@@ -147,7 +147,7 @@ public class GeofenceStoreShould {
         final Violation violation = captor.getValue();
         assertThat(violation.id(), equalTo(ViolationId.of("1")));
         assertThat(violation.geofenceId(), equalTo(GeofenceId.of("99")));
-        assertThat(violation.entityId(), equalTo(entityId()));
+        assertThat(violation.entityId(), equalTo(EntityId.of("666/ducks")));
         assertThat(violation.message(), containsString("ducks"));
     }
 
@@ -162,14 +162,11 @@ public class GeofenceStoreShould {
         store.onLiveLayerEvent(
                 LayerId.of("666"),
                 Feature.builder()
-                        .entityId(entityId())
+                        .entityId(EntityId.of("666/ducks"))
                         .uid(FeatureId.of("123"))
                         .geometry(point)
                         .attributes(EMPTY_ATTRIBUTES)
                         .build());
     }
 
-    private EntityId entityId() {
-        return EntityId.of(LayerId.of("666"), "ducks");
-    }
 }
