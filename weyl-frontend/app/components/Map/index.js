@@ -37,6 +37,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         id: features[0].properties["_id"],  // eslint-disable-line dot-notation
         // TODO: Hack for ids
         externalId: features[0].properties["_externalId"], // eslint-disable-line dot-notation
+        entityId: features[0].properties["_entityId"],
         layerId: features[0].layer.source,
         properties: features[0].properties,
       }
@@ -322,7 +323,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   createSelectionFilter(selection, layerId) {
-    return ["in", "_id"].concat((layerId in selection) ? selection[layerId] : "");
+    return ["in", "_entityId"].concat((layerId in selection) ? selection[layerId] : "");
   }
 
   setSubLayerVisibility(id, visible) {

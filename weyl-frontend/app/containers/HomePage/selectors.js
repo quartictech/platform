@@ -12,6 +12,7 @@ export const selectGeofence = createSelector(selectHome, p => p.geofence);
 export const selectConnectionUp = createSelector(selectHome, p => p.connection);
 
 export const selectSelectionIds = createSelector(selectSelection, p => p.ids);
+export const selectSelectedEntityIds = createSelector(selectSelection, p => p.entityIds);
 export const selectSelectionInfo = createSelector(selectSelection, p => p.info);
 export const selectTimeSeries = createSelector(selectSelectionInfo, p => p.data.timeSeries);
 

@@ -5,7 +5,6 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Iterables;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
@@ -19,7 +18,6 @@ import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
@@ -29,12 +27,15 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 @Metered
 @Timed
@@ -144,19 +145,8 @@ public class UpdateServer implements AlertListener, GeofenceListener {
                 .layerId(layerId)
                 .schema(state.schema())
                 .featureCollection(fromJts(state.featureCollection()))  // TODO: obviously we never want to do this with large static layers
-                .externalIdToFeatureIdMapping(computeExternalIdToFeatureIdMapping(state))
                 .build()
         );
-    }
-
-    // TODO: This is a hack for live update of selection. We are also assuming uid monotonic increasing which is NAUGHTY
-    private Map<String, ? extends FeatureId> computeExternalIdToFeatureIdMapping(LayerState state) {
-        return state.featureCollection().stream()
-                .collect(groupingBy(f -> f.entityId().uid()))
-                .entrySet()
-                .stream()
-                // HACK!!!
-                .collect(toMap(Map.Entry::getKey, entry -> Iterables.getFirst(entry.getValue(), null).uid()));
     }
 
     private void sendMessage(SocketMessage message) {

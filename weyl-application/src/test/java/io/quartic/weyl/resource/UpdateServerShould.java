@@ -79,7 +79,7 @@ public class UpdateServerShould {
                 Feature.of(
                         Optional.empty(),
                         Optional.of(fromJts(transformer.transform(geometry))),
-                        ImmutableMap.of("_externalId", "123", "_id", "123")
+                        ImmutableMap.of("_entityId", "xyz/123", "_externalId", "123", "_id", "456")
                 )
         ))));
     }

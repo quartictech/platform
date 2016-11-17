@@ -29,7 +29,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               onMapLoaded={this.props.onMapLoaded}
               onMouseMove={this.props.onMapMouseMove}
               onMouseClick={this.props.onMapMouseClick}
-              selection={this.props.selectionIds}
+              selection={this.props.selectedEntityIds}
               map={this.props.map}
               geofence={this.props.geofence}
               onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
@@ -121,6 +121,7 @@ const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
   selectionIds: selectors.selectSelectionIds,
+  selectedEntityIds: selectors.selectSelectedEntityIds,
   selectionInfo: selectors.selectSelectionInfo,
   timeSeries: selectors.selectTimeSeries,
   map: selectors.selectMap,

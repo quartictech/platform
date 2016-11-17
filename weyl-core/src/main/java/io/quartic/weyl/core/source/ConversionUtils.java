@@ -44,6 +44,7 @@ public class ConversionUtils {
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
         output.put("_id", feature.uid().uid());  // TODO: eliminate the _id concept
         output.put("_externalId", feature.entityId().uid());
+        output.put("_entityId", feature.entityId().layerId().uid() + "/" + feature.entityId().uid());
         return output;
     }
 }
