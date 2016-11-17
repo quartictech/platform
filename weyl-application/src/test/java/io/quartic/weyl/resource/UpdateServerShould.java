@@ -11,10 +11,11 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.geofence.*;
+import io.quartic.weyl.core.geofence.AbstractGeofence;
+import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.AlertMessage;
 import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
@@ -64,7 +65,6 @@ public class UpdateServerShould {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
         final AbstractFeature feature = io.quartic.weyl.core.model.Feature.of(
                 EntityId.of("xyz/123"),
-                FeatureId.of("456"),
                 geometry,
                 EMPTY_ATTRIBUTES
         );

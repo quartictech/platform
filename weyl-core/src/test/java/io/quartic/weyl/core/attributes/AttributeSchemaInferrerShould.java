@@ -36,7 +36,6 @@ public class AttributeSchemaInferrerShould {
         attributes.forEach((k, v) -> builder.attribute(AttributeName.of(k), v));
 
         return Feature.builder()
-                .uid(FeatureId.of("123"))
                 .entityId(EntityId.of("xyz"))
                 .geometry(mock(Geometry.class))
                 .attributes(builder.build())

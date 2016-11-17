@@ -65,7 +65,6 @@ public class HistogramCalculatorShould {
 
     private AbstractFeature feature(Map<AttributeName, ?> attributes) {
         return Feature.builder()
-                .uid(FeatureId.of("abc"))
                 .entityId(EntityId.of("def"))
                 .geometry(mock(Geometry.class))
                 .attributes(Attributes.of(attributes))

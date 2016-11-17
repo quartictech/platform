@@ -1,21 +1,21 @@
 package io.quartic.weyl.core.compute;
 
 import com.vividsolutions.jts.operation.buffer.BufferOp;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.AbstractLayer;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.LayerMetadata;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BufferComputation implements LayerComputation {
-    private final UidGenerator<FeatureId> fidGenerator;
     private final AbstractLayer layer;
     private final double bufferDistance;
 
-    public BufferComputation(UidGenerator<FeatureId> fidGenerator, AbstractLayer layer, BufferSpec bufferSpec) {
-        this.fidGenerator = fidGenerator;
+    public BufferComputation(AbstractLayer layer, BufferSpec bufferSpec) {
         this.layer = layer;
         this.bufferDistance = bufferSpec.bufferDistance();
     }
@@ -24,7 +24,6 @@ public class BufferComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         Collection<AbstractFeature> bufferedFeatures = layer.features().parallelStream()
                 .map(feature -> Feature.copyOf(feature)
-                        .withUid(fidGenerator.get())
                         .withGeometry(BufferOp.bufferOp(feature.geometry(), bufferDistance)))
                 .collect(Collectors.toList());
 
@@ -42,10 +41,10 @@ public class BufferComputation implements LayerComputation {
         Optional<AbstractLayer> layer = store.getLayer(computationSpec.layerId());
 
         if (layer.isPresent()) {
-            return new BufferComputation(store.getFeatureIdGenerator(), layer.get(), computationSpec);
+            return new BufferComputation(layer.get(), computationSpec);
         }
         else {
-            throw new RuntimeException("layer not found: " + computationSpec.layerId());
+            throw new RuntimeException("Layer not found: " + computationSpec.layerId());
         }
     }
 }
