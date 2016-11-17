@@ -30,7 +30,6 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -124,7 +123,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
 
     @Override
     public void onGeometryChange(Collection<AbstractFeature> features) {
-        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features, f -> f.entityId().uid())));  // TODO: it's silly that we use externalId for geofences, and fid for everything else
+        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features)));
     }
 
     private void unsubscribeAll() {
@@ -144,7 +143,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         sendMessage(LayerUpdateMessage.builder()
                 .layerId(layerId)
                 .schema(state.schema())
-                .featureCollection(fromJts(state.featureCollection(), f -> f.uid().uid()))  // TODO: obviously we never want to do this with large static layers
+                .featureCollection(fromJts(state.featureCollection()))  // TODO: obviously we never want to do this with large static layers
                 .externalIdToFeatureIdMapping(computeExternalIdToFeatureIdMapping(state))
                 .build()
         );
@@ -168,19 +167,19 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         }
     }
 
-    private FeatureCollection fromJts(Collection<AbstractFeature> features, Function<AbstractFeature, String> id) {
+    private FeatureCollection fromJts(Collection<AbstractFeature> features) {
         return FeatureCollection.of(
                 features.stream()
-                        .map(f -> fromJts(f, id.apply(f)))
+                        .map(this::fromJts)
                         .collect(toList())
         );
     }
 
-    private Feature fromJts(AbstractFeature f, String id) {
+    private Feature fromJts(AbstractFeature f) {
         return Feature.of(
                 Optional.empty(),
                 Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),
-                convertFromModelAttributes(f.attributes(), id, f.entityId().uid())
+                convertFromModelAttributes(f)
         );
     }
 }

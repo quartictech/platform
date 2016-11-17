@@ -2,6 +2,7 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +37,13 @@ public class ConversionUtils {
         return value;
     }
 
-    public static Map<String, Object> convertFromModelAttributes(Map<AttributeName, Object> modelAttributes, String id, String externalId) {
+    public static Map<String, Object> convertFromModelAttributes(AbstractFeature feature) {
         final Map<String, Object> output = newHashMap();
-        modelAttributes.entrySet().stream()
+        feature.attributes().entrySet().stream()
                 .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_id", id);  // TODO: eliminate the _id concept
-        output.put("_externalId", externalId);
+        output.put("_id", feature.uid().uid());  // TODO: eliminate the _id concept
+        output.put("_externalId", feature.entityId().uid());
         return output;
     }
 }

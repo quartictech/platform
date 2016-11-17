@@ -65,10 +65,7 @@ public class VectorTileRenderer {
             Stopwatch stopwatch = Stopwatch.createStarted();
             layer.intersects(envelope).parallel().map( (feature) -> VectorTileFeature.of(
                     scaleGeometry(feature.feature().geometry(), envelope),
-                    convertFromModelAttributes(
-                            feature.feature().attributes(),
-                            feature.feature().uid().uid(),
-                            feature.feature().entityId().uid()))
+                    convertFromModelAttributes(feature.feature()))
             ).sequential().forEach(vectorTileFeature -> {
                     featureCount.incrementAndGet();
                     encoder.addFeature(layerId.uid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
