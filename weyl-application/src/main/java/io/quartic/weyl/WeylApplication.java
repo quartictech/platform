@@ -19,7 +19,6 @@ import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.FeatureId;
@@ -40,9 +39,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
     private final EntityStore entityStore = new EntityStore();
-    private final LayerStore layerStore = new LayerStore(featureStore, entityStore, lidGenerator);
+    private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator, fidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
@@ -79,7 +77,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        final EntityStoreQuerier entityStoreQuerier = new EntityStoreQuerier(featureStore, entityStore);
+        final EntityStoreQuerier entityStoreQuerier = new EntityStoreQuerier(entityStore);
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));

@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.live.LayerSubscription;
@@ -41,9 +40,8 @@ public class LayerStoreShould {
 
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
     private final EntityStore entityStore = mock(EntityStore.class);
-    private final LayerStore store = new LayerStore(featureStore, entityStore, lidGenerator);
+    private final LayerStore store = new LayerStore(entityStore, lidGenerator, fidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test

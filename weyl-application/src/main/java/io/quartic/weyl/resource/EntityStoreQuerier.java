@@ -1,10 +1,8 @@
 package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.EntityStore;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.FeatureId;
 import org.slf4j.Logger;
 
 import javax.ws.rs.NotFoundException;
@@ -21,11 +19,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class EntityStoreQuerier {
     private static final Logger LOG = getLogger(EntityStoreQuerier.class);
 
-    private final FeatureStore featureStore;
     private final EntityStore entityStore;
 
-    public EntityStoreQuerier(FeatureStore featureStore, EntityStore entityStore) {
-        this.featureStore = featureStore;
+    public EntityStoreQuerier(EntityStore entityStore) {
         this.entityStore = entityStore;
     }
 
@@ -38,15 +34,6 @@ public class EntityStoreQuerier {
         return entities.stream().map(Entry::getValue);
     }
 
-    public Stream<AbstractFeature> retrieveFeaturesOrThrow(List<FeatureId> featureIds) {
-        LOG.info("Retrieving {} features", featureIds.size());
-
-        final List<Entry<FeatureId, AbstractFeature>> features = map(featureIds, id -> new SimpleEntry<>(id, featureStore.get(id)));
-        throwIfAnyMissing(features);
-
-        return features.stream().map(Entry::getValue);
-    }
-
     private void throwIfAnyEntitiesMissing(List<Entry<EntityId, AbstractFeature>> entities) {
         final List<EntityId> missingIds = entities.stream()
                 .filter(e -> e.getValue() == null)
@@ -56,20 +43,6 @@ public class EntityStoreQuerier {
         if (!missingIds.isEmpty()) {
             final List<String> rawIds = map(missingIds, EntityId::toString);
             final String message = String.format("Could not retrieve for entities: %s", rawIds);
-            LOG.error(message);
-            throw new NotFoundException(message);
-        }
-    }
-
-    private void throwIfAnyMissing(List<Entry<FeatureId, AbstractFeature>> features) {
-        final List<FeatureId> missingIds = features.stream()
-                .filter(e -> e.getValue() == null)
-                .map(Entry::getKey)
-                .collect(toList());
-
-        if (!missingIds.isEmpty()) {
-            final List<String> rawIds = map(missingIds, FeatureId::uid);
-            final String message = String.format("Could not retrieve featureIds: %s", rawIds);
             LOG.error(message);
             throw new NotFoundException(message);
         }

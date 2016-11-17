@@ -1,24 +1,21 @@
 package io.quartic.weyl.core.compute;
 
 import com.vividsolutions.jts.operation.buffer.BufferOp;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.AbstractLayer;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.*;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BufferComputation implements LayerComputation {
-    private final double bufferDistance;
+    private final UidGenerator<FeatureId> fidGenerator;
     private final AbstractLayer layer;
-    private final FeatureStore featureStore;
+    private final double bufferDistance;
 
-    public BufferComputation(FeatureStore featureStore, AbstractLayer layer, BufferSpec bufferSpec) {
-        this.featureStore = featureStore;
+    public BufferComputation(UidGenerator<FeatureId> fidGenerator, AbstractLayer layer, BufferSpec bufferSpec) {
+        this.fidGenerator = fidGenerator;
         this.layer = layer;
         this.bufferDistance = bufferSpec.bufferDistance();
     }
@@ -27,7 +24,7 @@ public class BufferComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         Collection<AbstractFeature> bufferedFeatures = layer.features().parallelStream()
                 .map(feature -> Feature.copyOf(feature)
-                        .withUid(featureStore.getFeatureIdGenerator().get())
+                        .withUid(fidGenerator.get())
                         .withGeometry(BufferOp.bufferOp(feature.geometry(), bufferDistance)))
                 .collect(Collectors.toList());
 
@@ -45,7 +42,7 @@ public class BufferComputation implements LayerComputation {
         Optional<AbstractLayer> layer = store.getLayer(computationSpec.layerId());
 
         if (layer.isPresent()) {
-            return new BufferComputation(store.getFeatureStore(), layer.get(), computationSpec);
+            return new BufferComputation(store.getFeatureIdGenerator(), layer.get(), computationSpec);
         }
         else {
             throw new RuntimeException("layer not found: " + computationSpec.layerId());

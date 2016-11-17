@@ -1,7 +1,6 @@
 package io.quartic.weyl.resource;
 
 import io.quartic.weyl.core.EntityStore;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import org.junit.Test;
@@ -17,9 +16,8 @@ import static org.mockito.Mockito.when;
 
 public class EntityStoreQuerierShould {
 
-    private final FeatureStore featureStore = mock(FeatureStore.class);
     private final EntityStore entityStore = mock(EntityStore.class);
-    private final EntityStoreQuerier querier = new EntityStoreQuerier(featureStore, entityStore);
+    private final EntityStoreQuerier querier = new EntityStoreQuerier(entityStore);
 
     @Test(expected = NotFoundException.class)
     public void throw_if_any_attributes_not_found() throws Exception {

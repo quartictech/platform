@@ -1,23 +1,26 @@
 package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class BucketComputation implements LayerComputation {
-    private final FeatureStore featureStore;
     private final AbstractLayer featureLayer;
     private final AbstractBucketSpec bucketSpec;
     private final AbstractLayer bucketLayer;
+    private final UidGenerator<FeatureId> fidGenerator;
 
-    private BucketComputation(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
-        this.featureStore = featureStore;
+    private BucketComputation(AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec, UidGenerator<FeatureId> fidGenerator) {
+        this.fidGenerator = fidGenerator;
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
@@ -32,7 +35,7 @@ public class BucketComputation implements LayerComputation {
         Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketComputation(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec);
+            return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec, store.getFeatureIdGenerator());
         }
         else {
             throw new RuntimeException("can't find input layers for bucket computation");
@@ -102,7 +105,7 @@ public class BucketComputation implements LayerComputation {
                     builder.attributes(bucket.attributes().attributes());
                     builder.attribute(attributeName(), value);
                     return Feature.copyOf(bucket)
-                            .withUid(featureStore.getFeatureIdGenerator().get())
+                            .withUid(fidGenerator.get())
                             .withAttributes(builder.build());
                 })
                 .collect(Collectors.toList());

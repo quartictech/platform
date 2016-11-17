@@ -34,7 +34,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const features = this.queryRenderedFeatures(e.point);
     const feature = (features.length > 0)
       ? {
-        id: features[0].properties["_id"],  // eslint-disable-line dot-notation
         entityId: features[0].properties["_entityId"], // eslint-disable-line dot-notation
         layerId: features[0].layer.source,
         properties: features[0].properties,
@@ -261,7 +260,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "paint": {
         "circle-color": "#FFB85F", // "#6e599f",
       },
-      "filter": ["in", "_id", ""],
+      "filter": ["in", "_entityId", ""],
     });
 
     subLayerDefs.push({
@@ -270,7 +269,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "paint": {
         "fill-color": "#FFB85F", // "#6e599f",
       },
-      "filter": ["in", "_id", ""],
+      "filter": ["in", "_entityId", ""],
     });
 
     subLayerDefs.push({
@@ -279,7 +278,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "paint": {
         "line-color": "#FFB85F", // "#6e599f",
       },
-      "filter": ["in", "_id", ""],
+      "filter": ["in", "_entityId", ""],
     });
 
     return this.addSubLayers(layer.id, subLayerDefs);

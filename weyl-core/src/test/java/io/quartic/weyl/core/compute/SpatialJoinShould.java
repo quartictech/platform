@@ -8,7 +8,6 @@ import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.Test;
@@ -30,8 +29,7 @@ import static org.mockito.Mockito.mock;
 public class SpatialJoinShould {
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore store = new LayerStore(featureStore, mock(EntityStore.class), lidGenerator);
+    private final LayerStore store = new LayerStore(mock(EntityStore.class), lidGenerator, fidGenerator);
 
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {

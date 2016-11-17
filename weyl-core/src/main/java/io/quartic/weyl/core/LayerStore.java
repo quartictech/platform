@@ -12,7 +12,6 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.BufferComputationUtils;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.feature.FeatureCollection;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
@@ -31,22 +30,23 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
+import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.stream.Collectors.toList;
 
 public class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
-    private final FeatureStore featureStore;
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final EntityStore entityStore;
     private final UidGenerator<LayerId> lidGenerator;
+    private final UidGenerator<FeatureId> fidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
-    public LayerStore(FeatureStore featureStore, EntityStore entityStore, UidGenerator<LayerId> lidGenerator) {
-        this.featureStore = featureStore;
+    public LayerStore(EntityStore entityStore, UidGenerator<LayerId> lidGenerator, UidGenerator<FeatureId> fidGenerator) {
         this.entityStore = entityStore;
         this.lidGenerator = lidGenerator;
+        this.fidGenerator = fidGenerator;
     }
 
     public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
@@ -99,8 +99,8 @@ public class LayerStore {
         return layer.map(Layer::layerId);
     }
 
-    public FeatureStore getFeatureStore() {
-        return featureStore;
+    public UidGenerator<FeatureId> getFeatureIdGenerator() {
+        return fidGenerator;
     }
 
     private void checkLayerExists(LayerId layerId) {
@@ -116,7 +116,7 @@ public class LayerStore {
     }
 
     private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
-        final FeatureCollection features = featureStore.newCollection();
+        final FeatureCollection features = EMPTY_COLLECTION;
         return Layer.builder()
                 .layerId(layerId)
                 .metadata(metadata)
@@ -172,8 +172,7 @@ public class LayerStore {
 
     private LayerState computeLayerState(Layer layer, LayerSubscription subscription) {
         final Collection<AbstractFeature> features = layer.features();
-        Stream<AbstractFeature> computed = subscription.liveLayerView()
-                .compute(featureStore.getFeatureIdGenerator(), features);
+        Stream<AbstractFeature> computed = subscription.liveLayerView().compute(fidGenerator, features);
         return LayerState.builder()
                 .schema(layer.schema())
                 .featureCollection(computed.collect(toList()))
@@ -212,7 +211,7 @@ public class LayerStore {
     private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
         return features.stream().map(f -> Feature.of(
                 EntityId.of(layerId + "/" + f.externalId()),
-                featureStore.getFeatureIdGenerator().get(),
+                fidGenerator.get(),
                 f.geometry(),
                 f.attributes()
         )).collect(toList());

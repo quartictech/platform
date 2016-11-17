@@ -4,19 +4,15 @@ import io.quartic.weyl.core.model.AbstractFeature;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.reverse;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class FeatureCollectionShould {
-    private final Consumer<Collection<? extends AbstractFeature>> backer = mock(Consumer.class);
-    FeatureCollection collection = new FeatureCollection(backer);
+    FeatureCollection collection = new FeatureCollection();
 
     @Test
     public void be_empty_by_default() throws Exception {
@@ -53,15 +49,6 @@ public class FeatureCollectionShould {
         collection.append(featuresToAppend);
 
         assertThat(collection, empty());
-    }
-
-    @Test
-    public void add_appended_features_to_store() throws Exception {
-        final ArrayList<AbstractFeature> featuresToAppend = newArrayList(feature(), feature());
-
-        collection.append(featuresToAppend);
-
-        verify(backer).accept(featuresToAppend);
     }
 
     @Test(expected = UnsupportedOperationException.class)

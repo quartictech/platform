@@ -40,7 +40,6 @@ public class ConversionUtils {
         feature.attributes().attributes().entrySet().stream()
                 .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_id", feature.uid().uid());  // TODO: eliminate the _id concept
         output.put("_entityId", feature.entityId().uid());
         return output;
     }
