@@ -68,7 +68,7 @@ public class VectorTileRenderer {
                     convertFromModelAttributes(
                             feature.feature().attributes(),
                             feature.feature().uid().uid(),
-                            feature.feature().externalId()))
+                            feature.feature().entityId().uid()))
             ).sequential().forEach(vectorTileFeature -> {
                     featureCount.incrementAndGet();
                     encoder.addFeature(layerId.uid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());

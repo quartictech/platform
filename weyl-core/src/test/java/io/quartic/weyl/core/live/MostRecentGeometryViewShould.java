@@ -9,10 +9,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -101,7 +98,7 @@ public class MostRecentGeometryViewShould {
 
     private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
         return Feature.builder()
-                .externalId(name)
+                .entityId(EntityId.of(LayerId.of("blah"), name))
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
                 .attributes(ImmutableMap.of(AttributeName.of("name"), name))

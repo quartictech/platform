@@ -44,8 +44,8 @@ public class SpatialJoinShould {
                 .collect(Collectors.toList());
 
         assertThat(joinResults, containsInAnyOrder(
-                Tuple.of(feature(polyA, "1"), feature(pointA, "3")),
-                Tuple.of(feature(polyB, "2"), feature(pointB, "4"))
+                Tuple.of(feature(polyA, "1", "1"), feature(pointA, "2", "3")),
+                Tuple.of(feature(polyB, "1", "2"), feature(pointB, "2", "4"))
         ));
     }
 
@@ -85,9 +85,9 @@ public class SpatialJoinShould {
        return NakedFeature.of("123", geometry, ImmutableMap.of());
     }
 
-    private AbstractFeature feature(NakedFeature feature, String id) {
+    private AbstractFeature feature(NakedFeature feature, String layerId, String id) {
         return Feature.of(
-                feature.externalId(),
+                EntityId.of(LayerId.of(layerId), feature.externalId()),
                 FeatureId.of(id),
                 feature.geometry(),
                 feature.attributes()

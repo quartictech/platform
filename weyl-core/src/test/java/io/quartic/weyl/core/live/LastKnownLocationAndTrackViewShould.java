@@ -8,10 +8,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,13 +63,13 @@ public class LastKnownLocationAndTrackViewShould {
                 featureB));
 
         List<AbstractFeature> expectedFeatures = ImmutableList.of(
-                lineFeature("alex", 1001, new Coordinate[]{
-                        new Coordinate(100, 100),
-                        new Coordinate(300, 300)
-                }),
-                lineFeature("bob", 1002, new Coordinate[]{
+                lineFeature("bob", 1001, new Coordinate[]{
                         new Coordinate(100, 100),
                         new Coordinate(200, 200)
+                }),
+                lineFeature("alex", 1002, new Coordinate[]{
+                        new Coordinate(100, 100),
+                        new Coordinate(300, 300)
                 }),
                 featureA,
                 featureB
@@ -120,7 +117,7 @@ public class LastKnownLocationAndTrackViewShould {
 
     private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
         return Feature.builder()
-                .externalId(name)
+                .entityId(EntityId.of(LayerId.of("foo"), name))
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
                 .attributes(ImmutableMap.of(AttributeName.of("name"), name))

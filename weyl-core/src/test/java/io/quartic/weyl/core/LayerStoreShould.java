@@ -18,7 +18,6 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.subjects.PublishSubject;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -35,7 +34,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LayerStoreShould {
-    public static final Instant INSTANT = Instant.now();
     public static final LayerId LAYER_ID = LayerId.of("666");
     public static final LayerId OTHER_LAYER_ID = LayerId.of("777");
     private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
@@ -299,7 +297,7 @@ public class LayerStoreShould {
 
     private AbstractFeature feature(String externalId, String uid) {
         return Feature.of(
-                externalId,
+                EntityId.of(LAYER_ID, externalId),
                 FeatureId.of(uid),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 ImmutableMap.of(ATTRIBUTE_NAME, 1234)

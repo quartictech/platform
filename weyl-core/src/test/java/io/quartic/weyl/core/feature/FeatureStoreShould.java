@@ -2,9 +2,7 @@ package io.quartic.weyl.core.feature;
 
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.*;
 import org.junit.Test;
 
 import java.util.Map;
@@ -51,7 +49,7 @@ public class FeatureStoreShould {
     private AbstractFeature feature(String id) {
         // Don't use mocks, because Mockito retains references, which means the weak-reference stuff doesn't happen
         return Feature.builder()
-                .externalId(id)
+                .entityId(EntityId.of(LayerId.of("foo"), id))
                 .uid(FeatureId.of(id))
                 .geometry(mock(Geometry.class))
                 .attributes(mock(Map.class))

@@ -9,7 +9,7 @@ import java.util.Map;
 @SweetStyle
 @Value.Immutable
 public interface AbstractFeature {
-    String externalId();
+    EntityId entityId();
     FeatureId uid();    // Must be unique
     Geometry geometry();
     Map<AttributeName, Object> attributes();

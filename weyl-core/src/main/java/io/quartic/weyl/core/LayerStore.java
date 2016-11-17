@@ -195,7 +195,7 @@ public class LayerStore {
                 final Layer layer = layers.get(id); // TODO: locking?
                 LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
 
-                final Collection<AbstractFeature> elaboratedFeatures = elaborate(update.features());
+                final Collection<AbstractFeature> elaboratedFeatures = elaborate(id, update.features());
                 final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
@@ -206,9 +206,9 @@ public class LayerStore {
     }
 
     // TODO: this is going to double memory usage?
-    private Collection<AbstractFeature> elaborate(Collection<AbstractNakedFeature> features) {
+    private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
         return features.stream().map(f -> Feature.of(
-                f.externalId(),
+                EntityId.of(layerId, f.externalId()),
                 featureStore.getFeatureIdGenerator().get(),
                 f.geometry(),
                 f.attributes()

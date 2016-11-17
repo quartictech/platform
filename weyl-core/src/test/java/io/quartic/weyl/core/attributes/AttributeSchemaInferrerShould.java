@@ -34,7 +34,7 @@ public class AttributeSchemaInferrerShould {
     private AbstractFeature feature(Map<AttributeName, ?> attributes) {
         return Feature.builder()
                 .uid(FeatureId.of("123"))
-                .externalId("abc")
+                .entityId(EntityId.of(LayerId.of("xyz"), "abc"))
                 .geometry(mock(Geometry.class))
                 .attributes(attributes)
                 .build();

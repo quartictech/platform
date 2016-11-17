@@ -6,6 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
@@ -37,7 +38,9 @@ public class GeofenceStoreShould {
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(ImmutableList.of(Feature.of("99", FeatureId.of("1"), fenceGeometry, emptyMap())));
+        verify(listener).onGeometryChange(ImmutableList.of(
+                Feature.of(EntityId.of(LayerId.of("geofence"), "99"), FeatureId.of("1"), fenceGeometry, emptyMap())
+        ));
     }
 
     @Test
@@ -145,7 +148,7 @@ public class GeofenceStoreShould {
         final Violation violation = captor.getValue();
         assertThat(violation.id(), equalTo(ViolationId.of("1")));
         assertThat(violation.geofenceId(), equalTo(GeofenceId.of("99")));
-        assertThat(violation.featureExternalId(), equalTo("ducks"));
+        assertThat(violation.entityId(), equalTo(entityId()));
         assertThat(violation.message(), containsString("ducks"));
     }
 
@@ -160,10 +163,14 @@ public class GeofenceStoreShould {
         store.onLiveLayerEvent(
                 LayerId.of("666"),
                 Feature.builder()
-                        .externalId("ducks")
+                        .entityId(entityId())
                         .uid(FeatureId.of("123"))
                         .geometry(point)
                         .attributes(ImmutableMap.of())
                         .build());
+    }
+
+    private EntityId entityId() {
+        return EntityId.of(LayerId.of("666"), "ducks");
     }
 }

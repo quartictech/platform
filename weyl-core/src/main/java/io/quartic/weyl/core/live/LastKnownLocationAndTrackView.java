@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureId;
 
@@ -27,7 +28,7 @@ public class LastKnownLocationAndTrackView implements LayerView {
         return Stream.of(
                 last,
                 Feature.builder()
-                        .externalId(last.externalId())
+                        .entityId(last.entityId())  // TODO: this is wrong
                         .uid(uidGenerator.get())
                         .geometry(factory.createLineString(history.stream()
                                         .map(f -> f.geometry().getCoordinate())
@@ -42,9 +43,9 @@ public class LastKnownLocationAndTrackView implements LayerView {
     @Override
     public Stream<AbstractFeature> compute(UidGenerator<FeatureId> uidGenerator, Collection<AbstractFeature> history) {
         // TODO: sorting by UID is wrong - we should sort by timestamp
-        Map<String, List<AbstractFeature>> historyById = history.stream()
+        Map<EntityId, List<AbstractFeature>> historyById = history.stream()
                 .sorted((a, b) -> Long.compare(Long.valueOf(a.uid().uid()), Long.valueOf(b.uid().uid())))
-                .collect(groupingBy(AbstractFeature::externalId));
+                .collect(groupingBy(AbstractFeature::entityId));
 
         return historyById.values()
                 .stream()

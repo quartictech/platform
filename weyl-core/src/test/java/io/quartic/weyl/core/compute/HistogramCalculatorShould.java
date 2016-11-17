@@ -3,10 +3,7 @@ package io.quartic.weyl.core.compute;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.*;
 import org.junit.Test;
 
 import java.util.List;
@@ -69,7 +66,7 @@ public class HistogramCalculatorShould {
     private AbstractFeature feature(Map<AttributeName, ?> attributes) {
         return Feature.builder()
                 .uid(FeatureId.of("abc"))
-                .externalId("def")
+                .entityId(EntityId.of(LayerId.of("def"), "ghi"))
                 .geometry(mock(Geometry.class))
                 .attributes(attributes)
                 .build();

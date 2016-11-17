@@ -124,7 +124,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
 
     @Override
     public void onGeometryChange(Collection<AbstractFeature> features) {
-        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features, f -> f.externalId())));  // TODO: it's silly that we use externalId for geofences, and fid for everything else
+        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features, f -> f.entityId().uid())));  // TODO: it's silly that we use externalId for geofences, and fid for everything else
     }
 
     private void unsubscribeAll() {
@@ -153,7 +153,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     // TODO: This is a hack for live update of selection. We are also assuming uid monotonic increasing which is NAUGHTY
     private Map<String, ? extends FeatureId> computeExternalIdToFeatureIdMapping(LayerState state) {
         return state.featureCollection().stream()
-                .collect(groupingBy(AbstractFeature::externalId))
+                .collect(groupingBy(f -> f.entityId().uid()))
                 .entrySet()
                 .stream()
                 // HACK!!!
@@ -178,9 +178,9 @@ public class UpdateServer implements AlertListener, GeofenceListener {
 
     private Feature fromJts(AbstractFeature f, String id) {
         return Feature.of(
-                Optional.of(f.externalId()),
+                Optional.empty(),
                 Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),
-                convertFromModelAttributes(f.attributes(), id, f.externalId())
+                convertFromModelAttributes(f.attributes(), id, f.entityId().uid())
         );
     }
 }
