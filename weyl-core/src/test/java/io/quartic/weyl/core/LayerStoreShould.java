@@ -308,7 +308,7 @@ public class LayerStoreShould {
 
     private AbstractFeature feature(String externalId, String uid) {
         return Feature.of(
-                EntityId.of(LAYER_ID + "/" + externalId),
+                EntityId.of(LAYER_ID.uid() + "/" + externalId),
                 FeatureId.of(uid),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
