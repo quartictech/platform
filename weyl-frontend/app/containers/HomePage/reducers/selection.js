@@ -9,7 +9,7 @@ export default (state = initialState, action) => {
       }
 
       if (action.multiSelectEnabled) {
-        return state.hasIn(["ids", action.feature.layerId, action.feature.id])
+        return state.hasIn(["ids", action.feature.layerId, action.feature.entityId])
           ? deleteEntry(state, action.feature)
           : addEntry(state, action.feature);
       }
@@ -44,7 +44,6 @@ export default (state = initialState, action) => {
 
 const initialState = fromJS({
   ids: {},
-  entityIds: {},
   info: {
     lifecycleState: "INFO_NOT_REQUIRED",
     data: {},
@@ -53,20 +52,16 @@ const initialState = fromJS({
 
 const addEntry = (state, feature) =>
   requireInfo(state)
-  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.id))
-  .updateIn(["entityIds", feature.layerId], new Set(), fids => fids.add(feature.entityId));
+  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.entityId));
 
 const deleteEntries = (state) =>
   requireInfo(state)
-  .set("ids", new Map())
-  .set("entityIds", new Map());
+  .set("ids", new Map());
 
 const deleteEntry = (state, feature) =>
   requireInfo(state)
-  .updateIn(["ids", feature.layerId], fids => fids.delete(feature.id))
-  .update("ids", ids => (ids.get(feature.layerId).isEmpty() ? ids.delete(feature.layerId) : ids))
-  .updateIn(["entityIds", feature.layerId], entityIds => entityIds.delete(feature.entityId))
-  .update("entityIds", entityIds => (entityIds.get(feature.layerId).isEmpty() ? entityIds.delete(feature.layerId) : entityIds));
+  .updateIn(["ids", feature.layerId], ids => ids.delete(feature.entityId))
+  .update("ids", ids => (ids.get(feature.layerId).isEmpty() ? ids.delete(feature.layerId) : ids));
 
 const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED");
 

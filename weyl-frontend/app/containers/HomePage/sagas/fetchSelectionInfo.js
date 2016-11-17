@@ -21,7 +21,7 @@ const fetchFromEndpoint = (entityIds, endpoint) => request(`${apiRootUrl}${endpo
 });
 
 function* fetchAndDispatch() {
-  const selectedIds = yield select(selectors.selectSelectedEntityIds);
+  const selectedIds = yield select(selectors.selectSelectedIds);
   const entityIds = _.flatten(_.values(selectedIds));
 
   const results = yield _.values(thingsToFetch)

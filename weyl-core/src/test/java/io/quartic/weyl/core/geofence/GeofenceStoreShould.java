@@ -148,7 +148,6 @@ public class GeofenceStoreShould {
         assertThat(violation.message(), containsString("ducks"));
     }
 
-
     private void createGeofence(GeofenceType type) {
         store.setGeofences(ImmutableList.of(geofence(type)));
     }

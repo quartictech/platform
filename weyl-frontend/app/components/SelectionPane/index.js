@@ -8,7 +8,7 @@ const _ = require("underscore");
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     const layers = this.props.layers;
-    const featureIds = this.props.selectedFeaturedIds;
+    const featureIds = this.props.selectedFeatureIds;
     const info = this.props.selectionInfo;
     const featureAttributes = info.data.featureAttributes;
 

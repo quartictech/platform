@@ -210,7 +210,7 @@ public class LayerStore {
     // TODO: this is going to double memory usage?
     private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
         return features.stream().map(f -> Feature.of(
-                EntityId.of(layerId + "/" + f.externalId()),
+                EntityId.of(layerId.uid() + "/" + f.externalId()),
                 fidGenerator.get(),
                 f.geometry(),
                 f.attributes()
