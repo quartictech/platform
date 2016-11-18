@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.live.LayerSubscription;
@@ -18,13 +17,13 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.subjects.PublishSubject;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
@@ -35,14 +34,13 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LayerStoreShould {
-    public static final Instant INSTANT = Instant.now();
-    public static final LayerId LAYER_ID = LayerId.of("666");
-    public static final LayerId OTHER_LAYER_ID = LayerId.of("777");
+    private static final LayerId LAYER_ID = LayerId.of("666");
+    private static final LayerId OTHER_LAYER_ID = LayerId.of("777");
     private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
-    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
+
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore store = new LayerStore(featureStore, lidGenerator);
+    private final EntityStore entityStore = mock(EntityStore.class);
+    private final LayerStore store = new LayerStore(entityStore, lidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
@@ -80,7 +78,7 @@ public class LayerStoreShould {
     public void preserve_core_schema_info_upon_update() throws Exception {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        Observable.just(updateFor(feature("a", "1"))).subscribe(sub);
+        Observable.just(updateFor(feature("a"))).subscribe(sub);
 
         final AbstractLayer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeName.of("blah")));
@@ -91,13 +89,23 @@ public class LayerStoreShould {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
-                updateFor(feature("a", "1")),
-                updateFor(feature("b", "2"))
+                updateFor(feature("a")),
+                updateFor(feature("b"))
         ).subscribe(sub);
 
         final AbstractLayer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(),
                 containsInAnyOrder(feature("a", "1"), feature("b", "2")));
+    }
+
+    @Test
+    public void put_attributes_to_store() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+
+        Observable.just(updateFor(feature("a"), feature("b"))).subscribe(sub);
+
+
+        verify(entityStore).putAll(newArrayList(feature("a", "1"), feature("b", "2")));
     }
 
     @Test
@@ -108,7 +116,7 @@ public class LayerStoreShould {
         store.addSubscriber(LAYER_ID, subscriber);
 
         Observable.just(
-                updateFor(feature("a", "1"))
+                updateFor(feature("a"))
         ).subscribe(sub);
 
         final LayerState layerState = captureLiveLayerState(subscriber);
@@ -156,7 +164,7 @@ public class LayerStoreShould {
 
     private void assertCanRunToCompletion(Subscriber<SourceUpdate> sub) {
         final AtomicBoolean completed = new AtomicBoolean(false);
-        Observable.just(updateFor(feature("a", "1")), updateFor(feature("b", "2")))
+        Observable.just(updateFor(feature("a")), updateFor(feature("b")))
                 .doOnCompleted(() -> completed.set(true))
                 .subscribe(sub);
 
@@ -191,12 +199,12 @@ public class LayerStoreShould {
         PublishSubject<SourceUpdate> subject = PublishSubject.create();
         subject.subscribe(sub);
 
-        subject.onNext(updateFor(feature("a", "1")));   // Observed before
+        subject.onNext(updateFor(feature("a")));   // Observed before
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         store.addSubscriber(LAYER_ID, subscriber);
 
-        subject.onNext(updateFor(feature("b", "2")));   // Observed after
+        subject.onNext(updateFor(feature("b")));   // Observed after
 
         assertThat(captureLiveLayerState(subscriber).featureCollection(),
                 containsInAnyOrder(
@@ -221,7 +229,7 @@ public class LayerStoreShould {
         store.addListener(listenerB);
 
         Observable.just(
-                updateFor(feature("a", "1"))
+                updateFor(feature("a"))
         ).subscribe(sub);
 
         verify(listenerA).onLiveLayerEvent(LAYER_ID, feature("a", "1"));
@@ -238,7 +246,7 @@ public class LayerStoreShould {
         store.removeSubscriber(subscription);
 
         Observable.just(
-                updateFor(feature("a", "1"))
+                updateFor(feature("a"))
         ).subscribe(sub);
 
         verifyNoMoreInteractions(subscriber);
@@ -257,7 +265,7 @@ public class LayerStoreShould {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
-                updateFor(feature("a", "1"))
+                updateFor(feature("a"))
         ).subscribe(sub);
 
         verifyNoMoreInteractions(subscriber);
@@ -277,7 +285,7 @@ public class LayerStoreShould {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
 
         Observable.just(
-                updateFor(feature("a", "1"))
+                updateFor(feature("a"))
         ).subscribe(sub);
 
         final AbstractLayer layer = store.getLayer(LAYER_ID).get();
@@ -285,17 +293,24 @@ public class LayerStoreShould {
         assertThat(layer.indexedFeatures(), hasSize(size));
     }
 
-    private SourceUpdate updateFor(Feature... features) {
+    private SourceUpdate updateFor(NakedFeature... features) {
         return SourceUpdate.of(asList(features));
     }
 
-    private Feature feature(String externalId, String uid) {
-        return io.quartic.weyl.core.model.ImmutableFeature.builder()
-                .externalId(externalId)
-                .uid(FeatureId.of(uid))
-                .geometry(factory.createPoint(new Coordinate(123.0, 456.0)))
-                .attributes(ImmutableMap.of(ATTRIBUTE_NAME, 1234))
-                .build();
+    private NakedFeature feature(String externalId) {
+        return NakedFeature.of(
+                externalId,
+                factory.createPoint(new Coordinate(123.0, 456.0)),
+                Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
+        );
+    }
+
+    private AbstractFeature feature(String externalId, String uid) {
+        return Feature.of(
+                EntityId.of(LAYER_ID.uid() + "/" + externalId),
+                factory.createPoint(new Coordinate(123.0, 456.0)),
+                Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
+        );
     }
 
     private Subscriber<SourceUpdate> createLayer(LayerId id) {

@@ -4,32 +4,27 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.source.SourceUpdate;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Test;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class LiveEventConverterShould {
-    public static final Instant TIMESTAMP = Instant.now();
     private final GeometryFactory factory = new GeometryFactory();
-    private final LiveEventConverter converter = new LiveEventConverter(
-            new SequenceUidGenerator<>(FeatureId::of),
-            GeometryTransformer.webMercatorToWebMercator()
-    );
+    private final LiveEventConverter converter = new LiveEventConverter(webMercatorToWebMercator());
 
     // TODO: multiple LiveEvents
 
@@ -40,12 +35,8 @@ public class LiveEventConverterShould {
         final SourceUpdate update = converter.updateFrom(collection);
 
         assertThat(update.features(), equalTo(ImmutableList.of(
-                io.quartic.weyl.core.model.ImmutableFeature.builder()
-                        .uid(FeatureId.of("1"))
-                        .externalId("a")
-                        .geometry(factory.createPoint(new Coordinate(51.0, 0.1)))
-                        .attributes(ImmutableMap.of(AttributeName.of("timestamp"), 1234))
-                        .build()
+                NakedFeature.of("a", factory.createPoint(new Coordinate(51.0, 0.1)),
+                        Attributes.builder().attribute(AttributeName.of("timestamp"), 1234).build())
         )));
     }
 

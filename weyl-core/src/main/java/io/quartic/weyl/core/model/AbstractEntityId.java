@@ -6,5 +6,5 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-public interface AbstractFeatureId extends Uid {
+public interface AbstractEntityId extends Uid {
 }

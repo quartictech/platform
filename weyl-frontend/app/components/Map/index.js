@@ -34,9 +34,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const features = this.queryRenderedFeatures(e.point);
     const feature = (features.length > 0)
       ? {
-        id: features[0].properties["_id"],  // eslint-disable-line dot-notation
-        // TODO: Hack for ids
-        externalId: features[0].properties["_externalId"], // eslint-disable-line dot-notation
+        entityId: features[0].properties["_entityId"], // eslint-disable-line dot-notation
         layerId: features[0].layer.source,
         properties: features[0].properties,
       }
@@ -174,8 +172,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.setSubLayerVisibility("geofence_fill_violated", visible);
     this.setSubLayerVisibility("geofence_line_violated", visible);
 
-    const unviolatedFilter = ["!in", "_id"].concat(geofence.violatedIds);
-    const violatedFilter = ["in", "_id"].concat(geofence.violatedIds);
+    const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violatedIds);
+    const violatedFilter = ["in", "_entityId"].concat(geofence.violatedIds);
     this.map.setFilter("geofence_fill", unviolatedFilter);
     this.map.setFilter("geofence_line", unviolatedFilter);
     this.map.setFilter("geofence_fill_violated", violatedFilter);
@@ -262,7 +260,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "paint": {
         "circle-color": "#FFB85F", // "#6e599f",
       },
-      "filter": ["in", "_id", ""],
+      "filter": ["in", "_entityId", ""],
     });
 
     subLayerDefs.push({
@@ -271,7 +269,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "paint": {
         "fill-color": "#FFB85F", // "#6e599f",
       },
-      "filter": ["in", "_id", ""],
+      "filter": ["in", "_entityId", ""],
     });
 
     subLayerDefs.push({
@@ -280,7 +278,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "paint": {
         "line-color": "#FFB85F", // "#6e599f",
       },
-      "filter": ["in", "_id", ""],
+      "filter": ["in", "_entityId", ""],
     });
 
     return this.addSubLayers(layer.id, subLayerDefs);
@@ -322,7 +320,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   createSelectionFilter(selection, layerId) {
-    return ["in", "_id"].concat((layerId in selection) ? selection[layerId] : "");
+    return ["in", "_entityId"].concat((layerId in selection) ? selection[layerId] : "");
   }
 
   setSubLayerVisibility(id, visible) {

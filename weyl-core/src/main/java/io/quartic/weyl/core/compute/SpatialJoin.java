@@ -3,8 +3,8 @@ package io.quartic.weyl.core.compute;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 import io.quartic.common.SweetStyle;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AbstractLayer;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.IndexedFeature;
 import org.immutables.value.Value;
 
@@ -14,8 +14,8 @@ public class SpatialJoin {
     @SweetStyle
     @Value.Immutable
     public interface AbstractTuple {
-        Feature left();
-        Feature right();
+        AbstractFeature left();
+        AbstractFeature right();
     }
 
     public enum SpatialPredicate {

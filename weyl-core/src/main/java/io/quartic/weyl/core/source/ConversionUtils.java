@@ -2,26 +2,26 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.Attributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static java.util.stream.Collectors.toMap;
+import static com.google.common.collect.Maps.newHashMap;
 
 public class ConversionUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ConversionUtils.class);
 
-    public static Map<AttributeName, Object> convertAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
-        return rawAttributes.entrySet()
-                .stream()
-                .collect(toMap(
-                        e -> AttributeName.of(e.getKey()),
-                        e -> ConversionUtils.convertAttributeValue(objectMapper, e.getKey(), e.getValue())));
+    public static Attributes convertToModelAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
+        final Attributes.Builder builder = Attributes.builder();
+        rawAttributes.forEach((k, v) -> builder.attribute(AttributeName.of(k), convertAttributeValue(objectMapper, k, v)));
+        return builder.build();
     }
 
-    static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
+    private static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             try {
@@ -33,5 +33,14 @@ public class ConversionUtils {
             }
         }
         return value;
+    }
+
+    public static Map<String, Object> convertFromModelAttributes(AbstractFeature feature) {
+        final Map<String, Object> output = newHashMap();
+        feature.attributes().attributes().entrySet().stream()
+                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
+                .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
+        output.put("_entityId", feature.entityId().uid());
+        return output;
     }
 }

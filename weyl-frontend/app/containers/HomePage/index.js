@@ -29,7 +29,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               onMapLoaded={this.props.onMapLoaded}
               onMouseMove={this.props.onMapMouseMove}
               onMouseClick={this.props.onMapMouseClick}
-              selection={this.props.selectionIds}
+              selection={this.props.selectedIds}
               map={this.props.map}
               geofence={this.props.geofence}
               onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
@@ -69,7 +69,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.rightDrawer}>
           <SelectionPane
-            selectedFeaturedIds={this.props.selectionIds}
+            selectedFeatureIds={this.props.selectedIds}
             selectionInfo={this.props.selectionInfo}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
@@ -120,7 +120,7 @@ const mapDispatchToProps = {
 const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
-  selectionIds: selectors.selectSelectionIds,
+  selectedIds: selectors.selectSelectedIds,
   selectionInfo: selectors.selectSelectionInfo,
   timeSeries: selectors.selectTimeSeries,
   map: selectors.selectMap,

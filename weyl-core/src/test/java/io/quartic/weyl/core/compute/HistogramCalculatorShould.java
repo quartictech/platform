@@ -3,10 +3,7 @@ package io.quartic.weyl.core.compute;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.*;
 import org.junit.Test;
 
 import java.util.List;
@@ -24,7 +21,7 @@ public class HistogramCalculatorShould {
 
     @Test
     public void count_distinct_values_for_attribute() throws Exception {
-        List<Feature> features = newArrayList(
+        List<AbstractFeature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice")),
                 feature(ImmutableMap.of(NAME, "Bob")),
                 feature(ImmutableMap.of(NAME, "Alice"))
@@ -38,7 +35,7 @@ public class HistogramCalculatorShould {
 
     @Test
     public void count_distinct_values_for_multiple_attributes() throws Exception {
-        List<Feature> features = newArrayList(
+        List<AbstractFeature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Bob", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "cat"))
@@ -53,7 +50,7 @@ public class HistogramCalculatorShould {
 
     @Test
     public void handle_missing_attributes() throws Exception {
-        List<Feature> features = newArrayList(
+        List<AbstractFeature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Bob")),
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "cat"))
@@ -66,13 +63,11 @@ public class HistogramCalculatorShould {
                 )));
     }
 
-
-    private Feature feature(Map<AttributeName, ?> attributes) {
-        return ImmutableFeature.builder()
-                .uid(FeatureId.of("abc"))
-                .externalId("def")
+    private AbstractFeature feature(Map<AttributeName, ?> attributes) {
+        return Feature.builder()
+                .entityId(EntityId.of("def"))
                 .geometry(mock(Geometry.class))
-                .attributes(attributes)
+                .attributes(Attributes.of(attributes))
                 .build();
     }
 }

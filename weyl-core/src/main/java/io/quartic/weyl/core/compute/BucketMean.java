@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 import org.immutables.value.Value;
 
 import java.util.Collection;
@@ -18,13 +18,13 @@ public abstract class BucketMean implements BucketAggregation {
     abstract AttributeName attribute();
 
     @Override
-    public double aggregate(Feature bucket, Collection<Feature> features) {
+    public double aggregate(AbstractFeature bucket, Collection<AbstractFeature> features) {
         if (features.size() == 0) {
             return 0;
         }
         else {
             return features.stream()
-                    .map(feature -> feature.attributes().get(attribute()))
+                    .map(feature -> feature.attributes().attributes().get(attribute()))
                     .filter(Objects::nonNull)
                     .mapToDouble(BucketUtils::mapToDouble)
                     .sum() / features.size();

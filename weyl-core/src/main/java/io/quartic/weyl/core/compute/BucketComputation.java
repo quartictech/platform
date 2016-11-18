@@ -2,22 +2,22 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class BucketComputation implements LayerComputation {
-    private final FeatureStore featureStore;
     private final AbstractLayer featureLayer;
     private final AbstractBucketSpec bucketSpec;
     private final AbstractLayer bucketLayer;
 
-    private BucketComputation(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
-        this.featureStore = featureStore;
+    private BucketComputation(AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
@@ -32,7 +32,7 @@ public class BucketComputation implements LayerComputation {
         Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketComputation(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec);
+            return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec);
         }
         else {
             throw new RuntimeException("can't find input layers for bucket computation");
@@ -43,7 +43,7 @@ public class BucketComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
+            Collection<AbstractFeature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
                     featureLayer.metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -76,10 +76,10 @@ public class BucketComputation implements LayerComputation {
         }
     }
 
-    private Collection<Feature> bucketData() {
+    private Collection<AbstractFeature> bucketData() {
         // The order here is that CONTAINS applies from left -> right and
         // the spatial index on the right layer is the one that is queried
-        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
+        Map<AbstractFeature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
                 SpatialJoin.SpatialPredicate.CONTAINS)
                 .collect(Collectors.groupingBy(Tuple::left));
 
@@ -87,7 +87,7 @@ public class BucketComputation implements LayerComputation {
 
         return groups.entrySet().parallelStream()
                 .map(bucketEntry -> {
-                    Feature bucket = bucketEntry.getKey();
+                    AbstractFeature bucket = bucketEntry.getKey();
                     Double value = aggregation.aggregate(
                             bucket,
                             bucketEntry.getValue().stream().map(Tuple::right).collect(Collectors.toList()));
@@ -97,11 +97,12 @@ public class BucketComputation implements LayerComputation {
                             value /= bucket.geometry().getArea();
                         }
                     }
-                    Map<AttributeName, Object> attributes = new HashMap<>(bucket.attributes());
-                    attributes.put(attributeName(), value);
-                    return ImmutableFeature.copyOf(bucket)
-                            .withUid(featureStore.getFeatureIdGenerator().get())
-                            .withAttributes(attributes);
+
+                    final Attributes.Builder builder = Attributes.builder();
+                    builder.attributes(bucket.attributes().attributes());
+                    builder.attribute(attributeName(), value);
+                    return Feature.copyOf(bucket)
+                            .withAttributes(builder.build());
                 })
                 .collect(Collectors.toList());
     }
