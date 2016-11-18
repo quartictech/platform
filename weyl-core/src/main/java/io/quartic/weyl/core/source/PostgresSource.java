@@ -9,10 +9,9 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
-import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.model.AbstractNakedFeature;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
@@ -43,7 +42,6 @@ public abstract class PostgresSource implements Source {
     private final WKBReader wkbReader = new WKBReader();
     protected abstract String name();
     protected abstract PostgresDatasetLocator locator();
-    protected abstract FeatureStore featureStore();
     protected abstract ObjectMapper objectMapper();
     @Value.Default
     protected DBI dbi() {
@@ -63,21 +61,21 @@ public abstract class PostgresSource implements Source {
         return true;
     }
 
-    private Collection<Feature> importAllFeatures() {
+    private Collection<AbstractNakedFeature> importAllFeatures() {
         try (final Handle h = dbi().open()) {
             LOG.info("[{}] Connection established", name());
 
             final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
-            Collection<Feature> features = Lists.newArrayList();
+            Collection<AbstractNakedFeature> features = Lists.newArrayList();
             int count = 0;
             while (iterator.hasNext()) {
                 count += 1;
                 if (count % 10000 == 0) {
                     LOG.info("[{}] Importing feature: {}", name(), count);
                 }
-                Optional<Feature> feature = rowToFeature(iterator.next());
+                Optional<AbstractNakedFeature> feature = rowToFeature(iterator.next());
 
                 feature.ifPresent(features::add);
             }
@@ -86,7 +84,7 @@ public abstract class PostgresSource implements Source {
         }
     }
 
-    private Optional<Feature> rowToFeature(Map<String, Object> row) {
+    private Optional<AbstractNakedFeature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
@@ -113,12 +111,7 @@ public abstract class PostgresSource implements Source {
             String id = row.containsKey(ID_FIELD) ?
                     row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
 
-            return ImmutableFeature.builder()
-                    .geometry(geometry)
-                    .attributes(attributes)
-                    .uid(featureStore().getFeatureIdGenerator().get())
-                    .externalId(id)
-                    .build();
+            return NakedFeature.of(id, geometry, attributes);
         });
     }
 

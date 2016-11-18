@@ -10,7 +10,7 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,14 +54,13 @@ public class GeoJsonSourceShould {
         GeoJsonSource.builder()
                 .name("Budgie")
                 .url("http://localhost:" + wireMockRule.port())
-                .featureStore(store)
                 .objectMapper(OBJECT_MAPPER)
                 .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())
                 .build()
                 .observable().subscribe(subscriber);
 
         subscriber.assertValue(SourceUpdate.of(
-                newArrayList(ImmutableFeature.of("abc", FeatureId.of("1"), toJts(geometry), ImmutableMap.of()))
+                newArrayList(NakedFeature.of("abc", toJts(geometry), ImmutableMap.of()))
         ));
     }
 }

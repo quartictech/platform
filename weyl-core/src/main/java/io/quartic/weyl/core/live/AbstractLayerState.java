@@ -2,7 +2,7 @@ package io.quartic.weyl.core.live;
 
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.AbstractAttributeSchema;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.AbstractFeature;
 import org.immutables.value.Value;
 
 import java.util.Collection;
@@ -11,5 +11,5 @@ import java.util.Collection;
 @SweetStyle
 public interface AbstractLayerState {
     AbstractAttributeSchema schema();
-    Collection<Feature> featureCollection();
+    Collection<AbstractFeature> featureCollection();
 }

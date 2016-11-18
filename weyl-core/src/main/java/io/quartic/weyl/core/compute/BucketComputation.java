@@ -43,7 +43,7 @@ public class BucketComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
+            Collection<AbstractFeature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
                     featureLayer.metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -76,10 +76,10 @@ public class BucketComputation implements LayerComputation {
         }
     }
 
-    private Collection<Feature> bucketData() {
+    private Collection<AbstractFeature> bucketData() {
         // The order here is that CONTAINS applies from left -> right and
         // the spatial index on the right layer is the one that is queried
-        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
+        Map<AbstractFeature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
                 SpatialJoin.SpatialPredicate.CONTAINS)
                 .collect(Collectors.groupingBy(Tuple::left));
 
@@ -87,7 +87,7 @@ public class BucketComputation implements LayerComputation {
 
         return groups.entrySet().parallelStream()
                 .map(bucketEntry -> {
-                    Feature bucket = bucketEntry.getKey();
+                    AbstractFeature bucket = bucketEntry.getKey();
                     Double value = aggregation.aggregate(
                             bucket,
                             bucketEntry.getValue().stream().map(Tuple::right).collect(Collectors.toList()));
@@ -99,7 +99,7 @@ public class BucketComputation implements LayerComputation {
                     }
                     Map<AttributeName, Object> attributes = new HashMap<>(bucket.attributes());
                     attributes.put(attributeName(), value);
-                    return ImmutableFeature.copyOf(bucket)
+                    return Feature.copyOf(bucket)
                             .withUid(featureStore.getFeatureIdGenerator().get())
                             .withAttributes(attributes);
                 })

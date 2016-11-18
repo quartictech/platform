@@ -8,10 +8,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,8 +33,8 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void produce_point_for_a_single_feature() {
-        Feature feature = locationFeature("alex", 123, 100, 100);
-        List<Feature> features = invokeView(ImmutableList.of(feature));
+        AbstractFeature feature = locationFeature("alex", 123, 100, 100);
+        List<AbstractFeature> features = invokeView(ImmutableList.of(feature));
 
         assertThat(features.size(), equalTo(1));
         assertThat(Iterables.getOnlyElement(features), equalTo(feature));
@@ -45,10 +42,10 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void produce_points_for_distinct_ids() {
-        Feature featureA = locationFeature("alex", 123, 100, 100);
-        Feature featureB = locationFeature("bob", 456, 100, 100);
+        AbstractFeature featureA = locationFeature("alex", 123, 100, 100);
+        AbstractFeature featureB = locationFeature("bob", 456, 100, 100);
 
-        List<Feature> features = invokeView(ImmutableList.of(featureA, featureB));
+        List<AbstractFeature> features = invokeView(ImmutableList.of(featureA, featureB));
 
         assertThat(features.size(), equalTo(2));
         assertThat(features, containsInAnyOrder(featureA, featureB));
@@ -56,23 +53,23 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void produce_lines_for_distinct_ids() {
-        Feature featureA = locationFeature("bob", 455, 200, 200);
-        Feature featureB = locationFeature("alex", 123, 300, 300);
+        AbstractFeature featureA = locationFeature("bob", 455, 200, 200);
+        AbstractFeature featureB = locationFeature("alex", 123, 300, 300);
 
-        List<Feature> features = invokeView(ImmutableList.of(
+        List<AbstractFeature> features = invokeView(ImmutableList.of(
                 locationFeature("alex", 122, 100, 100),
                 locationFeature("bob", 454, 100, 100),
                 featureA,
                 featureB));
 
-        List<Feature> expectedFeatures = ImmutableList.of(
-                lineFeature("alex", 1001, new Coordinate[]{
-                        new Coordinate(100, 100),
-                        new Coordinate(300, 300)
-                }),
-                lineFeature("bob", 1002, new Coordinate[]{
+        List<AbstractFeature> expectedFeatures = ImmutableList.of(
+                lineFeature("bob", 1001, new Coordinate[]{
                         new Coordinate(100, 100),
                         new Coordinate(200, 200)
+                }),
+                lineFeature("alex", 1002, new Coordinate[]{
+                        new Coordinate(100, 100),
+                        new Coordinate(300, 300)
                 }),
                 featureA,
                 featureB
@@ -84,7 +81,7 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void produce_line_ordered_by_uid() {
-        List<Feature> features = invokeView(ImmutableList.of(
+        List<AbstractFeature> features = invokeView(ImmutableList.of(
                 locationFeature("alex", 123, 100, 100),
                 locationFeature("alex", 124, 200, 200),
                 locationFeature("alex", 122, 300, 300)
@@ -100,27 +97,27 @@ public class LastKnownLocationAndTrackViewShould {
         ));
     }
 
-    private List<Feature> invokeView(List<Feature> input) {
+    private List<AbstractFeature> invokeView(List<AbstractFeature> input) {
         return new LastKnownLocationAndTrackView()
                 .compute(uidGen, input)
                 .collect(Collectors.toList());
     }
 
-    private Feature locationFeature(String name, int uid, double x, double y) {
+    private AbstractFeature locationFeature(String name, int uid, double x, double y) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(coordinate(x, y));
         return featureWithName(name, uid, geometry);
     }
 
-    private Feature lineFeature(String name, int uid, Coordinate[] coordinates) {
+    private AbstractFeature lineFeature(String name, int uid, Coordinate[] coordinates) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createLineString(coordinates);
         return featureWithName(name, uid, geometry);
     }
 
-    private Feature featureWithName(String name, int uid, Geometry geometry) {
-        return ImmutableFeature.builder()
-                .externalId(name)
+    private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
+        return Feature.builder()
+                .entityId(EntityId.of(LayerId.of("foo"), name))
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
                 .attributes(ImmutableMap.of(AttributeName.of("name"), name))

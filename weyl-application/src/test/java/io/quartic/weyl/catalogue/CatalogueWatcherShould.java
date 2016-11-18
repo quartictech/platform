@@ -146,7 +146,7 @@ public class CatalogueWatcherShould {
     }
 
     private SourceUpdate createUpdate() {
-        return SourceUpdate.of(newArrayList(mock(Feature.class)));
+        return SourceUpdate.of(newArrayList(mock(AbstractNakedFeature.class)));
     }
 
     private DatasetConfig datasetConfig(DatasetLocator source) {

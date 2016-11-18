@@ -119,8 +119,12 @@ public class GeofenceResourceShould {
         return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon), metadata);
     }
 
-    private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
-        return ImmutableFeature.of("123", FeatureId.of("abc"), toJts(geometry), FEATURE_METADATA);
+    private AbstractFeature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
+        return io.quartic.weyl.core.model.Feature.of(
+                EntityId.of(LayerId.of("xyz"), "123"),
+                FeatureId.of("abc"),
+                toJts(geometry),
+                FEATURE_METADATA);
     }
 
     private Point geojsonPoint() {

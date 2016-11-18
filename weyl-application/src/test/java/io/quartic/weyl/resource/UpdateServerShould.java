@@ -1,7 +1,6 @@
 package io.quartic.weyl.resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -16,8 +15,10 @@ import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geofence.ViolationId;
+import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.AlertMessage;
 import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
@@ -31,18 +32,18 @@ import javax.websocket.Session;
 import java.util.Collections;
 import java.util.Optional;
 
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static org.mockito.Mockito.*;
 
 public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final GeometryTransformer transformer = webMercatortoWgs84();
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
-    private final UpdateServer server = new UpdateServer(layerStore, geofenceStore, alertProcessor, transformer, objectMapper);
+    private final UpdateServer server = new UpdateServer(layerStore, geofenceStore, alertProcessor, transformer, OBJECT_MAPPER);
 
     @Before
     public void setUp() throws Exception {
@@ -65,8 +66,8 @@ public class UpdateServerShould {
     @Test
     public void send_geofence_geometry_update() throws Exception {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
-        final io.quartic.weyl.core.model.Feature feature = ImmutableFeature.of(
-                "123",
+        final AbstractFeature feature = io.quartic.weyl.core.model.Feature.of(
+                EntityId.of(LayerId.of("xyz"), "123"),
                 FeatureId.of("456"),
                 geometry,
                 Collections.emptyMap()
@@ -75,7 +76,11 @@ public class UpdateServerShould {
         server.onGeometryChange(ImmutableList.of(feature));
 
         verifyMessage(GeofenceGeometryUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("456"), Optional.of(fromJts(transformer.transform(geometry))), ImmutableMap.of("_externalId", "123", "_id", "123"))
+                Feature.of(
+                        Optional.empty(),
+                        Optional.of(fromJts(transformer.transform(geometry))),
+                        ImmutableMap.of("_entityId", "xyz/123", "_externalId", "123", "_id", "456")
+                )
         ))));
     }
 
@@ -102,13 +107,13 @@ public class UpdateServerShould {
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {
-        verify(session.getAsyncRemote()).sendText(objectMapper.writeValueAsString(expected));
+        verify(session.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(expected));
     }
 
     private Violation violation(GeofenceId geofenceId) {
         return Violation.builder()
                 .id(ViolationId.of("1"))
-                .featureExternalId("42")
+                .entityId(EntityId.of(LayerId.of("abc"), "42"))
                 .geofenceId(geofenceId)
                 .message("Hmmm")
                 .build();

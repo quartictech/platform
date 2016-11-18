@@ -3,9 +3,9 @@ package io.quartic.weyl.core.compute;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerMetadata;
 
 import java.util.Collection;
@@ -23,10 +23,26 @@ public class BufferComputation implements LayerComputation {
         this.bufferDistance = bufferSpec.bufferDistance();
     }
 
+    public static Optional<ComputationResults> compute(LayerStore store, ComputationSpec computationSpec) {
+        return createComputation(store, computationSpec).compute();
+    }
+
+    private static LayerComputation createComputation(LayerStore store, ComputationSpec computationSpec) {
+        if (computationSpec instanceof BucketSpec) {
+            return BucketComputation.create(store, (BucketSpec) computationSpec);
+        }
+        else if (computationSpec instanceof BufferSpec) {
+            return create(store, (BufferSpec) computationSpec);
+        }
+        else {
+            throw new RuntimeException("Invalid computation spec: " + computationSpec);
+        }
+    }
+
     @Override
     public Optional<ComputationResults> compute() {
-        Collection<Feature> bufferedFeatures = layer.features().parallelStream()
-                .map(feature -> ImmutableFeature.copyOf(feature)
+        Collection<AbstractFeature> bufferedFeatures = layer.features().parallelStream()
+                .map(feature -> Feature.copyOf(feature)
                         .withUid(featureStore.getFeatureIdGenerator().get())
                         .withGeometry(BufferOp.bufferOp(feature.geometry(), bufferDistance)))
                 .collect(Collectors.toList());

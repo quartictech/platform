@@ -104,7 +104,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Environment environment,
             FeatureStore featureStore,
             WebsocketClientSessionFactory websocketFactory) {
-        final LiveEventConverter converter = new LiveEventConverter(fidGenerator);
+        final LiveEventConverter converter = new LiveEventConverter();
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
@@ -116,13 +116,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 PostgresDatasetLocator.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
                         .locator((PostgresDatasetLocator) config.locator())
-                        .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
                 GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
-                        .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
                 WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
@@ -135,7 +133,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                        .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build()
         );

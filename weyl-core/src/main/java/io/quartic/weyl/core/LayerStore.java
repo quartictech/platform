@@ -9,7 +9,8 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.*;
+import io.quartic.weyl.core.compute.BufferComputation;
+import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.*;
@@ -85,27 +86,13 @@ public class LayerStore {
         subscriptions.remove(layerSubscription.layerId(), layerSubscription);
     }
 
-    private LayerComputation getLayerComputation(ComputationSpec computationSpec) {
-        if (computationSpec instanceof BucketSpec) {
-            return BucketComputation.create(this, (BucketSpec) computationSpec);
-        }
-        else if (computationSpec instanceof BufferSpec) {
-            return BufferComputation.create(this, (BufferSpec) computationSpec);
-        }
-        else {
-            throw new RuntimeException("invalid computation spec: " + computationSpec);
-        }
-    }
-
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        LayerComputation layerComputation = getLayerComputation(computationSpec);
-
-        Optional<Layer> layer = layerComputation.compute().map(r ->
-                updateIndicesAndStats(appendFeatures(
+        Optional<Layer> layer = BufferComputation.compute(this, computationSpec)
+                .map(r -> updateIndicesAndStats(appendFeatures(
                         newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
                         r.features()))
-        );
+                );
         layer.ifPresent(this::putLayer);
         return layer.map(Layer::layerId);
     }
@@ -141,7 +128,7 @@ public class LayerStore {
                 .build();
     }
 
-    private Layer appendFeatures(Layer layer, Collection<Feature> features) {
+    private Layer appendFeatures(Layer layer, Collection<AbstractFeature> features) {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         return layer
                 .withFeatures(updatedFeatures)
@@ -154,10 +141,6 @@ public class LayerStore {
                 .withSpatialIndex(spatialIndex(indexedFeatures))
                 .withIndexedFeatures(indexedFeatures)
                 .withLayerStats(calculateStats(layer.schema(), layer.features()));
-    }
-
-    private AttributeSchema blankSchema() {
-        return AttributeSchema.builder().build();
     }
 
     private static Collection<IndexedFeature> indexedFeatures(FeatureCollection features) {
@@ -181,13 +164,13 @@ public class LayerStore {
                 .forEach(subscription -> subscription.subscriber().accept(computeLayerState(layer, subscription)));
     }
 
-    private synchronized void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
+    private synchronized void notifyListeners(LayerId layerId, Collection<AbstractFeature> newFeatures) {
         newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
     }
 
     private LayerState computeLayerState(Layer layer, LayerSubscription subscription) {
-        final Collection<Feature> features = layer.features();
-        Stream<Feature> computed = subscription.liveLayerView()
+        final Collection<AbstractFeature> features = layer.features();
+        Stream<AbstractFeature> computed = subscription.liveLayerView()
                 .compute(featureStore.getFeatureIdGenerator(), features);
         return LayerState.builder()
                 .schema(layer.schema())
@@ -212,12 +195,23 @@ public class LayerStore {
                 final Layer layer = layers.get(id); // TODO: locking?
                 LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
 
-                final Layer updatedLayer = appendFeatures(layer, update.features());
+                final Collection<AbstractFeature> elaboratedFeatures = elaborate(id, update.features());
+                final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
                 putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-                notifyListeners(id, update.features());
+                notifyListeners(id, elaboratedFeatures);
                 notifySubscribers(id);
             }
         };
+    }
+
+    // TODO: this is going to double memory usage?
+    private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
+        return features.stream().map(f -> Feature.of(
+                EntityId.of(layerId, f.externalId()),
+                featureStore.getFeatureIdGenerator().get(),
+                f.geometry(),
+                f.attributes()
+        )).collect(toList());
     }
 }

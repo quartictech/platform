@@ -29,7 +29,6 @@ public class PostgresSourceShould {
                 .name("Budgie")
                 .locator(PostgresDatasetLocator.of("foo", "bar", "baz", "SELECT * FROM foo"))
                 .dbi(dbi)
-                .featureStore(featureStore)
                 .objectMapper(mapper)
                 .build();
 
