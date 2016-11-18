@@ -78,6 +78,7 @@
     "@types/redux-immutable": "^3.0.31",
     "@types/redux-saga": "^0.9.30",
     "@types/reselect": "^2.0.27",
+    "@types/underscore": "^1.7.33",
     "immutable": "^3.8.1",
     "react": "15.0.1",
     "react-addons-css-transition-group": "^15.4.0",
@@ -91,6 +92,7 @@
     "redux-saga": "^0.13.0",
     "redux-thunk": "^2.1.0",
     "reselect": "^2.5.4",
+    "underscore": "^1.8.3",
     "whatwg-fetch": "^1.0.0"
   }
 }

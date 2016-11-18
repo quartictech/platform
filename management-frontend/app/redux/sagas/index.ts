@@ -1,32 +1,40 @@
 import { LOCATION_CHANGE } from "react-router-redux";
 import { take, call, put, fork, cancel } from "redux-saga/effects";
-import { SagaIterator } from "redux-saga";
+import { takeLatest, takeEvery, SagaIterator } from "redux-saga";
 declare var Notification: any;
 
 import { fetchDatasets } from "../api";
 import * as actions from "../actions";
-
-function prepare(generator): () => SagaIterator {
-  return function* () {
-    const forked = yield fork(generator);
-  };
-}
+import * as constants from "../constants";
+//
+// function prepare(generator): () => SagaIterator {
+//   return function* () {
+//     const forked = yield fork(generator);
+//   };
+// }
 
 function* askForNotificationPermission() {
   yield call(Notification.requestPermission);
 }
 
-function* loadDatasets(): SagaIterator {
-  const results = yield call(fetchDatasets);
+function watch(action, generator) {
+  return function* () {
+    yield* takeLatest(action, generator);
+  };
+}
 
-  if (! results.err) {
-    yield put(actions.fetchDatasetsSuccess());
+
+function* watchLoadDatasets(): SagaIterator {
+  while (true) {
+    yield take(constants.FETCH_DATASETS);
+    const res = yield call(fetchDatasets, "hello");
+
+    if (! res.err) {
+      yield put(actions.fetchDatasetsSuccess(res.data));
+    }
   }
 }
 
-const sagas: (() => SagaIterator)[] = [
-  prepare(askForNotificationPermission),
-  prepare(loadDatasets)
-];
-
-export { sagas }
+export function* sagas(): SagaIterator {
+  yield fork(watchLoadDatasets);
+}

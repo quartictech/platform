@@ -1,7 +1,5 @@
 import * as React from 'react';
 import { Header } from '../../components';
-import { PageTitle } from '../../components';
-import { Footer } from '../../components';
 
 const s = require('./style.css');
 

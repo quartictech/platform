@@ -6,7 +6,8 @@ import { Home } from './';
 
 /** Data */
 const props = {
-  datasets: {}
+  datasets: {},
+  fetchDatasets: () => null
 };
 
 /** Spies */

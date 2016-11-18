@@ -38,7 +38,7 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
 		});
 	}
 
-	sagas.map(sagaMiddleware.run);
+	sagaMiddleware.run(sagas);
 
 	return store;
 

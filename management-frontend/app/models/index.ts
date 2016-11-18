@@ -1,8 +1,20 @@
 
-export interface IDataset {
+export interface IDatasetMetadata {
   name: string;
-};
+  description: string;
+  attribution: string;
+}
+
+export interface IDatasetLocator {
+  type: string;
+}
+
+export interface IDataset {
+  metadata: IDatasetMetadata;
+  locator: IDatasetLocator;
+}
 
 export interface DatasetAction {
   type: string;
+  data: any;
 }

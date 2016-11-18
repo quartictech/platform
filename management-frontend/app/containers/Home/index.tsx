@@ -9,13 +9,22 @@ const { Menu, MenuItem, MenuDivider } = Blueprint;
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
+import * as actions from "../../redux/actions";
 const s = require('./style.css');
 
+import { DatasetList } from "../../components/DatasetList";
+
 interface IProps {
-  datasets: any
+  datasets: any;
+  fetchDatasets: any;
 }
 
 class Home extends React.Component<IProps, any> {
+  componentDidMount() {
+    console.log("oh nooo");
+    this.props.fetchDatasets();
+  }
+
   render() {
     return (
       <div className={s.container}>
@@ -34,7 +43,7 @@ class Home extends React.Component<IProps, any> {
       </div>
 
       <div className={s.main}>
-      {this.props.datasets.size}
+        <DatasetList datasets={this.props.datasets.datasets} />
       </div>
       </div>
     );
@@ -44,6 +53,7 @@ class Home extends React.Component<IProps, any> {
 export { Home };
 
 const mapDispatchToProps = {
+  fetchDatasets: actions.fetchDatasets
 };
 
 const mapStateToProps = createStructuredSelector({
