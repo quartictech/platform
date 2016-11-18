@@ -1,0 +1,14 @@
+
+.container {
+    display: flex;
+    align-items: center;
+}
+
+.left {
+   width: 25%;
+   padding: 10px;
+ }
+
+ .main {
+   flex-grow: 1;
+ }

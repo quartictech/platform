@@ -4,7 +4,6 @@
   "description": "Basic but useful web application for listing the shuttle routes and times of İstanbul Bilgi University",
   "main": "server.js",
   "scripts": {
-    "postinstall": "typings install",
     "start": "NODE_ENV=development node server.js",
     "build": "NODE_ENV=production webpack --config ./config/webpack/prod.js",
     "test": "karma start ./config/test/karma.js"
@@ -12,18 +11,14 @@
   "keywords": [
     "react",
     "redux",
-    "typescript",
-    "istanbul",
-    "bilgi university"
+    "typescript"
   ],
   "author": "Altay Aydemir <altay.aydemir@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.4.34",
-    "@types/core-js": "^0.9.34",
     "@types/dom4": "^1.5.20",
     "@types/enzyme": "^2.5.38",
-    "@types/es6-promise": "0.0.32",
     "@types/jasmine": "^2.5.38",
     "@types/mocha": "^2.2.33",
     "@types/node": "^6.0.48",
@@ -37,6 +32,8 @@
     "@types/redux-thunk": "^2.1.31",
     "@types/sinon": "^1.16.32",
     "@types/whatwg-fetch": "0.0.32",
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.7",
     "chai": "^3.5.0",
     "coveralls": "^2.11.9",
     "css-loader": "^0.23.1",
@@ -78,7 +75,7 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^1.0.1",
-    "es6-promise": "^3.2.1",
+    "@types/redux-saga": "^0.9.30",
     "react": "15.0.1",
     "react-addons-css-transition-group": "^15.4.0",
     "react-bootstrap": "^0.29.4",
@@ -87,6 +84,7 @@
     "react-router": "^2.4.0",
     "react-router-redux": "^4.0.4",
     "redux": "^3.5.2",
+    "redux-saga": "^0.13.0",
     "redux-thunk": "^2.1.0",
     "whatwg-fetch": "^1.0.0"
   }

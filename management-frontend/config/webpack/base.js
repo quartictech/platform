@@ -14,9 +14,10 @@ var config = {
 
   module: {
     loaders: [
+      // See (for TS -> Babel): http://www.jbrantly.com/es6-modules-with-typescript-and-webpack/
       {
         test: /\.tsx?$/,
-        loader: 'react-hot!ts-loader',
+        loader: 'react-hot!babel-loader!ts-loader',
         include: path.join(__dirname, '../../app')
       },
       {

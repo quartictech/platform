@@ -4,7 +4,7 @@
   "compilerOptions": {
     "outDir": "./public/",
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "noEmitHelpers": false,
     "sourceMap": true,
     "emitDecoratorMetadata": true,
@@ -12,7 +12,7 @@
     "noImplicitAny": false,
     "removeComments": true,
     "jsx": "react",
-		"types": ["node", "jasmine", "redux", "core-js"]
+		"types": ["node", "jasmine", "redux"]
   },
   "exclude": [
     "node_modules",
