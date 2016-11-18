@@ -1,8 +1,6 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
-import io.quartic.common.uid.SequenceUidGenerator;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Point;
@@ -13,7 +11,6 @@ import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.ImmutableGeofenceRequest;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -31,7 +28,6 @@ import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
     private static final Attributes FEATURE_ATTRIBUTES = Attributes.builder().attribute(AttributeName.of("some_prop"), 76).build();
-    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);
@@ -40,11 +36,6 @@ public class GeofenceResourceShould {
     private final Polygon polyB = geojsonPolygon(6.0);
 
     private int nextId = 1;
-
-    @Before
-    public void before() throws Exception {
-        when(layerStore.getFeatureIdGenerator()).thenReturn(fidGenerator);
-    }
 
     @Test
     public void set_geofence_based_on_features() throws Exception {
@@ -126,14 +117,13 @@ public class GeofenceResourceShould {
     private Geofence geofenceOf(String id, Attributes attributes, Polygon polygon) {
         return Geofence.of(
                 GeofenceType.INCLUDE,
-                io.quartic.weyl.core.model.Feature.of(EntityId.of("geofence/" + id), FeatureId.of(Integer.toString(nextId++)), toJts(polygon), attributes)
+                io.quartic.weyl.core.model.Feature.of(EntityId.of("geofence/" + id), toJts(polygon), attributes)
         );
     }
 
     private AbstractFeature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
         return io.quartic.weyl.core.model.Feature.of(
                 EntityId.of("xyz"),
-                FeatureId.of("abc"),
                 toJts(geometry),
                 FEATURE_ATTRIBUTES);
     }

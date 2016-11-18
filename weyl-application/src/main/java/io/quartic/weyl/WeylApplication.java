@@ -13,7 +13,6 @@ import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
-import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.EntityStore;
@@ -21,7 +20,6 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
-import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
@@ -36,11 +34,10 @@ import java.util.function.Function;
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
-    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
-    private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator, fidGenerator);
+    private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator);
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 

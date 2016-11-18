@@ -27,9 +27,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.mock;
 
 public class SpatialJoinShould {
-    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
-    private final LayerStore store = new LayerStore(mock(EntityStore.class), lidGenerator, fidGenerator);
+    private final LayerStore store = new LayerStore(mock(EntityStore.class), lidGenerator);
 
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {
@@ -88,7 +87,6 @@ public class SpatialJoinShould {
     private AbstractFeature feature(NakedFeature feature, String layerId, String id) {
         return Feature.of(
                 EntityId.of(layerId + "/" + feature.externalId()),
-                FeatureId.of(id),
                 feature.geometry(),
                 feature.attributes()
         );

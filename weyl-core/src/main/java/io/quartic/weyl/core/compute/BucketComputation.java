@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.*;
 
@@ -17,10 +16,8 @@ public class BucketComputation implements LayerComputation {
     private final AbstractLayer featureLayer;
     private final AbstractBucketSpec bucketSpec;
     private final AbstractLayer bucketLayer;
-    private final UidGenerator<FeatureId> fidGenerator;
 
-    private BucketComputation(AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec, UidGenerator<FeatureId> fidGenerator) {
-        this.fidGenerator = fidGenerator;
+    private BucketComputation(AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
@@ -35,7 +32,7 @@ public class BucketComputation implements LayerComputation {
         Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec, store.getFeatureIdGenerator());
+            return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec);
         }
         else {
             throw new RuntimeException("can't find input layers for bucket computation");
@@ -105,7 +102,6 @@ public class BucketComputation implements LayerComputation {
                     builder.attributes(bucket.attributes().attributes());
                     builder.attribute(attributeName(), value);
                     return Feature.copyOf(bucket)
-                            .withUid(fidGenerator.get())
                             .withAttributes(builder.build());
                 })
                 .collect(Collectors.toList());

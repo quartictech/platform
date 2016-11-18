@@ -44,7 +44,6 @@ public class GeofenceResource {
                 .filter(f -> f.geometry().isPresent())
                 .map(f -> Feature.of(
                         EntityId.of("custom"),
-                        FeatureId.of("don't-care"),
                         geometryTransformer.transform(toJts(f.geometry().get())),
                         EMPTY_ATTRIBUTES
                 ));
@@ -61,7 +60,6 @@ public class GeofenceResource {
                 .map(f -> Feature.copyOf(f)
                         .withGeometry(bufferOp(f.geometry(), bufferDistance))
                         .withEntityId(EntityId.of("geofence/" + f.entityId().uid()))
-                        .withUid(layerStore.getFeatureIdGenerator().get())
                 )
                 .filter(f -> !f.geometry().isEmpty())
                 .map(f -> Geofence.of(type, f))

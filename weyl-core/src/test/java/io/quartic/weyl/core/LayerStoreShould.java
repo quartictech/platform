@@ -38,10 +38,9 @@ public class LayerStoreShould {
     private static final LayerId OTHER_LAYER_ID = LayerId.of("777");
     private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
 
-    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
     private final EntityStore entityStore = mock(EntityStore.class);
-    private final LayerStore store = new LayerStore(entityStore, lidGenerator, fidGenerator);
+    private final LayerStore store = new LayerStore(entityStore, lidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
@@ -309,7 +308,6 @@ public class LayerStoreShould {
     private AbstractFeature feature(String externalId, String uid) {
         return Feature.of(
                 EntityId.of(LAYER_ID.uid() + "/" + externalId),
-                FeatureId.of(uid),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
         );

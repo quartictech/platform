@@ -39,14 +39,12 @@ public class LayerStore {
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final EntityStore entityStore;
     private final UidGenerator<LayerId> lidGenerator;
-    private final UidGenerator<FeatureId> fidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
-    public LayerStore(EntityStore entityStore, UidGenerator<LayerId> lidGenerator, UidGenerator<FeatureId> fidGenerator) {
+    public LayerStore(EntityStore entityStore, UidGenerator<LayerId> lidGenerator) {
         this.entityStore = entityStore;
         this.lidGenerator = lidGenerator;
-        this.fidGenerator = fidGenerator;
     }
 
     public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
@@ -97,10 +95,6 @@ public class LayerStore {
                 );
         layer.ifPresent(this::putLayer);
         return layer.map(Layer::layerId);
-    }
-
-    public UidGenerator<FeatureId> getFeatureIdGenerator() {
-        return fidGenerator;
     }
 
     private void checkLayerExists(LayerId layerId) {
@@ -172,7 +166,7 @@ public class LayerStore {
 
     private LayerState computeLayerState(Layer layer, LayerSubscription subscription) {
         final Collection<AbstractFeature> features = layer.features();
-        Stream<AbstractFeature> computed = subscription.liveLayerView().compute(fidGenerator, features);
+        Stream<AbstractFeature> computed = subscription.liveLayerView().compute(features);
         return LayerState.builder()
                 .schema(layer.schema())
                 .featureCollection(computed.collect(toList()))
@@ -211,7 +205,6 @@ public class LayerStore {
     private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
         return features.stream().map(f -> Feature.of(
                 EntityId.of(layerId.uid() + "/" + f.externalId()),
-                fidGenerator.get(),
                 f.geometry(),
                 f.attributes()
         )).collect(toList());
