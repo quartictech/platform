@@ -8,9 +8,15 @@ import { configureStore } from './redux/store';
 import { getRoutes } from './routes';
 
 import "@blueprintjs/core/dist/blueprint.css"
+
 // TODO: fix type!
 const store: Redux.Store<any> = configureStore();
-const history = syncHistoryWithStore(browserHistory, store);
+
+import { selectLocationState } from "./redux/selectors";
+const history = syncHistoryWithStore(browserHistory, store,
+  {
+    selectLocationState: selectLocationState(),
+  });
 
 const component = (
   <Router history={history}>

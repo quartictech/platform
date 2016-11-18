@@ -1,4 +1,5 @@
+const API_URL = "http://localhost:3010/api";
 
 export function fetchDatasets() {
-  console.log("fetching");
+  return fetch(`${API_URL}/dataset`);
 }

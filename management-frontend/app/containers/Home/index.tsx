@@ -7,18 +7,15 @@ import { Grid, Col } from 'react-bootstrap';
 import * as Blueprint from "@blueprintjs/core";
 const { Menu, MenuItem, MenuDivider } = Blueprint;
 
-interface IProps {
-  getNodes: Redux.ActionCreator<any>;
-  push: Redux.ActionCreator<any>;
-}
-
+import { createStructuredSelector } from "reselect";
+import * as selectors from "../../redux/selectors";
 const s = require('./style.css');
 
-class Home extends React.Component<IProps, any> {
-  handleNavigate(node: string) {
-    this.props.push(`/location/${slugify(node)}`);
-  }
+interface IProps {
+  datasets: any
+}
 
+class Home extends React.Component<IProps, any> {
   render() {
     return (
       <div className={s.container}>
@@ -37,30 +34,7 @@ class Home extends React.Component<IProps, any> {
       </div>
 
       <div className={s.main}>
-      <table className="pt-table .modifier">
-  <thead>
-    <th>Project</th>
-    <th>Description</th>
-    <th>Technologies</th>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Blueprint</td>
-      <td>CSS framework and UI toolkit</td>
-      <td>Sass, TypeScript, React</td>
-    </tr>
-    <tr>
-      <td>TSLint</td>
-      <td>Static analysis linter for TypeScript</td>
-      <td>TypeScript</td>
-    </tr>
-    <tr>
-      <td>Plottable</td>
-      <td>Composable charting library built on top of D3</td>
-      <td>SVG, TypeScript, D3</td>
-    </tr>
-  </tbody>
-</table>
+      {this.props.datasets.size}
       </div>
       </div>
     );
@@ -69,7 +43,14 @@ class Home extends React.Component<IProps, any> {
 
 export { Home };
 
+const mapDispatchToProps = {
+};
+
+const mapStateToProps = createStructuredSelector({
+  datasets: selectors.selectDatasets,
+});
+
 export default connect(
-  state => ({}),
-  { push }
+  mapStateToProps,
+  mapDispatchToProps
 )(Home);

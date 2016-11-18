@@ -9,8 +9,6 @@ import * as actions from "../actions";
 function prepare(generator): () => SagaIterator {
   return function* () {
     const forked = yield fork(generator);
-    yield take(LOCATION_CHANGE);
-    yield cancel(forked);
   };
 }
 

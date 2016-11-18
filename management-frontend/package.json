@@ -75,7 +75,10 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^1.0.1",
+    "@types/redux-immutable": "^3.0.31",
     "@types/redux-saga": "^0.9.30",
+    "@types/reselect": "^2.0.27",
+    "immutable": "^3.8.1",
     "react": "15.0.1",
     "react-addons-css-transition-group": "^15.4.0",
     "react-bootstrap": "^0.29.4",
@@ -84,8 +87,10 @@
     "react-router": "^2.4.0",
     "react-router-redux": "^4.0.4",
     "redux": "^3.5.2",
+    "redux-immutable": "^3.0.8",
     "redux-saga": "^0.13.0",
     "redux-thunk": "^2.1.0",
+    "reselect": "^2.5.4",
     "whatwg-fetch": "^1.0.0"
   }
 }
