@@ -171,6 +171,10 @@ export const connectionDown = () => ({
   type: constants.CONNECTION_DOWN,
 });
 
+export const selectionStatusSent = () => ({
+  type: constants.SELECTION_STATUS_SENT,
+});
+
 export const selectionInfoLoading = () => ({
   type: constants.SELECTION_INFO_LOADING,
 });
@@ -182,4 +186,9 @@ export const selectionInfoLoaded = (results) => ({
 
 export const selectionInfoFailedToLoad = () => ({
   type: constants.SELECTION_INFO_FAILED_TO_LOAD,
+});
+
+export const chartSetTimeseries = (timeseries) => ({
+  type: constants.CHART_SET_TIMESERIES,
+  timeseries,
 });

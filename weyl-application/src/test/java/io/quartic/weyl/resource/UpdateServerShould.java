@@ -40,7 +40,7 @@ public class UpdateServerShould {
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
-    private final UpdateServer server = new UpdateServer(layerStore, geofenceStore, alertProcessor, transformer, OBJECT_MAPPER);
+    private final UpdateServer server = new UpdateServer(layerStore, null, geofenceStore, alertProcessor, transformer, OBJECT_MAPPER);
 
     @Before
     public void setUp() throws Exception {

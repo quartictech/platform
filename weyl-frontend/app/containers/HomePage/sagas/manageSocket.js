@@ -1,9 +1,10 @@
-import { take, takem, call, put, select, race } from "redux-saga/effects";
+import { take, takem, call, fork, cancel, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsUrl } from "../../../utils.js";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+const _ = require("underscore");
 
 
 const sendMessage = (socket, msg) => {
@@ -20,10 +21,12 @@ function* keepConnectionAlive(socket) {
 
 function* reportStatus(socket) {
   const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds);
+  const subscribedEntityIds = _.flatten(_.values(yield select(selectors.selectSelectedIds)));
 
   const msg = {
     type: "ClientStatus",
     subscribedLiveLayerIds,
+    subscribedEntityIds,
   };
 
   yield call(sendMessage, socket, msg);
@@ -75,6 +78,9 @@ function* handleMessages(channel) {
       case "Alert":
         yield* handleAlert(msg);
         break;
+      case "ChartUpdate":
+        yield put(actions.chartSetTimeseries(msg.timeseries));
+        break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);
         break;
@@ -82,10 +88,24 @@ function* handleMessages(channel) {
   }
 }
 
-function* watchLayerChanges(socket) {
+function* watchSubscriptionChanges(socket) {
+  let lastTask;
   for (;;) {
-    yield take([constants.LAYER_CREATE, constants.LAYER_CLOSE]);
-    yield* reportStatus(socket);
+    const action = yield take();
+    const info = yield select(selectors.selectSelectionInfo);
+    // TODO: cleanse this gross logic
+    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE].indexOf(action.type) >= 0)) {
+      if (lastTask) {
+        yield cancel(lastTask);
+      }
+      lastTask = yield fork(reportStatus, socket);
+    } else if (info.selectionNeedsSending) {
+      if (lastTask) {
+        yield cancel(lastTask);
+      }
+      yield put(actions.selectionStatusSent());
+      lastTask = yield fork(reportStatus, socket);
+    }
   }
 }
 
@@ -110,7 +130,7 @@ export default function* () {
       yield* reportStatus(socket);
 
       yield race({
-        watchLayerChanges: watchLayerChanges(socket),
+        watchSubscriptionChanges: watchSubscriptionChanges(socket),
         keepConnectionAlive: keepConnectionAlive(socket),
         handleMessages: handleMessages(channel),
       });

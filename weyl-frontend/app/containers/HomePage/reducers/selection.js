@@ -22,6 +22,9 @@ export default (state = initialState, action) => {
     case constants.CLEAR_SELECTION:
       return initialState;
 
+    case constants.SELECTION_STATUS_SENT:
+      return state.setIn(["info", "selectionNeedsSending"], false);
+
     case constants.SELECTION_INFO_LOADING:
       return setInfoLifecycleState(state, "INFO_LOADING");
 
@@ -45,6 +48,7 @@ export default (state = initialState, action) => {
 const initialState = fromJS({
   ids: {},
   info: {
+    selectionNeedsSending: true,
     lifecycleState: "INFO_NOT_REQUIRED",
     data: {},
   },
@@ -63,7 +67,8 @@ const deleteEntry = (state, feature) =>
   .updateIn(["ids", feature.layerId], ids => ids.delete(feature.entityId))
   .update("ids", ids => (ids.get(feature.layerId).isEmpty() ? ids.delete(feature.layerId) : ids));
 
-const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED");
+const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED")
+  .setIn(["info", "selectionNeedsSending"], true);
 
 const setInfoLifecycleState = (state, lifecycleState) => state
   .setIn(["info", "lifecycleState"], lifecycleState);

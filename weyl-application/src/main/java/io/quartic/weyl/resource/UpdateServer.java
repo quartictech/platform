@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
+import io.quartic.weyl.EntityStoreMultiplexer;
+import io.quartic.weyl.chart.ChartBackend;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
@@ -18,11 +20,15 @@ import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.Subscription;
+import rx.subjects.PublishSubject;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -34,6 +40,7 @@ import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static io.quartic.common.uid.UidUtils.stringify;
 import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
 import static java.util.stream.Collectors.toList;
 
@@ -49,11 +56,15 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final List<LayerSubscription> subscriptions = newArrayList();
     private final GeofenceStore geofenceStore;
     private final AlertProcessor alertProcessor;
-    private LayerStore layerStore;
+    private final LayerStore layerStore;
     private Session session;
+    private final PublishSubject<Collection<EntityId>> subscribedEntityIds;
+    private final Observable<List<AbstractFeature>> subscribedEntities;
+    private Subscription subscription;
 
     public UpdateServer(
             LayerStore layerStore,
+            EntityStoreMultiplexer entityStoreMux,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
             GeometryTransformer geometryTransformer,
@@ -64,12 +75,16 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         this.alertProcessor = alertProcessor;
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
+        this.subscribedEntityIds = PublishSubject.create();
+        this.subscribedEntities = entityStoreMux.multiplex(subscribedEntityIds);
     }
 
     @OnOpen
     public void onOpen(final Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
         this.session = session;
+        final ChartBackend chart = new ChartBackend();
+        this.subscription = subscribedEntities.subscribe(entities -> sendMessage(chart.process(entities)));
         alertProcessor.addListener(this);
         geofenceStore.addListener(this);
     }
@@ -80,9 +95,11 @@ public class UpdateServer implements AlertListener, GeofenceListener {
             final SocketMessage msg = objectMapper.readValue(message, SocketMessage.class);
             if (msg instanceof ClientStatusMessage) {
                 ClientStatusMessage csm = (ClientStatusMessage)msg;
-                LOG.info("[{}] Subscribed to {}", session.getId(), csm.subscribedLiveLayerIds());
+                LOG.info("[{}] Subscribed to layers {} + entities {}",
+                        session.getId(), stringify(csm.subscribedLiveLayerIds()), stringify(csm.subscribedEntityIds()));
                 unsubscribeAll();
                 csm.subscribedLiveLayerIds().forEach(this::subscribe);
+                subscribedEntityIds.onNext(csm.subscribedEntityIds());
             } else if (msg instanceof PingMessage) {
                 LOG.info("[{}] Received ping", session.getId());
             } else {
@@ -98,6 +115,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         LOG.info("[{}] Close", session.getId());
         alertProcessor.removeListener(this);
         geofenceStore.removeListener(this);
+        subscription.unsubscribe();
         unsubscribeAll();
     }
 
@@ -130,6 +148,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private void unsubscribeAll() {
         subscriptions.forEach(layerStore::removeSubscriber);
         subscriptions.clear();
+        // TODO: unsubscribe from entity subscriptions
     }
 
     private void subscribe(LayerId layerId) {
