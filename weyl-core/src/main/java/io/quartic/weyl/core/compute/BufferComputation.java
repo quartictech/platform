@@ -20,6 +20,22 @@ public class BufferComputation implements LayerComputation {
         this.bufferDistance = bufferSpec.bufferDistance();
     }
 
+    public static Optional<ComputationResults> compute(LayerStore store, ComputationSpec computationSpec) {
+        return createComputation(store, computationSpec).compute();
+    }
+
+    private static LayerComputation createComputation(LayerStore store, ComputationSpec computationSpec) {
+        if (computationSpec instanceof BucketSpec) {
+            return BucketComputation.create(store, (BucketSpec) computationSpec);
+        }
+        else if (computationSpec instanceof BufferSpec) {
+            return create(store, (BufferSpec) computationSpec);
+        }
+        else {
+            throw new RuntimeException("Invalid computation spec: " + computationSpec);
+        }
+    }
+
     @Override
     public Optional<ComputationResults> compute() {
         Collection<AbstractFeature> bufferedFeatures = layer.features().parallelStream()

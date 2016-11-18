@@ -9,7 +9,7 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.BufferComputationUtils;
+import io.quartic.weyl.core.compute.BufferComputation;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.*;
@@ -90,7 +90,7 @@ public class LayerStore {
 
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        Optional<Layer> layer = BufferComputationUtils.compute(this, computationSpec)
+        Optional<Layer> layer = BufferComputation.compute(this, computationSpec)
                 .map(r -> updateIndicesAndStats(appendFeatures(
                         newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
                         r.features()))
