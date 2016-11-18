@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
+import io.quartic.weyl.Multiplexer;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -40,7 +41,8 @@ public class UpdateServerShould {
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
-    private final UpdateServer server = new UpdateServer(layerStore, null, geofenceStore, alertProcessor, transformer, OBJECT_MAPPER);
+    private final Multiplexer<EntityId, AbstractFeature> mux = mock(Multiplexer.class);
+    private final UpdateServer server = new UpdateServer(layerStore, mux, geofenceStore, alertProcessor, transformer, OBJECT_MAPPER);
 
     @Before
     public void setUp() throws Exception {

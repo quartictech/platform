@@ -59,7 +59,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
-                                new EntityStoreMultiplexer(entityStore),
+                                Multiplexer.create(entityStore::getObservable),
                                 geofenceStore,
                                 alertProcessor,
                                 transformFromFrontend,

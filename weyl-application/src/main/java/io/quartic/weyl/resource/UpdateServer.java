@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.EntityStoreMultiplexer;
+import io.quartic.weyl.Multiplexer;
 import io.quartic.weyl.chart.ChartBackend;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
@@ -64,7 +64,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
 
     public UpdateServer(
             LayerStore layerStore,
-            EntityStoreMultiplexer entityStoreMux,
+            Multiplexer<EntityId, AbstractFeature> mux,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
             GeometryTransformer geometryTransformer,
@@ -76,7 +76,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
         this.subscribedEntityIds = PublishSubject.create();
-        this.subscribedEntities = entityStoreMux.multiplex(subscribedEntityIds);
+        this.subscribedEntities = mux.multiplex(subscribedEntityIds);
     }
 
     @OnOpen
