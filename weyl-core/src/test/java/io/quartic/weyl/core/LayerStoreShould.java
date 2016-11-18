@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.feature.FeatureStore;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.live.LayerSubscription;
@@ -24,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
@@ -34,13 +34,14 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LayerStoreShould {
-    public static final LayerId LAYER_ID = LayerId.of("666");
-    public static final LayerId OTHER_LAYER_ID = LayerId.of("777");
+    private static final LayerId LAYER_ID = LayerId.of("666");
+    private static final LayerId OTHER_LAYER_ID = LayerId.of("777");
     private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
+
     private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore store = new LayerStore(featureStore, lidGenerator);
+    private final EntityStore entityStore = mock(EntityStore.class);
+    private final LayerStore store = new LayerStore(entityStore, lidGenerator, fidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
@@ -96,6 +97,16 @@ public class LayerStoreShould {
         final AbstractLayer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(),
                 containsInAnyOrder(feature("a", "1"), feature("b", "2")));
+    }
+
+    @Test
+    public void put_attributes_to_store() throws Exception {
+        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+
+        Observable.just(updateFor(feature("a"), feature("b"))).subscribe(sub);
+
+
+        verify(entityStore).putAll(newArrayList(feature("a", "1"), feature("b", "2")));
     }
 
     @Test
@@ -291,16 +302,16 @@ public class LayerStoreShould {
         return NakedFeature.of(
                 externalId,
                 factory.createPoint(new Coordinate(123.0, 456.0)),
-                ImmutableMap.of(ATTRIBUTE_NAME, 1234)
+                Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
         );
     }
 
     private AbstractFeature feature(String externalId, String uid) {
         return Feature.of(
-                EntityId.of(LAYER_ID, externalId),
+                EntityId.of(LAYER_ID.uid() + "/" + externalId),
                 FeatureId.of(uid),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
-                ImmutableMap.of(ATTRIBUTE_NAME, 1234)
+                Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
         );
     }
 

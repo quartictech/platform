@@ -3,7 +3,6 @@ package io.quartic.weyl.core.source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
@@ -11,6 +10,7 @@ import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.AbstractNakedFeature;
 import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
@@ -93,17 +93,17 @@ public abstract class PostgresSource implements Source {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            Map<AttributeName, Object> attributes = Maps.newHashMap();
+            final Attributes.Builder builder = Attributes.builder();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
                     final AttributeName name = AttributeName.of(entry.getKey());
                     if (entry.getValue() instanceof PGobject) {
                         readPgObject(entry.getValue())
-                                .ifPresent(attribute -> attributes.put(name, attribute));
+                                .ifPresent(attribute -> builder.attribute(name, attribute));
                     }
                     else {
-                        attributes.put(name, entry.getValue());
+                        builder.attribute(name, entry.getValue());
                     }
                 }
             }
@@ -111,7 +111,7 @@ public abstract class PostgresSource implements Source {
             String id = row.containsKey(ID_FIELD) ?
                     row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
 
-            return NakedFeature.of(id, geometry, attributes);
+            return NakedFeature.of(id, geometry, builder.build());
         });
     }
 

@@ -33,7 +33,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
 import static java.util.stream.Collectors.toList;
 
@@ -45,7 +45,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
-    private final Set<Violation> violations = newHashSet();
+    private final Set<Violation> violations = newLinkedHashSet();
     private final List<LayerSubscription> subscriptions = newArrayList();
     private final GeofenceStore geofenceStore;
     private final AlertProcessor alertProcessor;
@@ -137,7 +137,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private void sendViolationsUpdate() {
-        sendMessage(GeofenceViolationsUpdateMessage.of(violations.stream().map(Violation::geofenceId).collect(toList())));
+        sendMessage(GeofenceViolationsUpdateMessage.of(violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList())));
     }
 
     private void sendLayerUpdate(LayerId layerId, LayerState state) {

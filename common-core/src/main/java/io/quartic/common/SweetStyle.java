@@ -8,6 +8,8 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 @Value.Style(
         add = "*",
         addAll = "all*",
+        put = "*",
+        putAll = "all*",
         depluralize = true,
         allParameters = true,
         jdkOnly = true,

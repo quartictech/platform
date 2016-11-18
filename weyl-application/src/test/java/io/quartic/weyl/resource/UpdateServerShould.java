@@ -11,14 +11,10 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.geofence.GeofenceId;
-import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.geofence.ViolationId;
+import io.quartic.weyl.core.geofence.*;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.AlertMessage;
 import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
@@ -29,11 +25,11 @@ import org.junit.Test;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import java.util.Collections;
 import java.util.Optional;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static org.mockito.Mockito.*;
 
@@ -67,10 +63,10 @@ public class UpdateServerShould {
     public void send_geofence_geometry_update() throws Exception {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
         final AbstractFeature feature = io.quartic.weyl.core.model.Feature.of(
-                EntityId.of(LayerId.of("xyz"), "123"),
+                EntityId.of("xyz/123"),
                 FeatureId.of("456"),
                 geometry,
-                Collections.emptyMap()
+                EMPTY_ATTRIBUTES
         );
 
         server.onGeometryChange(ImmutableList.of(feature));
@@ -79,19 +75,21 @@ public class UpdateServerShould {
                 Feature.of(
                         Optional.empty(),
                         Optional.of(fromJts(transformer.transform(geometry))),
-                        ImmutableMap.of("_entityId", "xyz/123", "_externalId", "123", "_id", "456")
+                        ImmutableMap.of("_entityId", "xyz/123")
                 )
         ))));
     }
 
     @Test
     public void send_geofence_violation_update_accounting_for_cumulative_changes() throws Exception {
-        final GeofenceId geofenceIdA = GeofenceId.of("37");
-        final GeofenceId geofenceIdB = GeofenceId.of("38");
+        final EntityId geofenceIdA = EntityId.of("37");
+        final EntityId geofenceIdB = EntityId.of("38");
+        final Violation violationA = violation(geofenceIdA);
+        final Violation violationB = violation(geofenceIdB);
 
-        server.onViolationBegin(violation(geofenceIdA));
-        server.onViolationBegin(violation(geofenceIdB));
-        server.onViolationEnd(violation(geofenceIdA));
+        server.onViolationBegin(violationA);
+        server.onViolationBegin(violationB);
+        server.onViolationEnd(violationA);
 
         verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA)));
         verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA, geofenceIdB)));
@@ -110,12 +108,13 @@ public class UpdateServerShould {
         verify(session.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(expected));
     }
 
-    private Violation violation(GeofenceId geofenceId) {
-        return Violation.builder()
-                .id(ViolationId.of("1"))
-                .entityId(EntityId.of(LayerId.of("abc"), "42"))
-                .geofenceId(geofenceId)
-                .message("Hmmm")
-                .build();
+    private Violation violation(EntityId geofenceId) {
+        final AbstractGeofence geofence = mock(AbstractGeofence.class, RETURNS_DEEP_STUBS);
+        when(geofence.feature().entityId()).thenReturn(geofenceId);
+        return Violation.of(
+                mock(AbstractFeature.class),
+                geofence,
+                "Hmmm"
+        );
     }
 }

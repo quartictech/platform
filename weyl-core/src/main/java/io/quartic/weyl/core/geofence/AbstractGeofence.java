@@ -1,17 +1,12 @@
 package io.quartic.weyl.core.geofence;
 
-import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AbstractFeature;
 import org.immutables.value.Value;
-
-import java.util.Map;
 
 @Value.Immutable
 @SweetStyle
-interface AbstractGeofence {
-    GeofenceId id();
+public interface AbstractGeofence {
     GeofenceType type();
-    Geometry geometry();
-    Map<AttributeName, Object> attributes();
+    AbstractFeature feature();
 }

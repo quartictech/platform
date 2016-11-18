@@ -2,7 +2,6 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
-import io.quartic.weyl.core.feature.FeatureStore;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -22,7 +21,6 @@ public class PostgresSourceShould {
         when(handle.createQuery(anyString()).iterator()).thenReturn(ri);
         when(ri.hasNext()).thenReturn(false);
 
-        FeatureStore featureStore = mock(FeatureStore.class);
         ObjectMapper mapper = new ObjectMapper();
 
         PostgresSource importer = PostgresSource.builder()

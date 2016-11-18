@@ -1,27 +1,28 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import io.quartic.common.uid.SequenceUidGenerator;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Point;
 import io.quartic.geojson.Polygon;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
-import io.quartic.weyl.core.geofence.GeofenceId;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.request.ImmutableGeofenceRequest;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
@@ -29,14 +30,21 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
-    private static final ImmutableMap<AttributeName, Object> FEATURE_METADATA = ImmutableMap.of(AttributeName.of("some_prop"), 76);
+    private static final Attributes FEATURE_ATTRIBUTES = Attributes.builder().attribute(AttributeName.of("some_prop"), 76).build();
+    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);
-    private int nextGeofenceId = 1;
 
     private final Polygon polyA = geojsonPolygon(5.0);
     private final Polygon polyB = geojsonPolygon(6.0);
+
+    private int nextId = 1;
+
+    @Before
+    public void before() throws Exception {
+        when(layerStore.getFeatureIdGenerator()).thenReturn(fidGenerator);
+    }
 
     @Test
     public void set_geofence_based_on_features() throws Exception {
@@ -51,7 +59,7 @@ public class GeofenceResourceShould {
                 .bufferDistance(0.0)
                 .build());
 
-        verifyGeofence(emptyMap(), polyA, polyB);
+        verifyGeofence("custom", EMPTY_ATTRIBUTES, polyA, polyB);
     }
 
     @Test
@@ -74,7 +82,7 @@ public class GeofenceResourceShould {
                 .bufferDistance(0.0)
                 .build());
 
-        verifyGeofence(FEATURE_METADATA, polyA, polyB);
+        verifyGeofence("xyz", FEATURE_ATTRIBUTES, polyA, polyB);
     }
 
     @Test
@@ -90,7 +98,7 @@ public class GeofenceResourceShould {
                 .bufferDistance(0.0)
                 .build());
 
-        verifyGeofence(emptyMap(), polyA);
+        verifyGeofence("custom", EMPTY_ATTRIBUTES, polyA);
     }
 
     @Test
@@ -105,26 +113,29 @@ public class GeofenceResourceShould {
                 .bufferDistance(1.0)
                 .build());
 
-        verifyGeofence(emptyMap(), (Polygon) fromJts(bufferOp(toJts(geojsonPoint()), 1.0)));
+        verifyGeofence("custom", EMPTY_ATTRIBUTES, (Polygon) fromJts(bufferOp(toJts(geojsonPoint()), 1.0)));
     }
 
-    private void verifyGeofence(Map<AttributeName, Object> metadata, Polygon... polygons) {
+    private void verifyGeofence(String id, Attributes attributes, Polygon... polygons) {
         verify(geofenceStore).setGeofences(
                 stream(polygons)
-                        .map(p -> geofenceOf(metadata, p))
+                        .map(p -> geofenceOf(id, attributes, p))
                         .collect(toList()));
     }
 
-    private Geofence geofenceOf(Map<AttributeName, Object> metadata, Polygon polygon) {
-        return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon), metadata);
+    private Geofence geofenceOf(String id, Attributes attributes, Polygon polygon) {
+        return Geofence.of(
+                GeofenceType.INCLUDE,
+                io.quartic.weyl.core.model.Feature.of(EntityId.of("geofence/" + id), FeatureId.of(Integer.toString(nextId++)), toJts(polygon), attributes)
+        );
     }
 
     private AbstractFeature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
         return io.quartic.weyl.core.model.Feature.of(
-                EntityId.of(LayerId.of("xyz"), "123"),
+                EntityId.of("xyz"),
                 FeatureId.of("abc"),
                 toJts(geometry),
-                FEATURE_METADATA);
+                FEATURE_ATTRIBUTES);
     }
 
     private Point geojsonPoint() {

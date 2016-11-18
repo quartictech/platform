@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.live;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -117,10 +116,10 @@ public class LastKnownLocationAndTrackViewShould {
 
     private AbstractFeature featureWithName(String name, int uid, Geometry geometry) {
         return Feature.builder()
-                .entityId(EntityId.of(LayerId.of("foo"), name))
+                .entityId(EntityId.of("foo/" + name))
                 .uid(FeatureId.of(String.valueOf(uid)))
                 .geometry(geometry)
-                .attributes(ImmutableMap.of(AttributeName.of("name"), name))
+                .attributes(Attributes.builder().attribute(AttributeName.of("name"), name).build())
                 .build();
     }
 
