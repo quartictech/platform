@@ -7,11 +7,12 @@ import { Grid, Col } from 'react-bootstrap';
 import * as Blueprint from "@blueprintjs/core";
 const { Menu, MenuItem, MenuDivider } = Blueprint;
 
-// TODO: fix types!
 interface IProps {
   getNodes: Redux.ActionCreator<any>;
   push: Redux.ActionCreator<any>;
 }
+
+const s = require('./style.css');
 
 class Home extends React.Component<IProps, any> {
   handleNavigate(node: string) {
@@ -20,26 +21,48 @@ class Home extends React.Component<IProps, any> {
 
   render() {
     return (
-      <Grid>
-      <Col xs={6} md={4} >
-      <Menu>
+      <div className={s.container}>
+
+      <div className={s.left}>
+      <Menu className=".modifier pt-elevation-1">
                <MenuItem
                    iconName="new-text-box"
-                   text="New text box" />
+                   text="Live" />
                <MenuItem
                    iconName="new-object"
-                   text="New object" />
-               <MenuItem
-                   iconName="new-link"
-                   text="New link" />
+                   text="Static" />
                <MenuDivider />
                <MenuItem text="Settings..." iconName="cog" />
            </Menu>
-      </Col>
+      </div>
 
-      <Col xs={12} md={8} >
-      </Col>
-      </Grid>
+      <div className={s.main}>
+      <table className="pt-table .modifier">
+  <thead>
+    <th>Project</th>
+    <th>Description</th>
+    <th>Technologies</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Blueprint</td>
+      <td>CSS framework and UI toolkit</td>
+      <td>Sass, TypeScript, React</td>
+    </tr>
+    <tr>
+      <td>TSLint</td>
+      <td>Static analysis linter for TypeScript</td>
+      <td>TypeScript</td>
+    </tr>
+    <tr>
+      <td>Plottable</td>
+      <td>Composable charting library built on top of D3</td>
+      <td>SVG, TypeScript, D3</td>
+    </tr>
+  </tbody>
+</table>
+      </div>
+      </div>
     );
   }
 }

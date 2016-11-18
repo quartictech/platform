@@ -21,9 +21,7 @@ export class App extends React.Component<IProps, void> {
     return (
       <section className={s.App}>
         <Header />
-        <section className={s.Content}>
           {children}
-        </section>
       </section>
     );
   }
