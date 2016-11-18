@@ -21,8 +21,7 @@ export const DatasetRow = (props: IDatasetRowProps) => (
 )
 
 export const DatasetList = (props: IDatasetListProps) => {console.log(props); return (
-  <div>
-  <table className="pt-table pt-striped">
+  <table className="pt-table pt-striped" style={{ width: "100%" }}>
     <thead>
       <tr>
       <th>Type</th>
@@ -37,5 +36,4 @@ export const DatasetList = (props: IDatasetListProps) => {console.log(props); re
     }
     </tbody>
   </table>
-  </div>
 )};

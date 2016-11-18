@@ -2,6 +2,7 @@
 .container {
     display: flex;
     align-items: center;
+    background-color: #293742;
 }
 
 .left {

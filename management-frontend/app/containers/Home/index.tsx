@@ -27,10 +27,12 @@ class Home extends React.Component<IProps, any> {
 
   render() {
     return (
+      <div className="pt-dark">
       <div className={s.container}>
 
       <div className={s.left}>
-      <Menu className=".modifier pt-elevation-1">
+
+      <Menu className="pt-elevation-1">
                <MenuItem
                    iconName="new-text-box"
                    text="Live" />
@@ -44,6 +46,7 @@ class Home extends React.Component<IProps, any> {
 
       <div className={s.main}>
         <DatasetList datasets={this.props.datasets.datasets} />
+      </div>
       </div>
       </div>
     );
