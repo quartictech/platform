@@ -8,7 +8,6 @@ import rx.observers.TestSubscriber;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -18,37 +17,13 @@ public class EntityStoreShould {
     private final EntityStore store = new EntityStore();
 
     @Test
-    public void get_entities_the_legacy_way() throws Exception {
-        final EntityId idA = EntityId.of("123");
-        final EntityId idB = EntityId.of("456");
-        final AbstractFeature featureA = feature(idA);
-        final AbstractFeature featureB = feature(idB);
-
-        store.putAll(newArrayList(featureA, featureB));
-
-        assertThat(store.get(idA), equalTo(featureA));
-        assertThat(store.get(idB), equalTo(featureB));
-    }
-
-    @Test
-    public void get_most_recent_update_to_entity_the_legacy_way() throws Exception {
-        final EntityId id = EntityId.of("123");
-        final AbstractFeature featureA = feature(id);
-        final AbstractFeature featureB = feature(id);
-
-        store.putAll(newArrayList(featureA, featureB));
-
-        assertThat(store.get(id), equalTo(featureB));
-    }
-
-    @Test
     public void emit_entity_changes() throws Exception {
         final EntityId id = EntityId.of("123");
         final AbstractFeature featureA = feature(id);
         final AbstractFeature featureB = feature(id);
         final TestSubscriber<AbstractFeature> sub = TestSubscriber.create();
 
-        store.getObservable(id).subscribe(sub);
+        store.get(id).subscribe(sub);
         store.putAll(newArrayList(featureA));
         store.putAll(newArrayList(featureB));
         sub.awaitValueCount(2, 100, MILLISECONDS);
@@ -65,8 +40,8 @@ public class EntityStoreShould {
         final TestSubscriber<AbstractFeature> subA = TestSubscriber.create();
         final TestSubscriber<AbstractFeature> subB = TestSubscriber.create();
 
-        store.getObservable(idA).subscribe(subA);
-        store.getObservable(idB).subscribe(subB);
+        store.get(idA).subscribe(subA);
+        store.get(idB).subscribe(subB);
         store.putAll(newArrayList(featureA));
         store.putAll(newArrayList(featureB));
         subA.awaitValueCount(1, 100, MILLISECONDS);
@@ -83,7 +58,7 @@ public class EntityStoreShould {
         final TestSubscriber<AbstractFeature> sub = TestSubscriber.create();
 
         store.putAll(newArrayList(feature));
-        store.getObservable(id).subscribe(sub);
+        store.get(id).subscribe(sub);
         sub.awaitValueCount(1, 100, MILLISECONDS);
 
         assertThat(sub.getOnNextEvents(), contains(feature));

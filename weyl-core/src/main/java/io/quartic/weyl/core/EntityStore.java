@@ -8,25 +8,16 @@ import rx.subjects.BehaviorSubject;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.google.common.collect.Maps.newConcurrentMap;
 import static com.google.common.collect.Maps.newHashMap;
 
 public class EntityStore {
     private final Map<EntityId, BehaviorSubject<AbstractFeature>> observables = newHashMap();
-    private final Map<EntityId, AbstractFeature> attributes = newConcurrentMap();
 
     public void putAll(Collection<AbstractFeature> features) {
-        features.forEach(f -> {
-            attributes.put(f.entityId(), f);
-            getSubject(f.entityId()).onNext(f);
-        });
+        features.forEach(f -> getSubject(f.entityId()).onNext(f));
     }
 
-    public AbstractFeature get(EntityId id) {
-        return attributes.get(id);
-    }
-
-    public Observable<AbstractFeature> getObservable(EntityId id) {
+    public Observable<AbstractFeature> get(EntityId id) {
         return getSubject(id);
     }
 

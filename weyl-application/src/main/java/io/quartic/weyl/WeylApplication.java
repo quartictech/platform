@@ -65,7 +65,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
-                                Multiplexer.create(entityStore::getObservable),
+                                Multiplexer.create(entityStore::get),
                                 newArrayList(
                                         new ChartUpdateGenerator(),
                                         new HistogramsUpdateGenerator(new HistogramCalculator()),
