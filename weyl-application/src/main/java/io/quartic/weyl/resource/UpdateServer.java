@@ -177,7 +177,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         try {
             session.getAsyncRemote().sendText(objectMapper.writeValueAsString(message));
         } catch (JsonProcessingException e) {
-            e.printStackTrace();    // TODO
+            LOG.error("Error producing JSON", e);
         }
     }
 

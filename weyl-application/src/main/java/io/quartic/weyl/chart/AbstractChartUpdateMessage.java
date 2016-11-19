@@ -9,8 +9,8 @@ import org.immutables.value.Value;
 import java.util.Map;
 
 @SweetStyle
-@Value.Style.Depluralize(dictionary = {"timeseries:timeseries"})
 @Value.Immutable
+@Value.Style.Depluralize(dictionary = {"timeseries:timeseries"})
 public interface AbstractChartUpdateMessage extends SocketMessage {
     Map<AttributeName, Map<String, TimeSeriesAttribute>> timeseries();
 }

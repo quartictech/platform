@@ -41,14 +41,6 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-function* handleGeofenceViolationsUpdate(msg) {
-  yield put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
-}
-
-function* handleGeofenceGeometryUpdate(msg) {
-  yield put(actions.geofenceSetGeometry(msg.featureCollection));
-}
-
 const createNotification = (title, body) => {
   const n = new Notification(title, { body });
   setTimeout(n.close.bind(n), 5000);
@@ -69,17 +61,20 @@ function* handleMessages(channel) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
         break;
+        case "Alert":
+          yield* handleAlert(msg);
+          break;
       case "GeofenceViolationsUpdate":
-        yield* handleGeofenceViolationsUpdate(msg);
+        yield* put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
         break;
       case "GeofenceGeometryUpdate":
-        yield* handleGeofenceGeometryUpdate(msg);
-        break;
-      case "Alert":
-        yield* handleAlert(msg);
+        yield* put(actions.geofenceSetGeometry(msg.featureCollection));
         break;
       case "ChartUpdate":
-        yield put(actions.chartSetTimeseries(msg.timeseries));
+        yield put(actions.chartSetData(msg.timeseries));
+        break;
+      case "HistogramUpdate":
+        yield put(actions.histogramSetData(msg.histograms));
         break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);

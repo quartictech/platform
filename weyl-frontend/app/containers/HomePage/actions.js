@@ -188,7 +188,12 @@ export const selectionInfoFailedToLoad = () => ({
   type: constants.SELECTION_INFO_FAILED_TO_LOAD,
 });
 
-export const chartSetTimeseries = (timeseries) => ({
-  type: constants.CHART_SET_TIMESERIES,
-  timeseries,
+export const chartSetData = (data) => ({
+  type: constants.CHART_SET_DATA,
+  data,
+});
+
+export const histogramSetData = (data) => ({
+  type: constants.HISTOGRAM_SET_DATA,
+  data,
 });

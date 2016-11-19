@@ -5,6 +5,7 @@ import geofence from "./geofence";
 import ui from "./ui";
 import selection from "./selection";
 import chart from "./chart";
+import histogram from "./histogram";
 import connection from "./connection";
 
 // Immutable version
@@ -22,5 +23,6 @@ export default combineReducers({
   ui,
   selection,
   chart,
+  histogram,
   connection,
 });

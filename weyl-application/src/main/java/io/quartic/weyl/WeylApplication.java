@@ -19,11 +19,13 @@ import io.quartic.weyl.chart.ChartUpdateGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
+import io.quartic.weyl.histogram.HistogramUpdateGenerator;
 import io.quartic.weyl.resource.*;
 import rx.schedulers.Schedulers;
 
@@ -63,7 +65,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
                                 Multiplexer.create(entityStore::getObservable),
-                                newArrayList(new ChartUpdateGenerator()),
+                                newArrayList(
+                                        new ChartUpdateGenerator(),
+                                        new HistogramUpdateGenerator(new HistogramCalculator())
+                                        ),
                                 geofenceStore,
                                 alertProcessor,
                                 transformFromFrontend,
@@ -86,7 +91,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(AggregatesResource.of(entityStoreQuerier));
         environment.jersey().register(new AttributesResource(entityStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());

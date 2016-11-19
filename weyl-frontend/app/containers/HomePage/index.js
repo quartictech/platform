@@ -71,6 +71,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <SelectionPane
             selectedFeatureIds={this.props.selectedIds}
             selectionInfo={this.props.selectionInfo}
+            histograms={this.props.histogram.data}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
@@ -79,7 +80,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.bottomDrawer}>
           <Chart
             visible={this.props.ui.panels.chart}
-            timeSeries={this.props.chart.timeseries}
+            timeSeries={this.props.chart.data}
             onUiToggle={this.props.onUiToggle}
           />
         </div>
@@ -125,6 +126,7 @@ const mapStateToProps = createStructuredSelector({
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,
+  histogram: selectors.selectHistogram,
   connectionUp: selectors.selectConnectionUp,
 });
 

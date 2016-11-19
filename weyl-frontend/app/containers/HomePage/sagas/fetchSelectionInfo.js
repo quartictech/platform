@@ -7,7 +7,6 @@ const _ = require("underscore");
 
 const thingsToFetch = {
   featureAttributes: "/attributes",
-  histograms: "/aggregates/histograms",
 };
 
 const fetchFromEndpoint = (entityIds, endpoint) => request(`${apiRootUrl}${endpoint}`, {
