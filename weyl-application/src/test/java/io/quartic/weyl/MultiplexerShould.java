@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -91,5 +92,17 @@ public class MultiplexerShould {
         selection.onNext(Pair.of(tagB, newArrayList("def")));
 
         assertThat(isUnsubscribedA, equalTo(true));
+    }
+
+    @Test
+    public void emit_single_empty_update_if_selection_is_empty() throws Exception {
+        final double tag = 4.2;
+        final Observable<Pair<Double, List<String>>> selection = just(Pair.of(tag, emptyList()));
+        final TestSubscriber<Pair<Double, List<Integer>>> sub = TestSubscriber.create();
+        mux.call(selection).subscribe(sub);
+
+        assertThat(sub.getOnNextEvents(), contains(
+                Pair.of(tag, emptyList())
+        ));
     }
 }

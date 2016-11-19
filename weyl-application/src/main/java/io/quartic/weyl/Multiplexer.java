@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
+import static rx.Observable.just;
 
 public class Multiplexer<T, K, V> implements Observable.Transformer<Pair<T, List<K>>, Pair<T, List<V>>> {
     private final Function<K, Observable<V>> mapper;
@@ -24,7 +26,9 @@ public class Multiplexer<T, K, V> implements Observable.Transformer<Pair<T, List
 
     @Override
     public Observable<Pair<T, List<V>>> call(Observable<Pair<T, List<K>>> selection) {
-        return selection.switchMap(sel -> combineLatest(collectUpstreams(sel.getRight()), o -> Pair.of(sel.getLeft(), combine(o))));
+        return selection.switchMap(sel -> sel.getRight().isEmpty()
+                ? just(Pair.of(sel.getLeft(), emptyList()))
+                : combineLatest(collectUpstreams(sel.getRight()), o -> Pair.of(sel.getLeft(), combine(o))));
     }
 
     private List<Observable<V>> collectUpstreams(Collection<K> selection) {
