@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 public interface CreateDatasetRequest {
     interface Visitor<T> {
-        T visit(AbstractCreateStaticDatasetRequest request);
-        T visit(AbstractCreateLiveDatasetRequest request);
+        T visit(CreateStaticDatasetRequest request);
+        T visit(CreateLiveDatasetRequest request);
     }
 
     <T> T accept(Visitor<T> visitor);

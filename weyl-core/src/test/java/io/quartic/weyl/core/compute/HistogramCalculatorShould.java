@@ -15,13 +15,13 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class HistogramCalculatorShould {
-    private static final AttributeName SPECIES = AttributeName.of("species");
-    private static final AttributeName NAME = AttributeName.of("name");
+    private static final AttributeName SPECIES = AttributeNameImpl.of("species");
+    private static final AttributeName NAME = AttributeNameImpl.of("name");
     private final HistogramCalculator calculator = new HistogramCalculator();
 
     @Test
     public void count_distinct_values_for_attribute() throws Exception {
-        List<AbstractFeature> features = newArrayList(
+        List<Feature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice")),
                 feature(ImmutableMap.of(NAME, "Bob")),
                 feature(ImmutableMap.of(NAME, "Alice"))
@@ -29,13 +29,13 @@ public class HistogramCalculatorShould {
 
         assertThat(calculator.calculate(features),
                 equalTo(ImmutableSet.of(
-                    Histogram.of(NAME, ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L)))
+                    HistogramImpl.of(NAME, ImmutableSet.of(BucketImpl.of("Alice", 2L), BucketImpl.of("Bob", 1L)))
                 )));
     }
 
     @Test
     public void count_distinct_values_for_multiple_attributes() throws Exception {
-        List<AbstractFeature> features = newArrayList(
+        List<Feature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Bob", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "cat"))
@@ -43,14 +43,14 @@ public class HistogramCalculatorShould {
 
         assertThat(calculator.calculate(features),
                 equalTo(ImmutableSet.of(
-                        Histogram.of(NAME, ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L))),
-                        Histogram.of(SPECIES, ImmutableSet.of(Bucket.of("dog", 2L), Bucket.of("cat", 1L)))
+                        HistogramImpl.of(NAME, ImmutableSet.of(BucketImpl.of("Alice", 2L), BucketImpl.of("Bob", 1L))),
+                        HistogramImpl.of(SPECIES, ImmutableSet.of(BucketImpl.of("dog", 2L), BucketImpl.of("cat", 1L)))
                 )));
     }
 
     @Test
     public void handle_missing_attributes() throws Exception {
-        List<AbstractFeature> features = newArrayList(
+        List<Feature> features = newArrayList(
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "dog")),
                 feature(ImmutableMap.of(NAME, "Bob")),
                 feature(ImmutableMap.of(NAME, "Alice", SPECIES, "cat"))
@@ -58,16 +58,16 @@ public class HistogramCalculatorShould {
 
         assertThat(calculator.calculate(features),
                 equalTo(ImmutableSet.of(
-                        Histogram.of(NAME, ImmutableSet.of(Bucket.of("Alice", 2L), Bucket.of("Bob", 1L))),
-                        Histogram.of(SPECIES, ImmutableSet.of(Bucket.of("dog", 1L), Bucket.of("cat", 1L)))
+                        HistogramImpl.of(NAME, ImmutableSet.of(BucketImpl.of("Alice", 2L), BucketImpl.of("Bob", 1L))),
+                        HistogramImpl.of(SPECIES, ImmutableSet.of(BucketImpl.of("dog", 1L), BucketImpl.of("cat", 1L)))
                 )));
     }
 
-    private AbstractFeature feature(Map<AttributeName, ?> attributes) {
-        return Feature.builder()
-                .entityId(EntityId.of("def"))
+    private Feature feature(Map<AttributeName, ?> attributes) {
+        return FeatureImpl.builder()
+                .entityId(EntityIdImpl.of("def"))
                 .geometry(mock(Geometry.class))
-                .attributes(Attributes.of(attributes))
+                .attributes(AttributesImpl.of(attributes))
                 .build();
     }
 }

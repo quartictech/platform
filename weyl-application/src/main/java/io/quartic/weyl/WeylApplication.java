@@ -14,9 +14,7 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -24,10 +22,13 @@ import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.resource.*;
+import io.quartic.weyl.update.AttributesUpdateGenerator;
+import io.quartic.weyl.update.ChartUpdateGenerator;
+import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
@@ -40,7 +41,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
-    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
     private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator);

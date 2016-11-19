@@ -18,8 +18,8 @@ import static org.junit.Assert.assertThat;
 public class LastKnownLocationAndTrackViewShould {
     @Test
     public void produce_point_for_a_single_feature() {
-        AbstractFeature feature = locationFeature("alex", 100, 100);
-        List<AbstractFeature> features = invokeView(ImmutableList.of(feature));
+        Feature feature = locationFeature("alex", 100, 100);
+        List<Feature> features = invokeView(ImmutableList.of(feature));
 
         assertThat(features.size(), equalTo(1));
         assertThat(Iterables.getOnlyElement(features), equalTo(feature));
@@ -27,10 +27,10 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void produce_points_for_distinct_ids() {
-        AbstractFeature featureA = locationFeature("alex", 100, 100);
-        AbstractFeature featureB = locationFeature("bob", 100, 100);
+        Feature featureA = locationFeature("alex", 100, 100);
+        Feature featureB = locationFeature("bob", 100, 100);
 
-        List<AbstractFeature> features = invokeView(ImmutableList.of(featureA, featureB));
+        List<Feature> features = invokeView(ImmutableList.of(featureA, featureB));
 
         assertThat(features.size(), equalTo(2));
         assertThat(features, containsInAnyOrder(featureA, featureB));
@@ -38,16 +38,16 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void produce_lines_for_distinct_ids() {
-        AbstractFeature featureA = locationFeature("bob", 200, 200);
-        AbstractFeature featureB = locationFeature("alex", 300, 300);
+        Feature featureA = locationFeature("bob", 200, 200);
+        Feature featureB = locationFeature("alex", 300, 300);
 
-        List<AbstractFeature> features = invokeView(ImmutableList.of(
+        List<Feature> features = invokeView(ImmutableList.of(
                 locationFeature("alex", 100, 100),
                 locationFeature("bob", 100, 100),
                 featureA,
                 featureB));
 
-        List<AbstractFeature> expectedFeatures = ImmutableList.of(
+        List<Feature> expectedFeatures = ImmutableList.of(
                 lineFeature("bob", new Coordinate[]{
                         new Coordinate(100, 100),
                         new Coordinate(200, 200)
@@ -66,7 +66,7 @@ public class LastKnownLocationAndTrackViewShould {
 
     @Test
     public void retain_input_order() {
-        List<AbstractFeature> features = invokeView(ImmutableList.of(
+        List<Feature> features = invokeView(ImmutableList.of(
                 locationFeature("alex", 300, 300),
                 locationFeature("alex", 100, 100),
                 locationFeature("alex", 200, 200)
@@ -82,29 +82,29 @@ public class LastKnownLocationAndTrackViewShould {
         ));
     }
 
-    private List<AbstractFeature> invokeView(List<AbstractFeature> input) {
+    private List<Feature> invokeView(List<Feature> input) {
         return new LastKnownLocationAndTrackView()
                 .compute(input)
                 .collect(Collectors.toList());
     }
 
-    private AbstractFeature locationFeature(String name, double x, double y) {
+    private Feature locationFeature(String name, double x, double y) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(coordinate(x, y));
         return featureWithName(name, geometry);
     }
 
-    private AbstractFeature lineFeature(String name, Coordinate[] coordinates) {
+    private Feature lineFeature(String name, Coordinate[] coordinates) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createLineString(coordinates);
         return featureWithName(name, geometry);
     }
 
-    private AbstractFeature featureWithName(String name, Geometry geometry) {
-        return Feature.builder()
-                .entityId(EntityId.of("foo/" + name))
+    private Feature featureWithName(String name, Geometry geometry) {
+        return FeatureImpl.builder()
+                .entityId(EntityIdImpl.of("foo/" + name))
                 .geometry(geometry)
-                .attributes(Attributes.builder().attribute(AttributeName.of("name"), name).build())
+                .attributes(AttributesImpl.builder().attribute(AttributeNameImpl.of("name"), name).build())
                 .build();
     }
 

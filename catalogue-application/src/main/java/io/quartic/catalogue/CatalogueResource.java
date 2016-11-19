@@ -8,6 +8,7 @@ import com.google.common.collect.Sets;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetIdImpl;
 import io.quartic.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     public synchronized void deleteDataset(String id) {
-        final DatasetId did = DatasetId.of(id);
+        final DatasetId did = DatasetIdImpl.of(id);
         throwIfDatasetNotFound(did);
         datasets.remove(did);
         updateClients();
@@ -53,7 +54,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     public synchronized DatasetConfig getDataset(String id) {
-        final DatasetId did = DatasetId.of(id);
+        final DatasetId did = DatasetIdImpl.of(id);
         throwIfDatasetNotFound(did);
         return datasets.get(did);
     }

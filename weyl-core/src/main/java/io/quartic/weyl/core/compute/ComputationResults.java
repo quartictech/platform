@@ -1,0 +1,17 @@
+package io.quartic.weyl.core.compute;
+
+import io.quartic.common.SweetStyle;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.LayerMetadata;
+import org.immutables.value.Value;
+
+import java.util.Collection;
+
+@SweetStyle
+@Value.Immutable
+public interface ComputationResults {
+    LayerMetadata metadata();
+    Collection<Feature> features();
+    AttributeSchema schema();
+}

@@ -2,6 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
 import io.quartic.weyl.core.model.*;
 
 import java.util.Collection;
@@ -13,23 +14,23 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class BucketComputation implements LayerComputation {
-    private final AbstractLayer featureLayer;
-    private final AbstractBucketSpec bucketSpec;
-    private final AbstractLayer bucketLayer;
+    private final Layer featureLayer;
+    private final BucketSpec bucketSpec;
+    private final Layer bucketLayer;
 
-    private BucketComputation(AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
+    private BucketComputation(Layer featureLayer, Layer bucketLayer, BucketSpec bucketSpec) {
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
     }
 
     private AttributeName attributeName() {
-        return AttributeName.of(featureLayer.metadata().name());
+        return AttributeNameImpl.of(featureLayer.metadata().name());
     }
 
-    public static BucketComputation create(LayerStore store, AbstractBucketSpec bucketSpec) {
-        Optional<AbstractLayer> featureLayer = store.getLayer(bucketSpec.features());
-        Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
+    public static BucketComputation create(LayerStore store, BucketSpec bucketSpec) {
+        Optional<Layer> featureLayer = store.getLayer(bucketSpec.features());
+        Optional<Layer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
             return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec);
@@ -43,7 +44,7 @@ public class BucketComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            Collection<AbstractFeature> features = forkJoinPool.submit(this::bucketData).get();
+            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
                     featureLayer.metadata().name());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -51,19 +52,19 @@ public class BucketComputation implements LayerComputation {
                     bucketLayer.metadata().name(),
                     bucketSpec.aggregation().toString());
 
-            Map<AttributeName, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
-            AbstractAttribute newAttribute = Attribute.builder()
+            Map<AttributeName, Attribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
+            Attribute newAttribute = AttributeImpl.builder()
                     .type(AttributeType.NUMERIC)
                     .build();
             attributeMap.put(attributeName(), newAttribute);
 
-            AttributeSchema schema = AttributeSchema
+            AttributeSchema schema = AttributeSchemaImpl
                     .copyOf(bucketLayer.schema())
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(attributeName());
 
-            return Optional.of(ComputationResults.of(
-                    LayerMetadata.builder()
+            return Optional.of(ComputationResultsImpl.of(
+                    LayerMetadataImpl.builder()
                             .name(layerName)
                             .description(layerDescription)
                             .build(),
@@ -76,10 +77,10 @@ public class BucketComputation implements LayerComputation {
         }
     }
 
-    private Collection<AbstractFeature> bucketData() {
+    private Collection<Feature> bucketData() {
         // The order here is that CONTAINS applies from left -> right and
         // the spatial index on the right layer is the one that is queried
-        Map<AbstractFeature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
+        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
                 SpatialJoin.SpatialPredicate.CONTAINS)
                 .collect(Collectors.groupingBy(Tuple::left));
 
@@ -87,7 +88,7 @@ public class BucketComputation implements LayerComputation {
 
         return groups.entrySet().parallelStream()
                 .map(bucketEntry -> {
-                    AbstractFeature bucket = bucketEntry.getKey();
+                    Feature bucket = bucketEntry.getKey();
                     Double value = aggregation.aggregate(
                             bucket,
                             bucketEntry.getValue().stream().map(Tuple::right).collect(Collectors.toList()));
@@ -98,10 +99,10 @@ public class BucketComputation implements LayerComputation {
                         }
                     }
 
-                    final Attributes.Builder builder = Attributes.builder();
+                    final AttributesImpl.Builder builder = AttributesImpl.builder();
                     builder.attributes(bucket.attributes().attributes());
                     builder.attribute(attributeName(), value);
-                    return Feature.copyOf(bucket)
+                    return FeatureImpl.copyOf(bucket)
                             .withAttributes(builder.build());
                 })
                 .collect(Collectors.toList());

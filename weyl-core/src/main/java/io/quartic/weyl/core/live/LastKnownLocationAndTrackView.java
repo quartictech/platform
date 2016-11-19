@@ -2,9 +2,9 @@ package io.quartic.weyl.core.live;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,24 +18,24 @@ import static java.util.stream.Collectors.groupingBy;
 public class LastKnownLocationAndTrackView implements LayerView {
 
     @Override
-    public Stream<AbstractFeature> compute(Collection<AbstractFeature> history) {
-        Map<EntityId, List<AbstractFeature>> historyById = history.stream()
-                .collect(groupingBy(AbstractFeature::entityId));
+    public Stream<Feature> compute(Collection<Feature> history) {
+        Map<EntityId, List<Feature>> historyById = history.stream()
+                .collect(groupingBy(Feature::entityId));
 
         return historyById.values()
                 .stream()
                 .flatMap(LastKnownLocationAndTrackView::makeTrack);
     }
 
-    private static Stream<AbstractFeature> makeTrack(List<AbstractFeature> history) {
-        final AbstractFeature last = getLast(history);
+    private static Stream<Feature> makeTrack(List<Feature> history) {
+        final Feature last = getLast(history);
         final GeometryFactory factory = last.geometry().getFactory();
         if (history.size() == 1) {
             return Stream.of(last);
         }
         return Stream.of(
                 last,
-                Feature.builder()
+                FeatureImpl.builder()
                         .entityId(last.entityId())  // TODO: this is wrong
                         .geometry(factory.createLineString(history.stream()
                                 .map(f -> f.geometry().getCoordinate())

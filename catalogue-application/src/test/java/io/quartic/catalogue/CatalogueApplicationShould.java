@@ -23,9 +23,9 @@ public class CatalogueApplicationShould {
     public void retrieve_registered_datasets() throws Exception {
         final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
 
-        final DatasetConfig config = DatasetConfig.of(
-                DatasetMetadata.of("Foo", "Bar", "Arlo", Optional.empty()),
-                PostgresDatasetLocator.of("a", "b", "c", "d"),
+        final DatasetConfig config = DatasetConfigImpl.of(
+                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty()),
+                PostgresDatasetLocatorImpl.of("a", "b", "c", "d"),
                 emptyMap()
         );
 

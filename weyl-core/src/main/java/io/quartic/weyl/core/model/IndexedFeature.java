@@ -8,5 +8,5 @@ public interface IndexedFeature {
     PreparedGeometry preparedGeometry();
 
     // underlying feature
-    AbstractFeature feature();
+    Feature feature();
 }

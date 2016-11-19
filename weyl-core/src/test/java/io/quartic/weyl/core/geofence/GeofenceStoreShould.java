@@ -3,16 +3,14 @@ package io.quartic.weyl.core.geofence;
 import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.function.BiConsumer;
 
-import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
+import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -34,7 +32,7 @@ public class GeofenceStoreShould {
         createGeofence(GeofenceType.INCLUDE);
 
         verify(listener).onGeometryChange(ImmutableList.of(
-                Feature.of(EntityId.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES)
+                FeatureImpl.of(EntityIdImpl.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES)
         ));
     }
 
@@ -152,14 +150,14 @@ public class GeofenceStoreShould {
     }
 
     private Geofence geofence(GeofenceType type) {
-        return Geofence.of(
+        return GeofenceImpl.of(
                 type,
                 geofenceFeature()
         );
     }
 
     private Feature geofenceFeature() {
-        return Feature.of(EntityId.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES);
+        return FeatureImpl.of(EntityIdImpl.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES);
     }
 
     private void updatePoint(boolean containsResult) {
@@ -169,12 +167,12 @@ public class GeofenceStoreShould {
 
     private void updatePoint(boolean containsResult, Feature point) {
         when(fenceGeometry.contains(point.geometry())).thenReturn(containsResult);
-        store.onLiveLayerEvent(LayerId.of("666"), point);
+        store.onLiveLayerEvent(LayerIdImpl.of("666"), point);
     }
 
     private Feature point() {
-        return Feature.builder()
-                .entityId(EntityId.of("666/ducks"))
+        return FeatureImpl.builder()
+                .entityId(EntityIdImpl.of("666/ducks"))
                 .geometry(mock(Geometry.class))
                 .attributes(EMPTY_ATTRIBUTES)
                 .build();

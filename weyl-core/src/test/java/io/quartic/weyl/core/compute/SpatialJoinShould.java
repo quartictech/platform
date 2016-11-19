@@ -8,8 +8,10 @@ import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.Test;
 import rx.Observable;
 import rx.Subscriber;
@@ -21,13 +23,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
-import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
+import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.mock;
 
 public class SpatialJoinShould {
-    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
+    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final LayerStore store = new LayerStore(mock(EntityStore.class), lidGenerator);
 
     @Test
@@ -36,28 +38,28 @@ public class SpatialJoinShould {
         NakedFeature polyB = square(1, 1, 0.1);
         NakedFeature pointA = point(0, 0);
         NakedFeature pointB = point(1, 1);
-        AbstractLayer layerA = makeLayer(ImmutableList.of(polyA, polyB));
-        AbstractLayer layerB = makeLayer(ImmutableList.of(pointA, pointB));
+        Layer layerA = makeLayer(ImmutableList.of(polyA, polyB));
+        Layer layerB = makeLayer(ImmutableList.of(pointA, pointB));
 
         List<Tuple> joinResults = SpatialJoin.innerJoin(layerA, layerB, SpatialJoin.SpatialPredicate.CONTAINS)
                 .collect(Collectors.toList());
 
         assertThat(joinResults, containsInAnyOrder(
-                Tuple.of(feature(polyA, "1", "1"), feature(pointA, "2", "3")),
-                Tuple.of(feature(polyB, "1", "2"), feature(pointB, "2", "4"))
+                TupleImpl.of(feature(polyA, "1", "1"), feature(pointA, "2", "3")),
+                TupleImpl.of(feature(polyB, "1", "2"), feature(pointB, "2", "4"))
         ));
     }
 
-    private AbstractLayer makeLayer(Collection<AbstractNakedFeature> features) throws IOException {
+    private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
         final Subscriber<SourceUpdate> subscriber = store.createLayer(
                 layerId,
-                LayerMetadata.of("test", "test", Optional.empty(), Optional.empty()),
+                LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
                 IDENTITY_VIEW,
-                AttributeSchema.builder().build(),
+                AttributeSchemaImpl.builder().build(),
                 true);
 
-        Observable.just(SourceUpdate.of(features)).subscribe(subscriber);
+        Observable.just(SourceUpdateImpl.of(features)).subscribe(subscriber);
 
         return store.getLayer(layerId).get();
     }
@@ -81,12 +83,12 @@ public class SpatialJoinShould {
     }
 
     private NakedFeature feature(Geometry geometry) {
-       return NakedFeature.of("123", geometry, EMPTY_ATTRIBUTES);
+       return NakedFeatureImpl.of("123", geometry, EMPTY_ATTRIBUTES);
     }
 
-    private AbstractFeature feature(NakedFeature feature, String layerId, String id) {
-        return Feature.of(
-                EntityId.of(layerId + "/" + feature.externalId()),
+    private Feature feature(NakedFeature feature, String layerId, String id) {
+        return FeatureImpl.of(
+                EntityIdImpl.of(layerId + "/" + feature.externalId()),
                 feature.geometry(),
                 feature.attributes()
         );

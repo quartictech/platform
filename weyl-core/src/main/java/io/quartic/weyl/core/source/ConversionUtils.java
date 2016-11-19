@@ -2,9 +2,10 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
-import io.quartic.weyl.core.model.AbstractFeature;
-import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.Feature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +17,8 @@ public class ConversionUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ConversionUtils.class);
 
     public static Attributes convertToModelAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
-        final Attributes.Builder builder = Attributes.builder();
-        rawAttributes.forEach((k, v) -> builder.attribute(AttributeName.of(k), convertAttributeValue(objectMapper, k, v)));
+        final AttributesImpl.Builder builder = AttributesImpl.builder();
+        rawAttributes.forEach((k, v) -> builder.attribute(AttributeNameImpl.of(k), convertAttributeValue(objectMapper, k, v)));
         return builder.build();
     }
 
@@ -35,7 +36,7 @@ public class ConversionUtils {
         return value;
     }
 
-    public static Map<String, Object> convertFromModelAttributes(AbstractFeature feature) {
+    public static Map<String, Object> convertFromModelAttributes(Feature feature) {
         final Map<String, Object> output = newHashMap();
         feature.attributes().attributes().entrySet().stream()
                 .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))

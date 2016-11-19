@@ -52,7 +52,7 @@ public class GcsConnector {
         Storage.Objects.Get get = storage.objects().get("quartic-test", objectName);
         try {
             HttpResponse httpResponse = get.executeMedia();
-            return Optional.of(InputStreamWithContentType.of(httpResponse.getContentType(), httpResponse.getContent()));
+            return Optional.of(InputStreamWithContentTypeImpl.of(httpResponse.getContentType(), httpResponse.getContent()));
         } catch (IOException e) {
             return Optional.empty();
         }

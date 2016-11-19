@@ -1,8 +1,9 @@
 package io.quartic.weyl.update;
 
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
-import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
 import java.util.Map;
@@ -13,14 +14,14 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
-    private static final AttributeName NAME = AttributeName.of("name");
+    private static final AttributeName NAME = AttributeNameImpl.of("name");
 
     @Override
     public String name() {
         return "chart";
     }
 
-    public Map<AttributeName, Map<String, TimeSeriesAttribute>> generate(Collection<AbstractFeature> entities) {
+    public Map<AttributeName, Map<String, TimeSeriesAttribute>> generate(Collection<Feature> entities) {
         Set<AttributeName> eligibleAttributes = entities.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
@@ -33,7 +34,7 @@ public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
     }
 
     // Map of { name -> timeseries }
-    private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<AbstractFeature> features, AttributeName attribute) {
+    private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, AttributeName attribute) {
         return features.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
                 .filter(feature -> feature.attributes().attributes().containsKey(attribute) &&

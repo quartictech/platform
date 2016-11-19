@@ -1,14 +1,14 @@
 package io.quartic.weyl.core.live;
 
 import io.quartic.common.serdes.ObjectMappers;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.AbstractNakedFeature;
 import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.source.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdateImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 
 import java.util.Collection;
@@ -29,11 +29,11 @@ public class LiveEventConverter {
     }
 
     public SourceUpdate updateFrom(FeatureCollection featureCollection) {
-        return SourceUpdate.of(convertFeatures(featureCollection.features().stream()));
+        return SourceUpdateImpl.of(convertFeatures(featureCollection.features().stream()));
     }
 
     public SourceUpdate updateFrom(LiveEvent event) {
-        return SourceUpdate.of(convertFeatures(getFeatureStream(event)));
+        return SourceUpdateImpl.of(convertFeatures(getFeatureStream(event)));
     }
 
     private Stream<Feature> getFeatureStream(LiveEvent event) {
@@ -42,7 +42,7 @@ public class LiveEventConverter {
                 .orElse(Stream.empty());
     }
 
-    private Collection<AbstractNakedFeature> convertFeatures(Stream<Feature> featureStream) {
+    private Collection<NakedFeature> convertFeatures(Stream<Feature> featureStream) {
         return featureStream
                 .filter(f -> f.geometry().isPresent())  // TODO: we should handle null geometries better
                 .map(this::toJts)
@@ -51,7 +51,7 @@ public class LiveEventConverter {
 
     private NakedFeature toJts(Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
-        return NakedFeature.of(
+        return NakedFeatureImpl.of(
                 f.id().get(),
                 geometryTransformer.transform(Utils.toJts(f.geometry().get())),
                 convertToModelAttributes(ObjectMappers.OBJECT_MAPPER, f.properties())

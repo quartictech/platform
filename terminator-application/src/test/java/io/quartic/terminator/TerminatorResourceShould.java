@@ -1,11 +1,13 @@
 package io.quartic.terminator;
 
 import com.google.common.collect.ImmutableSet;
-import io.quartic.catalogue.api.TerminationId;
-import io.quartic.geojson.Feature;
+import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Point;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
@@ -27,7 +29,7 @@ public class TerminatorResourceShould {
 
     @Test
     public void emit_collections_for_things_in_catalogue() throws Exception {
-        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TerminationId.of("abc")));
+        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TerminationIdImpl.of("abc")));
 
         TestSubscriber<FeatureCollectionWithTerminationId> subscriber = TestSubscriber.create();
         resource.featureCollections().subscribe(subscriber);
@@ -35,7 +37,7 @@ public class TerminatorResourceShould {
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 
         assertThat(subscriber.getOnNextEvents(),
-                contains(FeatureCollectionWithTerminationId.of(TerminationId.of("abc"), featureCollection())));
+                contains(FeatureCollectionWithTerminationIdImpl.of(TerminationIdImpl.of("abc"), featureCollection())));
     }
 
     @Test(expected = NotFoundException.class)
@@ -45,7 +47,7 @@ public class TerminatorResourceShould {
 
     @Test
     public void not_emit_collections_from_before_subscription() throws Exception {
-        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TerminationId.of("abc")));
+        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TerminationIdImpl.of("abc")));
 
         TestSubscriber<FeatureCollectionWithTerminationId> subscriber = TestSubscriber.create();
         resource.postToDataset("abc", featureCollection());
@@ -56,7 +58,7 @@ public class TerminatorResourceShould {
     }
 
     private FeatureCollection featureCollection() {
-        return FeatureCollection.of(newArrayList(
-                Feature.of(Optional.of("456"), Optional.of(Point.of(newArrayList(1.0, 2.0))), emptyMap())));
+        return FeatureCollectionImpl.of(newArrayList(
+                FeatureImpl.of(Optional.of("456"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())));
     }
 }

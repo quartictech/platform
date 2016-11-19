@@ -26,7 +26,7 @@ public final class Utils {
     }
 
     public static LineString lineStringFrom(Iterable<Point> points) {
-        return LineString.of(
+        return LineStringImpl.of(
                 StreamSupport.stream(points.spliterator(), true)
                         .map(Point::coordinates)
                         .collect(toList())
@@ -97,19 +97,19 @@ public final class Utils {
     }
 
     public static Point fromJts(com.vividsolutions.jts.geom.Point point) {
-        return Point.of(coordToList(point.getCoordinate()));
+        return PointImpl.of(coordToList(point.getCoordinate()));
     }
 
     public static LineString fromJts(com.vividsolutions.jts.geom.LineString string) {
-        return LineString.of(coordsToList(string.getCoordinates()));
+        return LineStringImpl.of(coordsToList(string.getCoordinates()));
     }
 
     public static Polygon fromJts(com.vividsolutions.jts.geom.Polygon polygon) {
-        return Polygon.of(polygonToList(polygon));
+        return PolygonImpl.of(polygonToList(polygon));
     }
 
     public static MultiPolygon fromJts(com.vividsolutions.jts.geom.MultiPolygon multiPolygon) {
-        return MultiPolygon.of(IntStream.range(0, multiPolygon.getNumGeometries())
+        return MultiPolygonImpl.of(IntStream.range(0, multiPolygon.getNumGeometries())
                 .mapToObj(i -> (com.vividsolutions.jts.geom.Polygon) multiPolygon.getGeometryN(i))
                 .map(Utils::polygonToList)
                 .collect(toList()));
