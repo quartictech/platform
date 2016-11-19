@@ -5,10 +5,11 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.Multiplexer;
-import io.quartic.weyl.chart.ChartBackend;
+import io.quartic.weyl.UpdateMessageGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
@@ -54,37 +55,42 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final ObjectMapper objectMapper;
     private final Set<Violation> violations = newLinkedHashSet();
     private final List<LayerSubscription> subscriptions = newArrayList();
+    private final Collection<UpdateMessageGenerator> generators;
     private final GeofenceStore geofenceStore;
     private final AlertProcessor alertProcessor;
     private final LayerStore layerStore;
     private Session session;
     private final PublishSubject<Collection<EntityId>> subscribedEntityIds;
-    private final Observable<List<AbstractFeature>> subscribedEntities;
-    private Subscription subscription;
+    private final Multiplexer<EntityId, AbstractFeature> mux;
+    private List<Subscription> generatorSubscriptions;
 
     public UpdateServer(
             LayerStore layerStore,
             Multiplexer<EntityId, AbstractFeature> mux,
+            Collection<UpdateMessageGenerator> generators,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
             GeometryTransformer geometryTransformer,
             ObjectMapper objectMapper
     ) {
         this.layerStore = layerStore;
+        this.generators = ImmutableList.copyOf(generators);
         this.geofenceStore = geofenceStore;
         this.alertProcessor = alertProcessor;
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
         this.subscribedEntityIds = PublishSubject.create();
-        this.subscribedEntities = mux.multiplex(subscribedEntityIds);
+        this.mux = mux;
     }
 
     @OnOpen
     public void onOpen(final Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
         this.session = session;
-        final ChartBackend chart = new ChartBackend();
-        this.subscription = subscribedEntities.subscribe(entities -> sendMessage(chart.process(entities)));
+        final Observable<List<AbstractFeature>> muxed = mux.multiplex(subscribedEntityIds).share();
+        this.generatorSubscriptions = generators.stream()
+                .map(g -> muxed.subscribe(entities -> sendMessage(g.generate(entities))))
+                .collect(toList());
         alertProcessor.addListener(this);
         geofenceStore.addListener(this);
     }
@@ -115,7 +121,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         LOG.info("[{}] Close", session.getId());
         alertProcessor.removeListener(this);
         geofenceStore.removeListener(this);
-        subscription.unsubscribe();
+        generatorSubscriptions.forEach(Subscription::unsubscribe);
         unsubscribeAll();
     }
 
@@ -148,7 +154,6 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private void unsubscribeAll() {
         subscriptions.forEach(layerStore::removeSubscriber);
         subscriptions.clear();
-        // TODO: unsubscribe from entity subscriptions
     }
 
     private void subscribe(LayerId layerId) {

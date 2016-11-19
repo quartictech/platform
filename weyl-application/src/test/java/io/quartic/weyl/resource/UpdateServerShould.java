@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.Multiplexer;
+import io.quartic.weyl.UpdateMessageGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -18,22 +19,31 @@ import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.message.AlertMessage;
-import io.quartic.weyl.message.GeofenceGeometryUpdateMessage;
-import io.quartic.weyl.message.GeofenceViolationsUpdateMessage;
+import io.quartic.weyl.message.*;
 import org.junit.Before;
 import org.junit.Test;
+import rx.Observable;
+import rx.observers.TestSubscriber;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
+import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static rx.Observable.just;
 
 public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
@@ -42,22 +52,34 @@ public class UpdateServerShould {
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
     private final Multiplexer<EntityId, AbstractFeature> mux = mock(Multiplexer.class);
-    private final UpdateServer server = new UpdateServer(layerStore, mux, geofenceStore, alertProcessor, transformer, OBJECT_MAPPER);
+    private final UpdateMessageGenerator generator = mock(UpdateMessageGenerator.class);
+    private final List<AbstractFeature> features = newArrayList(mock(AbstractFeature.class), mock(AbstractFeature.class));
+    private final TestSubscriber<Collection<EntityId>> subscriber = TestSubscriber.create();
+    private boolean unsubscribed = false;
 
     @Before
     public void setUp() throws Exception {
-        server.onOpen(session, mock(EndpointConfig.class));
+        when(mux.multiplex(any())).then(invocation -> {
+            final Observable<? extends Collection<EntityId>> observable = invocation.getArgument(0);
+            observable.subscribe(subscriber);
+            return just(features).doOnUnsubscribe(() -> unsubscribed = true);
+        });
     }
 
     @Test
     public void add_listener_on_open() {
+        final UpdateServer server = createAndOpenServer();
+
         verify(geofenceStore).addListener(server);
         verify(alertProcessor).addListener(server);
     }
 
     @Test
     public void remove_listener_on_close() {
+        final UpdateServer server = createAndOpenServer();
+
         server.onClose(session, mock(CloseReason.class));
+
         verify(geofenceStore).removeListener(server);
         verify(alertProcessor).removeListener(server);
     }
@@ -71,6 +93,7 @@ public class UpdateServerShould {
                 EMPTY_ATTRIBUTES
         );
 
+        final UpdateServer server = createAndOpenServer();
         server.onGeometryChange(ImmutableList.of(feature));
 
         verifyMessage(GeofenceGeometryUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
@@ -89,6 +112,7 @@ public class UpdateServerShould {
         final Violation violationA = violation(geofenceIdA);
         final Violation violationB = violation(geofenceIdB);
 
+        final UpdateServer server = createAndOpenServer();
         server.onViolationBegin(violationA);
         server.onViolationBegin(violationB);
         server.onViolationEnd(violationA);
@@ -101,9 +125,40 @@ public class UpdateServerShould {
     @Test
     public void send_alert() throws Exception {
         final Alert alert = Alert.of("foo", "bar");
+
+        final UpdateServer server = createAndOpenServer();
         server.onAlert(alert);
 
         verifyMessage(AlertMessage.of(alert));
+    }
+
+    @Test
+    public void route_entity_list_to_mux() throws Exception {
+        final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
+
+        final UpdateServer server = createAndOpenServer();
+        server.onMessage(OBJECT_MAPPER.writeValueAsString(ClientStatusMessage.of(emptyList(), ids)));
+        subscriber.awaitValueCount(1, 100, MILLISECONDS);
+
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(ids));
+    }
+
+    @Test
+    public void process_entity_updates_and_send_results() throws Exception {
+        final SocketMessage message = mock(SocketMessage.class);
+        when(generator.generate(any())).thenReturn(message);
+
+        createAndOpenServer();
+
+        verify(generator).generate(features);
+        verifyMessage(message);
+    }
+
+    @Test
+    public void unsubscribe_from_mux_on_close() throws Exception {
+        createAndOpenServer().onClose(session, mock(CloseReason.class));
+
+        assertThat(unsubscribed, equalTo(true));
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {
@@ -118,5 +173,18 @@ public class UpdateServerShould {
                 geofence,
                 "Hmmm"
         );
+    }
+
+    private UpdateServer createAndOpenServer() {
+        final UpdateServer server = new UpdateServer(
+                layerStore,
+                mux,
+                newArrayList(generator),
+                geofenceStore,
+                alertProcessor,
+                transformer,
+                OBJECT_MAPPER);
+        server.onOpen(session, mock(EndpointConfig.class));
+        return server;
     }
 }

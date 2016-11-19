@@ -1,21 +1,21 @@
 package io.quartic.weyl.chart;
 
+import io.quartic.weyl.UpdateMessageGenerator;
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
-public class ChartBackend {
+public class ChartUpdateGenerator implements UpdateMessageGenerator {
     private static final AttributeName NAME = AttributeName.of("name");
 
-    public ChartUpdateMessage process(List<AbstractFeature> entities) {
+    public ChartUpdateMessage generate(Collection<AbstractFeature> entities) {
         Set<AttributeName> eligibleAttributes = entities.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())

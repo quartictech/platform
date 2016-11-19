@@ -15,6 +15,7 @@ import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
+import io.quartic.weyl.chart.ChartUpdateGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -30,6 +31,8 @@ import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
@@ -60,6 +63,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
                                 Multiplexer.create(entityStore::getObservable),
+                                newArrayList(new ChartUpdateGenerator()),
                                 geofenceStore,
                                 alertProcessor,
                                 transformFromFrontend,
