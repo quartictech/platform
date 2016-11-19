@@ -7,38 +7,38 @@ const _ = require("underscore");
 
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
-    // const layers = this.props.layers;
-    // const entityIds = this.props.selection.ids;
-    // const info = this.props.selectionInfo;
-    // const featureAttributes = info.data.featureAttributes;
-    //
-    // // TODO: reconcile with visibility
-    // if (_.size(entityIds) === 0) {
-    //   return null;
-    // }
-    // const visible = true; // TODO
-    // const loaded = (info.lifecycleState === "INFO_LOADED");
-    //
-    // // TODO: depluralise appropriately
-    // const title = (numEntities(entityIds) > 1 || _.size(featureAttributes) === 0)
-    //   ? `${numEntities(entityIds)} entities selected`
-    //   : getBehavior(singleLayer(entityIds, layers)).title(_.values(featureAttributes)[0]);
-    //
-    // return (
-    //   <Pane title={title} visible={visible} onClose={this.props.onClose}>
-    //     {
-    //       (loaded)
-    //         ? null
-    //         : <div className="ui active indeterminate massive text loader">Loading...</div>
-    //     }
-    //
-    //     {
-    //       (histogramEnabled(entityIds))
-    //         ? <Histograms histograms={this.props.histograms} />
-    //         : <NonHistograms featureAttributes={this.props.attributes} layer={singleLayer(entityIds, layers)} />
-    //     }
-    //   </Pane>
-    // );
+    const layers = this.props.layers;
+    const entityIds = this.props.selection.ids;
+    const histograms = this.props.histograms.data;
+    const attributes = this.props.attributes.data;
+
+    // TODO: reconcile with visibility
+    if (_.size(entityIds) === 0) {
+      return null;
+    }
+    const visible = true; // TODO
+    const loaded = (histogramEnabled(entityIds) ? this.props.histograms : this.props.attributes).seqNum === this.props.selection.seqNum;
+
+    // TODO: depluralise appropriately
+    const title = (numEntities(entityIds) > 1 || _.size(attributes) === 0)
+      ? `${numEntities(entityIds)} entities selected`
+      : getBehavior(singleLayer(entityIds, layers)).title(_.values(attributes)[0]);
+
+    return (
+      <Pane title={title} visible={visible} onClose={this.props.onClose}>
+        {
+          (loaded)
+            ? null
+            : <div className="ui active indeterminate massive text loader">Loading...</div>
+        }
+
+        {
+          (histogramEnabled(entityIds))
+            ? <Histograms histograms={histograms} />
+            : <NonHistograms featureAttributes={attributes} layer={singleLayer(entityIds, layers)} />
+        }
+      </Pane>
+    );
 
     return null;
   }
@@ -46,7 +46,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
 
 // entityIds is an object { layerId -> [entityIds] }
 const histogramEnabled = (entityIds) =>
-  (_.size(entityIds) > 1 || numFeatures(entityIds) > 4);
+  (_.size(entityIds) > 1 || numEntities(entityIds) > 4);
 
 const numEntities = (entityIds) => _.size(_.flatten(_.values(entityIds)));
 

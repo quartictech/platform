@@ -70,8 +70,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.rightDrawer}>
           <SelectionPane
             selection={this.props.selection}
-            histograms={this.props.histograms.data}
-            attributes={this.props.attributes.data}
+            histograms={this.props.histograms}
+            attributes={this.props.attributes}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
