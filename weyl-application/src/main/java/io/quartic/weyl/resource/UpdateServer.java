@@ -25,8 +25,8 @@ import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscription;
 import rx.subjects.PublishSubject;
@@ -44,13 +44,14 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static io.quartic.common.uid.UidUtils.stringify;
 import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Metered
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/ws")
 public class UpdateServer implements AlertListener, GeofenceListener {
-    private static final Logger LOG = LoggerFactory.getLogger(UpdateServer.class);
+    private static final Logger LOG = getLogger(UpdateServer.class);
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
     private final Set<Violation> violations = newLinkedHashSet();
@@ -60,13 +61,13 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final AlertProcessor alertProcessor;
     private final LayerStore layerStore;
     private Session session;
-    private final PublishSubject<Collection<EntityId>> subscribedEntityIds;
-    private final Multiplexer<EntityId, AbstractFeature> mux;
+    private final PublishSubject<SelectionStatus> selection;
+    private final Multiplexer<Integer, EntityId, AbstractFeature> mux;
     private List<Subscription> generatorSubscriptions;
 
     public UpdateServer(
             LayerStore layerStore,
-            Multiplexer<EntityId, AbstractFeature> mux,
+            Multiplexer<Integer, EntityId, AbstractFeature> mux,
             Collection<UpdateMessageGenerator> generators,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
@@ -79,7 +80,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         this.alertProcessor = alertProcessor;
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
-        this.subscribedEntityIds = PublishSubject.create();
+        this.selection = PublishSubject.create();
         this.mux = mux;
     }
 
@@ -87,12 +88,20 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     public void onOpen(final Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
         this.session = session;
-        final Observable<List<AbstractFeature>> muxed = mux.multiplex(subscribedEntityIds).share();
-        this.generatorSubscriptions = generators.stream()
-                .map(g -> muxed.subscribe(entities -> sendMessage(g.generate(entities))))
-                .collect(toList());
         alertProcessor.addListener(this);
         geofenceStore.addListener(this);
+        this.generatorSubscriptions = createSubscriptions();
+    }
+
+    private List<Subscription> createSubscriptions() {
+        final Observable<Pair<Integer, List<AbstractFeature>>> entities = selection
+                .map(SelectionStatus::toPair)
+                .compose(mux)
+                .share();
+
+        return generators.stream()
+                .map(g -> entities.subscribe(e -> sendMessage(g.generate(e.getLeft(), e.getRight()))))
+                .collect(toList());
     }
 
     @OnMessage
@@ -102,10 +111,10 @@ public class UpdateServer implements AlertListener, GeofenceListener {
             if (msg instanceof ClientStatusMessage) {
                 ClientStatusMessage csm = (ClientStatusMessage)msg;
                 LOG.info("[{}] Subscribed to layers {} + entities {}",
-                        session.getId(), stringify(csm.subscribedLiveLayerIds()), stringify(csm.subscribedEntityIds()));
+                        session.getId(), stringify(csm.subscribedLiveLayerIds()), stringify(csm.selection().entityIds()));
                 unsubscribeAll();
                 csm.subscribedLiveLayerIds().forEach(this::subscribe);
-                subscribedEntityIds.onNext(csm.subscribedEntityIds());
+                selection.onNext(csm.selection());
             } else if (msg instanceof PingMessage) {
                 LOG.info("[{}] Received ping", session.getId());
             } else {

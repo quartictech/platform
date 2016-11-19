@@ -11,5 +11,6 @@ import java.util.Map;
 @SweetStyle
 @Value.Immutable
 public interface AbstractAttributesUpdateMessage extends SocketMessage {
+    int seqNum();
     Map<EntityId, Attributes> attributes();
 }

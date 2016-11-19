@@ -4,9 +4,7 @@ import map from "./map";
 import geofence from "./geofence";
 import ui from "./ui";
 import selection from "./selection";
-import chart from "./chart";
-import histogram from "./histogram";
-import attributes from "./attributes";
+import subscriptions from "./subscriptions";
 import connection from "./connection";
 
 // Immutable version
@@ -23,8 +21,6 @@ export default combineReducers({
   geofence,
   ui,
   selection,
-  chart,
-  histogram,
-  attributes,
+  subscriptions,
   connection,
 });

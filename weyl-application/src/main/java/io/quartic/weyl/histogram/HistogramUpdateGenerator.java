@@ -15,7 +15,7 @@ public class HistogramUpdateGenerator implements UpdateMessageGenerator {
     }
 
     @Override
-    public SocketMessage generate(Collection<AbstractFeature> entities) {
-        return HistogramUpdateMessage.of(calculator.calculate(entities));
+    public SocketMessage generate(int seqNum, Collection<AbstractFeature> entities) {
+        return HistogramUpdateMessage.of(seqNum, calculator.calculate(entities));
     }
 }

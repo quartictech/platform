@@ -20,13 +20,15 @@ function* keepConnectionAlive(socket) {
 }
 
 function* reportStatus(socket) {
-  const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds);
-  const subscribedEntityIds = _.flatten(_.values(yield select(selectors.selectSelectedIds)));
+  const selection = yield select(selectors.selectSelection);
 
   const msg = {
     type: "ClientStatus",
-    subscribedLiveLayerIds,
-    subscribedEntityIds,
+    subscribedLiveLayerIds: yield select(selectors.selectLiveLayerIds),
+    selection: {
+      entityIds: _.flatten(_.values(selection.ids)),
+      seqNum: selection.seqNum,
+    },
   };
 
   yield call(sendMessage, socket, msg);
@@ -71,13 +73,13 @@ function* handleMessages(channel) {
         yield* put(actions.geofenceSetGeometry(msg.featureCollection));
         break;
       case "ChartUpdate":
-        yield put(actions.chartSetData(msg.timeseries));
+        yield put(actions.subscriptionsPost("chart", msg.seqNum, msg.timeseries));
         break;
       case "HistogramUpdate":
-        yield put(actions.histogramSetData(msg.histograms));
+        yield put(actions.subscriptionsPost("histograms", msg.seqNum, msg.histograms));
         break;
       case "AttributesUpdate":
-        yield put(actions.attributesSetData(msg.attributes));
+        yield put(actions.subscriptionsPost("attributes", msg.seqNum, msg.attributes));
         break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);
@@ -90,18 +92,19 @@ function* watchSubscriptionChanges(socket) {
   let lastTask;
   for (;;) {
     const action = yield take();
-    const info = yield select(selectors.selectSelectionInfo);
+    const selection = yield select(selectors.selectSelection);
+
     // TODO: cleanse this gross logic
     if (([constants.LAYER_CREATE, constants.LAYER_CLOSE].indexOf(action.type) >= 0)) {
       if (lastTask) {
         yield cancel(lastTask);
       }
       lastTask = yield fork(reportStatus, socket);
-    } else if (info.selectionNeedsSending) {
+    } else if (selection.seqNum > selection.latestSent) {
       if (lastTask) {
         yield cancel(lastTask);
       }
-      yield put(actions.selectionStatusSent());
+      yield put(actions.selectionSent(selection.seqNum));
       lastTask = yield fork(reportStatus, socket);
     }
   }

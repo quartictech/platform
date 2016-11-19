@@ -1,5 +1,6 @@
 package io.quartic.weyl;
 
+import org.apache.commons.lang3.tuple.Pair;
 import rx.Observable;
 
 import java.util.Collection;
@@ -10,26 +11,27 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 
-public class Multiplexer<T, U> {
-    private final Function<T, Observable<U>> mapper;
+public class Multiplexer<T, K, V> implements Observable.Transformer<Pair<T, List<K>>, Pair<T, List<V>>> {
+    private final Function<K, Observable<V>> mapper;
 
-    public static <T, U> Multiplexer<T, U> create(Function<T, Observable<U>> mapper) {
+    public static <T, K, V> Multiplexer<T, K, V> create(Function<K, Observable<V>> mapper) {
         return new Multiplexer<>(mapper);
     }
 
-    public Multiplexer(Function<T, Observable<U>> mapper) {
+    public Multiplexer(Function<K, Observable<V>> mapper) {
         this.mapper = mapper;
     }
 
-    public Observable<List<U>> multiplex(Observable<? extends Collection<T>> selection) {
-        return selection.switchMap(sel -> combineLatest(collectUpstreams(sel), this::combine));
+    @Override
+    public Observable<Pair<T, List<V>>> call(Observable<Pair<T, List<K>>> selection) {
+        return selection.switchMap(sel -> combineLatest(collectUpstreams(sel.getRight()), o -> Pair.of(sel.getLeft(), combine(o))));
     }
 
-    private List<Observable<U>> collectUpstreams(Collection<T> selection) {
+    private List<Observable<V>> collectUpstreams(Collection<K> selection) {
         return selection.stream().map(mapper).collect(toList());
     }
 
-    private List<U> combine(Object... objects) {
-        return stream(objects).map(x -> (U)x).collect(toList());
+    private List<V> combine(Object... objects) {
+        return stream(objects).map(x -> (V)x).collect(toList());
     }
 }

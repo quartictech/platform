@@ -10,5 +10,6 @@ import java.util.List;
 @SweetStyle
 @Value.Immutable
 public interface AbstractHistogramUpdateMessage extends SocketMessage {
+    int seqNum();
     List<AbstractHistogram> histograms();
 }

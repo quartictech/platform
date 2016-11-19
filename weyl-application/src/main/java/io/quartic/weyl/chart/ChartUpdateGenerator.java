@@ -15,7 +15,7 @@ import static java.util.stream.Collectors.toMap;
 public class ChartUpdateGenerator implements UpdateMessageGenerator {
     private static final AttributeName NAME = AttributeName.of("name");
 
-    public ChartUpdateMessage generate(Collection<AbstractFeature> entities) {
+    public ChartUpdateMessage generate(int seqNum, Collection<AbstractFeature> entities) {
         Set<AttributeName> eligibleAttributes = entities.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
@@ -25,7 +25,7 @@ public class ChartUpdateGenerator implements UpdateMessageGenerator {
 
         final ChartUpdateMessage.Builder builder = ChartUpdateMessage.builder();
         eligibleAttributes.forEach(attr -> builder.timeseries(attr, timeSeriesForAttribute(entities, attr)));
-        return builder.build();
+        return builder.seqNum(seqNum).build();
     }
 
     // Map of { name -> timeseries }

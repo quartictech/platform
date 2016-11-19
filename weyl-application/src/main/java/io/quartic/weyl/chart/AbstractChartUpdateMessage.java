@@ -12,5 +12,6 @@ import java.util.Map;
 @Value.Immutable
 @Value.Style.Depluralize(dictionary = {"timeseries:timeseries"})
 public interface AbstractChartUpdateMessage extends SocketMessage {
+    int seqNum();
     Map<AttributeName, Map<String, TimeSeriesAttribute>> timeseries();
 }

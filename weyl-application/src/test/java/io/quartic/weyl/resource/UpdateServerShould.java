@@ -20,6 +20,7 @@ import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -29,12 +30,12 @@ import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappers.encode;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
@@ -51,18 +52,18 @@ public class UpdateServerShould {
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
-    private final Multiplexer<EntityId, AbstractFeature> mux = mock(Multiplexer.class);
+    private final Multiplexer<Integer, EntityId, AbstractFeature> mux = mock(Multiplexer.class);
     private final UpdateMessageGenerator generator = mock(UpdateMessageGenerator.class);
     private final List<AbstractFeature> features = newArrayList(mock(AbstractFeature.class), mock(AbstractFeature.class));
-    private final TestSubscriber<Collection<EntityId>> subscriber = TestSubscriber.create();
+    private final TestSubscriber<Pair<Integer, List<EntityId>>> subscriber = TestSubscriber.create();
     private boolean unsubscribed = false;
 
     @Before
     public void setUp() throws Exception {
-        when(mux.multiplex(any())).then(invocation -> {
-            final Observable<? extends Collection<EntityId>> observable = invocation.getArgument(0);
+        when(mux.call(any())).then(invocation -> {
+            final Observable<Pair<Integer, List<EntityId>>> observable = invocation.getArgument(0);
             observable.subscribe(subscriber);
-            return just(features).doOnUnsubscribe(() -> unsubscribed = true);
+            return just(Pair.of(56, features)).doOnUnsubscribe(() -> unsubscribed = true);
         });
     }
 
@@ -137,20 +138,24 @@ public class UpdateServerShould {
         final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
 
         final UpdateServer server = createAndOpenServer();
-        server.onMessage(OBJECT_MAPPER.writeValueAsString(ClientStatusMessage.of(emptyList(), ids)));
+        final String encode = encode(ClientStatusMessage.of(emptyList(), SelectionStatus.of(42, ids)));
+        System.out.println(encode);
+        server.onMessage(encode);
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(ids));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(Pair.of(42, ids)));
     }
 
     @Test
     public void process_entity_updates_and_send_results() throws Exception {
+        final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
         final SocketMessage message = mock(SocketMessage.class);
-        when(generator.generate(any())).thenReturn(message);
+        when(generator.generate(anyInt(), any())).thenReturn(message);
 
-        createAndOpenServer();
+        final UpdateServer server = createAndOpenServer();
+        server.onMessage(encode(ClientStatusMessage.of(emptyList(), SelectionStatus.of(42, ids))));
 
-        verify(generator).generate(features);
+        verify(generator).generate(56, features);
         verifyMessage(message);
     }
 
@@ -162,7 +167,7 @@ public class UpdateServerShould {
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {
-        verify(session.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(expected));
+        verify(session.getAsyncRemote()).sendText(encode(expected));
     }
 
     private Violation violation(EntityId geofenceId) {

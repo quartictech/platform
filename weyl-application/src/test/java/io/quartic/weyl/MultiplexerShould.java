@@ -1,6 +1,7 @@
 package io.quartic.weyl;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import rx.Observable;
 import rx.observers.TestSubscriber;
@@ -25,12 +26,14 @@ public class MultiplexerShould {
             "abc", subjectA.doOnUnsubscribe(() -> isUnsubscribedA = true),
             "def", subjectB
     );
-    private final Multiplexer<String, Integer> mux = Multiplexer.create(streams::get);
+    private final Multiplexer<Double, String, Integer> mux = Multiplexer.create(streams::get);
 
     @Test
     public void combine_upstreams_in_order_and_without_dupes() throws Exception {
-        final TestSubscriber<List<Integer>> sub = TestSubscriber.create();
-        mux.multiplex(just(newArrayList("abc", "def"))).subscribe(sub);
+        final double tag = 4.2;
+        final Observable<Pair<Double, List<String>>> selection = just(Pair.of(tag, newArrayList("abc", "def")));
+        final TestSubscriber<Pair<Double, List<Integer>>> sub = TestSubscriber.create();
+        mux.call(selection).subscribe(sub);
         subjectA.onNext(1);
         subjectB.onNext(10);
         subjectA.onNext(2);
@@ -41,22 +44,24 @@ public class MultiplexerShould {
         sub.awaitTerminalEvent();
 
         assertThat(sub.getOnNextEvents(), contains(
-                newArrayList(1, 10),
-                newArrayList(2, 10),
-                newArrayList(3, 10),
-                newArrayList(3, 20)
+                Pair.of(tag, newArrayList(1, 10)),
+                Pair.of(tag, newArrayList(2, 10)),
+                Pair.of(tag, newArrayList(3, 10)),
+                Pair.of(tag, newArrayList(3, 20))
         ));
     }
 
     @Test
     public void switch_upstream_when_selection_changes() throws Exception {
-        final PublishSubject<List<String>> selection = PublishSubject.create();
-        final TestSubscriber<List<Integer>> sub = TestSubscriber.create();
-        mux.multiplex(selection).subscribe(sub);
-        selection.onNext(newArrayList("abc"));
+        final double tagA = 4.2;
+        final double tagB = 3.1;
+        final PublishSubject<Pair<Double, List<String>>> selection = PublishSubject.create();
+        final TestSubscriber<Pair<Double, List<Integer>>> sub = TestSubscriber.create();
+        mux.call(selection).subscribe(sub);
+        selection.onNext(Pair.of(tagA, newArrayList("abc")));
         subjectA.onNext(1);
         subjectA.onNext(2);
-        selection.onNext(newArrayList("def"));
+        selection.onNext(Pair.of(tagB, newArrayList("def")));
         subjectA.onNext(3);                     // This one should be skipped
         subjectB.onNext(10);
         subjectB.onNext(20);
@@ -66,22 +71,24 @@ public class MultiplexerShould {
         sub.awaitTerminalEvent();
 
         assertThat(sub.getOnNextEvents(), contains(
-                newArrayList(1),
-                newArrayList(2),
-                newArrayList(10),
-                newArrayList(20)
+                Pair.of(tagA, newArrayList(1)),
+                Pair.of(tagA, newArrayList(2)),
+                Pair.of(tagB, newArrayList(10)),
+                Pair.of(tagB, newArrayList(20))
         ));
     }
 
     @Test
     public void unsubscribe_from_upstream_when_selection_changes() throws Exception {
-        final PublishSubject<List<String>> selection = PublishSubject.create();
-        final TestSubscriber<List<Integer>> sub = TestSubscriber.create();
-        mux.multiplex(selection).subscribe(sub);
-        selection.onNext(newArrayList("abc"));
+        final double tagA = 4.2;
+        final double tagB = 3.1;
+        final PublishSubject<Pair<Double, List<String>>> selection = PublishSubject.create();
+        final TestSubscriber<Pair<Double, List<Integer>>> sub = TestSubscriber.create();
+        mux.call(selection).subscribe(sub);
+        selection.onNext(Pair.of(tagA, newArrayList("abc")));
         subjectA.onNext(1);
         subjectA.onNext(2);
-        selection.onNext(newArrayList("def"));
+        selection.onNext(Pair.of(tagB, newArrayList("def")));
 
         assertThat(isUnsubscribedA, equalTo(true));
     }

@@ -1,74 +1,60 @@
-import { Set, Map, fromJS } from "immutable";
+import { is, Set, Map, fromJS } from "immutable";
 import * as constants from "../constants";
 
 export default (state = initialState, action) => {
   switch (action.type) {
     case constants.MAP_MOUSE_CLICK:
-      if (!action.feature) {
-        return initialState;  // Clear everything
-      }
-
-      if (action.multiSelectEnabled) {
-        return state.hasIn(["ids", action.feature.layerId, action.feature.entityId])
-          ? deleteEntry(state, action.feature)
-          : addEntry(state, action.feature);
-      }
-
-      return addEntry(deleteEntries(state), action.feature);  // Clear all entries, add this one
-
     case constants.LAYER_CLOSE:
-      return state.deleteIn(["ids", action.layerId]);
-
     case constants.CLEAR_SELECTION:
-      return initialState;
+      return incrementIfChanged(state, state.update("ids", ids => idsReducer(ids, action)));
 
-    case constants.SELECTION_STATUS_SENT:
-      return state.setIn(["info", "selectionNeedsSending"], false);
-
-    case constants.SELECTION_INFO_LOADING:
-      return setInfoLifecycleState(state, "INFO_LOADING");
-
-    case constants.SELECTION_INFO_LOADED:
-      // This check ensures we discard data returned by stale fetches
-      if (state.getIn(["info", "lifecycleState"]) === "INFO_LOADING") {
-        return setInfoLifecycleState(state, "INFO_LOADED")
-          .setIn(["info", "data"], action.results);
-      }
-      return state;
-
-    case constants.SELECTION_INFO_FAILED_TO_LOAD:
-      // Best course of action right now is just to deselect everything
-      return initialState;
+    case constants.SELECTION_SENT:
+      return state.set("latestSent", action.seqNum);
 
     default:
       return state;
   }
 };
 
+const incrementIfChanged = (state, nextState) => nextState.update("seqNum", i => (is(nextState, state)) ? i : (i + 1));
+
+const idsReducer = (ids, action) => {
+  switch (action.type) {
+    case constants.MAP_MOUSE_CLICK:
+      if (!action.feature) {
+        return new Map();
+      }
+
+      if (action.multiSelectEnabled) {
+        return ids.hasIn([action.feature.layerId, action.feature.entityId])
+          ? deleteEntry(ids, action.feature)
+          : addEntry(ids, action.feature);
+      }
+
+      return addEntry(new Map(), action.feature);  // Clear all entries, add this one
+
+    case constants.LAYER_CLOSE:
+      return ids.delete(action.layerId);
+
+    case constants.CLEAR_SELECTION:
+      return new Map();
+
+    default:
+      return ids;
+  }
+};
+
+const addEntry = (ids, feature) => ids.update(feature.layerId, new Set(), eids => eids.add(feature.entityId));
+
+const deleteEntry = (ids, feature) => {
+  const updated = ids.update(feature.layerId, eids => eids.delete(feature.entityId));
+  return updated.get(feature.layerId).isEmpty()
+    ? updated.delete(feature.layerId)
+    : updated;
+}
+
 const initialState = fromJS({
   ids: {},
-  info: {
-    selectionNeedsSending: true,
-    lifecycleState: "INFO_NOT_REQUIRED",
-    data: {},
-  },
+  seqNum: 0,
+  latestSent: 0,
 });
-
-const addEntry = (state, feature) =>
-  requireInfo(state)
-  .updateIn(["ids", feature.layerId], new Set(), fids => fids.add(feature.entityId));
-
-const deleteEntries = (state) =>
-  requireInfo(state)
-  .set("ids", new Map());
-
-const deleteEntry = (state, feature) =>
-  requireInfo(state)
-  .updateIn(["ids", feature.layerId], ids => ids.delete(feature.entityId))
-  .update("ids", ids => (ids.get(feature.layerId).isEmpty() ? ids.delete(feature.layerId) : ids));
-
-const requireInfo = (state) => setInfoLifecycleState(state, "INFO_REQUIRED")
-  .setIn(["info", "selectionNeedsSending"], true);
-
-const setInfoLifecycleState = (state, lifecycleState) => state
-  .setIn(["info", "lifecycleState"], lifecycleState);

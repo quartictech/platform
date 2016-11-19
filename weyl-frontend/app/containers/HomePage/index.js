@@ -29,7 +29,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               onMapLoaded={this.props.onMapLoaded}
               onMouseMove={this.props.onMapMouseMove}
               onMouseClick={this.props.onMapMouseClick}
-              selection={this.props.selectedIds}
+              selection={this.props.selection.ids}
               map={this.props.map}
               geofence={this.props.geofence}
               onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
@@ -69,9 +69,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.rightDrawer}>
           <SelectionPane
-            selectedFeatureIds={this.props.selectedIds}
-            selectionInfo={this.props.selectionInfo}
-            histograms={this.props.histogram.data}
+            selection={this.props.selection}
+            histograms={this.props.histograms.data}
             attributes={this.props.attributes.data}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
@@ -122,12 +121,11 @@ const mapDispatchToProps = {
 const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
-  selectedIds: selectors.selectSelectedIds,
-  selectionInfo: selectors.selectSelectionInfo,
+  selection: selectors.selectSelection,
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,
-  histogram: selectors.selectHistogram,
+  histograms: selectors.selectHistograms,
   attributes: selectors.selectAttributes,
   connectionUp: selectors.selectConnectionUp,
 });

@@ -9,7 +9,6 @@ import { apiRootUrl } from "../../../utils.js";
 
 import search from "./search";
 import manageSocket from "./manageSocket";
-import fetchSelectionInfo from "./fetchSelectionInfo";
 import saveGeofence from "./saveGeofence";
 
 function* runLayerComputation(action) {
@@ -58,7 +57,6 @@ function prepare(generator) {
 export default [
   prepare(askForNotificationPermission),
   prepare(manageSocket),
-  prepare(fetchSelectionInfo),
   prepare(watch(constants.SEARCH, search)),
   prepare(watch(constants.LAYER_COMPUTATION_START, runLayerComputation)),
   prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),
