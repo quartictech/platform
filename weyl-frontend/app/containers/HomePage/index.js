@@ -72,6 +72,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             selectedFeatureIds={this.props.selectedIds}
             selectionInfo={this.props.selectionInfo}
             histograms={this.props.histogram.data}
+            attributes={this.props.attributes.data}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
@@ -127,6 +128,7 @@ const mapStateToProps = createStructuredSelector({
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,
   histogram: selectors.selectHistogram,
+  attributes: selectors.selectAttributes,
   connectionUp: selectors.selectConnectionUp,
 });
 

@@ -11,6 +11,7 @@ export const selectGeofence = createSelector(selectHome, p => p.geofence);
 export const selectConnectionUp = createSelector(selectHome, p => p.connection);
 export const selectChart = createSelector(selectHome, p => p.chart);
 export const selectHistogram = createSelector(selectHome, p => p.histogram);
+export const selectAttributes = createSelector(selectHome, p => p.attributes);
 
 export const selectSelectedIds = createSelector(selectSelection, p => p.ids);
 export const selectSelectionInfo = createSelector(selectSelection, p => p.info);

@@ -34,7 +34,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         {
           (histogramEnabled(featureIds))
             ? <Histograms histograms={this.props.histograms} />
-            : <NonHistograms featureAttributes={featureAttributes} layer={singleLayer(featureIds, layers)} />
+            : <NonHistograms featureAttributes={this.props.attributes} layer={singleLayer(featureIds, layers)} />
         }
       </Pane>
     );

@@ -76,6 +76,9 @@ function* handleMessages(channel) {
       case "HistogramUpdate":
         yield put(actions.histogramSetData(msg.histograms));
         break;
+      case "AttributesUpdate":
+        yield put(actions.attributesSetData(msg.attributes));
+        break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);
         break;

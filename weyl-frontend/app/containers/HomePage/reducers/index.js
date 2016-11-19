@@ -6,6 +6,7 @@ import ui from "./ui";
 import selection from "./selection";
 import chart from "./chart";
 import histogram from "./histogram";
+import attributes from "./attributes";
 import connection from "./connection";
 
 // Immutable version
@@ -24,5 +25,6 @@ export default combineReducers({
   selection,
   chart,
   histogram,
+  attributes,
   connection,
 });

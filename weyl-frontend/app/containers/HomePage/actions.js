@@ -197,3 +197,8 @@ export const histogramSetData = (data) => ({
   type: constants.HISTOGRAM_SET_DATA,
   data,
 });
+
+export const attributesSetData = (data) => ({
+  type: constants.ATTRIBUTES_SET_DATA,
+  data,
+});
