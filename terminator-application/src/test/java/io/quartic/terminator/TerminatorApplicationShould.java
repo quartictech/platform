@@ -31,7 +31,6 @@ import static org.junit.Assert.assertThat;
 
 public class TerminatorApplicationShould {
     private static final String TERMINATION_ID = "123";
-    private static final int APP_PORT = 8110;
 
     @Rule
     public final WebsocketServerRule catalogue = new WebsocketServerRule();
@@ -55,11 +54,11 @@ public class TerminatorApplicationShould {
 
     @Test
     public void forward_data_from_endpoint_to_websocket() throws Exception {
-        TerminatorService terminator = ClientBuilder.build(TerminatorService.class, getClass(), "http://localhost:" + APP_PORT + "/api");
+        TerminatorService terminator = ClientBuilder.build(TerminatorService.class, getClass(), "http://localhost:" + app.getLocalPort() + "/api");
 
         CollectingEndpoint<FeatureCollectionWithTerminationId> collector = new CollectingEndpoint<>(FeatureCollectionWithTerminationId.class);
         ContainerProvider.getWebSocketContainer()
-                .connectToServer(collector, new URI("ws://localhost:" + APP_PORT + "/ws"));
+                .connectToServer(collector, new URI("ws://localhost:" + app.getLocalPort() + "/ws"));
 
         terminator.postToDataset(TERMINATION_ID, featureCollection());
         collector.awaitMessages(1, 250, MILLISECONDS);

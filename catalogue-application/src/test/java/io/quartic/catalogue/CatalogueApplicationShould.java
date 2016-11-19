@@ -18,10 +18,11 @@ public class CatalogueApplicationShould {
     @ClassRule
     public static final DropwizardAppRule<CatalogueConfiguration> RULE =
             new DropwizardAppRule<>(CatalogueApplication.class, resourceFilePath("catalogue.yml"));
-    private final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), "http://localhost:8090/api");
 
     @Test
     public void retrieve_registered_datasets() throws Exception {
+        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
+
         final DatasetConfig config = DatasetConfig.of(
                 DatasetMetadata.of("Foo", "Bar", "Arlo", Optional.empty()),
                 PostgresDatasetLocator.of("a", "b", "c", "d"),
