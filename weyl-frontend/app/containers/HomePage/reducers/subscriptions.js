@@ -13,5 +13,5 @@ export default (state = initialState, action) => {
 const initialState = fromJS({
   attributes: { seqNum: 0, data: {} },
   histograms: { seqNum: 0, data: {} },
-  chart:      { seqNum: 0, data: {} },
+  chart: { seqNum: 0, data: {} },
 });

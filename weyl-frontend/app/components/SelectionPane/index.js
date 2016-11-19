@@ -39,8 +39,6 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         }
       </Pane>
     );
-
-    return null;
   }
 }
 

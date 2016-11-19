@@ -14,9 +14,9 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.attributes.AttributesUpdateGenerator;
+import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.chart.ChartUpdateGenerator;
+import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -26,7 +26,7 @@ import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.histogram.HistogramUpdateGenerator;
+import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.resource.*;
 import rx.schedulers.Schedulers;
 
@@ -68,7 +68,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                                 Multiplexer.create(entityStore::getObservable),
                                 newArrayList(
                                         new ChartUpdateGenerator(),
-                                        new HistogramUpdateGenerator(new HistogramCalculator()),
+                                        new HistogramsUpdateGenerator(new HistogramCalculator()),
                                         new AttributesUpdateGenerator()
                                 ),
                                 geofenceStore,

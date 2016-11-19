@@ -16,7 +16,7 @@ export default (state = initialState, action) => {
   }
 };
 
-const incrementIfChanged = (state, nextState) => nextState.update("seqNum", i => (is(nextState, state)) ? i : (i + 1));
+const incrementIfChanged = (state, nextState) => nextState.update("seqNum", i => (is(nextState, state) ? i : (i + 1)));
 
 const idsReducer = (ids, action) => {
   switch (action.type) {
@@ -51,7 +51,7 @@ const deleteEntry = (ids, feature) => {
   return updated.get(feature.layerId).isEmpty()
     ? updated.delete(feature.layerId)
     : updated;
-}
+};
 
 const initialState = fromJS({
   ids: {},

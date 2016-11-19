@@ -63,23 +63,17 @@ function* handleMessages(channel) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
         break;
-        case "Alert":
-          yield* handleAlert(msg);
-          break;
+      case "Alert":
+        yield* handleAlert(msg);
+        break;
       case "GeofenceViolationsUpdate":
         yield* put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
         break;
       case "GeofenceGeometryUpdate":
         yield* put(actions.geofenceSetGeometry(msg.featureCollection));
         break;
-      case "ChartUpdate":
-        yield put(actions.subscriptionsPost("chart", msg.seqNum, msg.timeseries));
-        break;
-      case "HistogramUpdate":
-        yield put(actions.subscriptionsPost("histograms", msg.seqNum, msg.histograms));
-        break;
-      case "AttributesUpdate":
-        yield put(actions.subscriptionsPost("attributes", msg.seqNum, msg.attributes));
+      case "SelectionDrivenUpdate":
+        yield put(actions.subscriptionsPost(msg.subscriptionName, msg.seqNum, msg.data));
         break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);

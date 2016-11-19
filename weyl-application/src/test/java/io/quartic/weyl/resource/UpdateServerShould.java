@@ -9,7 +9,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.Multiplexer;
-import io.quartic.weyl.UpdateMessageGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -20,6 +19,7 @@ import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
+import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +32,7 @@ import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
@@ -44,6 +45,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static rx.Observable.empty;
 import static rx.Observable.just;
 
 public class UpdateServerShould {
@@ -53,18 +55,11 @@ public class UpdateServerShould {
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
     private final Multiplexer<Integer, EntityId, AbstractFeature> mux = mock(Multiplexer.class);
-    private final UpdateMessageGenerator generator = mock(UpdateMessageGenerator.class);
-    private final List<AbstractFeature> features = newArrayList(mock(AbstractFeature.class), mock(AbstractFeature.class));
-    private final TestSubscriber<Pair<Integer, List<EntityId>>> subscriber = TestSubscriber.create();
-    private boolean unsubscribed = false;
+    private final SelectionDrivenUpdateGenerator generator = mock(SelectionDrivenUpdateGenerator.class);
 
     @Before
     public void setUp() throws Exception {
-        when(mux.call(any())).then(invocation -> {
-            final Observable<Pair<Integer, List<EntityId>>> observable = invocation.getArgument(0);
-            observable.subscribe(subscriber);
-            return just(Pair.of(56, features)).doOnUnsubscribe(() -> unsubscribed = true);
-        });
+        when(mux.call(any())).thenReturn(empty());
     }
 
     @Test
@@ -136,6 +131,12 @@ public class UpdateServerShould {
     @Test
     public void route_entity_list_to_mux() throws Exception {
         final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
+        final TestSubscriber<Pair<Integer, List<EntityId>>> subscriber = TestSubscriber.create();
+        when(mux.call(any())).then(invocation -> {
+            final Observable<Pair<Integer, List<EntityId>>> observable = invocation.getArgument(0);
+            observable.subscribe(subscriber);
+            return empty();
+        });
 
         final UpdateServer server = createAndOpenServer();
         final String encode = encode(ClientStatusMessage.of(emptyList(), SelectionStatus.of(42, ids)));
@@ -149,21 +150,28 @@ public class UpdateServerShould {
     @Test
     public void process_entity_updates_and_send_results() throws Exception {
         final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
-        final SocketMessage message = mock(SocketMessage.class);
-        when(generator.generate(anyInt(), any())).thenReturn(message);
+        final Object data = mock(Object.class);
+        final List<AbstractFeature> features = newArrayList(mock(AbstractFeature.class), mock(AbstractFeature.class));
+        when(mux.call(any())).thenReturn(just(Pair.of(56, features)));
+        when(generator.name()).thenReturn("foo");
+        when(generator.generate(any())).thenReturn(data);
 
         final UpdateServer server = createAndOpenServer();
         server.onMessage(encode(ClientStatusMessage.of(emptyList(), SelectionStatus.of(42, ids))));
 
-        verify(generator).generate(56, features);
-        verifyMessage(message);
+        verify(generator).generate(features);
+        verifyMessage(SelectionDrivenUpdateMessage.of("foo", 56, data));
     }
 
     @Test
     public void unsubscribe_from_mux_on_close() throws Exception {
+        final AtomicBoolean unsubscribed = new AtomicBoolean(false);
+        final Observable<Pair<Integer, List<AbstractFeature>>> observable = empty();
+        when(mux.call(any())).thenReturn(observable.doOnUnsubscribe(() -> unsubscribed.set(true)));
+
         createAndOpenServer().onClose(session, mock(CloseReason.class));
 
-        assertThat(unsubscribed, equalTo(true));
+        assertThat(unsubscribed.get(), equalTo(true));
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {

@@ -1,6 +1,5 @@
-package io.quartic.weyl.chart;
+package io.quartic.weyl.update;
 
-import io.quartic.weyl.UpdateMessageGenerator;
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
 import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.AttributeName;
@@ -8,24 +7,29 @@ import io.quartic.weyl.core.model.AttributeName;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
-public class ChartUpdateGenerator implements UpdateMessageGenerator {
+public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
     private static final AttributeName NAME = AttributeName.of("name");
 
-    public ChartUpdateMessage generate(int seqNum, Collection<AbstractFeature> entities) {
+    @Override
+    public String name() {
+        return "chart";
+    }
+
+    public Map<AttributeName, Map<String, TimeSeriesAttribute>> generate(Collection<AbstractFeature> entities) {
         Set<AttributeName> eligibleAttributes = entities.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
-        final ChartUpdateMessage.Builder builder = ChartUpdateMessage.builder();
-        eligibleAttributes.forEach(attr -> builder.timeseries(attr, timeSeriesForAttribute(entities, attr)));
-        return builder.seqNum(seqNum).build();
+        return eligibleAttributes.stream()
+                .collect(toMap(identity(), attr -> timeSeriesForAttribute(entities, attr)));
     }
 
     // Map of { name -> timeseries }

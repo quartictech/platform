@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableList;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.Multiplexer;
-import io.quartic.weyl.UpdateMessageGenerator;
+import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AbstractAlert;
 import io.quartic.weyl.core.alert.AlertListener;
@@ -56,7 +56,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final ObjectMapper objectMapper;
     private final Set<Violation> violations = newLinkedHashSet();
     private final List<LayerSubscription> subscriptions = newArrayList();
-    private final Collection<UpdateMessageGenerator> generators;
+    private final Collection<SelectionDrivenUpdateGenerator> generators;
     private final GeofenceStore geofenceStore;
     private final AlertProcessor alertProcessor;
     private final LayerStore layerStore;
@@ -68,7 +68,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     public UpdateServer(
             LayerStore layerStore,
             Multiplexer<Integer, EntityId, AbstractFeature> mux,
-            Collection<UpdateMessageGenerator> generators,
+            Collection<SelectionDrivenUpdateGenerator> generators,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
             GeometryTransformer geometryTransformer,
@@ -100,8 +100,12 @@ public class UpdateServer implements AlertListener, GeofenceListener {
                 .share();
 
         return generators.stream()
-                .map(g -> entities.subscribe(e -> sendMessage(g.generate(e.getLeft(), e.getRight()))))
+                .map(generator -> entities.subscribe(e -> sendMessage(generateUpdateMessage(generator, e))))
                 .collect(toList());
+    }
+
+    private SelectionDrivenUpdateMessage generateUpdateMessage(SelectionDrivenUpdateGenerator generator, Pair<Integer, List<AbstractFeature>> e) {
+        return SelectionDrivenUpdateMessage.of(generator.name(), e.getLeft(), generator.generate(e.getRight()));
     }
 
     @OnMessage
