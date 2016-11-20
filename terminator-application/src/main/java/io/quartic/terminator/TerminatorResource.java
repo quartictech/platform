@@ -1,7 +1,6 @@
 package io.quartic.terminator;
 
 import io.quartic.catalogue.api.TerminationId;
-import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
@@ -22,13 +21,11 @@ public class TerminatorResource implements TerminatorService {
     }
 
     @Override
-    public void postToDataset(String id, FeatureCollection featureCollection) {
-        final TerminationId terminationId = TerminationIdImpl.of(id);
-
+    public void postToDataset(TerminationId id, FeatureCollection featureCollection) {
         // TODO: validate that IDs are present on each feature?
 
-        if (catalogueWatcher.terminationIds().contains(terminationId)) {
-            subject.onNext(FeatureCollectionWithTerminationIdImpl.of(terminationId, featureCollection));
+        if (catalogueWatcher.terminationIds().contains(id)) {
+            subject.onNext(FeatureCollectionWithTerminationIdImpl.of(id, featureCollection));
         } else {
             throw new NotFoundException("Dataset " + id + " not found");
         }

@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class TerminatorApplicationShould {
-    private static final String TERMINATION_ID = "123";
+    private static final TerminationId TERMINATION_ID = TerminationId.fromString("123");
 
     @Rule
     public final WebsocketServerRule catalogue = new WebsocketServerRule();
@@ -65,15 +65,15 @@ public class TerminatorApplicationShould {
         terminator.postToDataset(TERMINATION_ID, featureCollection());
         collector.awaitMessages(1, 250, MILLISECONDS);
 
-        assertThat(collector.messages(), contains(FeatureCollectionWithTerminationIdImpl.of(TerminationIdImpl.of(TERMINATION_ID), featureCollection())));
+        assertThat(collector.messages(), contains(FeatureCollectionWithTerminationIdImpl.of(TERMINATION_ID, featureCollection())));
     }
 
     private Map<DatasetId, DatasetConfig> datasets() {
         return ImmutableMap.of(
-                DatasetIdImpl.of("xyz"),
+                DatasetId.fromString("xyz"),
                 DatasetConfigImpl.of(
                         DatasetMetadataImpl.of("Foo", "Bar", "Baz", Optional.empty()),
-                        TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of(TERMINATION_ID)),
+                        TerminatorDatasetLocatorImpl.of(TERMINATION_ID),
                         emptyMap()
                 )
         );

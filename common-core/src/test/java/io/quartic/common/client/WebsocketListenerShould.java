@@ -1,5 +1,7 @@
 package io.quartic.common.client;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
 import io.quartic.common.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
@@ -73,6 +75,8 @@ public class WebsocketListenerShould {
 
     @SweetStyle
     @Value.Immutable
+    @JsonSerialize(as = TestThingImpl.class)
+    @JsonDeserialize(as = TestThingImpl.class)
     interface TestThing {
         String name();
     }

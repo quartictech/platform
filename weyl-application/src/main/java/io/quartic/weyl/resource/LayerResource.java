@@ -5,7 +5,6 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
 import org.slf4j.Logger;
@@ -38,8 +37,8 @@ public class LayerResource {
     @GET
     @Path("/metadata/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public LayerResponse getLayer(@PathParam("id") String id) {
-        return layerStore.getLayer(LayerIdImpl.of(id))
+    public LayerResponse getLayer(@PathParam("id") LayerId id) {
+        return layerStore.getLayer(id)
                 .map(this::createLayerResponse)
                 .orElseThrow(() -> new NotFoundException("No layer with id " + id));
     }

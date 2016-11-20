@@ -1,7 +1,7 @@
 package io.quartic.terminator;
 
 import com.google.common.collect.ImmutableSet;
-import io.quartic.catalogue.api.TerminationIdImpl;
+import io.quartic.catalogue.api.TerminationId;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
@@ -24,33 +24,34 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TerminatorResourceShould {
+    private static final TerminationId TERMINATION_ID = TerminationId.fromString("abc");
     private final CatalogueWatcher catalogue = mock(CatalogueWatcher.class);
     private final TerminatorResource resource = new TerminatorResource(catalogue);
 
     @Test
     public void emit_collections_for_things_in_catalogue() throws Exception {
-        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TerminationIdImpl.of("abc")));
+        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TERMINATION_ID));
 
         TestSubscriber<FeatureCollectionWithTerminationId> subscriber = TestSubscriber.create();
         resource.featureCollections().subscribe(subscriber);
-        resource.postToDataset("abc", featureCollection());
+        resource.postToDataset(TERMINATION_ID, featureCollection());
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 
         assertThat(subscriber.getOnNextEvents(),
-                contains(FeatureCollectionWithTerminationIdImpl.of(TerminationIdImpl.of("abc"), featureCollection())));
+                contains(FeatureCollectionWithTerminationIdImpl.of(TERMINATION_ID, featureCollection())));
     }
 
     @Test(expected = NotFoundException.class)
     public void block_collections_for_things_not_in_catalogue() throws Exception {
-        resource.postToDataset("abc", featureCollection());
+        resource.postToDataset(TERMINATION_ID, featureCollection());
     }
 
     @Test
     public void not_emit_collections_from_before_subscription() throws Exception {
-        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TerminationIdImpl.of("abc")));
+        when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TERMINATION_ID));
 
         TestSubscriber<FeatureCollectionWithTerminationId> subscriber = TestSubscriber.create();
-        resource.postToDataset("abc", featureCollection());
+        resource.postToDataset(TERMINATION_ID, featureCollection());
         resource.featureCollections().subscribe(subscriber);
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 

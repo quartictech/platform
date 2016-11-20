@@ -41,7 +41,7 @@ public class CatalogueResourceShould {
 
         final DatasetId idX = resource.registerDataset(configX);
         final DatasetId idY = resource.registerDataset(configY);
-        resource.deleteDataset(idX.uid());
+        resource.deleteDataset(idX);
 
         newArrayList(sessionA, sessionB).forEach(session -> {
             verify(session.getAsyncRemote()).sendText(serialize(ImmutableMap.of(idX, configX)));

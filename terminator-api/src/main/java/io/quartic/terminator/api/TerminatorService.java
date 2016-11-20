@@ -1,5 +1,6 @@
 package io.quartic.terminator.api;
 
+import io.quartic.catalogue.api.TerminationId;
 import io.quartic.geojson.FeatureCollection;
 
 import javax.ws.rs.Consumes;
@@ -13,5 +14,5 @@ public interface TerminatorService {
     @POST
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    void postToDataset(@PathParam("id") String id, FeatureCollection featureCollection);
+    void postToDataset(@PathParam("id") TerminationId id, FeatureCollection featureCollection);
 }
