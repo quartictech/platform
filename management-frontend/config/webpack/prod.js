@@ -1,5 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 var baseConfig = require('./base');
 
@@ -19,6 +20,7 @@ var config = Object.assign({}, baseConfig, {
     //     warnings: false,
     //   }
     // }),
+		new CopyWebpackPlugin([{from: "public"}]),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.optimize.DedupePlugin()
   ]
