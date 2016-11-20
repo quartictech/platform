@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { IndexRoute, Route } from 'react-router';
-import { App, Home, About } from '../containers';
+import { IndexRedirect, Route } from 'react-router';
+import { App, Home, About, DatasetView } from '../containers';
 
-function getRoutes(store) {
-  return (
+function getRoutes(store) { return (
     <Route path="/" component={App}>
-      <IndexRoute component={Home} />
       <Route path="about" component={About} />
-      <Route path="*" component={Home} />
+      <Route path="/datasets" component={Home} />
+      <IndexRedirect to="/datasets" />
+      <Route path="/dataset/:id" component={DatasetView} />
     </Route>
   );
 };

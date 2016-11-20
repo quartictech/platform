@@ -1,4 +1,6 @@
 import * as React from "react";
+import { Link } from 'react-router'
+
 import { IDataset } from "../../models";
 import _ = require("underscore");
 
@@ -16,7 +18,7 @@ export const DatasetRow = (props: IDatasetRowProps) => (
   <td>{props.dataset.locator.type}</td>
   <td>{props.dataset.metadata.name}</td>
   <td>{props.dataset.metadata.description}</td>
-  <td>{props.dataset.metadata.attribution}</td>
+  <td><Link to={`/dataset/${props.id}`}>View</Link></td>
   </tr>
 )
 
@@ -27,7 +29,6 @@ export const DatasetList = (props: IDatasetListProps) => {console.log(props); re
       <th>Type</th>
       <th>Name</th>
       <th>Description</th>
-      <th>Attribution</th>
       </tr>
     </thead>
     <tbody>

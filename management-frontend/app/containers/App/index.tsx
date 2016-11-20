@@ -17,10 +17,12 @@ export class App extends React.Component<IProps, void> {
   render() {
     const { params, location, children } = this.props;
     return (
+      <div className="pt-dark">
       <section className={s.App}>
         <Header />
           {children}
       </section>
+      </div>
     );
   }
 }

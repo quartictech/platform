@@ -10,6 +10,7 @@ class Header extends React.Component<void, void> {
           <nav className="pt-navbar .modifier pt-dark">
 
   <div className="pt-navbar-group pt-align-left">
+    <Link to ="/" className={s.logo}>
     <img
               className={s.logo}
               src={logo}
@@ -18,6 +19,7 @@ class Header extends React.Component<void, void> {
               data-variation="mini"
             >
             </img>
+            </Link>
             <input className="pt-input" placeholder="Search datasets..." type="text" />
     </div>
     <div className="pt-navbar-group pt-align-right">

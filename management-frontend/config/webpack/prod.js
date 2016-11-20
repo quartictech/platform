@@ -14,11 +14,11 @@ var config = Object.assign({}, baseConfig, {
         'NODE_ENV': JSON.stringify('production')
       }
     }),
-    new webpack.optimize.UglifyJsPlugin({
-      compressor: {
-        warnings: false
-      }
-    }),
+    // new webpack.optimize.UglifyJsPlugin({
+    //   compressor: {
+    //     warnings: false,
+    //   }
+    // }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.optimize.DedupePlugin()
   ]

@@ -4,7 +4,7 @@ var webpack = require('webpack');
 var config = {
 
   output: {
-    path: path.resolve(__dirname, '../../docs'),
+    path: path.resolve(process.cwd(), 'build', 'webpack', 'assets'),
     filename: 'bundle.js'
   },
 

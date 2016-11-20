@@ -14,8 +14,10 @@ dependencies {
 
     compile project(":common-application")
     compile project(":catalogue-api")
+    runtime project(":management-frontend")
 
     compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
+    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
 
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"

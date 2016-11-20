@@ -1,7 +1,7 @@
 {
-  "name": "BilgiShuttleWeb",
+  "name": "management-frontend",
   "version": "1.0.1",
-  "description": "Basic but useful web application for listing the shuttle routes and times of İstanbul Bilgi University",
+  "description": "Quartic Management Frontend",
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=development node server.js",
@@ -13,7 +13,7 @@
     "redux",
     "typescript"
   ],
-  "author": "Altay Aydemir <altay.aydemir@gmail.com>",
+  "author": "Alex Sparrow <alex@quartic.io>",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.4.34",
