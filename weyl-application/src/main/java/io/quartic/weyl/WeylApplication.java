@@ -14,15 +14,19 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
+import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
+import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.resource.*;
 import rx.schedulers.Schedulers;
 
@@ -30,6 +34,8 @@ import javax.websocket.server.ServerEndpointConfig;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
@@ -59,6 +65,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
+                                Multiplexer.create(entityStore::get),
+                                newArrayList(
+                                        new ChartUpdateGenerator(),
+                                        new HistogramsUpdateGenerator(new HistogramCalculator()),
+                                        new AttributesUpdateGenerator()
+                                ),
                                 geofenceStore,
                                 alertProcessor,
                                 transformFromFrontend,
@@ -74,15 +86,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        final EntityStoreQuerier entityStoreQuerier = new EntityStoreQuerier(entityStore);
-
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(AggregatesResource.of(entityStoreQuerier));
-        environment.jersey().register(new AttributesResource(entityStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 

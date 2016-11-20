@@ -1,9 +1,10 @@
-import { take, takem, call, put, select, race } from "redux-saga/effects";
+import { take, takem, call, fork, cancel, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsUrl } from "../../../utils.js";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
+const _ = require("underscore");
 
 
 const sendMessage = (socket, msg) => {
@@ -19,11 +20,15 @@ function* keepConnectionAlive(socket) {
 }
 
 function* reportStatus(socket) {
-  const subscribedLiveLayerIds = yield select(selectors.selectLiveLayerIds);
+  const selection = yield select(selectors.selectSelection);
 
   const msg = {
     type: "ClientStatus",
-    subscribedLiveLayerIds,
+    subscribedLiveLayerIds: yield select(selectors.selectLiveLayerIds),
+    selection: {
+      entityIds: _.flatten(_.values(selection.ids)),
+      seqNum: selection.seqNum,
+    },
   };
 
   yield call(sendMessage, socket, msg);
@@ -36,14 +41,6 @@ function* handleLayerUpdate(msg) {
   } else {
     console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);
   }
-}
-
-function* handleGeofenceViolationsUpdate(msg) {
-  yield put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
-}
-
-function* handleGeofenceGeometryUpdate(msg) {
-  yield put(actions.geofenceSetGeometry(msg.featureCollection));
 }
 
 const createNotification = (title, body) => {
@@ -66,14 +63,17 @@ function* handleMessages(channel) {
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);
         break;
-      case "GeofenceViolationsUpdate":
-        yield* handleGeofenceViolationsUpdate(msg);
-        break;
-      case "GeofenceGeometryUpdate":
-        yield* handleGeofenceGeometryUpdate(msg);
-        break;
       case "Alert":
         yield* handleAlert(msg);
+        break;
+      case "GeofenceViolationsUpdate":
+        yield* put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
+        break;
+      case "GeofenceGeometryUpdate":
+        yield* put(actions.geofenceSetGeometry(msg.featureCollection));
+        break;
+      case "SelectionDrivenUpdate":
+        yield put(actions.subscriptionsPost(msg.subscriptionName, msg.seqNum, msg.data));
         break;
       default:
         console.warn(`Unrecognised message type ${msg.type}`);
@@ -82,10 +82,25 @@ function* handleMessages(channel) {
   }
 }
 
-function* watchLayerChanges(socket) {
+function* watchSubscriptionChanges(socket) {
+  let lastTask;
   for (;;) {
-    yield take([constants.LAYER_CREATE, constants.LAYER_CLOSE]);
-    yield* reportStatus(socket);
+    const action = yield take();
+    const selection = yield select(selectors.selectSelection);
+
+    // TODO: cleanse this gross logic
+    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE].indexOf(action.type) >= 0)) {
+      if (lastTask) {
+        yield cancel(lastTask);
+      }
+      lastTask = yield fork(reportStatus, socket);
+    } else if (selection.seqNum > selection.latestSent) {
+      if (lastTask) {
+        yield cancel(lastTask);
+      }
+      yield put(actions.selectionSent(selection.seqNum));
+      lastTask = yield fork(reportStatus, socket);
+    }
   }
 }
 
@@ -110,7 +125,7 @@ export default function* () {
       yield* reportStatus(socket);
 
       yield race({
-        watchLayerChanges: watchLayerChanges(socket),
+        watchSubscriptionChanges: watchSubscriptionChanges(socket),
         keepConnectionAlive: keepConnectionAlive(socket),
         handleMessages: handleMessages(channel),
       });

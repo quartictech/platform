@@ -171,15 +171,14 @@ export const connectionDown = () => ({
   type: constants.CONNECTION_DOWN,
 });
 
-export const selectionInfoLoading = () => ({
-  type: constants.SELECTION_INFO_LOADING,
+export const selectionSent = (seqNum) => ({
+  type: constants.SELECTION_SENT,
+  seqNum,
 });
 
-export const selectionInfoLoaded = (results) => ({
-  type: constants.SELECTION_INFO_LOADED,
-  results,
-});
-
-export const selectionInfoFailedToLoad = () => ({
-  type: constants.SELECTION_INFO_FAILED_TO_LOAD,
+export const subscriptionsPost = (name, seqNum, data) => ({
+  type: constants.SUBSCRIPTIONS_POST,
+  name,
+  seqNum,
+  data,
 });

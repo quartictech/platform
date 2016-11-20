@@ -8,20 +8,21 @@ const _ = require("underscore");
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     const layers = this.props.layers;
-    const featureIds = this.props.selectedFeatureIds;
-    const info = this.props.selectionInfo;
-    const featureAttributes = info.data.featureAttributes;
+    const entityIds = this.props.selection.ids;
+    const histograms = this.props.histograms.data;
+    const attributes = this.props.attributes.data;
 
     // TODO: reconcile with visibility
-    if (_.size(featureIds) === 0) {
+    if (_.size(entityIds) === 0) {
       return null;
     }
     const visible = true; // TODO
-    const loaded = (info.lifecycleState === "INFO_LOADED");
+    const loaded = (histogramEnabled(entityIds) ? this.props.histograms : this.props.attributes).seqNum === this.props.selection.seqNum;
 
-    const title = (numFeatures(featureIds) > 1 || _.size(featureAttributes) === 0)
-      ? `${numFeatures(featureIds)} feature(s) selected`
-      : getBehavior(singleLayer(featureIds, layers)).title(_.values(featureAttributes)[0]);
+    // TODO: depluralise appropriately
+    const title = (numEntities(entityIds) > 1 || _.size(attributes) === 0)
+      ? `${numEntities(entityIds)} entities selected`
+      : getBehavior(singleLayer(entityIds, layers)).title(_.values(attributes)[0]);
 
     return (
       <Pane title={title} visible={visible} onClose={this.props.onClose}>
@@ -32,22 +33,22 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         }
 
         {
-          (histogramEnabled(featureIds))
-            ? <Histograms histograms={info.data.histograms} />
-            : <NonHistograms featureAttributes={featureAttributes} layer={singleLayer(featureIds, layers)} />
+          (histogramEnabled(entityIds))
+            ? <Histograms histograms={histograms} />
+            : <NonHistograms featureAttributes={attributes} layer={singleLayer(entityIds, layers)} />
         }
       </Pane>
     );
   }
 }
 
-// featureIds is an object { layerId -> [featureIds] }
-const histogramEnabled = (featureIds) =>
-  (_.size(featureIds) > 1 || numFeatures(featureIds) > 4);
+// entityIds is an object { layerId -> [entityIds] }
+const histogramEnabled = (entityIds) =>
+  (_.size(entityIds) > 1 || numEntities(entityIds) > 4);
 
-const numFeatures = (featureIds) => _.size(_.flatten(_.values(featureIds)));
+const numEntities = (entityIds) => _.size(_.flatten(_.values(entityIds)));
 
-const singleLayer = (featureIds, layers) => layers[_.keys(featureIds)[0]];
+const singleLayer = (entityIds, layers) => layers[_.keys(entityIds)[0]];
 
 const NonHistograms = ({ featureAttributes, layer }) => {
   const behavior = getBehavior(layer);
