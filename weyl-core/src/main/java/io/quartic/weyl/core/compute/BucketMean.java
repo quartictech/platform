@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.compute;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
@@ -13,7 +12,6 @@ import java.util.Objects;
 
 @SweetStyle
 @Value.Immutable
-@JsonTypeName("mean")
 @JsonSerialize(as = BucketMeanImpl.class)
 @JsonDeserialize(as = BucketMeanImpl.class)
 public abstract class BucketMean implements BucketAggregation {

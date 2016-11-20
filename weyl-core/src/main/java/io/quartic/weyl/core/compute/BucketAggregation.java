@@ -6,11 +6,11 @@ import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
 
-@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(BucketCountImpl.class),
-        @JsonSubTypes.Type(BucketSumImpl.class),
-        @JsonSubTypes.Type(BucketMeanImpl.class)
+        @JsonSubTypes.Type(value = BucketCountImpl.class, name = "count"),
+        @JsonSubTypes.Type(value = BucketSumImpl.class, name = "sum"),
+        @JsonSubTypes.Type(value = BucketMeanImpl.class, name = "mean")
 })
 public interface BucketAggregation {
     double aggregate(Feature bucket, Collection<Feature> features);

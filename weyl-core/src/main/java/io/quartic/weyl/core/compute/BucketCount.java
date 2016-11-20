@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.compute;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
@@ -11,7 +10,6 @@ import java.util.Collection;
 
 @SweetStyle
 @Value.Immutable
-@JsonTypeName("count")
 @JsonSerialize(as = BucketCountImpl.class)
 @JsonDeserialize(as = BucketCountImpl.class)
 public abstract class BucketCount implements BucketAggregation {
