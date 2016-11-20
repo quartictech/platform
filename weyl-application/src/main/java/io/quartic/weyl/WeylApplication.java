@@ -118,24 +118,24 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .build();
 
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, config -> PostgresSource.builder()
+                PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
                         .locator((PostgresDatasetLocator) config.locator())
                         .objectMapper(environment.getObjectMapper())
                         .build(),
-                GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
                         .objectMapper(environment.getObjectMapper())
                         .build(),
-                WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
+                WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
                         .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(converter)
                         .metrics(environment.metrics())
                         .build(),
-                TerminatorDatasetLocator.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
-                CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
+                CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
                         .objectMapper(environment.getObjectMapper())

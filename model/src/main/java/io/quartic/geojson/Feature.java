@@ -1,6 +1,7 @@
 package io.quartic.geojson;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
@@ -14,6 +15,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 @SweetStyle
 @Value.Immutable
+@JsonTypeName("Feature")
 @JsonSerialize(as = FeatureImpl.class)
 @JsonDeserialize(as = FeatureImpl.class)
 @JsonTypeInfo(use= Id.NAME, include= As.PROPERTY, property="type", defaultImpl = FeatureImpl.class)

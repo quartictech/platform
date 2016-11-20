@@ -3,6 +3,7 @@ package io.quartic.weyl.core.compute;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.AttributeName;
 import org.immutables.value.Value;
@@ -10,10 +11,12 @@ import org.immutables.value.Value;
 import java.util.Collection;
 import java.util.Objects;
 
+
+@SweetStyle
 @Value.Immutable
 @JsonTypeName("sum")
-@JsonSerialize(as = ImmutableBucketSum.class)
-@JsonDeserialize(as = ImmutableBucketSum.class)
+@JsonSerialize(as = BucketSumImpl.class)
+@JsonDeserialize(as = BucketSumImpl.class)
 public abstract class BucketSum implements BucketAggregation {
     abstract AttributeName attribute();
 
