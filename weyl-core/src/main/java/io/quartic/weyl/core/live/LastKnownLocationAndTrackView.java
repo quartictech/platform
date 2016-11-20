@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.common.collect.Iterables.getLast;
 import static java.util.stream.Collectors.groupingBy;
 
 public class LastKnownLocationAndTrackView implements LayerView {
@@ -28,21 +27,21 @@ public class LastKnownLocationAndTrackView implements LayerView {
     }
 
     private static Stream<Feature> makeTrack(List<Feature> history) {
-        final Feature last = getLast(history);
-        final GeometryFactory factory = last.geometry().getFactory();
+        final Feature first = history.get(0);
+        final GeometryFactory factory = first.geometry().getFactory();
         if (history.size() == 1) {
-            return Stream.of(last);
+            return Stream.of(first);
         }
         return Stream.of(
-                last,
+                first,
                 FeatureImpl.builder()
-                        .entityId(last.entityId())  // TODO: this is wrong
+                        .entityId(first.entityId())
                         .geometry(factory.createLineString(history.stream()
                                 .map(f -> f.geometry().getCoordinate())
                                 .collect(Collectors.toList())
                                 .toArray(new Coordinate[0])
                         ))
-                        .attributes(last.attributes())
+                        .attributes(first.attributes())
                         .build()
         );
     }
