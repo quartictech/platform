@@ -5,8 +5,8 @@ import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.response.ImmutableLayerResponse;
 import io.quartic.weyl.response.LayerResponse;
+import io.quartic.weyl.response.LayerResponseImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +55,7 @@ public class LayerResource {
     }
 
     private LayerResponse createLayerResponse(Layer layer) {
-        return ImmutableLayerResponse.builder()
+        return LayerResponseImpl.builder()
                 .id(layer.layerId())
                 .metadata(layer.metadata())
                 .stats(layer.layerStats())

@@ -9,8 +9,8 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.BufferComputation;
 import io.quartic.weyl.core.compute.ComputationSpec;
+import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
@@ -19,11 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Subscriber;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -32,6 +29,7 @@ import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 public class LayerStore {
@@ -88,7 +86,7 @@ public class LayerStore {
 
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        Optional<Layer> layer = BufferComputation.compute(this, computationSpec)
+        Optional<Layer> layer = LayerComputation.compute(this, computationSpec)
                 .map(r -> updateIndicesAndStats(appendFeatures(
                         newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
                         r.features()))
@@ -120,7 +118,7 @@ public class LayerStore {
                 .view(view)
                 .spatialIndex(spatialIndex(ImmutableList.of()))
                 .indexedFeatures(ImmutableList.of())
-                .layerStats(calculateStats(schema, features))
+                .layerStats(LayerStatsImpl.of(emptyMap(), features.size()))
                 .build();
     }
 
