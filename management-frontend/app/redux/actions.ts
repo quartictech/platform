@@ -1,8 +1,5 @@
 import * as constants from "./constants";
 
-export function clickNewDataset() {
-}
-
 export function fetchDatasets() {
   return {
     type: constants.FETCH_DATASETS,

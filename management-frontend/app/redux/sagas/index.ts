@@ -8,7 +8,7 @@ import * as constants from "../constants";
 function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
-    const res = yield call(fetchDatasets, "hello");
+    const res = yield call(fetchDatasets);
 
     if (! res.err) {
       yield put(actions.fetchDatasetsSuccess(res.data));

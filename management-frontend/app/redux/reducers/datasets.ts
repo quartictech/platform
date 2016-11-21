@@ -3,7 +3,7 @@ import * as constants from "../constants";
 import { Map, fromJS } from "immutable";
 
 const initialState = fromJS({
-  datasets: []
+  datasets: {}
 });
 
 export function datasetsReducer(state: Map<string, any> = initialState,
