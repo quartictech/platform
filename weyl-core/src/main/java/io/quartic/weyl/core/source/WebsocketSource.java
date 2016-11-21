@@ -4,7 +4,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.model.LiveEvent;
-import io.quartic.weyl.core.live.LiveEventConverter;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public abstract class WebsocketSource implements Source {
     }
 
     protected abstract String name();
-    protected abstract LiveEventConverter converter();
+    protected abstract FeatureConverter converter();
     protected abstract MetricRegistry metrics();
     protected abstract WebsocketListener.Factory listenerFactory();
 
@@ -34,7 +34,7 @@ public abstract class WebsocketSource implements Source {
         return listenerFactory().create(LiveEvent.class)
                 .observable()
                 .doOnNext(s -> messageRateMeter().mark())
-                .map(fc -> converter().updateFrom(fc));
+                .map(event -> SourceUpdateImpl.of(converter().toModel(event.featureCollection())));
     }
 
     @Override

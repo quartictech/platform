@@ -3,7 +3,6 @@ package io.quartic.weyl.core.source;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,6 @@ import java.net.URL;
 import java.util.Collection;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
-import static java.util.stream.Collectors.toList;
 
 @Value.Immutable
 public abstract class GeoJsonSource implements Source {
@@ -28,12 +26,8 @@ public abstract class GeoJsonSource implements Source {
     protected abstract String name();
     protected abstract String url();
     @Value.Default
-    protected GeometryTransformer geometryTransformer() {
-        return GeometryTransformer.wgs84toWebMercator();
-    }
-    @Value.Derived
-    protected FeatureConverter featureConverter() {
-        return new FeatureConverter(geometryTransformer());
+    protected FeatureConverter converter() {
+        return new FeatureConverter();
     }
 
     @Override
@@ -55,10 +49,7 @@ public abstract class GeoJsonSource implements Source {
 
     private Collection<NakedFeature> importAllFeatures() throws IOException {
         final FeatureCollection featureCollection = OBJECT_MAPPER.readValue(parseURL(url()), FeatureCollection.class);
-        return featureCollection.features().stream()
-                .filter(f -> f.geometry().isPresent())
-                .map(f -> featureConverter().toModel(f))
-                .collect(toList());
+        return converter().toModel(featureCollection);
     }
 
     private URL parseURL(String url) throws MalformedURLException {

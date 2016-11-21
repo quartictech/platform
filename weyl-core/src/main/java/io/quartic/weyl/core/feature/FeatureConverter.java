@@ -8,21 +8,35 @@ import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
+import static java.util.stream.Collectors.toList;
 
 public class FeatureConverter {
     private static final Logger LOG = LoggerFactory.getLogger(FeatureConverter.class);
 
     private final GeometryTransformer geometryTransformer;
 
+    public FeatureConverter() {
+        this(wgs84toWebMercator());
+    }
+
     public FeatureConverter(GeometryTransformer geometryTransformer) {
         this.geometryTransformer = geometryTransformer;
     }
 
-    public NakedFeature toModel(io.quartic.geojson.Feature f) {
+    public Collection<NakedFeature> toModel(io.quartic.geojson.FeatureCollection featureCollection) {
+        return featureCollection.features().stream()
+                .filter(f -> f.geometry().isPresent())
+                .map(this::toModel)
+                .collect(toList());
+    }
+
+    private NakedFeature toModel(io.quartic.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         return NakedFeatureImpl.of(
                 f.id().get(),

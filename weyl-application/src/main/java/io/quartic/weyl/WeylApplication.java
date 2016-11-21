@@ -21,7 +21,6 @@ import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
@@ -44,7 +43,6 @@ import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
-    private final GeometryTransformer transformFromGeojson = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
@@ -113,7 +111,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WeylConfiguration configuration,
             Environment environment,
             WebsocketClientSessionFactory websocketFactory) {
-        final LiveEventConverter converter = new LiveEventConverter(new FeatureConverter(transformFromGeojson));
+        final FeatureConverter converter = new FeatureConverter();
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))

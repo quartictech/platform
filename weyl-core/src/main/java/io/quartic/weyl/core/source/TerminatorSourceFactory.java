@@ -5,7 +5,7 @@ import com.codahale.metrics.MetricRegistry;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
-import io.quartic.weyl.core.live.LiveEventConverter;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public abstract class TerminatorSourceFactory {
     }
 
     protected abstract MetricRegistry metrics();
-    protected abstract LiveEventConverter converter();
+    protected abstract FeatureConverter converter();
     protected abstract WebsocketListener.Factory listenerFactory();
 
     @Value.Derived
@@ -41,7 +41,7 @@ public abstract class TerminatorSourceFactory {
             public Observable<SourceUpdate> observable() {
                 return collections()
                         .filter(fcwi -> fcwi.terminationId().equals(locator.id()))  // TODO: this scales linearly with the number of datasets, which isn't great
-                        .map(fcwdi -> converter().updateFrom(fcwdi.featureCollection()));
+                        .map(fcwdi -> SourceUpdateImpl.of(converter().toModel(fcwdi.featureCollection())));
             }
 
             @Override

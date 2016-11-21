@@ -4,22 +4,24 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.geojson.*;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
-import static io.quartic.weyl.core.geojson.Utils.toJts;
-import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
-import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 public class GeoJsonSourceShould {
     @Rule
@@ -27,10 +29,15 @@ public class GeoJsonSourceShould {
 
     @Test
     public void import_things() throws Exception {
-        final Geometry geometry = PointImpl.of(newArrayList(1.0, 2.0));
         final FeatureCollection original = FeatureCollectionImpl.of(newArrayList(
-                FeatureImpl.of(Optional.of("abc"), Optional.of(geometry), ImmutableMap.of())
+                FeatureImpl.of(
+                    Optional.of("abc"),
+                    Optional.of((Geometry) PointImpl.of(newArrayList(1.0, 2.0))),
+                    ImmutableMap.of())
         ));
+        final Collection<NakedFeature> modelFeatures = mock(Collection.class);
+        final FeatureConverter converter = mock(FeatureConverter.class);
+        when(converter.toModel(any(FeatureCollection.class))).thenReturn(modelFeatures);
 
         stubFor(WireMock.get(urlEqualTo("/"))
                 .willReturn(aResponse()
@@ -44,12 +51,11 @@ public class GeoJsonSourceShould {
         GeoJsonSource.builder()
                 .name("Budgie")
                 .url("http://localhost:" + wireMockRule.port())
-                .geometryTransformer(webMercatorToWebMercator())
+                .converter(converter)
                 .build()
                 .observable().subscribe(subscriber);
 
-        subscriber.assertValue(SourceUpdateImpl.of(
-                newArrayList(NakedFeatureImpl.of("abc", toJts(geometry), EMPTY_ATTRIBUTES))
-        ));
+        verify(converter).toModel(original);
+        subscriber.assertValue(SourceUpdateImpl.of(modelFeatures));
     }
 }

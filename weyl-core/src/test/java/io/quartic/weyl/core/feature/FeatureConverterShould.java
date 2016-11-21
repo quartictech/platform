@@ -11,10 +11,12 @@ import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.Optional;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class FeatureConverterShould {
@@ -22,21 +24,33 @@ public class FeatureConverterShould {
     private final FeatureConverter converter = new FeatureConverter(webMercatorToWebMercator());
 
     @Test
-    public void convert_feature() throws Exception {
-        final Feature feature = geojsonFeature("a", point());
+    public void convert_feature_collection() throws Exception {
+        final Feature featureA = geojsonFeature("a", Optional.of(point()));
+        final Feature featureB = geojsonFeature("b", Optional.of(point()));
 
-        final NakedFeature nakedFeature = converter.toModel(feature);
+        final Collection<NakedFeature> modelFeatures = converter.toModel(FeatureCollectionImpl.of(newArrayList(featureA, featureB)));
 
-        assertThat(nakedFeature, equalTo(
-                NakedFeatureImpl.of("a", factory.createPoint(new Coordinate(51.0, 0.1)),
-                        AttributesImpl.builder().attribute(AttributeNameImpl.of("timestamp"), 1234).build())
-        ));
+        assertThat(modelFeatures, contains(modelFeature("a"), modelFeature("b")));
     }
 
-    private Feature geojsonFeature(String id, Geometry geometry) {
+    @Test
+    public void ignore_features_with_null_geometry() throws Exception {
+        final Feature feature = geojsonFeature("a", Optional.empty());
+
+        final Collection<NakedFeature> modelFeatures = converter.toModel(FeatureCollectionImpl.of(newArrayList(feature)));
+
+        assertThat(modelFeatures, empty());
+    }
+
+    private NakedFeatureImpl modelFeature(String id) {
+        return NakedFeatureImpl.of(id, factory.createPoint(new Coordinate(51.0, 0.1)),
+                AttributesImpl.builder().attribute(AttributeNameImpl.of("timestamp"), 1234).build());
+    }
+
+    private Feature geojsonFeature(String id, Optional<Geometry> geometry) {
         return FeatureImpl.of(
                 Optional.of(id),
-                Optional.of(geometry),
+                geometry,
                 ImmutableMap.of("timestamp", 1234));
     }
 
