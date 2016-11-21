@@ -112,6 +112,18 @@ public class AttributesFactoryShould {
         )));
     }
 
+    @Test
+    public void allow_building_starting_with_existing_attributes() throws Exception {
+        final Attributes original = () -> ImmutableMap.of(name("foo"), 1.2);
+
+        final Attributes attributes = factory.builder(original).put("bar", 3.4).build();
+
+        assertThat(attributes.attributes(), equalTo(ImmutableMap.of(
+                name("foo"), 1.2,
+                name("bar"), 3.4
+        )));
+    }
+
     private AttributeNameImpl name(String name) {
         return AttributeNameImpl.of(name);
     }

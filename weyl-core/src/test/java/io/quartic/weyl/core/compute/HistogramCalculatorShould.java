@@ -63,11 +63,11 @@ public class HistogramCalculatorShould {
                 )));
     }
 
-    private Feature feature(Map<AttributeName, ?> attributes) {
+    private Feature feature(Map<AttributeName, Object> attributes) {
         return FeatureImpl.builder()
                 .entityId(EntityIdImpl.of("def"))
                 .geometry(mock(Geometry.class))
-                .attributes(AttributesImpl.of(attributes))
+                .attributes(() -> attributes)
                 .build();
     }
 }

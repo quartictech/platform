@@ -20,6 +20,7 @@ public class StatsCalculator {
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
                 .filter(entry -> getAttribute(schema, entry.getKey()).type() == AttributeType.NUMERIC)
                 .forEach(entry -> {
+                    System.out.println("XXX: " + entry.getKey() + " -> " + entry.getValue());
                     final double value = Double.valueOf(entry.getValue().toString());
                     maxNumeric.put(entry.getKey(), max(value, maxNumeric.getOrDefault(entry.getKey(), MIN_VALUE)));
                     minNumeric.put(entry.getKey(), min(value, minNumeric.getOrDefault(entry.getKey(), MAX_VALUE)));

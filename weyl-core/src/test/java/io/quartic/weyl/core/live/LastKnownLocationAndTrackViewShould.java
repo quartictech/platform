@@ -14,8 +14,11 @@ import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class LastKnownLocationAndTrackViewShould {
+    private static final Attributes ATTRIBUTES = mock(Attributes.class);
+
     @Test
     public void produce_point_for_a_single_feature() {
         Feature feature = locationFeature("alex", 100, 100);
@@ -105,7 +108,7 @@ public class LastKnownLocationAndTrackViewShould {
         return FeatureImpl.builder()
                 .entityId(EntityIdImpl.of("foo/" + name))
                 .geometry(geometry)
-                .attributes(AttributesImpl.builder().attribute(AttributeNameImpl.of("name"), name).build())
+                .attributes(ATTRIBUTES)
                 .build();
     }
 
