@@ -39,8 +39,7 @@ public class SharedAttributesFactory {
 
         public Attributes build() {
             updateIndicesAndNames();
-            final List<Object> values = collectValues();
-            return () -> new ViewMap(values);
+            return new ViewAttributes(collectValues());
         }
 
         private void updateIndicesAndNames() {
@@ -59,36 +58,42 @@ public class SharedAttributesFactory {
         }
     }
 
-    private class ViewMap extends AbstractMap<AttributeName, Object> {
+    // Can't be anonymous in AttributesBuilder.build(), because that would maintain a reference to the builder (and thus not let go to storage)
+    private class ViewAttributes implements Attributes {
         private final List<Object> values;
 
-        public ViewMap(List<Object> values) {
+        private ViewAttributes(List<Object> values) {
             this.values = values;
         }
 
         @Override
-        public Set<Entry<AttributeName, Object>> entrySet() {
-            return new ViewEntrySet(values);
-        }
+        public Map<AttributeName, Object> attributes() {
+            return new AbstractMap<AttributeName, Object>() {
+                @Override
+                public Set<Entry<AttributeName, Object>> entrySet() {
+                    return new ViewEntrySet(values);
+                }
 
-        @Override
-        public boolean containsValue(Object value) {
-            return values.contains(value);
-        }
+                @Override
+                public boolean containsValue(Object value) {
+                    return values.contains(value);
+                }
 
-        @Override
-        public boolean containsKey(Object key) {
-            return validIndex(indices.get(key));
-        }
+                @Override
+                public boolean containsKey(Object key) {
+                    return validIndex(indices.get(key));
+                }
 
-        @Override
-        public Object get(Object key) {
-            final Integer index = indices.get(key);
-            return (validIndex(index)) ? values.get(index) : null;
-        }
+                @Override
+                public Object get(Object key) {
+                    final Integer index = indices.get(key);
+                    return (validIndex(index)) ? values.get(index) : null;
+                }
 
-        private boolean validIndex(Integer index) {
-            return (index != null) && (index < values.size());
+                private boolean validIndex(Integer index) {
+                    return (index != null) && (index < values.size());
+                }
+            };
         }
     }
 
