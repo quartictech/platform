@@ -37,8 +37,8 @@ public class CatalogueWatcherShould {
 
     @Test
     public void expose_returned_ids() throws Exception {
-        final TerminationId terminationId = TerminationId.of("456");
-        final ImmutableMap<DatasetId, DatasetConfig> datasets = datasetsWithLocator(TerminatorDatasetLocator.of(terminationId));
+        final TerminationId terminationId = TerminationIdImpl.of("456");
+        final ImmutableMap<DatasetId, DatasetConfig> datasets = datasetsWithLocator(TerminatorDatasetLocatorImpl.of(terminationId));
         when(listener.observable()).thenReturn(just(datasets));
 
         proxy.start();
@@ -48,7 +48,7 @@ public class CatalogueWatcherShould {
 
     @Test
     public void ignore_incorrect_types() throws Exception {
-        final ImmutableMap<DatasetId, DatasetConfig> datasets = datasetsWithLocator(PostgresDatasetLocator.of("a", "b", "c", "d"));
+        final ImmutableMap<DatasetId, DatasetConfig> datasets = datasetsWithLocator(PostgresDatasetLocatorImpl.of("a", "b", "c", "d"));
         when(listener.observable()).thenReturn(just(datasets));
 
         proxy.start();
@@ -58,9 +58,9 @@ public class CatalogueWatcherShould {
 
     private ImmutableMap<DatasetId, DatasetConfig> datasetsWithLocator(DatasetLocator locator) {
         return ImmutableMap.of(
-                DatasetId.of("123"),
-                DatasetConfig.of(
-                        DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
+                DatasetIdImpl.of("123"),
+                DatasetConfigImpl.of(
+                        DatasetMetadataImpl.of("foo", "bar", "baz", Optional.empty()),
                         locator,
                         emptyMap()
                 ));

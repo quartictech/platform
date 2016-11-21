@@ -5,8 +5,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.AbstractNakedFeature;
 import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.quartic.weyl.core.source.ConversionUtils.convertToModelAttributes;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 @Value.Immutable
@@ -44,7 +43,7 @@ public abstract class GeoJsonSource implements Source {
     public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(SourceUpdate.of(importAllFeatures()));
+                sub.onNext(SourceUpdateImpl.of(importAllFeatures()));
                 sub.onCompleted();
             } catch (IOException e) {
                 sub.onError(e);
@@ -57,7 +56,7 @@ public abstract class GeoJsonSource implements Source {
         return true;
     }
 
-    private Collection<AbstractNakedFeature> importAllFeatures() throws IOException {
+    private Collection<NakedFeature> importAllFeatures() throws IOException {
         final FeatureCollection featureCollection = objectMapper().readValue(parseURL(url()), FeatureCollection.class);
 
         return featureCollection.features().stream().map(this::toJts)
@@ -73,7 +72,7 @@ public abstract class GeoJsonSource implements Source {
         // TODO: We are ignoring null geometries here (as well as in the live pipeline). We should figure out something better.
         return f.geometry().map(rawGeometry -> {
             Geometry transformedGeometry = geometryTransformer().transform(Utils.toJts(rawGeometry));
-            return NakedFeature.of(
+            return NakedFeatureImpl.of(
                     f.id().orElse(null),
                     transformedGeometry,
                     convertToModelAttributes(objectMapper(), f.properties())

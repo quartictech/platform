@@ -3,9 +3,13 @@ package io.quartic.weyl.resource;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
+import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.request.GeofenceRequest;
 
@@ -17,7 +21,7 @@ import java.util.stream.Stream;
 
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
-import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
+import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.stream.Collectors.toList;
 
 @Path("/geofence")
@@ -39,30 +43,30 @@ public class GeofenceResource {
         request.layerId().ifPresent(id -> update(request.type(), request.bufferDistance(), featuresFrom(id)));
     }
 
-    private Stream<AbstractFeature> featuresFrom(FeatureCollection features) {
+    private Stream<Feature> featuresFrom(FeatureCollection features) {
         return features.features().stream()
                 .filter(f -> f.geometry().isPresent())
-                .map(f -> Feature.of(
-                        EntityId.of("custom"),
+                .map(f -> FeatureImpl.of(
+                        EntityIdImpl.of("custom"),
                         geometryTransformer.transform(toJts(f.geometry().get())),
                         EMPTY_ATTRIBUTES
                 ));
     }
 
-    private Stream<AbstractFeature> featuresFrom(LayerId layerId) {
+    private Stream<Feature> featuresFrom(LayerId layerId) {
         // TODO: validate that layer exists
         return layerStore.getLayer(layerId).get()
                 .features().stream();
     }
 
-    private void update(GeofenceType type, double bufferDistance, Stream<AbstractFeature> features) {
+    private void update(GeofenceType type, double bufferDistance, Stream<Feature> features) {
         final List<Geofence> geofences = features
-                .map(f -> Feature.copyOf(f)
+                .map(f -> FeatureImpl.copyOf(f)
                         .withGeometry(bufferOp(f.geometry(), bufferDistance))
-                        .withEntityId(EntityId.of("geofence/" + f.entityId().uid()))
+                        .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
                 )
                 .filter(f -> !f.geometry().isEmpty())
-                .map(f -> Geofence.of(type, f))
+                .map(f -> GeofenceImpl.of(type, f))
                 .collect(toList());
         geofenceStore.setGeofences(geofences);
     }

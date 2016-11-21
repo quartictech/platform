@@ -6,17 +6,20 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.weyl.Multiplexer;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.geofence.AbstractGeofence;
+import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.geofence.ViolationImpl;
 import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
 import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
@@ -38,7 +41,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.serdes.ObjectMappers.encode;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
-import static io.quartic.weyl.core.model.AbstractAttributes.EMPTY_ATTRIBUTES;
+import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -54,7 +57,7 @@ public class UpdateServerShould {
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
-    private final Multiplexer<Integer, EntityId, AbstractFeature> mux = mock(Multiplexer.class);
+    private final Multiplexer<Integer, EntityId, Feature> mux = mock(Multiplexer.class);
     private final SelectionDrivenUpdateGenerator generator = mock(SelectionDrivenUpdateGenerator.class);
 
     @Before
@@ -83,8 +86,8 @@ public class UpdateServerShould {
     @Test
     public void send_geofence_geometry_update() throws Exception {
         final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
-        final AbstractFeature feature = io.quartic.weyl.core.model.Feature.of(
-                EntityId.of("xyz/123"),
+        final Feature feature = FeatureImpl.of(
+                EntityIdImpl.of("xyz/123"),
                 geometry,
                 EMPTY_ATTRIBUTES
         );
@@ -92,8 +95,8 @@ public class UpdateServerShould {
         final UpdateServer server = createAndOpenServer();
         server.onGeometryChange(ImmutableList.of(feature));
 
-        verifyMessage(GeofenceGeometryUpdateMessage.of(FeatureCollection.of(ImmutableList.of(
-                Feature.of(
+        verifyMessage(GeofenceGeometryUpdateMessageImpl.of(FeatureCollectionImpl.of(ImmutableList.of(
+                io.quartic.geojson.FeatureImpl.of(
                         Optional.empty(),
                         Optional.of(fromJts(transformer.transform(geometry))),
                         ImmutableMap.of("_entityId", "xyz/123")
@@ -103,8 +106,8 @@ public class UpdateServerShould {
 
     @Test
     public void send_geofence_violation_update_accounting_for_cumulative_changes() throws Exception {
-        final EntityId geofenceIdA = EntityId.of("37");
-        final EntityId geofenceIdB = EntityId.of("38");
+        final EntityId geofenceIdA = EntityIdImpl.of("37");
+        final EntityId geofenceIdB = EntityIdImpl.of("38");
         final Violation violationA = violation(geofenceIdA);
         final Violation violationB = violation(geofenceIdB);
 
@@ -113,24 +116,24 @@ public class UpdateServerShould {
         server.onViolationBegin(violationB);
         server.onViolationEnd(violationA);
 
-        verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA)));
-        verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdA, geofenceIdB)));
-        verifyMessage(GeofenceViolationsUpdateMessage.of(ImmutableList.of(geofenceIdB)));
+        verifyMessage(GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdA)));
+        verifyMessage(GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdA, geofenceIdB)));
+        verifyMessage(GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdB)));
     }
 
     @Test
     public void send_alert() throws Exception {
-        final Alert alert = Alert.of("foo", "bar");
+        final Alert alert = AlertImpl.of("foo", "bar");
 
         final UpdateServer server = createAndOpenServer();
         server.onAlert(alert);
 
-        verifyMessage(AlertMessage.of(alert));
+        verifyMessage(AlertMessageImpl.of(alert));
     }
 
     @Test
     public void route_entity_list_to_mux() throws Exception {
-        final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
+        final ArrayList<EntityId> ids = newArrayList(EntityIdImpl.of("123"));
         final TestSubscriber<Pair<Integer, List<EntityId>>> subscriber = TestSubscriber.create();
         when(mux.call(any())).then(invocation -> {
             final Observable<Pair<Integer, List<EntityId>>> observable = invocation.getArgument(0);
@@ -139,7 +142,7 @@ public class UpdateServerShould {
         });
 
         final UpdateServer server = createAndOpenServer();
-        final String encode = encode(ClientStatusMessage.of(emptyList(), SelectionStatus.of(42, ids)));
+        final String encode = encode(ClientStatusMessageImpl.of(emptyList(), SelectionStatusImpl.of(42, ids)));
         System.out.println(encode);
         server.onMessage(encode);
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
@@ -149,24 +152,24 @@ public class UpdateServerShould {
 
     @Test
     public void process_entity_updates_and_send_results() throws Exception {
-        final ArrayList<EntityId> ids = newArrayList(EntityId.of("123"));
+        final ArrayList<EntityId> ids = newArrayList(EntityIdImpl.of("123"));
         final Object data = mock(Object.class);
-        final List<AbstractFeature> features = newArrayList(mock(AbstractFeature.class), mock(AbstractFeature.class));
+        final List<Feature> features = newArrayList(mock(Feature.class), mock(Feature.class));
         when(mux.call(any())).thenReturn(just(Pair.of(56, features)));
         when(generator.name()).thenReturn("foo");
         when(generator.generate(any())).thenReturn(data);
 
         final UpdateServer server = createAndOpenServer();
-        server.onMessage(encode(ClientStatusMessage.of(emptyList(), SelectionStatus.of(42, ids))));
+        server.onMessage(encode(ClientStatusMessageImpl.of(emptyList(), SelectionStatusImpl.of(42, ids))));
 
         verify(generator).generate(features);
-        verifyMessage(SelectionDrivenUpdateMessage.of("foo", 56, data));
+        verifyMessage(SelectionDrivenUpdateMessageImpl.of("foo", 56, data));
     }
 
     @Test
     public void unsubscribe_from_mux_on_close() throws Exception {
         final AtomicBoolean unsubscribed = new AtomicBoolean(false);
-        final Observable<Pair<Integer, List<AbstractFeature>>> observable = empty();
+        final Observable<Pair<Integer, List<Feature>>> observable = empty();
         when(mux.call(any())).thenReturn(observable.doOnUnsubscribe(() -> unsubscribed.set(true)));
 
         createAndOpenServer().onClose(session, mock(CloseReason.class));
@@ -179,10 +182,10 @@ public class UpdateServerShould {
     }
 
     private Violation violation(EntityId geofenceId) {
-        final AbstractGeofence geofence = mock(AbstractGeofence.class, RETURNS_DEEP_STUBS);
+        final Geofence geofence = mock(Geofence.class, RETURNS_DEEP_STUBS);
         when(geofence.feature().entityId()).thenReturn(geofenceId);
-        return Violation.of(
-                mock(AbstractFeature.class),
+        return ViolationImpl.of(
+                mock(Feature.class),
                 geofence,
                 "Hmmm"
         );

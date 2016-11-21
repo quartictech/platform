@@ -22,15 +22,15 @@ public class GeoJsonShould {
     @Test
     public void deserializeBackToOriginal() throws Exception {
 
-        FeatureCollection original = FeatureCollection.of(list(
-                Feature.of(
+        FeatureCollection original = FeatureCollectionImpl.of(list(
+                FeatureImpl.of(
                         Optional.empty(),
-                        Optional.of(Point.of(list(102.0, 0.5))),
+                        Optional.of(PointImpl.of(list(102.0, 0.5))),
                         ImmutableMap.of()
                 ),
-                Feature.of(
+                FeatureImpl.of(
                         Optional.empty(),
-                        Optional.of(LineString.of(list(
+                        Optional.of(LineStringImpl.of(list(
                                 list(102.0, 0.0),
                                 list(103.0, 1.0),
                                 list(104.0, 0.0),
@@ -38,9 +38,9 @@ public class GeoJsonShould {
                                 ))),
                         ImmutableMap.of()
                 ),
-                Feature.of(
+                FeatureImpl.of(
                         Optional.empty(),
-                        Optional.of(Polygon.of(list(list(
+                        Optional.of(PolygonImpl.of(list(list(
                                 list(100.0, 0.0),
                                 list(101.0, 0.0),
                                 list(101.0, 1.0),

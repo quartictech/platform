@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
 import java.util.Set;
@@ -16,7 +16,7 @@ public class AlertProcessor {
         geofenceStore.addListener(new GeofenceListener() {
             @Override
             public void onViolationBegin(Violation violation) {
-                createAlert(Alert.of("Geofence violation", violation.message()));
+                createAlert(AlertImpl.of("Geofence violation", violation.message()));
             }
 
             @Override
@@ -25,7 +25,7 @@ public class AlertProcessor {
             }
 
             @Override
-            public void onGeometryChange(Collection<AbstractFeature> features) {
+            public void onGeometryChange(Collection<Feature> features) {
                 // Do nothing
             }
         });
@@ -39,7 +39,7 @@ public class AlertProcessor {
         listeners.remove(listener);
     }
 
-    public synchronized void createAlert(AbstractAlert alert) {
+    public synchronized void createAlert(Alert alert) {
         listeners.forEach(l -> l.onAlert(alert));
     }
 }

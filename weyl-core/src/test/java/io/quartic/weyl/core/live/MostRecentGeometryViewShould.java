@@ -19,8 +19,8 @@ import static org.junit.Assert.assertThat;
 public class MostRecentGeometryViewShould {
     @Test
     public void produce_point_for_a_single_point_feature() {
-        AbstractFeature feature = locationFeature("alex", 100, 100);
-        List<AbstractFeature> features = invokeView(ImmutableList.of(feature));
+        Feature feature = locationFeature("alex", 100, 100);
+        List<Feature> features = invokeView(ImmutableList.of(feature));
 
         assertThat(features.size(), equalTo(1));
         assertThat(Iterables.getOnlyElement(features), equalTo(feature));
@@ -28,14 +28,14 @@ public class MostRecentGeometryViewShould {
 
     @Test
     public void produce_polygon_for_a_single_polygon_feature() {
-        AbstractFeature feature = polygonFeature("alex", new Coordinate[]{
+        Feature feature = polygonFeature("alex", new Coordinate[]{
                 new Coordinate(1, 1),
                 new Coordinate(1, 2),
                 new Coordinate(2, 2),
                 new Coordinate(2, 1),
                 new Coordinate(1, 1)
         });
-        List<AbstractFeature> features = invokeView(ImmutableList.of(feature));
+        List<Feature> features = invokeView(ImmutableList.of(feature));
 
         assertThat(features.size(), equalTo(1));
         assertThat(Iterables.getOnlyElement(features), equalTo(feature));
@@ -43,9 +43,9 @@ public class MostRecentGeometryViewShould {
 
     @Test
     public void produce_most_recent_polygon_for_multiple_polygon_features() {
-        List<AbstractFeature> features = Lists.newArrayList();
+        List<Feature> features = Lists.newArrayList();
         for (int i = 0 ; i < 10 ; i++) {
-            AbstractFeature feature = polygonFeature("alex", new Coordinate[]{
+            Feature feature = polygonFeature("alex", new Coordinate[]{
                     new Coordinate(i + 1, i + 1),
                     new Coordinate(i + 1, i + 2),
                     new Coordinate(i + 2, i + 2),
@@ -54,38 +54,38 @@ public class MostRecentGeometryViewShould {
             });
             features.add(feature);
         }
-        AbstractFeature oliverCurrent = locationFeature("oliver", 100, 100);
-        AbstractFeature alexCurrent = Iterables.getLast(features);
+        Feature oliverCurrent = locationFeature("oliver", 100, 100);
+        Feature alexCurrent = Iterables.getLast(features);
         features.add(oliverCurrent);
-        List<AbstractFeature> newFeatures = invokeView(features);
+        List<Feature> newFeatures = invokeView(features);
 
         assertThat(newFeatures.size(), equalTo(2));
         assertThat(newFeatures, containsInAnyOrder(alexCurrent, oliverCurrent));
     }
 
-    private List<AbstractFeature> invokeView(List<AbstractFeature> input) {
+    private List<Feature> invokeView(List<Feature> input) {
         return new MostRecentGeometryView()
                 .compute(input)
                 .collect(Collectors.toList());
     }
 
-    private AbstractFeature locationFeature(String name, double x, double y) {
+    private Feature locationFeature(String name, double x, double y) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(coordinate(x, y));
         return featureWithName(name, geometry);
     }
 
-    private AbstractFeature polygonFeature(String name, Coordinate[] coordinates) {
+    private Feature polygonFeature(String name, Coordinate[] coordinates) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPolygon(coordinates);
         return featureWithName(name, geometry);
     }
 
-    private AbstractFeature featureWithName(String name, Geometry geometry) {
-        return Feature.builder()
-                .entityId(EntityId.of("blah/" + name))
+    private Feature featureWithName(String name, Geometry geometry) {
+        return FeatureImpl.builder()
+                .entityId(EntityIdImpl.of("blah/" + name))
                 .geometry(geometry)
-                .attributes(Attributes.builder().attribute(AttributeName.of("name"), name).build())
+                .attributes(AttributesImpl.builder().attribute(AttributeNameImpl.of("name"), name).build())
                 .build();
     }
 

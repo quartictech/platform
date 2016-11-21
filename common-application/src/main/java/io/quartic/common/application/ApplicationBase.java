@@ -7,6 +7,7 @@ import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.common.ApplicationDetails;
+import io.quartic.common.ApplicationDetailsImpl;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 
@@ -21,7 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public abstract class ApplicationBase<T extends Configuration> extends Application<T> {
     private static final Logger LOG = getLogger(ApplicationBase.class);
 
-    private final ApplicationDetails details = ApplicationDetails.of(getClass());
+    private final ApplicationDetails details = ApplicationDetailsImpl.of(getClass());
 
     @Override
     public final void initialize(Bootstrap<T> bootstrap) {

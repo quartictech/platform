@@ -1,10 +1,12 @@
 package io.quartic.terminator;
 
-import io.quartic.catalogue.api.TerminationId;
-import io.quartic.geojson.Feature;
+import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Point;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import org.junit.Test;
 import rx.Observable;
 
@@ -71,15 +73,15 @@ public class SocketServerShould {
     }
 
     private FeatureCollectionWithTerminationId fcwi() {
-        return FeatureCollectionWithTerminationId.of(
-                TerminationId.of("123"),
+        return FeatureCollectionWithTerminationIdImpl.of(
+                TerminationIdImpl.of("123"),
                 featureCollection()
         );
     }
 
     private FeatureCollection featureCollection() {
-        return FeatureCollection.of(newArrayList(
-                Feature.of(Optional.of("456"), Optional.of(Point.of(newArrayList(1.0, 2.0))), emptyMap())));
+        return FeatureCollectionImpl.of(newArrayList(
+                FeatureImpl.of(Optional.of("456"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())));
     }
 
     // TODO: handle multiple subscribers

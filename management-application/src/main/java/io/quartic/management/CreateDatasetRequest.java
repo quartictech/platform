@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = CreateStaticDatasetRequest.class, name = "static"),
-        @JsonSubTypes.Type(value = CreateLiveDatasetRequest.class, name = "live"),
+        @JsonSubTypes.Type(value = CreateStaticDatasetRequestImpl.class, name = "static"),
+        @JsonSubTypes.Type(value = CreateLiveDatasetRequestImpl.class, name = "live"),
 })
 public interface CreateDatasetRequest {
     interface Visitor<T> {
-        T visit(AbstractCreateStaticDatasetRequest request);
-        T visit(AbstractCreateLiveDatasetRequest request);
+        T visit(CreateStaticDatasetRequest request);
+        T visit(CreateLiveDatasetRequest request);
     }
 
     <T> T accept(Visitor<T> visitor);

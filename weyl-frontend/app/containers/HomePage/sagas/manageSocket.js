@@ -67,10 +67,10 @@ function* handleMessages(channel) {
         yield* handleAlert(msg);
         break;
       case "GeofenceViolationsUpdate":
-        yield* put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
+        yield put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
         break;
       case "GeofenceGeometryUpdate":
-        yield* put(actions.geofenceSetGeometry(msg.featureCollection));
+        yield put(actions.geofenceSetGeometry(msg.featureCollection));
         break;
       case "SelectionDrivenUpdate":
         yield put(actions.subscriptionsPost(msg.subscriptionName, msg.seqNum, msg.data));

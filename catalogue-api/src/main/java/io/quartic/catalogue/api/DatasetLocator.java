@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = PostgresDatasetLocator.class, name = "postgres"),
-        @JsonSubTypes.Type(value = GeoJsonDatasetLocator.class, name = "geojson"),
-        @JsonSubTypes.Type(value = WebsocketDatasetLocator.class, name = "websocket"),
-        @JsonSubTypes.Type(value = CloudGeoJsonDatasetLocator.class, name = "cloud-geojson"),
-        @JsonSubTypes.Type(value = TerminatorDatasetLocator.class, name = "terminator"),
+        @JsonSubTypes.Type(value = PostgresDatasetLocatorImpl.class, name = "postgres"),
+        @JsonSubTypes.Type(value = GeoJsonDatasetLocatorImpl.class, name = "geojson"),
+        @JsonSubTypes.Type(value = WebsocketDatasetLocatorImpl.class, name = "websocket"),
+        @JsonSubTypes.Type(value = CloudGeoJsonDatasetLocatorImpl.class, name = "cloud-geojson"),
+        @JsonSubTypes.Type(value = TerminatorDatasetLocatorImpl.class, name = "terminator"),
 })
 public interface DatasetLocator {
 }

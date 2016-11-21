@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.io.ParseException;
 import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.AbstractLayer;
+import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.render.VectorTileRenderer;
 import org.slf4j.Logger;
@@ -26,11 +26,11 @@ public class TileResource {
     @Produces("application/protobuf")
     @Path("/{layerId}/{z}/{x}/{y}.pbf")
     @CacheControl(maxAge = 60*60)
-    public byte[] protobuf(@PathParam("layerId") String layerId,
+    public byte[] protobuf(@PathParam("layerId") LayerId layerId,
                            @PathParam("z") Integer z,
                            @PathParam("x") Integer x,
                            @PathParam("y") Integer y) throws ParseException, IOException {
-        AbstractLayer layer = layerStore.getLayer(LayerId.of(layerId))
+        Layer layer = layerStore.getLayer(layerId)
                 .orElseThrow(() -> new NotFoundException("No layer with id: " + layerId));
 
         return new VectorTileRenderer(ImmutableList.of(layer))

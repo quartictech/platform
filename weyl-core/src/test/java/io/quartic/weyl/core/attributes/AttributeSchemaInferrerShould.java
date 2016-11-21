@@ -19,24 +19,24 @@ import static org.mockito.Mockito.mock;
 public class AttributeSchemaInferrerShould {
     @Test
     public void ignore_missing_attributes() throws Exception {
-        List<AbstractFeature> features = Lists.newArrayList(
+        List<Feature> features = Lists.newArrayList(
                 feature(ImmutableMap.of("a", 123, "b", 456)),
                 feature(ImmutableMap.of("a", 789))              // b is missing here
         );
 
         assertThat(inferSchema(features),
                 equalTo(ImmutableMap.of(
-                        AttributeName.of("a"), Attribute.of(AttributeType.NUMERIC, Optional.empty()),
-                        AttributeName.of("b"), Attribute.of(AttributeType.NUMERIC, Optional.of(ImmutableSet.of(456)))
+                        AttributeNameImpl.of("a"), AttributeImpl.of(AttributeType.NUMERIC, Optional.empty()),
+                        AttributeNameImpl.of("b"), AttributeImpl.of(AttributeType.NUMERIC, Optional.of(ImmutableSet.of(456)))
                 )));
     }
 
-    private AbstractFeature feature(Map<String, ?> attributes) {
-        final Attributes.Builder builder = Attributes.builder();
-        attributes.forEach((k, v) -> builder.attribute(AttributeName.of(k), v));
+    private Feature feature(Map<String, ?> attributes) {
+        final AttributesImpl.Builder builder = AttributesImpl.builder();
+        attributes.forEach((k, v) -> builder.attribute(AttributeNameImpl.of(k), v));
 
-        return Feature.builder()
-                .entityId(EntityId.of("xyz"))
+        return FeatureImpl.builder()
+                .entityId(EntityIdImpl.of("xyz"))
                 .geometry(mock(Geometry.class))
                 .attributes(builder.build())
                 .build();

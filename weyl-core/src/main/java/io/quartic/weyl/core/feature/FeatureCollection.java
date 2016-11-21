@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.feature;
 
 import com.google.common.collect.ImmutableList;
-import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.Feature;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
@@ -11,32 +11,32 @@ import java.util.List;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.reverse;
 
-public class FeatureCollection extends AbstractCollection<AbstractFeature> {
+public class FeatureCollection extends AbstractCollection<Feature> {
     public static final FeatureCollection EMPTY_COLLECTION = new FeatureCollection();
 
     private final FeatureCollection prev;
-    private final List<AbstractFeature> features;
+    private final List<Feature> features;
     private final int size;
 
     FeatureCollection() {
         this(null, ImmutableList.of(), 0);
     }
 
-    private FeatureCollection(FeatureCollection prev, List<AbstractFeature> features, int size) {
+    private FeatureCollection(FeatureCollection prev, List<Feature> features, int size) {
         this.prev = prev;
         this.features = features;
         this.size = size;
     }
 
-    public FeatureCollection append(Collection<? extends AbstractFeature> features) {
+    public FeatureCollection append(Collection<? extends Feature> features) {
         return new FeatureCollection(this, reverse(copyOf(features)), size + features.size());
     }
 
     @Override
-    public Iterator<AbstractFeature> iterator() {
-        return new Iterator<AbstractFeature>() {
+    public Iterator<Feature> iterator() {
+        return new Iterator<Feature>() {
             FeatureCollection collection = FeatureCollection.this;
-            Iterator<AbstractFeature> iterator = seedIterator();
+            Iterator<Feature> iterator = seedIterator();
 
             {
                 advance();
@@ -48,8 +48,8 @@ public class FeatureCollection extends AbstractCollection<AbstractFeature> {
             }
 
             @Override
-            public AbstractFeature next() {
-                final AbstractFeature feature = iterator.next();
+            public Feature next() {
+                final Feature feature = iterator.next();
                 advance();
                 return feature;
             }
@@ -61,7 +61,7 @@ public class FeatureCollection extends AbstractCollection<AbstractFeature> {
                 }
             }
 
-            private Iterator<AbstractFeature> seedIterator() {
+            private Iterator<Feature> seedIterator() {
                 return collection.features.iterator();
             }
         };

@@ -1,5 +1,7 @@
 package io.quartic.common.client;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
 import io.quartic.common.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
@@ -21,7 +23,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void emit_items_from_socket() throws Exception {
-        server.setMessages(encode(TestThing.of("foo")), encode(TestThing.of("bar")));
+        server.setMessages(encode(TestThingImpl.of("foo")), encode(TestThingImpl.of("bar")));
 
         final WebsocketListener<TestThing> listener = createListener();
 
@@ -29,12 +31,12 @@ public class WebsocketListenerShould {
         listener.observable().subscribe(subscriber);
         subscriber.awaitValueCount(2, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
-        assertThat(subscriber.getOnNextEvents(), contains(TestThing.of("foo"), TestThing.of("bar")));
+        assertThat(subscriber.getOnNextEvents(), contains(TestThingImpl.of("foo"), TestThingImpl.of("bar")));
     }
 
     @Test
     public void skip_undecodable_items() throws Exception {
-        server.setMessages("bad", encode(TestThing.of("bar")));
+        server.setMessages("bad", encode(TestThingImpl.of("bar")));
 
         final WebsocketListener<TestThing> listener = createListener();
 
@@ -42,7 +44,7 @@ public class WebsocketListenerShould {
         listener.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, TIMEOUT_MILLISECONDS, MILLISECONDS);
 
-        assertThat(subscriber.getOnNextEvents(), contains(TestThing.of("bar")));
+        assertThat(subscriber.getOnNextEvents(), contains(TestThingImpl.of("bar")));
     }
 
     @Test
@@ -73,7 +75,9 @@ public class WebsocketListenerShould {
 
     @SweetStyle
     @Value.Immutable
-    interface AbstractTestThing {
+    @JsonSerialize(as = TestThingImpl.class)
+    @JsonDeserialize(as = TestThingImpl.class)
+    interface TestThing {
         String name();
     }
 }

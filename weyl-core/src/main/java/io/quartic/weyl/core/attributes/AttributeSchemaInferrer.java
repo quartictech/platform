@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class AttributeSchemaInferrer {
-    public static Map<AttributeName, AbstractAttribute> inferSchema(Collection<AbstractFeature> features) {
+    public static Map<AttributeName, Attribute> inferSchema(Collection<Feature> features) {
         Set<AttributeName> attributes = features.parallelStream()
                 .flatMap(feature -> feature.attributes().attributes().keySet().stream())
                 .collect(Collectors.toSet());
@@ -19,15 +19,15 @@ public class AttributeSchemaInferrer {
 
     }
 
-    private static AbstractAttribute inferAttribute(AttributeName attribute, Collection<AbstractFeature> features) {
+    private static Attribute inferAttribute(AttributeName attribute, Collection<Feature> features) {
         Optional<Set<Object>> categories = inferCategories(attribute, features);
-        return Attribute.builder()
+        return AttributeImpl.builder()
                 .type(inferAttributeType(attribute, features))
                 .categories(categories)
                 .build();
     }
 
-    private static Optional<Set<Object>> inferCategories(AttributeName attribute, Collection<AbstractFeature> features) {
+    private static Optional<Set<Object>> inferCategories(AttributeName attribute, Collection<Feature> features) {
         Set<Object> values = features.stream()
                 .map(feature -> feature.attributes().attributes().get(attribute))
                 .filter(Objects::nonNull)
@@ -42,7 +42,7 @@ public class AttributeSchemaInferrer {
     }
 
     private static AttributeType inferAttributeType(AttributeName attribute,
-                                                    Collection<AbstractFeature> features) {
+                                                    Collection<Feature> features) {
         Set<AttributeType> attributeTypes = features.stream()
                 .map(feature -> feature.attributes().attributes().get(attribute))
                 .filter(Objects::nonNull)
@@ -59,7 +59,7 @@ public class AttributeSchemaInferrer {
         if (value instanceof Integer || value instanceof Double || value instanceof Float) {
             return AttributeType.NUMERIC;
         }
-        else if (value instanceof AbstractTimeSeriesAttribute) {
+        else if (value instanceof TimeSeriesAttribute) {
             return AttributeType.TIME_SERIES;
         }
         else {

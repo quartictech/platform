@@ -10,10 +10,10 @@ import java.util.Optional;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes({
-        @Type(value = Point.class, name = "Point"),
-        @Type(value = LineString.class, name = "LineString"),
-        @Type(value = Polygon.class, name = "Polygon"),
-        @Type(value = MultiPolygon.class, name = "MultiPolygon")
+        @Type(value = PointImpl.class, name = "Point"),
+        @Type(value = LineStringImpl.class, name = "LineString"),
+        @Type(value = PolygonImpl.class, name = "Polygon"),
+        @Type(value = MultiPolygonImpl.class, name = "MultiPolygon")
 })
 public interface Geometry {
     @Value.Parameter(false)

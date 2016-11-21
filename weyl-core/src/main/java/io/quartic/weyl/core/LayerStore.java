@@ -53,14 +53,14 @@ public class LayerStore {
         return subscriber(id, indexable);
     }
 
-    public Collection<AbstractLayer> listLayers() {
+    public Collection<Layer> listLayers() {
         return layers.entrySet()
                 .stream()
                 .map(Entry::getValue)
                 .collect(toList());
     }
 
-    public Optional<AbstractLayer> getLayer(LayerId layerId) {
+    public Optional<Layer> getLayer(LayerId layerId) {
         return Optional.ofNullable(layers.get(layerId));
     }
 
@@ -76,7 +76,7 @@ public class LayerStore {
 
     public synchronized LayerSubscription addSubscriber(LayerId layerId, Consumer<LayerState> subscriber) {
         checkLayerExists(layerId);
-        LayerSubscription subscription = LayerSubscription.of(layerId, layers.get(layerId).view(), subscriber);
+        LayerSubscription subscription = LayerSubscriptionImpl.of(layerId, layers.get(layerId).view(), subscriber);
         subscriptions.put(layerId, subscription);
         subscriber.accept(computeLayerState(layers.get(layerId), subscription));
         return subscription;
@@ -111,7 +111,7 @@ public class LayerStore {
 
     private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         final FeatureCollection features = EMPTY_COLLECTION;
-        return Layer.builder()
+        return LayerImpl.builder()
                 .layerId(layerId)
                 .metadata(metadata)
                 .indexable(indexable)
@@ -124,16 +124,17 @@ public class LayerStore {
                 .build();
     }
 
-    private Layer appendFeatures(Layer layer, Collection<AbstractFeature> features) {
+    private Layer appendFeatures(Layer layer, Collection<Feature> features) {
         final FeatureCollection updatedFeatures = layer.features().append(features);
-        return layer
+        return LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
-                .withSchema(layer.schema().withAttributes(inferSchema(updatedFeatures)));
+                .withSchema(AttributeSchemaImpl.copyOf(layer.schema())
+                        .withAttributes(inferSchema(updatedFeatures)));
     }
 
     private Layer updateIndicesAndStats(Layer layer) {
         final Collection<IndexedFeature> indexedFeatures = indexedFeatures(layer.features());
-        return layer
+        return LayerImpl.copyOf(layer)
                 .withSpatialIndex(spatialIndex(indexedFeatures))
                 .withIndexedFeatures(indexedFeatures)
                 .withLayerStats(calculateStats(layer.schema(), layer.features()));
@@ -160,14 +161,14 @@ public class LayerStore {
                 .forEach(subscription -> subscription.subscriber().accept(computeLayerState(layer, subscription)));
     }
 
-    private synchronized void notifyListeners(LayerId layerId, Collection<AbstractFeature> newFeatures) {
+    private synchronized void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
         newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
     }
 
     private LayerState computeLayerState(Layer layer, LayerSubscription subscription) {
-        final Collection<AbstractFeature> features = layer.features();
-        Stream<AbstractFeature> computed = subscription.liveLayerView().compute(features);
-        return LayerState.builder()
+        final Collection<Feature> features = layer.features();
+        Stream<Feature> computed = subscription.liveLayerView().compute(features);
+        return LayerStateImpl.builder()
                 .schema(layer.schema())
                 .featureCollection(computed.collect(toList()))
                 .build();
@@ -190,7 +191,7 @@ public class LayerStore {
                 final Layer layer = layers.get(id); // TODO: locking?
                 LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
 
-                final Collection<AbstractFeature> elaboratedFeatures = elaborate(id, update.features());
+                final Collection<Feature> elaboratedFeatures = elaborate(id, update.features());
                 entityStore.putAll(elaboratedFeatures);
                 final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
@@ -202,9 +203,9 @@ public class LayerStore {
     }
 
     // TODO: this is going to double memory usage?
-    private Collection<AbstractFeature> elaborate(LayerId layerId, Collection<AbstractNakedFeature> features) {
-        return features.stream().map(f -> Feature.of(
-                EntityId.of(layerId.uid() + "/" + f.externalId()),
+    private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
+        return features.stream().map(f -> FeatureImpl.of(
+                EntityIdImpl.of(layerId.uid() + "/" + f.externalId()),
                 f.geometry(),
                 f.attributes()
         )).collect(toList());

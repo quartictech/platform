@@ -4,13 +4,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Geometry;
-import io.quartic.geojson.Point;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Attributes;
-import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.geojson.*;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.junit.Test;
 
@@ -35,8 +32,8 @@ public class LiveEventConverterShould {
         final SourceUpdate update = converter.updateFrom(collection);
 
         assertThat(update.features(), equalTo(ImmutableList.of(
-                NakedFeature.of("a", factory.createPoint(new Coordinate(51.0, 0.1)),
-                        Attributes.builder().attribute(AttributeName.of("timestamp"), 1234).build())
+                NakedFeatureImpl.of("a", factory.createPoint(new Coordinate(51.0, 0.1)),
+                        AttributesImpl.builder().attribute(AttributeNameImpl.of("timestamp"), 1234).build())
         )));
     }
 
@@ -50,11 +47,11 @@ public class LiveEventConverterShould {
     }
 
     private FeatureCollection featureCollectionOf(Feature... features) {
-        return FeatureCollection.of(newArrayList(features));
+        return FeatureCollectionImpl.of(newArrayList(features));
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return Feature.of(
+        return FeatureImpl.of(
                 Optional.of(id),
                 geometry,
                 ImmutableMap.of("timestamp", 1234));
@@ -65,6 +62,6 @@ public class LiveEventConverterShould {
     }
 
     private Point point(double x, double y) {
-        return Point.of(ImmutableList.of(x, y));
+        return PointImpl.of(ImmutableList.of(x, y));
     }
 }

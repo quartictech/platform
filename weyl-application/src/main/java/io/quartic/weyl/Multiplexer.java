@@ -27,7 +27,7 @@ public class Multiplexer<T, K, V> implements Observable.Transformer<Pair<T, List
     @Override
     public Observable<Pair<T, List<V>>> call(Observable<Pair<T, List<K>>> selection) {
         return selection.switchMap(sel -> sel.getRight().isEmpty()
-                ? just(Pair.of(sel.getLeft(), emptyList()))
+                ? just(Pair.of(sel.getLeft(), emptyList()))         // Emit an update even in the case of empty selection
                 : combineLatest(collectUpstreams(sel.getRight()), o -> Pair.of(sel.getLeft(), combine(o))));
     }
 

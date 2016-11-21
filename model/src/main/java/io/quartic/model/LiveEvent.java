@@ -1,0 +1,19 @@
+package io.quartic.model;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.quartic.common.SweetStyle;
+import io.quartic.geojson.FeatureCollection;
+import org.immutables.value.Value;
+
+import java.time.Instant;
+import java.util.Optional;
+
+@SweetStyle
+@Value.Immutable
+@JsonSerialize(as = LiveEventImpl.class)
+@JsonDeserialize(as = LiveEventImpl.class)
+public interface LiveEvent {
+    Instant timestamp();
+    Optional<FeatureCollection> featureCollection();
+}

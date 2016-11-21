@@ -41,10 +41,9 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
         return id;
     }
 
-    public synchronized void deleteDataset(String id) {
-        final DatasetId did = DatasetId.of(id);
-        throwIfDatasetNotFound(did);
-        datasets.remove(did);
+    public synchronized void deleteDataset(DatasetId id) {
+        throwIfDatasetNotFound(id);
+        datasets.remove(id);
         updateClients();
     }
 
@@ -52,10 +51,9 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
         return ImmutableMap.copyOf(datasets);
     }
 
-    public synchronized DatasetConfig getDataset(String id) {
-        final DatasetId did = DatasetId.of(id);
-        throwIfDatasetNotFound(did);
-        return datasets.get(did);
+    public synchronized DatasetConfig getDataset(DatasetId id) {
+        throwIfDatasetNotFound(id);
+        return datasets.get(id);
     }
 
     @Override

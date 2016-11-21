@@ -1,0 +1,13 @@
+package io.quartic.management;
+
+import io.quartic.common.SweetStyle;
+import org.immutables.value.Value;
+
+import java.io.InputStream;
+
+@SweetStyle
+@Value.Immutable
+public interface InputStreamWithContentType {
+    String contentType();
+    InputStream inputStream();
+}

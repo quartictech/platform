@@ -10,6 +10,7 @@ import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,11 +35,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class LayerStoreShould {
-    private static final LayerId LAYER_ID = LayerId.of("666");
-    private static final LayerId OTHER_LAYER_ID = LayerId.of("777");
-    private static final AttributeName ATTRIBUTE_NAME = AttributeName.of("timestamp");
+    private static final LayerId LAYER_ID = LayerIdImpl.of("666");
+    private static final LayerId OTHER_LAYER_ID = LayerIdImpl.of("777");
+    private static final AttributeName ATTRIBUTE_NAME = AttributeNameImpl.of("timestamp");
 
-    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerId::of);
+    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final EntityStore entityStore = mock(EntityStore.class);
     private final LayerStore store = new LayerStore(entityStore, lidGenerator);
     private final GeometryFactory factory = new GeometryFactory();
@@ -54,15 +55,15 @@ public class LayerStoreShould {
         store.createLayer(LAYER_ID, lm1, IDENTITY_VIEW, as1, true);
         store.createLayer(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true);
 
-        final Collection<AbstractLayer> layers = store.listLayers();
+        final Collection<Layer> layers = store.listLayers();
 
-        assertThat(layers.stream().map(AbstractLayer::layerId).collect(toList()),
+        assertThat(layers.stream().map(Layer::layerId).collect(toList()),
                 containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
-        assertThat(layers.stream().map(AbstractLayer::metadata).collect(toList()),
+        assertThat(layers.stream().map(Layer::metadata).collect(toList()),
                 containsInAnyOrder(lm1, lm2));
-        assertThat(layers.stream().map(AbstractLayer::indexable).collect(toList()),
+        assertThat(layers.stream().map(Layer::indexable).collect(toList()),
                 containsInAnyOrder(true, true));
-        assertThat(layers.stream().map(AbstractLayer::schema).collect(toList()),
+        assertThat(layers.stream().map(Layer::schema).collect(toList()),
                 containsInAnyOrder(as1, as2));
     }
 
@@ -80,8 +81,8 @@ public class LayerStoreShould {
 
         Observable.just(updateFor(feature("a"))).subscribe(sub);
 
-        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeName.of("blah")));
+        final Layer layer = store.getLayer(LAYER_ID).get();
+        assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
     }
 
     @Test
@@ -93,7 +94,7 @@ public class LayerStoreShould {
                 updateFor(feature("b"))
         ).subscribe(sub);
 
-        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+        final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(),
                 containsInAnyOrder(feature("a", "1"), feature("b", "2")));
     }
@@ -123,7 +124,8 @@ public class LayerStoreShould {
         assertThat(layerState.featureCollection(),
                 containsInAnyOrder(feature("a", "1")));
         assertThat(layerState.schema(),
-                equalTo(schema("blah").withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, Attribute.of(NUMERIC, Optional.empty())))));
+                equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
+                        .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.empty())))));
     }
 
     @Test
@@ -288,28 +290,28 @@ public class LayerStoreShould {
                 updateFor(feature("a"))
         ).subscribe(sub);
 
-        final AbstractLayer layer = store.getLayer(LAYER_ID).get();
+        final Layer layer = store.getLayer(LAYER_ID).get();
 
         assertThat(layer.indexedFeatures(), hasSize(size));
     }
 
     private SourceUpdate updateFor(NakedFeature... features) {
-        return SourceUpdate.of(asList(features));
+        return SourceUpdateImpl.of(asList(features));
     }
 
     private NakedFeature feature(String externalId) {
-        return NakedFeature.of(
+        return NakedFeatureImpl.of(
                 externalId,
                 factory.createPoint(new Coordinate(123.0, 456.0)),
-                Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
+                AttributesImpl.builder().attribute(ATTRIBUTE_NAME, 1234).build()
         );
     }
 
-    private AbstractFeature feature(String externalId, String uid) {
-        return Feature.of(
-                EntityId.of(LAYER_ID.uid() + "/" + externalId),
+    private Feature feature(String externalId, String uid) {
+        return FeatureImpl.of(
+                EntityIdImpl.of(LAYER_ID.uid() + "/" + externalId),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
-                Attributes.builder().attribute(ATTRIBUTE_NAME, 1234).build()
+                AttributesImpl.builder().attribute(ATTRIBUTE_NAME, 1234).build()
         );
     }
 
@@ -322,11 +324,11 @@ public class LayerStoreShould {
     }
 
     private AttributeSchema schema(String blessed) {
-        return AttributeSchema.builder().blessedAttribute(AttributeName.of(blessed)).build();
+        return AttributeSchemaImpl.builder().blessedAttribute(AttributeNameImpl.of(blessed)).build();
     }
 
     private LayerMetadata metadata(String name, String description) {
-        return LayerMetadata.of(name, description, Optional.empty(), Optional.empty());
+        return LayerMetadataImpl.of(name, description, Optional.empty(), Optional.empty());
     }
 
     private LayerState captureLiveLayerState(Consumer<LayerState> subscriber) {

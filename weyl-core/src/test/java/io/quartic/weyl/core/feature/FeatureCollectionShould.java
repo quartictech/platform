@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.feature;
 
-import io.quartic.weyl.core.model.AbstractFeature;
+import io.quartic.weyl.core.model.Feature;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class FeatureCollectionShould {
 
     @Test
     public void create_new_collection_with_elements_on_append() throws Exception {
-        final ArrayList<AbstractFeature> featuresToAppend = newArrayList(feature(), feature());
+        final ArrayList<Feature> featuresToAppend = newArrayList(feature(), feature());
 
         FeatureCollection newCollection = collection.append(featuresToAppend);
 
@@ -32,7 +32,7 @@ public class FeatureCollectionShould {
 
     @Test
     public void create_new_collection_with_concatenated_elements_on_append() throws Exception {
-        final ArrayList<AbstractFeature> featuresToAppend = newArrayList(feature(), feature(), feature(), feature());
+        final ArrayList<Feature> featuresToAppend = newArrayList(feature(), feature(), feature(), feature());
 
         FeatureCollection newCollection = collection
                 .append(featuresToAppend.subList(0, 2))
@@ -44,7 +44,7 @@ public class FeatureCollectionShould {
 
     @Test
     public void not_be_affected_by_append() throws Exception {
-        final ArrayList<AbstractFeature> featuresToAppend = newArrayList(feature(), feature());
+        final ArrayList<Feature> featuresToAppend = newArrayList(feature(), feature());
 
         collection.append(featuresToAppend);
 
@@ -56,7 +56,7 @@ public class FeatureCollectionShould {
         collection.add(feature());
     }
 
-    private AbstractFeature feature() {
-        return mock(AbstractFeature.class);
+    private Feature feature() {
+        return mock(Feature.class);
     }
 }

@@ -6,12 +6,12 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
 import io.quartic.weyl.Multiplexer;
-import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.alert.AbstractAlert;
+import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertListener;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceListener;
@@ -20,11 +20,13 @@ import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
-import io.quartic.weyl.core.model.AbstractFeature;
 import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
+import io.quartic.weyl.message.ClientStatusMessage.SelectionStatus;
+import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import rx.Observable;
@@ -62,12 +64,12 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final LayerStore layerStore;
     private Session session;
     private final PublishSubject<SelectionStatus> selection;
-    private final Multiplexer<Integer, EntityId, AbstractFeature> mux;
+    private final Multiplexer<Integer, EntityId, Feature> mux;
     private List<Subscription> generatorSubscriptions;
 
     public UpdateServer(
             LayerStore layerStore,
-            Multiplexer<Integer, EntityId, AbstractFeature> mux,
+            Multiplexer<Integer, EntityId, Feature> mux,
             Collection<SelectionDrivenUpdateGenerator> generators,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
@@ -94,7 +96,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private List<Subscription> createSubscriptions() {
-        final Observable<Pair<Integer, List<AbstractFeature>>> entities = selection
+        final Observable<Pair<Integer, List<Feature>>> entities = selection
                 .map(SelectionStatus::toPair)
                 .compose(mux)
                 .share();
@@ -104,8 +106,8 @@ public class UpdateServer implements AlertListener, GeofenceListener {
                 .collect(toList());
     }
 
-    private SelectionDrivenUpdateMessage generateUpdateMessage(SelectionDrivenUpdateGenerator generator, Pair<Integer, List<AbstractFeature>> e) {
-        return SelectionDrivenUpdateMessage.of(generator.name(), e.getLeft(), generator.generate(e.getRight()));
+    private SelectionDrivenUpdateMessage generateUpdateMessage(SelectionDrivenUpdateGenerator generator, Pair<Integer, List<Feature>> e) {
+        return SelectionDrivenUpdateMessageImpl.of(generator.name(), e.getLeft(), generator.generate(e.getRight()));
     }
 
     @OnMessage
@@ -139,8 +141,8 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onAlert(AbstractAlert alert) {
-        sendMessage(AlertMessage.of(alert));
+    public void onAlert(Alert alert) {
+        sendMessage(AlertMessageImpl.of(alert));
     }
 
     @Override
@@ -160,8 +162,8 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     @Override
-    public void onGeometryChange(Collection<AbstractFeature> features) {
-        sendMessage(GeofenceGeometryUpdateMessage.of(fromJts(features)));
+    public void onGeometryChange(Collection<Feature> features) {
+        sendMessage(GeofenceGeometryUpdateMessageImpl.of(fromJts(features)));
     }
 
     private void unsubscribeAll() {
@@ -174,11 +176,11 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private void sendViolationsUpdate() {
-        sendMessage(GeofenceViolationsUpdateMessage.of(violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList())));
+        sendMessage(GeofenceViolationsUpdateMessageImpl.of(violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList())));
     }
 
     private void sendLayerUpdate(LayerId layerId, LayerState state) {
-        sendMessage(LayerUpdateMessage.builder()
+        sendMessage(LayerUpdateMessageImpl.builder()
                 .layerId(layerId)
                 .schema(state.schema())
                 .featureCollection(fromJts(state.featureCollection()))  // TODO: obviously we never want to do this with large static layers
@@ -194,16 +196,16 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         }
     }
 
-    private FeatureCollection fromJts(Collection<AbstractFeature> features) {
-        return FeatureCollection.of(
+    private FeatureCollection fromJts(Collection<Feature> features) {
+        return FeatureCollectionImpl.of(
                 features.stream()
                         .map(this::fromJts)
                         .collect(toList())
         );
     }
 
-    private Feature fromJts(AbstractFeature f) {
-        return Feature.of(
+    private io.quartic.geojson.Feature fromJts(Feature f) {
+        return FeatureImpl.of(
                 Optional.empty(),
                 Optional.of(Utils.fromJts(geometryTransformer.transform(f.geometry()))),
                 convertFromModelAttributes(f)
