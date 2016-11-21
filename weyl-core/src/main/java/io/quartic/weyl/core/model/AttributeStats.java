@@ -2,14 +2,14 @@ package io.quartic.weyl.core.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
-import java.util.Optional;
-
+@SweetStyle
 @Value.Immutable
-@JsonSerialize(as=ImmutableAttributeStats.class)
-@JsonDeserialize(as=ImmutableAttributeStats.class)
+@JsonSerialize(as=AttributeStatsImpl.class)
+@JsonDeserialize(as=AttributeStatsImpl.class)
 public interface AttributeStats {
-    Optional<Double> minimum();
-    Optional<Double> maximum();
+    Double minimum();
+    Double maximum();
 }
