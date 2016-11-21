@@ -18,6 +18,7 @@ import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
@@ -111,11 +112,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WeylConfiguration configuration,
             Environment environment,
             WebsocketClientSessionFactory websocketFactory) {
-        final FeatureConverter converter = new FeatureConverter();
-
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
-                .converter(converter)
                 .metrics(environment.metrics())
                 .build();
 
@@ -123,23 +121,36 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
                         .locator((PostgresDatasetLocator) config.locator())
-                        .objectMapper(environment.getObjectMapper())
+                        .attributesFactory(attributesFactory())
                         .build(),
                 GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
+                        .converter(featureConverter())
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
                         .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
-                        .converter(converter)
+                        .converter(featureConverter())
                         .metrics(environment.metrics())
                         .build(),
-                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
+                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor(
+                        (TerminatorDatasetLocator) config.locator(),
+                        featureConverter()
+                ),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                        .converter(featureConverter())
                         .build()
         );
+    }
+
+    private FeatureConverter featureConverter() {
+        return new FeatureConverter(attributesFactory());
+    }
+
+    private AttributesFactory attributesFactory() {
+        return new AttributesFactory();
     }
 }

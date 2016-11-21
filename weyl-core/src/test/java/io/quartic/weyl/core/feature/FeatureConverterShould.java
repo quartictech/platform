@@ -5,10 +5,10 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.geojson.*;
-import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributesImpl;
-import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.weyl.core.attributes.AttributesFactory;
+import io.quartic.weyl.core.model.*;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -16,21 +16,34 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
 
 public class FeatureConverterShould {
     private final GeometryFactory factory = new GeometryFactory();
-    private final FeatureConverter converter = new FeatureConverter(webMercatorToWebMercator());
+    private final AttributesFactory attributesFactory = mock(AttributesFactory.class);
+    private final FeatureConverter converter = new FeatureConverter(attributesFactory, webMercatorToWebMercator());
 
     @Test
     public void convert_feature_collection() throws Exception {
+        final Attributes attributesA = mock(Attributes.class);
+        final Attributes attributesB = mock(Attributes.class);
+        final AttributesFactory.AttributesBuilder builderA = attributesBuilder(attributesA);
+        final AttributesFactory.AttributesBuilder builderB = attributesBuilder(attributesB);
+        when(attributesFactory.builder())
+                .thenReturn(builderA)
+                .thenReturn(builderB);
         final Feature featureA = geojsonFeature("a", Optional.of(point()));
         final Feature featureB = geojsonFeature("b", Optional.of(point()));
 
         final Collection<NakedFeature> modelFeatures = converter.toModel(FeatureCollectionImpl.of(newArrayList(featureA, featureB)));
 
-        assertThat(modelFeatures, contains(modelFeature("a"), modelFeature("b")));
+        verify(attributesFactory, times(2)).builder();
+        verify(builderA).put("timestamp", 1234);
+        verify(builderB).put("timestamp", 1234);
+        assertThat(modelFeatures, contains(modelFeature("a", attributesA), modelFeature("b", attributesB)));
     }
 
     @Test
@@ -42,9 +55,14 @@ public class FeatureConverterShould {
         assertThat(modelFeatures, empty());
     }
 
-    private NakedFeatureImpl modelFeature(String id) {
-        return NakedFeatureImpl.of(id, factory.createPoint(new Coordinate(51.0, 0.1)),
-                AttributesImpl.builder().attribute(AttributeNameImpl.of("timestamp"), 1234).build());
+    private AttributesFactory.AttributesBuilder attributesBuilder(Attributes attributes) {
+        final AttributesFactory.AttributesBuilder builder = mock(AttributesFactory.AttributesBuilder.class);
+        when(builder.build()).thenReturn(attributes);
+        return builder;
+    }
+
+    private NakedFeatureImpl modelFeature(String id, Attributes attributes) {
+        return NakedFeatureImpl.of(id, factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {

@@ -49,7 +49,7 @@ public class TerminatorSourceFactoryShould {
 
         final TerminatorSourceFactory factory = createFactory();
 
-        assertBehaviourForSource(modelFeatures, collection, factory.sourceFor(locator));
+        assertBehaviourForSource(modelFeatures, collection, factory.sourceFor(locator, converter));
     }
 
     @Test
@@ -70,8 +70,8 @@ public class TerminatorSourceFactoryShould {
 
         final TerminatorSourceFactory factory = createFactory();
 
-        assertBehaviourForSource(modelFeaturesA, collectionA, factory.sourceFor(locatorA));
-        assertBehaviourForSource(modelFeaturesB, collectionB, factory.sourceFor(locatorB));
+        assertBehaviourForSource(modelFeaturesA, collectionA, factory.sourceFor(locatorA, converter));
+        assertBehaviourForSource(modelFeaturesB, collectionB, factory.sourceFor(locatorB, converter));
     }
 
     private void assertBehaviourForSource(Collection<NakedFeature> modelFeatures, FeatureCollection collection, Source source) {
@@ -89,7 +89,6 @@ public class TerminatorSourceFactoryShould {
 
     private TerminatorSourceFactory createFactory() {
         return TerminatorSourceFactory.builder()
-                .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();

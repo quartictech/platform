@@ -20,7 +20,6 @@ public abstract class TerminatorSourceFactory {
     }
 
     protected abstract MetricRegistry metrics();
-    protected abstract FeatureConverter converter();
     protected abstract WebsocketListener.Factory listenerFactory();
 
     @Value.Derived
@@ -35,13 +34,13 @@ public abstract class TerminatorSourceFactory {
                 .doOnNext(s -> messageRateMeter().mark());
     }
 
-    public Source sourceFor(TerminatorDatasetLocator locator) {
+    public Source sourceFor(TerminatorDatasetLocator locator, FeatureConverter converter) {
         return new Source() {
             @Override
             public Observable<SourceUpdate> observable() {
                 return collections()
                         .filter(fcwi -> fcwi.terminationId().equals(locator.id()))  // TODO: this scales linearly with the number of datasets, which isn't great
-                        .map(fcwdi -> SourceUpdateImpl.of(converter().toModel(fcwdi.featureCollection())));
+                        .map(fcwdi -> SourceUpdateImpl.of(converter.toModel(fcwdi.featureCollection())));
             }
 
             @Override

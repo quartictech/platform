@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.feature;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.*;
@@ -20,12 +21,14 @@ public class FeatureConverter {
     private static final Logger LOG = LoggerFactory.getLogger(FeatureConverter.class);
 
     private final GeometryTransformer geometryTransformer;
+    private final AttributesFactory attributesFactory;
 
-    public FeatureConverter() {
-        this(wgs84toWebMercator());
+    public FeatureConverter(AttributesFactory attributesFactory) {
+        this(attributesFactory, wgs84toWebMercator());
     }
 
-    public FeatureConverter(GeometryTransformer geometryTransformer) {
+    public FeatureConverter(AttributesFactory attributesFactory, GeometryTransformer geometryTransformer) {
+        this.attributesFactory = attributesFactory;
         this.geometryTransformer = geometryTransformer;
     }
 
@@ -41,14 +44,13 @@ public class FeatureConverter {
         return NakedFeatureImpl.of(
                 f.id().get(),
                 geometryTransformer.transform(Utils.toJts(f.geometry().get())),
-                convertToModelAttributes(OBJECT_MAPPER, f.properties())
+                convertToModelAttributes(f.properties())
         );
     }
 
-
-    public static Attributes convertToModelAttributes(ObjectMapper objectMapper, Map<String, Object> rawAttributes) {
-        final AttributesImpl.Builder builder = AttributesImpl.builder();
-        rawAttributes.forEach((k, v) -> builder.attribute(AttributeNameImpl.of(k), convertAttributeValue(objectMapper, k, v)));
+    public Attributes convertToModelAttributes(Map<String, Object> rawAttributes) {
+        final AttributesFactory.AttributesBuilder builder = attributesFactory.builder();
+        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(OBJECT_MAPPER, k, v)));
         return builder.build();
     }
 

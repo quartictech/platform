@@ -25,10 +25,7 @@ public abstract class GeoJsonSource implements Source {
 
     protected abstract String name();
     protected abstract String url();
-    @Value.Default
-    protected FeatureConverter converter() {
-        return new FeatureConverter();
-    }
+    protected abstract FeatureConverter converter();
 
     @Override
     public Observable<SourceUpdate> observable() {

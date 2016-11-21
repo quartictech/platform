@@ -2,6 +2,7 @@ package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.weyl.core.attributes.AttributesFactory;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -27,7 +28,7 @@ public class PostgresSourceShould {
                 .name("Budgie")
                 .locator(PostgresDatasetLocatorImpl.of("foo", "bar", "baz", "SELECT * FROM foo"))
                 .dbi(dbi)
-                .objectMapper(mapper)
+                .attributesFactory(mock(AttributesFactory.class))
                 .build();
 
         importer.observable().subscribe(Subscribers.empty());
