@@ -1,5 +1,5 @@
 /** Main Config File */
-const API_URL: string = 'http://api.bilgishuttle.com';
+const API_URL: string = 'http://localhost:8080';
 
 /** React Specific */
 import * as React from 'react';
