@@ -26,7 +26,6 @@
     "trailing-comma": true,
     "no-trailing-whitespace": false,
     "no-unused-expression": true,
-    "no-unused-variable": false,
     "no-use-before-declare": false,
     "no-var-keyword": true,
     "one-line": [true,

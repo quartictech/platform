@@ -17,7 +17,7 @@ function parseJSON(response) {
   return response.json();
 }
 
-export function fetchDatasets(noob) {
+export function fetchDatasets() {
   return fetch(`${apiRootUrl}/dataset`)
     .then(checkStatus)
     .then(parseJSON)

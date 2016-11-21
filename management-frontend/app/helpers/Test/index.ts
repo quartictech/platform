@@ -1,20 +1,14 @@
 /** Main Config File */
-const API_URL: string = 'http://localhost:8080';
-
-/** React Specific */
-import * as React from 'react';
-import { mount } from 'enzyme';
-import { Provider } from 'react-redux';
-import { rootReducer } from '../../redux/reducers';
-
 /** Redux Mock Store Configuration */
-import thunk from 'redux-thunk';
-const configureStore = require('redux-mock-store');
+const configureStore = require("redux-mock-store");
+
+import createSagaMiddleware from "redux-saga";
 
 function createMockStore(initialState) {
-  const middlewares = [thunk];
+  const sagaMiddleware = createSagaMiddleware();
+  const middlewares = [sagaMiddleware];
   const mockStore = configureStore(middlewares);
   return mockStore(initialState);
 }
 
-export { API_URL, createMockStore }
+export { createMockStore }

@@ -1,13 +1,13 @@
-import 'whatwg-fetch';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import { Router, browserHistory } from 'react-router';
-import { syncHistoryWithStore } from 'react-router-redux';
-import { configureStore } from './redux/store';
-import { getRoutes } from './routes';
+import "whatwg-fetch";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { Router, browserHistory } from "react-router";
+import { syncHistoryWithStore } from "react-router-redux";
+import { configureStore } from "./redux/store";
+import { getRoutes } from "./routes";
 
-import "@blueprintjs/core/dist/blueprint.css"
+import "@blueprintjs/core/dist/blueprint.css";
 
 // TODO: fix type!
 const store: Redux.Store<any> = configureStore();
@@ -20,7 +20,7 @@ const history = syncHistoryWithStore(browserHistory, store,
 
 const component = (
   <Router history={history}>
-    {getRoutes(store)}
+    {getRoutes()}
   </Router>
 );
 
@@ -28,5 +28,5 @@ ReactDOM.render(
   <Provider store={store}>
     {component}
   </Provider>,
-  document.getElementById('app')
+  document.getElementById("app")
 );

@@ -1,15 +1,13 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import { Grid, Col } from 'react-bootstrap';
 import * as Blueprint from "@blueprintjs/core";
 const { Menu, MenuItem, MenuDivider } = Blueprint;
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
-const s = require('./style.css');
+const s = require("./style.css");
 
 import { DatasetList } from "../../components/DatasetList";
 
@@ -20,7 +18,6 @@ interface IProps {
 
 class Home extends React.Component<IProps, any> {
   componentDidMount() {
-    console.log("oh nooo");
     this.props.fetchDatasets();
   }
 

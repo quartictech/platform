@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link } from 'react-router'
+import { Link } from "react-router";
 
 import { IDataset } from "../../models";
 import _ = require("underscore");
@@ -20,9 +20,9 @@ export const DatasetRow = (props: IDatasetRowProps) => (
   <td>{props.dataset.metadata.description}</td>
   <td><Link to={`/dataset/${props.id}`}>View</Link></td>
   </tr>
-)
+);
 
-export const DatasetList = (props: IDatasetListProps) => {console.log(props); return (
+export const DatasetList = (props: IDatasetListProps) => (
   <table className="pt-table pt-striped" style={{ width: "100%" }}>
     <thead>
       <tr>
@@ -33,8 +33,11 @@ export const DatasetList = (props: IDatasetListProps) => {console.log(props); re
     </thead>
     <tbody>
     {
-      _.map(props.datasets, (dataset, id) => <DatasetRow id={id} dataset={dataset}/>)
+      _.map(props.datasets, (dataset, id) => <DatasetRow
+        id={id}
+        dataset={dataset}
+      />)
     }
     </tbody>
   </table>
-)};
+);

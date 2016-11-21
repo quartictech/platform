@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { Header } from '../../components';
+import * as React from "react";
+import { Header } from "../../components";
 
-const s = require('./style.css');
+const s = require("./style.css");
 
 interface IProps {
   children?: any;
@@ -15,7 +15,7 @@ interface IProps {
 
 export class App extends React.Component<IProps, void> {
   render() {
-    const { params, location, children } = this.props;
+    const { children } = this.props;
     return (
       <div className="pt-dark">
       <section className={s.App}>
