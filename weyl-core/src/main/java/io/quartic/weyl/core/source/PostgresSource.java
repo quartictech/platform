@@ -8,7 +8,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
-import io.quartic.weyl.core.attributes.SharedAttributesFactory;
+import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.model.*;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
@@ -66,7 +66,7 @@ public abstract class PostgresSource implements Source {
             final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
-            SharedAttributesFactory factory = new SharedAttributesFactory();
+            AttributesFactory factory = new AttributesFactory();
             Collection<NakedFeature> features = Lists.newArrayList();
             int count = 0;
             while (iterator.hasNext()) {
@@ -83,7 +83,7 @@ public abstract class PostgresSource implements Source {
         }
     }
 
-    private Optional<NakedFeature> rowToFeature(Map<String, Object> row, SharedAttributesFactory factory) {
+    private Optional<NakedFeature> rowToFeature(Map<String, Object> row, AttributesFactory factory) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
@@ -92,7 +92,7 @@ public abstract class PostgresSource implements Source {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            final SharedAttributesFactory.AttributesBuilder builder = factory.attributesBuilder();
+            final AttributesFactory.AttributesBuilder builder = factory.attributesBuilder();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {

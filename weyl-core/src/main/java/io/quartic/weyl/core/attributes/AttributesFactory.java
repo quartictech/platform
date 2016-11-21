@@ -13,7 +13,12 @@ import static com.google.common.collect.Maps.newConcurrentMap;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 
-public class SharedAttributesFactory {
+/**
+ * Memory-efficient factory for Attributes instances.
+ *
+ * Maintains only a single copy of the list of attribute names, and interns string values.
+ */
+public class AttributesFactory {
     /*
      * We need O(1) lookup of name to position in values lists, and this needs to allow for concurrent read/write.
      * Hence a ConcurrentMap.  However, it's unclear how to expose an iterator over indices.keySet() (as we would need
@@ -53,8 +58,12 @@ public class SharedAttributesFactory {
 
         private List<Object> collectValues() {
             final Object[] values = new Object[indices.size()];
-            attributes.forEach((name, value) -> values[indices.get(name)] = value);
+            attributes.forEach((name, value) -> values[indices.get(name)] = internIfString(value));
             return asList(values);
+        }
+
+        private Object internIfString(Object value) {
+            return (value instanceof String) ? ((String)value).intern() : value;
         }
     }
 
@@ -127,5 +136,4 @@ public class SharedAttributesFactory {
             return values.size();
         }
     }
-
 }

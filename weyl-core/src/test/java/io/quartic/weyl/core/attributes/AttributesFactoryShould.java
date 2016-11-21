@@ -6,12 +6,11 @@ import io.quartic.weyl.core.model.Attributes;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class SharedAttributeFactoryShould {
+public class AttributesFactoryShould {
 
-    private final SharedAttributesFactory factory = new SharedAttributesFactory();
+    private final AttributesFactory factory = new AttributesFactory();
 
     @Test
     public void produce_attributes() throws Exception {
@@ -74,6 +73,26 @@ public class SharedAttributeFactoryShould {
     }
 
     @Test
+    public void share_attribute_names() throws Exception {
+        final Attributes attributesA = builder().put("foo", 1.2).build();
+        final Attributes attributesB = builder().put("foo", 3.4).build();
+
+        assertThat(attributesA.attributes().keySet().iterator().next(),
+                sameInstance(attributesB.attributes().keySet().iterator().next()));
+    }
+
+    @SuppressWarnings("RedundantStringConstructorCall")
+    @Test
+    public void intern_string_values() throws Exception {
+        final Attributes attributesA = builder().put("foo", new String("hello")).build();
+        final Attributes attributesB = builder().put("bar", new String("hello")).build();
+
+        assertThat(attributesA.attributes().get(name("foo")),
+                sameInstance(attributesB.attributes().get(name("bar"))));
+    }
+
+    // This is really just to cover the (index < values.size()) behaviour
+    @Test
     public void not_throw_when_attempting_to_get_an_attribute_name_that_was_added_later() throws Exception {
         final Attributes attributesA = buildAttributes();
         builder().put("wat", 32).build();
@@ -97,9 +116,7 @@ public class SharedAttributeFactoryShould {
                 .build();
     }
 
-    private SharedAttributesFactory.AttributesBuilder builder() {
+    private AttributesFactory.AttributesBuilder builder() {
         return factory.attributesBuilder();
     }
-
-    // TODO: can get a name that didn't previously exist, and should return null (rather than throw)
 }
