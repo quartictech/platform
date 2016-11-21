@@ -7,10 +7,7 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.AttributeSchema;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.MapDatasetExtension;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.immutables.value.Value;
@@ -86,7 +83,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
             final String name = config.metadata().name();
             final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
             final Source source = func.apply(config);
-            final LayerId layerId = LayerId.of(id.uid());
+            final LayerId layerId = LayerIdImpl.of(id.uid());
             final Subscriber<SourceUpdate> subscriber = layerStore().createLayer(
                     layerId,
                     datasetMetadataFrom(config.metadata()),
@@ -104,7 +101,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
     }
 
     private AttributeSchema schemaFrom(MapDatasetExtension extension) {
-        return AttributeSchema.builder()
+        return AttributeSchemaImpl.builder()
                 .titleAttribute(extension.titleAttribute())
                 .imageAttribute(extension.imageAttribute())
                 .blessedAttributes(extension.blessedAttributes())
@@ -113,7 +110,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?
     private LayerMetadata datasetMetadataFrom(DatasetMetadata metadata) {
-        return LayerMetadata.builder()
+        return LayerMetadataImpl.builder()
                 .name(metadata.name())
                 .description(metadata.description())
                 .attribution(metadata.attribution())

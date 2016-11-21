@@ -1,13 +1,11 @@
 package io.quartic.weyl.core.geofence;
 
+import com.google.common.collect.Lists;
 import io.quartic.common.SweetStyle;
-import io.quartic.common.uid.SequenceUidGenerator;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.live.LayerStoreListener;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -17,10 +15,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 public class GeofenceStore implements LayerStoreListener {
@@ -28,25 +24,21 @@ public class GeofenceStore implements LayerStoreListener {
 
     @SweetStyle
     @Value.Immutable
-    interface AbstractViolationKey {
-        String externalFeatureId();
-        GeofenceId geofenceId();
+    interface ViolationKey {
+        EntityId entityId();
+        EntityId geofenceId();
     }
-
-    private final UidGenerator<ViolationId> vidGenerator = new SequenceUidGenerator<>(ViolationId::of);
-    private final UidGenerator<FeatureId> fidGenerator;
 
     private final Map<ViolationKey, Violation> currentViolations = newHashMap();
     private final Set<Geofence> geofences = newHashSet();
     private final Set<GeofenceListener> listeners = newHashSet();
 
-    public GeofenceStore(LayerStore layerStore, UidGenerator<FeatureId> fidGenerator) {
+    public GeofenceStore(LayerStore layerStore) {
         layerStore.addListener(this);
-        this.fidGenerator = fidGenerator;
     }
 
     public synchronized void setGeofences(Collection<Geofence> geofences) {
-        newArrayList(this.currentViolations.keySet()).forEach(this::removeViolation);
+        Lists.newArrayList(this.currentViolations.keySet()).forEach(this::removeViolation);
         this.geofences.clear();
         this.geofences.addAll(geofences);
         notifyListeners(geofences);
@@ -63,23 +55,20 @@ public class GeofenceStore implements LayerStoreListener {
     @Override
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
         geofences.forEach(geofence -> {
-            final ViolationKey vk = ViolationKey.of(feature.externalId(), geofence.id());
+            final ViolationKey vk = ViolationKeyImpl.of(feature.entityId(), geofence.feature().entityId());
             final boolean violating = inViolation(geofence, feature);
             final boolean previouslyViolating = currentViolations.containsKey(vk);
 
             if (violating && !previouslyViolating) {
-                LOG.info("Violation triggered: externalId: {}, geofenceId: {}", feature.externalId(), geofence.id());
-                final Violation violation = Violation.builder()
-                        .id(vidGenerator.get())
-                        .featureExternalId(feature.externalId())
-                        .featureMetadata(feature.metadata())
-                        .geofenceMetadata(geofence.metadata())
-                        .geofenceId(geofence.id())
-                        .message(String.format("Actor '%s' is in violation of geofence boundary", feature.externalId()))
+                LOG.info("Violation triggered: entityId: {}, geofenceId: {}", feature.entityId(), geofence.feature().entityId());
+                final Violation violation = ViolationImpl.builder()
+                        .feature(feature)
+                        .geofence(geofence)
+                        .message(String.format("Actor '%s' is in violation of geofence boundary", feature.entityId()))
                         .build();
                 addViolation(vk, violation);
             } else if (!violating && previouslyViolating) {
-                LOG.info("Violation removed: externalId: {}, geofenceId: {}", feature.externalId(), geofence.id());
+                LOG.info("Violation removed: entityId: {}, geofenceId: {}", feature.entityId(), geofence.feature().entityId());
                 removeViolation(vk);
             }
         });
@@ -96,13 +85,13 @@ public class GeofenceStore implements LayerStoreListener {
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
-        final boolean contains = geofence.geometry().contains(feature.geometry());
+        final boolean contains = geofence.feature().geometry().contains(feature.geometry());
         return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
     }
 
     private void notifyListeners(Collection<Geofence> geofences) {
         listeners.forEach(l -> l.onGeometryChange(geofences.stream()
-                .map(g -> ImmutableFeature.of(g.id().uid(), fidGenerator.get(), g.geometry(), emptyMap()))
+                .map(Geofence::feature)
                 .collect(toList())));
     }
 

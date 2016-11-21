@@ -5,10 +5,12 @@ import io.dropwizard.testing.DropwizardTestSupport;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.websocket.WebsocketServerRule;
-import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Point;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import io.quartic.terminator.api.TerminatorService;
 import org.junit.After;
 import org.junit.Before;
@@ -30,8 +32,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class TerminatorApplicationShould {
-    private static final String TERMINATION_ID = "123";
-    private static final int APP_PORT = 8110;
+    private static final TerminationId TERMINATION_ID = TerminationId.fromString("123");
 
     @Rule
     public final WebsocketServerRule catalogue = new WebsocketServerRule();
@@ -55,32 +56,32 @@ public class TerminatorApplicationShould {
 
     @Test
     public void forward_data_from_endpoint_to_websocket() throws Exception {
-        TerminatorService terminator = ClientBuilder.build(TerminatorService.class, getClass(), "http://localhost:" + APP_PORT + "/api");
+        TerminatorService terminator = ClientBuilder.build(TerminatorService.class, getClass(), "http://localhost:" + app.getLocalPort() + "/api");
 
         CollectingEndpoint<FeatureCollectionWithTerminationId> collector = new CollectingEndpoint<>(FeatureCollectionWithTerminationId.class);
         ContainerProvider.getWebSocketContainer()
-                .connectToServer(collector, new URI("ws://localhost:" + APP_PORT + "/ws"));
+                .connectToServer(collector, new URI("ws://localhost:" + app.getLocalPort() + "/ws"));
 
         terminator.postToDataset(TERMINATION_ID, featureCollection());
         collector.awaitMessages(1, 250, MILLISECONDS);
 
-        assertThat(collector.messages(), contains(FeatureCollectionWithTerminationId.of(TerminationId.of(TERMINATION_ID), featureCollection())));
+        assertThat(collector.messages(), contains(FeatureCollectionWithTerminationIdImpl.of(TERMINATION_ID, featureCollection())));
     }
 
     private Map<DatasetId, DatasetConfig> datasets() {
         return ImmutableMap.of(
-                DatasetId.of("xyz"),
-                DatasetConfig.of(
-                        DatasetMetadata.of("Foo", "Bar", "Baz", Optional.empty()),
-                        TerminatorDatasetLocator.of(TerminationId.of(TERMINATION_ID)),
+                DatasetId.fromString("xyz"),
+                DatasetConfigImpl.of(
+                        DatasetMetadataImpl.of("Foo", "Bar", "Baz", Optional.empty()),
+                        TerminatorDatasetLocatorImpl.of(TERMINATION_ID),
                         emptyMap()
                 )
         );
     }
 
     private FeatureCollection featureCollection() {
-        return FeatureCollection.of(newArrayList(
-                Feature.of(Optional.of("abc"), Optional.of(Point.of(newArrayList(1.0, 2.0))), emptyMap())
+        return FeatureCollectionImpl.of(newArrayList(
+                FeatureImpl.of(Optional.of("abc"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())
         ));
     }
 }

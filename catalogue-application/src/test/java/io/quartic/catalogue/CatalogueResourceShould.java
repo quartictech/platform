@@ -2,10 +2,7 @@ package io.quartic.catalogue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.uid.SequenceUidGenerator;
 import org.junit.Test;
 
@@ -20,7 +17,7 @@ import static java.util.Collections.emptyMap;
 import static org.mockito.Mockito.*;
 
 public class CatalogueResourceShould {
-    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetId::of), OBJECT_MAPPER);
+    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), OBJECT_MAPPER);
 
     @Test
     public void send_current_catalogue_state_on_websocket_open() throws Exception {
@@ -44,7 +41,7 @@ public class CatalogueResourceShould {
 
         final DatasetId idX = resource.registerDataset(configX);
         final DatasetId idY = resource.registerDataset(configY);
-        resource.deleteDataset(idX.uid());
+        resource.deleteDataset(idX);
 
         newArrayList(sessionA, sessionB).forEach(session -> {
             verify(session.getAsyncRemote()).sendText(serialize(ImmutableMap.of(idX, configX)));
@@ -75,8 +72,8 @@ public class CatalogueResourceShould {
     }
 
     private DatasetConfig config(String name) {
-        return DatasetConfig.of(
-                DatasetMetadata.of(name, "bar", "baz", Optional.empty()),
+        return DatasetConfigImpl.of(
+                DatasetMetadataImpl.of(name, "bar", "baz", Optional.empty()),
                 mock(DatasetLocator.class),
                 emptyMap()
         );

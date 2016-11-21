@@ -3,8 +3,8 @@ package io.quartic.weyl.core.compute;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.AbstractLayer;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.IndexedFeature;
 import org.immutables.value.Value;
 
@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 public class SpatialJoin {
     @SweetStyle
     @Value.Immutable
-    public interface AbstractTuple {
+    public interface Tuple {
         Feature left();
         Feature right();
     }
@@ -36,12 +36,12 @@ public class SpatialJoin {
 
 
     @SuppressWarnings("unchecked")
-    public static Stream<Tuple> innerJoin(AbstractLayer leftLayer, AbstractLayer rightLayer, SpatialPredicate predicate) {
+    public static Stream<Tuple> innerJoin(Layer leftLayer, Layer rightLayer, SpatialPredicate predicate) {
        return leftLayer.indexedFeatures().parallelStream()
                 .flatMap(left -> rightLayer.spatialIndex()
                         .query(left.feature().geometry().getEnvelopeInternal())
                         .stream()
                         .filter(o -> applySpatialPredicate(left.preparedGeometry(), ((IndexedFeature) o).feature().geometry(), predicate))
-                        .map(o -> Tuple.of(left.feature(), ((IndexedFeature) o).feature())));
+                        .map(o -> TupleImpl.of(left.feature(), ((IndexedFeature) o).feature())));
     }
 }

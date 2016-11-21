@@ -20,8 +20,8 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 public class ManagementResource {
     private final GcsConnector gcsConnector;
     private final CatalogueService catalogueService;
-    private final UidGenerator<CloudStorageId> cloudStorageIdGenerator = RandomUidGenerator.of(CloudStorageId::of);
-    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminationId::of);
+    private final UidGenerator<CloudStorageId> cloudStorageIdGenerator = RandomUidGenerator.of(CloudStorageIdImpl::of);
+    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminationIdImpl::of);
 
     public ManagementResource(CatalogueService catalogueService, GcsConnector gcsConnector) {
         this.catalogueService = catalogueService;
@@ -41,19 +41,19 @@ public class ManagementResource {
     public DatasetId createDataset(CreateDatasetRequest createDatasetRequest) {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
             @Override
-            public DatasetConfig visit(AbstractCreateStaticDatasetRequest request) {
-                return DatasetConfig.of(
+            public DatasetConfig visit(CreateStaticDatasetRequest request) {
+                return DatasetConfigImpl.of(
                         request.metadata(),
-                        CloudGeoJsonDatasetLocator.of("/file/" + request.fileName()),
+                        CloudGeoJsonDatasetLocatorImpl.of("/file/" + request.fileName()),
                         emptyMap()
                 );
             }
 
             @Override
-            public DatasetConfig visit(AbstractCreateLiveDatasetRequest request) {
-                return DatasetConfig.of(
+            public DatasetConfig visit(CreateLiveDatasetRequest request) {
+                return DatasetConfigImpl.of(
                         request.metadata(),
-                        TerminatorDatasetLocator.of(terminatorEndpointIdGenerator.get()),
+                        TerminatorDatasetLocatorImpl.of(terminatorEndpointIdGenerator.get()),
                         emptyMap()
                 );
             }

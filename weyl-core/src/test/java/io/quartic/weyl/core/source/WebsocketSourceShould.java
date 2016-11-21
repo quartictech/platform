@@ -4,11 +4,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Geometry;
-import io.quartic.geojson.Point;
+import io.quartic.geojson.*;
 import io.quartic.model.LiveEvent;
+import io.quartic.model.LiveEventImpl;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -25,17 +23,17 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class WebsocketSourceShould {
-    private final static LiveEvent LIVE_EVENT = LiveEvent.of(
+    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(
             Instant.now(),
-            Optional.of(featureCollection(geojsonFeature("a", Optional.of(point())))),
-            Optional.empty());
+            Optional.of(featureCollection(geojsonFeature("a", Optional.of(point()))))
+    );
 
     @Test
     public void import_things() throws Exception {
         final WebsocketListener<LiveEvent> listener = mock(WebsocketListener.class);
         final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
         final LiveEventConverter converter = mock(LiveEventConverter.class);
-        final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
+        final SourceUpdate update = SourceUpdateImpl.of(newArrayList());
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
         when(listener.observable()).thenReturn(just(LIVE_EVENT));
@@ -59,11 +57,11 @@ public class WebsocketSourceShould {
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)
 
     private static FeatureCollection featureCollection(Feature... features) {
-        return FeatureCollection.of(newArrayList(features));
+        return FeatureCollectionImpl.of(newArrayList(features));
     }
 
     private static Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return Feature.of(
+        return FeatureImpl.of(
                 Optional.of(id),
                 geometry,
                 ImmutableMap.of("timestamp", 1234));
@@ -74,7 +72,7 @@ public class WebsocketSourceShould {
     }
 
     private static Point point(double x, double y) {
-        return Point.of(ImmutableList.of(x, y));
+        return PointImpl.of(ImmutableList.of(x, y));
     }
 
 }

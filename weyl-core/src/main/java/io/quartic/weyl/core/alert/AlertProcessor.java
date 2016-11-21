@@ -16,7 +16,7 @@ public class AlertProcessor {
         geofenceStore.addListener(new GeofenceListener() {
             @Override
             public void onViolationBegin(Violation violation) {
-                createAlert(Alert.of("Geofence violation", violation.message()));
+                createAlert(AlertImpl.of("Geofence violation", violation.message()));
             }
 
             @Override
@@ -39,7 +39,7 @@ public class AlertProcessor {
         listeners.remove(listener);
     }
 
-    public synchronized void createAlert(AbstractAlert alert) {
+    public synchronized void createAlert(Alert alert) {
         listeners.forEach(l -> l.onAlert(alert));
     }
 }

@@ -78,15 +78,6 @@ export function clearSelection() {
   };
 }
 
-// TODO: This is a hack for live selection
-export function remapSelection(layerId, externalIdToFeatureId) {
-  return {
-    type: constants.SELECTION_REMAP,
-    layerId,
-    externalIdToFeatureId,
-  };
-}
-
 export function mapLoading() {
   return {
     type: constants.MAP_LOADING,
@@ -164,14 +155,6 @@ export const geofenceToggleAlerts = () => ({
   type: constants.GEOFENCE_TOGGLE_ALERTS,
 });
 
-export function feedSetData(layerId, data) {
-  return {
-    type: constants.FEED_SET_DATA,
-    layerId,
-    data,
-  };
-}
-
 export function bufferLayer(layerId, bufferDistance) {
   return {
     type: constants.BUFFER_LAYER,
@@ -188,15 +171,14 @@ export const connectionDown = () => ({
   type: constants.CONNECTION_DOWN,
 });
 
-export const selectionInfoLoading = () => ({
-  type: constants.SELECTION_INFO_LOADING,
+export const selectionSent = (seqNum) => ({
+  type: constants.SELECTION_SENT,
+  seqNum,
 });
 
-export const selectionInfoLoaded = (results) => ({
-  type: constants.SELECTION_INFO_LOADED,
-  results,
-});
-
-export const selectionInfoFailedToLoad = () => ({
-  type: constants.SELECTION_INFO_FAILED_TO_LOAD,
+export const subscriptionsPost = (name, seqNum, data) => ({
+  type: constants.SUBSCRIPTIONS_POST,
+  name,
+  seqNum,
+  data,
 });

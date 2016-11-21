@@ -3,14 +3,13 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.TerminationId;
+import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Geometry;
-import io.quartic.geojson.Point;
+import io.quartic.geojson.*;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
+import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,12 +36,12 @@ public class TerminatorSourceFactoryShould {
 
     @Test
     public void import_things() throws Exception {
-        final SourceUpdate update = SourceUpdate.of(newArrayList(), newArrayList());
+        final SourceUpdate update = SourceUpdateImpl.of(newArrayList());
         final FeatureCollection collection = featureCollection(geojsonFeature("a", Optional.of(point())));
-        final TerminatorDatasetLocator locator = TerminatorDatasetLocator.of(TerminationId.of("123"));
+        final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
 
         when(listener.observable()).thenReturn(just(
-                FeatureCollectionWithTerminationId.of(locator.id(), collection)
+                FeatureCollectionWithTerminationIdImpl.of(locator.id(), collection)
         ));
         when(converter.updateFrom(collection)).thenReturn(update);
 
@@ -53,16 +52,16 @@ public class TerminatorSourceFactoryShould {
 
     @Test
     public void demultiplex_to_multiple_sources() throws Exception {
-        final SourceUpdate updateA = SourceUpdate.of(newArrayList(), newArrayList());
-        final SourceUpdate updateB = SourceUpdate.of(newArrayList(), newArrayList());
+        final SourceUpdate updateA = SourceUpdateImpl.of(newArrayList());
+        final SourceUpdate updateB = SourceUpdateImpl.of(newArrayList());
         final FeatureCollection collectionA = featureCollection(geojsonFeature("a", Optional.of(point())));
         final FeatureCollection collectionB = featureCollection(geojsonFeature("b", Optional.of(point())));
-        final TerminatorDatasetLocator locatorA = TerminatorDatasetLocator.of(TerminationId.of("123"));
-        final TerminatorDatasetLocator locatorB = TerminatorDatasetLocator.of(TerminationId.of("456"));
+        final TerminatorDatasetLocator locatorA = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
+        final TerminatorDatasetLocator locatorB = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("456"));
 
         when(listener.observable()).thenReturn(just(
-                FeatureCollectionWithTerminationId.of(locatorA.id(), collectionA),
-                FeatureCollectionWithTerminationId.of(locatorB.id(), collectionB)
+                FeatureCollectionWithTerminationIdImpl.of(locatorA.id(), collectionA),
+                FeatureCollectionWithTerminationIdImpl.of(locatorB.id(), collectionB)
         ));
         when(converter.updateFrom(collectionA)).thenReturn(updateA);
         when(converter.updateFrom(collectionB)).thenReturn(updateB);
@@ -97,11 +96,11 @@ public class TerminatorSourceFactoryShould {
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)
 
     private static FeatureCollection featureCollection(Feature... features) {
-        return FeatureCollection.of(newArrayList(features));
+        return FeatureCollectionImpl.of(newArrayList(features));
     }
 
     private static Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return Feature.of(
+        return FeatureImpl.of(
                 Optional.of(id),
                 geometry,
                 ImmutableMap.of("timestamp", 1234));
@@ -112,6 +111,6 @@ public class TerminatorSourceFactoryShould {
     }
 
     private static Point point(double x, double y) {
-        return Point.of(ImmutableList.of(x, y));
+        return PointImpl.of(ImmutableList.of(x, y));
     }
 }

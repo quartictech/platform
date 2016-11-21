@@ -4,7 +4,6 @@ import Toolbar from "../../components/Toolbar";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
-import FeedPane from "../../components/FeedPane";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
 
@@ -30,7 +29,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               onMapLoaded={this.props.onMapLoaded}
               onMouseMove={this.props.onMapMouseMove}
               onMouseClick={this.props.onMapMouseClick}
-              selection={this.props.selectionIds}
+              selection={this.props.selection.ids}
               map={this.props.map}
               geofence={this.props.geofence}
               onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
@@ -70,23 +69,18 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.rightDrawer}>
           <SelectionPane
-            selectedFeaturedIds={this.props.selectionIds}
-            selectionInfo={this.props.selectionInfo}
+            selection={this.props.selection}
+            histograms={this.props.histograms}
+            attributes={this.props.attributes}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
-          />
-          <FeedPane
-            feed={this.props.feed}
-            visible={this.props.ui.panels.liveFeed}
-            onUiToggle={this.props.onUiToggle}
-            layers={this.props.layers.toJS()}
           />
         </div>
 
         <div className={styles.bottomDrawer}>
           <Chart
             visible={this.props.ui.panels.chart}
-            timeSeries={this.props.timeSeries}
+            timeSeries={this.props.chart.data}
             onUiToggle={this.props.onUiToggle}
           />
         </div>
@@ -127,12 +121,12 @@ const mapDispatchToProps = {
 const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
-  selectionIds: selectors.selectSelectionIds,
-  selectionInfo: selectors.selectSelectionInfo,
-  timeSeries: selectors.selectTimeSeries,
+  selection: selectors.selectSelection,
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
-  feed: selectors.selectFeed,
+  chart: selectors.selectChart,
+  histograms: selectors.selectHistograms,
+  attributes: selectors.selectAttributes,
   connectionUp: selectors.selectConnectionUp,
 });
 

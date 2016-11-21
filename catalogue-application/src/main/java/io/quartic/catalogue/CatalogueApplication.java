@@ -5,6 +5,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetIdImpl;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
@@ -16,7 +17,7 @@ import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig
 
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
-    private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetId::of);
+    private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetIdImpl::of);
 
     public static void main(String[] args) throws Exception {
         new CatalogueApplication().run(args);

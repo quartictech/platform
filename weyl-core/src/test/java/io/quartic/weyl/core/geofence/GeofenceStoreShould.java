@@ -1,29 +1,23 @@
 package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.common.uid.SequenceUidGenerator;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.FeatureId;
-import io.quartic.weyl.core.model.ImmutableFeature;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.function.BiConsumer;
 
-import static java.util.Collections.emptyMap;
+import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
-    private final UidGenerator<FeatureId> fidGen = new SequenceUidGenerator<>(FeatureId::of);
-    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class), fidGen);
+    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class));
     private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
 
@@ -37,7 +31,9 @@ public class GeofenceStoreShould {
     public void notify_on_geometry_change() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
 
-        verify(listener).onGeometryChange(ImmutableList.of(ImmutableFeature.of("99", FeatureId.of("1"), fenceGeometry, emptyMap())));
+        verify(listener).onGeometryChange(ImmutableList.of(
+                FeatureImpl.of(EntityIdImpl.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES)
+        ));
     }
 
     @Test
@@ -131,39 +127,55 @@ public class GeofenceStoreShould {
 
     @Test
     public void include_relevant_details_in_violation() throws Exception {
+        final Feature point = point();
         createGeofence(GeofenceType.EXCLUDE);
-        updatePoint(true);
-        updatePoint(false);
+        updatePoint(true, point);
+        updatePoint(false, point);
 
-        verifyViolationDetails(GeofenceListener::onViolationBegin);
-        verifyViolationDetails(GeofenceListener::onViolationEnd);
+        verifyViolationDetails(GeofenceListener::onViolationBegin, point);
+        verifyViolationDetails(GeofenceListener::onViolationEnd, point);
     }
 
-    private void verifyViolationDetails(BiConsumer<GeofenceListener, Violation> consumer) {
+    private void verifyViolationDetails(BiConsumer<GeofenceListener, Violation> consumer, Feature point) {
         ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
         consumer.accept(verify(listener), captor.capture());
         final Violation violation = captor.getValue();
-        assertThat(violation.id(), equalTo(ViolationId.of("1")));
-        assertThat(violation.geofenceId(), equalTo(GeofenceId.of("99")));
-        assertThat(violation.featureExternalId(), equalTo("ducks"));
+        assertThat(violation.geofence(), equalTo(geofence(GeofenceType.EXCLUDE)));
+        assertThat(violation.feature(), equalTo(point));
         assertThat(violation.message(), containsString("ducks"));
     }
 
-
     private void createGeofence(GeofenceType type) {
-        store.setGeofences(ImmutableList.of(Geofence.of(GeofenceId.of("99"), type, fenceGeometry, ImmutableMap.of())));
+        store.setGeofences(ImmutableList.of(geofence(type)));
+    }
+
+    private Geofence geofence(GeofenceType type) {
+        return GeofenceImpl.of(
+                type,
+                geofenceFeature()
+        );
+    }
+
+    private Feature geofenceFeature() {
+        return FeatureImpl.of(EntityIdImpl.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES);
     }
 
     private void updatePoint(boolean containsResult) {
-        Geometry point = mock(Geometry.class);
-        when(fenceGeometry.contains(point)).thenReturn(containsResult);
-        store.onLiveLayerEvent(
-                LayerId.of("666"),
-                ImmutableFeature.builder()
-                        .externalId("ducks")
-                        .uid(FeatureId.of("123"))
-                        .geometry(point)
-                        .metadata(ImmutableMap.of())
-                        .build());
+        final Feature point = point();
+        updatePoint(containsResult, point);
     }
+
+    private void updatePoint(boolean containsResult, Feature point) {
+        when(fenceGeometry.contains(point.geometry())).thenReturn(containsResult);
+        store.onLiveLayerEvent(LayerIdImpl.of("666"), point);
+    }
+
+    private Feature point() {
+        return FeatureImpl.builder()
+                .entityId(EntityIdImpl.of("666/ducks"))
+                .geometry(mock(Geometry.class))
+                .attributes(EMPTY_ATTRIBUTES)
+                .build();
+    }
+
 }

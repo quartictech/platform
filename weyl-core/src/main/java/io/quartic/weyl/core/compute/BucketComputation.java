@@ -2,37 +2,38 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
 import io.quartic.weyl.core.model.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class BucketComputation implements LayerComputation {
-    private final FeatureStore featureStore;
-    private final AbstractLayer featureLayer;
-    private final AbstractBucketSpec bucketSpec;
-    private final AbstractLayer bucketLayer;
+    private final Layer featureLayer;
+    private final BucketSpec bucketSpec;
+    private final Layer bucketLayer;
 
-    private BucketComputation(FeatureStore featureStore, AbstractLayer featureLayer, AbstractLayer bucketLayer, AbstractBucketSpec bucketSpec) {
-        this.featureStore = featureStore;
+    private BucketComputation(Layer featureLayer, Layer bucketLayer, BucketSpec bucketSpec) {
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
     }
 
     private AttributeName attributeName() {
-        return AttributeName.of(featureLayer.metadata().name());
+        return AttributeNameImpl.of(featureLayer.metadata().name());
     }
 
-    public static BucketComputation create(LayerStore store, AbstractBucketSpec bucketSpec) {
-        Optional<AbstractLayer> featureLayer = store.getLayer(bucketSpec.features());
-        Optional<AbstractLayer> bucketLayer = store.getLayer(bucketSpec.buckets());
+    public static BucketComputation create(LayerStore store, BucketSpec bucketSpec) {
+        Optional<Layer> featureLayer = store.getLayer(bucketSpec.features());
+        Optional<Layer> bucketLayer = store.getLayer(bucketSpec.buckets());
 
         if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketComputation(store.getFeatureStore(), featureLayer.get(), bucketLayer.get(), bucketSpec);
+            return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec);
         }
         else {
             throw new RuntimeException("can't find input layers for bucket computation");
@@ -51,19 +52,19 @@ public class BucketComputation implements LayerComputation {
                     bucketLayer.metadata().name(),
                     bucketSpec.aggregation().toString());
 
-            Map<AttributeName, AbstractAttribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
-            AbstractAttribute newAttribute = Attribute.builder()
+            Map<AttributeName, Attribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
+            Attribute newAttribute = AttributeImpl.builder()
                     .type(AttributeType.NUMERIC)
                     .build();
             attributeMap.put(attributeName(), newAttribute);
 
-            AttributeSchema schema = AttributeSchema
+            AttributeSchema schema = AttributeSchemaImpl
                     .copyOf(bucketLayer.schema())
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(attributeName());
 
-            return Optional.of(ComputationResults.of(
-                    LayerMetadata.builder()
+            return Optional.of(ComputationResultsImpl.of(
+                    LayerMetadataImpl.builder()
                             .name(layerName)
                             .description(layerDescription)
                             .build(),
@@ -97,11 +98,12 @@ public class BucketComputation implements LayerComputation {
                             value /= bucket.geometry().getArea();
                         }
                     }
-                    Map<AttributeName, Object> metadata = new HashMap<>(bucket.metadata());
-                    metadata.put(attributeName(), value);
-                    return ImmutableFeature.copyOf(bucket)
-                            .withUid(featureStore.getFeatureIdGenerator().get())
-                            .withMetadata(metadata);
+
+                    final AttributesImpl.Builder builder = AttributesImpl.builder();
+                    builder.attributes(bucket.attributes().attributes());
+                    builder.attribute(attributeName(), value);
+                    return FeatureImpl.copyOf(bucket)
+                            .withAttributes(builder.build());
                 })
                 .collect(Collectors.toList());
     }

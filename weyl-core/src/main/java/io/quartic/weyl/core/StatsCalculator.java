@@ -1,55 +1,48 @@
 package io.quartic.weyl.core;
 
-import com.google.common.collect.Maps;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.*;
 
 import java.util.Map;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static java.lang.Double.MAX_VALUE;
+import static java.lang.Double.MIN_VALUE;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 public class StatsCalculator {
-    private static AbstractAttribute getAttribute(AbstractAttributeSchema schema, AttributeName name) {
+    public static LayerStats calculateStats(AttributeSchema schema, FeatureCollection features) {
+        Map<AttributeName, Double> maxNumeric = newHashMap();
+        Map<AttributeName, Double> minNumeric = newHashMap();
+
+        features.stream()
+                .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
+                .filter(entry -> getAttribute(schema, entry.getKey()).type() == AttributeType.NUMERIC)
+                .forEach(entry -> {
+                    final double value = Double.valueOf(entry.getValue().toString());
+                    maxNumeric.put(entry.getKey(), max(value, maxNumeric.getOrDefault(entry.getKey(), MIN_VALUE)));
+                    minNumeric.put(entry.getKey(), min(value, minNumeric.getOrDefault(entry.getKey(), MAX_VALUE)));
+                });
+
+        LayerStatsImpl.Builder builder = LayerStatsImpl.builder();
+        schema.attributes()
+                .entrySet()
+                .stream()
+                .filter(entry -> maxNumeric.containsKey(entry.getKey()))    // Handle case where no features have the attribute
+                .forEach(entry -> builder.attributeStat(
+                        entry.getKey(),
+                        AttributeStatsImpl.of(minNumeric.get(entry.getKey()), maxNumeric.get(entry.getKey()))
+                ));
+
+        builder.featureCount(features.size());
+        return builder.build();
+    }
+
+    private static Attribute getAttribute(AttributeSchema schema, AttributeName name) {
         if (!schema.attributes().containsKey(name)) {
             throw new IllegalStateException("Attribute not present in schema: " + name.name());
         }
         return schema.attributes().get(name);
-    }
-
-    public static LayerStats calculateStats(AbstractAttributeSchema schema, FeatureCollection features) {
-        Map<AttributeName, Double> maxNumeric = Maps.newConcurrentMap();
-        Map<AttributeName, Double> minNumeric = Maps.newConcurrentMap();
-
-        features.parallelStream()
-                .flatMap(feature -> feature.metadata().entrySet().stream())
-                .filter(entry -> getAttribute(schema, entry.getKey()).type() == AttributeType.NUMERIC)
-                .forEach(entry -> {
-                    Object value = entry.getValue();
-                    double doubleValue = Double.valueOf(value.toString());
-
-                    if (!maxNumeric.containsKey(entry.getKey())) {
-                        maxNumeric.put(entry.getKey(), doubleValue);
-                    } else if (doubleValue > maxNumeric.get(entry.getKey())) {
-                        maxNumeric.put(entry.getKey(), doubleValue);
-                    }
-                    if (!minNumeric.containsKey(entry.getKey())) {
-                        minNumeric.put(entry.getKey(), doubleValue);
-                    } else if (doubleValue < minNumeric.get(entry.getKey())) {
-                        minNumeric.put(entry.getKey(), doubleValue);
-                    }
-                });
-
-        ImmutableLayerStats.Builder builder = ImmutableLayerStats.builder();
-        schema.attributes()
-                .entrySet()
-                .stream()
-                .filter(entry -> entry.getValue().type() == AttributeType.NUMERIC)
-                .forEach(entry -> builder.putAttributeStats(entry.getKey(),
-                        ImmutableAttributeStats.builder()
-                                .minimum(minNumeric.get(entry.getKey()))
-                                .maximum(maxNumeric.get(entry.getKey()))
-                                .build()));
-
-        builder.featureCount(features.size());
-
-        return builder.build();
     }
 }

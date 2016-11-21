@@ -2,15 +2,13 @@ package io.quartic.weyl.catalogue;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +22,6 @@ import java.util.function.Function;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.catalogue.ExtensionParser.EXTENSION_KEY;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
-import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,9 +30,9 @@ import static rx.Observable.just;
 
 public class CatalogueWatcherShould {
 
-    private static final AttributeName TITLE_ATTRIBUTE = AttributeName.of("title_attr");
-    private static final AttributeName IMAGE_ATTRIBUTE = AttributeName.of("image_attr");
-    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeName.of("cool_attr"), AttributeName.of("slick_attr") };
+    private static final AttributeName TITLE_ATTRIBUTE = AttributeNameImpl.of("title_attr");
+    private static final AttributeName IMAGE_ATTRIBUTE = AttributeNameImpl.of("image_attr");
+    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeNameImpl.of("cool_attr"), AttributeNameImpl.of("slick_attr") };
 
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
@@ -80,15 +77,15 @@ public class CatalogueWatcherShould {
     public void create_and_import_layer_for_new_dataset() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         whenCreateLayerThenReturn("123", subscriber);
-        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
+        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
 
         verify(layerStore).createLayer(
-                LayerId.of("123"),
-                LayerMetadata.of("foo", "bar", Optional.of("baz"), Optional.empty()),
+                LayerIdImpl.of("123"),
+                LayerMetadataImpl.of("foo", "bar", Optional.of("baz"), Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
-                AttributeSchema.builder()
+                AttributeSchemaImpl.builder()
                         .titleAttribute(TITLE_ATTRIBUTE)
                         .imageAttribute(IMAGE_ATTRIBUTE)
                         .blessedAttribute(BLESSED_ATTRIBUTES)
@@ -103,8 +100,8 @@ public class CatalogueWatcherShould {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         whenCreateLayerThenReturn("123", subscriber);
         when(listener.observable()).thenReturn(just(
-                ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
-                ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))
+                ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
+                ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))
         ));
 
         watcher.start();
@@ -119,15 +116,15 @@ public class CatalogueWatcherShould {
         whenCreateLayerThenReturn("123", subscriberA);
         whenCreateLayerThenReturn("456", subscriberB);
         when(listener.observable()).thenReturn(just(
-                ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA())),
-                ImmutableMap.of(DatasetId.of("456"), datasetConfig(new LocatorB()))
+                ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
+                ImmutableMap.of(DatasetIdImpl.of("456"), datasetConfig(new LocatorB()))
         ));
 
         watcher.start();
 
-        verify(layerStore).createLayer(eq(LayerId.of("123")), any(), any(), any(), eq(true));
+        verify(layerStore).createLayer(eq(LayerIdImpl.of("123")), any(), any(), any(), eq(true));
         subscriberA.assertValue(updateA);
-        verify(layerStore).createLayer(eq(LayerId.of("456")), any(), any(), any(), eq(false));
+        verify(layerStore).createLayer(eq(LayerIdImpl.of("456")), any(), any(), any(), eq(false));
         subscriberB.assertValue(updateB);
     }
 
@@ -135,7 +132,7 @@ public class CatalogueWatcherShould {
     public void pass_config_fields_to_extension_parser() throws Exception {
         final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
         whenCreateLayerThenReturn("123", subscriber);
-        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetId.of("123"), datasetConfig(new LocatorA()))));
+        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
 
@@ -143,23 +140,23 @@ public class CatalogueWatcherShould {
     }
 
     private void whenCreateLayerThenReturn(String layerId, TestSubscriber<SourceUpdate> subscriber) {
-        when(layerStore.createLayer(eq(LayerId.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(subscriber);
+        when(layerStore.createLayer(eq(LayerIdImpl.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(subscriber);
     }
 
     private SourceUpdate createUpdate() {
-        return SourceUpdate.of(newArrayList(mock(Feature.class)), emptyList());
+        return SourceUpdateImpl.of(newArrayList(mock(NakedFeature.class)));
     }
 
     private DatasetConfig datasetConfig(DatasetLocator source) {
-        return DatasetConfig.of(
-                DatasetMetadata.of("foo", "bar", "baz", Optional.empty()),
+        return DatasetConfigImpl.of(
+                DatasetMetadataImpl.of("foo", "bar", "baz", Optional.empty()),
                 source,
                 ImmutableMap.of(EXTENSION_KEY, rawExtension)
         );
     }
 
     private MapDatasetExtension extension() {
-        return MapDatasetExtension.builder()
+        return MapDatasetExtensionImpl.builder()
                 .viewType(LOCATION_AND_TRACK)
                 .titleAttribute(TITLE_ATTRIBUTE)
                 .imageAttribute(IMAGE_ATTRIBUTE)

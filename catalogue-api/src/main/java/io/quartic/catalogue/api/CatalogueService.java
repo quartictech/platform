@@ -18,9 +18,9 @@ public interface CatalogueService {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    DatasetConfig getDataset(@PathParam("id") String id);
+    DatasetConfig getDataset(@PathParam("id") DatasetId id);
 
     @DELETE
     @Path("/{id}")
-    void deleteDataset(@PathParam("id") String id);
+    void deleteDataset(@PathParam("id") DatasetId id);
 }

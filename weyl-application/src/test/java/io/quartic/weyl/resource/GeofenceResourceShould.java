@@ -1,27 +1,25 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Point;
-import io.quartic.geojson.Polygon;
+import io.quartic.geojson.*;
+import io.quartic.geojson.FeatureImpl;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.geofence.Geofence;
-import io.quartic.weyl.core.geofence.GeofenceId;
+import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.request.ImmutableGeofenceRequest;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.weyl.core.geojson.Utils.fromJts;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
+import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
@@ -29,20 +27,21 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
-    private static final ImmutableMap<AttributeName, Object> FEATURE_METADATA = ImmutableMap.of(AttributeName.of("some_prop"), 76);
+    private static final Attributes FEATURE_ATTRIBUTES = AttributesImpl.builder().attribute(AttributeNameImpl.of("some_prop"), 76).build();
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);
-    private int nextGeofenceId = 1;
 
     private final Polygon polyA = geojsonPolygon(5.0);
     private final Polygon polyB = geojsonPolygon(6.0);
 
+    private int nextId = 1;
+
     @Test
     public void set_geofence_based_on_features() throws Exception {
-        final FeatureCollection features = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("123"), Optional.of(polyA), emptyMap()),
-                Feature.of(Optional.of("456"), Optional.of(polyB), emptyMap())
+        final FeatureCollection features = FeatureCollectionImpl.of(ImmutableList.of(
+                FeatureImpl.of(Optional.of("123"), Optional.of(polyA), emptyMap()),
+                FeatureImpl.of(Optional.of("456"), Optional.of(polyB), emptyMap())
         ));
 
         resource.update(ImmutableGeofenceRequest.builder()
@@ -51,14 +50,14 @@ public class GeofenceResourceShould {
                 .bufferDistance(0.0)
                 .build());
 
-        verifyGeofence(emptyMap(), polyA, polyB);
+        verifyGeofence("custom", EMPTY_ATTRIBUTES, polyA, polyB);
     }
 
     @Test
     public void set_geofence_based_on_layer() throws Exception {
-        final LayerId layerId = LayerId.of("789");
+        final LayerId layerId = LayerIdImpl.of("789");
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
-        final AbstractLayer layer = mock(AbstractLayer.class);
+        final Layer layer = mock(Layer.class);
         when(layerStore.getLayer(layerId)).thenReturn(Optional.of(layer));
         when(layer.features()).thenReturn(featureCollection);
         when(featureCollection.stream()).thenReturn(
@@ -74,14 +73,14 @@ public class GeofenceResourceShould {
                 .bufferDistance(0.0)
                 .build());
 
-        verifyGeofence(FEATURE_METADATA, polyA, polyB);
+        verifyGeofence("xyz", FEATURE_ATTRIBUTES, polyA, polyB);
     }
 
     @Test
     public void ignore_non_polygons() throws Exception {
-        final FeatureCollection features = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("123"), Optional.of(polyA), emptyMap()),
-                Feature.of(Optional.of("456"), Optional.of(geojsonPoint()), emptyMap())
+        final FeatureCollection features = FeatureCollectionImpl.of(ImmutableList.of(
+                FeatureImpl.of(Optional.of("123"), Optional.of(polyA), emptyMap()),
+                FeatureImpl.of(Optional.of("456"), Optional.of(geojsonPoint()), emptyMap())
         ));
 
         resource.update(ImmutableGeofenceRequest.builder()
@@ -90,13 +89,13 @@ public class GeofenceResourceShould {
                 .bufferDistance(0.0)
                 .build());
 
-        verifyGeofence(emptyMap(), polyA);
+        verifyGeofence("custom", EMPTY_ATTRIBUTES, polyA);
     }
 
     @Test
     public void add_buffering_to_geometries() throws Exception {
-        final FeatureCollection features = FeatureCollection.of(ImmutableList.of(
-                Feature.of(Optional.of("456"), Optional.of(geojsonPoint()), emptyMap())
+        final FeatureCollection features = FeatureCollectionImpl.of(ImmutableList.of(
+                io.quartic.geojson.FeatureImpl.of(Optional.of("456"), Optional.of(geojsonPoint()), emptyMap())
         ));
 
         resource.update(ImmutableGeofenceRequest.builder()
@@ -105,30 +104,36 @@ public class GeofenceResourceShould {
                 .bufferDistance(1.0)
                 .build());
 
-        verifyGeofence(emptyMap(), (Polygon) fromJts(bufferOp(toJts(geojsonPoint()), 1.0)));
+        verifyGeofence("custom", EMPTY_ATTRIBUTES, (Polygon) fromJts(bufferOp(toJts(geojsonPoint()), 1.0)));
     }
 
-    private void verifyGeofence(Map<AttributeName, Object> metadata, Polygon... polygons) {
+    private void verifyGeofence(String id, Attributes attributes, Polygon... polygons) {
         verify(geofenceStore).setGeofences(
                 stream(polygons)
-                        .map(p -> geofenceOf(metadata, p))
+                        .map(p -> geofenceOf(id, attributes, p))
                         .collect(toList()));
     }
 
-    private Geofence geofenceOf(Map<AttributeName, Object> metadata, Polygon polygon) {
-        return Geofence.of(GeofenceId.of(Integer.toString(nextGeofenceId++)), GeofenceType.INCLUDE, toJts(polygon), metadata);
+    private Geofence geofenceOf(String id, Attributes attributes, Polygon polygon) {
+        return GeofenceImpl.of(
+                GeofenceType.INCLUDE,
+                io.quartic.weyl.core.model.FeatureImpl.of(EntityIdImpl.of("geofence/" + id), toJts(polygon), attributes)
+        );
     }
 
-    private io.quartic.weyl.core.model.Feature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
-        return ImmutableFeature.of("123", FeatureId.of("abc"), toJts(geometry), FEATURE_METADATA);
+    private Feature modelFeatureOf(io.quartic.geojson.Geometry geometry) {
+        return io.quartic.weyl.core.model.FeatureImpl.of(
+                EntityIdImpl.of("xyz"),
+                toJts(geometry),
+                FEATURE_ATTRIBUTES);
     }
 
     private Point geojsonPoint() {
-        return Point.of(newArrayList(1.0, 2.0));
+        return PointImpl.of(newArrayList(1.0, 2.0));
     }
 
     private Polygon geojsonPolygon(double offset) {
-        return Polygon.of(ImmutableList.of(ImmutableList.of(
+        return PolygonImpl.of(ImmutableList.of(ImmutableList.of(
                 newArrayList(1.0 + offset, 2.0 + offset),
                 newArrayList(1.0 + offset, 3.0 + offset),
                 newArrayList(2.0 + offset, 3.0 + offset),

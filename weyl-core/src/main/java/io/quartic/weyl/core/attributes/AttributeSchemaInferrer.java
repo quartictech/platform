@@ -7,9 +7,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class AttributeSchemaInferrer {
-    public static Map<AttributeName, AbstractAttribute> inferSchema(Collection<Feature> features) {
+    public static Map<AttributeName, Attribute> inferSchema(Collection<Feature> features) {
         Set<AttributeName> attributes = features.parallelStream()
-                .flatMap(feature -> feature.metadata().keySet().stream())
+                .flatMap(feature -> feature.attributes().attributes().keySet().stream())
                 .collect(Collectors.toSet());
 
         return attributes.parallelStream()
@@ -19,9 +19,9 @@ public class AttributeSchemaInferrer {
 
     }
 
-    private static AbstractAttribute inferAttribute(AttributeName attribute, Collection<Feature> features) {
+    private static Attribute inferAttribute(AttributeName attribute, Collection<Feature> features) {
         Optional<Set<Object>> categories = inferCategories(attribute, features);
-        return Attribute.builder()
+        return AttributeImpl.builder()
                 .type(inferAttributeType(attribute, features))
                 .categories(categories)
                 .build();
@@ -29,7 +29,7 @@ public class AttributeSchemaInferrer {
 
     private static Optional<Set<Object>> inferCategories(AttributeName attribute, Collection<Feature> features) {
         Set<Object> values = features.stream()
-                .map(feature -> feature.metadata().get(attribute))
+                .map(feature -> feature.attributes().attributes().get(attribute))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -44,7 +44,7 @@ public class AttributeSchemaInferrer {
     private static AttributeType inferAttributeType(AttributeName attribute,
                                                     Collection<Feature> features) {
         Set<AttributeType> attributeTypes = features.stream()
-                .map(feature -> feature.metadata().get(attribute))
+                .map(feature -> feature.attributes().attributes().get(attribute))
                 .filter(Objects::nonNull)
                 .map(AttributeSchemaInferrer::inferValueType)
                 .collect(Collectors.toSet());
@@ -59,7 +59,7 @@ public class AttributeSchemaInferrer {
         if (value instanceof Integer || value instanceof Double || value instanceof Float) {
             return AttributeType.NUMERIC;
         }
-        else if (value instanceof AbstractTimeSeriesAttribute) {
+        else if (value instanceof TimeSeriesAttribute) {
             return AttributeType.TIME_SERIES;
         }
         else {

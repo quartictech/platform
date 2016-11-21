@@ -13,20 +13,22 @@ import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
-import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
+import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
-import io.quartic.weyl.core.feature.FeatureStore;
+import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
-import io.quartic.weyl.core.live.LiveEventId;
-import io.quartic.weyl.core.model.FeatureId;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
+import io.quartic.weyl.update.AttributesUpdateGenerator;
+import io.quartic.weyl.update.ChartUpdateGenerator;
+import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
@@ -34,16 +36,16 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
-    private final UidGenerator<FeatureId> fidGenerator = SequenceUidGenerator.of(FeatureId::of);
-    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerId::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-    private final UidGenerator<LiveEventId> eidGenerator = SequenceUidGenerator.of(LiveEventId::of);
+    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
-    private final FeatureStore featureStore = new FeatureStore(fidGenerator);
-    private final LayerStore layerStore = new LayerStore(featureStore, lidGenerator);
-    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore, fidGenerator);
+    private final EntityStore entityStore = new EntityStore();
+    private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator);
+    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {
@@ -64,6 +66,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
+                                Multiplexer.create(entityStore::get),
+                                newArrayList(
+                                        new ChartUpdateGenerator(),
+                                        new HistogramsUpdateGenerator(new HistogramCalculator()),
+                                        new AttributesUpdateGenerator()
+                                ),
                                 geofenceStore,
                                 alertProcessor,
                                 transformFromFrontend,
@@ -79,21 +87,17 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
         environment.jersey().setUrlPattern("/api/*");
 
-        final FeatureStoreQuerier featureStoreQuerier = new FeatureStoreQuerier(featureStore);
-
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
-        environment.jersey().register(AggregatesResource.of(featureStoreQuerier));
-        environment.jersey().register(new AttributesResource(featureStoreQuerier));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory))
-                .sourceFactories(createSourceFactories(configuration, environment, featureStore, websocketFactory))
+                .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
                 .layerStore(layerStore)
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
@@ -104,9 +108,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
-            FeatureStore featureStore,
             WebsocketClientSessionFactory websocketFactory) {
-        final LiveEventConverter converter = new LiveEventConverter(fidGenerator, eidGenerator);
+        final LiveEventConverter converter = new LiveEventConverter();
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
@@ -115,29 +118,26 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .build();
 
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, config -> PostgresSource.builder()
+                PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
                         .locator((PostgresDatasetLocator) config.locator())
-                        .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
-                GeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
-                        .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build(),
-                WebsocketDatasetLocator.class, config -> WebsocketSource.builder()
+                WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
                         .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(converter)
                         .metrics(environment.metrics())
                         .build(),
-                TerminatorDatasetLocator.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
-                CloudGeoJsonDatasetLocator.class, config -> GeoJsonSource.builder()
+                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
+                CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                        .featureStore(featureStore)
                         .objectMapper(environment.getObjectMapper())
                         .build()
         );

@@ -4,51 +4,36 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.common.uid.SequenceUidGenerator;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Geometry;
-import io.quartic.geojson.Point;
-import io.quartic.model.FeedEvent;
-import io.quartic.model.LiveEvent;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.FeatureId;
+import io.quartic.geojson.*;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.source.SourceUpdate;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Test;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class LiveEventConverterShould {
-    public static final Instant TIMESTAMP = Instant.now();
     private final GeometryFactory factory = new GeometryFactory();
-    private final LiveEventConverter converter = new LiveEventConverter(
-            new SequenceUidGenerator<>(FeatureId::of),
-            new SequenceUidGenerator<>(LiveEventId::of),
-            GeometryTransformer.webMercatorToWebMercator()
-    );
+    private final LiveEventConverter converter = new LiveEventConverter(webMercatorToWebMercator());
 
     // TODO: multiple LiveEvents
 
     @Test
-    public void convert_just_features() throws Exception {
+    public void convert_features() throws Exception {
         final FeatureCollection collection = featureCollectionOf(geojsonFeature("a", Optional.of(point())));
 
         final SourceUpdate update = converter.updateFrom(collection);
 
         assertThat(update.features(), equalTo(ImmutableList.of(
-                io.quartic.weyl.core.model.ImmutableFeature.builder()
-                        .uid(FeatureId.of("1"))
-                        .externalId("a")
-                        .geometry(factory.createPoint(new Coordinate(51.0, 0.1)))
-                        .metadata(ImmutableMap.of(AttributeName.of("timestamp"), 1234))
-                        .build()
+                NakedFeatureImpl.of("a", factory.createPoint(new Coordinate(51.0, 0.1)),
+                        AttributesImpl.builder().attribute(AttributeNameImpl.of("timestamp"), 1234).build())
         )));
     }
 
@@ -61,31 +46,12 @@ public class LiveEventConverterShould {
         assertThat(update.features(), empty());
     }
 
-    @Test
-    public void enrich_events() throws Exception {
-        final FeedEvent feedEvent = FeedEvent.of("abc", "def", ImmutableMap.of("a", 999));
-        final LiveEvent event = liveEvent(feedEvent);
-
-        final SourceUpdate update = converter.updateFrom(event);
-
-        assertThat(update.feedEvents(), equalTo(ImmutableList.of(
-                EnrichedFeedEvent.of(LiveEventId.of("1"), TIMESTAMP, feedEvent)
-        )));
-    }
-
     private FeatureCollection featureCollectionOf(Feature... features) {
-        return FeatureCollection.of(newArrayList(features));
-    }
-
-    private LiveEvent liveEvent(FeedEvent feedEvent) {
-        return LiveEvent.of(
-                TIMESTAMP,
-                Optional.empty(),
-                Optional.of(feedEvent));
+        return FeatureCollectionImpl.of(newArrayList(features));
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return Feature.of(
+        return FeatureImpl.of(
                 Optional.of(id),
                 geometry,
                 ImmutableMap.of("timestamp", 1234));
@@ -96,6 +62,6 @@ public class LiveEventConverterShould {
     }
 
     private Point point(double x, double y) {
-        return Point.of(ImmutableList.of(x, y));
+        return PointImpl.of(ImmutableList.of(x, y));
     }
 }

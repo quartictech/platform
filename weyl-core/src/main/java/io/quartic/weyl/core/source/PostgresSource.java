@@ -3,16 +3,12 @@ package io.quartic.weyl.core.source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
-import io.quartic.weyl.core.feature.FeatureStore;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.ImmutableFeature;
+import io.quartic.weyl.core.model.*;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
@@ -27,8 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.Collections.emptyList;
 
 @Value.Immutable
 public abstract class PostgresSource implements Source {
@@ -45,7 +39,6 @@ public abstract class PostgresSource implements Source {
     private final WKBReader wkbReader = new WKBReader();
     protected abstract String name();
     protected abstract PostgresDatasetLocator locator();
-    protected abstract FeatureStore featureStore();
     protected abstract ObjectMapper objectMapper();
     @Value.Default
     protected DBI dbi() {
@@ -55,7 +48,7 @@ public abstract class PostgresSource implements Source {
     @Override
     public Observable<SourceUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(SourceUpdate.of(importAllFeatures(), emptyList()));
+            sub.onNext(SourceUpdateImpl.of(importAllFeatures()));
             sub.onCompleted();
         });
     }
@@ -65,21 +58,21 @@ public abstract class PostgresSource implements Source {
         return true;
     }
 
-    private Collection<Feature> importAllFeatures() {
+    private Collection<NakedFeature> importAllFeatures() {
         try (final Handle h = dbi().open()) {
             LOG.info("[{}] Connection established", name());
 
             final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
-            Collection<Feature> features = Lists.newArrayList();
+            Collection<NakedFeature> features = Lists.newArrayList();
             int count = 0;
             while (iterator.hasNext()) {
                 count += 1;
                 if (count % 10000 == 0) {
                     LOG.info("[{}] Importing feature: {}", name(), count);
                 }
-                Optional<Feature> feature = rowToFeature(iterator.next());
+                Optional<NakedFeature> feature = rowToFeature(iterator.next());
 
                 feature.ifPresent(features::add);
             }
@@ -88,7 +81,7 @@ public abstract class PostgresSource implements Source {
         }
     }
 
-    private Optional<Feature> rowToFeature(Map<String, Object> row) {
+    private Optional<NakedFeature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
@@ -97,17 +90,17 @@ public abstract class PostgresSource implements Source {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            Map<AttributeName, Object> attributes = Maps.newHashMap();
+            final AttributesImpl.Builder builder = AttributesImpl.builder();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
-                    final AttributeName name = AttributeName.of(entry.getKey());
+                    final AttributeName name = AttributeNameImpl.of(entry.getKey());
                     if (entry.getValue() instanceof PGobject) {
                         readPgObject(entry.getValue())
-                                .ifPresent(attribute -> attributes.put(name, attribute));
+                                .ifPresent(attribute -> builder.attribute(name, attribute));
                     }
                     else {
-                        attributes.put(name, entry.getValue());
+                        builder.attribute(name, entry.getValue());
                     }
                 }
             }
@@ -115,12 +108,7 @@ public abstract class PostgresSource implements Source {
             String id = row.containsKey(ID_FIELD) ?
                     row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
 
-            return ImmutableFeature.builder()
-                    .geometry(geometry)
-                    .metadata(attributes)
-                    .uid(featureStore().getFeatureIdGenerator().get())
-                    .externalId(id)
-                    .build();
+            return NakedFeatureImpl.of(id, geometry, builder.build());
         });
     }
 
