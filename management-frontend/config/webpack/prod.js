@@ -15,6 +15,7 @@ var config = Object.assign({}, baseConfig, {
         'NODE_ENV': JSON.stringify('production')
       }
     }),
+    // TODO: This was failing due to sourceMap issues so I've disabled
     // new webpack.optimize.UglifyJsPlugin({
     //   compressor: {
     //     warnings: false,

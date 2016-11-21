@@ -1,6 +1,7 @@
 // TODO: Handle contextPaths if we need to
 export const apiRootUrl = `${location.origin}/api`;
-export const wsUrl = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
+export const wsUrl = `${location.protocol === "https:" ?
+  "wss:" : "ws:"}//${location.host}/ws`;
 
 
 function checkStatus(response) {
