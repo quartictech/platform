@@ -42,10 +42,11 @@ public class LastKnownLocationAndTrackViewShould {
         Feature featureB = locationFeature("alex", 300, 300);
 
         List<Feature> features = invokeView(ImmutableList.of(
-                locationFeature("alex", 100, 100),
-                locationFeature("bob", 100, 100),
                 featureA,
-                featureB));
+                featureB,
+                locationFeature("alex", 100, 100),
+                locationFeature("bob", 100, 100)
+                ));
 
         List<Feature> expectedFeatures = ImmutableList.of(
                 lineFeature("bob", new Coordinate[]{
@@ -73,7 +74,7 @@ public class LastKnownLocationAndTrackViewShould {
         ));
 
         assertThat(features, containsInAnyOrder(
-                locationFeature("alex", 200, 200),
+                locationFeature("alex", 300, 300),
                 lineFeature("alex", new Coordinate[]{
                         new Coordinate(300, 300),
                         new Coordinate(100, 100),
