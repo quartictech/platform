@@ -1,12 +1,8 @@
 package io.quartic.weyl.core.source;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.geojson.Utils;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -17,10 +13,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import static io.quartic.weyl.core.source.ConversionUtils.convertToModelAttributes;
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.stream.Collectors.toList;
 
 @Value.Immutable
@@ -33,10 +27,13 @@ public abstract class GeoJsonSource implements Source {
 
     protected abstract String name();
     protected abstract String url();
-    protected abstract ObjectMapper objectMapper();
     @Value.Default
     protected GeometryTransformer geometryTransformer() {
         return GeometryTransformer.wgs84toWebMercator();
+    }
+    @Value.Derived
+    protected FeatureConverter featureConverter() {
+        return new FeatureConverter(geometryTransformer());
     }
 
     @Override
@@ -57,30 +54,14 @@ public abstract class GeoJsonSource implements Source {
     }
 
     private Collection<NakedFeature> importAllFeatures() throws IOException {
-        final FeatureCollection featureCollection = objectMapper().readValue(parseURL(url()), FeatureCollection.class);
-
-        return featureCollection.features().stream().map(this::toJts)
-                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
+        final FeatureCollection featureCollection = OBJECT_MAPPER.readValue(parseURL(url()), FeatureCollection.class);
+        return featureCollection.features().stream()
+                .filter(f -> f.geometry().isPresent())
+                .map(f -> featureConverter().toModel(f))
                 .collect(toList());
     }
 
     private URL parseURL(String url) throws MalformedURLException {
         return new URL(url);
     }
-
-    private Optional<NakedFeature> toJts(Feature f) {
-        // TODO: We are ignoring null geometries here (as well as in the live pipeline). We should figure out something better.
-        return f.geometry().map(rawGeometry -> {
-            Geometry transformedGeometry = geometryTransformer().transform(Utils.toJts(rawGeometry));
-            return NakedFeatureImpl.of(
-                    f.id().orElse(null),
-                    transformedGeometry,
-                    convertToModelAttributes(objectMapper(), f.properties())
-            );
-        });
-    }
-
-
-
-
 }

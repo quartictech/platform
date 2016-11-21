@@ -44,7 +44,7 @@ import java.util.Set;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static io.quartic.common.uid.UidUtils.stringify;
-import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
+import static io.quartic.weyl.core.feature.FeatureConverter.convertFromModelAttributes;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 

@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.geojson.*;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -18,6 +17,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.geojson.Utils.toJts;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
@@ -44,8 +44,7 @@ public class GeoJsonSourceShould {
         GeoJsonSource.builder()
                 .name("Budgie")
                 .url("http://localhost:" + wireMockRule.port())
-                .objectMapper(OBJECT_MAPPER)
-                .geometryTransformer(GeometryTransformer.webMercatorToWebMercator())
+                .geometryTransformer(webMercatorToWebMercator())
                 .build()
                 .observable().subscribe(subscriber);
 

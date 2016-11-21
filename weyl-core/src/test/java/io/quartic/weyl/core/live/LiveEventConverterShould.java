@@ -1,67 +1,57 @@
 package io.quartic.weyl.core.live;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.geojson.*;
-import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributesImpl;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.Geometry;
+import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.source.SourceUpdate;
+import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
 
 public class LiveEventConverterShould {
-    private final GeometryFactory factory = new GeometryFactory();
-    private final LiveEventConverter converter = new LiveEventConverter(webMercatorToWebMercator());
-
-    // TODO: multiple LiveEvents
+    private final FeatureConverter featureConverter = mock(FeatureConverter.class);
+    private final LiveEventConverter converter = new LiveEventConverter(featureConverter);
 
     @Test
     public void convert_features() throws Exception {
-        final FeatureCollection collection = featureCollectionOf(geojsonFeature("a", Optional.of(point())));
+        final Feature featureA = mock(Feature.class);
+        final Feature featureB = mock(Feature.class);
+        final NakedFeature modelFeatureA = mock(NakedFeature.class);
+        final NakedFeature modelFeatureB = mock(NakedFeature.class);
+        Mockito.<Optional<? extends Geometry>>when(featureA.geometry()).thenReturn(Optional.of(mock(Geometry.class)));
+        Mockito.<Optional<? extends Geometry>>when(featureB.geometry()).thenReturn(Optional.of(mock(Geometry.class)));
+        when(featureConverter.toModel(featureA)).thenReturn(modelFeatureA);
+        when(featureConverter.toModel(featureB)).thenReturn(modelFeatureB);
 
-        final SourceUpdate update = converter.updateFrom(collection);
+        final SourceUpdate update = converter.updateFrom(featureCollectionOf(featureA, featureB));
 
-        assertThat(update.features(), equalTo(ImmutableList.of(
-                NakedFeatureImpl.of("a", factory.createPoint(new Coordinate(51.0, 0.1)),
-                        AttributesImpl.builder().attribute(AttributeNameImpl.of("timestamp"), 1234).build())
-        )));
+        verify(featureConverter).toModel(featureA);
+        verify(featureConverter).toModel(featureB);
+        assertThat(update, equalTo(SourceUpdateImpl.of(newArrayList(modelFeatureA, modelFeatureB))));
     }
 
     @Test
     public void ignore_features_with_null_geometry() throws Exception {
-        final FeatureCollection collection = featureCollectionOf(geojsonFeature("a", Optional.empty()));
+        final Feature feature = mock(Feature.class);
+        when(feature.geometry()).thenReturn(Optional.empty());
 
-        final SourceUpdate update = converter.updateFrom(collection);
+        final SourceUpdate update = converter.updateFrom(featureCollectionOf(feature));
 
-        assertThat(update.features(), empty());
+        verifyZeroInteractions(featureConverter);
+        assertThat(update, equalTo(SourceUpdateImpl.of(newArrayList())));
     }
 
     private FeatureCollection featureCollectionOf(Feature... features) {
         return FeatureCollectionImpl.of(newArrayList(features));
-    }
-
-    private Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return FeatureImpl.of(
-                Optional.of(id),
-                geometry,
-                ImmutableMap.of("timestamp", 1234));
-    }
-
-    private Point point() {
-        return point(51.0, 0.1);
-    }
-
-    private Point point(double x, double y) {
-        return PointImpl.of(ImmutableList.of(x, y));
     }
 }

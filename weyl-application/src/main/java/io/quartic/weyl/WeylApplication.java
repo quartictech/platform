@@ -19,6 +19,7 @@ import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.compute.HistogramCalculator;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
@@ -37,10 +38,13 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
+import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
-    private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
-    private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
+    private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
+    private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
+    private final GeometryTransformer transformFromGeojson = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
@@ -109,7 +113,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WeylConfiguration configuration,
             Environment environment,
             WebsocketClientSessionFactory websocketFactory) {
-        final LiveEventConverter converter = new LiveEventConverter();
+        final LiveEventConverter converter = new LiveEventConverter(new FeatureConverter(transformFromGeojson));
 
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
@@ -126,7 +130,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
-                        .objectMapper(environment.getObjectMapper())
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
@@ -138,7 +141,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                        .objectMapper(environment.getObjectMapper())
                         .build()
         );
     }
