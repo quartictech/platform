@@ -10,6 +10,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.emptyMap;
@@ -25,6 +26,13 @@ public class ManagementResource {
     public ManagementResource(CatalogueService catalogueService, GcsConnector gcsConnector) {
         this.catalogueService = catalogueService;
         this.gcsConnector = gcsConnector;
+    }
+
+    @GET
+    @Path("/dataset")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<DatasetId, DatasetConfig> getDatasets() {
+        return catalogueService.getDatasets();
     }
 
     @PUT
