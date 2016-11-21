@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
-import { slugify } from '../../helpers/Utils';
 
 import { Grid, Col } from 'react-bootstrap';
 import * as Blueprint from "@blueprintjs/core";
