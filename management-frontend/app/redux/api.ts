@@ -1,4 +1,7 @@
-const API_URL = "http://localhost:3010/api";
+// TODO: Handle contextPaths if we need to
+export const apiRootUrl = `${location.origin}/api`;
+export const wsUrl = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
+
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -14,7 +17,7 @@ function parseJSON(response) {
 }
 
 export function fetchDatasets(noob) {
-  return fetch(`${API_URL}/dataset`)
+  return fetch(`${apiRootUrl}/dataset`)
     .then(checkStatus)
     .then(parseJSON)
     .then( (data) => ({ data }))
