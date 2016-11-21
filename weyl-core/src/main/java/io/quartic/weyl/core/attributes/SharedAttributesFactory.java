@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.attributes;
 
-import com.google.common.collect.Maps;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
@@ -9,18 +8,29 @@ import java.util.*;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 
-import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Lists.newCopyOnWriteArrayList;
+import static com.google.common.collect.Maps.newConcurrentMap;
+import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 
 public class SharedAttributesFactory {
-    private final Map<AttributeName, Integer> indices = newLinkedHashMap();
+    /*
+     * We need O(1) lookup of name to position in values lists, and this needs to allow for concurrent read/write.
+     * Hence a ConcurrentMap.  However, it's unclear how to expose an iterator over indices.keySet() (as we would need
+     * in ViewEntrySet) that remains consistent when subsequent writes occur.  Thus we also maintain a
+     * CopyOnWriteArrayList.  Updates to this are expensive, but should occur infrequently.
+     *
+     * Thus we don't need any explicit locking anywhere in this code.
+     */
+    private final Map<AttributeName, Integer> indices = newConcurrentMap();
+    private final List<AttributeName> names = newCopyOnWriteArrayList();
 
     public AttributesBuilder attributesBuilder() {
         return new AttributesBuilder();
     }
 
     public class AttributesBuilder {
-        private final Map<AttributeName, Object> attributes = Maps.newHashMap();  // TODO: consider concurrency
+        private final Map<AttributeName, Object> attributes = newHashMap();
 
         public AttributesBuilder put(String name, Object value) {
             attributes.put(AttributeNameImpl.of(name), value);
@@ -28,13 +38,18 @@ public class SharedAttributesFactory {
         }
 
         public Attributes build() {
-            updateIndices();
+            updateIndicesAndNames();
             final List<Object> values = collectValues();
             return () -> new ViewMap(values);
         }
 
-        private void updateIndices() {
-            attributes.forEach((name, value) -> indices.putIfAbsent(name, indices.size()));
+        private void updateIndicesAndNames() {
+            attributes.forEach((name, value) -> {
+                if (!indices.containsKey(name)) {
+                    indices.put(name, names.size());
+                    names.add(name);
+                }
+            });
         }
 
         private List<Object> collectValues() {
@@ -86,18 +101,18 @@ public class SharedAttributesFactory {
 
         @Override
         public Iterator<Entry<AttributeName, Object>> iterator() {
-            final Iterator<AttributeName> nameIterator = indices.keySet().iterator();
+            final Iterator<AttributeName> nameIterator = names.iterator();
             final Iterator<Object> valueIterator = values.iterator();
 
             return new Iterator<Entry<AttributeName, Object>>() {
                 @Override
                 public boolean hasNext() {
-                    return valueIterator.hasNext(); // indices.size() <= values.size() always
+                    return valueIterator.hasNext(); // names.size() >= values.size() always
                 }
 
                 @Override
                 public Entry<AttributeName, Object> next() {
-                    return new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.next()); // Orders are the same due to LinkedHashMap for indices
+                    return new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.next()); // Orders are guaranteed to be the same
                 }
             };
         }
