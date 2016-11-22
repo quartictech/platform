@@ -14,9 +14,13 @@ import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 
 /**
- * Memory-efficient factory for Attributes instances.
+ * Memory-efficient factory for Attributes instances, maintaining only a single copy of the list of attribute names,
+ * and interning string values.
  *
- * Maintains only a single copy of the list of attribute names, and interns string values.
+ * Each Attributes instance is backed by a (potentially sparse) list, whose order matches that of the corresponding
+ * keys in the shared names list.  This is exposed as an immutable Map with O(1) lookup.
+ *
+ * **Note:** Null attribute values are not exposed, and do not contribute to the size() member of the Attributes map.
  */
 public class AttributesFactory {
     /*
@@ -58,7 +62,9 @@ public class AttributesFactory {
         }
 
         private void updateIndicesAndNames() {
-            // Only place we need synchronisation, due to required atomicity around containsKey/put
+            // Only place we need synchronisation, due to required atomicity around containsKey/put.
+            // All other accesses to indices are read-only, and are safe due to the strictly additive nature of the
+            // mutations here.
             synchronized (indices) {
                 attributes.forEach((name, value) -> {
                     if (!indices.containsKey(name)) {
@@ -130,7 +136,7 @@ public class AttributesFactory {
                     Entry<AttributeName, Object> next = null;
 
                     {
-                        advance();
+                        advanceToNextNonNull();
                     }
 
                     @Override
@@ -141,11 +147,11 @@ public class AttributesFactory {
                     @Override
                     public Entry<AttributeName, Object> next() {
                         final Entry<AttributeName, Object> result = next;
-                        advance();
+                        advanceToNextNonNull();
                         return result;
                     }
 
-                    private void advance() {
+                    private void advanceToNextNonNull() {
                         while (valueIterator.hasNext()) {
                             next = new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.next()); // Orders are guaranteed to be the same
                             if (next.getValue() != null) {
