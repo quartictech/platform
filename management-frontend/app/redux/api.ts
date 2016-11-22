@@ -18,7 +18,7 @@ function parseJSON(response) {
 }
 
 export function fetchDatasets() {
-  return fetch(`${apiRootUrl}/dataset`)
+  return fetch(`${apiRootUrl}/dataset`, { credentials: "same-origin" })
     .then(checkStatus)
     .then(parseJSON)
     .then( (data) => ({ data }))
