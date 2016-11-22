@@ -14,17 +14,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
+import static io.quartic.weyl.core.compute.SpatialJoin.SpatialPredicate.CONTAINS;
+
 public class BucketComputation implements LayerComputation {
     private final Layer featureLayer;
     private final BucketSpec bucketSpec;
     private final Layer bucketLayer;
     private final AttributesFactory attributesFactory = new AttributesFactory();
-
-    private BucketComputation(Layer featureLayer, Layer bucketLayer, BucketSpec bucketSpec) {
-        this.featureLayer = featureLayer;
-        this.bucketLayer = bucketLayer;
-        this.bucketSpec = bucketSpec;
-    }
 
     public static BucketComputation create(LayerStore store, BucketSpec bucketSpec) {
         Optional<Layer> featureLayer = store.getLayer(bucketSpec.features());
@@ -36,6 +32,12 @@ public class BucketComputation implements LayerComputation {
         else {
             throw new RuntimeException("can't find input layers for bucket computation");
         }
+    }
+
+    private BucketComputation(Layer featureLayer, Layer bucketLayer, BucketSpec bucketSpec) {
+        this.featureLayer = featureLayer;
+        this.bucketLayer = bucketLayer;
+        this.bucketSpec = bucketSpec;
     }
 
     @Override
@@ -78,8 +80,7 @@ public class BucketComputation implements LayerComputation {
     private Collection<Feature> bucketData() {
         // The order here is that CONTAINS applies from left -> right and
         // the spatial index on the right layer is the one that is queried
-        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer,
-                SpatialJoin.SpatialPredicate.CONTAINS)
+        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer, CONTAINS)
                 .collect(Collectors.groupingBy(Tuple::left));
 
         BucketAggregation aggregation = bucketSpec.aggregation();
