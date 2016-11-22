@@ -24,18 +24,28 @@ public class AttributesFactory {
      * Hence a ConcurrentMap.  However, it's unclear how to expose an iterator over indices.keySet() (as we would need
      * in ViewEntrySet) that remains consistent when subsequent writes occur.  Thus we also maintain a
      * CopyOnWriteArrayList.  Updates to this are expensive, but should occur infrequently.
-     *
-     * Thus we don't need any explicit locking anywhere in this code.
      */
     private final Map<AttributeName, Integer> indices = newConcurrentMap();
     private final List<AttributeName> names = newCopyOnWriteArrayList();
 
-    public AttributesBuilder attributesBuilder() {
+    public AttributesBuilder builder() {
         return new AttributesBuilder();
     }
 
+    public AttributesBuilder builder(Attributes attributes) {
+        return new AttributesBuilder(attributes);
+    }
+
     public class AttributesBuilder {
-        private final Map<AttributeName, Object> attributes = newHashMap();
+        private final Map<AttributeName, Object> attributes;
+
+        public AttributesBuilder() {
+            this.attributes = newHashMap();
+        }
+
+        public AttributesBuilder(Attributes attributes) {
+            this.attributes = newHashMap(attributes.attributes());
+        }
 
         public AttributesBuilder put(String name, Object value) {
             attributes.put(AttributeNameImpl.of(name), value);
@@ -48,12 +58,15 @@ public class AttributesFactory {
         }
 
         private void updateIndicesAndNames() {
-            attributes.forEach((name, value) -> {
-                if (!indices.containsKey(name)) {
-                    indices.put(name, names.size());
-                    names.add(name);
-                }
-            });
+            // Only place we need synchronisation, due to required atomicity around containsKey/put
+            synchronized (indices) {
+                attributes.forEach((name, value) -> {
+                    if (!indices.containsKey(name)) {
+                        indices.put(name, names.size());
+                        names.add(name);
+                    }
+                });
+            }
         }
 
         private List<Object> collectValues() {
