@@ -17,10 +17,13 @@ import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Subscriber;
+import rx.functions.Action1;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -45,10 +48,10 @@ public class LayerStore {
         this.lidGenerator = lidGenerator;
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
+    public Action1<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         checkLayerNotExists(id);
         putLayer(newLayer(id, metadata, view, schema, indexable));
-        return subscriber(id, indexable);
+        return update -> addToLayer(id, update.features(), indexable);
     }
 
     public Collection<Layer> listLayers() {
@@ -172,32 +175,17 @@ public class LayerStore {
                 .build();
     }
 
-    private Subscriber<SourceUpdate> subscriber(final LayerId id, final boolean indexable) {
-        return new Subscriber<SourceUpdate>() {
-            @Override
-            public void onCompleted() {
-                // TODO
-            }
+    private void addToLayer(LayerId id, Collection<NakedFeature> features, boolean indexable) {
+        final Layer layer = layers.get(id); // TODO: locking?
+        LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
 
-            @Override
-            public void onError(Throwable e) {
-                LOG.error("Subscription error for layer " + id, e);
-            }
+        final Collection<Feature> elaboratedFeatures = elaborate(id, features);
+        entityStore.putAll(elaboratedFeatures);
+        final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
-            @Override
-            public void onNext(SourceUpdate update) {
-                final Layer layer = layers.get(id); // TODO: locking?
-                LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
-
-                final Collection<Feature> elaboratedFeatures = elaborate(id, update.features());
-                entityStore.putAll(elaboratedFeatures);
-                final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
-
-                putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-                notifyListeners(id, elaboratedFeatures);
-                notifySubscribers(id);
-            }
-        };
+        putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
+        notifyListeners(id, elaboratedFeatures);
+        notifySubscribers(id);
     }
 
     // TODO: this is going to double memory usage?

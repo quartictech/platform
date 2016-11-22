@@ -15,7 +15,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rx.Observable;
-import rx.Subscriber;
+import rx.functions.Action1;
 import rx.subjects.PublishSubject;
 
 import java.util.Collection;
@@ -78,7 +78,7 @@ public class LayerStoreShould {
 
     @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(updateFor(modelFeature("a"))).subscribe(sub);
 
@@ -88,7 +88,7 @@ public class LayerStoreShould {
 
     @Test
     public void add_observed_features_to_layer() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
                 updateFor(modelFeature("a")),
@@ -102,7 +102,7 @@ public class LayerStoreShould {
 
     @Test
     public void put_attributes_to_store() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(updateFor(modelFeature("a"), modelFeature("b"))).subscribe(sub);
 
@@ -112,7 +112,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_subscribers_of_observed_features() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         store.addSubscriber(LAYER_ID, subscriber);
@@ -131,7 +131,7 @@ public class LayerStoreShould {
 
     @Test
     public void handle_concurrent_subscription_changes() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
         final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addSubscriber(LAYER_ID, mock(Consumer.class)));    // Emulate concurrent subscription change
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
@@ -149,7 +149,7 @@ public class LayerStoreShould {
 
     @Test
     public void handle_concurrent_listener_changes() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
         final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addListener(mock(LayerStoreListener.class)));    // Emulate concurrent subscription change
 
         LayerStoreListener listener = mock(LayerStoreListener.class);
@@ -165,7 +165,7 @@ public class LayerStoreShould {
         assertCanRunToCompletion(sub);
     }
 
-    private void assertCanRunToCompletion(Subscriber<SourceUpdate> sub) {
+    private void assertCanRunToCompletion(Action1<SourceUpdate> sub) {
         final AtomicBoolean completed = new AtomicBoolean(false);
         Observable.just(updateFor(modelFeature("a")), updateFor(modelFeature("b")))
                 .doOnCompleted(() -> completed.set(true))
@@ -197,7 +197,7 @@ public class LayerStoreShould {
     // Luckily, this should go away once we model downstream stuff reactively too
     @Test
     public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         PublishSubject<SourceUpdate> subject = PublishSubject.create();
         subject.subscribe(sub);
@@ -224,7 +224,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_listeners_on_change() throws Exception {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         LayerStoreListener listenerA = mock(LayerStoreListener.class);
         LayerStoreListener listenerB = mock(LayerStoreListener.class);
@@ -241,7 +241,7 @@ public class LayerStoreShould {
 
     @Test
     public void not_notify_subscribers_after_unsubscribe() {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         LayerSubscription subscription = store.addSubscriber(LAYER_ID, subscriber);
@@ -265,7 +265,7 @@ public class LayerStoreShould {
 
         // Delete and recreate
         store.deleteLayer(LAYER_ID);
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
                 updateFor(modelFeature("a"))
@@ -285,7 +285,7 @@ public class LayerStoreShould {
     }
 
     private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
-        final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
 
         Observable.just(
                 updateFor(modelFeature("a"))
@@ -316,11 +316,11 @@ public class LayerStoreShould {
         );
     }
 
-    private Subscriber<SourceUpdate> createLayer(LayerId id) {
+    private Action1<SourceUpdate> createLayer(LayerId id) {
         return createLayer(id, true);
     }
 
-    private Subscriber<SourceUpdate> createLayer(LayerId id, boolean indexable) {
+    private Action1<SourceUpdate> createLayer(LayerId id, boolean indexable) {
         return store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW, schema("blah"), indexable);
     }
 

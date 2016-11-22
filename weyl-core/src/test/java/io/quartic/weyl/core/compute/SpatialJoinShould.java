@@ -14,7 +14,7 @@ import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.Test;
 import rx.Observable;
-import rx.Subscriber;
+import rx.functions.Action1;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -52,14 +52,14 @@ public class SpatialJoinShould {
 
     private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
-        final Subscriber<SourceUpdate> subscriber = store.createLayer(
+        final Action1<SourceUpdate> action = store.createLayer(
                 layerId,
                 LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
                 IDENTITY_VIEW,
                 AttributeSchemaImpl.builder().build(),
                 true);
 
-        Observable.just(SourceUpdateImpl.of(features)).subscribe(subscriber);
+        Observable.just(SourceUpdateImpl.of(features)).subscribe(action);
 
         return store.getLayer(layerId).get();
     }
