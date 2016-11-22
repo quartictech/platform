@@ -129,6 +129,6 @@ public class AttributesFactoryShould {
     }
 
     private AttributesFactory.AttributesBuilder builder() {
-        return factory.attributesBuilder();
+        return factory.builder();
     }
 }
