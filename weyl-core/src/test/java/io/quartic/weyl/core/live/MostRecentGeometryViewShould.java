@@ -58,7 +58,7 @@ public class MostRecentGeometryViewShould {
             features.add(feature);
         }
         Feature oliverCurrent = locationFeature("oliver", 100, 100);
-        Feature alexCurrent = Iterables.getLast(features);
+        Feature alexCurrent = features.get(0);
         features.add(oliverCurrent);
         List<Feature> newFeatures = invokeView(features);
 
