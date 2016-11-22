@@ -92,7 +92,7 @@ public abstract class PostgresSource implements Source {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            final AttributesFactory.AttributesBuilder builder = factory.attributesBuilder();
+            final AttributesFactory.AttributesBuilder builder = factory.builder();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
