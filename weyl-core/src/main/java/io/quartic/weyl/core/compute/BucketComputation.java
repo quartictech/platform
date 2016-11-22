@@ -47,37 +47,41 @@ public abstract class BucketComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
-            String layerName = String.format("%s (bucketed)",
-                    rawAttributeName());
-            String layerDescription = String.format("%s bucketed by %s aggregating by %s",
-                    rawAttributeName(),
-                    bucketLayer().metadata().name(),
-                    bucketSpec().aggregation().toString());
-
-            Map<AttributeName, Attribute> attributeMap = newHashMap(bucketLayer().schema().attributes());
-            Attribute newAttribute = AttributeImpl.builder()
-                    .type(AttributeType.NUMERIC)
-                    .build();
-            attributeMap.put(attributeName(), newAttribute);
-
-            AttributeSchema schema = AttributeSchemaImpl
-                    .copyOf(bucketLayer().schema())
-                    .withAttributes(attributeMap)
-                    .withPrimaryAttribute(attributeName());
-
-            return Optional.of(ComputationResultsImpl.of(
-                    LayerMetadataImpl.builder()
-                            .name(layerName)
-                            .description(layerDescription)
-                            .build(),
-                    features,
-                    schema
-            ));
+            return results(forkJoinPool.submit(this::bucketData).get(), schema());
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return Optional.empty();
         }
+    }
+
+    private Optional<ComputationResults> results(Collection<Feature> features, AttributeSchema schema) {
+        String layerName = String.format("%s (bucketed)",
+                rawAttributeName());
+        String layerDescription = String.format("%s bucketed by %s aggregating by %s",
+                rawAttributeName(),
+                bucketLayer().metadata().name(),
+                bucketSpec().aggregation().toString());
+        return Optional.of(ComputationResultsImpl.of(
+                LayerMetadataImpl.builder()
+                        .name(layerName)
+                        .description(layerDescription)
+                        .build(),
+                features,
+                schema
+        ));
+    }
+
+    private AttributeSchema schema() {
+        Map<AttributeName, Attribute> attributeMap = newHashMap(bucketLayer().schema().attributes());
+        Attribute newAttribute = AttributeImpl.builder()
+                .type(AttributeType.NUMERIC)
+                .build();
+        attributeMap.put(attributeName(), newAttribute);
+
+        return AttributeSchemaImpl
+                .copyOf(bucketLayer().schema())
+                .withAttributes(attributeMap)
+                .withPrimaryAttribute(attributeName());
     }
 
     private Collection<Feature> bucketData() {
