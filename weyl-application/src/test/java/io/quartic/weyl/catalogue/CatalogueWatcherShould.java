@@ -12,7 +12,7 @@ import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import rx.observers.TestSubscriber;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 import java.util.Map;
@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
+import static rx.functions.Actions.empty;
 
 public class CatalogueWatcherShould {
 
@@ -75,8 +76,8 @@ public class CatalogueWatcherShould {
 
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
-        final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        whenCreateLayerThenReturn("123", subscriber);
+        final Action1<SourceUpdate> action = mock(Action1.class);
+        whenCreateLayerThenReturn("123", action);
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
@@ -92,13 +93,12 @@ public class CatalogueWatcherShould {
                         .build(),
                 true
         );
-        subscriber.assertValue(updateA);
+        verify(action).call(updateA);
     }
 
     @Test
     public void only_process_each_dataset_once() throws Exception {
-        final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        whenCreateLayerThenReturn("123", subscriber);
+        whenCreateLayerThenReturn("123", empty());
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))
@@ -111,10 +111,10 @@ public class CatalogueWatcherShould {
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
-        final TestSubscriber<SourceUpdate> subscriberA = TestSubscriber.create();
-        final TestSubscriber<SourceUpdate> subscriberB = TestSubscriber.create();
-        whenCreateLayerThenReturn("123", subscriberA);
-        whenCreateLayerThenReturn("456", subscriberB);
+        final Action1<SourceUpdate> actionA = mock(Action1.class);
+        final Action1<SourceUpdate> actionB = mock(Action1.class);
+        whenCreateLayerThenReturn("123", actionA);
+        whenCreateLayerThenReturn("456", actionB);
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetIdImpl.of("456"), datasetConfig(new LocatorB()))
@@ -123,15 +123,14 @@ public class CatalogueWatcherShould {
         watcher.start();
 
         verify(layerStore).createLayer(eq(LayerIdImpl.of("123")), any(), any(), any(), eq(true));
-        subscriberA.assertValue(updateA);
+        verify(actionA).call(updateA);
         verify(layerStore).createLayer(eq(LayerIdImpl.of("456")), any(), any(), any(), eq(false));
-        subscriberB.assertValue(updateB);
+        verify(actionB).call(updateB);
     }
 
     @Test
     public void pass_config_fields_to_extension_parser() throws Exception {
-        final TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
-        whenCreateLayerThenReturn("123", subscriber);
+        whenCreateLayerThenReturn("123", empty());
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();
@@ -139,8 +138,8 @@ public class CatalogueWatcherShould {
         verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, rawExtension));
     }
 
-    private void whenCreateLayerThenReturn(String layerId, TestSubscriber<SourceUpdate> subscriber) {
-        when(layerStore.createLayer(eq(LayerIdImpl.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(subscriber);
+    private void whenCreateLayerThenReturn(String layerId, Action1<SourceUpdate> action) {
+        when(layerStore.createLayer(eq(LayerIdImpl.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(action);
     }
 
     private SourceUpdate createUpdate() {

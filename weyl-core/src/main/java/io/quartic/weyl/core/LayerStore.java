@@ -8,6 +8,7 @@ import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
+import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.compute.LayerComputation;
@@ -15,12 +16,16 @@ import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Subscriber;
+import rx.functions.Action1;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -32,23 +37,26 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
-public class LayerStore {
+@SweetStyle
+@Value.Immutable
+public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final EntityStore entityStore;
-    private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
-    public LayerStore(EntityStore entityStore, UidGenerator<LayerId> lidGenerator) {
-        this.entityStore = entityStore;
-        this.lidGenerator = lidGenerator;
+    protected abstract EntityStore entityStore();
+    protected abstract UidGenerator<LayerId> lidGenerator();
+
+    @Value.Default
+    protected LayerComputation.Factory computationFactory() {
+        return new LayerComputation.Factory();
     }
 
-    public Subscriber<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
+    public Action1<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         checkLayerNotExists(id);
         putLayer(newLayer(id, metadata, view, schema, indexable));
-        return subscriber(id, indexable);
+        return update -> addToLayer(id, update.features());
     }
 
     public Collection<Layer> listLayers() {
@@ -86,13 +94,12 @@ public class LayerStore {
 
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        Optional<Layer> layer = LayerComputation.compute(this, computationSpec)
-                .map(r -> updateIndicesAndStats(appendFeatures(
-                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
-                        r.features()))
-                );
-        layer.ifPresent(this::putLayer);
-        return layer.map(Layer::layerId);
+        return computationFactory().compute(this, computationSpec).map(r -> {
+            final Layer layer = newLayer(lidGenerator().get(), r.metadata(), IDENTITY_VIEW, r.schema(), true);
+            putLayer(layer);
+            addToLayer(layer.layerId(), r.features());
+            return layer.layerId();
+        });
     }
 
     private void checkLayerExists(LayerId layerId) {
@@ -172,32 +179,17 @@ public class LayerStore {
                 .build();
     }
 
-    private Subscriber<SourceUpdate> subscriber(final LayerId id, final boolean indexable) {
-        return new Subscriber<SourceUpdate>() {
-            @Override
-            public void onCompleted() {
-                // TODO
-            }
+    private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
+        final Layer layer = layers.get(layerId);
+        LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
 
-            @Override
-            public void onError(Throwable e) {
-                LOG.error("Subscription error for layer " + id, e);
-            }
+        final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
+        entityStore().putAll(elaboratedFeatures);
+        final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
-            @Override
-            public void onNext(SourceUpdate update) {
-                final Layer layer = layers.get(id); // TODO: locking?
-                LOG.info("[{}] Accepted {} features", layer.metadata().name(), update.features().size());
-
-                final Collection<Feature> elaboratedFeatures = elaborate(id, update.features());
-                entityStore.putAll(elaboratedFeatures);
-                final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
-
-                putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-                notifyListeners(id, elaboratedFeatures);
-                notifySubscribers(id);
-            }
-        };
+        putLayer(layer.indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);
+        notifyListeners(layerId, elaboratedFeatures);
+        notifySubscribers(layerId);
     }
 
     // TODO: this is going to double memory usage?

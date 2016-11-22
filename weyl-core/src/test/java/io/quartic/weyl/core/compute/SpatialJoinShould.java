@@ -8,13 +8,14 @@ import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
+import io.quartic.weyl.core.LayerStoreImpl;
+import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.Test;
 import rx.Observable;
-import rx.Subscriber;
+import rx.functions.Action1;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -30,7 +31,10 @@ import static org.mockito.Mockito.mock;
 
 public class SpatialJoinShould {
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
-    private final LayerStore store = new LayerStore(mock(EntityStore.class), lidGenerator);
+    private final LayerStore store = LayerStoreImpl.builder()
+            .entityStore(mock(EntityStore.class))
+            .lidGenerator(lidGenerator)
+            .build();
 
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {
@@ -41,7 +45,7 @@ public class SpatialJoinShould {
         Layer layerA = makeLayer(ImmutableList.of(polyA, polyB));
         Layer layerB = makeLayer(ImmutableList.of(pointA, pointB));
 
-        List<Tuple> joinResults = SpatialJoin.innerJoin(layerA, layerB, SpatialJoin.SpatialPredicate.CONTAINS)
+        List<Tuple> joinResults = new SpatialJoiner().innerJoin(layerA, layerB, SpatialJoiner.SpatialPredicate.CONTAINS)
                 .collect(Collectors.toList());
 
         assertThat(joinResults, containsInAnyOrder(
@@ -52,14 +56,14 @@ public class SpatialJoinShould {
 
     private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
-        final Subscriber<SourceUpdate> subscriber = store.createLayer(
+        final Action1<SourceUpdate> action = store.createLayer(
                 layerId,
                 LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
                 IDENTITY_VIEW,
                 AttributeSchemaImpl.builder().build(),
                 true);
 
-        Observable.just(SourceUpdateImpl.of(features)).subscribe(subscriber);
+        Observable.just(SourceUpdateImpl.of(features)).subscribe(action);
 
         return store.getLayer(layerId).get();
     }

@@ -10,7 +10,7 @@ import org.immutables.value.Value;
 
 import java.util.stream.Stream;
 
-public class SpatialJoin {
+public class SpatialJoiner {
     @SweetStyle
     @Value.Immutable
     public interface Tuple {
@@ -36,7 +36,7 @@ public class SpatialJoin {
 
 
     @SuppressWarnings("unchecked")
-    public static Stream<Tuple> innerJoin(Layer leftLayer, Layer rightLayer, SpatialPredicate predicate) {
+    public Stream<Tuple> innerJoin(Layer leftLayer, Layer rightLayer, SpatialPredicate predicate) {
        return leftLayer.indexedFeatures().parallelStream()
                 .flatMap(left -> rightLayer.spatialIndex()
                         .query(left.feature().geometry().getEnvelopeInternal())

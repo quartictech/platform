@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.functions.Action1;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -84,7 +85,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
             final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
             final Source source = func.apply(config);
             final LayerId layerId = LayerIdImpl.of(id.uid());
-            final Subscriber<SourceUpdate> subscriber = layerStore().createLayer(
+            final Action1<SourceUpdate> action = layerStore().createLayer(
                     layerId,
                     datasetMetadataFrom(config.metadata()),
                     extension.viewType().getLayerView(),
@@ -94,7 +95,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
 
             LOG.info(format("[%s] Created layer", name));
 
-            source.observable().subscribeOn(scheduler()).subscribe(subscriber);   // TODO: the scheduler should be chosen by the specific source
+            source.observable().subscribeOn(scheduler()).subscribe(action);   // TODO: the scheduler should be chosen by the specific source
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
         }
