@@ -1,14 +1,13 @@
 package io.quartic.weyl.core.live;
 
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.google.common.collect.Iterables.getLast;
 import static java.util.stream.Collectors.groupingBy;
 
 public class MostRecentGeometryView implements LayerView {
@@ -17,6 +16,6 @@ public class MostRecentGeometryView implements LayerView {
         Map<EntityId, List<Feature>> historyById = history.stream()
                 .collect(groupingBy(Feature::entityId));
 
-        return historyById.entrySet().stream().map(entry -> getLast(entry.getValue()));
+        return historyById.entrySet().stream().map(entry -> entry.getValue().get(0));
     }
 }
