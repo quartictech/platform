@@ -70,9 +70,11 @@ public class AttributesFactory {
     // Can't be anonymous in AttributesBuilder.build(), because that would maintain a reference to the builder (and thus not let go to storage)
     private class ViewAttributes implements Attributes {
         private final List<Object> values;
+        private final int size;
 
         private ViewAttributes(List<Object> values) {
             this.values = values;
+            this.size = (int)values.stream().filter(Objects::nonNull).count();  // We have to incur this O(n) cost somewhere
         }
 
         @Override
@@ -80,7 +82,7 @@ public class AttributesFactory {
             return new AbstractMap<AttributeName, Object>() {
                 @Override
                 public Set<Entry<AttributeName, Object>> entrySet() {
-                    return new ViewEntrySet(values);
+                    return new ViewEntrySet();
                 }
 
                 @Override
@@ -104,36 +106,48 @@ public class AttributesFactory {
                 }
             };
         }
-    }
 
-    private class ViewEntrySet extends AbstractSet<Entry<AttributeName, Object>> {
-        private final List<Object> values;
+        private class ViewEntrySet extends AbstractSet<Entry<AttributeName, Object>> {
+            @Override
+            public Iterator<Entry<AttributeName, Object>> iterator() {
+                final Iterator<AttributeName> nameIterator = names.iterator();
+                final Iterator<Object> valueIterator = values.iterator();
 
-        private ViewEntrySet(List<Object> values) {
-            this.values = values;
-        }
+                return new Iterator<Entry<AttributeName, Object>>() {
+                    Entry<AttributeName, Object> next = null;
 
-        @Override
-        public Iterator<Entry<AttributeName, Object>> iterator() {
-            final Iterator<AttributeName> nameIterator = names.iterator();
-            final Iterator<Object> valueIterator = values.iterator();
+                    {
+                        advance();
+                    }
 
-            return new Iterator<Entry<AttributeName, Object>>() {
-                @Override
-                public boolean hasNext() {
-                    return valueIterator.hasNext(); // names.size() >= values.size() always
-                }
+                    @Override
+                    public boolean hasNext() {
+                        return next != null;
+                    }
 
-                @Override
-                public Entry<AttributeName, Object> next() {
-                    return new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.next()); // Orders are guaranteed to be the same
-                }
-            };
-        }
+                    @Override
+                    public Entry<AttributeName, Object> next() {
+                        final Entry<AttributeName, Object> result = next;
+                        advance();
+                        return result;
+                    }
 
-        @Override
-        public int size() {
-            return values.size();
+                    private void advance() {
+                        while (valueIterator.hasNext()) {
+                            next = new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.next()); // Orders are guaranteed to be the same
+                            if (next.getValue() != null) {
+                                return;
+                            }
+                        }
+                        next = null;
+                    }
+                };
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
         }
     }
 }
