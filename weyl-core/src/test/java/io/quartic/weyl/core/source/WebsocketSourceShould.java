@@ -7,37 +7,37 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.*;
 import io.quartic.model.LiveEvent;
 import io.quartic.model.LiveEventImpl;
-import io.quartic.weyl.core.live.LiveEventConverter;
+import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class WebsocketSourceShould {
-    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(
-            Instant.now(),
-            Optional.of(featureCollection(geojsonFeature("a", Optional.of(point()))))
-    );
+    private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", Optional.of(point())));
+    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(Instant.now(), FEATURE_COLLECTION);
 
     @Test
     public void import_things() throws Exception {
         final WebsocketListener<LiveEvent> listener = mock(WebsocketListener.class);
         final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
-        final LiveEventConverter converter = mock(LiveEventConverter.class);
-        final SourceUpdate update = SourceUpdateImpl.of(newArrayList());
+        final FeatureConverter converter = mock(FeatureConverter.class);
+        final Collection<NakedFeature> modelFeatures = mock(Collection.class);
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
         when(listener.observable()).thenReturn(just(LIVE_EVENT));
-        when(converter.updateFrom(any(LiveEvent.class))).thenReturn(update);
+        when(converter.toModel(any())).thenReturn(modelFeatures);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .name("test")
@@ -50,8 +50,8 @@ public class WebsocketSourceShould {
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
-        verify(converter).updateFrom(LIVE_EVENT);
-        assertThat(subscriber.getOnNextEvents().get(0), is(update));
+        verify(converter).toModel(FEATURE_COLLECTION);
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(SourceUpdateImpl.of(modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

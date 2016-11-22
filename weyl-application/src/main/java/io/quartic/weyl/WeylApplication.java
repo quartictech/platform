@@ -18,9 +18,10 @@ import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.live.LiveEventConverter;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
@@ -37,10 +38,12 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
+import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
-    private final GeometryTransformer transformFromFrontend = GeometryTransformer.webMercatortoWgs84();
-    private final GeometryTransformer transformToFrontend = GeometryTransformer.wgs84toWebMercator();
+    private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
+    private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
@@ -109,11 +112,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WeylConfiguration configuration,
             Environment environment,
             WebsocketClientSessionFactory websocketFactory) {
-        final LiveEventConverter converter = new LiveEventConverter();
-
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
-                .converter(converter)
                 .metrics(environment.metrics())
                 .build();
 
@@ -121,25 +121,36 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
                         .locator((PostgresDatasetLocator) config.locator())
-                        .objectMapper(environment.getObjectMapper())
+                        .attributesFactory(attributesFactory())
                         .build(),
                 GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
-                        .objectMapper(environment.getObjectMapper())
+                        .converter(featureConverter())
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
                         .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
-                        .converter(converter)
+                        .converter(featureConverter())
                         .metrics(environment.metrics())
                         .build(),
-                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor((TerminatorDatasetLocator) config.locator()),
+                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor(
+                        (TerminatorDatasetLocator) config.locator(),
+                        featureConverter()
+                ),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                        .objectMapper(environment.getObjectMapper())
+                        .converter(featureConverter())
                         .build()
         );
+    }
+
+    private FeatureConverter featureConverter() {
+        return new FeatureConverter(attributesFactory());
+    }
+
+    private AttributesFactory attributesFactory() {
+        return new AttributesFactory();
     }
 }

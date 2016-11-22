@@ -9,9 +9,11 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
+import static java.util.stream.Collectors.toMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,13 +34,11 @@ public class AttributeSchemaInferrerShould {
     }
 
     private Feature feature(Map<String, ?> attributes) {
-        final AttributesImpl.Builder builder = AttributesImpl.builder();
-        attributes.forEach((k, v) -> builder.attribute(AttributeNameImpl.of(k), v));
-
         return FeatureImpl.builder()
                 .entityId(EntityIdImpl.of("xyz"))
                 .geometry(mock(Geometry.class))
-                .attributes(builder.build())
+                .attributes(() -> attributes.entrySet().stream()
+                        .collect(toMap(e -> AttributeNameImpl.of(e.getKey()), Entry::getValue)))
                 .build();
     }
 }

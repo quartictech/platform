@@ -10,16 +10,18 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.*;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
-import io.quartic.weyl.core.live.LiveEventConverter;
+import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Before;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
@@ -27,7 +29,7 @@ import static rx.Observable.just;
 public class TerminatorSourceFactoryShould {
     private final WebsocketListener<FeatureCollectionWithTerminationId> listener = mock(WebsocketListener.class);
     private final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
-    private final LiveEventConverter converter = mock(LiveEventConverter.class);
+    private final FeatureConverter converter = mock(FeatureConverter.class);
 
     @Before
     public void before() throws Exception {
@@ -36,24 +38,24 @@ public class TerminatorSourceFactoryShould {
 
     @Test
     public void import_things() throws Exception {
-        final SourceUpdate update = SourceUpdateImpl.of(newArrayList());
+        final Collection<NakedFeature> modelFeatures = mock(Collection.class);
         final FeatureCollection collection = featureCollection(geojsonFeature("a", Optional.of(point())));
         final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
 
         when(listener.observable()).thenReturn(just(
                 FeatureCollectionWithTerminationIdImpl.of(locator.id(), collection)
         ));
-        when(converter.updateFrom(collection)).thenReturn(update);
+        when(converter.toModel(collection)).thenReturn(modelFeatures);
 
         final TerminatorSourceFactory factory = createFactory();
 
-        assertBehaviourForSource(update, collection, factory.sourceFor(locator));
+        assertBehaviourForSource(modelFeatures, collection, factory.sourceFor(locator, converter));
     }
 
     @Test
     public void demultiplex_to_multiple_sources() throws Exception {
-        final SourceUpdate updateA = SourceUpdateImpl.of(newArrayList());
-        final SourceUpdate updateB = SourceUpdateImpl.of(newArrayList());
+        final Collection<NakedFeature> modelFeaturesA = mock(Collection.class);
+        final Collection<NakedFeature> modelFeaturesB = mock(Collection.class);
         final FeatureCollection collectionA = featureCollection(geojsonFeature("a", Optional.of(point())));
         final FeatureCollection collectionB = featureCollection(geojsonFeature("b", Optional.of(point())));
         final TerminatorDatasetLocator locatorA = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
@@ -63,19 +65,19 @@ public class TerminatorSourceFactoryShould {
                 FeatureCollectionWithTerminationIdImpl.of(locatorA.id(), collectionA),
                 FeatureCollectionWithTerminationIdImpl.of(locatorB.id(), collectionB)
         ));
-        when(converter.updateFrom(collectionA)).thenReturn(updateA);
-        when(converter.updateFrom(collectionB)).thenReturn(updateB);
+        when(converter.toModel(collectionA)).thenReturn(modelFeaturesA);
+        when(converter.toModel(collectionB)).thenReturn(modelFeaturesB);
 
         final TerminatorSourceFactory factory = createFactory();
 
-        assertBehaviourForSource(updateA, collectionA, factory.sourceFor(locatorA));
-        assertBehaviourForSource(updateB, collectionB, factory.sourceFor(locatorB));
+        assertBehaviourForSource(modelFeaturesA, collectionA, factory.sourceFor(locatorA, converter));
+        assertBehaviourForSource(modelFeaturesB, collectionB, factory.sourceFor(locatorB, converter));
     }
 
-    private void assertBehaviourForSource(SourceUpdate update, FeatureCollection collection, Source source) {
+    private void assertBehaviourForSource(Collection<NakedFeature> modelFeatures, FeatureCollection collection, Source source) {
         SourceUpdate result = collectUpdate(source);
-        verify(converter).updateFrom(collection);
-        assertThat(result, is(update));
+        verify(converter).toModel(collection);
+        assertThat(result, equalTo(SourceUpdateImpl.of(modelFeatures)));
     }
 
     private SourceUpdate collectUpdate(Source source) {
@@ -87,7 +89,6 @@ public class TerminatorSourceFactoryShould {
 
     private TerminatorSourceFactory createFactory() {
         return TerminatorSourceFactory.builder()
-                .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();

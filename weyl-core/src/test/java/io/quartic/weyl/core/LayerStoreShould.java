@@ -38,6 +38,7 @@ public class LayerStoreShould {
     private static final LayerId LAYER_ID = LayerIdImpl.of("666");
     private static final LayerId OTHER_LAYER_ID = LayerIdImpl.of("777");
     private static final AttributeName ATTRIBUTE_NAME = AttributeNameImpl.of("timestamp");
+    private static final Attributes ATTRIBUTES = () -> ImmutableMap.of(ATTRIBUTE_NAME, 1234);
 
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final EntityStore entityStore = mock(EntityStore.class);
@@ -79,7 +80,7 @@ public class LayerStoreShould {
     public void preserve_core_schema_info_upon_update() throws Exception {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        Observable.just(updateFor(feature("a"))).subscribe(sub);
+        Observable.just(updateFor(modelFeature("a"))).subscribe(sub);
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
@@ -90,23 +91,23 @@ public class LayerStoreShould {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
-                updateFor(feature("a")),
-                updateFor(feature("b"))
+                updateFor(modelFeature("a")),
+                updateFor(modelFeature("b"))
         ).subscribe(sub);
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(),
-                containsInAnyOrder(feature("a", "1"), feature("b", "2")));
+                containsInAnyOrder(feature("a"), feature("b")));
     }
 
     @Test
     public void put_attributes_to_store() throws Exception {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
-        Observable.just(updateFor(feature("a"), feature("b"))).subscribe(sub);
+        Observable.just(updateFor(modelFeature("a"), modelFeature("b"))).subscribe(sub);
 
 
-        verify(entityStore).putAll(newArrayList(feature("a", "1"), feature("b", "2")));
+        verify(entityStore).putAll(newArrayList(feature("a"), feature("b")));
     }
 
     @Test
@@ -117,12 +118,12 @@ public class LayerStoreShould {
         store.addSubscriber(LAYER_ID, subscriber);
 
         Observable.just(
-                updateFor(feature("a"))
+                updateFor(modelFeature("a"))
         ).subscribe(sub);
 
         final LayerState layerState = captureLiveLayerState(subscriber);
         assertThat(layerState.featureCollection(),
-                containsInAnyOrder(feature("a", "1")));
+                containsInAnyOrder(feature("a")));
         assertThat(layerState.schema(),
                 equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
                         .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.empty())))));
@@ -166,7 +167,7 @@ public class LayerStoreShould {
 
     private void assertCanRunToCompletion(Subscriber<SourceUpdate> sub) {
         final AtomicBoolean completed = new AtomicBoolean(false);
-        Observable.just(updateFor(feature("a")), updateFor(feature("b")))
+        Observable.just(updateFor(modelFeature("a")), updateFor(modelFeature("b")))
                 .doOnCompleted(() -> completed.set(true))
                 .subscribe(sub);
 
@@ -201,17 +202,17 @@ public class LayerStoreShould {
         PublishSubject<SourceUpdate> subject = PublishSubject.create();
         subject.subscribe(sub);
 
-        subject.onNext(updateFor(feature("a")));   // Observed before
+        subject.onNext(updateFor(modelFeature("a")));   // Observed before
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         store.addSubscriber(LAYER_ID, subscriber);
 
-        subject.onNext(updateFor(feature("b")));   // Observed after
+        subject.onNext(updateFor(modelFeature("b")));   // Observed after
 
         assertThat(captureLiveLayerState(subscriber).featureCollection(),
                 containsInAnyOrder(
-                        feature("a", "1"),
-                        feature("b", "2")
+                        feature("a"),
+                        feature("b")
                 ));
     }
 
@@ -231,11 +232,11 @@ public class LayerStoreShould {
         store.addListener(listenerB);
 
         Observable.just(
-                updateFor(feature("a"))
+                updateFor(modelFeature("a"))
         ).subscribe(sub);
 
-        verify(listenerA).onLiveLayerEvent(LAYER_ID, feature("a", "1"));
-        verify(listenerB).onLiveLayerEvent(LAYER_ID, feature("a", "1"));
+        verify(listenerA).onLiveLayerEvent(LAYER_ID, feature("a"));
+        verify(listenerB).onLiveLayerEvent(LAYER_ID, feature("a"));
     }
 
     @Test
@@ -248,7 +249,7 @@ public class LayerStoreShould {
         store.removeSubscriber(subscription);
 
         Observable.just(
-                updateFor(feature("a"))
+                updateFor(modelFeature("a"))
         ).subscribe(sub);
 
         verifyNoMoreInteractions(subscriber);
@@ -267,7 +268,7 @@ public class LayerStoreShould {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID);
 
         Observable.just(
-                updateFor(feature("a"))
+                updateFor(modelFeature("a"))
         ).subscribe(sub);
 
         verifyNoMoreInteractions(subscriber);
@@ -287,7 +288,7 @@ public class LayerStoreShould {
         final Subscriber<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
 
         Observable.just(
-                updateFor(feature("a"))
+                updateFor(modelFeature("a"))
         ).subscribe(sub);
 
         final Layer layer = store.getLayer(LAYER_ID).get();
@@ -299,19 +300,19 @@ public class LayerStoreShould {
         return SourceUpdateImpl.of(asList(features));
     }
 
-    private NakedFeature feature(String externalId) {
+    private NakedFeature modelFeature(String externalId) {
         return NakedFeatureImpl.of(
                 externalId,
                 factory.createPoint(new Coordinate(123.0, 456.0)),
-                AttributesImpl.builder().attribute(ATTRIBUTE_NAME, 1234).build()
+                ATTRIBUTES
         );
     }
 
-    private Feature feature(String externalId, String uid) {
+    private Feature feature(String externalId) {
         return FeatureImpl.of(
                 EntityIdImpl.of(LAYER_ID.uid() + "/" + externalId),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
-                AttributesImpl.builder().attribute(ATTRIBUTE_NAME, 1234).build()
+                ATTRIBUTES
         );
     }
 

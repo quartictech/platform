@@ -1,15 +1,15 @@
 package io.quartic.weyl.core.source;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
-import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.attributes.AttributesFactory;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
 @Value.Immutable
 public abstract class PostgresSource implements Source {
@@ -40,7 +42,8 @@ public abstract class PostgresSource implements Source {
     private final WKBReader wkbReader = new WKBReader();
     protected abstract String name();
     protected abstract PostgresDatasetLocator locator();
-    protected abstract ObjectMapper objectMapper();
+    protected abstract AttributesFactory attributesFactory();
+
     @Value.Default
     protected DBI dbi() {
         return new DBI(locator().url(), locator().user(), locator().password());
@@ -66,7 +69,6 @@ public abstract class PostgresSource implements Source {
             final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
-            AttributesFactory factory = new AttributesFactory();
             Collection<NakedFeature> features = Lists.newArrayList();
             int count = 0;
             while (iterator.hasNext()) {
@@ -74,7 +76,7 @@ public abstract class PostgresSource implements Source {
                 if (count % 10000 == 0) {
                     LOG.info("[{}] Importing feature: {}", name(), count);
                 }
-                Optional<NakedFeature> feature = rowToFeature(iterator.next(), factory);
+                Optional<NakedFeature> feature = rowToFeature(iterator.next());
 
                 feature.ifPresent(features::add);
             }
@@ -83,7 +85,7 @@ public abstract class PostgresSource implements Source {
         }
     }
 
-    private Optional<NakedFeature> rowToFeature(Map<String, Object> row, AttributesFactory factory) {
+    private Optional<NakedFeature> rowToFeature(Map<String, Object> row) {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
@@ -92,7 +94,7 @@ public abstract class PostgresSource implements Source {
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            final AttributesFactory.AttributesBuilder builder = factory.builder();
+            final AttributesFactory.AttributesBuilder builder = attributesFactory().builder();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
@@ -127,7 +129,7 @@ public abstract class PostgresSource implements Source {
         PGobject pgObject = (PGobject) value;
         if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
             try {
-                return Optional.of(objectMapper().readValue(pgObject.getValue(), ComplexAttribute.class));
+                return Optional.of(OBJECT_MAPPER.readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
                 LOG.warn("[{}] Exception parsing json to attribute: {}", name(), e.toString());
                 return Optional.empty();

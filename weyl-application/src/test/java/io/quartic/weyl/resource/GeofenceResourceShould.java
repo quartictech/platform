@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.*;
 
 public class GeofenceResourceShould {
-    private static final Attributes FEATURE_ATTRIBUTES = AttributesImpl.builder().attribute(AttributeNameImpl.of("some_prop"), 76).build();
+    private static final Attributes FEATURE_ATTRIBUTES = mock(Attributes.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
     private final GeofenceResource resource = new GeofenceResource(webMercatorToWebMercator(), geofenceStore, layerStore);

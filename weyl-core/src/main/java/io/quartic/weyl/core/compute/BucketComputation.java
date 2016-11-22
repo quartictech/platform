@@ -2,6 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.Maps;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
 import io.quartic.weyl.core.model.*;
 
@@ -17,15 +18,12 @@ public class BucketComputation implements LayerComputation {
     private final Layer featureLayer;
     private final BucketSpec bucketSpec;
     private final Layer bucketLayer;
+    private final AttributesFactory attributesFactory = new AttributesFactory();
 
     private BucketComputation(Layer featureLayer, Layer bucketLayer, BucketSpec bucketSpec) {
         this.featureLayer = featureLayer;
         this.bucketLayer = bucketLayer;
         this.bucketSpec = bucketSpec;
-    }
-
-    private AttributeName attributeName() {
-        return AttributeNameImpl.of(featureLayer.metadata().name());
     }
 
     public static BucketComputation create(LayerStore store, BucketSpec bucketSpec) {
@@ -46,9 +44,9 @@ public class BucketComputation implements LayerComputation {
         try {
             Collection<Feature> features = forkJoinPool.submit(this::bucketData).get();
             String layerName = String.format("%s (bucketed)",
-                    featureLayer.metadata().name());
+                    rawAttributeName());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
-                    featureLayer.metadata().name(),
+                    rawAttributeName(),
                     bucketLayer.metadata().name(),
                     bucketSpec.aggregation().toString());
 
@@ -99,12 +97,18 @@ public class BucketComputation implements LayerComputation {
                         }
                     }
 
-                    final AttributesImpl.Builder builder = AttributesImpl.builder();
-                    builder.attributes(bucket.attributes().attributes());
-                    builder.attribute(attributeName(), value);
-                    return FeatureImpl.copyOf(bucket)
-                            .withAttributes(builder.build());
+                    final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
+                    builder.put(rawAttributeName(), value);
+                    return FeatureImpl.copyOf(bucket).withAttributes(builder.build());
                 })
                 .collect(Collectors.toList());
+    }
+
+    private AttributeName attributeName() {
+        return AttributeNameImpl.of(rawAttributeName());
+    }
+
+    private String rawAttributeName() {
+        return featureLayer.metadata().name();
     }
 }

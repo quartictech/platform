@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.quartic.weyl.core.source.ConversionUtils.convertFromModelAttributes;
+import static io.quartic.weyl.core.feature.FeatureConverter.convertFromModelAttributes;
 
 public class VectorTileRenderer {
     private static final Logger LOG = LoggerFactory.getLogger(VectorTileRenderer.class);

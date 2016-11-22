@@ -120,7 +120,7 @@ public class StatsCalculatorShould {
 
     private Feature feature(Map<AttributeName, Object> attributes) {
         final Feature feature = mock(Feature.class);
-        when(feature.attributes()).thenReturn(AttributesImpl.of(attributes));
+        when(feature.attributes()).thenReturn(() -> attributes);
         return feature;
     }
 
