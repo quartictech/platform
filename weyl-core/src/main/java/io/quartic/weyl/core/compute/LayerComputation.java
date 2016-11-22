@@ -8,7 +8,10 @@ public interface LayerComputation {
     static Optional<ComputationResults> compute(LayerStore store, ComputationSpec computationSpec) {
         LayerComputation result;
         if (computationSpec instanceof BucketSpec) {
-            result = BucketComputation.create(store, (BucketSpec) computationSpec);
+            result = BucketComputationImpl.builder()
+                    .store(store)
+                    .bucketSpec((BucketSpec) computationSpec)
+                    .build();
         }
         else if (computationSpec instanceof BufferSpec) {
             result = BufferComputation.create(store, (BufferSpec) computationSpec);

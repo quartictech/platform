@@ -8,7 +8,7 @@ import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
+import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
@@ -41,7 +41,7 @@ public class SpatialJoinShould {
         Layer layerA = makeLayer(ImmutableList.of(polyA, polyB));
         Layer layerB = makeLayer(ImmutableList.of(pointA, pointB));
 
-        List<Tuple> joinResults = SpatialJoin.innerJoin(layerA, layerB, SpatialJoin.SpatialPredicate.CONTAINS)
+        List<Tuple> joinResults = new SpatialJoiner().innerJoin(layerA, layerB, SpatialJoiner.SpatialPredicate.CONTAINS)
                 .collect(Collectors.toList());
 
         assertThat(joinResults, containsInAnyOrder(

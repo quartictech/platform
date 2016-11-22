@@ -1,44 +1,47 @@
 package io.quartic.weyl.core.compute;
 
-import com.google.common.collect.Maps;
+import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.attributes.AttributesFactory;
-import io.quartic.weyl.core.compute.SpatialJoin.Tuple;
+import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.*;
+import org.immutables.value.Value;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
 
-import static io.quartic.weyl.core.compute.SpatialJoin.SpatialPredicate.CONTAINS;
+import static com.google.common.collect.Maps.newHashMap;
+import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
-public class BucketComputation implements LayerComputation {
-    private final Layer featureLayer;
-    private final BucketSpec bucketSpec;
-    private final Layer bucketLayer;
+@SweetStyle
+@Value.Immutable
+public abstract class BucketComputation implements LayerComputation {
+    protected abstract LayerStore store();
+    protected abstract BucketSpec bucketSpec();
+
+    @Value.Derived
+    protected Layer featureLayer() {
+        return store().getLayer(bucketSpec().features()).get();
+    }
+
+    @Value.Derived
+    protected Layer bucketLayer() {
+        return store().getLayer(bucketSpec().buckets()).get();
+    }
+
+    @Value.Default
+    protected SpatialJoiner joiner() {
+        return new SpatialJoiner();
+    }
+
     private final AttributesFactory attributesFactory = new AttributesFactory();
-
-    public static BucketComputation create(LayerStore store, BucketSpec bucketSpec) {
-        Optional<Layer> featureLayer = store.getLayer(bucketSpec.features());
-        Optional<Layer> bucketLayer = store.getLayer(bucketSpec.buckets());
-
-        if (featureLayer.isPresent() && bucketLayer.isPresent()) {
-            return new BucketComputation(featureLayer.get(), bucketLayer.get(), bucketSpec);
-        }
-        else {
-            throw new RuntimeException("can't find input layers for bucket computation");
-        }
-    }
-
-    private BucketComputation(Layer featureLayer, Layer bucketLayer, BucketSpec bucketSpec) {
-        this.featureLayer = featureLayer;
-        this.bucketLayer = bucketLayer;
-        this.bucketSpec = bucketSpec;
-    }
 
     @Override
     public Optional<ComputationResults> compute() {
@@ -49,17 +52,17 @@ public class BucketComputation implements LayerComputation {
                     rawAttributeName());
             String layerDescription = String.format("%s bucketed by %s aggregating by %s",
                     rawAttributeName(),
-                    bucketLayer.metadata().name(),
-                    bucketSpec.aggregation().toString());
+                    bucketLayer().metadata().name(),
+                    bucketSpec().aggregation().toString());
 
-            Map<AttributeName, Attribute> attributeMap = Maps.newHashMap(bucketLayer.schema().attributes());
+            Map<AttributeName, Attribute> attributeMap = newHashMap(bucketLayer().schema().attributes());
             Attribute newAttribute = AttributeImpl.builder()
                     .type(AttributeType.NUMERIC)
                     .build();
             attributeMap.put(attributeName(), newAttribute);
 
             AttributeSchema schema = AttributeSchemaImpl
-                    .copyOf(bucketLayer.schema())
+                    .copyOf(bucketLayer().schema())
                     .withAttributes(attributeMap)
                     .withPrimaryAttribute(attributeName());
 
@@ -80,29 +83,29 @@ public class BucketComputation implements LayerComputation {
     private Collection<Feature> bucketData() {
         // The order here is that CONTAINS applies from left -> right and
         // the spatial index on the right layer is the one that is queried
-        Map<Feature, List<Tuple>> groups = SpatialJoin.innerJoin(bucketLayer, featureLayer, CONTAINS)
-                .collect(Collectors.groupingBy(Tuple::left));
-
-        BucketAggregation aggregation = bucketSpec.aggregation();
+        Map<Feature, List<Tuple>> groups = joiner().innerJoin(bucketLayer(), featureLayer(), CONTAINS)
+                .collect(groupingBy(Tuple::left));
 
         return groups.entrySet().parallelStream()
-                .map(bucketEntry -> {
-                    Feature bucket = bucketEntry.getKey();
-                    Double value = aggregation.aggregate(
-                            bucket,
-                            bucketEntry.getValue().stream().map(Tuple::right).collect(Collectors.toList()));
+                .map(this::featureForBucket)
+                .collect(toList());
+    }
 
-                    if (bucketSpec.normalizeToArea()) {
-                        if (bucket.geometry().getArea() > 0) {
-                            value /= bucket.geometry().getArea();
-                        }
-                    }
+    private Feature featureForBucket(Entry<Feature, List<Tuple>> entry) {
+        Feature bucket = entry.getKey();
+        Double value = bucketSpec().aggregation().aggregate(
+                bucket,
+                entry.getValue().stream().map(Tuple::right).collect(toList()));
 
-                    final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
-                    builder.put(rawAttributeName(), value);
-                    return FeatureImpl.copyOf(bucket).withAttributes(builder.build());
-                })
-                .collect(Collectors.toList());
+        if (bucketSpec().normalizeToArea()) {
+            if (bucket.geometry().getArea() > 0) {
+                value /= bucket.geometry().getArea();
+            }
+        }
+
+        final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
+        builder.put(rawAttributeName(), value);
+        return FeatureImpl.copyOf(bucket).withAttributes(builder.build());
     }
 
     private AttributeName attributeName() {
@@ -110,6 +113,6 @@ public class BucketComputation implements LayerComputation {
     }
 
     private String rawAttributeName() {
-        return featureLayer.metadata().name();
+        return featureLayer().metadata().name();
     }
 }
