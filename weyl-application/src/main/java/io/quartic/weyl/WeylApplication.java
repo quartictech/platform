@@ -17,6 +17,7 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.LayerStoreImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
@@ -47,7 +48,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
-    private final LayerStore layerStore = new LayerStore(entityStore, lidGenerator);
+    private final LayerStore layerStore = LayerStoreImpl.builder()
+            .entityStore(entityStore).lidGenerator(lidGenerator).build();
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 

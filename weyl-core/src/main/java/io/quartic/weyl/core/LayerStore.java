@@ -8,6 +8,7 @@ import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
+import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.compute.LayerComputation;
@@ -15,6 +16,7 @@ import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.*;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.functions.Action1;
@@ -35,17 +37,20 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
-public class LayerStore {
+@SweetStyle
+@Value.Immutable
+public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final EntityStore entityStore;
-    private final UidGenerator<LayerId> lidGenerator;
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
 
-    public LayerStore(EntityStore entityStore, UidGenerator<LayerId> lidGenerator) {
-        this.entityStore = entityStore;
-        this.lidGenerator = lidGenerator;
+    protected abstract EntityStore entityStore();
+    protected abstract UidGenerator<LayerId> lidGenerator();
+
+    @Value.Default
+    protected LayerComputation.Factory computationFactory() {
+        return new LayerComputation.Factory();
     }
 
     public Action1<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
@@ -89,8 +94,8 @@ public class LayerStore {
 
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        return LayerComputation.compute(this, computationSpec).map(r -> {
-            final Layer layer = newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true);
+        return computationFactory().compute(this, computationSpec).map(r -> {
+            final Layer layer = newLayer(lidGenerator().get(), r.metadata(), IDENTITY_VIEW, r.schema(), true);
             putLayer(layer);
             addToLayer(layer.layerId(), r.features());
             return layer.layerId();
@@ -179,7 +184,7 @@ public class LayerStore {
         LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
 
         final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
-        entityStore.putAll(elaboratedFeatures);
+        entityStore().putAll(elaboratedFeatures);
         final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
         putLayer(layer.indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);

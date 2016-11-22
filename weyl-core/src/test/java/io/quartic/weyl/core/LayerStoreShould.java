@@ -5,6 +5,10 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.compute.ComputationResults;
+import io.quartic.weyl.core.compute.ComputationResultsImpl;
+import io.quartic.weyl.core.compute.ComputationSpec;
+import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.live.LayerSubscription;
@@ -25,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
@@ -42,7 +47,12 @@ public class LayerStoreShould {
 
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final EntityStore entityStore = mock(EntityStore.class);
-    private final LayerStore store = new LayerStore(entityStore, lidGenerator);
+    private final LayerComputation.Factory computationFactory = mock(LayerComputation.Factory.class);
+    private final LayerStore store = LayerStoreImpl.builder()
+            .entityStore(entityStore)
+            .lidGenerator(lidGenerator)
+            .computationFactory(computationFactory)
+            .build();
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
@@ -275,6 +285,29 @@ public class LayerStoreShould {
     }
 
     @Test
+    public void create_layer_for_computed_results() throws Exception {
+        final LayerMetadata metadata = mock(LayerMetadata.class);
+        final AttributeSchema schema = schema("pets");
+        final ComputationResults results = ComputationResultsImpl.of(
+                metadata,
+                schema,
+                newArrayList(modelFeature("a"), modelFeature("b"))
+        );
+        final ComputationSpec spec = mock(ComputationSpec.class);
+        when(computationFactory.compute(any(), any())).thenReturn(Optional.of(results));
+
+        final LayerId layerId = store.compute(spec).get();
+        final Layer layer = store.getLayer(layerId).get();
+
+        verify(computationFactory).compute(store, spec);
+        assertThat(layer.metadata(), equalTo(metadata));
+        assertThat(layer.schema(), equalTo(AttributeSchemaImpl.copyOf(schema)
+                .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.of(newHashSet(1234)))))
+        ));
+        assertThat(layer.features(), containsInAnyOrder(feature("1", "a"), feature("1", "b")));
+    }
+
+    @Test
     public void calculate_indices_for_indexable_layer() throws Exception {
         assertThatLayerIndexedFeaturesHasSize(true, 1);
     }
@@ -309,8 +342,12 @@ public class LayerStoreShould {
     }
 
     private Feature feature(String externalId) {
+        return feature(LAYER_ID.uid(), externalId);
+    }
+
+    private Feature feature(String layerId, String externalId) {
         return FeatureImpl.of(
-                EntityIdImpl.of(LAYER_ID.uid() + "/" + externalId),
+                EntityIdImpl.of(layerId + "/" + externalId),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 ATTRIBUTES
         );
