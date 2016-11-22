@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
+import static rx.functions.Actions.empty;
 
 public class CatalogueWatcherShould {
 
@@ -97,7 +98,7 @@ public class CatalogueWatcherShould {
 
     @Test
     public void only_process_each_dataset_once() throws Exception {
-        whenCreateLayerThenReturn("123", (x) -> {});
+        whenCreateLayerThenReturn("123", empty());
         when(listener.observable()).thenReturn(just(
                 ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
                 ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))
@@ -129,7 +130,7 @@ public class CatalogueWatcherShould {
 
     @Test
     public void pass_config_fields_to_extension_parser() throws Exception {
-        whenCreateLayerThenReturn("123", (x) -> {});
+        whenCreateLayerThenReturn("123", empty());
         when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
 
         watcher.start();

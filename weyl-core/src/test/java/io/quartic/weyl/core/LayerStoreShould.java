@@ -78,9 +78,9 @@ public class LayerStoreShould {
 
     @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
-        Observable.just(updateFor(modelFeature("a"))).subscribe(sub);
+        Observable.just(updateFor(modelFeature("a"))).subscribe(action);
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
@@ -88,12 +88,12 @@ public class LayerStoreShould {
 
     @Test
     public void add_observed_features_to_layer() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
         Observable.just(
                 updateFor(modelFeature("a")),
                 updateFor(modelFeature("b"))
-        ).subscribe(sub);
+        ).subscribe(action);
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(),
@@ -102,9 +102,9 @@ public class LayerStoreShould {
 
     @Test
     public void put_attributes_to_store() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
-        Observable.just(updateFor(modelFeature("a"), modelFeature("b"))).subscribe(sub);
+        Observable.just(updateFor(modelFeature("a"), modelFeature("b"))).subscribe(action);
 
 
         verify(entityStore).putAll(newArrayList(feature("a"), feature("b")));
@@ -112,14 +112,14 @@ public class LayerStoreShould {
 
     @Test
     public void notify_subscribers_of_observed_features() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         store.addSubscriber(LAYER_ID, subscriber);
 
         Observable.just(
                 updateFor(modelFeature("a"))
-        ).subscribe(sub);
+        ).subscribe(action);
 
         final LayerState layerState = captureLiveLayerState(subscriber);
         assertThat(layerState.featureCollection(),
@@ -131,7 +131,7 @@ public class LayerStoreShould {
 
     @Test
     public void handle_concurrent_subscription_changes() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
         final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addSubscriber(LAYER_ID, mock(Consumer.class)));    // Emulate concurrent subscription change
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
@@ -144,12 +144,12 @@ public class LayerStoreShould {
             return null;
         }).when(subscriber).accept(any());
 
-        assertCanRunToCompletion(sub);
+        assertCanRunToCompletion(action);
     }
 
     @Test
     public void handle_concurrent_listener_changes() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
         final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addListener(mock(LayerStoreListener.class)));    // Emulate concurrent subscription change
 
         LayerStoreListener listener = mock(LayerStoreListener.class);
@@ -162,7 +162,7 @@ public class LayerStoreShould {
             return null;
         }).when(listener).onLiveLayerEvent(any(), any());
 
-        assertCanRunToCompletion(sub);
+        assertCanRunToCompletion(action);
     }
 
     private void assertCanRunToCompletion(Action1<SourceUpdate> sub) {
@@ -224,7 +224,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_listeners_on_change() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
         LayerStoreListener listenerA = mock(LayerStoreListener.class);
         LayerStoreListener listenerB = mock(LayerStoreListener.class);
@@ -233,7 +233,7 @@ public class LayerStoreShould {
 
         Observable.just(
                 updateFor(modelFeature("a"))
-        ).subscribe(sub);
+        ).subscribe(action);
 
         verify(listenerA).onLiveLayerEvent(LAYER_ID, feature("a"));
         verify(listenerB).onLiveLayerEvent(LAYER_ID, feature("a"));
@@ -241,7 +241,7 @@ public class LayerStoreShould {
 
     @Test
     public void not_notify_subscribers_after_unsubscribe() {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
         Consumer<LayerState> subscriber = mock(Consumer.class);
         LayerSubscription subscription = store.addSubscriber(LAYER_ID, subscriber);
@@ -250,7 +250,7 @@ public class LayerStoreShould {
 
         Observable.just(
                 updateFor(modelFeature("a"))
-        ).subscribe(sub);
+        ).subscribe(action);
 
         verifyNoMoreInteractions(subscriber);
     }

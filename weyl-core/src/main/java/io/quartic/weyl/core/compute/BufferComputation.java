@@ -2,10 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.Layer;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.*;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -22,19 +19,22 @@ public class BufferComputation implements LayerComputation {
 
     @Override
     public Optional<ComputationResults> compute() {
-        Collection<Feature> bufferedFeatures = layer.features().parallelStream()
-                .map(feature -> FeatureImpl.copyOf(feature)
-                        .withGeometry(BufferOp.bufferOp(feature.geometry(), bufferDistance)))
+        Collection<NakedFeature> bufferedFeatures = layer.features().parallelStream()
+                .map(feature -> NakedFeatureImpl.of(
+                        feature.entityId().uid(),
+                        BufferOp.bufferOp(feature.geometry(), bufferDistance),
+                        feature.attributes())
+                )
                 .collect(Collectors.toList());
 
         return Optional.of(ComputationResultsImpl.of(
-                    LayerMetadataImpl.builder()
-                            .name(layer.metadata().name() + " (buffered)")
-                            .description(layer.metadata().description() + " buffered by " + bufferDistance + "m")
-                            .build(),
-                    bufferedFeatures,
-                    layer.schema()
-            ));
+                LayerMetadataImpl.builder()
+                        .name(layer.metadata().name() + " (buffered)")
+                        .description(layer.metadata().description() + " buffered by " + bufferDistance + "m")
+                        .build(),
+                layer.schema(),
+                bufferedFeatures
+        ));
     }
 
     public static LayerComputation create(LayerStore store, BufferSpec computationSpec) {

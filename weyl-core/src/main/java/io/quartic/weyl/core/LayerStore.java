@@ -51,7 +51,7 @@ public class LayerStore {
     public Action1<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
         checkLayerNotExists(id);
         putLayer(newLayer(id, metadata, view, schema, indexable));
-        return update -> addToLayer(id, update.features(), indexable);
+        return update -> addToLayer(id, update.features());
     }
 
     public Collection<Layer> listLayers() {
@@ -89,13 +89,12 @@ public class LayerStore {
 
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
-        Optional<Layer> layer = LayerComputation.compute(this, computationSpec)
-                .map(r -> updateIndicesAndStats(appendFeatures(
-                        newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true),
-                        r.features()))
-                );
-        layer.ifPresent(this::putLayer);
-        return layer.map(Layer::layerId);
+        return LayerComputation.compute(this, computationSpec).map(r -> {
+            final Layer layer = newLayer(lidGenerator.get(), r.metadata(), IDENTITY_VIEW, r.schema(), true);
+            putLayer(layer);
+            addToLayer(layer.layerId(), r.features());
+            return layer.layerId();
+        });
     }
 
     private void checkLayerExists(LayerId layerId) {
@@ -175,17 +174,17 @@ public class LayerStore {
                 .build();
     }
 
-    private void addToLayer(LayerId id, Collection<NakedFeature> features, boolean indexable) {
-        final Layer layer = layers.get(id); // TODO: locking?
+    private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
+        final Layer layer = layers.get(layerId);
         LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
 
-        final Collection<Feature> elaboratedFeatures = elaborate(id, features);
+        final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
         entityStore.putAll(elaboratedFeatures);
         final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
-        putLayer(indexable ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-        notifyListeners(id, elaboratedFeatures);
-        notifySubscribers(id);
+        putLayer(layer.indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);
+        notifyListeners(layerId, elaboratedFeatures);
+        notifySubscribers(layerId);
     }
 
     // TODO: this is going to double memory usage?

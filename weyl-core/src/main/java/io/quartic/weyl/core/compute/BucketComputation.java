@@ -54,7 +54,7 @@ public abstract class BucketComputation implements LayerComputation {
         }
     }
 
-    private Optional<ComputationResults> results(Collection<Feature> features, AttributeSchema schema) {
+    private Optional<ComputationResults> results(Collection<NakedFeature> features, AttributeSchema schema) {
         String layerName = String.format("%s (bucketed)",
                 rawAttributeName());
         String layerDescription = String.format("%s bucketed by %s aggregating by %s",
@@ -66,8 +66,8 @@ public abstract class BucketComputation implements LayerComputation {
                         .name(layerName)
                         .description(layerDescription)
                         .build(),
-                features,
-                schema
+                schema,
+                features
         ));
     }
 
@@ -84,7 +84,7 @@ public abstract class BucketComputation implements LayerComputation {
                 .withPrimaryAttribute(attributeName());
     }
 
-    private Collection<Feature> bucketData() {
+    private Collection<NakedFeature> bucketData() {
         // The order here is that CONTAINS applies from left -> right and
         // the spatial index on the right layer is the one that is queried
         Map<Feature, List<Tuple>> groups = joiner().innerJoin(bucketLayer(), featureLayer(), CONTAINS)
@@ -95,7 +95,7 @@ public abstract class BucketComputation implements LayerComputation {
                 .collect(toList());
     }
 
-    private Feature featureForBucket(Entry<Feature, List<Tuple>> entry) {
+    private NakedFeature featureForBucket(Entry<Feature, List<Tuple>> entry) {
         Feature bucket = entry.getKey();
         Double value = bucketSpec().aggregation().aggregate(
                 bucket,
@@ -109,7 +109,11 @@ public abstract class BucketComputation implements LayerComputation {
 
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
         builder.put(rawAttributeName(), value);
-        return FeatureImpl.copyOf(bucket).withAttributes(builder.build());
+        return NakedFeatureImpl.of(
+                bucket.entityId().uid(),
+                bucket.geometry(),
+                builder.build()
+        );
     }
 
     private AttributeName attributeName() {
