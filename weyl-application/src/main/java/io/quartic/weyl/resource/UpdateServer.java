@@ -21,7 +21,6 @@ import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerStateImpl;
-import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;

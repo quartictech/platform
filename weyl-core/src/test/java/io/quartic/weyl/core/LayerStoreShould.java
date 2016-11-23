@@ -11,8 +11,6 @@ import io.quartic.weyl.core.compute.ComputationResultsImpl;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.live.LayerState;
-import io.quartic.weyl.core.live.LayerStoreListener;
-import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
@@ -27,7 +25,6 @@ import rx.subjects.PublishSubject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 

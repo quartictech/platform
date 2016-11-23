@@ -2,11 +2,8 @@ package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.Lists;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -17,13 +14,12 @@ import rx.schedulers.Schedulers;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.stream.Collectors.toList;
 
-public class GeofenceStore implements LayerStoreListener {
+public class GeofenceStore  {
     private static final Logger LOG = LoggerFactory.getLogger(GeofenceStore.class);
 
     @SweetStyle
@@ -36,8 +32,6 @@ public class GeofenceStore implements LayerStoreListener {
     private final Map<ViolationKey, Violation> currentViolations = newHashMap();
     private final Set<Geofence> geofences = newHashSet();
     private final Set<GeofenceListener> listeners = newHashSet();
-
-
 
     public GeofenceStore(Observable<LiveLayerChange> liveLayerChanges) {
         liveLayerChanges.subscribeOn(Schedulers.computation())
@@ -101,7 +95,4 @@ public class GeofenceStore implements LayerStoreListener {
                 .map(Geofence::feature)
                 .collect(toList())));
     }
-
-
-
 }
