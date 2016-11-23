@@ -20,7 +20,7 @@ public class Multiplexer<T, K, V> implements Observable.Transformer<Pair<T, List
         return new Multiplexer<>(mapper);
     }
 
-    public Multiplexer(Function<K, Observable<V>> mapper) {
+    private Multiplexer(Function<K, Observable<V>> mapper) {
         this.mapper = mapper;
     }
 
