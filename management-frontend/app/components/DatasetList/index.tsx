@@ -34,6 +34,7 @@ export const DatasetList = (props: IDatasetListProps) => (
     <tbody>
     {
       _.map(props.datasets, (dataset, id) => <DatasetRow
+        key={id}
         id={id}
         dataset={dataset}
       />)
