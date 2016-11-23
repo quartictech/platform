@@ -35,16 +35,20 @@ class Home extends React.Component<IProps, IState> {
     return (
       <div className={s.container}>
         <div className={s.main}>
-          <DatasetList
-            datasets={this.props.datasets}
-            onSelect={this.selectDataset}
-          />
+          <div className="pt-elevation-4">
+            <DatasetList
+              datasets={this.props.datasets}
+              onSelect={this.selectDataset}
+            />
+          </div>
         </div>
 
         <div className={s.right}>
-          <pre>
-            {JSON.stringify(this.props.datasets[this.state.datasetId], null, '  ')}
-          </pre>
+          <div className="pt-elevation-4">
+            <pre>
+              {JSON.stringify(this.props.datasets[this.state.datasetId], null, '  ')}
+            </pre>
+          </div>
         </div>
       </div>
     );

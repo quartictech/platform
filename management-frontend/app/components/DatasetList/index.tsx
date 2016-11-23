@@ -13,7 +13,7 @@ interface IDatasetListProps {
 };
 
 export const DatasetList = (props: IDatasetListProps) => (
-  <table className="pt-table pt-striped" style={{ width: "100%" }}>
+  <table className="pt-table pt-interactive pt-striped" style={{ width: "100%" }}>
     <thead>
       <tr>
       <th>Type</th>
