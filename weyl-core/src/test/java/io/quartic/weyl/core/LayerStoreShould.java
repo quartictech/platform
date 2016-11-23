@@ -2,6 +2,7 @@ package io.quartic.weyl.core;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
@@ -196,7 +197,7 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void notify_on_layer_changes() throws Exception {
+    public void notify_on_updates_to_layers() throws Exception {
         final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
         TestSubscriber<Layer> sub = TestSubscriber.create();
@@ -224,6 +225,40 @@ public class LayerStoreShould {
                 equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
                         .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.empty())))));
     }
+
+    @Test
+    public void notify_on_layer_addition() {
+        createLayer(LAYER_ID);
+        TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
+        store.observeAllLayers().subscribe(sub);
+
+        List<Collection<Layer>> layerEvents = sub.getOnNextEvents();
+        assertThat(layerEvents.size(), equalTo(1));
+        assertThat(layerEvents.get(0).size(), equalTo(1));
+        assertThat(layerEvents.get(0).stream().map(Layer::layerId).collect(toList()),
+                containsInAnyOrder(LAYER_ID));
+
+        LayerId layerId2 = LayerId.fromString("777");
+        createLayer(layerId2);
+        layerEvents = sub.getOnNextEvents();
+        assertThat(layerEvents.size(), equalTo(2));
+        assertThat(layerEvents.get(1).size(), equalTo(2));
+        assertThat(layerEvents.get(1).stream().map(Layer::layerId).collect(toList()),
+                containsInAnyOrder(LAYER_ID, layerId2));
+    }
+
+     @Test
+    public void notify_on_layer_deletion() {
+         createLayer(LAYER_ID);
+         TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
+         store.observeAllLayers().subscribe(sub);
+
+         assertThat(sub.getOnNextEvents().size(), equalTo(1));
+         assertThat(sub.getOnNextEvents().get(0).size(), equalTo(1));
+         store.deleteLayer(LAYER_ID);
+         assertThat(sub.getOnNextEvents().size(), equalTo(2));
+         assertThat(sub.getOnNextEvents().get(1).size(), equalTo(0));
+     }
 
 //    @Test
 //    public void not_notify_subscribers_after_unsubscribe() {

@@ -73,6 +73,7 @@ public abstract class LayerStore {
         checkLayerExists(id);
         layers.remove(id);
         layerObservables.delete(id);
+        allLayersObservable.onNext(layers.values());
     }
 
     // TODO: we have no test for this
