@@ -15,7 +15,7 @@ import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.core.EntityStore;
+import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -23,17 +23,22 @@ import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChangeAggregator;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.*;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
+import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -41,16 +46,24 @@ import java.util.function.Function;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
-    private final EntityStore entityStore = new EntityStore();
+    private final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
     private final LayerStore layerStore = LayerStoreImpl.builder()
             .entityStore(entityStore).lidGenerator(lidGenerator).build();
-    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
+
+    private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
+            layerStore.observeAllLayers().map(layers -> layers.stream().filter(layer -> !layer.indexable()).collect(toList())),
+            layerStore::observeNewFeatures
+    );
+
+    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {

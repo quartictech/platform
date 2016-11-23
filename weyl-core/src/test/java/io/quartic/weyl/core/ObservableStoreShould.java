@@ -13,9 +13,9 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class EntityStoreShould {
+public class ObservableStoreShould {
 
-    private final EntityStore store = new EntityStore();
+    private final ObservableStore<EntityId, Feature> store = new ObservableStore<>();
 
     @Test
     public void emit_entity_changes() throws Exception {
@@ -25,8 +25,8 @@ public class EntityStoreShould {
         final TestSubscriber<Feature> sub = TestSubscriber.create();
 
         store.get(id).subscribe(sub);
-        store.putAll(newArrayList(featureA));
-        store.putAll(newArrayList(featureB));
+        store.putAll(newArrayList(featureA), Feature::entityId);
+        store.putAll(newArrayList(featureB), Feature::entityId);
         sub.awaitValueCount(2, 100, MILLISECONDS);
 
         assertThat(sub.getOnNextEvents(), contains(featureA, featureB));
@@ -43,8 +43,8 @@ public class EntityStoreShould {
 
         store.get(idA).subscribe(subA);
         store.get(idB).subscribe(subB);
-        store.putAll(newArrayList(featureA));
-        store.putAll(newArrayList(featureB));
+        store.putAll(newArrayList(featureA), Feature::entityId);
+        store.putAll(newArrayList(featureB), Feature::entityId);
         subA.awaitValueCount(1, 100, MILLISECONDS);
         subB.awaitValueCount(1, 100, MILLISECONDS);
 
@@ -58,7 +58,7 @@ public class EntityStoreShould {
         final Feature feature = feature(id);
         final TestSubscriber<Feature> sub = TestSubscriber.create();
 
-        store.putAll(newArrayList(feature));
+        store.putAll(newArrayList(feature), Feature::entityId);
         store.get(id).subscribe(sub);
         sub.awaitValueCount(1, 100, MILLISECONDS);
 

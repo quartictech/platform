@@ -6,6 +6,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
@@ -19,9 +20,12 @@ import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
+import io.quartic.weyl.core.live.LayerStateImpl;
 import io.quartic.weyl.core.live.LayerSubscription;
+import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.message.*;
@@ -31,15 +35,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import rx.Observable;
 import rx.Subscription;
+import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -57,7 +60,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final GeometryTransformer geometryTransformer;
     private final ObjectMapper objectMapper;
     private final Set<Violation> violations = newLinkedHashSet();
-    private final List<LayerSubscription> subscriptions = newArrayList();
+    private final Map<LayerId, Subscription> subscriptions = Maps.newHashMap();
     private final Collection<SelectionDrivenUpdateGenerator> generators;
     private final GeofenceStore geofenceStore;
     private final AlertProcessor alertProcessor;
@@ -167,12 +170,25 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private void unsubscribeAll() {
-        subscriptions.forEach(layerStore::removeSubscriber);
+        subscriptions.values().forEach(Subscription::unsubscribe);
         subscriptions.clear();
     }
 
+    private LayerState computeLayerState(Layer layer, LayerView layerView) {
+        final Collection<Feature> features = layer.features();
+        Stream<Feature> computed = layerView.compute(features);
+        return LayerStateImpl.builder()
+                .schema(layer.schema())
+                .featureCollection(computed.collect(toList()))
+                .build();
+    }
+
     private void subscribe(LayerId layerId) {
-        subscriptions.add(layerStore.addSubscriber(layerId, state -> sendLayerUpdate(layerId, state)));
+        Subscription subscription = layerStore.observeLayersForLayerId(layerId)
+                .map(layer -> Pair.of(layer.layerId(), computeLayerState(layer, layer.view())))
+                .subscribeOn(Schedulers.computation())
+                .subscribe(pair -> sendLayerUpdate(pair.getKey(), pair.getRight()));
+        subscriptions.put(layerId, subscription);
     }
 
     private void sendViolationsUpdate() {

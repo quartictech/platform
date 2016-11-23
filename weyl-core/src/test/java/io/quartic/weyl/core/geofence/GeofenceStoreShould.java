@@ -7,7 +7,9 @@ import io.quartic.weyl.core.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import rx.subjects.PublishSubject;
 
+import java.util.Observable;
 import java.util.function.BiConsumer;
 
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
@@ -17,7 +19,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GeofenceStoreShould {
-    private final GeofenceStore store = new GeofenceStore(mock(LayerStore.class));
+    private final PublishSubject<LiveLayerChange> subject = PublishSubject.create();
+    private final GeofenceStore store = new GeofenceStore(subject);
     private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
 

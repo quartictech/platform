@@ -1,10 +1,8 @@
 package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -19,17 +17,17 @@ import io.quartic.weyl.core.source.SourceUpdate;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 import rx.functions.Action1;
+import rx.subjects.BehaviorSubject;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
@@ -42,10 +40,11 @@ import static java.util.stream.Collectors.toList;
 public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final List<LayerStoreListener> listeners = newArrayList();
-    private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
+    private final ObservableStore<LayerId, Layer> layerObservables = new ObservableStore<>();
+    private final ObservableStore<LayerId, Collection<Feature>> newFeatureObservables = new ObservableStore<>();
+    private final BehaviorSubject<Collection<Layer>> allLayersObservable = BehaviorSubject.create();
 
-    protected abstract EntityStore entityStore();
+    protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract UidGenerator<LayerId> lidGenerator();
 
     @Value.Default
@@ -73,23 +72,7 @@ public abstract class LayerStore {
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
         layers.remove(id);
-        subscriptions.removeAll(id);
-    }
-
-    public synchronized void addListener(LayerStoreListener layerStoreListener) {
-        listeners.add(layerStoreListener);
-    }
-
-    public synchronized LayerSubscription addSubscriber(LayerId layerId, Consumer<LayerState> subscriber) {
-        checkLayerExists(layerId);
-        LayerSubscription subscription = LayerSubscriptionImpl.of(layerId, layers.get(layerId).view(), subscriber);
-        subscriptions.put(layerId, subscription);
-        subscriber.accept(computeLayerState(layers.get(layerId), subscription));
-        return subscription;
-    }
-
-    public synchronized void removeSubscriber(LayerSubscription layerSubscription) {
-        subscriptions.remove(layerSubscription.layerId(), layerSubscription);
+        layerObservables.delete(id);
     }
 
     // TODO: we have no test for this
@@ -112,6 +95,8 @@ public abstract class LayerStore {
 
     private void putLayer(Layer layer) {
         layers.put(layer.layerId(), layer);
+        allLayersObservable.onNext(layers.values());
+        layerObservables.put(layer.layerId(), layer);
     }
 
     private Layer newLayer(LayerId layerId, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
@@ -160,36 +145,32 @@ public abstract class LayerStore {
         return stRtree;
     }
 
-    private synchronized void notifySubscribers(LayerId layerId) {
-        final Layer layer = layers.get(layerId);
-        subscriptions.get(layerId)
-                .forEach(subscription -> subscription.subscriber().accept(computeLayerState(layer, subscription)));
+    public Observable<Collection<Feature>> observeNewFeatures(LayerId layerId) {
+        checkLayerExists(layerId);
+        return newFeatureObservables.get(layerId);
     }
 
-    private synchronized void notifyListeners(LayerId layerId, Collection<Feature> newFeatures) {
-        newFeatures.forEach(f -> listeners.forEach(listener -> listener.onLiveLayerEvent(layerId, f)));
+    public Observable<Collection<Layer>> observeAllLayers() {
+        return allLayersObservable;
     }
 
-    private LayerState computeLayerState(Layer layer, LayerSubscription subscription) {
-        final Collection<Feature> features = layer.features();
-        Stream<Feature> computed = subscription.liveLayerView().compute(features);
-        return LayerStateImpl.builder()
-                .schema(layer.schema())
-                .featureCollection(computed.collect(toList()))
-                .build();
+    public Observable<Layer> observeLayersForLayerId(LayerId layerId) {
+        checkLayerExists(layerId);
+       return layerObservables.get(layerId);
     }
+
+
 
     private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
         final Layer layer = layers.get(layerId);
         LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
 
         final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
-        entityStore().putAll(elaboratedFeatures);
+        entityStore().putAll(elaboratedFeatures, Feature::entityId);
         final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
         putLayer(layer.indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-        notifyListeners(layerId, elaboratedFeatures);
-        notifySubscribers(layerId);
+        newFeatureObservables.put(layerId, elaboratedFeatures);
     }
 
     // TODO: this is going to double memory usage?
