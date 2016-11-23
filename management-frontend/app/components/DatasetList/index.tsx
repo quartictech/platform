@@ -1,26 +1,16 @@
 import * as React from "react";
-import { Link } from "react-router";
+// import { Link } from "react-router";
+
+import * as Blueprint from "@blueprintjs/core";
+const { Button } = Blueprint;
 
 import { IDataset } from "../../models";
 import _ = require("underscore");
 
 interface IDatasetListProps {
   datasets: { [id: string]: IDataset };
+  onSelect: (String) => void;
 };
-
-interface IDatasetRowProps {
-  id: string;
-  dataset: IDataset;
-}
-
-export const DatasetRow = (props: IDatasetRowProps) => (
-  <tr key={props.id}>
-  <td>{props.dataset.locator.type}</td>
-  <td>{props.dataset.metadata.name}</td>
-  <td>{props.dataset.metadata.description}</td>
-  <td><Link to={`/dataset/${props.id}`}>View</Link></td>
-  </tr>
-);
 
 export const DatasetList = (props: IDatasetListProps) => (
   <table className="pt-table pt-striped" style={{ width: "100%" }}>
@@ -37,8 +27,28 @@ export const DatasetList = (props: IDatasetListProps) => (
         key={id}
         id={id}
         dataset={dataset}
+        onSelect={() => props.onSelect(id)}
       />)
     }
     </tbody>
   </table>
+);
+
+interface IDatasetRowProps {
+  id: string;
+  dataset: IDataset;
+  onSelect: () => void;
+}
+
+export const DatasetRow = (props: IDatasetRowProps) => (
+  <tr key={props.id}>
+  <td>{props.dataset.locator.type}</td>
+  <td>{props.dataset.metadata.name}</td>
+  <td>{props.dataset.metadata.description}</td>
+  <td>
+    <Button onClick={props.onSelect}>
+      Details
+    </Button>
+  </td>
+  </tr>
 );

@@ -1,16 +1,16 @@
 
 .container {
-    display: flex;
-    align-items: center;
-    background-color: #293742;
+  display: flex;
+  background-color: #293742;
 }
 
-.left {
-   width: 20%;
-   padding: 10px;
-   align-self: flex-start;
- }
+.main {
+  flex-grow: 1;
+  padding: 10px;
+}
 
- .main {
-   flex-grow: 1;
- }
+.right {
+  width: 35%;
+  padding: 10px;
+  align-self: flex-start;
+}
