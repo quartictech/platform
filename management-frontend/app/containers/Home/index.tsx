@@ -12,6 +12,7 @@ import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
 import { DatasetList } from "../../components/DatasetList";
+import { DatasetInfo } from "../../components/DatasetInfo";
 
 interface IProps {
   datasets: { [id: string]: IDataset };
@@ -35,7 +36,7 @@ class Home extends React.Component<IProps, IState> {
     return (
       <div className={s.container}>
         <div className={s.main}>
-          <div className="pt-elevation-4">
+          <div className="pt-card pt-elevation-4">
             <DatasetList
               datasets={this.props.datasets}
               onSelect={this.selectDataset}
@@ -44,10 +45,10 @@ class Home extends React.Component<IProps, IState> {
         </div>
 
         <div className={s.right}>
-          <div className="pt-elevation-4">
-            <pre>
-              {JSON.stringify(this.props.datasets[this.state.datasetId], null, '  ')}
-            </pre>
+          <div className="pt-card pt-elevation-4">
+            <DatasetInfo
+              dataset={this.props.datasets[this.state.datasetId]}
+            />
           </div>
         </div>
       </div>
