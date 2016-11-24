@@ -35,9 +35,10 @@ public class ManagementResource {
         return catalogueService.getDatasets();
     }
 
-    @PUT
+    @POST
     @Path("/dataset")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public DatasetId createDataset(CreateDatasetRequest createDatasetRequest) {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
             @Override
@@ -63,6 +64,7 @@ public class ManagementResource {
 
     @POST
     @Path("/file")
+    @Produces(MediaType.APPLICATION_JSON)
     public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
         CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
         gcsConnector.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());

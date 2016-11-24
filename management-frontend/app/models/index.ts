@@ -3,7 +3,7 @@ export interface IDatasetMetadata {
   name: string;
   description: string;
   attribution: string;
-  icon: string;
+  icon?: string;
 }
 
 export interface IDatasetLocator {
@@ -15,7 +15,17 @@ export interface IDataset {
   locator: IDatasetLocator;
 }
 
+export interface ICreateDataset {
+  metadata: IDatasetMetadata;
+  files: any[];
+}
+
 export interface DatasetAction {
   type: string;
   data: any;
+}
+
+export interface UiAction {
+  type: string;
+  activeModal?: string;
 }

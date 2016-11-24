@@ -1,6 +1,10 @@
 import * as React from "react";
 import { Header } from "../../components";
 
+import { createStructuredSelector } from "reselect";
+import * as actions from "../../redux/actions";
+import { connect } from "react-redux";
+
 const s = require("./style.css");
 
 interface IProps {
@@ -11,6 +15,7 @@ interface IProps {
   params?: {
     node: string
   };
+  showNewDatasetModal: any;
 }
 
 export class App extends React.Component<IProps, void> {
@@ -19,7 +24,7 @@ export class App extends React.Component<IProps, void> {
     return (
       <div className="pt-dark">
       <section className={s.App}>
-        <Header />
+        <Header newDatasetClick={this.props.showNewDatasetModal} />
           {children}
       </section>
       </div>
@@ -27,4 +32,14 @@ export class App extends React.Component<IProps, void> {
   }
 }
 
-export default App;
+const mapDispatchToProps = {
+  showNewDatasetModal: () => actions.setActiveModal("newDataset")
+};
+
+const mapStateToProps = createStructuredSelector({
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);

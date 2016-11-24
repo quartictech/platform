@@ -11,7 +11,8 @@ const props = {
   },
   location: {
     pathname: "/"
-  }
+  },
+  showNewDatasetModal: () => null
 };
 
 /** Case 1 */

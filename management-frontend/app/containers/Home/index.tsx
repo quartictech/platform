@@ -10,10 +10,14 @@ const s = require("./style.css");
 
 import { DatasetList } from "../../components/DatasetList";
 import { DatasetInfo } from "../../components/DatasetInfo";
+import { NewDataset } from "../../components/NewDataset";
 
 interface IProps {
   datasets: { [id: string]: IDataset };
+  ui: any;
+  createDataset: (any) => any;
   fetchDatasets: any;
+  closeNewDatasetModal: any;
 }
 
 interface IState {
@@ -32,6 +36,11 @@ class Home extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
+        <NewDataset
+          visible={this.props.ui.activeModal === "newDataset"}
+          createDataset={this.props.createDataset}
+          closeNewDatasetClick={this.props.closeNewDatasetModal}
+        />
         <div className={s.main}>
           <DatasetList
             datasets={this.props.datasets}
@@ -64,11 +73,14 @@ class Home extends React.Component<IProps, IState> {
 export { Home };
 
 const mapDispatchToProps = {
-  fetchDatasets: actions.fetchDatasets
+  fetchDatasets: actions.fetchDatasets,
+  createDataset: actions.createDataset,
+  closeNewDatasetModal: () => actions.setActiveModal(null as string)
 };
 
 const mapStateToProps = createStructuredSelector({
   datasets: selectors.selectDatasets,
+  ui: selectors.selectUi
 });
 
 export default connect(
