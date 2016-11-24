@@ -13,4 +13,9 @@ import java.util.List;
 @JsonDeserialize(as = LineStringImpl.class)
 public interface LineString extends Geometry {
     List<List<Double>> coordinates();
+
+    @Override
+    default <T> T accept(GeometryVisitor<T> geometryVisitor) {
+       return geometryVisitor.visit(this);
+    }
 }

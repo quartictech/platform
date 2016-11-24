@@ -23,6 +23,8 @@ import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
@@ -46,10 +48,13 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+    private final UidGenerator<EntityId> eidGenerator = RandomUidGenerator.of(EntityIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
     private final LayerStore layerStore = LayerStoreImpl.builder()
-            .entityStore(entityStore).lidGenerator(lidGenerator).build();
+            .entityStore(entityStore)
+            .lidGenerator(lidGenerator)
+            .build();
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 

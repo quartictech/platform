@@ -13,9 +13,13 @@ import java.util.Optional;
         @Type(value = PointImpl.class, name = "Point"),
         @Type(value = LineStringImpl.class, name = "LineString"),
         @Type(value = PolygonImpl.class, name = "Polygon"),
-        @Type(value = MultiPolygonImpl.class, name = "MultiPolygon")
+        @Type(value = MultiPolygonImpl.class, name = "MultiPolygon"),
+        @Type(value = MultiPointImpl.class, name = "MultiPoint"),
+        @Type(value = MultiLineStringImpl.class, name = "MultiLineString")
 })
 public interface Geometry {
     @Value.Parameter(false)
     Optional<Map<String, Object>> crs();
+
+    <T> T accept(GeometryVisitor<T> geometryVisitor);
 }

@@ -42,7 +42,7 @@ public class FeatureConverter {
     private NakedFeature toModel(io.quartic.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         return NakedFeatureImpl.of(
-                f.id().get(),
+                f.id(),
                 geometryTransformer.transform(Utils.toJts(f.geometry().get())),
                 convertToModelAttributes(f.properties())
         );

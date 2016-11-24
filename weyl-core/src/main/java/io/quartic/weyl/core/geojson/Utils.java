@@ -2,10 +2,15 @@ package io.quartic.weyl.core.geojson;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.*;
 import io.quartic.geojson.*;
+import io.quartic.geojson.Geometry;
+import io.quartic.geojson.LineString;
+import io.quartic.geojson.MultiLineString;
+import io.quartic.geojson.MultiPoint;
+import io.quartic.geojson.MultiPolygon;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.Polygon;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,48 +26,62 @@ public final class Utils {
 
     private Utils() {}
 
-    public static LineString lineStringFrom(Point... points) {
-        return lineStringFrom(asList(points));
-    }
-
-    public static LineString lineStringFrom(Iterable<Point> points) {
-        return LineStringImpl.of(
-                StreamSupport.stream(points.spliterator(), true)
-                        .map(Point::coordinates)
-                        .collect(toList())
-        );
-    }
-
     public static com.vividsolutions.jts.geom.Geometry toJts(Geometry geometry) {
-        // TODO: this is gross - can we use a visitor?
-        if (geometry instanceof Point) {
-            return toJts((Point)geometry);
-        }
-        if (geometry instanceof LineString) {
-            return toJts((LineString)geometry);
-        }
-        if (geometry instanceof Polygon) {
-            return toJts((Polygon) geometry);
-        }
-        if (geometry instanceof MultiPolygon) {
-            return toJts((MultiPolygon) geometry);
-        }
-        throw new UnsupportedOperationException("Cannot convert from type " + geometry.getClass().getCanonicalName());
+        return geometry.accept(new GeometryVisitor<com.vividsolutions.jts.geom.Geometry>(){
+            @Override
+            public com.vividsolutions.jts.geom.Geometry visit(Polygon polygon) {
+                return polygonToJts(polygon);
+            }
+
+            @Override
+            public com.vividsolutions.jts.geom.Geometry visit(Point point) {
+                return pointToJts(point);
+            }
+
+            @Override
+            public com.vividsolutions.jts.geom.Geometry visit(LineString lineString) {
+                return lineStringToJts(lineString);
+            }
+
+            @Override
+            public com.vividsolutions.jts.geom.Geometry visit(MultiLineString multiLineString) {
+                return multiLineStringToJts(multiLineString);
+            }
+
+            @Override
+            public com.vividsolutions.jts.geom.Geometry visit(MultiPoint multiPoint) {
+                return multiPointToJts(multiPoint);
+            }
+
+            @Override
+            public com.vividsolutions.jts.geom.Geometry visit(MultiPolygon multiPolygon) {
+                return multiPolygonToJts(multiPolygon);
+            }
+        });
     }
 
-    public static com.vividsolutions.jts.geom.Point toJts(Point point) {
+    private static com.vividsolutions.jts.geom.MultiPoint multiPointToJts(MultiPoint multiPoint) {
+        return factory.createMultiPoint(listToCoords(multiPoint.coordinates()));
+    }
+
+    private static com.vividsolutions.jts.geom.MultiLineString multiLineStringToJts(MultiLineString multiLineString) {
+        return factory.createMultiLineString(multiLineString.coordinates().stream().map(Utils::listToCoords)
+                .toArray(com.vividsolutions.jts.geom.LineString[]::new));
+    }
+
+    private static com.vividsolutions.jts.geom.Point pointToJts(Point point) {
         return factory.createPoint(listToCoord(point.coordinates()));
     }
 
-    public static com.vividsolutions.jts.geom.LineString toJts(LineString string) {
+    private static com.vividsolutions.jts.geom.LineString lineStringToJts(LineString string) {
         return factory.createLineString(listToCoords(string.coordinates()));
     }
 
-    public static com.vividsolutions.jts.geom.Polygon toJts(Polygon polygon) {
+    private static com.vividsolutions.jts.geom.Polygon polygonToJts(Polygon polygon) {
         return createPolygon(polygon.coordinates());
     }
 
-    public static com.vividsolutions.jts.geom.MultiPolygon toJts(MultiPolygon multiPolygon) {
+    private static com.vividsolutions.jts.geom.MultiPolygon multiPolygonToJts(MultiPolygon multiPolygon) {
         com.vividsolutions.jts.geom.Polygon[] polygons = multiPolygon.coordinates().stream().map(Utils::createPolygon)
                 .toArray(com.vividsolutions.jts.geom.Polygon[]::new);
         return factory.createMultiPolygon(polygons);
