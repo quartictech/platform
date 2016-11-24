@@ -1,8 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import * as Blueprint from "@blueprintjs/core";
-const { Menu, MenuItem, MenuDivider } = Blueprint;
+import { IDataset } from "../../models";
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
@@ -10,13 +9,22 @@ import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
 import { DatasetList } from "../../components/DatasetList";
+import { DatasetInfo } from "../../components/DatasetInfo";
 
 interface IProps {
-  datasets: any;
+  datasets: { [id: string]: IDataset };
   fetchDatasets: any;
 }
 
-class Home extends React.Component<IProps, any> {
+interface IState {
+  datasetId: string;
+};
+
+class Home extends React.Component<IProps, IState> {
+  public state : IState = {
+    datasetId: null,
+  };
+
   componentDidMount() {
     this.props.fetchDatasets();
   }
@@ -24,26 +32,32 @@ class Home extends React.Component<IProps, any> {
   render() {
     return (
       <div className={s.container}>
+        <div className={s.main}>
+          <DatasetList
+            datasets={this.props.datasets}
+            selectedId={this.state.datasetId}
+            onSelect={this.selectDataset}
+          />
+        </div>
 
-      <div className={s.left}>
-
-      <Menu className="pt-elevation-1">
-               <MenuItem
-                   iconName="new-text-box"
-                   text="Live" />
-               <MenuItem
-                   iconName="new-object"
-                   text="Static" />
-               <MenuDivider />
-               <MenuItem text="Settings..." iconName="cog" />
-           </Menu>
-      </div>
-
-      <div className={s.main}>
-        <DatasetList datasets={this.props.datasets.datasets} />
-      </div>
+        {
+          (this.state.datasetId === null)
+            ? null
+            : (
+              <div className={s.right}>
+                <DatasetInfo
+                  id={this.state.datasetId}
+                  dataset={this.props.datasets[this.state.datasetId]}
+                />
+              </div>
+            )
+        }
       </div>
     );
+  }
+
+  private selectDataset = (id: string) => {
+    this.setState({datasetId: id});
   }
 }
 

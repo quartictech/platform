@@ -3,6 +3,7 @@ export interface IDatasetMetadata {
   name: string;
   description: string;
   attribution: string;
+  icon: string;
 }
 
 export interface IDatasetLocator {
