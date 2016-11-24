@@ -100,6 +100,7 @@ public final class Utils {
 
     public static Geometry fromJts(com.vividsolutions.jts.geom.Geometry geometry) {
         // TODO: this is gross - can we use a visitor?
+        // TODO: the set of geometry types support on import (above) are not currently all supported here!
         if (geometry instanceof com.vividsolutions.jts.geom.Point) {
             return fromJts((com.vividsolutions.jts.geom.Point)geometry);
         }
