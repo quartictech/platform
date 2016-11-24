@@ -20,9 +20,6 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 @JsonSerialize(as = FeatureCollectionImpl.class)
 @JsonDeserialize(as = FeatureCollectionImpl.class)
 @JsonTypeInfo(use= Id.NAME, include= As.PROPERTY, property="type", defaultImpl = FeatureCollectionImpl.class)
-public interface FeatureCollection {
+public interface FeatureCollection extends GeoJSONObject {
     List<Feature> features();
-
-    @Value.Parameter(false)
-    Optional<Map<String, Object>> crs();
 }

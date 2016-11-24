@@ -17,9 +17,6 @@ import java.util.Optional;
         @Type(value = MultiPointImpl.class, name = "MultiPoint"),
         @Type(value = MultiLineStringImpl.class, name = "MultiLineString")
 })
-public interface Geometry {
-    @Value.Parameter(false)
-    Optional<Map<String, Object>> crs();
-
+public interface Geometry extends GeoJSONObject {
     <T> T accept(GeometryVisitor<T> geometryVisitor);
 }
