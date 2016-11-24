@@ -13,4 +13,9 @@ import java.util.List;
 @JsonDeserialize(as = PointImpl.class)
 public interface Point extends Geometry {
     List<Double> coordinates();
+
+    @Override
+    default <T> T accept(GeometryVisitor<T> geometryVisitor) {
+        return geometryVisitor.visit(this);
+    }
 }

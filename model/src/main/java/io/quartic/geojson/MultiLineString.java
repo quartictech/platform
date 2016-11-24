@@ -1,5 +1,6 @@
 package io.quartic.geojson;
 
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
@@ -9,10 +10,10 @@ import java.util.List;
 
 @SweetStyle
 @Value.Immutable
-@JsonSerialize(as = MultiPolygonImpl.class)
-@JsonDeserialize(as = MultiPolygonImpl.class)
-public interface MultiPolygon extends Geometry {
-    List<List<List<List<Double>>>> coordinates();
+@JsonSerialize(as = MultiLineStringImpl.class)
+@JsonDeserialize(as = MultiLineStringImpl.class)
+public interface MultiLineString extends Geometry {
+    List<List<List<Double>>> coordinates();
 
     @Override
     default <T> T accept(GeometryVisitor<T> geometryVisitor) {

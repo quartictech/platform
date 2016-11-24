@@ -21,7 +21,7 @@ public class BufferComputation implements LayerComputation {
     public Optional<ComputationResults> compute() {
         Collection<NakedFeature> bufferedFeatures = layer.features().parallelStream()
                 .map(feature -> NakedFeatureImpl.of(
-                        feature.entityId().uid(),
+                        Optional.of(feature.entityId().uid()),
                         BufferOp.bufferOp(feature.geometry(), bufferDistance),
                         feature.attributes())
                 )

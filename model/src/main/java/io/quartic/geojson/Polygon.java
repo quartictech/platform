@@ -13,4 +13,9 @@ import java.util.List;
 @JsonDeserialize(as = PolygonImpl.class)
 public interface Polygon extends Geometry {
     List<List<List<Double>>> coordinates();
+
+    @Override
+    default <T> T accept(GeometryVisitor<T> geometryVisitor) {
+        return geometryVisitor.visit(this);
+    }
 }

@@ -110,7 +110,7 @@ public abstract class BucketComputation implements LayerComputation {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
         builder.put(rawAttributeName(), value);
         return NakedFeatureImpl.of(
-                bucket.entityId().uid(),
+                Optional.of(bucket.entityId().uid()),
                 bucket.geometry(),
                 builder.build()
         );
