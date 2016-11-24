@@ -54,7 +54,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     this.props.createDataset({
       name: this.state.name,
       description: this.state.description,
-      attribution: "user data"
+      attribution: "User data"
     }, this.state.files);
   }
 
