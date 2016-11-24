@@ -101,6 +101,14 @@ public class AttributesFactoryShould {
     }
 
     @Test
+    public void return_false_for_entries_corresponding_to_missing_attribute_names() throws Exception {
+        builder().put("wat", 32).build();
+        final Attributes attributes = buildAttributes();
+
+        assertThat(attributes.attributes().containsKey(name("wat")), equalTo(false));
+    }
+
+    @Test
     public void not_list_entries_corresponding_to_missing_attribute_names() throws Exception {
         builder().put("wat", 32).build();
         final Attributes attributes = buildAttributes();

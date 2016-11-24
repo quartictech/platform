@@ -121,7 +121,7 @@ public class AttributesFactory {
                 }
 
                 private boolean validIndex(Integer index) {
-                    return (index != null) && (index < values.size());
+                    return (index != null) && (index < values.size()) && (values.get(index) != null);
                 }
             };
         }
