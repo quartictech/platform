@@ -3,37 +3,42 @@ package io.quartic.weyl.core.attributes;
 import io.quartic.weyl.core.model.*;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toConcurrentMap;
+import static java.util.stream.Collectors.toList;
 
 public class AttributeSchemaInferrer {
     public static Map<AttributeName, Attribute> inferSchema(Collection<Feature> features) {
-        Set<AttributeName> attributes = features.parallelStream()
-                .flatMap(feature -> feature.attributes().attributes().keySet().stream())
-                .collect(Collectors.toSet());
+        final List<Attributes> attributes = features.stream().map(Feature::attributes).collect(toList());
 
-        return attributes.parallelStream()
-                .collect(Collectors.toConcurrentMap(
-                        Function.identity(),
-                        attribute -> inferAttribute(attribute, features)));
+        if (attributes.isEmpty()) {
+            return emptyMap();
+        }
 
+        final Collection<AttributeName> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
+
+        return names.parallelStream()
+                .collect(toConcurrentMap(identity(), attribute -> inferAttribute(attribute, attributes)));
     }
 
-    private static Attribute inferAttribute(AttributeName attribute, Collection<Feature> features) {
-        Optional<Set<Object>> categories = inferCategories(attribute, features);
+    private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes) {
+        Optional<Set<Object>> categories = inferCategories(name, attributes);
         return AttributeImpl.builder()
-                .type(inferAttributeType(attribute, features))
+                .type(inferAttributeType(name, attributes))
                 .categories(categories)
                 .build();
     }
 
-    private static Optional<Set<Object>> inferCategories(AttributeName attribute, Collection<Feature> features) {
-        Set<Object> values = features.stream()
-                .map(feature -> feature.attributes().attributes().get(attribute))
+    private static Optional<Set<Object>> inferCategories(AttributeName name, Collection<Attributes> attributes) {
+        Set<Object> values = attributes.stream()
+                .map(a -> a.attributes().get(name))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        if (values.size() > 0 && values.size() < 20 && values.size() < features.size()) {
+        if (values.size() > 0 && values.size() < 20 && values.size() < attributes.size()) {
             return Optional.of(values);
         }
         else {
@@ -42,9 +47,9 @@ public class AttributeSchemaInferrer {
     }
 
     private static AttributeType inferAttributeType(AttributeName attribute,
-                                                    Collection<Feature> features) {
-        Set<AttributeType> attributeTypes = features.stream()
-                .map(feature -> feature.attributes().attributes().get(attribute))
+                                                    Collection<Attributes> attributes) {
+        Set<AttributeType> attributeTypes = attributes.stream()
+                .map(a -> a.attributes().get(attribute))
                 .filter(Objects::nonNull)
                 .map(AttributeSchemaInferrer::inferValueType)
                 .collect(Collectors.toSet());

@@ -27,6 +27,7 @@ dependencies {
     compile "org.geotools:gt-referencing:${versions.geoTools}"
     compile "org.geotools:gt-geometry:${versions.geoTools}"
 
+    testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile libraries.wiremock
 }

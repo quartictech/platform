@@ -5,6 +5,8 @@ import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
 import org.junit.Test;
 
+import static io.quartic.common.CollectionUtils.entry;
+import static io.quartic.common.CollectionUtils.map;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -16,10 +18,10 @@ public class AttributesFactoryShould {
     public void produce_attributes() throws Exception {
         final Attributes attributes = buildAttributes();
 
-        assertThat(attributes.attributes(), equalTo(ImmutableMap.of(
-                name("name"), "Oliver",
-                name("weight"), 80.0,
-                name("height"), 185.0
+        assertThat(attributes.attributes(), equalTo(map(
+                entry(name("name"), "Oliver"),
+                entry(name("weight"), 80.0),
+                entry(name("height"), 185.0)
         )));
     }
 
@@ -59,16 +61,16 @@ public class AttributesFactoryShould {
         final Attributes attributesA = buildAttributes();
         final Attributes attributesB = buildAttributes("Arlo", 200.0, 170.0);
 
-        assertThat(attributesA.attributes(), equalTo(ImmutableMap.of(
-                name("name"), "Oliver",
-                name("weight"), 80.0,
-                name("height"), 185.0
+        assertThat(attributesA.attributes(), equalTo(map(
+                entry(name("name"), "Oliver"),
+                entry(name("weight"), 80.0),
+                entry(name("height"), 185.0)
         )));
 
-        assertThat(attributesB.attributes(), equalTo(ImmutableMap.of(
-                name("name"), "Arlo",
-                name("weight"), 200.0,
-                name("height"), 170.0
+        assertThat(attributesB.attributes(), equalTo(map(
+                entry(name("name"), "Arlo"),
+                entry(name("weight"), 200.0),
+                entry(name("height"), 170.0)
         )));
     }
 
@@ -101,11 +103,11 @@ public class AttributesFactoryShould {
     }
 
     @Test
-    public void return_false_for_entries_corresponding_to_missing_attribute_names() throws Exception {
+    public void return_true_for_entries_corresponding_to_missing_attribute_names() throws Exception {
         builder().put("wat", 32).build();
         final Attributes attributes = buildAttributes();
 
-        assertThat(attributes.attributes().containsKey(name("wat")), equalTo(false));
+        assertThat(attributes.attributes().containsKey(name("wat")), equalTo(true));
     }
 
     @Test
@@ -113,10 +115,11 @@ public class AttributesFactoryShould {
         builder().put("wat", 32).build();
         final Attributes attributes = buildAttributes();
 
-        assertThat(attributes.attributes(), equalTo(ImmutableMap.of(
-                name("name"), "Oliver",
-                name("weight"), 80.0,
-                name("height"), 185.0
+        assertThat(attributes.attributes(), equalTo(map(
+                entry(name("name"), "Oliver"),
+                entry(name("weight"), 80.0),
+                entry(name("height"), 185.0),
+                entry(name("wat"), null)
         )));
     }
 
@@ -126,9 +129,9 @@ public class AttributesFactoryShould {
 
         final Attributes attributes = factory.builder(original).put("bar", 3.4).build();
 
-        assertThat(attributes.attributes(), equalTo(ImmutableMap.of(
-                name("foo"), 1.2,
-                name("bar"), 3.4
+        assertThat(attributes.attributes(), equalTo(map(
+                entry(name("foo"), 1.2),
+                entry(name("bar"), 3.4)
         )));
     }
 

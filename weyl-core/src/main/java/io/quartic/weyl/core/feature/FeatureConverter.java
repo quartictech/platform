@@ -48,7 +48,7 @@ public class FeatureConverter {
         );
     }
 
-    public Attributes convertToModelAttributes(Map<String, Object> rawAttributes) {
+    private Attributes convertToModelAttributes(Map<String, Object> rawAttributes) {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder();
         rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(OBJECT_MAPPER, k, v)));
         return builder.build();
@@ -68,10 +68,10 @@ public class FeatureConverter {
         return value;
     }
 
-    public static Map<String, Object> convertFromModelAttributes(Feature feature) {
+    public static Map<String, Object> getRawProperties(Feature feature) {
         final Map<String, Object> output = newHashMap();
         feature.attributes().attributes().entrySet().stream()
-                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute))
+                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
         output.put("_entityId", feature.entityId().uid());
         return output;
