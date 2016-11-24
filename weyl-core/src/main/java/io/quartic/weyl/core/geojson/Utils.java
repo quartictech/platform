@@ -65,7 +65,8 @@ public final class Utils {
     }
 
     private static com.vividsolutions.jts.geom.MultiLineString multiLineStringToJts(MultiLineString multiLineString) {
-        return factory.createMultiLineString(multiLineString.coordinates().stream().map(Utils::listToCoords)
+        return factory.createMultiLineString(multiLineString.coordinates().stream()
+                .map(coords -> factory.createLineString(listToCoords(coords)))
                 .toArray(com.vividsolutions.jts.geom.LineString[]::new));
     }
 
