@@ -20,7 +20,9 @@ import static java.util.Arrays.asList;
  * Each Attributes instance is backed by a (potentially sparse) list, whose order matches that of the corresponding
  * keys in the shared names list.  This is exposed as an immutable Map with O(1) lookup.
  *
- * **Note:** Null attribute values are not exposed, and do not contribute to the size() member of the Attributes map.
+ * **Note:** All Attributes instances will have the same set of keys (i.e. the union).  Thus the size() method for any
+ * given instance may be larger than the number of values that were supplied when it was constructed (missing values
+ * will be returned as null).
  */
 public class AttributesFactory {
     /*
@@ -89,11 +91,9 @@ public class AttributesFactory {
     // Can't be anonymous in AttributesBuilder.build(), because that would maintain a reference to the builder (and thus not let go to storage)
     private class ViewAttributes implements Attributes {
         private final List<Object> values;
-        private final int size;
 
         private ViewAttributes(List<Object> values) {
             this.values = values;
-            this.size = (int)values.stream().filter(Objects::nonNull).count();  // We have to incur this O(n) cost somewhere
         }
 
         @Override
@@ -133,39 +133,21 @@ public class AttributesFactory {
                 final Iterator<Object> valueIterator = values.iterator();
 
                 return new Iterator<Entry<AttributeName, Object>>() {
-                    Entry<AttributeName, Object> next = null;
-
-                    {
-                        advanceToNextNonNull();
-                    }
-
                     @Override
                     public boolean hasNext() {
-                        return next != null;
+                        return nameIterator.hasNext();
                     }
 
                     @Override
                     public Entry<AttributeName, Object> next() {
-                        final Entry<AttributeName, Object> result = next;
-                        advanceToNextNonNull();
-                        return result;
-                    }
-
-                    private void advanceToNextNonNull() {
-                        while (valueIterator.hasNext()) {
-                            next = new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.next()); // Orders are guaranteed to be the same
-                            if (next.getValue() != null) {
-                                return;
-                            }
-                        }
-                        next = null;
+                        return new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.hasNext() ? valueIterator.next() : null); // Orders are guaranteed to be the same
                     }
                 };
             }
 
             @Override
             public int size() {
-                return size;
+                return names.size();
             }
         }
     }
