@@ -48,7 +48,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
     private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-    private final UidGenerator<EntityId> eidGenerator = RandomUidGenerator.of(EntityIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
     private final LayerStore layerStore = LayerStoreImpl.builder()

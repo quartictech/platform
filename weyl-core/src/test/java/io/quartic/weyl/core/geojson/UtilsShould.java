@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import io.quartic.common.serdes.ObjectMappers;
+import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.Geometry;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class UtilsShould {
     private final ObjectMapper OM = ObjectMappers.OBJECT_MAPPER;
@@ -54,5 +56,22 @@ public class UtilsShould {
         "}";
 
          FeatureCollection featureCollection = OM.readValue(json, FeatureCollection.class);
+        assertThat(featureCollection.features().size(), equalTo(0));
+    }
+
+    @Test
+    public void null_properties_in_feature_shouldnt_throw() throws IOException {
+        String json = " { \"type\": \"Feature\",\n" +
+                "    \"bbox\": [-10.0, -10.0, 10.0, 10.0],\n" +
+                "    \"properties\": {\"test\": null}," +
+                "    \"geometry\": {\n" +
+                "      \"type\": \"Polygon\",\n" +
+                "      \"coordinates\": [[\n" +
+                "        [-10.0, -10.0], [10.0, -10.0], [10.0, 10.0], [-10.0, 10.0]\n" +
+                "        ]]\n" +
+                "      }\n" +
+                "    }";
+        Feature feature = OM.readValue(json, Feature.class);
+        assertThat(feature.properties().values(), containsInAnyOrder((String)null));
     }
 }
