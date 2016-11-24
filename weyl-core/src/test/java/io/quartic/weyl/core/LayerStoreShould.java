@@ -136,7 +136,7 @@ public class LayerStoreShould {
                 containsInAnyOrder(feature("a")));
         assertThat(layerState.schema(),
                 equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
-                        .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.empty())))));
+                        .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.of(newHashSet(1234)))))));
     }
 
     @Test
