@@ -1,8 +1,4 @@
 import * as React from "react";
-// import { Link } from "react-router";
-
-// import * as Blueprint from "@blueprintjs/core";
-// const { Button } = Blueprint;
 
 import { IDataset } from "../../models";
 import _ = require("underscore");

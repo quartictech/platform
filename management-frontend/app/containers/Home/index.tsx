@@ -1,9 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-// import * as Blueprint from "@blueprintjs/core";
-// const { Menu, MenuItem, MenuDivider } = Blueprint;
-
 import { IDataset } from "../../models";
 
 import { createStructuredSelector } from "reselect";
