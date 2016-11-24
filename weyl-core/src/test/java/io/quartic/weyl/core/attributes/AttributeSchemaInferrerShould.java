@@ -17,6 +17,7 @@ import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchem
 import static io.quartic.weyl.core.model.AttributeType.*;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -27,84 +28,115 @@ public class AttributeSchemaInferrerShould {
 
     @Test
     public void infer_numeric_type() throws Exception {
-        assertThatTypeInferredFromValues(NUMERIC, 123, 456);
+        assertThatTypeInferredFromValues(NUMERIC, emptyMap(), 123, 456);
     }
 
     @Test
     public void infer_numeric_type_when_stringified() throws Exception {
-        assertThatTypeInferredFromValues(NUMERIC, "123", "456");
+        assertThatTypeInferredFromValues(NUMERIC, emptyMap(), "123", "456");
     }
 
     @Test
     public void infer_string_type() throws Exception {
-        assertThatTypeInferredFromValues(STRING, "foo", "bar");
+        assertThatTypeInferredFromValues(STRING, emptyMap(), "foo", "bar");
     }
 
     @Test
-    public void infer_timeseries_type() throws Exception {
-        assertThatTypeInferredFromValues(TIME_SERIES, mock(TimeSeriesAttribute.class));
+    public void infer_time_series_type() throws Exception {
+        assertThatTypeInferredFromValues(TIME_SERIES, emptyMap(), mock(TimeSeriesAttribute.class));
     }
 
     @Test
     public void infer_unknown_type_when_mixed() throws Exception {
-        assertThatTypeInferredFromValues(UNKNOWN, "foo", 123);
+        assertThatTypeInferredFromValues(UNKNOWN, emptyMap(), "foo", 123);
     }
 
-    private void assertThatTypeInferredFromValues(AttributeType type, Object... values) {
-        List<Feature> features = features("a", values);
+    @Test
+    public void infer_known_type_when_same_as_previous() throws Exception {
+        assertThatTypeInferredFromValues(NUMERIC, map(entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123))))), 123);
+    }
 
-        assertThat(inferSchema(features), equalTo(map(entry(name("a"), AttributeImpl.of(type, Optional.empty())))));
+    @Test
+    public void infer_unknown_type_when_different_to_previous() throws Exception {
+        assertThatTypeInferredFromValues(UNKNOWN, map(entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet("foo"))))), "foo");
+    }
+
+    private void assertThatTypeInferredFromValues(AttributeType type, Map<AttributeName, Attribute> previous, Object... values) {
+        final List<Feature> features = features("a", values);
+
+        assertThat(inferSchema(features, previous), equalTo(map(entry(name("a"), AttributeImpl.of(type, Optional.of(newHashSet(values)))))));
     }
 
     @Test
     public void infer_categories() throws Exception {
-        List<Feature> features = features("a", "foo", "bar", "foo");
+        final List<Feature> features = features("a", "foo", "bar", "foo");
 
-        assertThat(inferSchema(features), equalTo(map(
+        assertThat(inferSchema(features, emptyMap()), equalTo(map(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
         )));
     }
 
     @Test
-    public void infer_no_categories_when_all_distinct() throws Exception {
-        List<Feature> features = features("a", "foo", "bar", "baz");
+    public void infer_no_categories_when_too_many() throws Exception {
+        final List<Feature> features = features("a", distinctValuesPlusOneRepeated(MAX_CATEGORIES + 1));
 
-        assertThat(inferSchema(features), equalTo(map(
+        assertThat(inferSchema(features, emptyMap()), equalTo(map(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
 
     @Test
-    public void infer_no_categories_when_too_many() throws Exception {
-        String[] values = new String[MAX_CATEGORIES + 2];
-        for (int i = 0; i < MAX_CATEGORIES + 1; i++) {
-            values[i] = "foo" + i;
-        }
-        values[MAX_CATEGORIES + 1] = "foo0";    // To avoid the all-distinct check
+    public void infer_categories_as_union_with_previous() throws Exception {
+        final Map<AttributeName, Attribute> previous = map(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
+        );
+        final List<Feature> features = features("a", "foo", "baz");
 
-        List<Feature> features = features("a", values);
+        assertThat(inferSchema(features, previous), equalTo(map(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar", "baz"))))
+        )));
+    }
 
-        assertThat(inferSchema(features), equalTo(map(
+    @Test
+    public void infer_no_categories_when_union_has_too_many() throws Exception {
+        final Map<AttributeName, Attribute> previous = map(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("bar"))))
+        );
+        final List<Feature> features = features("a", distinctValuesPlusOneRepeated(MAX_CATEGORIES));
+
+        assertThat(inferSchema(features, previous), equalTo(map(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+        )));
+    }
+
+    @Test
+    public void infer_no_categories_when_previous_had_too_many() throws Exception {
+        final Map<AttributeName, Attribute> previous = map(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+        );
+        final List<Feature> features = features("a", "foo", "baz");
+
+        assertThat(inferSchema(features, previous), equalTo(map(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
 
     @Test
     public void ignore_missing_attributes() throws Exception {
-        List<Feature> features = newArrayList(
+        final List<Feature> features = newArrayList(
                 feature(map(entry(name("a"), 123), entry(name("b"), 456))),
                 feature(map(entry(name("a"), 789), entry(name("b"), null)))
         );
 
-        assertThat(inferSchema(features), equalTo(map(
-                entry(name("a"), AttributeImpl.of(NUMERIC, Optional.empty())),
+        assertThat(inferSchema(features, emptyMap()), equalTo(map(
+                entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123, 789)))),
                 entry(name("b"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(456))))
         )));
     }
 
     @Test
     public void return_empty_schema_if_no_features() throws Exception {
-        assertThat(inferSchema(emptyList()).entrySet(), empty());
+        assertThat(inferSchema(emptyList(), emptyMap()).entrySet(), empty());
     }
 
     private List<Feature> features(String name, Object... values) {
@@ -123,5 +155,14 @@ public class AttributeSchemaInferrerShould {
 
     private AttributeNameImpl name(String name) {
         return AttributeNameImpl.of(name);
+    }
+
+    private String[] distinctValuesPlusOneRepeated(int num) {
+        final String[] values = new String[num + 1];
+        for (int i = 0; i < num; i++) {
+            values[i] = "foo" + i;
+        }
+        values[num] = "foo0";    // To avoid the all-distinct check
+        return values;
     }
 }

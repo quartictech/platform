@@ -134,7 +134,7 @@ public abstract class LayerStore {
         return LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
                 .withSchema(AttributeSchemaImpl.copyOf(layer.schema())
-                        .withAttributes(inferSchema(updatedFeatures)));
+                        .withAttributes(inferSchema(features, layer.schema().attributes())));
     }
 
     private Layer updateIndicesAndStats(Layer layer) {
