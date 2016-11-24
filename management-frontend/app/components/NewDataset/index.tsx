@@ -6,6 +6,7 @@ import * as Dropzone from "react-dropzone";
 import _ = require("underscore");
 
 import { IDatasetMetadata } from "../../models";
+import * as classNames from "classnames";
 
 interface IFile {
   name: string;
@@ -73,6 +74,14 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     this.props.closeNewDatasetClick();
   }
 
+  isNameValid() {
+    return this.state.name.length !== 0;
+  }
+
+  isDescriptionValid() {
+    return this.state.description.length !== 0;
+  }
+
   public render() {
     return (
       <Dialog
@@ -80,13 +89,13 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
         isOpen={this.props.visible}
         onClose={this.toggleDialog.bind(this)}
         title="New Dataset"
-        style={{"background-color":"#293742"}}
+        style={{backgroundColor:"#293742"}}
       >
         <div className="pt-dialog-body pt-dark">
           <label className="pt-label .modifier">
             Name
             <input
-              className="pt-input pt-fill"
+              className={classNames("pt-input", "pt-fill", {"pt-intent-danger": !this.isNameValid()})}
               type="text"
               placeholder="Name"
               dir="auto"
@@ -97,7 +106,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
           <label className="pt-label .modifier">
           Description
             <textarea
-              className="pt-input pt-fill"
+              className={classNames("pt-input", "pt-fill", {"pt-intent-danger": !this.isDescriptionValid()})}
               type="text"
               placeholder="Description"
               dir="auto"
@@ -119,7 +128,12 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
          <div className="pt-dialog-footer">
            <div className="pt-dialog-footer-actions">
            <Button text="Cancel" onClick={this.toggleDialog.bind(this)} />
-           <Button intent={Intent.PRIMARY} onClick={this.onSave.bind(this)} text="Save" />
+           <Button
+             disabled={!(this.isNameValid() && this.isDescriptionValid())}
+             intent={Intent.PRIMARY}
+             onClick={this.onSave.bind(this)}
+             text="Save"
+           />
          </div>
        </div>
       </Dialog>

@@ -19,6 +19,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.4.34",
+    "@types/classnames": "0.0.32",
     "@types/dom4": "^1.5.20",
     "@types/enzyme": "^2.5.38",
     "@types/jasmine": "^2.5.38",
@@ -84,6 +85,7 @@
     "@types/redux-saga": "^0.9.30",
     "@types/reselect": "^2.0.27",
     "@types/underscore": "^1.7.33",
+    "classnames": "^2.2.5",
     "immutable": "^3.8.1",
     "react": "15.0.1",
     "react-addons-css-transition-group": "^15.4.0",
