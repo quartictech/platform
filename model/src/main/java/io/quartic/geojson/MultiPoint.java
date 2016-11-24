@@ -9,10 +9,11 @@ import java.util.List;
 
 @SweetStyle
 @Value.Immutable
-@JsonSerialize(as = MultiPolygonImpl.class)
-@JsonDeserialize(as = MultiPolygonImpl.class)
-public interface MultiPolygon extends Geometry {
-    List<List<List<List<Double>>>> coordinates();
+@JsonSerialize(as = MultiPointImpl.class)
+@JsonDeserialize(as = MultiPointImpl.class)
+public interface MultiPoint extends Geometry {
+    List<List<Double>> coordinates();
+
 
     @Override
     default <T> T accept(GeometryVisitor<T> geometryVisitor) {

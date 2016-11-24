@@ -23,6 +23,8 @@ import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
@@ -49,7 +51,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private final EntityStore entityStore = new EntityStore();
     private final LayerStore layerStore = LayerStoreImpl.builder()
-            .entityStore(entityStore).lidGenerator(lidGenerator).build();
+            .entityStore(entityStore)
+            .lidGenerator(lidGenerator)
+            .build();
     private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 

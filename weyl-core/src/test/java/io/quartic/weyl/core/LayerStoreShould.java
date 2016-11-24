@@ -335,7 +335,7 @@ public class LayerStoreShould {
 
     private NakedFeature modelFeature(String externalId) {
         return NakedFeatureImpl.of(
-                externalId,
+                Optional.ofNullable(externalId),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 ATTRIBUTES
         );

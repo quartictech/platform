@@ -3,7 +3,7 @@ ext {
     libraries = [:]
 }
 
-versions.immutables = "2.3"
+versions.immutables = "2.3.7"
 versions.dropwizard = "1.0.0"
 versions.vectorTile = "1.2.1"
 versions.jackson = "2.7.6"      // This is the Jackson version that Dropwizard currently pulls in

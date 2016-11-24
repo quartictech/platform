@@ -108,8 +108,7 @@ public abstract class PostgresSource implements Source {
                 }
             }
 
-            String id = row.containsKey(ID_FIELD) ?
-                    row.get(ID_FIELD).toString() : String.valueOf(geometry.hashCode());
+            Optional<String> id = Optional.ofNullable((String) row.get(ID_FIELD));
 
             return NakedFeatureImpl.of(id, geometry, builder.build());
         });
