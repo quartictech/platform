@@ -82,7 +82,7 @@ public class FeatureConverterShould {
     }
 
     private NakedFeatureImpl modelFeature(String id, Attributes attributes) {
-        return NakedFeatureImpl.of(id, factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
+        return NakedFeatureImpl.of(Optional.of(id), factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {

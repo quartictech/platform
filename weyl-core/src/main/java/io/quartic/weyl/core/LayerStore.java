@@ -21,11 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.functions.Action1;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -44,9 +42,11 @@ public abstract class LayerStore {
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final List<LayerStoreListener> listeners = newArrayList();
     private final Multimap<LayerId, LayerSubscription> subscriptions = ArrayListMultimap.create();
+    private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
     protected abstract EntityStore entityStore();
     protected abstract UidGenerator<LayerId> lidGenerator();
+
 
     @Value.Default
     protected LayerComputation.Factory computationFactory() {
@@ -195,7 +195,8 @@ public abstract class LayerStore {
     // TODO: this is going to double memory usage?
     private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
         return features.stream().map(f -> FeatureImpl.of(
-                EntityIdImpl.of(layerId.uid() + "/" + f.externalId()),
+                EntityIdImpl.of(layerId.uid() + "/" +
+                        f.externalId().orElse(String.valueOf(missingExternalIdGenerator.incrementAndGet()))),
                 f.geometry(),
                 f.attributes()
         )).collect(toList());
