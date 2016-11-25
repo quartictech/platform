@@ -4,7 +4,11 @@ import { Link } from "react-router";
 const s = require("./style.css");
 const logo = require("./quartic.svg");
 
-class Header extends React.Component<void, void> {
+interface IProps {
+  newDatasetClick: any;
+}
+
+class Header extends React.Component<IProps, void> {
   render() {
     return (
       <nav className="pt-navbar .modifier pt-dark">
@@ -26,7 +30,10 @@ class Header extends React.Component<void, void> {
             type="text" />
         </div>
         <div className="pt-navbar-group pt-align-right">
-          <button className="pt-button pt-minimal pt-icon-document">
+          <button
+            onClick={this.props.newDatasetClick}
+            className="pt-button pt-minimal pt-icon-document"
+          >
             Upload Data
           </button>
         </div>

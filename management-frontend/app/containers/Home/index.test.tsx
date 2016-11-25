@@ -7,7 +7,10 @@ import { Home } from "./";
 /** Data */
 const props = {
   datasets: {},
-  fetchDatasets: () => null
+  ui: {},
+  createDataset: () => null,
+  fetchDatasets: () => null,
+  closeNewDatasetModal: () => null
 };
 
 /** Spies */
