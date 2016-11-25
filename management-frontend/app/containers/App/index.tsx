@@ -16,6 +16,7 @@ interface IProps {
     node: string
   };
   showNewDatasetModal: any;
+  searchDatasets: any;
 }
 
 export class App extends React.Component<IProps, void> {
@@ -24,7 +25,10 @@ export class App extends React.Component<IProps, void> {
     return (
       <div className="pt-dark">
       <section className={s.App}>
-        <Header newDatasetClick={this.props.showNewDatasetModal} />
+        <Header
+          newDatasetClick={this.props.showNewDatasetModal}
+          searchBoxChange={this.props.searchDatasets}
+        />
           {children}
       </section>
       </div>
@@ -33,7 +37,8 @@ export class App extends React.Component<IProps, void> {
 }
 
 const mapDispatchToProps = {
-  showNewDatasetModal: () => actions.setActiveModal("newDataset")
+  showNewDatasetModal: () => actions.setActiveModal("newDataset"),
+  searchDatasets: (s) => actions.searchDatasets(s),
 };
 
 const mapStateToProps = createStructuredSelector({
