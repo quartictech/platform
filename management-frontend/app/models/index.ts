@@ -28,4 +28,5 @@ export interface DatasetAction {
 export interface UiAction {
   type: string;
   activeModal?: string;
+  search?: string;
 }

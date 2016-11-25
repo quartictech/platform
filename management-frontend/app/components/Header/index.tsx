@@ -6,9 +6,14 @@ const logo = require("./quartic.svg");
 
 interface IProps {
   newDatasetClick: any;
+  searchBoxChange: any;
 }
 
 class Header extends React.Component<IProps, void> {
+  onSearch(e) {
+    this.props.searchBoxChange(e.target.value);
+  }
+
   render() {
     return (
       <nav className="pt-navbar .modifier pt-dark">
@@ -27,7 +32,9 @@ class Header extends React.Component<IProps, void> {
           <input
             className="pt-input"
             placeholder="Search datasets..."
-            type="text" />
+            type="text"
+            onChange={this.onSearch.bind(this)}
+          />
         </div>
         <div className="pt-navbar-group pt-align-right">
           <button

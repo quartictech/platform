@@ -43,6 +43,7 @@ class Home extends React.Component<IProps, IState> {
         />
         <div className={s.main}>
           <DatasetList
+            searchString={this.props.ui.searchString}
             datasets={this.props.datasets}
             selectedId={this.state.datasetId}
             onSelect={this.selectDataset}
