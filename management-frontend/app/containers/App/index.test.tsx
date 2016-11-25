@@ -12,7 +12,8 @@ const props = {
   location: {
     pathname: "/"
   },
-  showNewDatasetModal: () => null
+  showNewDatasetModal: () => null,
+  searchDatasets: () => null,
 };
 
 /** Case 1 */

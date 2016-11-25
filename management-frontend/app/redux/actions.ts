@@ -14,6 +14,13 @@ export function fetchDatasetsSuccess(data) {
   };
 }
 
+export function searchDatasets(search) {
+  return {
+    type: constants.SEARCH_DATASETS,
+    search: search.toLowerCase()
+  };
+}
+
 export function createDataset(metadata: IDatasetMetadata, files: any[]) {
     return {
       type: constants.CREATE_DATASET,

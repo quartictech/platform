@@ -7,6 +7,7 @@ interface IDatasetListProps {
   datasets: { [id: string]: IDataset };
   selectedId: string;
   onSelect: (string) => void;
+  searchString: string;
 };
 
 export const DatasetList = (props: IDatasetListProps) => (
@@ -23,7 +24,11 @@ export const DatasetList = (props: IDatasetListProps) => (
       </thead>
       <tbody>
       {
-        _.map(props.datasets, (dataset, id) => <DatasetRow
+        _.map(props.datasets, (dataset, id) => [id, dataset] as [string, IDataset])
+        .filter(([,dataset]) =>
+          props.searchString == null || props.searchString.length === 0 ||
+          dataset.metadata.name.toLowerCase().includes(props.searchString))
+        .map(([id, dataset]) => <DatasetRow
           key={id}
           id={id}
           dataset={dataset}
