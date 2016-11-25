@@ -28,10 +28,12 @@ export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/dataset`);
 }
 
+const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
+
 export function uploadFile(files: any[]) {
   return fetchUtil("/api/file", {
     headers: {
-      "Content-Type": files[0].type,
+      "Content-Type": validContentType(files[0].type),
     },
     method: "POST",
     body: files[0]
