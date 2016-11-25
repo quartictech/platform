@@ -1,7 +1,7 @@
 import * as React from "react";
-
 import { IDataset } from "../../models";
 import _ = require("underscore");
+
 
 interface IDatasetListProps {
   datasets: { [id: string]: IDataset };
@@ -27,7 +27,8 @@ export const DatasetList = (props: IDatasetListProps) => (
         _.map(props.datasets, (dataset, id) => [id, dataset] as [string, IDataset])
         .filter(([,dataset]) =>
           props.searchString == null || props.searchString.length === 0 ||
-          dataset.metadata.name.toLowerCase().includes(props.searchString))
+          _.some([dataset.metadata.name, dataset.metadata.description, dataset.locator.type], s => s.toLowerCase().includes(props.searchString)))
+        .sort(([,a], [,b]) => comparison(a, b))
         .map(([id, dataset]) => <DatasetRow
           key={id}
           id={id}
@@ -40,6 +41,12 @@ export const DatasetList = (props: IDatasetListProps) => (
     </table>
   </div>
 );
+
+const comparison = (a: IDataset, b: IDataset) => {
+  var x = a.metadata.name.toLowerCase();
+  var y = b.metadata.name.toLowerCase();
+  return (x < y) ? -1 : (x > y) ? 1 : 0;
+};
 
 interface IDatasetRowProps {
   id: string;
