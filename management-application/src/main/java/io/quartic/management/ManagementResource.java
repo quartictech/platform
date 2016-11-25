@@ -3,6 +3,7 @@ package io.quartic.management;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.management.storage.StorageBackend;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -18,14 +19,14 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 @Path("/")
 public class ManagementResource {
-    private final GcsConnector gcsConnector;
+    private final StorageBackend storageBackend;
     private final CatalogueService catalogueService;
     private final UidGenerator<CloudStorageId> cloudStorageIdGenerator = RandomUidGenerator.of(CloudStorageIdImpl::of);
     private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminationIdImpl::of);
 
-    public ManagementResource(CatalogueService catalogueService, GcsConnector gcsConnector) {
+    public ManagementResource(CatalogueService catalogueService, StorageBackend storageBackend) {
         this.catalogueService = catalogueService;
-        this.gcsConnector = gcsConnector;
+        this.storageBackend = storageBackend;
     }
 
     @GET
@@ -67,14 +68,14 @@ public class ManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
         CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
-        gcsConnector.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());
+        storageBackend.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());
         return cloudStorageId;
     }
 
     @GET
     @Path("/file/{fileName}")
     public Response download(@PathParam("fileName") String fileName) throws IOException {
-        Optional<InputStreamWithContentType> file = gcsConnector.get(fileName);
+        Optional<InputStreamWithContentType> file = storageBackend.get(fileName);
 
         return file.map( f ->
             Response.ok()
