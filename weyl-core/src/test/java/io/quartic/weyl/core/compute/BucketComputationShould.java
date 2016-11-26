@@ -56,6 +56,7 @@ public class BucketComputationShould {
         )));
         assertThat(results.schema(), equalTo(bucketSchema()
                 .withPrimaryAttribute(name("Foo"))
+                .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB"))
                 .withAttributes(ImmutableMap.<AttributeName, Attribute>builder()
                         .putAll(bucketLayer.schema().attributes())
                         .put(name("Foo"), AttributeImpl.of(NUMERIC, Optional.empty()))
