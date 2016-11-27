@@ -1,4 +1,4 @@
-package io.quartic.weyl.resource;
+package io.quartic.weyl.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
@@ -21,7 +21,7 @@ import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.message.*;
+import io.quartic.weyl.websocket.message.*;
 import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;

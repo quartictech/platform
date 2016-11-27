@@ -1,4 +1,4 @@
-package io.quartic.weyl.resource;
+package io.quartic.weyl.websocket;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
@@ -24,8 +24,8 @@ import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.message.*;
-import io.quartic.weyl.message.ClientStatusMessage.SelectionStatus;
+import io.quartic.weyl.websocket.message.*;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
 import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;

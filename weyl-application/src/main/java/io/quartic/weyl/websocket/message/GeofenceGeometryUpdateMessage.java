@@ -1,4 +1,4 @@
-package io.quartic.weyl.message;
+package io.quartic.weyl.websocket.message;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
