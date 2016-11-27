@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 public class FeatureConverterShould {
     private final GeometryFactory factory = new GeometryFactory();
     private final AttributesFactory attributesFactory = mock(AttributesFactory.class);
-    private final FeatureConverter converter = new FeatureConverter(attributesFactory, webMercatorToWebMercator());
+    private final FeatureConverter converter = new FeatureConverter(attributesFactory, webMercatorToWebMercator(), webMercatorToWebMercator());
 
     @Test
     public void convert_feature_collection() throws Exception {

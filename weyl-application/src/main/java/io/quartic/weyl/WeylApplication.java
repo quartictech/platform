@@ -35,6 +35,7 @@ import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandlerFactory;
+import io.quartic.weyl.websocket.SubscribedLayerHandlerFactory;
 import io.quartic.weyl.websocket.UpdateServer;
 import rx.schedulers.Schedulers;
 
@@ -71,7 +72,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
-        final SelectionHandlerFactory factory = new SelectionHandlerFactory(
+        final SelectionHandlerFactory selectionHandlerFactory = new SelectionHandlerFactory(
                 newArrayList(
                         new ChartUpdateGenerator(),
                         new HistogramsUpdateGenerator(new HistogramCalculator()),
@@ -79,17 +80,22 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 ),
                 Multiplexer.create(entityStore::get));
 
+        final SubscribedLayerHandlerFactory subscribedLayerHandlerFactory = new SubscribedLayerHandlerFactory(
+                layerStore,
+                featureConverter()
+        );
+
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
                     @Override
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new UpdateServer(layerStore,
+                        return (T) new UpdateServer(
                                 geofenceStore,
                                 alertProcessor,
-                                newArrayList(factory),
-                                transformFromFrontend,
+                                newArrayList(selectionHandlerFactory, subscribedLayerHandlerFactory),
+                                featureConverter(),
                                 objectMapper);
                     }
                 })

@@ -2,15 +2,14 @@ package io.quartic.weyl.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.weyl.core.LayerStore;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
@@ -18,8 +17,6 @@ import io.quartic.weyl.core.geofence.ViolationImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.websocket.message.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,23 +24,21 @@ import org.junit.Test;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.serdes.ObjectMappers.encode;
-import static io.quartic.weyl.core.geojson.Utils.fromJts;
-import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
-import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
-    private final GeometryTransformer transformer = webMercatortoWgs84();
-    private final LayerStore layerStore = mock(LayerStore.class);
+    private final FeatureConverter converter = mock(FeatureConverter.class);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
@@ -95,23 +90,19 @@ public class UpdateServerShould {
 
     @Test
     public void send_geofence_geometry_update() throws Exception {
-        final Geometry geometry = new GeometryFactory().createPoint(new Coordinate(1.0, 2.0));
-        final Feature feature = FeatureImpl.of(
-                EntityIdImpl.of("xyz/123"),
-                geometry,
-                EMPTY_ATTRIBUTES
-        );
+        final List<Feature> features = mock(List.class);
+        final FeatureCollection featureCollection = FeatureCollectionImpl.of(newArrayList(
+                FeatureImpl.of(Optional.of("foo"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())
+        ));
+        when(converter.toGeojson(any())).thenReturn(featureCollection);
+
 
         final UpdateServer server = createAndOpenServer();
-        server.onGeometryChange(ImmutableList.of(feature));
+        server.onGeometryChange(features);
 
-        verifyMessage(GeofenceGeometryUpdateMessageImpl.of(FeatureCollectionImpl.of(ImmutableList.of(
-                io.quartic.geojson.FeatureImpl.of(
-                        Optional.empty(),
-                        Optional.of(fromJts(transformer.transform(geometry))),
-                        ImmutableMap.of("_entityId", "xyz/123")
-                )
-        ))));
+        verify(converter).toGeojson(features);
+
+        verifyMessage(GeofenceGeometryUpdateMessageImpl.of(featureCollection));
     }
 
     @Test
@@ -163,11 +154,10 @@ public class UpdateServerShould {
 
     private UpdateServer createServer() {
         return new UpdateServer(
-                    layerStore,
-                    geofenceStore,
-                    alertProcessor,
-                    newArrayList(handlerFactory),
-                    transformer,
-                    OBJECT_MAPPER);
+                geofenceStore,
+                alertProcessor,
+                newArrayList(handlerFactory),
+                converter,
+                OBJECT_MAPPER);
     }
 }
