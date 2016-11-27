@@ -27,10 +27,14 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.core.utils.GeometryTransformer;
-import io.quartic.weyl.resource.*;
+import io.quartic.weyl.resource.AlertResource;
+import io.quartic.weyl.resource.GeofenceResource;
+import io.quartic.weyl.resource.LayerResource;
+import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
+import io.quartic.weyl.update.SelectionHandlerFactory;
 import io.quartic.weyl.websocket.UpdateServer;
 import rx.schedulers.Schedulers;
 
@@ -67,6 +71,14 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
+        final SelectionHandlerFactory factory = new SelectionHandlerFactory(
+                newArrayList(
+                        new ChartUpdateGenerator(),
+                        new HistogramsUpdateGenerator(new HistogramCalculator()),
+                        new AttributesUpdateGenerator()
+                ),
+                Multiplexer.create(entityStore::get));
+
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
@@ -74,14 +86,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(layerStore,
-                                Multiplexer.create(entityStore::get),
-                                newArrayList(
-                                        new ChartUpdateGenerator(),
-                                        new HistogramsUpdateGenerator(new HistogramCalculator()),
-                                        new AttributesUpdateGenerator()
-                                ),
                                 geofenceStore,
                                 alertProcessor,
+                                newArrayList(factory),
                                 transformFromFrontend,
                                 objectMapper);
                     }

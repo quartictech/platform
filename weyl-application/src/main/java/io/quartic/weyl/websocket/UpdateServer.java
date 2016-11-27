@@ -5,11 +5,9 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
-import io.quartic.weyl.Multiplexer;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertListener;
@@ -20,18 +18,11 @@ import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.live.LayerState;
 import io.quartic.weyl.core.live.LayerSubscription;
-import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.websocket.message.*;
-import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
-import io.quartic.weyl.update.SelectionDrivenUpdateGenerator;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
-import rx.Observable;
-import rx.Subscription;
-import rx.subjects.PublishSubject;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -58,32 +49,26 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     private final ObjectMapper objectMapper;
     private final Set<Violation> violations = newLinkedHashSet();
     private final List<LayerSubscription> subscriptions = newArrayList();
-    private final Collection<SelectionDrivenUpdateGenerator> generators;
+    private final List<ClientStatusMessageHandler> handlers;
     private final GeofenceStore geofenceStore;
     private final AlertProcessor alertProcessor;
     private final LayerStore layerStore;
     private Session session;
-    private final PublishSubject<SelectionStatus> selection;
-    private final Multiplexer<Integer, EntityId, Feature> mux;
-    private List<Subscription> generatorSubscriptions;
 
     public UpdateServer(
             LayerStore layerStore,
-            Multiplexer<Integer, EntityId, Feature> mux,
-            Collection<SelectionDrivenUpdateGenerator> generators,
             GeofenceStore geofenceStore,
             AlertProcessor alertProcessor,
+            Collection<ClientStatusMessageHandler.Factory> handlerFactories,
             GeometryTransformer geometryTransformer,
             ObjectMapper objectMapper
     ) {
         this.layerStore = layerStore;
-        this.generators = ImmutableList.copyOf(generators);
         this.geofenceStore = geofenceStore;
         this.alertProcessor = alertProcessor;
+        this.handlers = handlerFactories.stream().map(f -> f.create(this::sendMessage)).collect(toList());
         this.geometryTransformer = geometryTransformer;
         this.objectMapper = objectMapper;
-        this.selection = PublishSubject.create();
-        this.mux = mux;
     }
 
     @OnOpen
@@ -92,22 +77,6 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         this.session = session;
         alertProcessor.addListener(this);
         geofenceStore.addListener(this);
-        this.generatorSubscriptions = createSubscriptions();
-    }
-
-    private List<Subscription> createSubscriptions() {
-        final Observable<Pair<Integer, List<Feature>>> entities = selection
-                .map(SelectionStatus::toPair)
-                .compose(mux)
-                .share();
-
-        return generators.stream()
-                .map(generator -> entities.subscribe(e -> sendMessage(generateUpdateMessage(generator, e))))
-                .collect(toList());
-    }
-
-    private SelectionDrivenUpdateMessage generateUpdateMessage(SelectionDrivenUpdateGenerator generator, Pair<Integer, List<Feature>> e) {
-        return SelectionDrivenUpdateMessageImpl.of(generator.name(), e.getLeft(), generator.generate(e.getRight()));
     }
 
     @OnMessage
@@ -120,7 +89,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
                         session.getId(), stringify(csm.subscribedLiveLayerIds()), stringify(csm.selection().entityIds()));
                 unsubscribeAll();
                 csm.subscribedLiveLayerIds().forEach(this::subscribe);
-                selection.onNext(csm.selection());
+                handlers.forEach(t -> t.onClientStatusMessage(csm));
             } else if (msg instanceof PingMessage) {
                 LOG.info("[{}] Received ping", session.getId());
             } else {
@@ -136,7 +105,13 @@ public class UpdateServer implements AlertListener, GeofenceListener {
         LOG.info("[{}] Close", session.getId());
         alertProcessor.removeListener(this);
         geofenceStore.removeListener(this);
-        generatorSubscriptions.forEach(Subscription::unsubscribe);
+        handlers.forEach(t -> {
+            try {
+                t.close();
+            } catch (Exception e) {
+                LOG.error("Could not close handler", e);
+            }
+        });
         unsubscribeAll();
     }
 
