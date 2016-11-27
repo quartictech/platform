@@ -12,10 +12,10 @@ import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.AbstractMap.SimpleImmutableEntry;
 
-import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.filter;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.attributes.AttributeUtils.isSimple;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
@@ -72,12 +72,49 @@ public class FeatureConverter {
         return value;
     }
 
+    /**
+     * This is really only efficient for iteration over entrySet().  Everything else will be slow.
+     */
     public static Map<String, Object> getRawProperties(Feature feature) {
-        final Map<String, Object> output = newHashMap();
-        feature.attributes().attributes().entrySet().stream()
-                .filter(entry -> isSimple(entry.getValue()))
-                .forEach(entry -> output.put(entry.getKey(), entry.getValue()));
-        output.put("_entityId", feature.entityId().uid());
-        return output;
+        final Set<Map.Entry<String, Object>> filtered = filter(
+                feature.attributes().attributes().entrySet(),
+                e -> isSimple(e.getValue())
+        );
+
+        final SimpleImmutableEntry<String, Object> idEntry = new SimpleImmutableEntry<>("_entityId", feature.entityId().uid());
+
+        return new AbstractMap<String, Object>() {
+            @Override
+            public Set<Entry<String, Object>> entrySet() {
+                return new AbstractSet<Entry<String, Object>>() {
+                    @Override
+                    public Iterator<Entry<String, Object>> iterator() {
+                        return new Iterator<Entry<String, Object>>() {
+                            Iterator<Entry<String, Object>> underlying = filtered.iterator();
+                            boolean hasNext = true;
+
+                            @Override
+                            public boolean hasNext() {
+                                return hasNext;
+                            }
+
+                            @Override
+                            public Entry<String, Object> next() {
+                                if (underlying.hasNext()) {
+                                    return underlying.next();
+                                }
+                                hasNext = false;
+                                return idEntry;
+                            }
+                        };
+                    }
+
+                    @Override
+                    public int size() {
+                        return filtered.size() + 1;
+                    }
+                };
+            }
+        };
     }
 }
