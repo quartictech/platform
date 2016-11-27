@@ -15,8 +15,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class HistogramCalculatorShould {
-    private static final AttributeName SPECIES = AttributeNameImpl.of("species");
-    private static final AttributeName NAME = AttributeNameImpl.of("name");
+    private static final String SPECIES = "species";
+    private static final String NAME = "name";
     private final HistogramCalculator calculator = new HistogramCalculator();
 
     @Test
@@ -63,7 +63,7 @@ public class HistogramCalculatorShould {
                 )));
     }
 
-    private Feature feature(Map<AttributeName, Object> attributes) {
+    private Feature feature(Map<String, Object> attributes) {
         return FeatureImpl.builder()
                 .entityId(EntityIdImpl.of("def"))
                 .geometry(mock(Geometry.class))

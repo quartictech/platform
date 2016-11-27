@@ -14,18 +14,18 @@ public class AttributeSchemaInferrer {
 
     public static final int MAX_CATEGORIES = 19;
 
-    public static Map<AttributeName, Attribute> inferSchema(Collection<Feature> newFeatures, Map<AttributeName, Attribute> previousInference) {
+    public static Map<String, Attribute> inferSchema(Collection<Feature> newFeatures, Map<String, Attribute> previousInference) {
         final List<Attributes> attributes = newFeatures.stream().map(Feature::attributes).collect(toList());
         if (attributes.isEmpty()) {
             return emptyMap();
         }
 
-        final Collection<AttributeName> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
+        final Collection<String> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
         return names.parallelStream()
                 .collect(toConcurrentMap(identity(), attribute -> inferAttribute(attribute, attributes, previousInference)));
     }
 
-    private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes, Map<AttributeName, Attribute> previousInference) {
+    private static Attribute inferAttribute(String name, Collection<Attributes> attributes, Map<String, Attribute> previousInference) {
         final Attribute previous = previousInference.get(name);
         return AttributeImpl.builder()
                 .type(inferAttributeType(name, attributes, previous))
@@ -33,7 +33,7 @@ public class AttributeSchemaInferrer {
                 .build();
     }
 
-    private static Optional<Set<Object>> inferCategories(AttributeName name, Collection<Attributes> attributes, Attribute previous) {
+    private static Optional<Set<Object>> inferCategories(String name, Collection<Attributes> attributes, Attribute previous) {
         if (previous != null && !previous.categories().isPresent()) {
             return Optional.empty();    // Assume this means there were already too many
         }
@@ -48,7 +48,7 @@ public class AttributeSchemaInferrer {
         return (values.size() <= MAX_CATEGORIES) ? Optional.of(values) : Optional.empty();
     }
 
-    private static AttributeType inferAttributeType(AttributeName name, Collection<Attributes> attributes, Attribute previous) {
+    private static AttributeType inferAttributeType(String name, Collection<Attributes> attributes, Attribute previous) {
         Set<AttributeType> types = attributes.stream()
                 .map(a -> a.attributes().get(name))
                 .filter(Objects::nonNull)

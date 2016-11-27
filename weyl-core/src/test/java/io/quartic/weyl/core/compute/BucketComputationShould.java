@@ -55,10 +55,10 @@ public class BucketComputationShould {
                 Optional.empty()
         )));
         assertThat(results.schema(), equalTo(bucketSchema()
-                .withPrimaryAttribute(name("Foo"))
-                .withAttributes(ImmutableMap.<AttributeName, Attribute>builder()
+                .withPrimaryAttribute("Foo")
+                .withAttributes(ImmutableMap.<String, Attribute>builder()
                         .putAll(bucketLayer.schema().attributes())
-                        .put(name("Foo"), AttributeImpl.of(NUMERIC, Optional.empty()))
+                        .put("Foo", AttributeImpl.of(NUMERIC, Optional.empty()))
                         .build()
                 )
         ));
@@ -76,7 +76,7 @@ public class BucketComputationShould {
         assertThat(getLast(results.features()).attributes().attributes(),
                 equalTo(ImmutableMap.builder()
                         .putAll(bucketFeature.attributes().attributes())
-                        .put(name("Foo"), 42.0)
+                        .put("Foo", 42.0)
                         .build()
                 )
         );
@@ -117,11 +117,11 @@ public class BucketComputationShould {
 
     private AttributeSchemaImpl bucketSchema() {
         return AttributeSchemaImpl.of(
-                    Optional.of(name("Title")),
-                    Optional.of(name("Primary")),
-                    Optional.of(name("Image")),
-                    newArrayList(name("BlessedA"), name("BlessedB")),
-                    ImmutableMap.of(name("WhateverC"), mock(Attribute.class), name("WhateverD"), mock(Attribute.class))
+                    Optional.of("Title"),
+                    Optional.of("Primary"),
+                    Optional.of("Image"),
+                    newArrayList("BlessedA", "BlessedB"),
+                    ImmutableMap.of("WhateverC", mock(Attribute.class), "WhateverD", mock(Attribute.class))
             );
     }
 
@@ -129,11 +129,8 @@ public class BucketComputationShould {
         return FeatureImpl.of(
                 EntityId.fromString("12345"),
                 mock(Geometry.class),
-                () -> ImmutableMap.of(name("Height"), 180, name("Weight"), 70)
+                () -> ImmutableMap.of("Height", 180, "Weight", 70)
         );
     }
 
-    private AttributeName name(String name) {
-        return AttributeNameImpl.of(name);
-    }
 }

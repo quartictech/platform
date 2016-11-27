@@ -14,9 +14,9 @@ import java.util.Optional;
 @JsonSerialize(as = AttributeSchemaImpl.class)
 @JsonDeserialize(as = AttributeSchemaImpl.class)
 public interface AttributeSchema {
-    Optional<AttributeName> titleAttribute();
-    Optional<AttributeName> primaryAttribute();
-    Optional<AttributeName> imageAttribute();
-    List<AttributeName> blessedAttributes();
-    Map<AttributeName, Attribute> attributes();
+    Optional<String> titleAttribute();
+    Optional<String> primaryAttribute();
+    Optional<String> imageAttribute();
+    List<String> blessedAttributes();
+    Map<String, Attribute> attributes();
 }

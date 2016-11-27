@@ -1,7 +1,5 @@
 package io.quartic.weyl.core.attributes;
 
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
 
 import java.util.*;
@@ -31,8 +29,8 @@ public class AttributesFactory {
      * in ViewEntrySet) that remains consistent when subsequent writes occur.  Thus we also maintain a
      * CopyOnWriteArrayList.  Updates to this are expensive, but should occur infrequently.
      */
-    private final Map<AttributeName, Integer> indices = newConcurrentMap();
-    private final List<AttributeName> names = newCopyOnWriteArrayList();
+    private final Map<String, Integer> indices = newConcurrentMap();
+    private final List<String> names = newCopyOnWriteArrayList();
 
     public AttributesBuilder builder() {
         return new AttributesBuilder();
@@ -43,7 +41,7 @@ public class AttributesFactory {
     }
 
     public class AttributesBuilder {
-        private final Map<AttributeName, Object> attributes;
+        private final Map<String, Object> attributes;
 
         public AttributesBuilder() {
             this.attributes = newHashMap();
@@ -54,7 +52,7 @@ public class AttributesFactory {
         }
 
         public AttributesBuilder put(String name, Object value) {
-            attributes.put(AttributeNameImpl.of(name), value);
+            attributes.put(name, value);
             return this;
         }
 
@@ -97,10 +95,10 @@ public class AttributesFactory {
         }
 
         @Override
-        public Map<AttributeName, Object> attributes() {
-            return new AbstractMap<AttributeName, Object>() {
+        public Map<String, Object> attributes() {
+            return new AbstractMap<String, Object>() {
                 @Override
-                public Set<Entry<AttributeName, Object>> entrySet() {
+                public Set<Entry<String, Object>> entrySet() {
                     return new ViewEntrySet();
                 }
 
@@ -126,20 +124,20 @@ public class AttributesFactory {
             };
         }
 
-        private class ViewEntrySet extends AbstractSet<Entry<AttributeName, Object>> {
+        private class ViewEntrySet extends AbstractSet<Entry<String, Object>> {
             @Override
-            public Iterator<Entry<AttributeName, Object>> iterator() {
-                final Iterator<AttributeName> nameIterator = names.iterator();
+            public Iterator<Entry<String, Object>> iterator() {
+                final Iterator<String> nameIterator = names.iterator();
                 final Iterator<Object> valueIterator = values.iterator();
 
-                return new Iterator<Entry<AttributeName, Object>>() {
+                return new Iterator<Entry<String, Object>>() {
                     @Override
                     public boolean hasNext() {
                         return nameIterator.hasNext();
                     }
 
                     @Override
-                    public Entry<AttributeName, Object> next() {
+                    public Entry<String, Object> next() {
                         return new SimpleImmutableEntry<>(nameIterator.next(), valueIterator.hasNext() ? valueIterator.next() : null); // Orders are guaranteed to be the same
                     }
                 };

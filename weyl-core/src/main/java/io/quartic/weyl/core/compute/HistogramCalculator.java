@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.compute;
 
 import io.quartic.weyl.core.compute.Histogram.Bucket;
-import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
@@ -13,7 +12,7 @@ import static java.util.stream.Collectors.*;
 
 public class HistogramCalculator {
     public Collection<Histogram> calculate(Collection<? extends Feature> features) {
-        final Map<AttributeName, Map<Object, Long>> counts = features.stream()
+        final Map<String, Map<Object, Long>> counts = features.stream()
                 .flatMap(f -> f.attributes().attributes().entrySet().stream())
                 .filter(entry -> isSimple(entry.getValue()))
                 .collect(groupingBy(Entry::getKey, groupingBy(Entry::getValue, counting())));

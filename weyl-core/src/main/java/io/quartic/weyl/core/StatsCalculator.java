@@ -13,8 +13,8 @@ import static java.lang.Math.min;
 
 public class StatsCalculator {
     public static LayerStats calculateStats(AttributeSchema schema, FeatureCollection features) {
-        Map<AttributeName, Double> maxNumeric = newHashMap();
-        Map<AttributeName, Double> minNumeric = newHashMap();
+        Map<String, Double> maxNumeric = newHashMap();
+        Map<String, Double> minNumeric = newHashMap();
 
         features.stream()
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
@@ -39,9 +39,9 @@ public class StatsCalculator {
         return builder.build();
     }
 
-    private static Attribute getAttribute(AttributeSchema schema, AttributeName name) {
+    private static Attribute getAttribute(AttributeSchema schema, String name) {
         if (!schema.attributes().containsKey(name)) {
-            throw new IllegalStateException("Attribute not present in schema: " + name.name());
+            throw new IllegalStateException("Attribute not present in schema: " + name);
         }
         return schema.attributes().get(name);
     }

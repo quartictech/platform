@@ -3,7 +3,6 @@ package io.quartic.weyl.core.compute;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.AttributeName;
 import org.immutables.value.Value;
 
 import java.util.Collection;
@@ -22,6 +21,6 @@ public interface Histogram {
         Long count();
     }
 
-    AttributeName attribute();
+    String attribute();
     Collection<Bucket> buckets();
 }

@@ -76,7 +76,7 @@ public class FeatureConverter {
         final Map<String, Object> output = newHashMap();
         feature.attributes().attributes().entrySet().stream()
                 .filter(entry -> isSimple(entry.getValue()))
-                .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
+                .forEach(entry -> output.put(entry.getKey(), entry.getValue()));
         output.put("_entityId", feature.entityId().uid());
         return output;
     }

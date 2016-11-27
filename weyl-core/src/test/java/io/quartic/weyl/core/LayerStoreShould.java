@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 public class LayerStoreShould {
     private static final LayerId LAYER_ID = LayerIdImpl.of("666");
     private static final LayerId OTHER_LAYER_ID = LayerIdImpl.of("777");
-    private static final AttributeName ATTRIBUTE_NAME = AttributeNameImpl.of("timestamp");
+    private static final String ATTRIBUTE_NAME = "timestamp";
     private static final Attributes ATTRIBUTES = () -> ImmutableMap.of(ATTRIBUTE_NAME, 1234);
 
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
@@ -93,7 +93,7 @@ public class LayerStoreShould {
         Observable.just(updateFor(modelFeature("a"))).subscribe(action);
 
         final Layer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
+        assertThat(layer.schema().blessedAttributes(), Matchers.contains("blah"));
     }
 
     @Test
@@ -362,7 +362,7 @@ public class LayerStoreShould {
     }
 
     private AttributeSchema schema(String blessed) {
-        return AttributeSchemaImpl.builder().blessedAttribute(AttributeNameImpl.of(blessed)).build();
+        return AttributeSchemaImpl.builder().blessedAttribute(blessed).build();
     }
 
     private LayerMetadata metadata(String name, String description) {
