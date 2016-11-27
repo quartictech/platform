@@ -201,7 +201,9 @@ const getBehavior = (layer) => {
   const layerName = layer.metadata.name;
   const schema = layer.attributeSchema;
   const attributeKeys = schema.attributes;
-  const nonCuratedTitle = (schema.titleAttribute ? ((x) => x[schema.titleAttribute]) : defaultTitle);
+  const nonCuratedTitle = (schema.titleAttribute
+    ? ((x) => ((schema.titleAttribute in x) ? x[schema.titleAttribute] : "<< Unknown title >>"))
+    : defaultTitle);
   return {
     title: (layerName in curatedTitles) ? curatedTitles[layerName] : nonCuratedTitle,
     imageUrlKey: schema.imageAttribute,
