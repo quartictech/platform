@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +17,7 @@ import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.core.attributes.AttributeUtils.isSimple;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 import static java.util.stream.Collectors.toList;
 
@@ -71,7 +75,7 @@ public class FeatureConverter {
     public static Map<String, Object> getRawProperties(Feature feature) {
         final Map<String, Object> output = newHashMap();
         feature.attributes().attributes().entrySet().stream()
-                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
+                .filter(entry -> isSimple(entry.getValue()))
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
         output.put("_entityId", feature.entityId().uid());
         return output;
