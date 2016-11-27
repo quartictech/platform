@@ -31,9 +31,9 @@ function* reportStatus(socket) {
       seqNum: selection.seqNum,
     },
     geofence: {
-      features: (geofence.layerId === null) ? geofence.geojson : null,
-      type: geofence.type,
+      features: (geofence.layerId === null) ? geofence.editGeojson : null,
       layerId: geofence.layerId,
+      type: geofence.type,
       bufferDistance: geofence.bufferDistance,
     },
   };

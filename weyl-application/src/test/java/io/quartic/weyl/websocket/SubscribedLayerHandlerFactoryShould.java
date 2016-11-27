@@ -42,7 +42,7 @@ public class SubscribedLayerHandlerFactoryShould {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
         when(msg.subscribedLiveLayerIds()).thenReturn(newArrayList(idA, idB));
 
-        handler.onClientStatusMessage(msg);
+        handler.handle(msg);
 
         verify(layerStore).addSubscriber(eq(idA), any());
         verify(layerStore).addSubscriber(eq(idB), any());
@@ -69,7 +69,7 @@ public class SubscribedLayerHandlerFactoryShould {
         ));
         when(converter.toGeojson(any())).thenReturn(featureCollection);
 
-        handler.onClientStatusMessage(msg);
+        handler.handle(msg);
 
         verify(converter).toGeojson(features);
         verify(messageConsumer).accept(LayerUpdateMessageImpl.of(id, schema, featureCollection));

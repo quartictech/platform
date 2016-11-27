@@ -1,6 +1,5 @@
 package io.quartic.weyl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
@@ -26,9 +25,7 @@ import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
-import io.quartic.weyl.core.utils.GeometryTransformer;
 import io.quartic.weyl.resource.AlertResource;
-import io.quartic.weyl.resource.GeofenceResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
@@ -46,12 +43,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
-import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
-    private final GeometryTransformer transformFromFrontend = webMercatortoWgs84();
-    private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     private final EntityStore entityStore = new EntityStore();
@@ -69,10 +62,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     @Override
     public void initializeApplication(Bootstrap<WeylConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
-        bootstrap.addBundle(configureWebsockets(bootstrap.getObjectMapper()));
+        bootstrap.addBundle(configureWebsockets());
     }
 
-    private WebsocketBundle configureWebsockets(ObjectMapper objectMapper) {
+    private WebsocketBundle configureWebsockets() {
         final SelectionHandlerFactory selectionHandlerFactory = new SelectionHandlerFactory(
                 newArrayList(
                         new ChartUpdateGenerator(),
@@ -88,6 +81,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final GeofenceStatusHandlerFactory geofenceStatusHandlerFactory = new GeofenceStatusHandlerFactory(
                 geofenceStore,
+                layerStore,
                 featureConverter()
         );
 
@@ -118,7 +112,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
-        environment.jersey().register(new GeofenceResource(transformToFrontend, geofenceStore, layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());

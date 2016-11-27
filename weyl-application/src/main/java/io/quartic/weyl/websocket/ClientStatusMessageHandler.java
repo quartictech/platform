@@ -10,5 +10,5 @@ public interface ClientStatusMessageHandler extends AutoCloseable {
         ClientStatusMessageHandler create(Consumer<SocketMessage> messageConsumer);
     }
 
-    void onClientStatusMessage(ClientStatusMessage msg);
+    void handle(ClientStatusMessage msg);
 }

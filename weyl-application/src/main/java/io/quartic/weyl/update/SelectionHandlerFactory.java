@@ -43,10 +43,9 @@ public class SelectionHandlerFactory implements ClientStatusMessageHandler.Facto
                 .map(generator -> entities.subscribe(e -> messageConsumer.accept(generateUpdateMessage(generator, e))))
                 .collect(toList());
 
-
         return new ClientStatusMessageHandler() {
             @Override
-            public void onClientStatusMessage(ClientStatusMessage msg) {
+            public void handle(ClientStatusMessage msg) {
                 selection.onNext(msg.selection());
             }
 

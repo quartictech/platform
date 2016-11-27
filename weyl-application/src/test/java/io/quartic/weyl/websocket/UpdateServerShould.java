@@ -53,7 +53,7 @@ public class UpdateServerShould {
         final UpdateServer server = createAndOpenServer();
         server.onMessage(encode(msg));
 
-        verify(handler).onClientStatusMessage(msg);
+        verify(handler).handle(msg);
     }
 
     @Test

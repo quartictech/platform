@@ -57,7 +57,7 @@ public class UpdateServer implements AlertListener {
                 ClientStatusMessage csm = (ClientStatusMessage)msg;
                 LOG.info("[{}] Subscribed to layers {} + entities {}",
                         session.getId(), stringify(csm.subscribedLiveLayerIds()), stringify(csm.selection().entityIds()));
-                handlers.forEach(t -> t.onClientStatusMessage(csm));
+                handlers.forEach(t -> t.handle(csm));
             } else if (msg instanceof PingMessage) {
                 LOG.info("[{}] Received ping", session.getId());
             } else {

@@ -29,7 +29,7 @@ public class SubscribedLayerHandlerFactory implements ClientStatusMessageHandler
 
         return new ClientStatusMessageHandler() {
             @Override
-            public void onClientStatusMessage(ClientStatusMessage msg) {
+            public void handle(ClientStatusMessage msg) {
                 unsubscribeAll();
                 msg.subscribedLiveLayerIds().forEach(this::subscribe);
             }

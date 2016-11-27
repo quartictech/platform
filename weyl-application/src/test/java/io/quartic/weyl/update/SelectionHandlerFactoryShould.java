@@ -49,7 +49,7 @@ public class SelectionHandlerFactoryShould {
             return empty();
         });
 
-        createHandler().onClientStatusMessage(message(ids));
+        createHandler().handle(message(ids));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
         assertThat(subscriber.getOnNextEvents().get(0), equalTo(Pair.of(42, ids)));
@@ -64,7 +64,7 @@ public class SelectionHandlerFactoryShould {
         when(generator.name()).thenReturn("foo");
         when(generator.generate(any())).thenReturn(data);
 
-        createHandler().onClientStatusMessage(message(ids));
+        createHandler().handle(message(ids));
 
         verify(generator).generate(features);
         verify(messageConsumer).accept(SelectionDrivenUpdateMessageImpl.of("foo", 56, data));
