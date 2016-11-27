@@ -56,9 +56,9 @@ public abstract class BucketComputation implements LayerComputation {
 
     private Optional<ComputationResults> results(Collection<NakedFeature> features, AttributeSchema schema) {
         String layerName = String.format("%s (bucketed)",
-                rawAttributeName());
+                attributeName());
         String layerDescription = String.format("%s bucketed by %s aggregating by %s",
-                rawAttributeName(),
+                attributeName(),
                 bucketLayer().metadata().name(),
                 bucketSpec().aggregation().toString());
         return Optional.of(ComputationResultsImpl.of(
@@ -72,7 +72,7 @@ public abstract class BucketComputation implements LayerComputation {
     }
 
     private AttributeSchema schema() {
-        Map<AttributeName, Attribute> attributeMap = newHashMap(bucketLayer().schema().attributes());
+        Map<String, Attribute> attributeMap = newHashMap(bucketLayer().schema().attributes());
         Attribute newAttribute = AttributeImpl.builder()
                 .type(AttributeType.NUMERIC)
                 .build();
@@ -108,7 +108,7 @@ public abstract class BucketComputation implements LayerComputation {
         }
 
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
-        builder.put(rawAttributeName(), value);
+        builder.put(attributeName(), value);
         return NakedFeatureImpl.of(
                 Optional.of(bucket.entityId().uid()),
                 bucket.geometry(),
@@ -116,11 +116,7 @@ public abstract class BucketComputation implements LayerComputation {
         );
     }
 
-    private AttributeName attributeName() {
-        return AttributeNameImpl.of(rawAttributeName());
-    }
-
-    private String rawAttributeName() {
+    private String attributeName() {
         return featureLayer().metadata().name();
     }
 }

@@ -20,13 +20,13 @@ import static org.mockito.Mockito.when;
 
 public class StatsCalculatorShould {
 
-    private static final AttributeName HEIGHT = mock(AttributeName.class);
-    private static final AttributeName WEIGHT = mock(AttributeName.class);
-    private static final AttributeName NAME = mock(AttributeName.class);
+    private static final String HEIGHT = "height";
+    private static final String WEIGHT = "weight";
+    private static final String NAME = "name";
 
     @Test
     public void track_min_and_max_of_numeric_attributes() throws Exception {
-        final Map<AttributeName, Attribute> attributes = map(
+        final Map<String, Attribute> attributes = map(
                 entry(HEIGHT, attribute(NUMERIC)),
                 entry(WEIGHT, attribute(NUMERIC))
         );
@@ -49,7 +49,7 @@ public class StatsCalculatorShould {
 
     @Test
     public void cope_with_null_attributes() throws Exception {
-        final Map<AttributeName, Attribute> attributes = map(
+        final Map<String, Attribute> attributes = map(
                 entry(HEIGHT, attribute(NUMERIC)),
                 entry(WEIGHT, attribute(NUMERIC))
         );
@@ -70,7 +70,7 @@ public class StatsCalculatorShould {
 
     @Test
     public void cope_if_all_features_missing_an_attribute() throws Exception {
-        final Map<AttributeName, Attribute> attributes = ImmutableMap.of(
+        final Map<String, Attribute> attributes = ImmutableMap.of(
                 HEIGHT, attribute(NUMERIC),
                 WEIGHT, attribute(NUMERIC)
         );
@@ -90,7 +90,7 @@ public class StatsCalculatorShould {
 
     @Test
     public void ignore_non_numeric_attributes() throws Exception {
-        final Map<AttributeName, Attribute> attributes = ImmutableMap.of(
+        final Map<String, Attribute> attributes = ImmutableMap.of(
                 NAME, attribute(STRING),
                 WEIGHT, attribute(NUMERIC)
         );
@@ -108,14 +108,14 @@ public class StatsCalculatorShould {
         )));
     }
 
-    private LayerStats calculate(Map<AttributeName, Attribute> attributes, FeatureCollection features) {
+    private LayerStats calculate(Map<String, Attribute> attributes, FeatureCollection features) {
         final AttributeSchema schema = mock(AttributeSchema.class);
         when(schema.attributes()).thenReturn(attributes);
 
         return StatsCalculator.calculateStats(schema, features);
     }
 
-    private Feature feature(Map<AttributeName, Object> attributes) {
+    private Feature feature(Map<String, Object> attributes) {
         final Feature feature = mock(Feature.class);
         when(feature.attributes()).thenReturn(() -> attributes);
         return feature;

@@ -4,16 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.AbstractMap.SimpleImmutableEntry;
 
-import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.filter;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.core.attributes.AttributeUtils.isSimple;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 import static java.util.stream.Collectors.toList;
 
@@ -68,12 +72,49 @@ public class FeatureConverter {
         return value;
     }
 
+    /**
+     * This is really only efficient for iteration over entrySet().  Everything else will be slow.
+     */
     public static Map<String, Object> getRawProperties(Feature feature) {
-        final Map<String, Object> output = newHashMap();
-        feature.attributes().attributes().entrySet().stream()
-                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
-                .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_entityId", feature.entityId().uid());
-        return output;
+        final Set<Map.Entry<String, Object>> filtered = filter(
+                feature.attributes().attributes().entrySet(),
+                e -> isSimple(e.getValue())
+        );
+
+        final SimpleImmutableEntry<String, Object> idEntry = new SimpleImmutableEntry<>("_entityId", feature.entityId().uid());
+
+        return new AbstractMap<String, Object>() {
+            @Override
+            public Set<Entry<String, Object>> entrySet() {
+                return new AbstractSet<Entry<String, Object>>() {
+                    @Override
+                    public Iterator<Entry<String, Object>> iterator() {
+                        return new Iterator<Entry<String, Object>>() {
+                            Iterator<Entry<String, Object>> underlying = filtered.iterator();
+                            boolean hasNext = true;
+
+                            @Override
+                            public boolean hasNext() {
+                                return hasNext;
+                            }
+
+                            @Override
+                            public Entry<String, Object> next() {
+                                if (underlying.hasNext()) {
+                                    return underlying.next();
+                                }
+                                hasNext = false;
+                                return idEntry;
+                            }
+                        };
+                    }
+
+                    @Override
+                    public int size() {
+                        return filtered.size() + 1;
+                    }
+                };
+            }
+        };
     }
 }

@@ -18,7 +18,7 @@ public interface MapDatasetExtension {
     default LayerViewType viewType() {
         return LayerViewType.MOST_RECENT;
     }
-    Optional<AttributeName> titleAttribute();
-    Optional<AttributeName> imageAttribute();
-    List<AttributeName> blessedAttributes();
+    Optional<String> titleAttribute();
+    Optional<String> imageAttribute();
+    List<String> blessedAttributes();
 }

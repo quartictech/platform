@@ -2,7 +2,6 @@ package io.quartic.weyl.core.render;
 
 import com.google.common.base.Stopwatch;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.Layer;
@@ -78,12 +77,9 @@ public class VectorTileRenderer {
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {
         Geometry transformed = (Geometry) geometry.clone();
-        transformed.apply(new CoordinateFilter() {
-            @Override
-            public void filter(Coordinate coord) {
+        transformed.apply((Coordinate coord) -> {
                 coord.x = 4096.0 * (coord.x - envelope.getMinX()) / (envelope.getWidth());
                 coord.y = 4096.0 * (1 - (coord.y - envelope.getMinY()) / (envelope.getHeight()));
-            }
         });
         transformed.geometryChanged();
         return transformed;

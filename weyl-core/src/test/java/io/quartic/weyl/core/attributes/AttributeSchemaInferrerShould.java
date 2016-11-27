@@ -53,18 +53,18 @@ public class AttributeSchemaInferrerShould {
 
     @Test
     public void infer_known_type_when_same_as_previous() throws Exception {
-        assertThatTypeInferredFromValues(NUMERIC, map(entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123))))), 123);
+        assertThatTypeInferredFromValues(NUMERIC, map(entry("a", AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123))))), 123);
     }
 
     @Test
     public void infer_unknown_type_when_different_to_previous() throws Exception {
-        assertThatTypeInferredFromValues(UNKNOWN, map(entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet("foo"))))), "foo");
+        assertThatTypeInferredFromValues(UNKNOWN, map(entry("a", AttributeImpl.of(NUMERIC, Optional.of(newHashSet("foo"))))), "foo");
     }
 
-    private void assertThatTypeInferredFromValues(AttributeType type, Map<AttributeName, Attribute> previous, Object... values) {
+    private void assertThatTypeInferredFromValues(AttributeType type, Map<String, Attribute> previous, Object... values) {
         final List<Feature> features = features("a", values);
 
-        assertThat(inferSchema(features, previous), equalTo(map(entry(name("a"), AttributeImpl.of(type, Optional.of(newHashSet(values)))))));
+        assertThat(inferSchema(features, previous), equalTo(map(entry("a", AttributeImpl.of(type, Optional.of(newHashSet(values)))))));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class AttributeSchemaInferrerShould {
         final List<Feature> features = features("a", "foo", "bar", "foo");
 
         assertThat(inferSchema(features, emptyMap()), equalTo(map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
+                entry("a", AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
         )));
     }
 
@@ -81,56 +81,56 @@ public class AttributeSchemaInferrerShould {
         final List<Feature> features = features("a", distinctValuesPlusOneRepeated(MAX_CATEGORIES + 1));
 
         assertThat(inferSchema(features, emptyMap()), equalTo(map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+                entry("a", AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
 
     @Test
     public void infer_categories_as_union_with_previous() throws Exception {
-        final Map<AttributeName, Attribute> previous = map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
+        final Map<String, Attribute> previous = map(
+                entry("a", AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
         );
         final List<Feature> features = features("a", "foo", "baz");
 
         assertThat(inferSchema(features, previous), equalTo(map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar", "baz"))))
+                entry("a", AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar", "baz"))))
         )));
     }
 
     @Test
     public void infer_no_categories_when_union_has_too_many() throws Exception {
-        final Map<AttributeName, Attribute> previous = map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("bar"))))
+        final Map<String, Attribute> previous = map(
+                entry("a", AttributeImpl.of(STRING, Optional.of(newHashSet("bar"))))
         );
         final List<Feature> features = features("a", distinctValuesPlusOneRepeated(MAX_CATEGORIES));
 
         assertThat(inferSchema(features, previous), equalTo(map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+                entry("a", AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
 
     @Test
     public void infer_no_categories_when_previous_had_too_many() throws Exception {
-        final Map<AttributeName, Attribute> previous = map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+        final Map<String, Attribute> previous = map(
+                entry("a", AttributeImpl.of(STRING, Optional.empty()))
         );
         final List<Feature> features = features("a", "foo", "baz");
 
         assertThat(inferSchema(features, previous), equalTo(map(
-                entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+                entry("a", AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
 
     @Test
     public void ignore_missing_attributes() throws Exception {
         final List<Feature> features = newArrayList(
-                feature(map(entry(name("a"), 123), entry(name("b"), 456))),
-                feature(map(entry(name("a"), 789), entry(name("b"), null)))
+                feature(map(entry("a", 123), entry("b", 456))),
+                feature(map(entry("a", 789), entry("b", null)))
         );
 
         assertThat(inferSchema(features, emptyMap()), equalTo(map(
-                entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123, 789)))),
-                entry(name("b"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(456))))
+                entry("a", AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123, 789)))),
+                entry("b", AttributeImpl.of(NUMERIC, Optional.of(newHashSet(456))))
         )));
     }
 
@@ -141,20 +141,16 @@ public class AttributeSchemaInferrerShould {
 
     private List<Feature> features(String name, Object... values) {
         return stream(values)
-                .map(v -> feature(map(entry(name(name), v))))
+                .map(v -> feature(map(entry(name, v))))
                 .collect(toList());
     }
 
-    private Feature feature(Map<AttributeName, Object> attributes) {
+    private Feature feature(Map<String, Object> attributes) {
         return FeatureImpl.builder()
                 .entityId(EntityIdImpl.of("xyz"))
                 .geometry(mock(Geometry.class))
                 .attributes(() -> attributes)
                 .build();
-    }
-
-    private AttributeNameImpl name(String name) {
-        return AttributeNameImpl.of(name);
     }
 
     private String[] distinctValuesPlusOneRepeated(int num) {

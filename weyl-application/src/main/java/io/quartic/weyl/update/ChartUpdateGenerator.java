@@ -1,8 +1,6 @@
 package io.quartic.weyl.update;
 
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
@@ -14,15 +12,15 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
-    private static final AttributeName NAME = AttributeNameImpl.of("name");
+    private static final String NAME = "name";
 
     @Override
     public String name() {
         return "chart";
     }
 
-    public Map<AttributeName, Map<String, TimeSeriesAttribute>> generate(Collection<Feature> entities) {
-        Set<AttributeName> eligibleAttributes = entities.stream()
+    public Map<String, Map<String, TimeSeriesAttribute>> generate(Collection<Feature> entities) {
+        Set<String> eligibleAttributes = entities.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
@@ -34,13 +32,13 @@ public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
     }
 
     // Map of { name -> timeseries }
-    private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, AttributeName attribute) {
+    private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, String attributeName) {
         return features.stream()
                 .filter(feature -> feature.attributes().attributes().containsKey(NAME))
-                .filter(feature -> feature.attributes().attributes().containsKey(attribute) &&
-                        feature.attributes().attributes().get(attribute) instanceof TimeSeriesAttribute)
+                .filter(feature -> feature.attributes().attributes().containsKey(attributeName) &&
+                        feature.attributes().attributes().get(attributeName) instanceof TimeSeriesAttribute)
                 .collect(toMap(
                         feature -> (String) feature.attributes().attributes().get(NAME),
-                        feature -> (TimeSeriesAttribute) feature.attributes().attributes().get(attribute)));
+                        feature -> (TimeSeriesAttribute) feature.attributes().attributes().get(attributeName)));
     }
 }

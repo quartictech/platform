@@ -31,9 +31,9 @@ import static rx.functions.Actions.empty;
 
 public class CatalogueWatcherShould {
 
-    private static final AttributeName TITLE_ATTRIBUTE = AttributeNameImpl.of("title_attr");
-    private static final AttributeName IMAGE_ATTRIBUTE = AttributeNameImpl.of("image_attr");
-    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeNameImpl.of("cool_attr"), AttributeNameImpl.of("slick_attr") };
+    private static final String TITLE_ATTRIBUTE = "title_attr";
+    private static final String IMAGE_ATTRIBUTE = "image_attr";
+    private static final String[] BLESSED_ATTRIBUTES = { "cool_attr", "slick_attr" };
 
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}

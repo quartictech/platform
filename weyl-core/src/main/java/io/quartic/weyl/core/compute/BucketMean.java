@@ -3,7 +3,6 @@ package io.quartic.weyl.core.compute;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Feature;
 import org.immutables.value.Value;
 
@@ -15,7 +14,7 @@ import java.util.Objects;
 @JsonSerialize(as = BucketMeanImpl.class)
 @JsonDeserialize(as = BucketMeanImpl.class)
 public abstract class BucketMean implements BucketAggregation {
-    abstract AttributeName attribute();
+    abstract String attribute();
 
     @Override
     public double aggregate(Feature bucket, Collection<Feature> features) {

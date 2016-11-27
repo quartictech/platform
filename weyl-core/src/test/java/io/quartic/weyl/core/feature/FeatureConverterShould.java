@@ -65,8 +65,8 @@ public class FeatureConverterShould {
                 EntityId.fromString("a"),
                 mock(com.vividsolutions.jts.geom.Geometry.class),
                 () -> map(
-                        entry(name("timestamp"), 1234),
-                        entry(name("noob"), null))
+                        entry("timestamp", 1234),
+                        entry("noob", null))
         );
 
         assertThat(getRawProperties(feature), equalTo(map(
@@ -98,9 +98,5 @@ public class FeatureConverterShould {
 
     private Point point(double x, double y) {
         return PointImpl.of(ImmutableList.of(x, y));
-    }
-
-    private AttributeName name(String name) {
-        return AttributeNameImpl.of(name);
     }
 }

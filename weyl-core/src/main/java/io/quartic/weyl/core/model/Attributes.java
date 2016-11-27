@@ -10,5 +10,5 @@ public interface Attributes {
     Attributes EMPTY_ATTRIBUTES = Collections::emptyMap;
 
     @JsonValue
-    Map<AttributeName, Object> attributes();
+    Map<String, Object> attributes();
 }

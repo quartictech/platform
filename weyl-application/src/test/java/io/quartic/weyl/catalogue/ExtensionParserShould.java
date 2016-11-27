@@ -1,7 +1,6 @@
 package io.quartic.weyl.catalogue;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import org.junit.Test;
 
@@ -47,6 +46,6 @@ public class ExtensionParserShould {
         );
 
         assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK, Optional.of(AttributeNameImpl.of("foo")), Optional.empty(), emptyList())));
+                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK, Optional.of("foo"), Optional.empty(), emptyList())));
     }
 }

@@ -12,6 +12,6 @@ import java.util.Map;
 @JsonSerialize(as = LayerStatsImpl.class)
 @JsonDeserialize(as = LayerStatsImpl.class)
 public interface LayerStats {
-    Map<AttributeName, AttributeStats> attributeStats();
+    Map<String, AttributeStats> attributeStats();
     Integer featureCount();
 }

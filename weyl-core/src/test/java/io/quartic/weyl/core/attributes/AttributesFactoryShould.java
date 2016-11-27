@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.attributes;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
 import org.junit.Test;
 
@@ -19,9 +18,9 @@ public class AttributesFactoryShould {
         final Attributes attributes = buildAttributes();
 
         assertThat(attributes.attributes(), equalTo(map(
-                entry(name("name"), "Oliver"),
-                entry(name("weight"), 80.0),
-                entry(name("height"), 185.0)
+                entry("name", "Oliver"),
+                entry("weight", 80.0),
+                entry("height", 185.0)
         )));
     }
 
@@ -29,17 +28,17 @@ public class AttributesFactoryShould {
     public void produce_attributes_that_support_get() throws Exception {
         final Attributes attributes = buildAttributes();
 
-        assertThat(attributes.attributes().get(name("name")), equalTo("Oliver"));
-        assertThat(attributes.attributes().get(name("weight")), equalTo(80.0));
-        assertThat(attributes.attributes().get(name("height")), equalTo(185.0));
+        assertThat(attributes.attributes().get("name"), equalTo("Oliver"));
+        assertThat(attributes.attributes().get("weight"), equalTo(80.0));
+        assertThat(attributes.attributes().get("height"), equalTo(185.0));
     }
 
     @Test
     public void produce_attributes_that_support_containsKey() throws Exception {
         final Attributes attributes = buildAttributes();
 
-        assertThat(attributes.attributes().containsKey(name("name")), equalTo(true));
-        assertThat(attributes.attributes().containsKey(name("disease")), equalTo(false));
+        assertThat(attributes.attributes().containsKey("name"), equalTo(true));
+        assertThat(attributes.attributes().containsKey("disease"), equalTo(false));
     }
 
     @Test
@@ -53,7 +52,7 @@ public class AttributesFactoryShould {
     @Test(expected = UnsupportedOperationException.class)
     public void produce_immutable_results() throws Exception {
         final Attributes attributes = buildAttributes();
-        attributes.attributes().put(name("foo"), "bar");
+        attributes.attributes().put("foo", "bar");
     }
 
     @Test
@@ -62,15 +61,15 @@ public class AttributesFactoryShould {
         final Attributes attributesB = buildAttributes("Arlo", 200.0, 170.0);
 
         assertThat(attributesA.attributes(), equalTo(map(
-                entry(name("name"), "Oliver"),
-                entry(name("weight"), 80.0),
-                entry(name("height"), 185.0)
+                entry("name", "Oliver"),
+                entry("weight", 80.0),
+                entry("height", 185.0)
         )));
 
         assertThat(attributesB.attributes(), equalTo(map(
-                entry(name("name"), "Arlo"),
-                entry(name("weight"), 200.0),
-                entry(name("height"), 170.0)
+                entry("name", "Arlo"),
+                entry("weight", 200.0),
+                entry("height", 170.0)
         )));
     }
 
@@ -89,8 +88,8 @@ public class AttributesFactoryShould {
         final Attributes attributesA = builder().put("foo", new String("hello")).build();
         final Attributes attributesB = builder().put("bar", new String("hello")).build();
 
-        assertThat(attributesA.attributes().get(name("foo")),
-                sameInstance(attributesB.attributes().get(name("bar"))));
+        assertThat(attributesA.attributes().get("foo"),
+                sameInstance(attributesB.attributes().get("bar")));
     }
 
     // This is really just to cover the (index < values.size()) behaviour
@@ -99,7 +98,7 @@ public class AttributesFactoryShould {
         final Attributes attributes = buildAttributes();
         builder().put("wat", 32).build();
 
-        assertThat(attributes.attributes().get(name("wat")), nullValue());
+        assertThat(attributes.attributes().get("wat"), nullValue());
     }
 
     @Test
@@ -107,7 +106,7 @@ public class AttributesFactoryShould {
         builder().put("wat", 32).build();
         final Attributes attributes = buildAttributes();
 
-        assertThat(attributes.attributes().containsKey(name("wat")), equalTo(true));
+        assertThat(attributes.attributes().containsKey("wat"), equalTo(true));
     }
 
     @Test
@@ -116,27 +115,23 @@ public class AttributesFactoryShould {
         final Attributes attributes = buildAttributes();
 
         assertThat(attributes.attributes(), equalTo(map(
-                entry(name("name"), "Oliver"),
-                entry(name("weight"), 80.0),
-                entry(name("height"), 185.0),
-                entry(name("wat"), null)
+                entry("name", "Oliver"),
+                entry("weight", 80.0),
+                entry("height", 185.0),
+                entry("wat", null)
         )));
     }
 
     @Test
     public void allow_building_starting_with_existing_attributes() throws Exception {
-        final Attributes original = () -> ImmutableMap.of(name("foo"), 1.2);
+        final Attributes original = () -> ImmutableMap.of("foo", 1.2);
 
         final Attributes attributes = factory.builder(original).put("bar", 3.4).build();
 
         assertThat(attributes.attributes(), equalTo(map(
-                entry(name("foo"), 1.2),
-                entry(name("bar"), 3.4)
+                entry("foo", 1.2),
+                entry("bar", 3.4)
         )));
-    }
-
-    private AttributeNameImpl name(String name) {
-        return AttributeNameImpl.of(name);
     }
 
     private Attributes buildAttributes() {
