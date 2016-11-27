@@ -4,7 +4,6 @@ import io.quartic.weyl.Multiplexer;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.*;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,24 +14,21 @@ import rx.observers.TestSubscriber;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
-public class SelectionHandlerFactoryShould {
+public class SelectionHandlerShould {
     private final Multiplexer<Integer, EntityId, Feature> mux = mock(Multiplexer.class);
     private final SelectionDrivenUpdateGenerator generator = mock(SelectionDrivenUpdateGenerator.class);
-    private final Consumer<SocketMessage> messageConsumer = mock(Consumer.class);
 
     @Before
     public void before() throws Exception {
@@ -49,10 +45,10 @@ public class SelectionHandlerFactoryShould {
             return empty();
         });
 
-        createHandler().handle(message(ids));
+        just(message(ids)).compose(handler()).subscribe();
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(Pair.of(42, ids)));
+        assertThat(subscriber.getOnNextEvents(), contains(Pair.of(42, ids)));
     }
 
     @Test
@@ -64,28 +60,20 @@ public class SelectionHandlerFactoryShould {
         when(generator.name()).thenReturn("foo");
         when(generator.generate(any())).thenReturn(data);
 
-        createHandler().handle(message(ids));
 
+        final TestSubscriber<SocketMessage> subscriber = TestSubscriber.create();
+        just(message(ids)).compose(handler()).subscribe(subscriber);
+
+        subscriber.awaitTerminalEvent();
         verify(generator).generate(features);
-        verify(messageConsumer).accept(SelectionDrivenUpdateMessageImpl.of("foo", 56, data));
+        assertThat(subscriber.getOnNextEvents(), contains(SelectionDrivenUpdateMessageImpl.of("foo", 56, data)));
     }
 
-    @Test
-    public void unsubscribe_from_mux_on_close() throws Exception {
-        final AtomicBoolean unsubscribed = new AtomicBoolean(false);
-        final Observable<Pair<Integer, List<Feature>>> observable = empty();
-        when(mux.call(any())).thenReturn(observable.doOnUnsubscribe(() -> unsubscribed.set(true)));
-
-        createHandler().close();
-
-        assertThat(unsubscribed.get(), equalTo(true));
+    private SelectionHandler handler() {
+        return new SelectionHandler(singletonList(generator), mux);
     }
 
-    private ClientStatusMessageHandler createHandler() {
-        return new SelectionHandlerFactory(singletonList(generator), mux).create(messageConsumer);
-    }
-
-    private ClientStatusMessageImpl message(ArrayList<EntityId> ids) {
+    private ClientStatusMessage message(ArrayList<EntityId> ids) {
         return ClientStatusMessageImpl.of(
                 emptyList(),
                 SelectionStatusImpl.of(42, ids),

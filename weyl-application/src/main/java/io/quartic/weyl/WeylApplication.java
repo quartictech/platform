@@ -31,9 +31,9 @@ import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
-import io.quartic.weyl.update.SelectionHandlerFactory;
-import io.quartic.weyl.websocket.GeofenceStatusHandlerFactory;
-import io.quartic.weyl.websocket.SubscribedLayerHandlerFactory;
+import io.quartic.weyl.update.SelectionHandler;
+import io.quartic.weyl.websocket.GeofenceStatusHandler;
+import io.quartic.weyl.websocket.LayerSubscriptionHandler;
 import io.quartic.weyl.websocket.UpdateServer;
 import rx.schedulers.Schedulers;
 
@@ -66,7 +66,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets() {
-        final SelectionHandlerFactory selectionHandlerFactory = new SelectionHandlerFactory(
+        final SelectionHandler selectionHandler = new SelectionHandler(
                 newArrayList(
                         new ChartUpdateGenerator(),
                         new HistogramsUpdateGenerator(new HistogramCalculator()),
@@ -74,12 +74,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 ),
                 Multiplexer.create(entityStore::get));
 
-        final SubscribedLayerHandlerFactory subscribedLayerHandlerFactory = new SubscribedLayerHandlerFactory(
+        final LayerSubscriptionHandler layerSubscriptionHandler = new LayerSubscriptionHandler(
                 layerStore,
                 featureConverter()
         );
 
-        final GeofenceStatusHandlerFactory geofenceStatusHandlerFactory = new GeofenceStatusHandlerFactory(
+        final GeofenceStatusHandler geofenceStatusHandler = new GeofenceStatusHandler(
                 geofenceStore,
                 layerStore,
                 featureConverter()
@@ -94,9 +94,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         return (T) new UpdateServer(
                                 alertProcessor,
                                 newArrayList(
-                                        selectionHandlerFactory,
-                                        subscribedLayerHandlerFactory,
-                                        geofenceStatusHandlerFactory
+                                        selectionHandler,
+                                        layerSubscriptionHandler,
+                                        geofenceStatusHandler
                                 ));
                     }
                 })

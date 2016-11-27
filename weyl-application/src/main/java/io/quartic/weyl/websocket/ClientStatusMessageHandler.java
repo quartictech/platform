@@ -2,13 +2,7 @@ package io.quartic.weyl.websocket;
 
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
+import rx.Observable;
 
-import java.util.function.Consumer;
-
-public interface ClientStatusMessageHandler extends AutoCloseable {
-    interface Factory {
-        ClientStatusMessageHandler create(Consumer<SocketMessage> messageConsumer);
-    }
-
-    void handle(ClientStatusMessage msg);
+public interface ClientStatusMessageHandler extends Observable.Transformer<ClientStatusMessage, SocketMessage> {
 }

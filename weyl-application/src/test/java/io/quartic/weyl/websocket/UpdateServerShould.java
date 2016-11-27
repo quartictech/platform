@@ -5,55 +5,54 @@ import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceType;
-import io.quartic.weyl.websocket.message.AlertMessageImpl;
-import io.quartic.weyl.websocket.message.ClientStatusMessageImpl;
-import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
-import io.quartic.weyl.websocket.message.SelectionStatusImpl;
-import org.junit.Before;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.websocket.message.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
+import rx.Observable;
+import rx.observers.TestSubscriber;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.encode;
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static rx.Observable.empty;
+import static rx.Observable.just;
 
 public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
     private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
-    private final ClientStatusMessageHandler.Factory handlerFactory = mock(ClientStatusMessageHandler.Factory.class);
-
-    @Before
-    public void before() throws Exception {
-        when(handlerFactory.create(any())).thenReturn(handler);
-    }
 
     @Test
-    public void create_handlers_on_construction() throws Exception {
-        createServer();
+    public void compose_received_messages_via_handlers() throws Exception {
+        final ClientStatusMessage msg = clientStatusMessage();
+        final SocketMessage response = new SocketMessage() {};
 
-        verify(handlerFactory).create(any(Consumer.class));
-    }
-
-    @Test
-    public void send_messages_to_handlers() throws Exception {
-        final ClientStatusMessageImpl msg = ClientStatusMessageImpl.of(
-                emptyList(),
-                SelectionStatusImpl.of(42, emptyList()),
-                GeofenceStatusImpl.of(GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
-        );
+        final TestSubscriber<Pair<Integer, List<EntityId>>> subscriber = TestSubscriber.create();
+        when(handler.call(any())).then(invocation -> {
+            final Observable<Pair<Integer, List<EntityId>>> observable = invocation.getArgument(0);
+            observable.subscribe(subscriber);
+            return just(response);
+        });
 
         final UpdateServer server = createAndOpenServer();
         server.onMessage(encode(msg));
 
-        verify(handler).handle(msg);
+        subscriber.awaitValueCount(1, 100, MILLISECONDS);
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(msg));
+        verifyMessage(response);
     }
 
     @Test
@@ -65,12 +64,15 @@ public class UpdateServerShould {
 
     @Test
     public void remove_listener_and_close_handlers_on_close() throws Exception {
-        final UpdateServer server = createAndOpenServer();
+        final AtomicBoolean unsubscribed = new AtomicBoolean(false);
+        final Observable<SocketMessage> observable = empty();
+        when(handler.call(any())).thenReturn(observable.doOnUnsubscribe(() -> unsubscribed.set(true)));
 
+        final UpdateServer server = createAndOpenServer();
         server.onClose(session, mock(CloseReason.class));
 
         verify(alertProcessor).removeListener(server);
-        verify(handler).close();
+        assertThat(unsubscribed.get(), equalTo(true));
     }
 
     @Test
@@ -81,6 +83,14 @@ public class UpdateServerShould {
         server.onAlert(alert);
 
         verifyMessage(AlertMessageImpl.of(alert));
+    }
+
+    private ClientStatusMessage clientStatusMessage() {
+        return ClientStatusMessageImpl.of(
+                emptyList(),
+                SelectionStatusImpl.of(42, emptyList()),
+                GeofenceStatusImpl.of(GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
+        );
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {
@@ -96,6 +106,6 @@ public class UpdateServerShould {
     private UpdateServer createServer() {
         return new UpdateServer(
                 alertProcessor,
-                newArrayList(handlerFactory));
+                newArrayList(handler));
     }
 }
