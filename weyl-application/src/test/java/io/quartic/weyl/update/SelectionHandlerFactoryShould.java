@@ -6,6 +6,7 @@ import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.*;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,10 +49,7 @@ public class SelectionHandlerFactoryShould {
             return empty();
         });
 
-        createHandler().onClientStatusMessage(ClientStatusMessageImpl.of(
-                emptyList(),
-                SelectionStatusImpl.of(42, ids)
-        ));
+        createHandler().onClientStatusMessage(message(ids));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
         assertThat(subscriber.getOnNextEvents().get(0), equalTo(Pair.of(42, ids)));
@@ -66,10 +64,7 @@ public class SelectionHandlerFactoryShould {
         when(generator.name()).thenReturn("foo");
         when(generator.generate(any())).thenReturn(data);
 
-        createHandler().onClientStatusMessage(ClientStatusMessageImpl.of(
-                emptyList(),
-                SelectionStatusImpl.of(42, ids)
-        ));
+        createHandler().onClientStatusMessage(message(ids));
 
         verify(generator).generate(features);
         verify(messageConsumer).accept(SelectionDrivenUpdateMessageImpl.of("foo", 56, data));
@@ -88,5 +83,13 @@ public class SelectionHandlerFactoryShould {
 
     private ClientStatusMessageHandler createHandler() {
         return new SelectionHandlerFactory(singletonList(generator), mux).create(messageConsumer);
+    }
+
+    private ClientStatusMessageImpl message(ArrayList<EntityId> ids) {
+        return ClientStatusMessageImpl.of(
+                emptyList(),
+                SelectionStatusImpl.of(42, ids),
+                mock(GeofenceStatus.class)
+        );
     }
 }

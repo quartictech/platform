@@ -35,6 +35,7 @@ import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandlerFactory;
+import io.quartic.weyl.websocket.GeofenceStatusHandlerFactory;
 import io.quartic.weyl.websocket.SubscribedLayerHandlerFactory;
 import io.quartic.weyl.websocket.UpdateServer;
 import rx.schedulers.Schedulers;
@@ -85,6 +86,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 featureConverter()
         );
 
+        final GeofenceStatusHandlerFactory geofenceStatusHandlerFactory = new GeofenceStatusHandlerFactory(
+                geofenceStore,
+                featureConverter()
+        );
+
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
@@ -92,11 +98,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) new UpdateServer(
-                                geofenceStore,
                                 alertProcessor,
-                                newArrayList(selectionHandlerFactory, subscribedLayerHandlerFactory),
-                                featureConverter(),
-                                objectMapper);
+                                newArrayList(
+                                        selectionHandlerFactory,
+                                        subscribedLayerHandlerFactory,
+                                        geofenceStatusHandlerFactory
+                                ));
                     }
                 })
                 .build();

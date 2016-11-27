@@ -21,6 +21,7 @@ function* keepConnectionAlive(socket) {
 
 function* reportStatus(socket) {
   const selection = yield select(selectors.selectSelection);
+  const geofence = yield select(selectors.selectGeofence);
 
   const msg = {
     type: "ClientStatus",
@@ -28,6 +29,12 @@ function* reportStatus(socket) {
     selection: {
       entityIds: _.flatten(_.values(selection.ids)),
       seqNum: selection.seqNum,
+    },
+    geofence: {
+      features: (geofence.layerId === null) ? geofence.geojson : null,
+      type: geofence.type,
+      layerId: geofence.layerId,
+      bufferDistance: geofence.bufferDistance,
     },
   };
 
@@ -89,7 +96,7 @@ function* watchSubscriptionChanges(socket) {
     const selection = yield select(selectors.selectSelection);
 
     // TODO: cleanse this gross logic
-    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE].indexOf(action.type) >= 0)) {
+    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_EDIT_FINISH].indexOf(action.type) >= 0)) {
       if (lastTask) {
         yield cancel(lastTask);
       }
