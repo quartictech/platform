@@ -10,7 +10,7 @@ module.exports = (options) => ({
   entry: options.entry,
   output: Object.assign({ // Compile into js/build.js
     path: path.resolve(process.cwd(), 'build', 'webpack', 'assets'),
-    publicPath: '/',
+    publicPath: '',
   }, options.output), // Merge with env dependent settings
   module: {
     loaders: [{
