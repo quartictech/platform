@@ -18,7 +18,7 @@ public class StatsCalculator {
 
         features.stream()
                 .flatMap(feature -> feature.attributes().attributes().entrySet().stream())
-                .filter(entry -> getAttribute(schema, entry.getKey()).type() == AttributeType.NUMERIC)
+                .filter(entry -> (getAttribute(schema, entry.getKey()).type() == AttributeType.NUMERIC) && (entry.getValue() != null))
                 .forEach(entry -> {
                     final double value = Double.valueOf(entry.getValue().toString());
                     maxNumeric.put(entry.getKey(), max(value, maxNumeric.getOrDefault(entry.getKey(), MIN_VALUE)));

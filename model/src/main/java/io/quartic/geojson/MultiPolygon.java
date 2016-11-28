@@ -13,4 +13,9 @@ import java.util.List;
 @JsonDeserialize(as = MultiPolygonImpl.class)
 public interface MultiPolygon extends Geometry {
     List<List<List<List<Double>>>> coordinates();
+
+    @Override
+    default <T> T accept(GeometryVisitor<T> geometryVisitor) {
+        return geometryVisitor.visit(this);
+    }
 }

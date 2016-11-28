@@ -4,10 +4,12 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
+import java.util.Optional;
+
 @SweetStyle
 @Value.Immutable
 public interface NakedFeature {
-    String externalId();
+    Optional<String> externalId();
     Geometry geometry();
     Attributes attributes();
 }

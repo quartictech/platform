@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.geojson.*;
 import io.quartic.geojson.Feature;
+import io.quartic.geojson.*;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.model.*;
@@ -15,9 +15,13 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.CollectionUtils.entry;
+import static io.quartic.common.CollectionUtils.map;
+import static io.quartic.weyl.core.feature.FeatureConverter.getRawProperties;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -55,6 +59,22 @@ public class FeatureConverterShould {
         assertThat(modelFeatures, empty());
     }
 
+    @Test
+    public void strip_null_attributes_when_creating_raw() throws Exception {
+        io.quartic.weyl.core.model.Feature feature = io.quartic.weyl.core.model.FeatureImpl.of(
+                EntityId.fromString("a"),
+                mock(com.vividsolutions.jts.geom.Geometry.class),
+                () -> map(
+                        entry(name("timestamp"), 1234),
+                        entry(name("noob"), null))
+        );
+
+        assertThat(getRawProperties(feature), equalTo(map(
+                entry("_entityId", "a"),
+                entry("timestamp", 1234)
+        )));
+    }
+
     private AttributesFactory.AttributesBuilder attributesBuilder(Attributes attributes) {
         final AttributesFactory.AttributesBuilder builder = mock(AttributesFactory.AttributesBuilder.class);
         when(builder.build()).thenReturn(attributes);
@@ -62,7 +82,7 @@ public class FeatureConverterShould {
     }
 
     private NakedFeatureImpl modelFeature(String id, Attributes attributes) {
-        return NakedFeatureImpl.of(id, factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
+        return NakedFeatureImpl.of(Optional.of(id), factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
     }
 
     private Feature geojsonFeature(String id, Optional<Geometry> geometry) {
@@ -78,5 +98,9 @@ public class FeatureConverterShould {
 
     private Point point(double x, double y) {
         return PointImpl.of(ImmutableList.of(x, y));
+    }
+
+    private AttributeName name(String name) {
+        return AttributeNameImpl.of(name);
     }
 }

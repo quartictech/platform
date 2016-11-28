@@ -4,7 +4,16 @@ import { Link } from "react-router";
 const s = require("./style.css");
 const logo = require("./quartic.svg");
 
-class Header extends React.Component<void, void> {
+interface IProps {
+  newDatasetClick: any;
+  searchBoxChange: any;
+}
+
+class Header extends React.Component<IProps, void> {
+  onSearch(e) {
+    this.props.searchBoxChange(e.target.value);
+  }
+
   render() {
     return (
       <nav className="pt-navbar .modifier pt-dark">
@@ -23,10 +32,15 @@ class Header extends React.Component<void, void> {
           <input
             className="pt-input"
             placeholder="Search datasets..."
-            type="text" />
+            type="text"
+            onChange={this.onSearch.bind(this)}
+          />
         </div>
         <div className="pt-navbar-group pt-align-right">
-          <button className="pt-button pt-minimal pt-icon-document">
+          <button
+            onClick={this.props.newDatasetClick}
+            className="pt-button pt-minimal pt-icon-document"
+          >
             Upload Data
           </button>
         </div>

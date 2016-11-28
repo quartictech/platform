@@ -15,8 +15,10 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
+import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -72,15 +74,18 @@ public abstract class BucketComputation implements LayerComputation {
     }
 
     private AttributeSchema schema() {
-        Map<AttributeName, Attribute> attributeMap = newHashMap(bucketLayer().schema().attributes());
+        final AttributeSchema originalSchema = bucketLayer().schema();
+
+        Map<AttributeName, Attribute> attributeMap = newHashMap(originalSchema.attributes());
         Attribute newAttribute = AttributeImpl.builder()
                 .type(AttributeType.NUMERIC)
                 .build();
         attributeMap.put(attributeName(), newAttribute);
 
         return AttributeSchemaImpl
-                .copyOf(bucketLayer().schema())
+                .copyOf(originalSchema)
                 .withAttributes(attributeMap)
+                .withBlessedAttributes(concat(singletonList(attributeName()), originalSchema.blessedAttributes()))
                 .withPrimaryAttribute(attributeName());
     }
 
@@ -110,7 +115,7 @@ public abstract class BucketComputation implements LayerComputation {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
         builder.put(rawAttributeName(), value);
         return NakedFeatureImpl.of(
-                bucket.entityId().uid(),
+                Optional.of(bucket.entityId().uid()),
                 bucket.geometry(),
                 builder.build()
         );

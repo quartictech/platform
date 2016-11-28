@@ -1,8 +1,6 @@
-// TODO: Handle contextPaths if we need to
-export const apiRootUrl = `${location.origin}/api`;
-export const wsUrl = `${location.protocol === "https:" ?
-  "wss:" : "ws:"}//${location.host}/ws`;
+const apiRootUrl = `${location.origin}/api`;
 
+import { IDatasetMetadata } from "../models";
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -17,10 +15,41 @@ function parseJSON(response) {
   return response.json();
 }
 
-export function fetchDatasets() {
-  return fetch(`${apiRootUrl}/dataset`, { credentials: "same-origin" })
+export function fetchUtil(url, options?) {
+  const newOptions = Object.assign({}, options, { credentials: "same-origin" });
+  return fetch(url, newOptions)
     .then(checkStatus)
     .then(parseJSON)
-    .then( (data) => ({ data }))
+    .then((data) => ({ data }))
     .catch((err) => ({ err }));
+}
+
+export function fetchDatasets() {
+  return fetchUtil(`${apiRootUrl}/dataset`);
+}
+
+const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
+
+export function uploadFile(files: any[]) {
+  return fetchUtil("/api/file", {
+    headers: {
+      "Content-Type": validContentType(files[0].type),
+    },
+    method: "POST",
+    body: files[0]
+  });
+}
+
+export function createDataset(metadata: IDatasetMetadata, fileName: string) {
+  return fetchUtil("/api/dataset", {
+    headers: {
+      "Content-Type": "application/json"
+    },
+    method: "POST",
+    body: JSON.stringify({
+      type: "static",
+      metadata,
+      fileName
+    })
+  });
 }

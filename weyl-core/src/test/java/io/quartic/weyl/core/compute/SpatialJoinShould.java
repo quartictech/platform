@@ -87,12 +87,12 @@ public class SpatialJoinShould {
     }
 
     private NakedFeature feature(Geometry geometry) {
-       return NakedFeatureImpl.of("123", geometry, EMPTY_ATTRIBUTES);
+       return NakedFeatureImpl.of(Optional.of("123"), geometry, EMPTY_ATTRIBUTES);
     }
 
     private Feature feature(NakedFeature feature, String layerId, String id) {
         return FeatureImpl.of(
-                EntityIdImpl.of(layerId + "/" + feature.externalId()),
+                EntityIdImpl.of(layerId + "/" + feature.externalId().get()),
                 feature.geometry(),
                 feature.attributes()
         );

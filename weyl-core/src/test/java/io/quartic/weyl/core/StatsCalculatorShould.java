@@ -8,6 +8,8 @@ import org.junit.Test;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.CollectionUtils.entry;
+import static io.quartic.common.CollectionUtils.map;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static io.quartic.weyl.core.model.AttributeType.STRING;
@@ -24,45 +26,43 @@ public class StatsCalculatorShould {
 
     @Test
     public void track_min_and_max_of_numeric_attributes() throws Exception {
-        final Map<AttributeName, Attribute> attributes = ImmutableMap.of(
-                HEIGHT, attribute(NUMERIC),
-                WEIGHT, attribute(NUMERIC)
+        final Map<AttributeName, Attribute> attributes = map(
+                entry(HEIGHT, attribute(NUMERIC)),
+                entry(WEIGHT, attribute(NUMERIC))
         );
 
         final FeatureCollection features = EMPTY_COLLECTION.append(newArrayList(
-                feature(ImmutableMap.of(WEIGHT, 70.0, HEIGHT, 120.0)),
-                feature(ImmutableMap.of(WEIGHT, 50.0, HEIGHT, 140.0)),
-                feature(ImmutableMap.of(WEIGHT, 60.0, HEIGHT, 130.0))
+                feature(map(entry(WEIGHT, 70.0), entry(HEIGHT, 120.0))),
+                feature(map(entry(WEIGHT, 50.0), entry(HEIGHT, 140.0))),
+                feature(map(entry(WEIGHT, 60.0), entry(HEIGHT, 130.0)))
         ));
 
         final LayerStats stats = calculate(attributes, features);
 
-        assertThat(stats, equalTo(LayerStatsImpl.of(
-                ImmutableMap.of(
-                        HEIGHT, AttributeStatsImpl.of(120.0, 140.0),
-                        WEIGHT, AttributeStatsImpl.of(50.0, 70.0)
+        assertThat(stats, equalTo(LayerStatsImpl.of(map(
+                entry(HEIGHT, AttributeStatsImpl.of(120.0, 140.0)),
+                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
                 ),
                 3
         )));
     }
 
     @Test
-    public void cope_with_missing_attributes() throws Exception {
-        final Map<AttributeName, Attribute> attributes = ImmutableMap.of(
-                HEIGHT, attribute(NUMERIC),
-                WEIGHT, attribute(NUMERIC)
+    public void cope_with_null_attributes() throws Exception {
+        final Map<AttributeName, Attribute> attributes = map(
+                entry(HEIGHT, attribute(NUMERIC)),
+                entry(WEIGHT, attribute(NUMERIC))
         );
 
         final FeatureCollection features = EMPTY_COLLECTION.append(newArrayList(
-                feature(ImmutableMap.of(WEIGHT, 70.0, HEIGHT, 120.0)),
-                feature(ImmutableMap.of(WEIGHT, 50.0)),                 // Height is missing
-                feature(ImmutableMap.of(WEIGHT, 60.0, HEIGHT, 130.0))
+                feature(map(entry(WEIGHT, 70.0), entry(HEIGHT, 120.0))),
+                feature(map(entry(WEIGHT, 50.0), entry(HEIGHT, null))),                 // Height is missing
+                feature(map(entry(WEIGHT, 60.0), entry(HEIGHT, 130.0)))
         ));
 
-        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(
-                ImmutableMap.of(
-                        HEIGHT, AttributeStatsImpl.of(120.0, 130.0),
-                        WEIGHT, AttributeStatsImpl.of(50.0, 70.0)
+        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
+                entry(HEIGHT, AttributeStatsImpl.of(120.0, 130.0)),
+                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
                 ),
                 3
         )));
@@ -76,14 +76,13 @@ public class StatsCalculatorShould {
         );
 
         final FeatureCollection features = EMPTY_COLLECTION.append(newArrayList(
-                feature(ImmutableMap.of(WEIGHT, 70.0)),
-                feature(ImmutableMap.of(WEIGHT, 50.0)),
-                feature(ImmutableMap.of(WEIGHT, 60.0))
+                feature(map(entry(WEIGHT, 70.0))),
+                feature(map(entry(WEIGHT, 50.0))),
+                feature(map(entry(WEIGHT, 60.0)))
         ));
 
-        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(
-                ImmutableMap.of(
-                        WEIGHT, AttributeStatsImpl.of(50.0, 70.0)
+        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
+                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
                 ),
                 3
         )));
@@ -97,18 +96,16 @@ public class StatsCalculatorShould {
         );
 
         final FeatureCollection features = EMPTY_COLLECTION.append(newArrayList(
-                feature(ImmutableMap.of(NAME, "Alice", WEIGHT, 70.0)),
-                feature(ImmutableMap.of(NAME, "Bob", WEIGHT, 50.0)),
-                feature(ImmutableMap.of(NAME, "Charles", WEIGHT, 60.0))
+                feature(map(entry(NAME, "Alice"), entry(WEIGHT, 70.0))),
+                feature(map(entry(NAME, "Bob"), entry(WEIGHT, 50.0))),
+                feature(map(entry(NAME, "Charles"), entry(WEIGHT, 60.0)))
         ));
 
-        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(
-                ImmutableMap.of(
-                        WEIGHT, AttributeStatsImpl.of(50.0, 70.0)
+        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
+                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
                 ),
                 3
         )));
-
     }
 
     private LayerStats calculate(Map<AttributeName, Attribute> attributes, FeatureCollection features) {

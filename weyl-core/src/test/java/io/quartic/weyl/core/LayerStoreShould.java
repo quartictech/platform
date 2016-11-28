@@ -2,6 +2,7 @@ package io.quartic.weyl.core;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
@@ -16,7 +17,6 @@ import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.observers.TestSubscriber;
@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
@@ -114,6 +113,7 @@ public class LayerStoreShould {
     }
 
 
+
     // TODO: using subjects is kind of gross (see e.g. http://tomstechnicalblog.blogspot.co.uk/2016/03/rxjava-problem-with-subjects.html)
     // Luckily, this should go away once we model downstream stuff reactively too
     @Test
@@ -188,7 +188,7 @@ public class LayerStoreShould {
 
         assertThat(layers.get(1).schema(),
                 equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
-                        .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.empty())))));
+                        .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.of(ImmutableSet.of(1234)))))));
     }
 
     @Test
@@ -263,7 +263,7 @@ public class LayerStoreShould {
 
     private NakedFeature modelFeature(String externalId) {
         return NakedFeatureImpl.of(
-                externalId,
+                Optional.ofNullable(externalId),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 ATTRIBUTES
         );

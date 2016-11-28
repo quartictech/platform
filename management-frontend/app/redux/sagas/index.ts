@@ -1,7 +1,7 @@
 import { take, call, put, fork } from "redux-saga/effects";
 import { SagaIterator } from "redux-saga";
 
-import { fetchDatasets } from "../api";
+import { fetchDatasets, uploadFile, createDataset } from "../api";
 import * as actions from "../actions";
 import * as constants from "../constants";
 
@@ -16,6 +16,20 @@ function* watchLoadDatasets(): SagaIterator {
   }
 }
 
+function* watchCreateDataset(): SagaIterator {
+  while (true) {
+    const action = yield take(constants.CREATE_DATASET);
+    const res = yield call(uploadFile, action.data.files);
+
+    if (!res.err) {
+      yield call(createDataset, action.data.metadata, res.data);
+      yield put(actions.setActiveModal(null));
+      yield put(actions.fetchDatasets());
+    }
+  }
+}
+
 export function* sagas(): SagaIterator {
   yield fork(watchLoadDatasets);
+  yield fork(watchCreateDataset);
 }

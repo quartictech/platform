@@ -11,7 +11,7 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.feature.FeatureCollection;
-import io.quartic.weyl.core.live.*;
+import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import org.immutables.value.Value;
@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
@@ -41,9 +42,11 @@ public abstract class LayerStore {
     private final ObservableStore<LayerId, Layer> layerObservables = new ObservableStore<>();
     private final ObservableStore<LayerId, Collection<Feature>> newFeatureObservables = new ObservableStore<>();
     private final BehaviorSubject<Collection<Layer>> allLayersObservable = BehaviorSubject.create();
+    private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
     protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract UidGenerator<LayerId> lidGenerator();
+
 
     @Value.Default
     protected LayerComputation.Factory computationFactory() {
@@ -111,7 +114,7 @@ public abstract class LayerStore {
         return LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
                 .withSchema(AttributeSchemaImpl.copyOf(layer.schema())
-                        .withAttributes(inferSchema(updatedFeatures)));
+                        .withAttributes(inferSchema(features, layer.schema().attributes())));
     }
 
     private Layer updateIndicesAndStats(Layer layer) {
@@ -168,7 +171,8 @@ public abstract class LayerStore {
     // TODO: this is going to double memory usage?
     private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
         return features.stream().map(f -> FeatureImpl.of(
-                EntityIdImpl.of(layerId.uid() + "/" + f.externalId()),
+                EntityIdImpl.of(layerId.uid() + "/" +
+                        f.externalId().orElse(String.valueOf(missingExternalIdGenerator.incrementAndGet()))),
                 f.geometry(),
                 f.attributes()
         )).collect(toList());

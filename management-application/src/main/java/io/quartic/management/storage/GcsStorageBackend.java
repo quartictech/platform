@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.management.storage;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -10,6 +10,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.StorageObject;
+import io.quartic.management.InputStreamWithContentType;
+import io.quartic.management.InputStreamWithContentTypeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +21,8 @@ import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.Optional;
 
-public class GcsConnector {
-    private static final Logger LOG = LoggerFactory.getLogger(GcsConnector.class);
+public class GcsStorageBackend implements StorageBackend {
+    private static final Logger LOG = LoggerFactory.getLogger(GcsStorageBackend.class);
     private final Storage storage;
     private final String bucketName;
 
@@ -43,11 +45,12 @@ public class GcsConnector {
                 .build();
     }
 
-    public GcsConnector(String bucketName) throws IOException, GeneralSecurityException {
+    public GcsStorageBackend(String bucketName) throws IOException, GeneralSecurityException {
         this.storage = buildService();
         this.bucketName = bucketName;
     }
 
+    @Override
     public Optional<InputStreamWithContentType> get(String objectName) throws IOException {
         Storage.Objects.Get get = storage.objects().get("quartic-test", objectName);
         try {
@@ -58,6 +61,7 @@ public class GcsConnector {
         }
     }
 
+    @Override
     public void put(String contentType, String objectName, InputStream inputStream) throws IOException {
         InputStreamContent inputStreamContent = new InputStreamContent(contentType, inputStream);
         StorageObject objectMetadata = new StorageObject()
