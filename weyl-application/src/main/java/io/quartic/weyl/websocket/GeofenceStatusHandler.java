@@ -9,6 +9,7 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
@@ -39,13 +40,15 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
         return clientStatus
+                .map(ClientStatusMessage::geofence)
+                .distinctUntilChanged()
                 .doOnNext(this::handleMessage)
                 .switchMap(x -> upstream());    // TODO: this is an utterly gross hack
     }
 
-    private void handleMessage(ClientStatusMessage msg) {
-        msg.geofence().features().ifPresent(f -> updateStore(msg.geofence().type(), msg.geofence().bufferDistance(), featuresFrom(f)));
-        msg.geofence().layerId().ifPresent(id -> updateStore(msg.geofence().type(), msg.geofence().bufferDistance(), featuresFrom(id)));
+    private void handleMessage(GeofenceStatus geofence) {
+        geofence.features().ifPresent(f -> updateStore(geofence.type(), geofence.bufferDistance(), featuresFrom(f)));
+        geofence.layerId().ifPresent(id -> updateStore(geofence.type(), geofence.bufferDistance(), featuresFrom(id)));
     }
 
     private Stream<Feature> featuresFrom(FeatureCollection features) {

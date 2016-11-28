@@ -176,6 +176,20 @@ public class GeofenceStatusHandlerShould {
         verify(geofenceStore).removeListener(any());
     }
 
+    @Test
+    public void ignore_status_changes_not_involving_geofence_change() throws Exception {
+        final ClientStatusMessage statusA = status();
+        final ClientStatusMessage statusB = status();
+        when(statusA.subscribedLiveLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
+        when(statusB.subscribedLiveLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
+
+        just(statusA, statusB)
+                .compose(handler)
+                .subscribe();
+
+        verify(geofenceStore, never()).removeListener(any());
+    }
+
     private ClientStatusMessage status() {
         return status(GeofenceStatusImpl.builder()
                 .type(GeofenceType.INCLUDE)

@@ -13,6 +13,7 @@ import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
 import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class LayerSubscriptionHandlerShould {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
 
-        just(subscriptionMessage(idA, idB))
+        just(status(idA, idB))
                 .compose(handler)
                 .subscribe();
 
@@ -68,7 +69,7 @@ public class LayerSubscriptionHandlerShould {
         when(converter.toGeojson(any())).thenReturn(featureCollection());
 
         TestSubscriber<SocketMessage> sub = TestSubscriber.create();
-        just(subscriptionMessage(id))
+        just(status(id))
                 .compose(handler)
                 .subscribe(sub);
 
@@ -80,10 +81,9 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void unsubscribe_from_layer_when_no_longer_in_list() throws Exception {
         final LayerSubscription layerSubscription = mock(LayerSubscription.class);
-
         when(layerStore.addSubscriber(any(), any())).thenReturn(layerSubscription);
 
-        just(subscriptionMessage(mock(LayerId.class)), subscriptionMessage(mock(LayerId.class)))
+        just(status(mock(LayerId.class)), status(mock(LayerId.class)))
                 .compose(handler)
                 .subscribe();
 
@@ -97,7 +97,7 @@ public class LayerSubscriptionHandlerShould {
 
         when(layerStore.addSubscriber(any(), any())).thenReturn(layerSubscription);
 
-        final Subscription subscription = just(subscriptionMessage(id))
+        final Subscription subscription = just(status(id))
                 .compose(handler)
                 .subscribe();
         subscription.unsubscribe();
@@ -105,7 +105,22 @@ public class LayerSubscriptionHandlerShould {
         verify(layerStore).removeSubscriber(layerSubscription);
     }
 
-    private ClientStatusMessage subscriptionMessage(LayerId... ids) {
+    @Test
+    public void ignore_status_changes_not_involving_layer_subscription_change() throws Exception {
+        final LayerId id = mock(LayerId.class);
+        final ClientStatusMessage statusA = status(id);
+        final ClientStatusMessage statusB = status(id);
+        when(statusA.selection()).thenReturn(mock(SelectionStatus.class));
+        when(statusB.selection()).thenReturn(mock(SelectionStatus.class));  // Different
+
+        just(statusA, statusB)
+                .compose(handler)
+                .subscribe();
+
+        verify(layerStore, never()).removeSubscriber(any());
+    }
+
+    private ClientStatusMessage status(LayerId... ids) {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
         when(msg.subscribedLiveLayerIds()).thenReturn(asList(ids));
         return msg;

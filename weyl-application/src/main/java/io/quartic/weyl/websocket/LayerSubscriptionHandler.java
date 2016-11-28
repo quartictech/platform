@@ -28,6 +28,7 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
         return clientStatus
                 .map(ClientStatusMessage::subscribedLiveLayerIds)
+                .distinctUntilChanged()
                 .switchMap(ids -> merge(ids.stream().map(this::upstream).collect(toList())));
     }
 

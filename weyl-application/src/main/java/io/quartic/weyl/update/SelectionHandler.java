@@ -30,6 +30,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
         final Observable<Pair<Integer, List<Feature>>> entities = clientStatus
                 .map(msg -> msg.selection().toPair())
+                .distinctUntilChanged()
                 .compose(mux)
                 .share();
 
