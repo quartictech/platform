@@ -1,6 +1,5 @@
 package io.quartic.weyl.core;
 
-import io.quartic.weyl.core.model.Feature;
 import rx.Observable;
 import rx.subjects.BehaviorSubject;
 
@@ -13,7 +12,7 @@ import static com.google.common.collect.Maps.newHashMap;
 public class ObservableStore<K, V> {
     private final Map<K, BehaviorSubject<V>> observables = newHashMap();
 
-    public void putAll(Collection<V> values, Function<V, K> id) {
+    public void putAll(Function<V, K> id, Collection<V> values) {
         values.forEach(v -> getSubject(id.apply(v)).onNext(v));
     }
 
@@ -23,11 +22,6 @@ public class ObservableStore<K, V> {
 
     public void put(K id, V value) {
         getSubject(id).onNext(value);
-    }
-
-    public void remove(K id) {
-        getSubject(id).onCompleted();
-        observables.remove(id);
     }
 
     private synchronized BehaviorSubject<V> getSubject(K id) {

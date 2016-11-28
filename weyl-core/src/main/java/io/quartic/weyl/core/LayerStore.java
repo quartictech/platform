@@ -11,6 +11,8 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.feature.FeatureCollection;
+import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChange;
 import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
@@ -140,9 +142,10 @@ public abstract class LayerStore {
         return stRtree;
     }
 
-    public Observable<Collection<Feature>> newFeatures(LayerId layerId) {
+    public Observable<LiveLayerChange> liveLayerChanges(LayerId layerId) {
         checkLayerExists(layerId);
-        return newFeatureObservables.get(layerId);
+        return newFeatureObservables.get(layerId)
+                .map(newFeatures -> ImmutableLiveLayerChange.of(layerId, newFeatures));
     }
 
     public Observable<Collection<Layer>> allLayers() {
@@ -161,7 +164,7 @@ public abstract class LayerStore {
         LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
 
         final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
-        entityStore().putAll(elaboratedFeatures, Feature::entityId);
+        entityStore().putAll(Feature::entityId, elaboratedFeatures);
         final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
         putLayer(layer.indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);

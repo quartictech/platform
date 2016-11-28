@@ -58,7 +58,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
             layerStore.allLayers(),
-            layerStore::newFeatures
+            layerStore::liveLayerChanges
     );
 
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);

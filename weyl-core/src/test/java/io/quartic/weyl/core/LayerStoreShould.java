@@ -11,7 +11,8 @@ import io.quartic.weyl.core.compute.ComputationResults;
 import io.quartic.weyl.core.compute.ComputationResultsImpl;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.compute.LayerComputation;
-import io.quartic.weyl.core.live.LayerState;
+import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChange;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
@@ -25,8 +26,6 @@ import rx.subjects.PublishSubject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -109,7 +108,7 @@ public class LayerStoreShould {
         Observable.just(updateFor(modelFeature("a"), modelFeature("b"))).subscribe(action);
 
 
-        verify(entityStore).putAll(eq(newArrayList(feature("a"), feature("b"))), any());
+        verify(entityStore).putAll(any(), eq(newArrayList(feature("a"), feature("b"))));
     }
 
 
@@ -148,9 +147,9 @@ public class LayerStoreShould {
     public void notify_observers_on_new_features() throws Exception {
         final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
-        Observable<Collection<Feature>> newFeatures = store.newFeatures(LAYER_ID);
+        Observable<LiveLayerChange> newFeatures = store.liveLayerChanges(LAYER_ID);
 
-        TestSubscriber<Collection<Feature>> sub = TestSubscriber.create();
+        TestSubscriber<LiveLayerChange> sub = TestSubscriber.create();
         newFeatures.subscribe(sub);
 
         Observable.just(
@@ -158,7 +157,7 @@ public class LayerStoreShould {
         ).subscribe(action);
 
         Collection<Feature> features = ImmutableList.of(feature("a"));
-        sub.assertReceivedOnNext(ImmutableList.of(features));
+        sub.assertReceivedOnNext(newArrayList(liveLayerChange(LAYER_ID, features)));
     }
 
     @Test
@@ -283,6 +282,10 @@ public class LayerStoreShould {
 
     private Action1<SourceUpdate> createLayer(LayerId id) {
         return createLayer(id, true);
+    }
+
+    private LiveLayerChange liveLayerChange(LayerId layerId, Collection<Feature> features) {
+        return ImmutableLiveLayerChange.of(layerId, features);
     }
 
     private Action1<SourceUpdate> createLayer(LayerId id, boolean indexable) {

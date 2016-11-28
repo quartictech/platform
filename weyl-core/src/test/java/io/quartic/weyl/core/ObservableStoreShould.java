@@ -25,8 +25,8 @@ public class ObservableStoreShould {
         final TestSubscriber<Feature> sub = TestSubscriber.create();
 
         store.get(id).subscribe(sub);
-        store.putAll(newArrayList(featureA), Feature::entityId);
-        store.putAll(newArrayList(featureB), Feature::entityId);
+        store.putAll(Feature::entityId, newArrayList(featureA));
+        store.putAll(Feature::entityId, newArrayList(featureB));
         sub.awaitValueCount(2, 100, MILLISECONDS);
 
         assertThat(sub.getOnNextEvents(), contains(featureA, featureB));
@@ -43,8 +43,8 @@ public class ObservableStoreShould {
 
         store.get(idA).subscribe(subA);
         store.get(idB).subscribe(subB);
-        store.putAll(newArrayList(featureA), Feature::entityId);
-        store.putAll(newArrayList(featureB), Feature::entityId);
+        store.putAll(Feature::entityId, newArrayList(featureA));
+        store.putAll(Feature::entityId, newArrayList(featureB));
         subA.awaitValueCount(1, 100, MILLISECONDS);
         subB.awaitValueCount(1, 100, MILLISECONDS);
 
@@ -58,7 +58,7 @@ public class ObservableStoreShould {
         final Feature feature = feature(id);
         final TestSubscriber<Feature> sub = TestSubscriber.create();
 
-        store.putAll(newArrayList(feature), Feature::entityId);
+        store.putAll(Feature::entityId, newArrayList(feature));
         store.get(id).subscribe(sub);
         sub.awaitValueCount(1, 100, MILLISECONDS);
 

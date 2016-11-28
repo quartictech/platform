@@ -39,7 +39,8 @@ public class LiveLayerChangeAggregatorShould {
         );
         layers = BehaviorSubject.create();
         liveLayerChanges = LiveLayerChangeAggregator
-            .layerChanges(layers, layerId -> featureObservables.get(layerId));
+            .layerChanges(layers, layerId -> featureObservables.get(layerId)
+                    .map(features -> liveLayerChange(layerId, features)));
 
         liveLayerChanges.subscribe(sub);
     }
