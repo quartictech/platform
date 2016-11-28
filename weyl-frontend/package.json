@@ -19,9 +19,6 @@
 
     "prestart": "npm run build:dll",
     "start": "cross-env NODE_ENV=development node server",
-    "start:tunnel": "cross-env NODE_ENV=development ENABLE_TUNNEL=true node server",
-    "start:production": "npm run build && npm run start:prod",
-    "start:prod": "cross-env NODE_ENV=production node server",
 
     "clean:all": "npm run test:clean && npm run build:clean",
 
@@ -218,10 +215,7 @@
     "whatwg-fetch": "1.0.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.11.4",
-    "babel-core": "^6.13.2",
     "babel-eslint": "6.1.2",
-    "babel-loader": "^6.2.4",
     "babel-plugin-react-transform": "2.0.2",
     "babel-plugin-transform-react-constant-elements": "6.9.1",
     "babel-plugin-transform-react-inline-elements": "6.8.0",
