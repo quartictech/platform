@@ -1,4 +1,4 @@
-package io.quartic.weyl.websocket;
+package io.quartic.weyl.resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.weyl.core.alert.Alert;
@@ -6,6 +6,8 @@ import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.resource.UpdateServer;
+import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;

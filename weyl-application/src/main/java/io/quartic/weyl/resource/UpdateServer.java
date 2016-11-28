@@ -1,4 +1,4 @@
-package io.quartic.weyl.websocket;
+package io.quartic.weyl.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertListener;
 import io.quartic.weyl.core.alert.AlertProcessor;
+import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.AlertMessageImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.PingMessage;
