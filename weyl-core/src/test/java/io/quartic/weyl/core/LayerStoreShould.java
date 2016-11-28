@@ -80,14 +80,6 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void not_list_layer_once_deleted() throws Exception {
-        createLayer(LAYER_ID);
-        store.deleteLayer(LAYER_ID);
-
-        assertThat(store.listLayers(), empty());
-    }
-
-    @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
         final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
@@ -219,19 +211,6 @@ public class LayerStoreShould {
         assertThat(layerEvents.get(1).stream().map(Layer::layerId).collect(toList()),
                 containsInAnyOrder(LAYER_ID, layerId2));
     }
-
-     @Test
-    public void notify_on_layer_deletion() {
-         createLayer(LAYER_ID);
-         TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
-         store.allLayers().subscribe(sub);
-
-         assertThat(sub.getOnNextEvents().size(), equalTo(1));
-         assertThat(sub.getOnNextEvents().get(0).size(), equalTo(1));
-         store.deleteLayer(LAYER_ID);
-         assertThat(sub.getOnNextEvents().size(), equalTo(2));
-         assertThat(sub.getOnNextEvents().get(1).size(), equalTo(0));
-     }
 
     @Test
     public void create_layer_for_computed_results() throws Exception {

@@ -67,13 +67,6 @@ public abstract class LayerStore {
         return Optional.ofNullable(layers.get(layerId));
     }
 
-    public void deleteLayer(LayerId id) {
-        checkLayerExists(id);
-        layers.remove(id);
-        layerObservables.remove(id);
-        allLayersObservable.onNext(layers.values());
-    }
-
     // TODO: we have no test for this
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
         return computationFactory().compute(this, computationSpec).map(r -> {

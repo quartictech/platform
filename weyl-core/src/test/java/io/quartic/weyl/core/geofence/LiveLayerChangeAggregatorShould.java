@@ -116,7 +116,7 @@ public class LiveLayerChangeAggregatorShould {
         return LayerImpl.of(
                 layerId,
                 mock(LayerMetadata.class),
-                true,
+                false, // Needs to be false so that the layers get picked up
                 mock(AttributeSchema.class),
                 FeatureCollection.EMPTY_COLLECTION,
                 mock(LayerView.class),
