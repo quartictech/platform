@@ -37,8 +37,6 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -46,7 +44,6 @@ import java.util.function.Function;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
-import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
@@ -59,8 +56,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             .entityStore(entityStore).lidGenerator(lidGenerator).build();
 
     private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
-            layerStore.observeAllLayers().map(layers -> layers.stream().filter(layer -> !layer.indexable()).collect(toList())),
-            layerStore::observeNewFeatures
+            layerStore.allLayers(),
+            layerStore::newFeatures
     );
 
     private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);

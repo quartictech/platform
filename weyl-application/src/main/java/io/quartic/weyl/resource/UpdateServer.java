@@ -183,7 +183,7 @@ public class UpdateServer implements AlertListener, GeofenceListener {
     }
 
     private void subscribe(LayerId layerId) {
-        Subscription subscription = layerStore.observeLayersForLayerId(layerId)
+        Subscription subscription = layerStore.layersForLayerId(layerId)
                 .map(layer -> Pair.of(layer.layerId(), computeLayerState(layer, layer.view())))
                 .subscribeOn(Schedulers.computation())
                 .subscribe(pair -> sendLayerUpdate(pair.getKey(), pair.getRight()));

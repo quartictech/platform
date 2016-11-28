@@ -25,8 +25,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
@@ -72,7 +70,7 @@ public abstract class LayerStore {
     public void deleteLayer(LayerId id) {
         checkLayerExists(id);
         layers.remove(id);
-        layerObservables.delete(id);
+        layerObservables.remove(id);
         allLayersObservable.onNext(layers.values());
     }
 
@@ -146,16 +144,16 @@ public abstract class LayerStore {
         return stRtree;
     }
 
-    public Observable<Collection<Feature>> observeNewFeatures(LayerId layerId) {
+    public Observable<Collection<Feature>> newFeatures(LayerId layerId) {
         checkLayerExists(layerId);
         return newFeatureObservables.get(layerId);
     }
 
-    public Observable<Collection<Layer>> observeAllLayers() {
+    public Observable<Collection<Layer>> allLayers() {
         return allLayersObservable;
     }
 
-    public Observable<Layer> observeLayersForLayerId(LayerId layerId) {
+    public Observable<Layer> layersForLayerId(LayerId layerId) {
         checkLayerExists(layerId);
        return layerObservables.get(layerId);
     }

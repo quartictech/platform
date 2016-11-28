@@ -15,7 +15,7 @@ public class LiveLayerChangeAggregator {
     public static Observable<LiveLayerChange> layerChanges(Observable<Collection<Layer>> observeLayers,
                                                Function<LayerId, Observable<Collection<Feature>>> observeFeaturesForLayer) {
         Observable<Collection<Layer>> liveLayers = observeLayers
-                .map(layers -> layers.stream().filter(Layer::indexable).collect(toList()));
+                .map(layers -> layers.stream().filter(layer -> !layer.indexable()).collect(toList()));
         Function<Layer, Observable<LiveLayerChange>> changesForLayer
                 = layer -> observeFeaturesForLayer.apply(layer.layerId())
                     .map(features -> ImmutableLiveLayerChange.of(layer.layerId(), features));

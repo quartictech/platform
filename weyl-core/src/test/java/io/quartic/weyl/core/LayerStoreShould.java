@@ -2,7 +2,6 @@ package io.quartic.weyl.core;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
@@ -123,55 +122,29 @@ public class LayerStoreShould {
     }
 
 
-//    @Test
-//    public void handle_concurrent_listener_changes() throws Exception {
-//        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
-//        final DoOnTrigger onTrigger = new DoOnTrigger(() -> store.addListener(mock(LayerStoreListener.class)));    // Emulate concurrent subscription change
-//
-//        LayerStoreListener listener = mock(LayerStoreListener.class);
-//        store.addListener(listener);
-//        store.addListener(mock(LayerStoreListener.class));
-//
-//        doAnswer(invocation -> {
-//            onTrigger.trigger();
-//            Thread.sleep(30);
-//            return null;
-//        }).when(listener).onLiveLayerEvent(any(), any());
-//
-//        assertCanRunToCompletion(action);
-//    }
+    // TODO: using subjects is kind of gross (see e.g. http://tomstechnicalblog.blogspot.co.uk/2016/03/rxjava-problem-with-subjects.html)
+    // Luckily, this should go away once we model downstream stuff reactively too
+    @Test
+    public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
+        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
 
-    private void assertCanRunToCompletion(Action1<SourceUpdate> sub) {
-        final AtomicBoolean completed = new AtomicBoolean(false);
-        Observable.just(updateFor(modelFeature("a")), updateFor(modelFeature("b")))
-                .doOnCompleted(() -> completed.set(true))
-                .subscribe(sub);
+        PublishSubject<SourceUpdate> subject = PublishSubject.create();
+        subject.subscribe(sub);
 
-        assertThat(completed.get(), equalTo(true)); // This won't be complete if there was an error
+        subject.onNext(updateFor(modelFeature("a")));   // Observed before
+
+        TestSubscriber<Layer> subscriber = TestSubscriber.create();
+        store.layersForLayerId(LAYER_ID).subscribe(subscriber);
+
+        subject.onNext(updateFor(modelFeature("b")));   // Observed after
+
+        assertThat(subscriber.getOnNextEvents().size(), equalTo(2));
+        assertThat(subscriber.getOnNextEvents().get(1).features(),
+                containsInAnyOrder(
+                        feature("a"),
+                        feature("b")
+                ));
     }
-
-//    // TODO: using subjects is kind of gross (see e.g. http://tomstechnicalblog.blogspot.co.uk/2016/03/rxjava-problem-with-subjects.html)
-//    // Luckily, this should go away once we model downstream stuff reactively too
-//    @Test
-//    public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
-//        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
-//
-//        PublishSubject<SourceUpdate> subject = PublishSubject.create();
-//        subject.subscribe(sub);
-//
-//        subject.onNext(updateFor(modelFeature("a")));   // Observed before
-//
-//        Consumer<LayerState> subscriber = mock(Consumer.class);
-//        store.addSubscriber(LAYER_ID, subscriber);
-//
-//        subject.onNext(updateFor(modelFeature("b")));   // Observed after
-//
-//        assertThat(captureLiveLayerState(subscriber).featureCollection(),
-//                containsInAnyOrder(
-//                        feature("a"),
-//                        feature("b")
-//                ));
-//    }
 
     @Test(expected = IllegalArgumentException.class)
     public void throw_if_create_called_on_an_existing_layer() throws Exception {
@@ -183,7 +156,7 @@ public class LayerStoreShould {
     public void notify_observers_on_new_features() throws Exception {
         final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
-        Observable<Collection<Feature>> newFeatures = store.observeNewFeatures(LAYER_ID);
+        Observable<Collection<Feature>> newFeatures = store.newFeatures(LAYER_ID);
 
         TestSubscriber<Collection<Feature>> sub = TestSubscriber.create();
         newFeatures.subscribe(sub);
@@ -201,7 +174,7 @@ public class LayerStoreShould {
         final Action1<SourceUpdate> action = createLayer(LAYER_ID);
 
         TestSubscriber<Layer> sub = TestSubscriber.create();
-        store.observeLayersForLayerId(LAYER_ID).subscribe(sub);
+        store.layersForLayerId(LAYER_ID).subscribe(sub);
 
         PublishSubject<SourceUpdate> sourceUpdates = PublishSubject.create();
         sourceUpdates.subscribe(action);
@@ -230,7 +203,7 @@ public class LayerStoreShould {
     public void notify_on_layer_addition() {
         createLayer(LAYER_ID);
         TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
-        store.observeAllLayers().subscribe(sub);
+        store.allLayers().subscribe(sub);
 
         List<Collection<Layer>> layerEvents = sub.getOnNextEvents();
         assertThat(layerEvents.size(), equalTo(1));
@@ -251,7 +224,7 @@ public class LayerStoreShould {
     public void notify_on_layer_deletion() {
          createLayer(LAYER_ID);
          TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
-         store.observeAllLayers().subscribe(sub);
+         store.allLayers().subscribe(sub);
 
          assertThat(sub.getOnNextEvents().size(), equalTo(1));
          assertThat(sub.getOnNextEvents().get(0).size(), equalTo(1));
@@ -259,41 +232,6 @@ public class LayerStoreShould {
          assertThat(sub.getOnNextEvents().size(), equalTo(2));
          assertThat(sub.getOnNextEvents().get(1).size(), equalTo(0));
      }
-
-//    @Test
-//    public void not_notify_subscribers_after_unsubscribe() {
-//        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
-//
-//        Consumer<LayerState> subscriber = mock(Consumer.class);
-//        LayerSubscription subscription = store.addSubscriber(LAYER_ID, subscriber);
-//        verify(subscriber, times(1)).accept(any());
-//        store.removeSubscriber(subscription);
-//
-//        Observable.just(
-//                updateFor(modelFeature("a"))
-//        ).subscribe(action);
-//
-//        verifyNoMoreInteractions(subscriber);
-//    }
-
-//    @Test
-//    public void unsubscribe_when_subscriber_deleted() {
-//        createLayer(LAYER_ID);
-//
-//        Consumer<LayerState> subscriber = mock(Consumer.class);
-//        store.addSubscriber(LAYER_ID, subscriber);
-//        verify(subscriber, times(1)).accept(any());
-//
-//        // Delete and recreate
-//        store.deleteLayer(LAYER_ID);
-//        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
-//
-//        Observable.just(
-//                updateFor(modelFeature("a"))
-//        ).subscribe(sub);
-//
-//        verifyNoMoreInteractions(subscriber);
-//    }
 
     @Test
     public void create_layer_for_computed_results() throws Exception {
@@ -380,9 +318,4 @@ public class LayerStoreShould {
         return LayerMetadataImpl.of(name, description, Optional.empty(), Optional.empty());
     }
 
-    private LayerState captureLiveLayerState(Consumer<LayerState> subscriber) {
-        ArgumentCaptor<LayerState> captor = ArgumentCaptor.forClass(LayerState.class);
-        verify(subscriber, times(2)).accept(captor.capture());
-        return captor.getAllValues().get(1);    // Assume first time is initial subscribe
-    }
 }

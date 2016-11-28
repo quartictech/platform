@@ -25,8 +25,9 @@ public class ObservableStore<K, V> {
         getSubject(id).onNext(value);
     }
 
-    public void delete(K id) {
+    public void remove(K id) {
         getSubject(id).onCompleted();
+        observables.remove(id);
     }
 
     private synchronized BehaviorSubject<V> getSubject(K id) {
