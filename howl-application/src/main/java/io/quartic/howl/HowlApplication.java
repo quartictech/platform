@@ -6,7 +6,6 @@ import io.dropwizard.setup.Environment;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.howl.storage.DiskStorageBackend;
-import io.quartic.howl.storage.InMemoryStorageBackend;
 import io.quartic.howl.storage.StorageBackend;
 
 import java.nio.file.Paths;
