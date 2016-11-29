@@ -1,8 +1,6 @@
-package io.quartic.management.storage;
+package io.quartic.howl.storage;
 
 import com.google.api.client.util.Maps;
-import io.quartic.management.InputStreamWithContentType;
-import io.quartic.management.InputStreamWithContentTypeImpl;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -16,15 +14,16 @@ public class InMemoryStorageBackend implements StorageBackend {
     private final Map<String, String> contentTypes = Maps.newHashMap();
 
     @Override
-    public synchronized Optional<InputStreamWithContentType> get(String objectName) throws IOException {
-        return Optional.ofNullable(data.get(objectName))
+    public synchronized Optional<InputStreamWithContentType> get(String namespace, String objectName) throws IOException {
+        return Optional.ofNullable(data.get(namespace + "/" + objectName))
                 .map( data -> InputStreamWithContentTypeImpl.of(contentTypes.get(objectName),
                         new ByteArrayInputStream(data)));
     }
 
     @Override
-    public synchronized void put(String contentType, String objectName, InputStream inputStream) throws IOException {
-        data.put(objectName,  IOUtils.toByteArray(inputStream));
+    public synchronized void put(String contentType, String namespace,
+                                 String objectName, InputStream inputStream) throws IOException {
+        data.put(namespace + "/" + objectName,  IOUtils.toByteArray(inputStream));
         contentTypes.put(objectName, contentType);
     }
 }

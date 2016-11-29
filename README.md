@@ -15,3 +15,12 @@
         npm start
 
 4. Run data imports (can we found in the `dilectic` repo).
+
+## Services
+ - Weyl: 8080 / 8081
+ - Catalogue: 8090 / 8091
+ - Management: 8100 / 8101
+ - Terminator: 8110 / 8111
+ - Howl: 8120 / 8121
+
+
