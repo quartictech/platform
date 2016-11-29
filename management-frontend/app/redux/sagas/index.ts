@@ -19,10 +19,10 @@ function* watchLoadDatasets(): SagaIterator {
 function* watchCreateDataset(): SagaIterator {
   while (true) {
     const action = yield take(constants.CREATE_DATASET);
-    const res = yield call(uploadFile, action.data.files);
+    const res = yield call(uploadFile, action.data.files.files);
 
     if (!res.err) {
-      yield call(createDataset, action.data.metadata, res.data);
+      yield call(createDataset, action.data.metadata, res.data, action.data.files.fileType);
       yield put(actions.setActiveModal(null));
       yield put(actions.fetchDatasets());
     }

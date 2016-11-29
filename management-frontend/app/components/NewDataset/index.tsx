@@ -5,7 +5,7 @@ import { Dialog, Button, Intent } from "@blueprintjs/core";
 import * as Dropzone from "react-dropzone";
 import _ = require("underscore");
 
-import { IDatasetMetadata } from "../../models";
+import { IDatasetMetadata, IFiles } from "../../models";
 import * as classNames from "classnames";
 
 interface IFile {
@@ -13,7 +13,7 @@ interface IFile {
 }
 
 interface INewDatasetProps {
-  createDataset: (metadata: IDatasetMetadata, files: IFile[]) => any;
+  createDataset: (metadata: IDatasetMetadata, files: IFiles) => any;
   visible: boolean;
   closeNewDatasetClick: any;
 };
@@ -23,6 +23,7 @@ interface IState {
     files?: IFile[];
     name?: string;
     description?: string;
+    fileType?: string;
 };
 
 const FileRow = ({ file }) => (
@@ -40,13 +41,34 @@ const FilesList = ({ files }) => (
   </table>
 );
 
+const FileTypeButton = ({label, fileType, selectedFileType, onClick}) => (
+  <button
+    onClick={() => onClick(fileType)}
+    className={classNames("pt-button", {"pt-active": fileType === selectedFileType})}
+    role="button"
+  >
+  {label}
+  </button>
+);
+
+const FileTypeChooser = ({ fileType, onClick }) => (
+  <div className="pt-button-group pt-large pt-fill">
+    <FileTypeButton label="GeoJSON" fileType="geojson"
+      selectedFileType={fileType} onClick={onClick} />
+
+    <FileTypeButton label="CSV" fileType="csv"
+      selectedFileType={fileType} onClick={onClick} />
+  </div>
+);
+
 export class NewDataset extends React.Component<INewDatasetProps, IState> {
   constructor() {
     super();
     this.state = {
       name: "",
       description: "",
-      files: []
+      files: [],
+      fileType: "geojson",
     };
   }
 
@@ -55,7 +77,11 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       name: this.state.name,
       description: this.state.description,
       attribution: "User data"
-    }, this.state.files);
+    },
+    {
+      files: this.state.files,
+      fileType: this.state.fileType
+    });
   }
 
   onDrop(files) {
@@ -80,6 +106,10 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
   isDescriptionValid() {
     return this.state.description.length !== 0;
+  }
+
+  onFileTypeClick(fileType) {
+    this.setState({ fileType });
   }
 
   public render() {
@@ -114,7 +144,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
             />
           </label>
 
-          <label className="pt-label .modifier">
+          <label className="pt-label">
             Files
             <Dropzone onDrop={this.onDrop.bind(this)} className="pt-card" style={{height: "150px", width: "100%"}}>
                {
@@ -123,6 +153,13 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
                  <FilesList files={this.state.files}/>
                }
              </Dropzone>
+           </label>
+           <label className="pt-label">
+            File Type
+            <FileTypeChooser
+              fileType={this.state.fileType}
+              onClick={this.onFileTypeClick.bind(this)}
+            />
            </label>
          </div>
          <div className="pt-dialog-footer">

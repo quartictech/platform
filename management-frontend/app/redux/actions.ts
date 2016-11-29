@@ -1,5 +1,5 @@
 import * as constants from "./constants";
-import { IDatasetMetadata } from "../models";
+import { IDatasetMetadata, IFiles } from "../models";
 
 export function fetchDatasets() {
   return {
@@ -21,12 +21,12 @@ export function searchDatasets(search) {
   };
 }
 
-export function createDataset(metadata: IDatasetMetadata, files: any[]) {
+export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
     return {
       type: constants.CREATE_DATASET,
       data: {
         metadata,
-        files
+        files,
       }
     };
 }

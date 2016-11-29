@@ -1,15 +1,21 @@
 package io.quartic.management;
 
+import feign.Response;
 import io.quartic.catalogue.api.*;
+import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.howl.api.HowlStorageId;
 import io.quartic.howl.api.HowlService;
+import io.quartic.management.conversion.CsvConverter;
+import io.quartic.management.conversion.GeoJsonConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -42,9 +48,10 @@ public class ManagementResource {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
             @Override
             public DatasetConfig visit(CreateStaticDatasetRequest request) {
+                String name = preprocessFile(request.fileName(), request.fileType());
                 return DatasetConfigImpl.of(
                         request.metadata(),
-                        CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, request.fileName())),
+                        CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name)),
                         emptyMap()
                 );
             }
@@ -59,6 +66,29 @@ public class ManagementResource {
             }
         });
         return catalogueService.registerDataset(datasetConfig);
+    }
+
+    private String preprocessFile(String fileName, FileType fileType) {
+        switch (fileType) {
+            case GEOJSON:
+                return fileName;
+            case CSV:
+                GeoJsonConverter converter = new CsvConverter();
+                Response response = howlService.downloadFile(HOWL_NAMESPACE, fileName);
+                try {
+                    // convert to GeoJSON
+                    FeatureCollection featureCollection = converter.convert(response.body().asInputStream());
+                    byte[] data = ObjectMappers.OBJECT_MAPPER.writeValueAsBytes(featureCollection);
+                    HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
+                            new ByteArrayInputStream(data));
+                    return storageId.uid();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("error while encoding feature collection: " + e);
+                }
+            default:
+                return fileName;
+        }
     }
 
     @POST
