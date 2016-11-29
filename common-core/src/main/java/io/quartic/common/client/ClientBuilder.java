@@ -22,7 +22,7 @@ public final class ClientBuilder {
         return Feign.builder()
                 .contract(new JAXRSContract())
                 .encoder(new InputStreamEncoder(new JacksonEncoder(OBJECT_MAPPER)))
-                .decoder(new InputStreamDecoder(new JacksonDecoder(OBJECT_MAPPER)))
+                .decoder(new JacksonDecoder(OBJECT_MAPPER))
                 .retryer(new Retryer.Default(0, 0, 1))
                 .requestInterceptor(template -> template.header(USER_AGENT, userAgent))
                 .logger(new Slf4jLogger(ClientBuilder.class))

@@ -19,8 +19,9 @@ public class DiskStorageBackend implements StorageBackend {
     public Optional<InputStreamWithContentType> get(String namespace, String objectName) throws IOException {
         Path path = rootPath.resolve(Paths.get(namespace, objectName));
         String contentType = Files.probeContentType(path);
-        if (path.toFile().exists()) {
-            return Optional.of(InputStreamWithContentTypeImpl.of(contentType, new FileInputStream(path.toFile())));
+        File file = path.toFile();
+        if (file.exists()) {
+            return Optional.of(InputStreamWithContentTypeImpl.of(contentType, new FileInputStream(file)));
         }
 
         return Optional.empty();

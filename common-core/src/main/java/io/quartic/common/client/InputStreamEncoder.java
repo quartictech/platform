@@ -4,7 +4,6 @@ import feign.RequestTemplate;
 import feign.codec.EncodeException;
 import feign.codec.Encoder;
 import org.apache.commons.io.IOUtils;
-import sun.nio.ch.IOUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
