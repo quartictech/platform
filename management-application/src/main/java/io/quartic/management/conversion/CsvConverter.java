@@ -3,6 +3,7 @@ package io.quartic.management.conversion;
 import com.google.common.collect.*;
 import io.quartic.geojson.*;
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,10 +65,9 @@ public class CsvConverter implements GeoJsonConverter {
 
     @Override
     public FeatureCollection convert(InputStream data) throws IOException {
-        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(data));
+        CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(data));
 
-        CSVRecord firstRecord = Iterables.getFirst(records, null);
-        Map<String, String> firstRow = firstRecord.toMap();
+        Map<String, Integer> firstRow = csvParser.getHeaderMap();
 
         Optional<String> latColumn = firstRow.entrySet().stream()
                 .map(Map.Entry::getKey)
@@ -86,7 +86,7 @@ public class CsvConverter implements GeoJsonConverter {
             Set<String> keys = Sets.newHashSet(firstRow.keySet());
             keys.removeAll(ImmutableSet.of(latField, lonField));
 
-            return FeatureCollectionImpl.of(parseFeatures(records, latField, lonField, keys));
+            return FeatureCollectionImpl.of(parseFeatures(csvParser, latField, lonField, keys));
         }
         else {
             throw new RuntimeException("lat & lon field can't be found in keys: " + firstRow.keySet());
