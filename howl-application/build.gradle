@@ -27,7 +27,7 @@ jar {
     }
 }
 
-ext.memorySetting = System.env.CATALOGUE_MEMORY ?: "64m"
+ext.memorySetting = System.env.HOWL_MEMORY ?: "64m"
 
 mainClassName = "io.quartic.howl.HowlApplication"
 applicationDefaultJvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]

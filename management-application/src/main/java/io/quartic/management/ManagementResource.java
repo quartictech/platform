@@ -3,15 +3,13 @@ package io.quartic.management;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.howl.api.CloudStorageId;
+import io.quartic.howl.api.HowlStorageId;
 import io.quartic.howl.api.HowlService;
-import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -66,7 +64,7 @@ public class ManagementResource {
     @POST
     @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
-    public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
+    public HowlStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
         return howlService.uploadFile(request.getContentType(), HOWL_NAMESPACE, request.getInputStream());
     }
 }

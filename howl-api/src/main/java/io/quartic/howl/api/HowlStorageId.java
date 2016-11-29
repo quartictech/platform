@@ -10,8 +10,8 @@ import org.immutables.value.Value;
 @Value.Immutable
 @JsonSerialize(as = CloudStorageIdImpl.class)
 @JsonDeserialize(as = CloudStorageIdImpl.class)
-public abstract class CloudStorageId extends Uid {
-    public static CloudStorageId fromString(String uid) {
-        return CloudStorageIdImpl.of(uid);
+public abstract class HowlStorageId extends Uid {
+    public static HowlStorageId fromString(String uid) {
+        return HowlStorageIdImpl.of(uid);
     }
 }

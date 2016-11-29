@@ -2,13 +2,13 @@ package io.quartic.howl;
 
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.howl.api.CloudStorageId;
+import io.quartic.howl.api.HowlStorageId;
 import io.quartic.howl.api.CloudStorageIdImpl;
+import io.quartic.howl.api.HowlStorageIdImpl;
 import io.quartic.howl.storage.InputStreamWithContentType;
 import io.quartic.howl.storage.StorageBackend;
 import org.apache.commons.io.IOUtils;
 
-import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -24,7 +24,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 @Path("/{namespace}")
 public class HowlResource {
     private final StorageBackend storageBackend;
-    private final UidGenerator<CloudStorageId> cloudStorageIdGenerator = RandomUidGenerator.of(CloudStorageIdImpl::of);
+    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = RandomUidGenerator.of(HowlStorageIdImpl::of);
 
     public HowlResource(StorageBackend storageBackend) {
         this.storageBackend = storageBackend;
@@ -33,11 +33,11 @@ public class HowlResource {
     @POST
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
-    public CloudStorageId uploadFile(@PathParam("namespace") String namespace,
-                                     @Context HttpServletRequest request) throws IOException {
-        CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
-        storageBackend.put(request.getContentType(), namespace, cloudStorageId.uid(), request.getInputStream());
-        return cloudStorageId;
+    public HowlStorageId uploadFile(@PathParam("namespace") String namespace,
+                                    @Context HttpServletRequest request) throws IOException {
+        HowlStorageId howlStorageId = howlStorageIdGenerator.get();
+        storageBackend.put(request.getContentType(), namespace, howlStorageId.uid(), request.getInputStream());
+        return howlStorageId;
     }
 
     @PUT
