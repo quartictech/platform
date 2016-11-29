@@ -3,7 +3,6 @@ package io.quartic.howl;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.howl.api.HowlStorageId;
-import io.quartic.howl.api.CloudStorageIdImpl;
 import io.quartic.howl.api.HowlStorageIdImpl;
 import io.quartic.howl.storage.InputStreamWithContentType;
 import io.quartic.howl.storage.StorageBackend;

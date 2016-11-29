@@ -8,8 +8,8 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-@JsonSerialize(as = CloudStorageIdImpl.class)
-@JsonDeserialize(as = CloudStorageIdImpl.class)
+@JsonSerialize(as = HowlStorageIdImpl.class)
+@JsonDeserialize(as = HowlStorageIdImpl.class)
 public abstract class HowlStorageId extends Uid {
     public static HowlStorageId fromString(String uid) {
         return HowlStorageIdImpl.of(uid);
