@@ -1,6 +1,6 @@
 catalogueWatchUrl: ws://localhost:8090/api/datasets/watch
 terminatorUrl: ws://localhost:8110/ws
-cloudStorageUrl: http://localhost:8100/api
+cloudStorageUrl: http://localhost:8120/api
 
 server:
   applicationContextPath: /

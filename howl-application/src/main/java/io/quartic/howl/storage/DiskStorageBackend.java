@@ -1,6 +1,5 @@
 package io.quartic.howl.storage;
 
-import com.google.api.client.repackaged.com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -31,7 +30,8 @@ public class DiskStorageBackend implements StorageBackend {
     public void put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException {
         Path dirPath = rootPath.resolve(namespace);
         dirPath.toFile().mkdirs();
-        FileOutputStream fileOutputStream = new FileOutputStream(dirPath.resolve(objectName).toFile());
-        IOUtils.copy(inputStream, fileOutputStream);
+        try(FileOutputStream fileOutputStream = new FileOutputStream(dirPath.resolve(objectName).toFile())) {
+            IOUtils.copy(inputStream, fileOutputStream);
+        }
     }
 }

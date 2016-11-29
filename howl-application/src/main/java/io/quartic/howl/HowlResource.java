@@ -37,7 +37,6 @@ public class HowlResource {
     public CloudStorageId uploadFile(@PathParam("namespace") String namespace,
                                      @Context HttpServletRequest request) throws IOException {
         CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
-        System.out.println(IOUtils.toString(request.getInputStream()));
         storageBackend.put(request.getContentType(), namespace, cloudStorageId.uid(), request.getInputStream());
         return cloudStorageId;
     }
