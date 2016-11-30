@@ -11,6 +11,6 @@ public class BucketUtils {
         else if (value instanceof Long) {
             return ((Long) value).doubleValue();
         }
-        else return null;
+        else return Double.valueOf(value.toString());
     }
 }
