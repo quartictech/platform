@@ -31,6 +31,13 @@ export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
     };
 }
 
+export function createDatasetError(error: string) {
+  return {
+    type: constants.CREATE_DATASET_ERROR,
+    error
+  };
+}
+
 export function setActiveModal(activeModal) {
   return {
     type: constants.UI_SET_ACTIVE_MODAL,

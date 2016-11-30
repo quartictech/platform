@@ -5,6 +5,25 @@ import { fetchDatasets, uploadFile, createDataset } from "../api";
 import * as actions from "../actions";
 import * as constants from "../constants";
 
+import { toaster } from "../../containers/App/toaster";
+
+import { Intent } from "@blueprintjs/core";
+
+function showError(message) {
+  toaster.show({
+    iconName: "warning-sign",
+    intent: Intent.DANGER,
+    message
+  });
+}
+
+function showSuccess(message) {
+  toaster.show({
+    intent: Intent.SUCCESS,
+    message,
+  });
+}
+
 function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
@@ -19,12 +38,20 @@ function* watchLoadDatasets(): SagaIterator {
 function* watchCreateDataset(): SagaIterator {
   while (true) {
     const action = yield take(constants.CREATE_DATASET);
-    const res = yield call(uploadFile, action.data.files.files);
+    const uploadResult = yield call(uploadFile, action.data.files.files);
 
-    if (!res.err) {
-      yield call(createDataset, action.data.metadata, res.data, action.data.files.fileType);
-      yield put(actions.setActiveModal(null));
-      yield put(actions.fetchDatasets());
+    if (!uploadResult.err) {
+      const createResult = yield call(createDataset, action.data.metadata,
+        uploadResult.data, action.data.files.fileType);
+      if (! createResult.err) {
+        yield call(showSuccess, `Successfully created dataset: ${action.data.metadata.name}`);
+        yield put(actions.setActiveModal(null));
+        yield put(actions.fetchDatasets());
+      } else {
+          yield call(showError, `Error while creating dataset: ${createResult.err.message}`);
+      }
+    } else {
+      yield call(showError, `Error while uploading file: ${uploadResult.err.message}`);
     }
   }
 }
