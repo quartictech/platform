@@ -15,7 +15,7 @@ import "!file?name=[name].[ext]!./manifest.json";
 import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { applyRouterMiddleware, Router, browserHistory } from "react-router";
+import { applyRouterMiddleware, Router, createMemoryHistory } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
 import useScroll from "react-router-scroll";
 import configureStore from "./store";
@@ -28,17 +28,15 @@ import "semantic-ui/dist/semantic.css";
 require("semantic-ui/dist/semantic");
 
 // Create redux store with history
-// this uses the singleton browserHistory provided by react-router
-// Optionally, this could be changed to leverage a created history
-// e.g. `const browserHistory = useRouterHistory(createBrowserHistory)();`
+const underlyingHistory = createMemoryHistory();
 const initialState = {};
-const store = configureStore(initialState, browserHistory);
+const store = configureStore(initialState, underlyingHistory);
 
 // Sync history and store, as the react-router-redux reducer
 // is under the non-default key ("routing"), selectLocationState
 // must be provided for resolving how to retrieve the "route" in the state
 import { selectLocationState } from "containers/App/selectors";
-const history = syncHistoryWithStore(browserHistory, store, {
+const history = syncHistoryWithStore(underlyingHistory, store, {
   selectLocationState: selectLocationState(),
 });
 
