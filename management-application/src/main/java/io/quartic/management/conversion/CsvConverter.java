@@ -71,12 +71,12 @@ public class CsvConverter implements GeoJsonConverter {
 
         Optional<String> latColumn = firstRow.entrySet().stream()
                 .map(Map.Entry::getKey)
-                .filter(key -> key.startsWith("lat") || key.contains("latitude"))
+                .filter(key -> key.toLowerCase().startsWith("lat") || key.toLowerCase().contains("latitude"))
                 .findFirst();
 
         Optional<String> lonColumn = firstRow.entrySet().stream()
                 .map(Map.Entry::getKey)
-                .filter(key -> key.startsWith("lon") || key.contains("longitude"))
+                .filter(key -> key.toLowerCase().startsWith("lon") || key.toLowerCase().contains("longitude"))
                 .findFirst();
 
 
