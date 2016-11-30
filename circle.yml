@@ -9,6 +9,7 @@ machine:
 dependencies:
   cache_directories:
     - weyl-frontend/node_modules
+    - management-frontend/node_modules
   override:
     - ./gradlew resolveConfigurations npmInstall --parallel
 
