@@ -1,7 +1,4 @@
 FROM openjdk:8u92-jre-alpine
-ARG full_name
-ARG simple_name
-ARG version
 
 # TODO: let's find a way not to need this - something about the startup script is Bash-specific
 RUN apk --no-cache add bash
