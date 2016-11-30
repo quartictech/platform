@@ -13,16 +13,12 @@ dependencies {
     processor libraries.immutables
 
     compile project(":common-application")
-    compile project(":catalogue-api")
     compile project(":howl-api")
-    compile project(":model")
-    runtime project(":management-frontend")
+    compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
 
-    compile "org.apache.commons:commons-csv:1.3"
-    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
 
     testCompile libraries.testCommon
-    testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile libraries.dropwizardTesting
 }
 
 jar {
@@ -31,18 +27,18 @@ jar {
     }
 }
 
-ext.memorySetting = System.env.MANAGEMENT_MEMORY ?: "512m"
+ext.memorySetting = System.env.HOWL_MEMORY ?: "64m"
 
-mainClassName = "io.quartic.management.ManagementApplication"
+mainClassName = "io.quartic.howl.HowlApplication"
 applicationDefaultJvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
 
 
 run {
-    args = ["server", "management.yml"]
+    args = ["server", "howl.yml"]
 }
 
 docker {
-    name      "${System.env.QUARTIC_DOCKER_REPOSITORY}/management:${version}"
+    name      "${System.env.QUARTIC_DOCKER_REPOSITORY}/howl:${version}"
     dependsOn distTar
     files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
 }

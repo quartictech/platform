@@ -10,6 +10,11 @@ export interface IDatasetLocator {
   type: string;
 }
 
+export interface IFiles {
+  files: any[];
+  fileType: string;
+}
+
 export interface IDataset {
   metadata: IDatasetMetadata;
   locator: IDatasetLocator;
@@ -17,7 +22,7 @@ export interface IDataset {
 
 export interface ICreateDataset {
   metadata: IDatasetMetadata;
-  files: any[];
+  files: IFiles;
 }
 
 export interface DatasetAction {
