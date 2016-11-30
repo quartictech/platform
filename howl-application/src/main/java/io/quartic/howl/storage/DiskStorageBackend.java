@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 public class DiskStorageBackend implements StorageBackend {
+    private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
     private final Path rootPath;
 
     public DiskStorageBackend(Path rootPath) {
@@ -18,7 +19,7 @@ public class DiskStorageBackend implements StorageBackend {
     @Override
     public Optional<InputStreamWithContentType> get(String namespace, String objectName) throws IOException {
         Path path = rootPath.resolve(Paths.get(namespace, objectName));
-        String contentType = Files.probeContentType(path);
+        String contentType = Optional.ofNullable(Files.probeContentType(path)).orElse(DEFAULT_CONTENT_TYPE);
         File file = path.toFile();
         if (file.exists()) {
             return Optional.of(InputStreamWithContentTypeImpl.of(contentType, new FileInputStream(file)));
