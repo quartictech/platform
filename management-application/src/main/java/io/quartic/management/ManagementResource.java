@@ -1,25 +1,23 @@
 package io.quartic.management;
 
-import feign.Response;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.howl.api.HowlStorageId;
 import io.quartic.howl.api.HowlService;
+import io.quartic.howl.api.HowlStorageId;
 import io.quartic.management.conversion.CsvConverter;
 import io.quartic.management.conversion.GeoJsonConverter;
+import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
 
@@ -86,11 +84,16 @@ public class ManagementResource {
                 return fileName;
             case CSV:
                 GeoJsonConverter converter = new CsvConverter();
-                // convert to GeoJSON
-                FeatureCollection featureCollection = converter.convert(inputStream);
-                byte[] data = ObjectMappers.OBJECT_MAPPER.writeValueAsBytes(featureCollection);
                 HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
-                        new ByteArrayInputStream(data));
+                        outputStream -> {
+                            // convert to GeoJSON
+                            try {
+                                converter.convert(inputStream, outputStream);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                throw new RuntimeException("exception while converting csv to geojson: " + e);
+                            }
+                        });
                 return storageId.uid();
             default:
                 return fileName;
@@ -101,6 +104,14 @@ public class ManagementResource {
     @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
     public HowlStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
-        return howlService.uploadFile(request.getContentType(), HOWL_NAMESPACE, request.getInputStream());
+        return howlService.uploadFile(request.getContentType(), HOWL_NAMESPACE,
+                outputStream -> {
+                    try {
+                        IOUtils.copy(request.getInputStream(), outputStream);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("exception while uploading file: " + e);
+                    }
+                });
     }
 }

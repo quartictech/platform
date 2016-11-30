@@ -1,6 +1,9 @@
 package io.quartic.management.conversion;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.collect.*;
+import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.geojson.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -11,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -39,7 +43,7 @@ public class CsvConverter implements GeoJsonConverter {
         return Optional.empty();
     }
 
-    private Collection<Feature> parseFeatures(Iterable<CSVRecord> records, String latColumn,
+    private Stream<Feature> parseFeatures(Iterable<CSVRecord> records, String latColumn,
                                               String lonColumn, Set<String> columns) {
         List<Optional<Feature>> features = StreamSupport.stream(records.spliterator(), false)
                 .map(record -> {
@@ -59,12 +63,14 @@ public class CsvConverter implements GeoJsonConverter {
                 features.size());
 
         return features.stream()
-                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()))
-                .collect(toList());
+                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()));
     }
 
     @Override
-    public FeatureCollection convert(InputStream data) throws IOException {
+    public void convert(InputStream data, OutputStream outputStream) throws IOException {
+        JsonFactory jsonFactory = new JsonFactory();
+        JsonGenerator jsonGenerator = jsonFactory.createGenerator(outputStream);
+        jsonGenerator.setCodec(ObjectMappers.OBJECT_MAPPER);
         CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(data));
 
         Map<String, Integer> firstRow = csvParser.getHeaderMap();
@@ -86,7 +92,21 @@ public class CsvConverter implements GeoJsonConverter {
             Set<String> keys = Sets.newHashSet(firstRow.keySet());
             keys.removeAll(ImmutableSet.of(latField, lonField));
 
-            return FeatureCollectionImpl.of(parseFeatures(csvParser, latField, lonField, keys));
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeStringField("type", "FeatureCollection");
+            jsonGenerator.writeArrayFieldStart("features");
+
+            parseFeatures(csvParser, latField, lonField, keys)
+                    .forEach(feature -> {
+                        try {
+                            jsonGenerator.writeObject(feature);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            throw new RuntimeException("exception while: " + e);
+                        }
+                    });
+            jsonGenerator.writeEndArray();
+            jsonGenerator.writeEndObject();
         }
         else {
             throw new RuntimeException("lat & lon field can't be found in keys: " + firstRow.keySet());

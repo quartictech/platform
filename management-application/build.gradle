@@ -31,7 +31,7 @@ jar {
     }
 }
 
-ext.memorySetting = System.env.MANAGEMENT_MEMORY ?: "512m"
+ext.memorySetting = System.env.MANAGEMENT_MEMORY ?: "128m"
 
 mainClassName = "io.quartic.management.ManagementApplication"
 applicationDefaultJvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
