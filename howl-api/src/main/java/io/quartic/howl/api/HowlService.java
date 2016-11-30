@@ -4,6 +4,7 @@ import feign.Response;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 import java.io.InputStream;
 
 @Path("/{namespace}")
@@ -24,6 +25,10 @@ public interface HowlService {
 
     @GET
     @Path("/{fileName}")
-    Response downloadFile(@PathParam("namespace") String namespace,
+    Response downloadFileAsResponse(@PathParam("namespace") String namespace,
                           @PathParam("fileName") String fileName);
+
+    default InputStream downloadFile(String namespace, String fileName) throws IOException {
+       return downloadFileAsResponse(namespace, fileName).body().asInputStream();
+    }
 }

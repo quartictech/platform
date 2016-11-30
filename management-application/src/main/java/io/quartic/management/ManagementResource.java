@@ -17,7 +17,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
 
@@ -48,12 +50,18 @@ public class ManagementResource {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
             @Override
             public DatasetConfig visit(CreateStaticDatasetRequest request) {
-                String name = preprocessFile(request.fileName(), request.fileType());
-                return DatasetConfigImpl.of(
-                        request.metadata(),
-                        CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name)),
-                        emptyMap()
-                );
+                try {
+                    String name = preprocessFile(request.fileName(), request.fileType());
+                    return DatasetConfigImpl.of(
+                            request.metadata(),
+                            CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name)),
+                            emptyMap()
+                    );
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("exception while preprocessing file: " + e);
+                }
             }
 
             @Override
@@ -68,24 +76,22 @@ public class ManagementResource {
         return catalogueService.registerDataset(datasetConfig);
     }
 
-    private String preprocessFile(String fileName, FileType fileType) {
+    private String preprocessFile(String fileName, FileType fileType) throws IOException {
+        InputStream inputStream = howlService.downloadFile(HOWL_NAMESPACE, fileName);
+
         switch (fileType) {
             case GEOJSON:
+                // validate geojson
+                ObjectMappers.OBJECT_MAPPER.readValue(inputStream, FeatureCollection.class);
                 return fileName;
             case CSV:
                 GeoJsonConverter converter = new CsvConverter();
-                Response response = howlService.downloadFile(HOWL_NAMESPACE, fileName);
-                try {
-                    // convert to GeoJSON
-                    FeatureCollection featureCollection = converter.convert(response.body().asInputStream());
-                    byte[] data = ObjectMappers.OBJECT_MAPPER.writeValueAsBytes(featureCollection);
-                    HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
-                            new ByteArrayInputStream(data));
-                    return storageId.uid();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("error while encoding feature collection: " + e);
-                }
+                // convert to GeoJSON
+                FeatureCollection featureCollection = converter.convert(inputStream);
+                byte[] data = ObjectMappers.OBJECT_MAPPER.writeValueAsBytes(featureCollection);
+                HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
+                        new ByteArrayInputStream(data));
+                return storageId.uid();
             default:
                 return fileName;
         }
