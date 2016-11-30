@@ -27,13 +27,13 @@ interface IState {
 
 const FileRow = ({ file }) => (
   <tr>
-    <td>{file.name}</td>
-    <td>{file.size}</td>
+    <td style={{wordWrap: "break-word"}}>{file.name}</td>
+    <td style={{width: "30%"}}>{file.size}</td>
   </tr>
 );
 
 const FilesList = ({ files }) => (
-  <table className="pt-table pt-striped" style={{width: "100%"}}>
+  <table className="pt-table pt-striped" style={{width: "100%", tableLayout: "fixed"}}>
     <tbody>
       { _.map(files, (file:IFile) => <FileRow key={file.name} file={file}/>) }
     </tbody>
@@ -89,7 +89,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
         isOpen={this.props.visible}
         onClose={this.toggleDialog.bind(this)}
         title="New Dataset"
-        style={{backgroundColor:"#293742"}}
+        style={{backgroundColor:"#293742", width:"30%"}}
       >
         <div className="pt-dialog-body pt-dark">
           <label className="pt-label .modifier">
@@ -116,7 +116,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
           <label className="pt-label .modifier">
             Files
-            <Dropzone onDrop={this.onDrop.bind(this)} className="pt-card" style={{height: "100px", width: "100%"}}>
+            <Dropzone onDrop={this.onDrop.bind(this)} className="pt-card" style={{height: "150px", width: "100%"}}>
                {
                  this.state.files.length === 0 ?
                  <div>Try dropping some files here, or click to select files to upload.</div> :
