@@ -8,7 +8,7 @@ plugins {
 apply plugin: io.quartic.gradle.ServicePlugin
 
 service {
-    simpleName = "weyl"
+    simpleName = "howl"
     mainClassName = "io.quartic.howl.HowlApplication"
     memory = System.env.HOWL_MEMORY ?: "64m"
 }
