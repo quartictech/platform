@@ -1,4 +1,4 @@
-package io.quartic.common.rx;
+package io.quartic.common.test.rx;
 
 import rx.Observable;
 

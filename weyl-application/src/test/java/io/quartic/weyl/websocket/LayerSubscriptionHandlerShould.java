@@ -1,6 +1,6 @@
 package io.quartic.weyl.websocket;
 
-import io.quartic.common.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.ObservableInterceptor;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;

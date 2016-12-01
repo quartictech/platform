@@ -1,7 +1,7 @@
 package io.quartic.weyl;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.common.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.ObservableInterceptor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import rx.Observable;

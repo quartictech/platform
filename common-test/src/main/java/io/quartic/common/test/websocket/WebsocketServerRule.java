@@ -1,4 +1,4 @@
-package io.quartic.common.websocket;
+package io.quartic.common.test.websocket;
 
 import com.google.common.collect.Lists;
 import org.glassfish.tyrus.server.Server;

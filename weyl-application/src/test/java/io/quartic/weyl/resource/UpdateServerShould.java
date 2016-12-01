@@ -1,7 +1,7 @@
 package io.quartic.weyl.resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.quartic.common.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.ObservableInterceptor;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
