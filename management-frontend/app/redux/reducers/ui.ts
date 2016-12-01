@@ -4,7 +4,7 @@ import { Map, fromJS } from "immutable";
 
 const initialState = fromJS({
   activeModal: null,
-  searchString: null
+  searchString: null,
 });
 
 export function uiReducer(state: Map<string, any> = initialState,

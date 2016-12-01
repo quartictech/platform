@@ -13,6 +13,9 @@ include "catalogue-application"
 include "management-application"
 include "management-frontend"
 
+include "howl-api"
+include "howl-application"
+
 include "weyl-core"
 include "weyl-application"
 include "weyl-frontend"

@@ -153,7 +153,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 ),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
-                        .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                        .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
                         .converter(featureConverter())
                         .build()
         );

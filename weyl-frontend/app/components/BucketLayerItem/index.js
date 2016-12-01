@@ -67,7 +67,7 @@ class BucketLayerItem extends React.Component { // eslint-disable-line react/pre
     };
 
     if (this.state.selectedAggregation === "sum" || this.state.selectedAggregation === "mean") {
-      computeSpec.aggregation.property = this.state.selectedAttribute;
+      computeSpec.aggregation.attribute = this.state.selectedAttribute;
     }
 
     this.props.onCompute(computeSpec);
