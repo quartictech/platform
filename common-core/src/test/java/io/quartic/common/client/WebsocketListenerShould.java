@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class WebsocketListenerShould {
-    private static final int TIMEOUT_MILLISECONDS = 250;
+    private static final int TIMEOUT_MILLISECONDS = 1000;
 
     @Rule
     public WebsocketServerRule server = new WebsocketServerRule();
