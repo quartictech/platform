@@ -25,10 +25,7 @@
     "lint": "npm run lint:js && npm run lint:css",
     "lint:eslint": "eslint --ignore-path .gitignore --ignore-pattern internals",
     "lint:js": "npm run lint:eslint -- . ",
-    "lint:css": "stylelint ./app/**/*.css",
-
-    "pretest": "npm run test:clean && npm run lint",
-    "test": ""
+    "lint:css": "stylelint ./app/**/*.css"
   },
   "babel": {
     "presets": [
@@ -223,7 +220,6 @@
     "babel-preset-stage-0": "^6.5.0",
     "cheerio": "0.20.0",
     "copy-webpack-plugin": "3.0.1",
-    "coveralls": "2.11.12",
     "cross-env": "2.0.0",
     "css-loader": "0.23.1",
     "eslint": "3.5.0",
@@ -233,9 +229,6 @@
     "eslint-plugin-jsx-a11y": "2.0.1",
     "eslint-plugin-react": "6.0.0",
     "eventsource-polyfill": "0.9.6",
-    "expect": "1.20.2",
-    "expect-jsx": "2.6.0",
-    "exports-loader": "0.6.3",
     "extract-text-webpack-plugin": "1.0.1",
     "file-loader": "0.9.0",
     "html-loader": "0.4.3",
