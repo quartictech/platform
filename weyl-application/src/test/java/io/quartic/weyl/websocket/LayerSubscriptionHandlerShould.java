@@ -92,11 +92,9 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
-        final LayerId id = mock(LayerId.class);
-
         when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
 
-        final Subscription subscription = just(status(id))
+        final Subscription subscription = just(status(mock(LayerId.class)))
                 .compose(handler)
                 .subscribe();
         subscription.unsubscribe();
