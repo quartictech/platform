@@ -5,8 +5,8 @@ import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
 import org.junit.Test;
 
-import static io.quartic.common.CollectionUtils.entry;
-import static io.quartic.common.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 

@@ -10,8 +10,8 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.common.CollectionUtils.entry;
-import static io.quartic.common.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.MAX_CATEGORIES;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.model.AttributeType.*;

@@ -1,13 +1,17 @@
 plugins {
     id "java"
     id "idea"
-    id "application"
     id "org.inferred.processors" version "1.2.3"
-    id "com.palantir.docker" version "0.9.1"
     id "com.palantir.configuration-resolver" version "0.1.0"
 }
 
-apply from: "../gradle/distribution.gradle"
+apply plugin: io.quartic.gradle.ServicePlugin
+
+service {
+    simpleName = "howl"
+    mainClassName = "io.quartic.howl.HowlApplication"
+    memory = System.env.HOWL_MEMORY ?: "64m"
+}
 
 dependencies {
     processor libraries.immutables
@@ -20,28 +24,5 @@ dependencies {
     testCompile libraries.testCommon
     testCompile libraries.dropwizardTesting
 }
-
-jar {
-    manifest {
-        attributes("Implementation-Version": version)
-    }
-}
-
-ext.memorySetting = System.env.HOWL_MEMORY ?: "64m"
-
-mainClassName = "io.quartic.howl.HowlApplication"
-applicationDefaultJvmArgs = ["-Xms${memorySetting}", "-Xmx${memorySetting}", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:mygclogfilename.gc"]
-
-
-run {
-    args = ["server", "howl.yml"]
-}
-
-docker {
-    name      "${System.env.QUARTIC_DOCKER_REPOSITORY}/howl:${version}"
-    dependsOn distTar
-    files     "build.gradle"    // Seems to be no way to say "no files", so using this as dummy
-}
-
 
 
