@@ -38,7 +38,7 @@ import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
-import io.quartic.weyl.resource.UpdateServer;
+import io.quartic.weyl.update.UpdateServer;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 

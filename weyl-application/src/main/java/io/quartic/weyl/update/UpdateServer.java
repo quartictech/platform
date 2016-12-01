@@ -1,4 +1,4 @@
-package io.quartic.weyl.resource;
+package io.quartic.weyl.update;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
