@@ -18,7 +18,7 @@ class Header extends React.Component<IProps, void> {
     return (
       <nav className="pt-navbar .modifier pt-dark">
         <div className="pt-navbar-group pt-align-left">
-          <Link to ="/" className={s.logo}>
+          <Link to="/" className={s.logo}>
             <img
               className={s.logo}
               src={logo}
@@ -35,14 +35,17 @@ class Header extends React.Component<IProps, void> {
             type="text"
             onChange={this.onSearch.bind(this)}
           />
-        </div>
-        <div className="pt-navbar-group pt-align-right">
+          <span className="pt-navbar-divider"></span>
           <button
             onClick={this.props.newDatasetClick}
-            className="pt-button pt-minimal pt-icon-document"
+            className="pt-button pt-minimal pt-icon-upload"
           >
             Upload Data
           </button>
+        </div>
+        <div className="pt-navbar-group pt-align-right">
+          <span className="pt-navbar-divider"></span>
+          <a href="/map" alt="Map" className="pt-button pt-minimal pt-icon-map" />
         </div>
       </nav>);
   }

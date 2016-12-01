@@ -5,7 +5,7 @@ import { Dialog, Button, Intent } from "@blueprintjs/core";
 import * as Dropzone from "react-dropzone";
 import _ = require("underscore");
 
-import { IDatasetMetadata } from "../../models";
+import { IDatasetMetadata, IFiles } from "../../models";
 import * as classNames from "classnames";
 
 interface IFile {
@@ -13,7 +13,7 @@ interface IFile {
 }
 
 interface INewDatasetProps {
-  createDataset: (metadata: IDatasetMetadata, files: IFile[]) => any;
+  createDataset: (metadata: IDatasetMetadata, files: IFiles) => any;
   visible: boolean;
   closeNewDatasetClick: any;
 };
@@ -23,21 +23,42 @@ interface IState {
     files?: IFile[];
     name?: string;
     description?: string;
+    fileType?: string;
 };
 
 const FileRow = ({ file }) => (
   <tr>
-    <td>{file.name}</td>
-    <td>{file.size}</td>
+    <td style={{wordWrap: "break-word"}}>{file.name}</td>
+    <td style={{width: "30%"}}>{file.size}</td>
   </tr>
 );
 
 const FilesList = ({ files }) => (
-  <table className="pt-table pt-striped" style={{width: "100%"}}>
+  <table className="pt-table pt-striped" style={{width: "100%", tableLayout: "fixed"}}>
     <tbody>
       { _.map(files, (file:IFile) => <FileRow key={file.name} file={file}/>) }
     </tbody>
   </table>
+);
+
+const FileTypeButton = ({label, fileType, selectedFileType, onClick}) => (
+  <button
+    onClick={() => onClick(fileType)}
+    className={classNames("pt-button", {"pt-active": fileType === selectedFileType})}
+    role="button"
+  >
+  {label}
+  </button>
+);
+
+const FileTypeChooser = ({ fileType, onClick }) => (
+  <div className="pt-button-group pt-large pt-fill">
+    <FileTypeButton label="GeoJSON" fileType="geojson"
+      selectedFileType={fileType} onClick={onClick} />
+
+    <FileTypeButton label="CSV" fileType="csv"
+      selectedFileType={fileType} onClick={onClick} />
+  </div>
 );
 
 export class NewDataset extends React.Component<INewDatasetProps, IState> {
@@ -46,7 +67,8 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     this.state = {
       name: "",
       description: "",
-      files: []
+      files: [],
+      fileType: "geojson",
     };
   }
 
@@ -55,7 +77,11 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       name: this.state.name,
       description: this.state.description,
       attribution: "User data"
-    }, this.state.files);
+    },
+    {
+      files: this.state.files,
+      fileType: this.state.fileType
+    });
   }
 
   onDrop(files) {
@@ -82,6 +108,10 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     return this.state.description.length !== 0;
   }
 
+  onFileTypeClick(fileType) {
+    this.setState({ fileType });
+  }
+
   public render() {
     return (
       <Dialog
@@ -89,7 +119,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
         isOpen={this.props.visible}
         onClose={this.toggleDialog.bind(this)}
         title="New Dataset"
-        style={{backgroundColor:"#293742"}}
+        style={{backgroundColor:"#293742", width:"30%"}}
       >
         <div className="pt-dialog-body pt-dark">
           <label className="pt-label .modifier">
@@ -114,15 +144,22 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
             />
           </label>
 
-          <label className="pt-label .modifier">
+          <label className="pt-label">
             Files
-            <Dropzone onDrop={this.onDrop.bind(this)} className="pt-card" style={{height: "100px", width: "100%"}}>
+            <Dropzone onDrop={this.onDrop.bind(this)} className="pt-card" style={{height: "150px", width: "100%"}}>
                {
                  this.state.files.length === 0 ?
                  <div>Try dropping some files here, or click to select files to upload.</div> :
                  <FilesList files={this.state.files}/>
                }
              </Dropzone>
+           </label>
+           <label className="pt-label">
+            File Type
+            <FileTypeChooser
+              fileType={this.state.fileType}
+              onClick={this.onFileTypeClick.bind(this)}
+            />
            </label>
          </div>
          <div className="pt-dialog-footer">

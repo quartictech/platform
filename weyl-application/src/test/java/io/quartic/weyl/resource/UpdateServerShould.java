@@ -1,12 +1,12 @@
 package io.quartic.weyl.resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.quartic.common.rx.ObservableInterceptor;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.resource.UpdateServer;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -19,7 +19,6 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.encode;
@@ -29,7 +28,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static rx.Observable.empty;
 import static rx.Observable.just;
 
 public class UpdateServerShould {
@@ -66,15 +64,14 @@ public class UpdateServerShould {
 
     @Test
     public void remove_listener_and_close_handlers_on_close() throws Exception {
-        final AtomicBoolean unsubscribed = new AtomicBoolean(false);
-        final Observable<SocketMessage> observable = empty();
-        when(handler.call(any())).thenReturn(observable.doOnUnsubscribe(() -> unsubscribed.set(true)));
+        final ObservableInterceptor<SocketMessage> interceptor = ObservableInterceptor.create();
+        when(handler.call(any())).thenReturn(interceptor.observable());
 
         final UpdateServer server = createAndOpenServer();
         server.onClose(session, mock(CloseReason.class));
 
         verify(alertProcessor).removeListener(server);
-        assertThat(unsubscribed.get(), equalTo(true));
+        assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
     @Test

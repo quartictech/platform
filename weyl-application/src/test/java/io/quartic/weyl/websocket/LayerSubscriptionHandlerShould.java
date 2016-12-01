@@ -1,16 +1,15 @@
 package io.quartic.weyl.websocket;
 
+import io.quartic.common.rx.ObservableInterceptor;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.live.LayerState;
-import io.quartic.weyl.core.live.LayerStateImpl;
-import io.quartic.weyl.core.live.LayerSubscription;
 import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
@@ -21,15 +20,16 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
+import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,35 +37,34 @@ import static org.mockito.Mockito.*;
 import static rx.Observable.just;
 
 public class LayerSubscriptionHandlerShould {
-    private final LayerStore layerStore = mock(LayerStore.class);
+    private final LayerStore store = mock(LayerStore.class);
     private final FeatureConverter converter = mock(FeatureConverter.class);
-    private final ClientStatusMessageHandler handler = new LayerSubscriptionHandler(layerStore, converter);
+    private final ClientStatusMessageHandler handler = new LayerSubscriptionHandler(store, converter);
 
     @Test
     public void subscribe_to_layers() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
+        final ObservableInterceptor<Layer> interceptorA = ObservableInterceptor.create();
+        final ObservableInterceptor<Layer> interceptorB = ObservableInterceptor.create();
+        when(store.layersForLayerId(idA)).thenReturn(interceptorA.observable());
+        when(store.layersForLayerId(idB)).thenReturn(interceptorB.observable());
 
         just(status(idA, idB))
                 .compose(handler)
                 .subscribe();
 
-        verify(layerStore).addSubscriber(eq(idA), any());
-        verify(layerStore).addSubscriber(eq(idB), any());
+        verify(store).layersForLayerId(eq(idA));
+        verify(store).layersForLayerId(eq(idB));
+        assertThat(interceptorA.subscribed(), equalTo(true));
+        assertThat(interceptorB.subscribed(), equalTo(true));
     }
 
     @Test
-    public void send_update_messages_when_layer_features_change() throws Exception {
+    public void send_update_messages_when_layer_changes() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final AttributeSchema schema = mock(AttributeSchema.class);
-        final Collection<Feature> features = mock(List.class);
-
-        when(layerStore.addSubscriber(any(), any())).then(invocation -> {
-            Consumer<LayerState> subscriber = invocation.getArgument(1);
-            subscriber.accept(LayerStateImpl.of(schema, features));
-            return mock(LayerSubscription.class);
-        });
-
+        final Layer layer = layer();
+        when(store.layersForLayerId(any())).thenReturn(just(layer));
         when(converter.toGeojson(any())).thenReturn(featureCollection());
 
         TestSubscriber<SocketMessage> sub = TestSubscriber.create();
@@ -74,50 +73,63 @@ public class LayerSubscriptionHandlerShould {
                 .subscribe(sub);
 
         sub.awaitValueCount(1, 100, MILLISECONDS);
-        verify(converter).toGeojson(features);
-        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, schema, featureCollection())));
+        verify(converter).toGeojson(newArrayList(layer.features()));
+        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, layer.schema(), featureCollection())));
     }
 
     @Test
     public void unsubscribe_from_layer_when_no_longer_in_list() throws Exception {
-        final LayerSubscription layerSubscription = mock(LayerSubscription.class);
-        when(layerStore.addSubscriber(any(), any())).thenReturn(layerSubscription);
+        final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
+        when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
 
         just(status(mock(LayerId.class)), status(mock(LayerId.class)))
                 .compose(handler)
                 .subscribe();
 
-        verify(layerStore).removeSubscriber(layerSubscription);
+        assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
+        final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
         final LayerId id = mock(LayerId.class);
-        final LayerSubscription layerSubscription = mock(LayerSubscription.class);
 
-        when(layerStore.addSubscriber(any(), any())).thenReturn(layerSubscription);
+        when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
 
         final Subscription subscription = just(status(id))
                 .compose(handler)
                 .subscribe();
         subscription.unsubscribe();
 
-        verify(layerStore).removeSubscriber(layerSubscription);
+        assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
     @Test
     public void ignore_status_changes_not_involving_layer_subscription_change() throws Exception {
+        final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
         final LayerId id = mock(LayerId.class);
         final ClientStatusMessage statusA = status(id);
         final ClientStatusMessage statusB = status(id);
         when(statusA.selection()).thenReturn(mock(SelectionStatus.class));
         when(statusB.selection()).thenReturn(mock(SelectionStatus.class));  // Different
+        when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
 
         just(statusA, statusB)
                 .compose(handler)
                 .subscribe();
 
-        verify(layerStore, never()).removeSubscriber(any());
+        assertThat(interceptor.unsubscribed(), equalTo(false));
+    }
+
+    private Layer layer() {
+        final AttributeSchema schema = mock(AttributeSchema.class);
+        final Collection<Feature> features = newArrayList(mock(Feature.class), mock(Feature.class));
+
+        final Layer layer = mock(Layer.class);
+        when(layer.view()).thenReturn(IDENTITY_VIEW);
+        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(features));
+        when(layer.schema()).thenReturn(schema);
+        return layer;
     }
 
     private ClientStatusMessage status(LayerId... ids) {

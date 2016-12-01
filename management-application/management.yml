@@ -1,5 +1,6 @@
 catalogueUrl: http://localhost:8090/api
 bucketName: quartic-test
+howlUrl: http://localhost:8120/api
 
 server:
   applicationContextPath: /

@@ -1,32 +1,38 @@
 package io.quartic.management;
 
+import feign.Response;
 import io.quartic.catalogue.api.*;
+import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.management.storage.StorageBackend;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.howl.api.HowlStorageId;
+import io.quartic.howl.api.HowlService;
+import io.quartic.management.conversion.CsvConverter;
+import io.quartic.management.conversion.GeoJsonConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 @Path("/")
 public class ManagementResource {
-    private final StorageBackend storageBackend;
+    private static final String HOWL_NAMESPACE = "management";
     private final CatalogueService catalogueService;
-    private final UidGenerator<CloudStorageId> cloudStorageIdGenerator = RandomUidGenerator.of(CloudStorageIdImpl::of);
     private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminationIdImpl::of);
+    private final HowlService howlService;
 
-    public ManagementResource(CatalogueService catalogueService, StorageBackend storageBackend) {
+    public ManagementResource(CatalogueService catalogueService, HowlService howlService) {
         this.catalogueService = catalogueService;
-        this.storageBackend = storageBackend;
+        this.howlService = howlService;
     }
 
     @GET
@@ -44,11 +50,18 @@ public class ManagementResource {
         DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
             @Override
             public DatasetConfig visit(CreateStaticDatasetRequest request) {
-                return DatasetConfigImpl.of(
-                        request.metadata(),
-                        CloudGeoJsonDatasetLocatorImpl.of("/file/" + request.fileName()),
-                        emptyMap()
-                );
+                try {
+                    String name = preprocessFile(request.fileName(), request.fileType());
+                    return DatasetConfigImpl.of(
+                            request.metadata(),
+                            CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name)),
+                            emptyMap()
+                    );
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("exception while preprocessing file: " + e);
+                }
             }
 
             @Override
@@ -63,24 +76,31 @@ public class ManagementResource {
         return catalogueService.registerDataset(datasetConfig);
     }
 
+    private String preprocessFile(String fileName, FileType fileType) throws IOException {
+        InputStream inputStream = howlService.downloadFile(HOWL_NAMESPACE, fileName);
+
+        switch (fileType) {
+            case GEOJSON:
+                // validate geojson
+                ObjectMappers.OBJECT_MAPPER.readValue(inputStream, FeatureCollection.class);
+                return fileName;
+            case CSV:
+                GeoJsonConverter converter = new CsvConverter();
+                // convert to GeoJSON
+                FeatureCollection featureCollection = converter.convert(inputStream);
+                byte[] data = ObjectMappers.OBJECT_MAPPER.writeValueAsBytes(featureCollection);
+                HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
+                        new ByteArrayInputStream(data));
+                return storageId.uid();
+            default:
+                return fileName;
+        }
+    }
+
     @POST
     @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
-    public CloudStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
-        CloudStorageId cloudStorageId = cloudStorageIdGenerator.get();
-        storageBackend.put(request.getContentType(), cloudStorageId.uid(), request.getInputStream());
-        return cloudStorageId;
-    }
-
-    @GET
-    @Path("/file/{fileName}")
-    public Response download(@PathParam("fileName") String fileName) throws IOException {
-        Optional<InputStreamWithContentType> file = storageBackend.get(fileName);
-
-        return file.map( f ->
-            Response.ok()
-                .header(CONTENT_TYPE, f.contentType())
-                .entity(f.inputStream())
-                .build()).orElseThrow(NotFoundException::new);
+    public HowlStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
+        return howlService.uploadFile(request.getContentType(), HOWL_NAMESPACE, request.getInputStream());
     }
 }

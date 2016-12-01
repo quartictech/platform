@@ -5,6 +5,7 @@ import io.dropwizard.Configuration;
 public class ManagementConfiguration extends Configuration {
     private String catalogueUrl;
     private String bucketName;
+    private String howlUrl;
 
     public String getCatalogueUrl() {
         return catalogueUrl;
@@ -20,5 +21,13 @@ public class ManagementConfiguration extends Configuration {
 
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    public String getHowlUrl() {
+        return howlUrl;
+    }
+
+    public void setHowlUrl(String howlUrl) {
+        this.howlUrl = howlUrl;
     }
 }

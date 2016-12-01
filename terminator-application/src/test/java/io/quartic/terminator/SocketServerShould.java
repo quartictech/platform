@@ -1,6 +1,7 @@
 package io.quartic.terminator;
 
 import io.quartic.catalogue.api.TerminationIdImpl;
+import io.quartic.common.rx.ObservableInterceptor;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
@@ -14,7 +15,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
@@ -22,13 +22,14 @@ import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static rx.Observable.just;
 
 public class SocketServerShould {
     @Test
     public void send_messages_for_emitted_feature_collections() throws Exception {
         final Session session = createSession("sessionA");
 
-        Observable<FeatureCollectionWithTerminationId> observable = Observable.just(fcwi());
+        Observable<FeatureCollectionWithTerminationId> observable = just(fcwi());
 
         SocketServer server = new SocketServer(observable, OBJECT_MAPPER);
         server.onOpen(session, mock(EndpointConfig.class));
@@ -41,7 +42,7 @@ public class SocketServerShould {
         final Session sessionA = createSession("sessionA");
         final Session sessionB = createSession("sessionB");
 
-        Observable<FeatureCollectionWithTerminationId> observable = Observable.just(fcwi());
+        Observable<FeatureCollectionWithTerminationId> observable = just(fcwi());
 
         SocketServer server = new SocketServer(observable, OBJECT_MAPPER);
         server.onOpen(sessionA, mock(EndpointConfig.class));
@@ -55,15 +56,13 @@ public class SocketServerShould {
     public void unsubscribe_on_close() throws Exception {
         final Session session = createSession("sessionA");
 
-        final AtomicBoolean unsubscribed = new AtomicBoolean(false);
-        Observable<FeatureCollectionWithTerminationId> observable = Observable.just(fcwi())
-                .doOnUnsubscribe(() -> unsubscribed.set(true));
+        final ObservableInterceptor<FeatureCollectionWithTerminationId> interceptor = ObservableInterceptor.create(just(fcwi()));
 
-        SocketServer server = new SocketServer(observable, OBJECT_MAPPER);
+        SocketServer server = new SocketServer(interceptor.observable(), OBJECT_MAPPER);
         server.onOpen(session, mock(EndpointConfig.class));
         server.onClose(session, mock(CloseReason.class));
 
-        assertThat(unsubscribed.get(), equalTo(true));
+        assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
     private Session createSession(String id) {

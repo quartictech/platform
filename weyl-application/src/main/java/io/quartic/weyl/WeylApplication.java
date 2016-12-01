@@ -14,14 +14,18 @@ import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
+import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.LiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChangeAggregator;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
@@ -35,6 +39,7 @@ import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
 import io.quartic.weyl.resource.UpdateServer;
+import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
@@ -47,12 +52,16 @@ import static com.google.common.collect.Lists.newArrayList;
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
-    private final EntityStore entityStore = new EntityStore();
+    private final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
     private final LayerStore layerStore = LayerStoreImpl.builder()
-            .entityStore(entityStore)
-            .lidGenerator(lidGenerator)
-            .build();
-    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
+            .entityStore(entityStore).lidGenerator(lidGenerator).build();
+
+    private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
+            layerStore.allLayers(),
+            layerStore::liveLayerChanges
+    );
+
+    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {
@@ -158,7 +167,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 ),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
-                        .url(configuration.getCloudStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                        .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
                         .converter(featureConverter())
                         .build()
         );

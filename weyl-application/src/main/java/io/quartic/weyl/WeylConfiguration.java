@@ -16,7 +16,7 @@ public class WeylConfiguration extends Configuration {
 
     @Valid
     @NotNull
-    private String cloudStorageUrl;
+    private String howlStorageUrl;
 
     public String getCatalogueWatchUrl() {
         return catalogueWatchUrl;
@@ -34,11 +34,11 @@ public class WeylConfiguration extends Configuration {
         this.terminatorUrl = terminatorUrl;
     }
 
-    public String getCloudStorageUrl() {
-        return cloudStorageUrl;
+    public String getHowlStorageUrl() {
+        return howlStorageUrl;
     }
 
-    public void setCloudStorageUrl(String cloudStorageUrl) {
-        this.cloudStorageUrl = cloudStorageUrl;
+    public void setHowlStorageUrl(String howlStorageUrl) {
+        this.howlStorageUrl = howlStorageUrl;
     }
 }

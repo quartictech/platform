@@ -1,4 +1,4 @@
-package io.quartic.management.storage;
+package io.quartic.howl.storage;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -10,8 +10,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.StorageObject;
-import io.quartic.management.InputStreamWithContentType;
-import io.quartic.management.InputStreamWithContentTypeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +48,13 @@ public class GcsStorageBackend implements StorageBackend {
         this.bucketName = bucketName;
     }
 
+    private String getObjectName(String namespace, String objectName) {
+        return namespace + "/" + objectName;
+    }
+
     @Override
-    public Optional<InputStreamWithContentType> get(String objectName) throws IOException {
-        Storage.Objects.Get get = storage.objects().get("quartic-test", objectName);
+    public Optional<InputStreamWithContentType> get(String namespace, String objectName) throws IOException {
+        Storage.Objects.Get get = storage.objects().get(bucketName, getObjectName(namespace, objectName));
         try {
             HttpResponse httpResponse = get.executeMedia();
             return Optional.of(InputStreamWithContentTypeImpl.of(httpResponse.getContentType(), httpResponse.getContent()));
@@ -62,10 +64,10 @@ public class GcsStorageBackend implements StorageBackend {
     }
 
     @Override
-    public void put(String contentType, String objectName, InputStream inputStream) throws IOException {
+    public void put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException {
         InputStreamContent inputStreamContent = new InputStreamContent(contentType, inputStream);
         StorageObject objectMetadata = new StorageObject()
-                .setName(objectName);
+                .setName(getObjectName(namespace, objectName));
         Storage.Objects.Insert insert = storage.objects().insert(bucketName, objectMetadata, inputStreamContent);
         insert.execute();
     }

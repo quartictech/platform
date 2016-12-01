@@ -1,0 +1,11 @@
+bucketName: quartic-test
+dataDir: ./data
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8120
+  adminConnectors:
+    - type: http
+      port: 8121
