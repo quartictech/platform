@@ -110,41 +110,34 @@ export const mapSetLocation = (location) => ({
   location,
 });
 
-export function geofenceEditStart() {
-  return {
-    type: constants.GEOFENCE_EDIT_START,
-  };
-}
+export const geofenceEditStart = () => ({
+  type: constants.GEOFENCE_EDIT_START,
+});
 
 export const geofenceEditFinish = () => ({
   type: constants.GEOFENCE_EDIT_FINISH,
+});
+
+export const geofenceEditSetType = (geofenceType) => ({
+  type: constants.GEOFENCE_EDIT_SET_TYPE,
+  value: geofenceType,
+});
+
+export const geofenceEditSetLayer = (layerId, bufferDistance) => ({
+  type: constants.GEOFENCE_EDIT_SET_LAYER,
+  layerId,
+  bufferDistance,
+});
+
+export const geofenceEditSetGeometry = (geojson) => ({
+  type: constants.GEOFENCE_EDIT_SET_GEOMETRY,
+  geojson,
 });
 
 export const geofenceSetGeometry = (geojson) => ({
   type: constants.GEOFENCE_SET_GEOMETRY,
   geojson,
 });
-
-export function geofenceChangeType(geofenceType) {
-  return {
-    type: constants.GEOFENCE_CHANGE_TYPE,
-    value: geofenceType,
-  };
-}
-
-export function geofenceSaveDone() {
-  return {
-    type: constants.GEOFENCE_SAVE_DONE,
-  };
-}
-
-export function geofenceSetLayer(layerId, bufferDistance) {
-  return {
-    type: constants.GEOFENCE_SET_LAYER,
-    layerId,
-    bufferDistance,
-  };
-}
 
 export const geofenceSetViolatedGeofences = (violatedIds) => ({
   type: constants.GEOFENCE_SET_VIOLATED_GEOFENCES,

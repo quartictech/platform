@@ -7,6 +7,7 @@ plugins {
 dependencies {
     compile libraries.immutables
 
+    compile libraries.rxjava
     compile libraries.junit
     compile libraries.guava
     compile libraries.websocket

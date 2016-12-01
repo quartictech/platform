@@ -1,9 +1,0 @@
-distributions {
-    main {
-        contents {
-            from('.') {
-                include '*.yml'
-            }
-        }
-    }
-}

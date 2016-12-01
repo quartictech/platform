@@ -69,7 +69,7 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         datasets.entrySet().stream()
                 .filter(e -> !this.datasets.containsKey(e.getKey()))
                 .forEach(e -> createAndImportLayer(e.getKey(), e.getValue()));
-        // TODO: explicitly delete old layers
+        // TODO: explicitly remove old layers
         this.datasets.clear();
         this.datasets.putAll(datasets);
     }

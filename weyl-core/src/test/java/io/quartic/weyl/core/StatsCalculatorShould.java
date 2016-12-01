@@ -8,8 +8,8 @@ import org.junit.Test;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.CollectionUtils.entry;
-import static io.quartic.common.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static io.quartic.weyl.core.model.AttributeType.STRING;

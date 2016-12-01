@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.EntityStore;
+import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 public class SpatialJoinShould {
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final LayerStore store = LayerStoreImpl.builder()
-            .entityStore(mock(EntityStore.class))
+            .entityStore(mock(ObservableStore.class))
             .lidGenerator(lidGenerator)
             .build();
 
