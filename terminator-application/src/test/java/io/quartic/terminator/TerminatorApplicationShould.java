@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.dropwizard.testing.DropwizardTestSupport;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.client.ClientBuilder;
-import io.quartic.common.websocket.WebsocketServerRule;
+import io.quartic.common.test.websocket.WebsocketServerRule;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;

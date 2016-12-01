@@ -49,7 +49,7 @@ public class LayerResource {
         Preconditions.checkNotNull(query);
         return layerStore.listLayers()
                 .stream()
-                .filter(layer -> layer.metadata().name().toLowerCase().contains(query.toLowerCase()))
+                .filter(layer -> layer.metadata().name().toLowerCase().contains(query.toLowerCase()) && !layer.features().isEmpty())
                 .map(this::createLayerResponse)
                 .collect(toList());
     }

@@ -77,17 +77,17 @@ class GeofenceSettings extends React.Component { // eslint-disable-line react/pr
             <div className="inline field">
               <GeofenceButton
                 editing={this.props.geofence.editing}
-                onEditClick={this.props.onGeofenceEdit}
-                onSaveClick={() => this.props.onGeofenceSave(this.props.geofence)}
+                onEditClick={this.props.onGeofenceEdit.start}
+                onSaveClick={this.props.onGeofenceEdit.finish}
               />
               <GeofenceLayerPicker
                 visible={this.props.geofence.editing}
                 layers={this.props.layers}
-                onSelect={layerId => this.props.onGeofenceSetLayer(layerId, 150)}
+                onSelect={layerId => this.props.onGeofenceEdit.setLayer(layerId, 150)}
                 selected={this.props.geofence.layerId}
               />
             </div>
-            <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceChangeType} key="dropdown" />
+            <GeofenceTypeDropdown visible={this.props.geofence.editing} type={this.props.geofence.type} onTypeChange={this.props.onGeofenceEdit.setType} key="dropdown" />
           </div>
           <GeofenceInfo geojson={this.props.geofence.geojson} />
           <div className="content">

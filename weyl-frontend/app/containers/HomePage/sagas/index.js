@@ -9,7 +9,6 @@ import { apiRootUrl } from "../../../utils.js";
 
 import search from "./search";
 import manageSocket from "./manageSocket";
-import saveGeofence from "./saveGeofence";
 
 function* runLayerComputation(action) {
   const requestURL = `${apiRootUrl}/layer/compute`;
@@ -59,5 +58,4 @@ export default [
   prepare(manageSocket),
   prepare(watch(constants.SEARCH, search)),
   prepare(watch(constants.LAYER_COMPUTATION_START, runLayerComputation)),
-  prepare(watch(constants.GEOFENCE_EDIT_FINISH, saveGeofence)),
 ];

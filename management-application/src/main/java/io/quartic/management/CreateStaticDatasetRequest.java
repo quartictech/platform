@@ -13,6 +13,7 @@ import org.immutables.value.Value;
 public interface CreateStaticDatasetRequest extends CreateDatasetRequest {
     DatasetMetadata metadata();
     String fileName();
+    FileType fileType();
 
     @Override
     default <T> T accept(Visitor<T> visitor) {

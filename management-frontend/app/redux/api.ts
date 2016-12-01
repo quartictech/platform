@@ -40,7 +40,7 @@ export function uploadFile(files: any[]) {
   });
 }
 
-export function createDataset(metadata: IDatasetMetadata, fileName: string) {
+export function createDataset(metadata: IDatasetMetadata, fileName: string, fileType: string) {
   return fetchUtil("/api/dataset", {
     headers: {
       "Content-Type": "application/json"
@@ -49,7 +49,8 @@ export function createDataset(metadata: IDatasetMetadata, fileName: string) {
     body: JSON.stringify({
       type: "static",
       metadata,
-      fileName
+      fileName,
+      fileType
     })
   });
 }

@@ -15,8 +15,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.CollectionUtils.entry;
-import static io.quartic.common.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.core.feature.FeatureConverter.getRawProperties;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static org.hamcrest.Matchers.contains;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 public class FeatureConverterShould {
     private final GeometryFactory factory = new GeometryFactory();
     private final AttributesFactory attributesFactory = mock(AttributesFactory.class);
-    private final FeatureConverter converter = new FeatureConverter(attributesFactory, webMercatorToWebMercator());
+    private final FeatureConverter converter = new FeatureConverter(attributesFactory, webMercatorToWebMercator(), webMercatorToWebMercator());
 
     @Test
     public void convert_feature_collection() throws Exception {

@@ -32,7 +32,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               selection={this.props.selection.ids}
               map={this.props.map}
               geofence={this.props.geofence}
-              onGeofenceSetGeometry={this.props.onGeofenceSetGeometry}
+              onGeofenceEditSetGeometry={this.props.onGeofenceEditSetGeometry}
             />
           </div>
         </div>
@@ -59,10 +59,12 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
             geofence={this.props.geofence}
-            onGeofenceEdit={this.props.onGeofenceEdit}
-            onGeofenceSave={this.props.onGeofenceSave}
-            onGeofenceChangeType={this.props.onGeofenceChangeType}
-            onGeofenceSetLayer={this.props.onGeofenceSetLayer}
+            onGeofenceEdit={{
+              start: this.props.onGeofenceEditStart,
+              finish: this.props.onGeofenceEditFinish,
+              setType: this.props.onGeofenceEditSetType,
+              setLayer: this.props.onGeofenceEditSetLayer,
+            }}
             onGeofenceToggleAlerts={this.props.onGeofenceToggleAlerts}
           />
         </div>
@@ -110,11 +112,12 @@ const mapDispatchToProps = {
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
   onMapMouseClick: actions.mapMouseClick,
-  onGeofenceEdit: actions.geofenceEditStart,
-  onGeofenceSave: actions.geofenceEditFinish,
+  onGeofenceEditStart: actions.geofenceEditStart,
+  onGeofenceEditFinish: actions.geofenceEditFinish,
+  onGeofenceEditSetLayer: actions.geofenceEditSetLayer,
+  onGeofenceEditSetType: actions.geofenceEditSetType,
+  onGeofenceEditSetGeometry: actions.geofenceEditSetGeometry,
   onGeofenceSetGeometry: actions.geofenceSetGeometry,
-  onGeofenceChangeType: actions.geofenceChangeType,
-  onGeofenceSetLayer: actions.geofenceSetLayer,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
 };
 
