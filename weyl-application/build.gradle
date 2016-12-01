@@ -26,6 +26,7 @@ dependencies {
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
     compile libraries.dropwizardWebsockets
 
+    testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 }

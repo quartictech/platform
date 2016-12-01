@@ -2,14 +2,14 @@ package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.Lists;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.live.LayerStoreListener;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,7 +19,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.stream.Collectors.toList;
 
-public class GeofenceStore implements LayerStoreListener {
+public class GeofenceStore  {
     private static final Logger LOG = LoggerFactory.getLogger(GeofenceStore.class);
 
     @SweetStyle
@@ -33,8 +33,10 @@ public class GeofenceStore implements LayerStoreListener {
     private final Set<Geofence> geofences = newHashSet();
     private final Set<GeofenceListener> listeners = newHashSet();
 
-    public GeofenceStore(LayerStore layerStore) {
-        layerStore.addListener(this);
+    public GeofenceStore(Observable<LiveLayerChange> liveLayerChanges) {
+        liveLayerChanges.subscribeOn(Schedulers.computation())
+                .subscribe(event -> event.features()
+                        .forEach(feature -> onLiveLayerEvent(event.layerId(), feature)));
     }
 
     public synchronized void setGeofences(Collection<Geofence> geofences) {
@@ -52,7 +54,6 @@ public class GeofenceStore implements LayerStoreListener {
         listeners.remove(listener);
     }
 
-    @Override
     public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
         geofences.forEach(geofence -> {
             final ViolationKey vk = ViolationKeyImpl.of(feature.entityId(), geofence.feature().entityId());
@@ -94,5 +95,4 @@ public class GeofenceStore implements LayerStoreListener {
                 .map(Geofence::feature)
                 .collect(toList())));
     }
-
 }
