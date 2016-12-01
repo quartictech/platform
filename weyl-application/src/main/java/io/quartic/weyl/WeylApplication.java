@@ -15,14 +15,18 @@ import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.catalogue.CatalogueWatcher;
-import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
+import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.LiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChangeAggregator;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.source.*;
@@ -31,6 +35,7 @@ import io.quartic.weyl.resource.*;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
+import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
@@ -47,12 +52,16 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final GeometryTransformer transformToFrontend = wgs84toWebMercator();
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
-    private final EntityStore entityStore = new EntityStore();
+    private final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
     private final LayerStore layerStore = LayerStoreImpl.builder()
-            .entityStore(entityStore)
-            .lidGenerator(lidGenerator)
-            .build();
-    private final GeofenceStore geofenceStore = new GeofenceStore(layerStore);
+            .entityStore(entityStore).lidGenerator(lidGenerator).build();
+
+    private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
+            layerStore.allLayers(),
+            layerStore::liveLayerChanges
+    );
+
+    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
     private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {
