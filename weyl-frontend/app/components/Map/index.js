@@ -74,11 +74,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
 
     this.map.on("draw.create", () => {
-      this.props.onGeofenceSetGeometry(this.draw.getAll());
+      this.props.onGeofenceEditSetGeometry(this.draw.getAll());
     });
 
     this.map.on("draw.delete", () => {
-      this.props.onGeofenceSetGeometry(this.draw.getAll());
+      this.props.onGeofenceEditSetGeometry(this.draw.getAll());
     });
 
     this.draw = mapboxgl.Draw({   // eslint-disable-line new-cap
@@ -112,7 +112,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     if (props.geofence.editing !== this.props.geofence.editing) {
       if (props.geofence.editing) {
         this.map.addControl(this.draw);
-        this.props.onGeofenceSetGeometry(this.draw.getAll());
+        this.props.onGeofenceEditSetGeometry(this.draw.getAll());
       } else {
         this.draw.remove();
       }

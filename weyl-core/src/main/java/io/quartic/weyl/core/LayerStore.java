@@ -72,7 +72,21 @@ public abstract class LayerStore {
         return Optional.ofNullable(layers.get(layerId));
     }
 
-    // TODO: we have no test for this
+    public Observable<LiveLayerChange> liveLayerChanges(LayerId layerId) {
+        checkLayerExists(layerId);
+        return newFeatureObservables.get(layerId)
+                .map(newFeatures -> ImmutableLiveLayerChange.of(layerId, newFeatures));
+    }
+
+    public Observable<Collection<Layer>> allLayers() {
+        return allLayersObservable;
+    }
+
+    public Observable<Layer> layersForLayerId(LayerId layerId) {
+        checkLayerExists(layerId);
+        return layerObservables.get(layerId);
+    }
+
     public Optional<LayerId> compute(ComputationSpec computationSpec) {
         return computationFactory().compute(this, computationSpec).map(r -> {
             final Layer layer = newLayer(lidGenerator().get(), r.metadata(), IDENTITY_VIEW, r.schema(), true);
@@ -141,23 +155,6 @@ public abstract class LayerStore {
         features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
         return stRtree;
     }
-
-    public Observable<LiveLayerChange> liveLayerChanges(LayerId layerId) {
-        checkLayerExists(layerId);
-        return newFeatureObservables.get(layerId)
-                .map(newFeatures -> ImmutableLiveLayerChange.of(layerId, newFeatures));
-    }
-
-    public Observable<Collection<Layer>> allLayers() {
-        return allLayersObservable;
-    }
-
-    public Observable<Layer> layersForLayerId(LayerId layerId) {
-        checkLayerExists(layerId);
-       return layerObservables.get(layerId);
-    }
-
-
 
     private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
         final Layer layer = layers.get(layerId);

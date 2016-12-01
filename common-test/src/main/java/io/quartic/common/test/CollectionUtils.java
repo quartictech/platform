@@ -1,4 +1,4 @@
-package io.quartic.common;
+package io.quartic.common.test;
 
 import com.google.common.collect.Maps;
 
