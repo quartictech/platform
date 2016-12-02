@@ -67,8 +67,6 @@ module.exports = (options) => ({
         BUILD_VERSION: JSON.stringify(process.env.BUILD_VERSION),
       },
     }),
-    // Some nonsense to make moment work (see https://github.com/moment/moment/issues/2979#issuecomment-189899510)
-    new webpack.ContextReplacementPlugin(/\.\/locale$/, 'empty-module', false, /js$/),
 
     new CopyWebpackPlugin([{ from: 'static' }]),
   ]),
