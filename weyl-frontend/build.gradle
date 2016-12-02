@@ -23,8 +23,9 @@ task npmStart(type: NpmTask, dependsOn: npmInstall) {
     // TODO: specify input files
 }
 
-
 jar {
     from npmBuild
 }
+
+check.dependsOn npmLint
 
