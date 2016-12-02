@@ -1,10 +1,12 @@
 package io.quartic.management;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;
 import io.quartic.management.conversion.CsvConverter;
@@ -79,14 +81,12 @@ public class ManagementResource {
 
         switch (fileType) {
             case GEOJSON:
-                // validate geojson
-                ObjectMappers.OBJECT_MAPPER.readValue(inputStream, FeatureCollection.class);
+                new GeoJsonParser(inputStream).validate();
                 return fileName;
             case CSV:
                 GeoJsonConverter converter = new CsvConverter();
                 HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
                         outputStream -> {
-                            // convert to GeoJSON
                             try {
                                 converter.convert(inputStream, outputStream);
                             } catch (IOException e) {
@@ -108,7 +108,7 @@ public class ManagementResource {
                 outputStream -> {
                     try {
                         IOUtils.copy(request.getInputStream(), outputStream);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                         throw new RuntimeException("exception while uploading file: " + e);
                     }
