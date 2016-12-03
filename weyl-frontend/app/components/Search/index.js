@@ -19,30 +19,7 @@ class Search extends React.Component {
 
   render() {
     const popoverContent = (
-      <Menu>
-        {
-          _.values(this.state.results)
-            .filter(r => !_.isEmpty(r.results))
-            .map(r => (
-              <div key={r.name}>
-                <MenuDivider title={r.name} />
-                {
-                  _.map(r.results, (result, idx) =>
-                    <MenuItem
-                      iconName={(result.category === "place") ? "map-marker" : "layer"}
-                      key={idx}
-                      text={result.title}
-                      onClick={() => ((result.category === "place")
-                        ? this.props.onSelectPlace(result.payload)
-                        : this.props.onSelectLayer(result.payload)
-                      )}
-                    />
-                  )
-                }
-              </div>
-            ))
-        }
-      </Menu>
+      <Menu>{this.renderMenuItems()}</Menu>
     );
 
     return (
@@ -66,6 +43,33 @@ class Search extends React.Component {
         />
       </Popover>
     );
+  }
+
+  renderMenuItems() {
+    const items = _.values(this.state.results)
+      .filter(r => !_.isEmpty(r.results))
+      .map(r => (
+        <div key={r.name}>
+          <MenuDivider title={r.name} />
+          {
+            _.map(r.results, (result, idx) =>
+              <MenuItem
+                iconName={(result.category === "place") ? "map-marker" : "layer"}
+                key={idx}
+                text={result.title}
+                onClick={() => ((result.category === "place")
+                  ? this.props.onSelectPlace(result.payload)
+                  : this.props.onSelectLayer(result.payload)
+                )}
+              />
+            )
+          }
+        </div>
+      ));
+
+    return _.isEmpty(items)
+      ? <MenuItem className={Classes.DISABLED} text="No results found." />
+      : items;
   }
 
   setQuery(query) {
