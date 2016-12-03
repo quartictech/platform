@@ -61,10 +61,10 @@ function Toolbar(props) {
 
           <span className="pt-navbar-divider"></span>
 
-          <input
-            className="pt-input"
-            placeholder="Search datasets..."
-            type="text"
+          <Search
+            onSearch={props.onSearch}
+            onSelectLayer={props.onSelectLayer}
+            onSelectPlace={props.onSelectPlace}
           />
         </div>
       </nav>
@@ -73,54 +73,3 @@ function Toolbar(props) {
 }
 
 export default Toolbar;
-
-
-// <div className={styles.toolbar}>
-//       <div className="ui raised fluid segment inverted" style={{ padding: "5px" }}>
-//         <div className="ui small menu compact inverted labeled icon">
-//           <div className="header item" style={itemStyle}>
-//
-//             <img
-//               className={styles.logo}
-//               src={logo}
-//               role="presentation"
-//               data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
-//               data-variation="mini"
-//               ref={x => $(x).popup()}
-//             >
-//             </img>
-//             <span className={styles.brand}>Quartic</span>
-//           </div>
-//
-//           <div className="right menu">
-//             <a className={themeClassNames} onClick={() => props.onUiToggle("theme")} style={itemStyle}>
-//               <i className={`icon ${mapThemes[props.ui.settings.theme].icon}`}></i>
-//               {mapThemes[props.ui.settings.theme].label}
-//             </a>
-//             <a className={layerListClassNames} onClick={() => props.onUiToggle("layerList")} style={itemStyle}>
-//               <i className="icon list"></i>
-//               Layers
-//             </a>
-//             <a className={bucketClassNames} onClick={() => props.onUiToggle("bucket")} style={itemStyle}>
-//               <i className="icon object group"></i>
-//               Bucket
-//             </a>
-//             <a className={geofenceClassNames} onClick={() => props.onUiToggle("geofence")} style={itemStyle}>
-//               <i className="icon crop"></i>
-//               Geofence
-//             </a>
-//             <a className={chartClassNames} onClick={() => props.onUiToggle("chart")} style={itemStyle}>
-//               <i className="icon area chart"></i>
-//               Chart
-//             </a>
-//             <div className="item" style={itemStyle}>
-//               <Search
-//                 onSearch={props.onSearch}
-//                 onSelectLayer={props.onSelectLayer}
-//                 onSelectPlace={props.onSelectPlace}
-//               />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>

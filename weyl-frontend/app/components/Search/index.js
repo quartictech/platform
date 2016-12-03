@@ -1,40 +1,90 @@
 import React from "react";
-const $ = require("jquery");
+import { Button, Classes, InputGroup, Menu, MenuDivider, MenuItem, Popover, PopoverInteractionKind, Position } from "@blueprintjs/core";
+import * as _ from "underscore";
 
 class Search extends React.Component {
-  componentDidMount() {
-    $(".ui.search").search({
-      apiSettings: {
-        responseAsync: (settings, callback) => {
-          this.props.onSearch(settings.urlData.query, callback);
-        },
-      },
-      type: "category",
-      onSelect: (result) => {
-        switch (result.category) {
-          case "layer":
-            this.props.onSelectLayer(result.payload);
-            break;
-          case "place":
-            this.props.onSelectPlace(result.payload);
-            break;
-          default:
-            break;
-        }
-      },
-    });
+  constructor(props) {
+    super(props);
+    this.state = {
+      query: "",
+      results: {},
+    };
+
+    this.setQuery = this.setQuery.bind(this);
+    this.clearQuery = this.clearQuery.bind(this);
+    this.onInteraction = this.onInteraction.bind(this);
   }
 
+  // TODO: no results
+
   render() {
-    return (
-      <div className="ui category search right aligned">
-        <div className="ui icon input">
-          <input className="prompt" placeholder="Search..." type="text"></input>
-          <i className="search icon"></i>
-        </div>
-        <div className="results"></div>
-      </div>
+    const popoverContent = (
+      <Menu>
+        {
+          _.values(this.state.results)
+            .filter(r => !_.isEmpty(r.results))
+            .map(r => (
+              <div key={r.name}>
+                <MenuDivider title={r.name} />
+                {
+                  _.map(r.results, (result, idx) =>
+                    <MenuItem
+                      iconName={(result.category === "place") ? "map-marker" : "layer"}
+                      key={idx}
+                      text={result.title}
+                      onClick={() => ((result.category === "place")
+                        ? this.props.onSelectPlace(result.payload)
+                        : this.props.onSelectLayer(result.payload)
+                      )}
+                    />
+                  )
+                }
+              </div>
+            ))
+        }
+      </Menu>
     );
+
+    return (
+      <Popover
+        autoFocus={false}
+        enforceFocus={false}
+        popoverClassName={Classes.MINIMAL}
+        content={popoverContent}
+        interactionKind={PopoverInteractionKind.CLICK}
+        inline={true}
+        isOpen={!_.isEmpty(this.state.results)}
+        onInteraction={this.onInteraction}
+        position={Position.BOTTOM}
+      >
+        <InputGroup
+          type="search"
+          leftIconName="search"
+          placeholder="Search datasets..."
+          value={this.state.query}
+          onChange={(e) => this.setQuery(e.target.value)}
+        />
+      </Popover>
+    );
+  }
+
+  setQuery(query) {
+    if (query) {
+      this.setState({ query: query });
+      this.props.onSearch(query, (results) => this.setState({ results }));
+    } else {
+      this.clearQuery();
+    }
+  }
+
+  clearQuery() {
+    this.setState({ query: "", results: {} });
+  }
+
+  onInteraction(nextOpenState) {
+    if (!nextOpenState) {
+      this.clearQuery();
+    }
   }
 }
 
