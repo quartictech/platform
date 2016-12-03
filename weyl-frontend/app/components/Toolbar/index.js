@@ -4,7 +4,6 @@ import styles from "./styles.css";
 
 import { Button } from "@blueprintjs/core";
 import Search from "../Search";
-import classNames from "classnames";
 import { mapThemes } from "../../themes";
 const $ = require("jquery");
 import logo from "./quartic.svg";
@@ -17,6 +16,7 @@ function Toolbar(props) {
           <img
             className={styles.logo}
             src={logo}
+            role="presentation"
             data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
             data-variation="mini"
             ref={x => $(x).popup()}

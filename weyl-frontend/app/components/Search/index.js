@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Button,
   Classes,
   InputGroup,
   Menu,
@@ -8,7 +7,7 @@ import {
   MenuItem,
   Popover,
   PopoverInteractionKind,
-  Position
+  Position,
 } from "@blueprintjs/core";
 import * as classnames from "classnames";
 import * as _ from "underscore";
@@ -40,7 +39,6 @@ class Search extends React.Component {
         popoverClassName={Classes.MINIMAL}
         content={popoverContent}
         interactionKind={PopoverInteractionKind.CLICK}
-        inline={true}
         isOpen={!_.isEmpty(this.state.results)}
         onInteraction={this.onInteraction}
         position={Position.BOTTOM_LEFT}
@@ -91,7 +89,7 @@ class Search extends React.Component {
 
   setQuery(query) {
     if (query) {
-      this.setState({ query: query });
+      this.setState({ query });
       this.props.onSearch(query, (results) => this.setState({ results }));
     } else {
       this.clearQuery();
