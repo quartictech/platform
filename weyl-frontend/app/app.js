@@ -24,6 +24,8 @@ import configureStore from "./store";
 window.$ = window.jQuery = require("jquery");
 import "sanitize.css/sanitize.css";
 import "semantic-ui/dist/semantic.css";
+import "@blueprintjs/core/dist/blueprint.css";
+import "roboto-fontface/css/roboto/roboto-fontface.css";
 require("semantic-ui/dist/semantic");
 
 // Create redux store with history

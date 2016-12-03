@@ -2,7 +2,7 @@ export const mapThemes = {
   light: {
     next: "dark",
     label: "Light",
-    icon: "sun",
+    icon: "flash",
     mapbox: "mapbox://styles/mapbox/outdoors-v9",
   },
   dark: {
@@ -14,7 +14,7 @@ export const mapThemes = {
   satellite: {
     next: "blank",
     label: "Satellite",
-    icon: "rocket",
+    icon: "globe",
     mapbox: "mapbox://styles/mapbox/satellite-streets-v9",
   },
   blank: {
