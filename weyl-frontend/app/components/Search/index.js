@@ -1,5 +1,16 @@
 import React from "react";
-import { Button, Classes, InputGroup, Menu, MenuDivider, MenuItem, Popover, PopoverInteractionKind, Position } from "@blueprintjs/core";
+import {
+  Button,
+  Classes,
+  InputGroup,
+  Menu,
+  MenuDivider,
+  MenuItem,
+  Popover,
+  PopoverInteractionKind,
+  Position
+} from "@blueprintjs/core";
+import * as classnames from "classnames";
 import * as _ from "underscore";
 
 class Search extends React.Component {
@@ -32,7 +43,7 @@ class Search extends React.Component {
         inline={true}
         isOpen={!_.isEmpty(this.state.results)}
         onInteraction={this.onInteraction}
-        position={Position.BOTTOM}
+        position={Position.BOTTOM_LEFT}
       >
         <InputGroup
           type="search"
@@ -53,15 +64,21 @@ class Search extends React.Component {
           <MenuDivider title={r.name} />
           {
             _.map(r.results, (result, idx) =>
-              <MenuItem
-                iconName={(result.category === "place") ? "map-marker" : "layer"}
+              <a
                 key={idx}
-                text={result.title}
+                className={classnames(
+                  Classes.MENU_ITEM,
+                  Classes.POPOVER_DISMISS,
+                  (result.category === "place") ? "pt-icon-map-marker" : "pt-icon-layer"
+                )}
                 onClick={() => ((result.category === "place")
                   ? this.props.onSelectPlace(result.payload)
                   : this.props.onSelectLayer(result.payload)
                 )}
-              />
+              >
+                <div>{result.title}</div>
+                <small className="pt-text-muted">{result.description}</small>
+              </a>
             )
           }
         </div>
