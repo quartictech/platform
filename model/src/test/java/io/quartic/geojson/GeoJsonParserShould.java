@@ -7,14 +7,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GeoJsonParserShould {
-
-    @Test
-    public void parse_valid_geojson() throws IOException {
-        String input = "  { \"type\": \"FeatureCollection\",\n" +
+    private static final String GEOJSON = "  { \"type\": \"FeatureCollection\",\n" +
                 "    \"features\": [\n" +
                 "      { \"type\": \"Feature\",\n" +
                 "        \"geometry\": {\"type\": \"Point\", \"coordinates\": [102.0, 0.5]},\n" +
@@ -47,8 +45,11 @@ public class GeoJsonParserShould {
                 "         }\n" +
                 "       ]\n" +
                 "     }";
-        GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(input.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(input, FeatureCollectionImpl.class);
+    @Test
+    public void parse_valid_geojson() throws IOException {
+
+        GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
+        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollectionImpl.class);
 
         int count = 0;
         while (parser.hasNext()) {
@@ -57,6 +58,14 @@ public class GeoJsonParserShould {
         }
 
         assertThat(count, equalTo(featureCollection.features().size()));
+    }
+
+    @Test
+    public void parse_all_features() throws IOException {
+        GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
+        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollectionImpl.class);
+
+        assertThat(featureCollection.features(), equalTo(parser.features().collect(toList())));
     }
 
     @Test

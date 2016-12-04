@@ -5,11 +5,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.*;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.model.LiveEvent;
 import io.quartic.model.LiveEventImpl;
-import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.feature.*;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import rx.observers.TestSubscriber;
 
 import java.time.Instant;
@@ -37,7 +39,7 @@ public class WebsocketSourceShould {
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
         when(listener.observable()).thenReturn(just(LIVE_EVENT));
-        when(converter.toModel(any())).thenReturn(modelFeatures);
+        when(converter.toModel(ArgumentMatchers.<FeatureCollection>any())).thenReturn(modelFeatures);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .name("test")

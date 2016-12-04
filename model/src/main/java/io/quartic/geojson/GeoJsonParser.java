@@ -7,7 +7,6 @@ import io.quartic.common.serdes.ObjectMappers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
