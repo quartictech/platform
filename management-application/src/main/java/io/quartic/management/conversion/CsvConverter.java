@@ -101,8 +101,7 @@ public class CsvConverter implements GeoJsonConverter {
                         try {
                             jsonGenerator.writeObject(feature);
                         } catch (IOException e) {
-                            e.printStackTrace();
-                            throw new RuntimeException("exception while: " + e);
+                            throw new RuntimeException("exception while writing json: " + e);
                         }
                     });
             jsonGenerator.writeEndArray();
