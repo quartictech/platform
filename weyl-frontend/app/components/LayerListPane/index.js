@@ -75,7 +75,11 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
 
     if (_.size(this.props.layers.toArray()) > 0 || this.props.ui.layerOp != null) {
       return (
-        <Pane visible={this.props.visible}>
+        <Pane
+          title="Layers"
+          iconName="layers"
+          visible={this.props.visible}
+        >
           <div className="ui divided items">
             {rows}
           </div>

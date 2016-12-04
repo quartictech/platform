@@ -25,7 +25,12 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
       : getBehavior(singleLayer(entityIds, layers)).title(_.values(attributes)[0]);
 
     return (
-      <Pane title={title} visible={visible} onClose={this.props.onClose}>
+      <Pane
+        title={title}
+        iconName="properties"
+        visible={visible}
+        onClose={this.props.onClose}
+      >
         {
           (loaded)
             ? null
