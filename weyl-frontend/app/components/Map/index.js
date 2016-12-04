@@ -281,16 +281,27 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "filter": ["in", "_entityId", ""],
     });
 
-    return this.addSubLayers(layer.id, subLayerDefs);
+    return this.addSubLayers(layer.id, subLayerDefs, layer.live);
   }
 
-  addSubLayers(sourceId, subLayerDefs) {
-    const finalDefs = subLayerDefs.map(def => ({
+  finaliseSubLayerDefs(sourceId, subLayerDefs, isLive) {
+    if (isLive) {
+      return subLayerDefs.map((def) => ({
+        ...def,
+        "id": `${sourceId}_${def.id}`,
+        "source": sourceId,
+      }));
+    }
+    return subLayerDefs.map((def) => ({
       ...def,
       "id": `${sourceId}_${def.id}`,
       "source": sourceId,
       "source-layer": sourceId,
     }));
+  }
+
+  addSubLayers(sourceId, subLayerDefs, isLive) {
+    const finalDefs = this.finaliseSubLayerDefs(sourceId, subLayerDefs, isLive);
     finalDefs.forEach(def => this.map.addLayer(def));
     return finalDefs.map(def => def.id);
   }
