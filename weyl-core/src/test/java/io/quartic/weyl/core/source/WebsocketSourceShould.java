@@ -11,7 +11,6 @@ import io.quartic.model.LiveEventImpl;
 import io.quartic.weyl.core.feature.*;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import rx.observers.TestSubscriber;
 
 import java.time.Instant;
@@ -39,7 +38,7 @@ public class WebsocketSourceShould {
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
         when(listener.observable()).thenReturn(just(LIVE_EVENT));
-        when(converter.toModel(ArgumentMatchers.<FeatureCollection>any())).thenReturn(modelFeatures);
+        when(converter.toModel(any())).thenReturn(modelFeatures);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
                 .name("test")
