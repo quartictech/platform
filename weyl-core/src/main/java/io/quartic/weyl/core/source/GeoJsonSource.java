@@ -1,5 +1,7 @@
 package io.quartic.weyl.core.source;
 
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.GeoJsonParser;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
@@ -47,8 +49,9 @@ public abstract class GeoJsonSource implements Source {
 
     private Collection<NakedFeature> importAllFeatures() throws IOException {
         InputStream inputStream = parseURL(url()).openStream();
-        return converter().toModel(new GeoJsonParser(inputStream).features()
+        FeatureCollection featureCollection = FeatureCollectionImpl.of(new GeoJsonParser(inputStream).features()
                 .collect(toList()));
+        return converter().toModel(featureCollection);
     }
 
     private URL parseURL(String url) throws MalformedURLException {

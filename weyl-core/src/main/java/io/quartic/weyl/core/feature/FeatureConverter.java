@@ -46,7 +46,7 @@ public class FeatureConverter {
         return toModel(featureCollection.features());
     }
 
-    public Collection<NakedFeature> toModel(Collection<io.quartic.geojson.Feature> features) {
+    private Collection<NakedFeature> toModel(Collection<io.quartic.geojson.Feature> features) {
         return features.stream()
                 .filter(f -> f.geometry().isPresent())
                 .map(this::toModel)

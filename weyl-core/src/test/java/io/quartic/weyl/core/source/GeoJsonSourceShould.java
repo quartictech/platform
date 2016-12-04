@@ -37,7 +37,7 @@ public class GeoJsonSourceShould {
         ));
         final Collection<NakedFeature> modelFeatures = mock(Collection.class);
         final FeatureConverter converter = mock(FeatureConverter.class);
-        when(converter.toModel(any(Collection.class))).thenReturn(modelFeatures);
+        when(converter.toModel(any(FeatureCollection.class))).thenReturn(modelFeatures);
 
         stubFor(WireMock.get(urlEqualTo("/"))
                 .willReturn(aResponse()
@@ -55,7 +55,7 @@ public class GeoJsonSourceShould {
                 .build()
                 .observable().subscribe(subscriber);
 
-        verify(converter).toModel(original.features());
+        verify(converter).toModel(original);
         subscriber.assertValue(SourceUpdateImpl.of(modelFeatures));
     }
 }
