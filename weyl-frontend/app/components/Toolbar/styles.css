@@ -5,15 +5,7 @@
   margin-right: auto;
 }
 
-.brand { /* stylelint-ignore */
-  text-align: center;
-  vertical-align: middle;
-}
-
-img.logo {
-  height: 70%;
-}
-
-.tight-item {
-  padding: 5px;
+.logo {
+  max-width: 70%;
+  max-height: 70%;
 }
