@@ -2,7 +2,6 @@ import React from "react";
 import {
   Classes,
 } from "@blueprintjs/core";
-import classNames from "classnames";
 import * as _ from "underscore";
 
 const Select = (props) => (

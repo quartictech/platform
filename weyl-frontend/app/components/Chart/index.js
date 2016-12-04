@@ -24,7 +24,7 @@ const AttributePicker = ({ selected, attributes, onChange }) => {
           text={a}
           label={(selected === a) ? IconContents.TICK : ""}
           iconName="timeline-line-chart"
-          onClick={(e) => onChange(a)}
+          onClick={() => onChange(a)}
         />
       )}
     </Menu>
