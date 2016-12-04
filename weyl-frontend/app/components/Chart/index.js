@@ -135,7 +135,11 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
               attributes={this.getAttributes(this.props.timeSeries)}
               onChange={this.onAttributeChange}
             />
-            <button aria-label="Close" className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))} />
+            <button
+              aria-label="Close"
+              className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
+              onClick={() => this.props.onUiToggle("chart")}
+            />
           </div>
           <div className={Classes.DIALOG_BODY} style={{ height: "90%" }}>
             <div className={styles.plotArea}>
