@@ -1,6 +1,5 @@
 import React from "react";
 
-import BucketLayerItem from "../BucketLayerItem";
 import GeofenceSettings from "../GeofenceSettings";
 import LayerListItem from "./LayerListItem";
 import Pane from "../Pane";
@@ -40,14 +39,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     const rows = [];
-    if (this.props.ui.layerOp === "bucket") {
-      rows.push(<BucketLayerItem
-        onCompute={this.props.onCompute}
-        layers={this.props.layers}
-        onUiToggle={this.props.onUiToggle}
-        key="bucket"
-      />);
-    } else if (this.props.ui.layerOp === "geofence") {
+    if (this.props.ui.layerOp === "geofence") {
       rows.push(<GeofenceSettings
         key="geofence"
         layers={this.props.layers}
@@ -79,6 +71,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           title="Layers"
           iconName="layers"
           visible={this.props.visible}
+          onClose={this.props.onClose}
         >
           <div className="ui divided items">
             {rows}

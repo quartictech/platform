@@ -14,8 +14,8 @@ const Pane = ({
   children,
 }) => (
   <div
-    className={classNames(Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-    style={{ visibility: visible ? "visible" : "hidden" }}
+    className={classNames(Classes.DARK, Classes.CARD, Classes.ELEVATION_3, styles.pane)}
+    style={{ display: visible ? "block" : "none" }}
   >
     <div className={Classes.DIALOG_HEADER}>
       <span className={classNames(Classes.ICON_LARGE, Classes.iconClass(iconName))}></span>

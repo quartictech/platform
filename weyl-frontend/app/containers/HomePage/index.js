@@ -1,6 +1,7 @@
 import React from "react";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
+import BucketCreationPane from "../../components/BucketCreationPane";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
@@ -49,10 +50,18 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.leftDrawer}>
+          <BucketCreationPane
+            layers={this.props.layers}
+            onCompute={this.props.onCompute}
+            onClose={() => this.props.onUiToggle("bucket")}
+            visible={this.props.ui.layerOp === "bucket"}
+          />
+
           <LayerListPane
             layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
             onCompute={this.props.onCompute}
+            onClose={() => this.props.onUiToggle("layerList")}
             ui={this.props.ui}
             visible={this.props.ui.panels.layerList}
             onUiToggle={this.props.onUiToggle}

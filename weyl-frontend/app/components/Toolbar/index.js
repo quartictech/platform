@@ -39,7 +39,7 @@ const ThemePicker = ({ selected, onSelect }) => {
     >
       <Button
         className={Classes.MINIMAL}
-        iconName="cog"
+        iconName="settings"
       />
     </Popover>
   );
