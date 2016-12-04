@@ -2,7 +2,11 @@ import React from "react";
 import {
   Button,
   Classes,
-  Dialog,
+  IconContents,
+  Menu,
+  MenuItem,
+  Popover,
+  Position,
 } from "@blueprintjs/core";
 import styles from "./styles.css";
 
@@ -10,21 +14,35 @@ import SizeMe from "react-sizeme";
 import * as Plottable from "plottable";
 import "plottable/plottable.css";
 import classNames from "classnames";
-import { Dropdown } from "semantic-ui-react";
 
 const AttributePicker = ({ selected, attributes, onChange }) => {
-  const options = attributes.map(attribute => ({ text: attribute, value: attribute }));
+  const menu = (
+    <Menu>
+      {attributes.map(a =>
+        <MenuItem
+          key={a}
+          text={a}
+          label={(selected === a) ? IconContents.TICK : ""}
+          iconName="timeline-line-chart"
+          onClick={(e) => onChange(e.target.textContent)}
+        />
+      )}
+    </Menu>
+  );
+
   return (
-    <Dropdown
-      selection
-      className="mini"
-      disabled={attributes.length === 0}
-      options={options}
-      value={selected}
-      onChange={onChange}
-      placeholder="Pick an attribute"
-    />
-);
+    <Popover
+      content={menu}
+      position={Position.TOP}
+      popoverClassName={Classes.MINIMAL}
+    >
+      <Button
+        className={Classes.MINIMAL}
+        iconName="timeline-line-chart"
+        text={selected}
+      />
+    </Popover>
+  );
 };
 
 /* eslint-enable no-param-reassign */
@@ -33,15 +51,14 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     super();
     this.state = { selectedAttribute: undefined };
     this.createChart();
+
+    this.onAttributeChange = this.onAttributeChange.bind(this);
   }
 
   createChart() {
-    const xScale = new Plottable.Scales.Time()
-      .domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
+    const xScale = new Plottable.Scales.Time().domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
     const yScale = new Plottable.Scales.Linear();
-    const xAxis = new Plottable.Axes.Time(xScale, "bottom")
-      .yAlignment("center");
-
+    const xAxis = new Plottable.Axes.Time(xScale, "bottom").yAlignment("center");
     const yAxis = new Plottable.Axes.Numeric(yScale, "left");
 
     this.colorScale = new Plottable.Scales.Color();
@@ -51,9 +68,7 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     this.plot.attr("stroke", (d, i, dataset) => dataset.metadata().name, this.colorScale);
     this.plot.autorangeMode("x");
 
-    const legend = new Plottable.Components.Legend(this.colorScale).xAlignment("left")
-      .maxEntriesPerRow(3);
-    // const gridlines = new Plottable.Components.Gridlines(xScale, yScale);
+    const legend = new Plottable.Components.Legend(this.colorScale).xAlignment("left").maxEntriesPerRow(3);
     const group = new Plottable.Components.Group([this.plot, yAxis]);
     this.chart = new Plottable.Components.Table([
       [legend],
@@ -101,26 +116,28 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     this.updateChart(nextData);
   }
 
-  onAttributeChange({ value }) {
+  onAttributeChange(value) {
     this.setState({ selectedAttribute: value });
   }
 
   render() {
-    const attributes = this.getAttributes(this.props.timeSeries);
-
     if (this.chart) {
       this.chart.redraw();
     }
     return (
-      <div className={styles.chart}>
-        <div className={classNames(Classes.DARK, Classes.DIALOG)} style={{ top: 0, left: 0, right: 0, height: "100%", width: "100%" }}>
+      <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.chart}>
+        <div className={classNames(Classes.CARD, Classes.ELEVATION_3)} style={{ height: "100%", padding: 0 }}>
           <div className={Classes.DIALOG_HEADER}>
             <span className={classNames(Classes.ICON_LARGE, Classes.iconClass("chart"))}></span>
             <h5>Chart</h5>
+            <AttributePicker
+              selected={this.state.selectedAttribute}
+              attributes={this.getAttributes(this.props.timeSeries)}
+              onChange={this.onAttributeChange}
+            />
             <button aria-label="Close" className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))} />
           </div>
-
-          <div className={Classes.DIALOG_BODY}>
+          <div className={Classes.DIALOG_BODY} style={{ height: "90%" }}>
             <div className={styles.plotArea}>
               <svg id="example" />
             </div>
@@ -131,24 +148,3 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   }
 }
 export default SizeMe({ monitorHeight: true })(Chart);  // eslint-disable-line new-cap
-
-
-// <div className={classNames("ui", "card", "fluid", styles.card)}>
-//   <div className={classNames("ui", "content", styles.content)}>
-//     <div className="header">
-//       <a>
-//         <i className="icon close" onClick={() => this.props.onUiToggle("chart")}></i>
-//       </a>
-//       <div className="right floated">
-//         <AttributePicker
-//           selected={this.state.selectedAttribute}
-//           attributes={attributes}
-//           onChange={(e, v) => this.onAttributeChange(v)}
-//         />
-//       </div>
-//     </div>
-//     <div className={styles.plotArea}>
-//       <svg id="example" />
-//     </div>
-//   </div>
-// </div>

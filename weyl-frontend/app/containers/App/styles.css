@@ -1,5 +1,15 @@
 /* TODO: how to make this apply to everything? */
-body, p, h1, h2, h3, h4, h5, input, textarea, select, button {
+body,
+p,
+h1,
+h2,
+h3
+h4,
+h5,
+input,
+textarea,
+select,
+button {
   font-family: Roboto-Light;
 }
 
