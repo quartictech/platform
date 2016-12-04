@@ -8,12 +8,12 @@ import {
   Popover,
   Position,
 } from "@blueprintjs/core";
-import styles from "./styles.css";
-
 import SizeMe from "react-sizeme";
 import * as Plottable from "plottable";
 import "plottable/plottable.css";
-import classNames from "classnames";
+import Pane from "../Pane";
+import styles from "./styles.css";
+
 
 const AttributePicker = ({ selected, attributes, onChange }) => {
   const menu = (
@@ -125,29 +125,23 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
       this.chart.redraw();
     }
     return (
-      <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.chart}>
-        <div className={classNames(Classes.CARD, Classes.ELEVATION_3)} style={{ height: "100%", padding: 0 }}>
-          <div className={Classes.DIALOG_HEADER}>
-            <span className={classNames(Classes.ICON_LARGE, Classes.iconClass("chart"))}></span>
-            <h5>Chart</h5>
-            <AttributePicker
-              selected={this.state.selectedAttribute}
-              attributes={this.getAttributes(this.props.timeSeries)}
-              onChange={this.onAttributeChange}
-            />
-            <button
-              aria-label="Close"
-              className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
-              onClick={() => this.props.onUiToggle("chart")}
-            />
-          </div>
-          <div className={Classes.DIALOG_BODY} style={{ height: "90%" }}>
-            <div className={styles.plotArea}>
-              <svg id="example" />
-            </div>
-          </div>
+      <Pane
+        title="Chart"
+        iconName="chart"
+        visible={this.props.visible}
+        extraHeaderContent={
+          <AttributePicker
+            selected={this.state.selectedAttribute}
+            attributes={this.getAttributes(this.props.timeSeries)}
+            onChange={this.onAttributeChange}
+          />
+        }
+        onClose={() => this.props.onUiToggle("chart")}
+      >
+        <div className={styles.plotArea}>
+          <svg id="example" />
         </div>
-      </div>
+      </Pane>
     );
   }
 }

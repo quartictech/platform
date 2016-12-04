@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Button,
   Classes,
 } from "@blueprintjs/core";
 import classNames from "classnames";
@@ -10,6 +9,7 @@ const Pane = ({
   title,
   iconName,
   visible,
+  extraHeaderContent,
   onClose,
   children,
 }) => (
@@ -20,15 +20,22 @@ const Pane = ({
     <div className={Classes.DIALOG_HEADER}>
       <span className={classNames(Classes.ICON_LARGE, Classes.iconClass(iconName))}></span>
       <h5>{title}</h5>
-      <button
-        aria-label="Close"
-        className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
-        onClick={onClose}
-      />
+      {extraHeaderContent}
+      {
+        onClose
+          ? (
+          <button
+            aria-label="Close"
+            className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
+            onClick={onClose}
+          />
+          )
+          : null
+      }
     </div>
     <div
       className={Classes.DIALOG_BODY}
-      style={{ margin: "10px" }}
+      style={{ margin: "10px", height: "100%" }}
     >
       {children}
     </div>
