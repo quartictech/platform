@@ -69,35 +69,33 @@ function Toolbar(props) {
 
           <span className="pt-navbar-divider"></span>
 
-          <div className={classNames(Classes.BUTTON_GROUP, Classes.MINIMAL)}>
-            <Button
-              text="Layers"
-              iconName="layers"
-              className={props.ui.panels.layerList ? Classes.ACTIVE : ""}
-              onClick={() => props.onUiToggle("layerList")}
-            />
+          <Button
+            text="Layers"
+            iconName="layers"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList })}
+            onClick={() => props.onUiToggle("layerList")}
+          />
 
-            <Button
-              text="Bucket"
-              iconName="helper-management"
-              className={(props.ui.layerOp === "bucket") ? Classes.ACTIVE : ""}
-              onClick={() => props.onUiToggle("bucket")}
-            />
+          <Button
+            text="Bucket"
+            iconName="helper-management"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "bucket") })}
+            onClick={() => props.onUiToggle("bucket")}
+          />
 
-            <Button
-              text="Geofence"
-              iconName="eye-open"
-              className={(props.ui.layerOp === "geofence") ? Classes.ACTIVE : ""}
-              onClick={() => props.onUiToggle("geofence")}
-            />
+          <Button
+            text="Geofence"
+            iconName="eye-open"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "geofence") })}
+            onClick={() => props.onUiToggle("geofence")}
+          />
 
-            <Button
-              text="Chart"
-              iconName="chart"
-              className={props.ui.panels.chart ? Classes.ACTIVE : ""}
-              onClick={() => props.onUiToggle("chart")}
-            />
-          </div>
+          <Button
+            text="Chart"
+            iconName="chart"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart })}
+            onClick={() => props.onUiToggle("chart")}
+          />
 
           <span className="pt-navbar-divider"></span>
 
