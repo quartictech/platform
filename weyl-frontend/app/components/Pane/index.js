@@ -15,13 +15,10 @@ const Pane = ({
 }) => (
   <div
     className={classNames(Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-    style={{
-      padding: 0,
-      visibility: visible ? "visible" : "hidden",
-    }}
+    style={{ visibility: visible ? "visible" : "hidden" }}
   >
     <div className={Classes.DIALOG_HEADER}>
-      <span className={classNames(Classes.ICON_LARGE, Classes.iconClass("chart"))}></span>
+      <span className={classNames(Classes.ICON_LARGE, Classes.iconClass(iconName))}></span>
       <h5>{title}</h5>
       <button
         aria-label="Close"
@@ -29,7 +26,10 @@ const Pane = ({
         onClick={onClose}
       />
     </div>
-    <div className={Classes.DIALOG_BODY}>
+    <div
+      className={Classes.DIALOG_BODY}
+      style={{ margin: "10px" }}
+    >
       {children}
     </div>
   </div>
