@@ -25,8 +25,6 @@ class Search extends React.Component {
     this.onInteraction = this.onInteraction.bind(this);
   }
 
-  // TODO: no results
-
   render() {
     const popoverContent = (
       <Menu>{this.renderMenuItems()}</Menu>

@@ -2,6 +2,7 @@ import React from "react";
 import {
   Classes,
 } from "@blueprintjs/core";
+import classNames from "classnames";
 import * as _ from "underscore";
 
 const Select = (props) => (
@@ -12,8 +13,9 @@ const Select = (props) => (
         id={props.label}
         value={props.selectedKey || ""}
         onChange={(e) => props.onChange(e.target.value === "" ? null : e.target.value)}
+        className={Classes.FILL}
       >
-        <option key="" value="">{props.default}</option>
+        {props.default && <option key="" value="">{props.default}</option>}
         {
           _.map(toMap(props.entries), (v, k) => <option key={k} value={k}>{v}</option>)
         }
