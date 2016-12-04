@@ -2,6 +2,7 @@ import React from "react";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
 import BucketCreationPane from "../../components/BucketCreationPane";
+import GeofenceSettingsPane from "../../components/GeofenceSettingsPane";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
@@ -57,6 +58,20 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             visible={this.props.ui.layerOp === "bucket"}
           />
 
+          <GeofenceSettingsPane
+            layers={this.props.layers}
+            geofence={this.props.geofence}
+            onEdit={{
+              start: this.props.onGeofenceEditStart,
+              finish: this.props.onGeofenceEditFinish,
+              setType: this.props.onGeofenceEditSetType,
+              setLayer: this.props.onGeofenceEditSetLayer,
+            }}
+            onToggleAlerts={this.props.onGeofenceToggleAlerts}
+            onClose={() => this.props.onUiToggle("geofence")}
+            visible={this.props.ui.layerOp === "geofence"}
+          />
+
           <LayerListPane
             layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
@@ -64,18 +79,9 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onClose={() => this.props.onUiToggle("layerList")}
             ui={this.props.ui}
             visible={this.props.ui.panels.layerList}
-            onUiToggle={this.props.onUiToggle}
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
-            geofence={this.props.geofence}
-            onGeofenceEdit={{
-              start: this.props.onGeofenceEditStart,
-              finish: this.props.onGeofenceEditFinish,
-              setType: this.props.onGeofenceEditSetType,
-              setLayer: this.props.onGeofenceEditSetLayer,
-            }}
-            onGeofenceToggleAlerts={this.props.onGeofenceToggleAlerts}
           />
         </div>
 

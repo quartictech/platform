@@ -8,7 +8,7 @@ import {
 import * as _ from "underscore";
 import Pane from "../Pane";
 import Select from "../Select";
-import Picker from "./Picker";
+import PredictingPicker from "../PredictingPicker";
 
 class BucketCreationPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
@@ -51,8 +51,7 @@ class BucketCreationPane extends React.Component { // eslint-disable-line react/
       >
         <label className={Classes.LABEL}>
           <div>Entities</div>
-          <Picker
-            name="Entities"
+          <PredictingPicker
             iconName="layers"
             placeholder="Select layer..."
             entries={this.layerIdsToNames()}
@@ -63,8 +62,7 @@ class BucketCreationPane extends React.Component { // eslint-disable-line react/
 
         <label className={Classes.LABEL}>
           <div>Buckets</div>
-          <Picker
-            name="Buckets"
+          <PredictingPicker
             iconName="layers"
             placeholder="Select layer..."
             entries={this.layerIdsToNames()}
@@ -82,8 +80,7 @@ class BucketCreationPane extends React.Component { // eslint-disable-line react/
               onChange={this.onAggregationChange}
             />
 
-            <Picker
-              name="Attribute"
+            <PredictingPicker
               iconName="property"
               placeholder="Select attribute..."
               entries={this.attributeNames()}
@@ -100,7 +97,7 @@ class BucketCreationPane extends React.Component { // eslint-disable-line react/
           onChange={this.onNormalizeToAreaChange}
         />
 
-        <div style={{ textAlign: "right" }}>
+        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
           <Button
             iconName="calculator"
             text="Compute"

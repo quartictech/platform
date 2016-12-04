@@ -40,8 +40,7 @@ class Picker extends React.Component { // eslint-disable-line react/prefer-state
         enforceFocus={false}
         popoverClassName={Classes.MINIMAL}
         content={this.menu()}
-        isDisabled={this.props.disabled}
-        isOpen={this.props.disabled ? null : this.state.menuVisible}
+        isOpen={!this.props.disabled && this.state.menuVisible}
         onInteraction={(nextOpenState) => this.setState({ menuVisible: nextOpenState })}
         interactionKind={PopoverInteractionKind.CLICK}
         position={Position.BOTTOM_LEFT}
