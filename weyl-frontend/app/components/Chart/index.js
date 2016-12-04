@@ -2,6 +2,7 @@ import React from "react";
 import {
   Button,
   Classes,
+  Dialog,
 } from "@blueprintjs/core";
 import styles from "./styles.css";
 
@@ -111,18 +112,18 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
       this.chart.redraw();
     }
     return (
-      <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.chart}>
-        <div className="pt-dark pt-card pt-elevation-3" style={{ height: "100%" }}>
-          <h5>
-            <Button
-              iconName="cross"
-              className={Classes.MINIMAL}
-              onClick={() => this.props.onUiToggle("chart")}
-            />
-            Chart
-          </h5>
-          <div className={styles.plotArea}>
-            <svg id="example" />
+      <div className={styles.chart}>
+        <div className={classNames(Classes.DARK, Classes.DIALOG)} style={{ top: 0, left: 0, right: 0, height: "100%", width: "100%" }}>
+          <div className={Classes.DIALOG_HEADER}>
+            <span className={classNames(Classes.ICON_LARGE, Classes.iconClass("chart"))}></span>
+            <h5>Chart</h5>
+            <button aria-label="Close" className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))} />
+          </div>
+
+          <div className={Classes.DIALOG_BODY}>
+            <div className={styles.plotArea}>
+              <svg id="example" />
+            </div>
           </div>
         </div>
       </div>

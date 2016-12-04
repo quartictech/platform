@@ -198,7 +198,7 @@
     "whatwg-fetch": "1.0.0"
   },
   "devDependencies": {
-    "@blueprintjs/core": "^1.0.1",
+    "@blueprintjs/core": "^1.2.0",
     "babel-cli": "^6.11.4",
     "babel-core": "^6.13.2",
     "babel-eslint": "6.1.2",
