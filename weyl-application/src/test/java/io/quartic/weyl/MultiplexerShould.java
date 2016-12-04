@@ -1,6 +1,7 @@
 package io.quartic.weyl;
 
 import com.google.common.collect.ImmutableMap;
+import io.quartic.common.test.rx.ObservableInterceptor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import rx.Observable;
@@ -18,13 +19,12 @@ import static org.junit.Assert.assertThat;
 import static rx.Observable.just;
 
 public class MultiplexerShould {
-    private boolean isUnsubscribedA = false;
-
     private final PublishSubject<Integer> subjectA = PublishSubject.create();
     private final PublishSubject<Integer> subjectB = PublishSubject.create();
+    private final ObservableInterceptor<Integer> interceptor = ObservableInterceptor.create(subjectA);
 
     private final Map<String, Observable<Integer>> streams = ImmutableMap.of(
-            "abc", subjectA.doOnUnsubscribe(() -> isUnsubscribedA = true),
+            "abc", interceptor.observable(),
             "def", subjectB
     );
     private final Multiplexer<Double, String, Integer> mux = Multiplexer.create(streams::get);
@@ -91,7 +91,7 @@ public class MultiplexerShould {
         subjectA.onNext(2);
         selection.onNext(Pair.of(tagB, newArrayList("def")));
 
-        assertThat(isUnsubscribedA, equalTo(true));
+        assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
     @Test

@@ -1,38 +1,45 @@
 package io.quartic.weyl.core.feature;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.geojson.*;
 import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.core.geojson.Utils.fromJts;
+import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 import static java.util.stream.Collectors.toList;
 
 public class FeatureConverter {
     private static final Logger LOG = LoggerFactory.getLogger(FeatureConverter.class);
 
-    private final GeometryTransformer geometryTransformer;
     private final AttributesFactory attributesFactory;
+    private final GeometryTransformer toModel;
+    private final GeometryTransformer fromModel;
 
     public FeatureConverter(AttributesFactory attributesFactory) {
-        this(attributesFactory, wgs84toWebMercator());
+        this(attributesFactory, wgs84toWebMercator(), webMercatortoWgs84());
     }
 
-    public FeatureConverter(AttributesFactory attributesFactory, GeometryTransformer geometryTransformer) {
+    public FeatureConverter(AttributesFactory attributesFactory, GeometryTransformer toModel, GeometryTransformer fromModel) {
         this.attributesFactory = attributesFactory;
-        this.geometryTransformer = geometryTransformer;
+        this.toModel = toModel;
+        this.fromModel = fromModel;
     }
 
     public Collection<NakedFeature> toModel(FeatureCollection featureCollection) {
@@ -50,7 +57,7 @@ public class FeatureConverter {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         return NakedFeatureImpl.of(
                 f.id(),
-                geometryTransformer.transform(Utils.toJts(f.geometry().get())),
+                toModel.transform(Utils.toJts(f.geometry().get())),
                 convertToModelAttributes(f.properties())
         );
     }
@@ -73,6 +80,22 @@ public class FeatureConverter {
             }
         }
         return value;
+    }
+
+    public io.quartic.geojson.FeatureCollection toGeojson(Collection<Feature> features) {
+        return FeatureCollectionImpl.of(
+                features.stream()
+                        .map(this::toGeojson)
+                        .collect(toList())
+        );
+    }
+
+    private io.quartic.geojson.Feature toGeojson(Feature f) {
+        return io.quartic.geojson.FeatureImpl.of(
+                Optional.empty(),
+                Optional.of(fromJts(fromModel.transform(f.geometry()))),
+                getRawProperties(f)
+        );
     }
 
     public static Map<String, Object> getRawProperties(Feature feature) {

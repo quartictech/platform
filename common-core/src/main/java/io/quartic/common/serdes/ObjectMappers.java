@@ -13,7 +13,7 @@ public final class ObjectMappers {
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new Jdk8Module())
             .registerModule(new JavaTimeModule())
-            .setSerializationInclusion(Include.NON_EMPTY);
+            .setSerializationInclusion(Include.NON_ABSENT);
 
     private ObjectMappers() {}
 

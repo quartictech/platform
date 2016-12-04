@@ -3,7 +3,7 @@ package io.quartic.common.client;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.common.websocket.WebsocketServerRule;
+import io.quartic.common.test.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
 import org.immutables.value.Value;
 import org.junit.Rule;
@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class WebsocketListenerShould {
-    private static final int TIMEOUT_MILLISECONDS = 250;
+    private static final int TIMEOUT_MILLISECONDS = 1000;
 
     @Rule
     public WebsocketServerRule server = new WebsocketServerRule();
