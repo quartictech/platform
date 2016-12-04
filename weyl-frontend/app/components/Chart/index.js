@@ -1,11 +1,8 @@
-/**
-*
-* LineChart
-*
-*/
-
 import React from "react";
-
+import {
+  Button,
+  Classes,
+} from "@blueprintjs/core";
 import styles from "./styles.css";
 
 import SizeMe from "react-sizeme";
@@ -115,23 +112,17 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     }
     return (
       <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.chart}>
-        <div className={classNames("ui", "card", "fluid", styles.card)}>
-          <div className={classNames("ui", "content", styles.content)}>
-            <div className="header">
-              <a>
-                <i className="icon close" onClick={() => this.props.onUiToggle("chart")}></i>
-              </a>
-              <div className="right floated">
-                <AttributePicker
-                  selected={this.state.selectedAttribute}
-                  attributes={attributes}
-                  onChange={(e, v) => this.onAttributeChange(v)}
-                />
-              </div>
-            </div>
-            <div className={styles.plotArea}>
-              <svg id="example" />
-            </div>
+        <div className="pt-dark pt-card pt-elevation-3" style={{ height: "100%" }}>
+          <h5>
+            <Button
+              iconName="cross"
+              className={Classes.MINIMAL}
+              onClick={() => this.props.onUiToggle("chart")}
+            />
+            Chart
+          </h5>
+          <div className={styles.plotArea}>
+            <svg id="example" />
           </div>
         </div>
       </div>
@@ -139,3 +130,24 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   }
 }
 export default SizeMe({ monitorHeight: true })(Chart);  // eslint-disable-line new-cap
+
+
+// <div className={classNames("ui", "card", "fluid", styles.card)}>
+//   <div className={classNames("ui", "content", styles.content)}>
+//     <div className="header">
+//       <a>
+//         <i className="icon close" onClick={() => this.props.onUiToggle("chart")}></i>
+//       </a>
+//       <div className="right floated">
+//         <AttributePicker
+//           selected={this.state.selectedAttribute}
+//           attributes={attributes}
+//           onChange={(e, v) => this.onAttributeChange(v)}
+//         />
+//       </div>
+//     </div>
+//     <div className={styles.plotArea}>
+//       <svg id="example" />
+//     </div>
+//   </div>
+// </div>

@@ -67,7 +67,7 @@ class Search extends React.Component {
                 className={classnames(
                   Classes.MENU_ITEM,
                   Classes.POPOVER_DISMISS,
-                  (result.category === "place") ? "pt-icon-map-marker" : "pt-icon-layer"
+                  (result.category === "place") ? "pt-icon-map-marker" : "pt-icon-layers"
                 )}
                 onClick={() => ((result.category === "place")
                   ? this.props.onSelectPlace(result.payload)
