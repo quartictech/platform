@@ -72,6 +72,11 @@ export function toggleUi(element) {
   };
 }
 
+export const uiSetTheme = (theme) => ({
+  type: constants.UI_SET_THEME,
+  theme,
+});
+
 export function clearSelection() {
   return {
     type: constants.CLEAR_SELECTION,

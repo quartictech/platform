@@ -9,7 +9,7 @@ import {
   PopoverInteractionKind,
   Position,
 } from "@blueprintjs/core";
-import * as classnames from "classnames";
+import * as classNames from "classnames";
 import * as _ from "underscore";
 
 class Search extends React.Component {
@@ -64,7 +64,7 @@ class Search extends React.Component {
             _.map(r.results, (result, idx) =>
               <a
                 key={idx}
-                className={classnames(
+                className={classNames(
                   Classes.MENU_ITEM,
                   Classes.POPOVER_DISMISS,
                   (result.category === "place") ? "pt-icon-map-marker" : "pt-icon-layers"

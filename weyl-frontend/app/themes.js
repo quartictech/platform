@@ -1,24 +1,20 @@
 export const mapThemes = {
   light: {
-    next: "dark",
     label: "Light",
     icon: "flash",
     mapbox: "mapbox://styles/mapbox/outdoors-v9",
   },
   dark: {
-    next: "satellite",
     label: "Dark",
     icon: "moon",
     mapbox: "mapbox://styles/mapbox/dark-v9",
   },
   satellite: {
-    next: "blank",
     label: "Satellite",
     icon: "globe",
     mapbox: "mapbox://styles/mapbox/satellite-streets-v9",
   },
   blank: {
-    next: "light",
     label: "Blank",
     icon: "square",
     mapbox: "mapbox://styles/mapbox/empty-v9",

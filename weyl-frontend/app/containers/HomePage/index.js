@@ -44,6 +44,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onSelectPlace={this.props.onSelectPlace}
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
+            onSetTheme={this.props.onSetTheme}
           />
         </div>
 
@@ -105,6 +106,7 @@ const mapDispatchToProps = {
   layerClose: actions.layerClose,
   onCompute: actions.layerComputation,
   onUiToggle: actions.toggleUi,
+  onSetTheme: actions.uiSetTheme,
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
