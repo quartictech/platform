@@ -11,41 +11,10 @@ import {
 import SizeMe from "react-sizeme";
 import * as Plottable from "plottable";
 import "plottable/plottable.css";
+import NormalPicker from "../NormalPicker";
 import Pane from "../Pane";
 import styles from "./styles.css";
 
-
-const AttributePicker = ({ selected, attributes, onChange }) => {
-  const menu = (
-    <Menu>
-      {attributes.map(a =>
-        <MenuItem
-          key={a}
-          text={a}
-          label={(selected === a) ? IconContents.TICK : ""}
-          iconName="timeline-line-chart"
-          onClick={() => onChange(a)}
-        />
-      )}
-    </Menu>
-  );
-
-  return (
-    <Popover
-      content={menu}
-      position={Position.TOP}
-      popoverClassName={Classes.MINIMAL}
-    >
-      <Button
-        className={Classes.MINIMAL}
-        iconName="timeline-line-chart"
-        text={selected}
-      />
-    </Popover>
-  );
-};
-
-/* eslint-enable no-param-reassign */
 class Chart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
@@ -130,9 +99,11 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
         iconName="chart"
         visible={this.props.visible}
         extraHeaderContent={
-          <AttributePicker
+          <NormalPicker
+            iconName="timeline-line-chart"
+            position={Position.TOP}
             selected={this.state.selectedAttribute}
-            attributes={this.getAttributes(this.props.timeSeries)}
+            entries={this.getAttributes(this.props.timeSeries)}
             onChange={this.onAttributeChange}
           />
         }
