@@ -94,12 +94,17 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           (name) => this.onButtonClick(name, layer.id)
         ),
       };
-      node.childNodes = this.attributeNodes(layer.attributeSchema.attributes, node);
+      node.childNodes = this.attributeNodes(
+        layer.attributeSchema.attributes,
+        layer.filter,
+        (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
+        node,
+      );
       return node;
     });
   }
 
-  attributeNodes(attributes, parent) {
+  attributeNodes(attributes, filter, onClick, parent) {
     return _.chain(attributes)
       .keys()
       .filter(k => attributes[k].categories !== null)
@@ -111,13 +116,18 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           label: k,
           parent,
         };
-        node.childNodes = this.attributeCategoryNodes(attributes[k].categories, node);
+        node.childNodes = this.attributeCategoryNodes(
+          attributes[k].categories,
+          filter[k].categories,
+          (v) => onClick(k, v),
+          node,
+        );
         return node;
       })
       .value();
   }
 
-  attributeCategoryNodes(categories, parent) {
+  attributeCategoryNodes(categories, filterCategories, onClick, parent) {
     return _.chain(categories)
       .sort(naturalsort)
       .map(c => ({
@@ -125,10 +135,10 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         label: c,
         secondaryLabel: (
           <Button
-            iconName={true ? "eye-open" : "eye-off"}
-            onClick={() => onClick("VISIBLE")}
+            iconName={!_.contains(filterCategories, c) ? "eye-open" : "eye-off"}
+            onClick={() => onClick(c)}
             className={Classes.MINIMAL}
-            intent={true ? Intent.SUCCESS : Intent.NONE}
+            intent={!_.contains(filterCategories, c) ? Intent.SUCCESS : Intent.NONE}
           />
         ),
         parent,
@@ -143,7 +153,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           iconName={layer.visible ? "eye-open" : "eye-off"}
           onClick={() => onClick("VISIBLE")}
           className={Classes.MINIMAL}
-          intent={layer.visible ? Intent.SUCCESS : Intent.NONE}
+          intent={layer.visible ? (this.filterActive(layer) ? Intent.WARNING : Intent.SUCCESS) : Intent.NONE}
         />
         <Button
           iconName="info-sign"
@@ -157,13 +167,11 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           iconName="cross"
           onClick={() => onClick("CLOSE")}
           className={Classes.MINIMAL}
-
         />
       </div>
     );
   }
 
-  // TODO: wire this up to the top-level eye intent
   filterActive(layer) {
     return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
   }
