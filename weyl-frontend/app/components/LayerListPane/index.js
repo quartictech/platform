@@ -184,6 +184,10 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
             ))
           }
         </MenuItem>
+        <MenuItem iconName="info-sign" text="Info">
+          <MenuItem text={`Description: ${layer.metadata.description}`} disabled={true} />
+          <MenuItem text={`Attribution: ${layer.metadata.attribution}`} disabled={true} />
+        </MenuItem>
         <MenuDivider />
         <MenuItem
           iconName="cross"
