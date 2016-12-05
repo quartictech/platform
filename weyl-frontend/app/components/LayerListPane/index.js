@@ -18,10 +18,15 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     this.state = {
       activeLayerId: null,
       activeMode: null,
+      nodes: [],
     };
-    this.nodes = this.nodes.bind(this);
-    this.buttons = this.buttons.bind(this);
-    this.filterActive = this.filterActive.bind(this);
+    this.onNodeExpand = this.onNodeExpand.bind(this);
+    this.onNodeCollapse = this.onNodeCollapse.bind(this);
+    this.onNodeClick = this.onNodeClick.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({ nodes: this.nodes(nextProps.layers) });
   }
 
   render() {
@@ -33,14 +38,40 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         onClose={this.props.onClose}
       >
         <Tree
-          contents={this.nodes()}
+          contents={this.state.nodes}
+          onNodeExpand={this.onNodeExpand}
+          onNodeCollapse={this.onNodeCollapse}
+          onNodeClick={this.onNodeClick}
         />
       </Pane>
     );
   }
 
-  nodes() {
-    return _.map(this.props.layers.toArray(), layer => ({
+  onNodeExpand(node) {
+    this.state.nodes.forEach(n => n.isExpanded = false);
+    node.isExpanded = true;
+    this.triggerRender();
+  }
+
+  onNodeCollapse(node) {
+    node.isExpanded = false;
+    this.triggerRender();
+  }
+
+  onNodeClick(node) {
+    if (node.isExpanded) {
+      this.onNodeCollapse(node);
+    } else {
+      this.onNodeExpand(node);
+    }
+  }
+
+  triggerRender() {
+    this.setState(this.state);
+  }
+
+  nodes(layers) {
+    return _.map(layers.toArray(), layer => ({
       iconName: "layer",
       id: layer.get("id"),
       label: layer.getIn(["metadata", "name"]),
@@ -49,6 +80,18 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         (this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null,
         (name) => this.onButtonClick(name, layer.get("id"))
       ),
+      childNodes: [
+        {
+          iconName: "filter",
+          id: "filter",
+          label: "Attribute filters",
+        },
+        {
+          iconName: "info-sign",
+          id: "info",
+          label: "Info",
+        }
+      ],
     }));
 
     //   <LayerListItem
