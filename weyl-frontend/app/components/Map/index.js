@@ -5,7 +5,7 @@ import styles from "./styles.css";
 import mapboxgl from "./mapbox-gl-helper.js";
 
 // TODO: there is some quite special magic going on here that throws eslint
-import { Draw } from "mapbox-gl-draw/dist/mapbox-gl-draw";  // eslint-disable-line no-unused-vars
+import MapboxDraw from "mapbox-gl-draw/dist/mapbox-gl-draw.js";
 import "mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 import SizeMe from "react-sizeme";
@@ -81,7 +81,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onGeofenceEditSetGeometry(this.draw.getAll());
     });
 
-    this.draw = mapboxgl.Draw({   // eslint-disable-line new-cap
+    this.draw = new MapboxDraw({   // eslint-disable-line new-cap
       position: "top-right",
       displayControlsDefault: false,
       controls: {
@@ -281,16 +281,27 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "filter": ["in", "_entityId", ""],
     });
 
-    return this.addSubLayers(layer.id, subLayerDefs);
+    return this.addSubLayers(layer.id, subLayerDefs, layer.live);
   }
 
-  addSubLayers(sourceId, subLayerDefs) {
-    const finalDefs = subLayerDefs.map(def => ({
+  finaliseSubLayerDefs(sourceId, subLayerDefs, isLive) {
+    if (isLive) {
+      return subLayerDefs.map((def) => ({
+        ...def,
+        "id": `${sourceId}_${def.id}`,
+        "source": sourceId,
+      }));
+    }
+    return subLayerDefs.map((def) => ({
       ...def,
       "id": `${sourceId}_${def.id}`,
       "source": sourceId,
       "source-layer": sourceId,
     }));
+  }
+
+  addSubLayers(sourceId, subLayerDefs, isLive) {
+    const finalDefs = this.finaliseSubLayerDefs(sourceId, subLayerDefs, isLive);
     finalDefs.forEach(def => this.map.addLayer(def));
     return finalDefs.map(def => def.id);
   }
