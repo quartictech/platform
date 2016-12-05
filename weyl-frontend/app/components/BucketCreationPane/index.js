@@ -44,8 +44,8 @@ class BucketCreationPane extends React.Component { // eslint-disable-line react/
   render() {
     return (
       <Pane
-        title="Bucket"
-        iconName="helper-management"
+        title="Calculate"
+        iconName="calculator"
         visible={this.props.visible}
         onClose={this.props.onClose}
       >

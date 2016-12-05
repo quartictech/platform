@@ -10,6 +10,7 @@ import {
   PopoverInteractionKind,
   PopoverPosition,
   Position,
+  Tag,
   Tree,
 } from "@blueprintjs/core";
 import classNames from "classnames";
@@ -65,9 +66,17 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   layerNodes(layers) {
     return _.map(_.values(layers), layer => {
       const node = {
-        iconName: "layer",
+        // iconName: "layer",
         id: layer.id,
-        label: layer.metadata.name,
+        label: (
+          <div>
+            <span
+              className={classNames(Classes.iconClass("layers"), Classes.ICON_STANDARD, Classes.TREE_NODE_ICON)}
+              style={styleFromTheme(layerThemes[layer.themeIdx])}
+            />
+            {layer.metadata.name}
+          </div>
+        ),
         secondaryLabel: this.layerButtons(layer),
         childNodes: this.attributeNodes(
           layer.attributeSchema.attributes,
@@ -167,7 +176,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
                 label={
                   <span
                     className={classNames(Classes.iconClass("tint"), Classes.ICON_STANDARD)}
-                    style={{ color: theme.line, backgroundColor: theme.fill }}
+                    style={styleFromTheme(theme)}
                   />
                 }
                 onClick={() => this.props.onLayerStyleChange(layer.id, "THEME", idx)}
@@ -208,6 +217,11 @@ const recursivelyUpdateExpansionState = (nodes) => {
     });
   }
 }
+
+const styleFromTheme = (theme) => ({
+  color: theme.line,
+  backgroundColor: theme.fill,
+});
 
 
 

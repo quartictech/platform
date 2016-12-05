@@ -44,15 +44,15 @@ function Toolbar(props) {
           />
 
           <Button
-            text="Bucket"
-            iconName="helper-management"
+            text="Calculate"
+            iconName="calculator"
             className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "bucket") })}
             onClick={() => props.onUiToggle("bucket")}
           />
 
           <Button
             text="Geofence"
-            iconName="zoom-to-fit"
+            iconName="polygon-filter"
             className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "geofence") })}
             onClick={() => props.onUiToggle("geofence")}
           />
