@@ -52,7 +52,7 @@ function Toolbar(props) {
 
           <Button
             text="Geofence"
-            iconName="eye-open"
+            iconName="zoom-to-fit"
             className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "geofence") })}
             onClick={() => props.onUiToggle("geofence")}
           />
@@ -66,7 +66,7 @@ function Toolbar(props) {
 
           <span className="pt-navbar-divider"></span>
 
-          <div className="pt-button-group">
+          <div className={Classes.BUTTON_GROUP}>
             <ThemePicker
               selected={props.ui.settings.theme}
               onSelect={props.onSetTheme}

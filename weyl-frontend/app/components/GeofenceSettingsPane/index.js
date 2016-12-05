@@ -20,7 +20,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     return (
       <Pane
         title="Geofence"
-        iconName="eye-open"
+        iconName="zoom-to-fit"
         visible={this.props.visible}
         onClose={this.props.onClose}
         extraHeaderContent={
