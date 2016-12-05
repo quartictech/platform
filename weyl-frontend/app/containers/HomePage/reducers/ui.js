@@ -18,7 +18,7 @@ export default (state = initialState, action) => {
     case constants.UI_TOGGLE: {
       const element = action.element;
       switch (element) {
-        case "bucket":
+        case "calculate":
         case "geofence":
           return state.update("layerOp", val => ((val === element) ? null : element));
         default:

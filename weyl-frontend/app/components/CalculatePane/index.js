@@ -10,7 +10,7 @@ import Pane from "../Pane";
 import Select from "../Select";
 import PredictingPicker from "../PredictingPicker";
 
-class BucketCreationPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
+class CalculatePane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
     super(props);
     this.state = {
@@ -183,4 +183,4 @@ class BucketCreationPane extends React.Component { // eslint-disable-line react/
   }
 }
 
-export default BucketCreationPane;
+export default CalculatePane;

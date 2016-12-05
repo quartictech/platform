@@ -1,7 +1,7 @@
 import React from "react";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
-import BucketCreationPane from "../../components/BucketCreationPane";
+import CalculatePane from "../../components/CalculatePane";
 import GeofenceSettingsPane from "../../components/GeofenceSettingsPane";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
@@ -51,11 +51,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.leftDrawer}>
-          <BucketCreationPane
+          <CalculatePane
             layers={this.props.layers}
             onCompute={this.props.onCompute}
-            onClose={() => this.props.onUiToggle("bucket")}
-            visible={this.props.ui.layerOp === "bucket"}
+            onClose={() => this.props.onUiToggle("calculate")}
+            visible={this.props.ui.layerOp === "calculate"}
           />
 
           <GeofenceSettingsPane
