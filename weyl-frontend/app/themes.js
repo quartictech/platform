@@ -23,31 +23,31 @@ export const mapThemes = {
 
 export const layerThemes = [
   {
-    name: "red",
+    name: "Red",
     fill: "#67001f",
     line: "#e7298a",
     colorScale: ["white", "#67001f"],
   },
   {
-    name: "orange",
+    name: "Orange",
     fill: "#673d00",
     line: "#e76529",
     colorScale: ["white", "#673d00"],
   },
   {
-    name: "green",
+    name: "Green",
     fill: "#00671f",
     line: "#29e78a",
     colorScale: ["white", "#00671f"],
   },
   {
-    name: "blue",
+    name: "Blue",
     fill: "#001f67",
     line: "#298ae7",
     colorScale: ["white", "#001f67"],
   },
   {
-    name: "purple",
+    name: "Purple",
     fill: "#1f0067",
     line: "#8a29e7",
     colorScale: ["white", "#1f0067"],

@@ -18,7 +18,7 @@ const Pane = ({
     style={{ display: visible ? "block" : "none" }}
   >
     <div className={Classes.DIALOG_HEADER}>
-      <span className={classNames(Classes.ICON_LARGE, Classes.iconClass(iconName))}></span>
+      <span className={classNames(Classes.ICON_STANDARD, Classes.iconClass(iconName))}></span>
       <h5>{title}</h5>
       {extraHeaderContent}
       {

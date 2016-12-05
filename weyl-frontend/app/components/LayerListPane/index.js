@@ -16,6 +16,7 @@ import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
 
+import { layerThemes } from "../../themes";
 import LayerListItem from "./LayerListItem";
 import Pane from "../Pane";
 
@@ -49,7 +50,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           contents={this.state.nodes}
           onNodeExpand={n => n.onExpand()}
           onNodeCollapse={n => n.onCollapse()}
-          onNodeClick={(n, p, e) => (e.target.className === Classes.TREE_NODE_LABEL) && n.onClick() } // Because the buttons propagate events
+          onNodeClick={(n, p, e) => (e.target.nodeName !== "BUTTON") && n.onClick() } // Because the buttons propagate events
         />
       </Pane>
     );
@@ -142,10 +143,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           autoFocus={false}
           enforceFocus={false}
           content={this.layerSettings(layer)}
-          // isOpen={!this.props.disabled && this.state.menuVisible}
-          // onInteraction={(nextOpenState) => this.setState({ menuVisible: nextOpenState })}
           interactionKind={PopoverInteractionKind.CLICK}
-          position={Position.RIGHT}
+          position={Position.RIGHT_TOP}
         >
           <Button
             iconName="settings"
@@ -159,8 +158,23 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   layerSettings(layer) {
     return (
       <Menu>
-        <MenuItem iconName="wrench" text="Foo" />
-        <MenuItem iconName="wrench" text="Bar" />
+        <MenuItem iconName="tint" text="Theme...">
+          {
+            layerThemes.map((theme, idx) => (
+              <MenuItem
+                key={idx}
+                text={theme.name}
+                label={
+                  <span
+                    className={classNames(Classes.iconClass("tint"), Classes.ICON_STANDARD)}
+                    style={{ color: theme.line, backgroundColor: theme.fill }}
+                  />
+                }
+                onClick={() => this.props.onLayerStyleChange(layer.id, "THEME", idx)}
+              />
+            ))
+          }
+        </MenuItem>
         <MenuDivider />
         <MenuItem
           iconName="cross"

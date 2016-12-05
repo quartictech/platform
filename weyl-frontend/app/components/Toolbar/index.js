@@ -118,7 +118,6 @@ const ThemePicker = ({ selected, onSelect }) => {
     <Popover
       content={menu}
       position={Position.BOTTOM}
-      popoverClassName={Classes.MINIMAL}
     >
       <Button
         className={Classes.MINIMAL}
