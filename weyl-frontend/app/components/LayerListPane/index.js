@@ -3,6 +3,13 @@ import {
   Button,
   Classes,
   Intent,
+  Menu,
+  MenuDivider,
+  MenuItem,
+  Popover,
+  PopoverInteractionKind,
+  PopoverPosition,
+  Position,
   Tree,
 } from "@blueprintjs/core";
 import classNames from "classnames";
@@ -42,7 +49,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           contents={this.state.nodes}
           onNodeExpand={n => n.onExpand()}
           onNodeCollapse={n => n.onCollapse()}
-          onNodeClick={n => n.onClick()}
+          onNodeClick={(n, p, e) => (e.target.className === Classes.TREE_NODE_LABEL) && n.onClick() } // Because the buttons propagate events
         />
       </Pane>
     );
@@ -78,7 +85,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   attributeNodes(attributes, filter, onValueClick) {
     return _.chain(attributes)
       .keys()
-      .filter(k => attributes[k].categories !== null)
+      .filter(k => attributes[k].categories)
       .sort(naturalsort)
       .map(k => {
         const node = {
@@ -109,7 +116,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         secondaryLabel: (
           <Button
             iconName={!_.contains(filterCategories, c) ? "eye-open" : "eye-off"}
-            onClick={withNoPropagation(() => onClick(c))}
+            onClick={() => onClick(c)}
             className={Classes.MINIMAL}
             intent={!_.contains(filterCategories, c) ? Intent.PRIMARY : Intent.NONE}
           />
@@ -127,22 +134,41 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       <div className={Classes.BUTTON_GROUP}>
         <Button
           iconName={layer.visible ? "eye-open" : "eye-off"}
-          onClick={withNoPropagation(() => this.props.layerToggleVisible(layer.id))}
+          onClick={() => this.props.layerToggleVisible(layer.id)}
           className={Classes.MINIMAL}
           intent={layer.visible ? (this.filterActive(layer) ? Intent.WARNING : Intent.PRIMARY) : Intent.NONE}
         />
-        <Button
-          iconName="info-sign"
-          onClick={withNoPropagation(() => {})} // TODO
-          className={Classes.MINIMAL}
-        />
-        <Button
-          iconName="cross"
-          onClick={withNoPropagation(() => this.props.layerClose(layer.id))}
-          className={Classes.MINIMAL}
-        />
+        <Popover
+          autoFocus={false}
+          enforceFocus={false}
+          content={this.layerSettings(layer)}
+          // isOpen={!this.props.disabled && this.state.menuVisible}
+          // onInteraction={(nextOpenState) => this.setState({ menuVisible: nextOpenState })}
+          interactionKind={PopoverInteractionKind.CLICK}
+          position={Position.RIGHT}
+        >
+          <Button
+            iconName="settings"
+            className={Classes.MINIMAL}
+          />
+        </Popover>
       </div>
     );
+  }
+
+  layerSettings(layer) {
+    return (
+      <Menu>
+        <MenuItem iconName="wrench" text="Foo" />
+        <MenuItem iconName="wrench" text="Bar" />
+        <MenuDivider />
+        <MenuItem
+          iconName="cross"
+          text="Remove"
+          onClick={() => this.props.layerClose(layer.id)}
+        />
+      </Menu>
+    )
   }
 
   filterActive(layer) {
@@ -157,11 +183,6 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 }
-
-const withNoPropagation = (func) => (e) => {
-  e.stopPropagation();
-  func();
-};
 
 const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
 
