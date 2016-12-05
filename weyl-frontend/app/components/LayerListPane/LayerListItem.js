@@ -2,10 +2,10 @@ import React from "react";
 import {
   Button,
   Classes,
+  Collapse,
   Intent,
 } from "@blueprintjs/core";
 import classNames from "classnames";
-import styles from "./styles.css";
 import ThemePicker from "./ThemePicker";
 import AttributeList from "./AttributeList";
 const _ = require("underscore");
@@ -21,76 +21,85 @@ const LayerListItem = ({
   onBufferClick,
   mode,
 }) => (
-  <tr>
-    <td>
-      <div className="ui small header">
-        <a onClick={() => onButtonClick("CLOSE")}>
-          <i className="icon close"></i>
-        </a>
-        {layer.metadata.name}
-      </div>
+  <div className={Classes.CARD} style={{ padding: 0 }}>
+    <h6>
+      <Button
+        iconName="caret-down"
+        className={Classes.MINIMAL}
+      />
+      {layer.metadata.name}
+    </h6>
 
-      <div className={Classes.BUTTON_GROUP}>
-        <Button
-          iconName="eye-open"
-          onClick={() => onButtonClick("VISIBLE")}
-          className={Classes.MINIMAL}
-          intent={layer.visible ? Intent.SUCCESS : Intent.NONE}
-        />
-        <Button
-          iconName="filter"
-          onClick={() => onButtonClick("FILTER")}
-          className={classNames(
-            Classes.MINIMAL,
-            { [Classes.ACTIVE]: (mode === "FILTER") }
-          )}
-          intent={filterActive(layer) ? Intent.DANGER : Intent.NONE}
-        />
-        <Button
-          iconName="info-sign"
-          onClick={() => onButtonClick("INFO")}
-          className={classNames(
-            Classes.MINIMAL,
-            { [Classes.ACTIVE]: (mode === "INFO") }
-          )}
-        />
-      </div>
-
+    <Collapse isOpen={false}>
+      <Buttons
+        layer={layer}
+        mode={mode}
+        onClick={onButtonClick}
+      />
 
       <div className="description" style={{ marginTop: "0.2em" }}>
-
         <LayerListItemInfo
           layer={layer}
           onAttributeValueClick={(l, a, v) => onToggleValueVisible(l, a, v)}
           mode={mode}
         />
       </div>
-    </td>
-    <td>
-      <ThemePicker
-        icon={layer.metadata.icon || DEFAULT_ICON}
-        themeIdx={layer.themeIdx}
-        attributes={layer.attributeSchema.attributes}
-        selectedAttribute={layer.style.attribute}
-        onThemeClick={onLayerThemeChange}
-        onAttributeClick={onLayerStyleChange}
-        onBufferClick={onBufferClick}
-      />
-    </td>
-  </tr>
+    </Collapse>
+  </div>
 );
 
-const filterActive = (layer) => _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
 
-const filterButtonStyle = (layer, mode) => {
-  if (mode === "FILTER") {
-    return styles.active;
-  }
-  if (Object.keys(layer.filter).some(k => layer.filter[k].length > 0)) {
-    return styles.enabled;
-  }
-  return "";
-};
+// <ThemePicker
+//   icon={layer.metadata.icon || DEFAULT_ICON}
+//   themeIdx={layer.themeIdx}
+//   attributes={layer.attributeSchema.attributes}
+//   selectedAttribute={layer.style.attribute}
+//   onThemeClick={onLayerThemeChange}
+//   onAttributeClick={onLayerStyleChange}
+//   onBufferClick={onBufferClick}
+// />
+
+
+const Buttons = ({
+  layer,
+  mode,
+  onClick,
+}) => (
+  <div className={Classes.BUTTON_GROUP}>
+    <Button
+      iconName="eye-open"
+      onClick={() => onClick("VISIBLE")}
+      className={Classes.MINIMAL}
+      intent={layer.visible ? Intent.SUCCESS : Intent.NONE}
+    />
+    <Button
+      iconName="filter"
+      onClick={() => onClick("FILTER")}
+      className={classNames(
+        Classes.MINIMAL,
+        { [Classes.ACTIVE]: (mode === "FILTER") }
+      )}
+      intent={filterActive(layer) ? Intent.DANGER : Intent.NONE}
+    />
+    <Button
+      iconName="info-sign"
+      onClick={() => onClick("INFO")}
+      className={classNames(
+        Classes.MINIMAL,
+        { [Classes.ACTIVE]: (mode === "INFO") }
+      )}
+    />
+    <Button
+      iconName="small-cross"
+      onClick={() => onClick("CLOSE")}
+      className={Classes.MINIMAL}
+
+    />
+  </div>
+);
+
+const filterActive = (layer) =>
+  _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
 
 const LayerListItemInfo = ({
   layer,
@@ -110,12 +119,10 @@ const LayerListItemInfo = ({
 
     case "INFO":
       return (
-        <table className="ui celled very compact small fixed selectable definition table">
+        <table className="pt-table pt-striped pt-condensed pt-interactive" style={{ width: "100%" }}>
           <tbody>
-            <tr><td>Description</td><td>{layer.metadata.description}</td></tr>
-            {
-              layer.metadata.attribution && (<tr><td>Attribution</td><td>{layer.metadata.attribution}</td></tr>)
-            }
+            <tr><td><b>Description</b></td><td>{layer.metadata.description}</td></tr>
+            <tr><td><b>Attribution</b></td><td>{layer.metadata.attribution}</td></tr>
           </tbody>
         </table>
       );

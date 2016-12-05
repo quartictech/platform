@@ -25,6 +25,8 @@ window.$ = window.jQuery = require("jquery");
 import "sanitize.css/sanitize.css";
 import "semantic-ui/dist/semantic.css";
 import "@blueprintjs/core/dist/blueprint.css";
+import { FocusStyleManager } from "@blueprintjs/core";
+FocusStyleManager.onlyShowFocusOnTabs();      // To avoid annoying blue outlines
 import "roboto-fontface/css/roboto/roboto-fontface.css";
 require("semantic-ui/dist/semantic");
 

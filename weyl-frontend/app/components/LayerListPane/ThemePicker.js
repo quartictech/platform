@@ -1,7 +1,8 @@
 import React from "react";
 import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
-const $ = require("jquery");
+import * as _ from "underscore";
+import * as $ from "jquery";
 
 import { layerThemes } from "../../themes";
 
