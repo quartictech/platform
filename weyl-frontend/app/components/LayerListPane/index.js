@@ -138,7 +138,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
             iconName={!_.contains(filterCategories, c) ? "eye-open" : "eye-off"}
             onClick={() => onClick(c)}
             className={Classes.MINIMAL}
-            intent={!_.contains(filterCategories, c) ? Intent.SUCCESS : Intent.NONE}
+            intent={!_.contains(filterCategories, c) ? Intent.PRIMARY : Intent.NONE}
           />
         ),
         parent,
@@ -153,7 +153,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           iconName={layer.visible ? "eye-open" : "eye-off"}
           onClick={() => onClick("VISIBLE")}
           className={Classes.MINIMAL}
-          intent={layer.visible ? (this.filterActive(layer) ? Intent.WARNING : Intent.SUCCESS) : Intent.NONE}
+          intent={layer.visible ? (this.filterActive(layer) ? Intent.WARNING : Intent.PRIMARY) : Intent.NONE}
         />
         <Button
           iconName="info-sign"
