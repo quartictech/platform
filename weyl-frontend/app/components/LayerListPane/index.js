@@ -6,6 +6,7 @@ import {
   Tree,
 } from "@blueprintjs/core";
 import classNames from "classnames";
+import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
 
 import LayerListItem from "./LayerListItem";
@@ -26,7 +27,10 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({ nodes: this.nodes(nextProps.layers) });
+    // Rely on immutables shallow equality
+    if (nextProps.layers !== this.props.layers) {
+      this.setState({ nodes: this.layerNodes(nextProps.layers.toJS()) });
+    }
   }
 
   render() {
@@ -34,7 +38,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       <Pane
         title="Layers"
         iconName="layers"
-        visible={this.props.visible && _.size(this.props.layers.toArray()) > 0}
+        visible={this.props.visible && _.size(this.props.layers.toJS()) > 0}
         onClose={this.props.onClose}
       >
         <Tree
@@ -48,14 +52,22 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   onNodeExpand(node) {
-    this.state.nodes.forEach(n => n.isExpanded = false);
+    const siblings = (node.parent) ? node.parent.childNodes : this.state.nodes;
+    siblings.forEach(n => this.collapseNodeAndChildren(n));
     node.isExpanded = true;
     this.triggerRender();
   }
 
   onNodeCollapse(node) {
-    node.isExpanded = false;
+    this.collapseNodeAndChildren(node);
     this.triggerRender();
+  }
+
+  collapseNodeAndChildren(node) {
+    node.isExpanded = false;
+    if (node.childNodes) {
+      node.childNodes.forEach(n => this.collapseNodeAndChildren(n));
+    }
   }
 
   onNodeClick(node) {
@@ -70,41 +82,58 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     this.setState(this.state);
   }
 
-  nodes(layers) {
-    return _.map(layers.toArray(), layer => ({
-      iconName: "layer",
-      id: layer.get("id"),
-      label: layer.getIn(["metadata", "name"]),
-      secondaryLabel: this.buttons(
-        layer.toJS(),
-        (this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null,
-        (name) => this.onButtonClick(name, layer.get("id"))
-      ),
-      childNodes: [
-        {
-          iconName: "filter",
-          id: "filter",
-          label: "Attribute filters",
-        },
-        {
-          iconName: "info-sign",
-          id: "info",
-          label: "Info",
-        }
-      ],
-    }));
+  layerNodes(layers) {
+    return _.map(_.values(layers), layer => {
+      const node = {
+        iconName: "layer",
+        id: layer.id,
+        label: layer.metadata.name,
+        secondaryLabel: this.buttons(
+          layer,
+          (this.state.activeLayerId === layer.id) ? this.state.activeMode : null,
+          (name) => this.onButtonClick(name, layer.id)
+        ),
+      };
+      node.childNodes = this.attributeNodes(layer.attributeSchema.attributes, node);
+      return node;
+    });
+  }
 
-    //   <LayerListItem
-    //     key={layer.get("id")}
-    //     layer={layer.toJS()}
-    //     onButtonClick={(name) => this.onButtonClick(name, layer.get("id"))}
-    //     onToggleValueVisible={this.props.onToggleValueVisible}
-    //     onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), "ATTRIBUTE", attribute)}
-    //     onLayerThemeChange={(idx) => this.props.onLayerStyleChange(layer.get("id"), "THEME", idx)}
-    //     onBufferClick={(bufferDistance) => this.onBufferCompute(layer.get("id"), bufferDistance)}
-    //     mode={(this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null}
-    //   />
-    // );
+  attributeNodes(attributes, parent) {
+    return _.chain(attributes)
+      .keys()
+      .filter(k => attributes[k].categories !== null)
+      .sort(naturalsort)
+      .map(k => {
+        const node = {
+          iconName: "property",
+          id: k,
+          label: k,
+          parent,
+        };
+        node.childNodes = this.attributeCategoryNodes(attributes[k].categories, node);
+        return node;
+      })
+      .value();
+  }
+
+  attributeCategoryNodes(categories, parent) {
+    return _.chain(categories)
+      .sort(naturalsort)
+      .map(c => ({
+        id: c,
+        label: c,
+        secondaryLabel: (
+          <Button
+            iconName={true ? "eye-open" : "eye-off"}
+            onClick={() => onClick("VISIBLE")}
+            className={Classes.MINIMAL}
+            intent={true ? Intent.SUCCESS : Intent.NONE}
+          />
+        ),
+        parent,
+      }))
+      .value();
   }
 
   buttons(layer, mode, onClick) {
@@ -115,15 +144,6 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           onClick={() => onClick("VISIBLE")}
           className={Classes.MINIMAL}
           intent={layer.visible ? Intent.SUCCESS : Intent.NONE}
-        />
-        <Button
-          iconName="filter"
-          onClick={() => onClick("FILTER")}
-          className={classNames(
-            Classes.MINIMAL,
-            { [Classes.ACTIVE]: (mode === "FILTER") }
-          )}
-          intent={this.filterActive(layer) ? Intent.DANGER : Intent.NONE}
         />
         <Button
           iconName="info-sign"
@@ -143,6 +163,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     );
   }
 
+  // TODO: wire this up to the top-level eye intent
   filterActive(layer) {
     return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
   }
@@ -169,5 +190,19 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 }
+
+//   <LayerListItem
+//     key={layer.get("id")}
+//     layer={layer.toJS()}
+//     onButtonClick={(name) => this.onButtonClick(name, layer.get("id"))}
+//     onToggleValueVisible={this.props.onToggleValueVisible}
+//     onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), "ATTRIBUTE", attribute)}
+//     onLayerThemeChange={(idx) => this.props.onLayerStyleChange(layer.get("id"), "THEME", idx)}
+//     onBufferClick={(bufferDistance) => this.onBufferCompute(layer.get("id"), bufferDistance)}
+//     mode={(this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null}
+//   />
+// );
+
+
 
 export default LayerListPane;
