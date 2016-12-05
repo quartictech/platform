@@ -44,7 +44,7 @@ function Toolbar(props) {
           />
 
           <Button
-            text="Calculate"
+            text="Compute"
             iconName="calculator"
             className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") })}
             onClick={() => props.onUiToggle("calculate")}

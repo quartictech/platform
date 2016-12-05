@@ -4,13 +4,16 @@ import {
   Checkbox,
   Classes,
   Intent,
+  Popover,
+  Position,
 } from "@blueprintjs/core";
+import classNames from "classnames";
 import * as _ from "underscore";
-import Pane from "../Pane";
 import Select from "../Select";
 import PredictingPicker from "../PredictingPicker";
 
-class CalculatePane extends React.Component { // eslint-disable-line react/prefer-stateless-function
+
+class Bucket extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
     super(props);
     this.state = {
@@ -43,12 +46,7 @@ class CalculatePane extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     return (
-      <Pane
-        title="Calculate"
-        iconName="calculator"
-        visible={this.props.visible}
-        onClose={this.props.onClose}
-      >
+      <div>
         <label className={Classes.LABEL}>
           <div>Entities</div>
           <PredictingPicker
@@ -106,7 +104,7 @@ class CalculatePane extends React.Component { // eslint-disable-line react/prefe
             onClick={this.onComputeClick}
           />
         </div>
-      </Pane>
+      </div>
     );
   }
 
@@ -183,4 +181,4 @@ class CalculatePane extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-export default CalculatePane;
+export default Bucket;

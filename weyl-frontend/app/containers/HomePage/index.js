@@ -1,7 +1,7 @@
 import React from "react";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
-import CalculatePane from "../../components/CalculatePane";
+import ComputePane from "../../components/ComputePane";
 import GeofenceSettingsPane from "../../components/GeofenceSettingsPane";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
@@ -51,7 +51,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         </div>
 
         <div className={styles.leftDrawer}>
-          <CalculatePane
+          <ComputePane
             layers={this.props.layers}
             onCompute={this.props.onCompute}
             onClose={() => this.props.onUiToggle("calculate")}
@@ -75,13 +75,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <LayerListPane
             layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
-            onCompute={this.props.onCompute}
-            onClose={() => this.props.onUiToggle("layerList")}
-            ui={this.props.ui}
-            visible={this.props.ui.panels.layerList}
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
+            onClose={() => this.props.onUiToggle("layerList")}
+            visible={this.props.ui.panels.layerList}
           />
         </div>
 

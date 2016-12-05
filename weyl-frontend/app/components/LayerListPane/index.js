@@ -197,14 +197,6 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   filterActive(layer) {
     return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
   }
-
-  onBufferCompute(layerId, bufferDistance) {
-    this.props.onCompute({
-      type: "buffer",
-      layerId,
-      bufferDistance,
-    });
-  }
 }
 
 const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
