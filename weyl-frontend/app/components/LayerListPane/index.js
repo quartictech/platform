@@ -12,7 +12,6 @@ import * as _ from "underscore";
 import LayerListItem from "./LayerListItem";
 import Pane from "../Pane";
 
-
 class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
@@ -24,15 +23,14 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   componentWillReceiveProps(nextProps) {
-    // Rely on immutables shallow equality
+    // We maintain the state for the tree, which we have to keep in-sync with props
     if (nextProps.layers !== this.props.layers) {
-      this.state.nodes = this.layerNodes(nextProps.layers.toJS());
-      this.updateExpansion(this.state.nodes);
-      this.setState(this.state);
+      this.setState({ nodes: this.layerNodes(nextProps.layers.toJS()) });
     }
   }
 
   render() {
+    // We delegate the tree callbacks to the individual nodes to get granular behaviour
     return (
       <Pane
         title="Layers"
@@ -42,50 +40,39 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       >
         <Tree
           contents={this.state.nodes}
-          onNodeExpand={n => n.onExpand(n)}
-          onNodeCollapse={n => n.onCollapse(n)}
-          onNodeClick={n => n.onClick(n)}
+          onNodeExpand={n => n.onExpand()}
+          onNodeCollapse={n => n.onCollapse()}
+          onNodeClick={n => n.onClick()}
         />
       </Pane>
     );
   }
 
-  setActivePath(activeLayerId, activeAttribute) {
-    this.state.activeLayerId = activeLayerId;
-    this.state.activeAttribute = activeAttribute;
-    this.updateExpansion(this.state.nodes);
-    this.setState(this.state);
-  }
-
-  updateExpansion(nodes) {
-    if (!nodes) {
-      return;
-    }
-    nodes.forEach(node => {
-      node.updateExpansion(node);
-      this.updateExpansion(node.childNodes);
-    });
+  setState(nextState) {
+    this.state = { ...this.state, ...nextState };
+    recursivelyUpdateExpansionState(this.state.nodes);  // Get the nodes to update their own isExpanded values
+    super.setState(this.state);
   }
 
   layerNodes(layers) {
-    return _.map(_.values(layers), layer => ({
-      iconName: "layer",
-      id: layer.id,
-      label: layer.metadata.name,
-      secondaryLabel: this.buttons(
-        layer,
-        (name) => this.onButtonClick(name, layer.id)
-      ),
-      childNodes: this.attributeNodes(
-        layer.attributeSchema.attributes,
-        layer.filter,
-        (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
-      ),
-      onClick: (n) => ((this.state.activeLayerId === layer.id) ? n.onCollapse(n) : n.onExpand(n)),
-      onExpand: (n) => this.setActivePath(layer.id, null),
-      onCollapse: (n) => this.setActivePath(null, null),
-      updateExpansion: (n) => (n.isExpanded = (this.state.activeLayerId === layer.id)),
-    }));
+    return _.map(_.values(layers), layer => {
+      const node = {
+        iconName: "layer",
+        id: layer.id,
+        label: layer.metadata.name,
+        secondaryLabel: this.layerButtons(layer),
+        childNodes: this.attributeNodes(
+          layer.attributeSchema.attributes,
+          layer.filter,
+          (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
+        ),
+      };
+      node.onClick = () => toggleOnPredicate(node, this.state.activeLayerId === layer.id);
+      node.onExpand = () => this.setState({ activeLayerId: layer.id, activeAttribute: null });
+      node.onCollapse = () => this.setState({ activeLayerId: null, activeAttribute: null });
+      node.updateExpansion = () => (node.isExpanded = (this.state.activeLayerId === layer.id));
+      return node;
+    });
   }
 
   attributeNodes(attributes, filter, onValueClick) {
@@ -93,20 +80,23 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .keys()
       .filter(k => attributes[k].categories !== null)
       .sort(naturalsort)
-      .map(k => ({
-        iconName: "property",
-        id: k,
-        label: k,
-        childNodes: this.attributeCategoryNodes(
-          attributes[k].categories,
-          filter[k].categories,
-          (v) => onValueClick(k, v),
-        ),
-        onClick: (n) => ((this.state.activeAttribute === k) ? n.onCollapse(n) : n.onExpand(n)),
-        onExpand: (n) => this.setActivePath(this.state.activeLayerId, k),
-        onCollapse: (n) => this.setActivePath(this.state.activeLayerId, null),
-        updateExpansion: (n) => (n.isExpanded = (this.state.activeAttribute === k)),
-      }))
+      .map(k => {
+        const node = {
+          iconName: "property",
+          id: k,
+          label: k,
+          childNodes: this.attributeCategoryNodes(
+            attributes[k].categories,
+            filter[k].categories,
+            (v) => onValueClick(k, v),
+          ),
+        };
+        node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
+        node.onExpand = () => this.setState({ activeAttribute: k });
+        node.onCollapse = () => this.setState({ activeAttribute: null });
+        node.updateExpansion = () => (node.isExpanded = (this.state.activeAttribute === k));
+        return node;
+      })
       .value();
   }
 
@@ -132,23 +122,23 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  buttons(layer, onClick) {
+  layerButtons(layer) {
     return (
       <div className={Classes.BUTTON_GROUP}>
         <Button
           iconName={layer.visible ? "eye-open" : "eye-off"}
-          onClick={withNoPropagation(() => onClick("VISIBLE"))}
+          onClick={withNoPropagation(() => this.props.layerToggleVisible(layer.id))}
           className={Classes.MINIMAL}
           intent={layer.visible ? (this.filterActive(layer) ? Intent.WARNING : Intent.PRIMARY) : Intent.NONE}
         />
         <Button
           iconName="info-sign"
-          onClick={withNoPropagation(() => onClick("INFO"))}
+          onClick={withNoPropagation(() => {})} // TODO
           className={Classes.MINIMAL}
         />
         <Button
           iconName="cross"
-          onClick={withNoPropagation(() => onClick("CLOSE"))}
+          onClick={withNoPropagation(() => this.props.layerClose(layer.id))}
           className={Classes.MINIMAL}
         />
       </div>
@@ -157,16 +147,6 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
 
   filterActive(layer) {
     return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
-  }
-
-  onButtonClick(name, layerId) {
-    switch (name) {
-      case "VISIBLE":
-        return this.props.layerToggleVisible(layerId);
-      case "CLOSE":
-        return this.props.layerClose(layerId);
-      default:
-    }
   }
 
   onBufferCompute(layerId, bufferDistance) {
@@ -182,6 +162,19 @@ const withNoPropagation = (func) => (e) => {
   e.stopPropagation();
   func();
 };
+
+const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
+
+const recursivelyUpdateExpansionState = (nodes) => {
+  if (nodes) {
+    nodes.forEach(node => {
+      node.updateExpansion();
+      recursivelyUpdateExpansionState(node.childNodes);
+    });
+  }
+}
+
+
 
 //   <LayerListItem
 //     key={layer.get("id")}
