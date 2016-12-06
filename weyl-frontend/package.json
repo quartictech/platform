@@ -191,8 +191,6 @@
     "reselect": "2.5.3",
     "roboto-fontface": "0.6.0",
     "sanitize.css": "4.1.0",
-    "semantic-ui": "^2.2.2",
-    "semantic-ui-react": "^0.54.3",
     "underscore": "^1.8.3",
     "warning": "^3.0.0",
     "whatwg-fetch": "1.0.0"
