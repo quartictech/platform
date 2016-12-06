@@ -30,6 +30,9 @@ class Search extends React.Component {
       <Menu>{this.renderMenuItems()}</Menu>
     );
 
+    // Hack because pt-input overrides font-family and no way to pass styles through InputGroup
+    const fontSetter = (e) => e && (e.style.fontFamily = "Roboto-Light"); // eslint-disable-line no-param-reassign
+
     return (
       <Popover
         autoFocus={false}
@@ -47,7 +50,7 @@ class Search extends React.Component {
           placeholder="Search datasets..."
           value={this.state.query}
           onChange={(e) => this.setQuery(e.target.value)}
-          inputRef={(e) => e && (e.style.fontFamily = "Roboto-Light")}  // Hack because pt-input overrides font-family and no way to pass styles through InputGroup
+          inputRef={fontSetter}
         />
       </Popover>
     );

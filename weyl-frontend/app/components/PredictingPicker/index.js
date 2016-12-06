@@ -34,6 +34,9 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   }
 
   render() {
+    // Hack because pt-input overrides font-family and no way to pass styles through InputGroup
+    const fontSetter = (e) => e && (e.style.fontFamily = "Roboto-Light"); // eslint-disable-line no-param-reassign
+
     return (
       <Popover
         autoFocus={false}
@@ -52,7 +55,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
           value={this.state.text}
           onChange={(e) => this.onChangeText(e.target.value)}
           intent={(this.props.selectedKey || this.props.disabled) ? Intent.NONE : Intent.DANGER}
-          inputRef={(e) => e && (e.style.fontFamily = "Roboto-Light")}  // Hack because pt-input overrides font-family and no way to pass styles through InputGroup
+          inputRef={fontSetter}
         />
       </Popover>
     );
