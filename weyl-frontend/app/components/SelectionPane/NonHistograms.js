@@ -77,8 +77,8 @@ const Image = ({ url }) => {
   const isVideo = url.endsWith(".mp4");
 
   return (isVideo
-    ? <video autoPlay loop src={url} style={{ width: "100%", height: "100%" }} />
-    : <img role="presentation" src={url} style={{ width: "100%", height: "100%" }} />
+    ? <video autoPlay loop src={url} style={{ width: "100%" }} />
+    : <img role="presentation" src={url} style={{ width: "100%" }} />
   );
 };
 
