@@ -104,7 +104,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           label: k,
           childNodes: this.attributeCategoryNodes(
             attributes[k].categories,
-            filter[k].categories,
+            filter[k],
             (v) => onValueClick(k, v),
           ),
         };
@@ -117,26 +117,33 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  attributeCategoryNodes(categories, filterCategories, onClick) {
-    return _.chain(categories)
-      .sort(naturalsort)
-      .map(c => ({
-        id: c,
-        label: c,
-        secondaryLabel: (
-          <Button
-            iconName={!_.contains(filterCategories, c) ? "eye-open" : "eye-off"}
-            onClick={() => onClick(c)}
-            className={Classes.MINIMAL}
-            intent={!_.contains(filterCategories, c) ? Intent.PRIMARY : Intent.NONE}
-          />
-        ),
-        onClick: () => onClick(c),
-        onExpand: () => {},
-        onCollapse: () => {},
-        updateExpansion: () => {},
-      }))
-      .value();
+  attributeCategoryNodes(categories, filter, onClick) {
+    return [
+      this.attributeCategoryNode("< N/A >", !filter.notApplicable, () => onClick()),  // Note no argument to callback
+      ..._.chain(categories)
+        .sort(naturalsort)
+        .map(c => this.attributeCategoryNode(c, !_.contains(filter.categories, c), () => onClick(c)))
+        .value()
+    ];
+  }
+
+  attributeCategoryNode(label, enabled, onClick) {
+    return {
+      id: label,
+      label: label,
+      secondaryLabel: (
+        <Button
+          iconName={enabled ? "eye-open" : "eye-off"}
+          onClick={onClick}
+          className={Classes.MINIMAL}
+          intent={enabled ? Intent.PRIMARY : Intent.NONE}
+        />
+      ),
+      onClick: onClick,
+      onExpand: () => {},
+      onCollapse: () => {},
+      updateExpansion: () => {},
+    };
   }
 
   layerButtons(layer) {
