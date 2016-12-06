@@ -4,6 +4,8 @@ export const SEARCH = `${PREFIX}/SEARCH`;
 export const LAYER_COMPUTATION_START = `${PREFIX}/LAYER_COMPUTATION_START`;
 
 export const UI_TOGGLE = `${PREFIX}/UI_TOGGLE`;
+export const UI_SET_THEME = `${PREFIX}/UI_SET_THEME`;
+
 export const CLEAR_SELECTION = `${PREFIX}/CLEAR_SELECTION`;
 
 export const LAYER_CREATE = `${PREFIX}/LAYER_CREATE`;

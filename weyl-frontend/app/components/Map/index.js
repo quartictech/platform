@@ -60,7 +60,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       container: "map-inner",
       style: mapThemes[this.props.map.theme].mapbox,
       zoom: 9.7,
-      center: [-0.10, 51.4800],
+      center: [-0.0915, 51.5174],
     });
 
     this.map.dragRotate.disable();

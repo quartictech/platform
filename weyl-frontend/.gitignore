@@ -3,4 +3,3 @@ coverage
 build
 node_modules
 stats.json
-semantic/

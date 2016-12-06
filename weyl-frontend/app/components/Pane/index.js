@@ -1,28 +1,45 @@
 import React from "react";
+import {
+  Classes,
+} from "@blueprintjs/core";
+import classNames from "classnames";
 import styles from "./styles.css";
-
-// HACK: For whatever reason, we don't get a pointer cursor on hover without this
-const nullLink = "javascript:;";  // eslint-disable-line no-script-url
 
 const Pane = ({
   title,
+  iconName,
   visible,
+  extraHeaderContent,
   onClose,
   children,
 }) => (
-  <div className={styles.pane} style={{ "visibility": visible ? "visible" : "hidden" }}>
-    <div className="ui raised fluid segment">
+  <div
+    className={classNames(Classes.DARK, Classes.CARD, Classes.ELEVATION_3, styles.pane)}
+    style={{ overflow: "auto", display: visible ? "flex" : "none", flexDirection: "column" }}
+  >
+    <div className={Classes.DIALOG_HEADER}>
+      <span className={classNames(Classes.ICON_STANDARD, Classes.iconClass(iconName))}></span>
+      <h5>{title}</h5>
+      {extraHeaderContent}
       {
-        title && (
-          <h4 className="ui header">
-            <a href={nullLink}>
-              <i className="icon close" onClick={onClose}></i>
-            </a>
-            {title}
-          </h4>
-        )
+        onClose
+          ? (
+          <button
+            aria-label="Close"
+            className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
+            onClick={onClose}
+          />
+          )
+          : null
       }
-      {children}
+    </div>
+    <div
+      className={Classes.DIALOG_BODY}
+      style={{ margin: "10px", flex: 1 }}
+    >
+      <div style={{ height: "100%", flex: 1 }} >
+        {children}
+      </div>
     </div>
   </div>
 );

@@ -1,49 +1,26 @@
-/**
-*
-* LineChart
-*
-*/
-
 import React from "react";
-
-import styles from "./styles.css";
-
+import {
+  Position,
+} from "@blueprintjs/core";
 import SizeMe from "react-sizeme";
 import * as Plottable from "plottable";
-import "plottable/plottable.css";
-import classNames from "classnames";
-import { Dropdown } from "semantic-ui-react";
+import NormalPicker from "../NormalPicker";
+import Pane from "../Pane";
+import styles from "./styles.css";
 
-const AttributePicker = ({ selected, attributes, onChange }) => {
-  const options = attributes.map(attribute => ({ text: attribute, value: attribute }));
-  return (
-    <Dropdown
-      selection
-      className="mini"
-      disabled={attributes.length === 0}
-      options={options}
-      value={selected}
-      onChange={onChange}
-      placeholder="Pick an attribute"
-    />
-);
-};
-
-/* eslint-enable no-param-reassign */
 class Chart extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
     super();
     this.state = { selectedAttribute: undefined };
     this.createChart();
+
+    this.onAttributeChange = this.onAttributeChange.bind(this);
   }
 
   createChart() {
-    const xScale = new Plottable.Scales.Time()
-      .domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
+    const xScale = new Plottable.Scales.Time().domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
     const yScale = new Plottable.Scales.Linear();
-    const xAxis = new Plottable.Axes.Time(xScale, "bottom")
-      .yAlignment("center");
-
+    const xAxis = new Plottable.Axes.Time(xScale, "bottom").yAlignment("center");
     const yAxis = new Plottable.Axes.Numeric(yScale, "left");
 
     this.colorScale = new Plottable.Scales.Color();
@@ -53,9 +30,7 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     this.plot.attr("stroke", (d, i, dataset) => dataset.metadata().name, this.colorScale);
     this.plot.autorangeMode("x");
 
-    const legend = new Plottable.Components.Legend(this.colorScale).xAlignment("left")
-      .maxEntriesPerRow(3);
-    // const gridlines = new Plottable.Components.Gridlines(xScale, yScale);
+    const legend = new Plottable.Components.Legend(this.colorScale).xAlignment("left").maxEntriesPerRow(3);
     const group = new Plottable.Components.Group([this.plot, yAxis]);
     this.chart = new Plottable.Components.Table([
       [legend],
@@ -103,38 +78,34 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
     this.updateChart(nextData);
   }
 
-  onAttributeChange({ value }) {
+  onAttributeChange(value) {
     this.setState({ selectedAttribute: value });
   }
 
   render() {
-    const attributes = this.getAttributes(this.props.timeSeries);
-
     if (this.chart) {
       this.chart.redraw();
     }
     return (
-      <div style={{ "visibility": this.props.visible ? "visible" : "hidden" }} className={styles.chart}>
-        <div className={classNames("ui", "card", "fluid", styles.card)}>
-          <div className={classNames("ui", "content", styles.content)}>
-            <div className="header">
-              <a>
-                <i className="icon close" onClick={() => this.props.onUiToggle("chart")}></i>
-              </a>
-              <div className="right floated">
-                <AttributePicker
-                  selected={this.state.selectedAttribute}
-                  attributes={attributes}
-                  onChange={(e, v) => this.onAttributeChange(v)}
-                />
-              </div>
-            </div>
-            <div className={styles.plotArea}>
-              <svg id="example" />
-            </div>
-          </div>
+      <Pane
+        title="Chart"
+        iconName="chart"
+        visible={this.props.visible}
+        extraHeaderContent={
+          <NormalPicker
+            iconName="timeline-line-chart"
+            position={Position.TOP}
+            selected={this.state.selectedAttribute}
+            entries={this.getAttributes(this.props.timeSeries)}
+            onChange={this.onAttributeChange}
+          />
+        }
+        onClose={() => this.props.onUiToggle("chart")}
+      >
+        <div className={styles.plotArea}>
+          <svg id="example" style={{ height: "110%" }} />
         </div>
-      </div>
+      </Pane>
     );
   }
 }

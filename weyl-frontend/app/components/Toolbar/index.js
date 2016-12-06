@@ -1,74 +1,130 @@
 import React from "react";
-
-import "lato-font/css/lato-font.css";
-import styles from "./styles.css";
-
+import {
+  Button,
+  Classes,
+  IconContents,
+  Menu,
+  MenuItem,
+  Popover,
+  Position,
+} from "@blueprintjs/core";
+import * as classNames from "classnames";
+import * as _ from "underscore";
 import Search from "../Search";
-import classNames from "classnames";
 import { mapThemes } from "../../themes";
-const $ = require("jquery");
+import styles from "./styles.css";
 import logo from "./quartic.svg";
 
 function Toolbar(props) {
-  const bucketClassNames = classNames("item", { "active": props.ui.layerOp === "bucket" });
-  const geofenceClassNames = classNames("item", { "active": props.ui.layerOp === "geofence" });
-  const layerListClassNames = classNames("item", { "active": props.ui.panels.layerList });
-  const chartClassNames = classNames("item", { "active": props.ui.panels.chart });
-  const themeClassNames = classNames("item");
-
-  const itemStyle = { paddingTop: "7px", paddingBottom: "0px" };
-
   return (
     <div className={styles.toolbar}>
-      <div className="ui raised fluid segment inverted" style={{ padding: "5px" }}>
-        <div className="ui small menu compact inverted labeled icon">
-          <div className="header item" style={itemStyle}>
+      <nav className="pt-navbar pt-dark">
+        <div className="pt-navbar-group pt-align-left">
+          <img
+            className={styles.logo}
+            src={logo}
+            role="presentation"
+          />
 
-            <img
-              className={styles.logo}
-              src={logo}
-              role="presentation"
-              data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
-              data-variation="mini"
-              ref={x => $(x).popup()}
-            >
-            </img>
-            <span className={styles.brand}>Quartic</span>
-          </div>
+          <span className="pt-navbar-divider"></span>
 
-          <div className="right menu">
-            <a className={themeClassNames} onClick={() => props.onUiToggle("theme")} style={itemStyle}>
-              <i className={`icon ${mapThemes[props.ui.settings.theme].icon}`}></i>
-              {mapThemes[props.ui.settings.theme].label}
-            </a>
-            <a className={layerListClassNames} onClick={() => props.onUiToggle("layerList")} style={itemStyle}>
-              <i className="icon list"></i>
-              Layers
-            </a>
-            <a className={bucketClassNames} onClick={() => props.onUiToggle("bucket")} style={itemStyle}>
-              <i className="icon object group"></i>
-              Bucket
-            </a>
-            <a className={geofenceClassNames} onClick={() => props.onUiToggle("geofence")} style={itemStyle}>
-              <i className="icon crop"></i>
-              Geofence
-            </a>
-            <a className={chartClassNames} onClick={() => props.onUiToggle("chart")} style={itemStyle}>
-              <i className="icon area chart"></i>
-              Chart
-            </a>
-            <div className="item" style={itemStyle}>
-              <Search
-                onSearch={props.onSearch}
-                onSelectLayer={props.onSelectLayer}
-                onSelectPlace={props.onSelectPlace}
-              />
-            </div>
+          <Search
+            onSearch={props.onSearch}
+            onSelectLayer={props.onSelectLayer}
+            onSelectPlace={props.onSelectPlace}
+          />
+
+          <span className="pt-navbar-divider"></span>
+
+          <Button
+            text="Layers"
+            iconName="layers"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList })}
+            onClick={() => props.onUiToggle("layerList")}
+          />
+
+          <Button
+            text="Compute"
+            iconName="calculator"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") })}
+            onClick={() => props.onUiToggle("calculate")}
+          />
+
+          <Button
+            text="Geofence"
+            iconName="polygon-filter"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "geofence") })}
+            onClick={() => props.onUiToggle("geofence")}
+          />
+
+          <Button
+            text="Chart"
+            iconName="chart"
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart })}
+            onClick={() => props.onUiToggle("chart")}
+          />
+
+          <span className="pt-navbar-divider"></span>
+
+          <div className={Classes.BUTTON_GROUP}>
+            <ThemePicker
+              selected={props.ui.settings.theme}
+              onSelect={props.onSetTheme}
+            />
+            <Info />
           </div>
         </div>
-      </div>
+      </nav>
     </div>
   );
 }
+
+const Info = () => (
+  <Popover
+    content={
+      <div>
+        <h5>Quartic Map</h5>
+        <p>
+          <b>Version:</b> {process.env.BUILD_VERSION || "unknown"}
+        </p>
+      </div>
+    }
+    popoverClassName="pt-popover-content-sizing"
+    position={Position.BOTTOM}
+  >
+    <Button
+      className={Classes.MINIMAL}
+      iconName="info-sign"
+    />
+  </Popover>
+);
+
+const ThemePicker = ({ selected, onSelect }) => {
+  const menu = (
+    <Menu>
+      {_.map(mapThemes, (theme, key) =>
+        <MenuItem
+          key={key}
+          text={theme.label}
+          iconName={theme.icon}
+          label={(selected === key) ? IconContents.TICK : ""}
+          onClick={() => onSelect(key)}
+        />
+      )}
+    </Menu>
+  );
+
+  return (
+    <Popover
+      content={menu}
+      position={Position.BOTTOM}
+    >
+      <Button
+        className={Classes.MINIMAL}
+        iconName="settings"
+      />
+    </Popover>
+  );
+};
 
 export default Toolbar;
