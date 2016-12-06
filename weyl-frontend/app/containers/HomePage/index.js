@@ -1,4 +1,9 @@
 import React from "react";
+import {
+  Intent,
+} from "@blueprintjs/core";
+
+import { OurToaster } from "./weirdness";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
 import ComputePane from "../../components/ComputePane";
@@ -17,6 +22,28 @@ import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  constructor(props) {
+    super(props);
+    this.key = 0;
+
+    this.goodToast = {
+      message: "Wow! Great stuff!",
+      intent: Intent.SUCCESS,
+      iconName: "tick",
+      action: {
+        text: "Yum",
+      },
+    };
+
+    this.badToast = {
+      message: "Something bad occurred",
+      intent: Intent.DANGER,
+      iconName: "warning-sign",
+      action: {
+        text: "Yum",
+      },
+    };
+  }
 
   render() {
     return (
@@ -47,6 +74,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
             onSetTheme={this.props.onSetTheme}
+            onTriggerToast={() => { console.log(this.key++); OurToaster.show(((this.key % 2) === 0) ? this.goodToast : this.badToast) }}
           />
         </div>
 
