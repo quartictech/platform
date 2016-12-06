@@ -104,42 +104,30 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => {
   const numFeatures = _.size(featureAttributes);
 
   return (
-    <Table
-      numRows={_.size(filteredOrder)}
-      isColumnResizable={false}
-      columnWidths={Array(numFeatures).fill(75)}
-      renderRowHeader={(row) => <MyRowHeaderCell name={filteredOrder[row]} />}
-    >
+    <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%" }}>
       {
-        _.map(featureAttributes, (attributeMap, id) => {
-          return (
-            <Column
-              key={id}
-              name={behavior.title(attributeMap)}
-              renderCell={row => <Cell>{attributeMap[filteredOrder[row]]}</Cell>}
-            />
-          );
-        })
+        (_.size(featureAttributes) > 1) &&
+          <thead>
+            <tr>
+              <th />
+              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
+            </tr>
+          </thead>
       }
-    </Table>
+      <tbody>
+        {order
+          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
+          .map(key => (
+            <tr key={key}>
+              <td style={{textAlign: "right"}}>{key}</td>
+              {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
   );
 };
-
-const MyRowHeaderCell = ({ name }) => (
-  <Tooltip
-    content={name}
-    position={Position.LEFT}
-    hoverOpenDelay={50}
-  >
-    <div className="bp-table-header" style={{ width: "75px" }}>
-        <div className="bp-table-row-name">
-            <div className="bp-table-row-name-text bp-table-truncated-text">
-                {name}
-            </div>
-        </div>
-    </div>
-  </Tooltip>
-);
 
 const isAttributeDisplayable = (key, attributes) =>
   !key.startsWith("_") && (key in attributes) && (String(attributes[key]).trim() !== "");
