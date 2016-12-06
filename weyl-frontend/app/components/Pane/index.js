@@ -35,9 +35,9 @@ const Pane = ({
     </div>
     <div
       className={Classes.DIALOG_BODY}
-      style={{ margin: "10px", flex: 1}}
+      style={{ margin: "10px", flex: 1 }}
     >
-      <div style = {{ height: "100%", flex: 1}} >
+      <div style={{ height: "100%", flex: 1 }} >
         {children}
       </div>
     </div>
