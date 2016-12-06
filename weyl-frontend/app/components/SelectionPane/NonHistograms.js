@@ -83,28 +83,44 @@ const Image = ({ url }) => {
 };
 
 const AttributesTable = ({ featureAttributes, behavior, order }) => (
-  <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%", tableLayout: "fixed" }}>
-    {
-      (_.size(featureAttributes) > 1) &&
-        <thead>
-          <tr>
-            <th />
-            {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
-          </tr>
-        </thead>
-    }
-    <tbody>
-      {order
-        .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
-        .map(key => (
-          <tr key={key}>
-            <th style={{ textAlign: "right" }}>{key}</th>
-            {_.map(featureAttributes, (attrs, id) => <td style={{ wordWrap: "break-word" }} key={id}>{attrs[key]}</td>)}
-          </tr>
-        ))
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
+    <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%", tableLayout: "fixed" }}>
+      {
+        (_.size(featureAttributes) > 1) &&
+          <thead>
+            <tr>
+              <th />
+              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
+            </tr>
+          </thead>
       }
-    </tbody>
-  </table>
+      <tbody>
+        {order
+          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
+          .map(key => (
+            <tr key={key}>
+              <td
+                style={{ textAlign: "right", wordWrap: "break-word" }}
+              >
+                <small>{key}</small>
+              </td>
+              {
+                _.map(featureAttributes, (attrs, id) => (
+                  <td
+                    className="bp-table-cell-client"
+                    style={{ fontWeight: "bold", wordWrap: "break-word" }}
+                    key={id}
+                  >
+                    <small>{attrs[key]}</small>
+                  </td>
+                ))
+              }
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
 );
 
 const isAttributeDisplayable = (key, attributes) =>
