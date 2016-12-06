@@ -29,6 +29,7 @@ import { FocusStyleManager } from "@blueprintjs/core";
 FocusStyleManager.onlyShowFocusOnTabs();      // To avoid annoying blue outlines
 import "roboto-fontface/css/roboto/roboto-fontface.css";
 require("semantic-ui/dist/semantic");
+import "./plottable.css.global";
 
 // Create redux store with history
 const underlyingHistory = createMemoryHistory();

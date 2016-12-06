@@ -4,7 +4,6 @@ import {
 } from "@blueprintjs/core";
 import SizeMe from "react-sizeme";
 import * as Plottable from "plottable";
-import "plottable/plottable.css";
 import NormalPicker from "../NormalPicker";
 import Pane from "../Pane";
 import styles from "./styles.css";
