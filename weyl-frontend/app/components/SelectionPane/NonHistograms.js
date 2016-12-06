@@ -4,8 +4,17 @@ import {
   Classes,
   Collapse,
   Overlay,
+  Position,
   Spinner,
+  Tooltip,
 } from "@blueprintjs/core";
+import {
+  Cell,
+  Column,
+  ColumnHeaderCell,
+  RowHeaderCell,
+  Table,
+} from "@blueprintjs/table";
 import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
 import * as $ from "jquery";
@@ -33,19 +42,17 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
         />
         <div style={{ textAlign: "center" }}>
           <Button
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: this.state.moreAttributesVisible })}
+            className={Classes.MINIMAL}
             iconName="more"
             onClick={() => this.setState({ moreAttributesVisible: !this.state.moreAttributesVisible })}
           />
         </div>
         <Collapse isOpen={this.state.moreAttributesVisible}>
-          <div className="content">
-            <AttributesTable
-              featureAttributes={this.props.featureAttributes}
-              behavior={this.props.behavior}
-              order={this.props.behavior.isAnythingBlessed ? this.props.behavior.unblessedAttributeOrder : this.props.behavior.blessedAttributeOrder}
-            />
-          </div>
+          <AttributesTable
+            featureAttributes={this.props.featureAttributes}
+            behavior={this.props.behavior}
+            order={this.props.behavior.isAnythingBlessed ? this.props.behavior.unblessedAttributeOrder : this.props.behavior.blessedAttributeOrder}
+          />
         </Collapse>
       </div>
     );
@@ -84,36 +91,54 @@ const Image = ({ url }) => {
   const isVideo = url.endsWith(".mp4");
 
   return (isVideo
-    ? <video className="ui fluid image" autoPlay loop src={url} />
-    : <img role="presentation" className="ui fluid image" src={url} />
+    ? <video autoPlay loop src={url} style={{ width: "100%", height: "100%" }} />
+    : <img role="presentation" src={url} style={{ width: "100%", height: "100%" }} />
   );
 };
 
-const AttributesTable = ({ featureAttributes, behavior, order }) => (
-  <div style={{ maxHeight: "30em", overflow: "auto" }}>
-    <table className="ui celled very compact small fixed selectable definition table">
+const AttributesTable = ({ featureAttributes, behavior, order }) => {
+  const filteredOrder = order.filter(name => _.some(
+    _.values(featureAttributes),
+    attrs => isAttributeDisplayable(name, attrs)
+  ));
+  const numFeatures = _.size(featureAttributes);
+
+  return (
+    <Table
+      numRows={_.size(filteredOrder)}
+      isColumnResizable={false}
+      columnWidths={Array(numFeatures).fill(75)}
+      renderRowHeader={(row) => <MyRowHeaderCell name={filteredOrder[row]} />}
+    >
       {
-        (_.size(featureAttributes) > 1) &&
-          <thead>
-            <tr>
-              <th />
-              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
-            </tr>
-          </thead>
+        _.map(featureAttributes, (attributeMap, id) => {
+          return (
+            <Column
+              key={id}
+              name={behavior.title(attributeMap)}
+              renderCell={row => <Cell>{attributeMap[filteredOrder[row]]}</Cell>}
+            />
+          );
+        })
       }
-      <tbody>
-        {order
-          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
-          .map(key => (
-            <tr key={key}>
-              <td className="right aligned">{key}</td>
-              {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </div>
+    </Table>
+  );
+};
+
+const MyRowHeaderCell = ({ name }) => (
+  <Tooltip
+    content={name}
+    position={Position.LEFT}
+    hoverOpenDelay={50}
+  >
+    <div className="bp-table-header" style={{ width: "75px" }}>
+        <div className="bp-table-row-name">
+            <div className="bp-table-row-name-text bp-table-truncated-text">
+                {name}
+            </div>
+        </div>
+    </div>
+  </Tooltip>
 );
 
 const isAttributeDisplayable = (key, attributes) =>
