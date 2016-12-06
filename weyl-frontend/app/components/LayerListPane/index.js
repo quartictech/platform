@@ -180,7 +180,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
                 text={theme.name}
                 label={
                   <span
-                    className={classNames(Classes.iconClass("tint"), Classes.ICON_STANDARD)}
+                    className={classNames(Classes.iconClass("layers"), Classes.ICON_STANDARD)}
                     style={styleFromTheme(theme)}
                   />
                 }
@@ -189,11 +189,26 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
             ))
           }
         </MenuItem>
+        <MenuItem iconName="tint" text="Colour by...">
+          {
+            _.keys(layer.attributeSchema.attributes)
+              .filter(k => layer.attributeSchema.attributes[k].type === "NUMERIC")
+              .sort(naturalsort)
+              .map(k =>
+                <MenuItem
+                  key={k}
+                  text={k}
+                  iconName="property"
+                  onClick={() => this.props.onLayerStyleChange(layer.id, "ATTRIBUTE", k)}
+                />
+              )
+          }
+        </MenuItem>
+        <MenuDivider />
         <MenuItem iconName="info-sign" text="Info">
           <MenuItem text={`Description: ${layer.metadata.description}`} disabled />
           <MenuItem text={`Attribution: ${layer.metadata.attribution}`} disabled />
         </MenuItem>
-        <MenuDivider />
         <MenuItem
           iconName="cross"
           text="Remove"
@@ -223,7 +238,5 @@ const styleFromTheme = (theme) => ({
   color: theme.line,
   backgroundColor: theme.fill,
 });
-
-// onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), "ATTRIBUTE", attribute)}
 
 export default LayerListPane;
