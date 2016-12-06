@@ -98,7 +98,7 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => (
         .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
         .map(key => (
           <tr key={key}>
-            <td style={{ textAlign: "right" }}>{key}</td>
+            <th style={{ textAlign: "right" }}>{key}</th>
             {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
           </tr>
         ))
