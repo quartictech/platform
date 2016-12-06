@@ -62,7 +62,7 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
       label: <small>{label}</small>,
       secondaryLabel: (
         <span>
-          <svg width="100" height="20">
+          <svg width="100" height="10">
             <g transform="translate(0,0)">
               <rect fill="#f5f8fa" width={90 * barLength} height="20"></rect>
             </g>
