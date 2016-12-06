@@ -47,6 +47,7 @@ class Search extends React.Component {
           placeholder="Search datasets..."
           value={this.state.query}
           onChange={(e) => this.setQuery(e.target.value)}
+          inputRef={(e) => e && (e.style.fontFamily = "Roboto-Light")}  // Hack because pt-input overrides font-family and no way to pass styles through InputGroup
         />
       </Popover>
     );
