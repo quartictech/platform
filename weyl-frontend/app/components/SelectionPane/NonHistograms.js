@@ -83,7 +83,7 @@ const Image = ({ url }) => {
 };
 
 const AttributesTable = ({ featureAttributes, behavior, order }) => (
-  <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%" }}>
+  <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%", tableLayout: "fixed" }}>
     {
       (_.size(featureAttributes) > 1) &&
         <thead>
@@ -99,7 +99,7 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => (
         .map(key => (
           <tr key={key}>
             <th style={{ textAlign: "right" }}>{key}</th>
-            {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
+            {_.map(featureAttributes, (attrs, id) => <td style={{ wordWrap: "break-word" }} key={id}>{attrs[key]}</td>)}
           </tr>
         ))
       }
