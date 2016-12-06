@@ -13,9 +13,7 @@ function ConnectionStatus(props) {
     >
       <div className={Classes.DIALOG_BODY}>
         <div style={{ textAlign: "center" }}>
-          <Spinner
-            className={Classes.LARGE}
-          />
+          <Spinner className={Classes.LARGE} />
           <h5>Re-establishing connection...</h5>
         </div>
       </div>

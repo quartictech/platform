@@ -1,9 +1,19 @@
 import React from "react";
+import {
+  Button,
+  Classes,
+  Collapse,
+  Overlay,
+  Spinner,
+} from "@blueprintjs/core";
+import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
+import * as $ from "jquery";
+import * as _ from "underscore";
+
 import Pane from "../Pane";
+import NonHistograms from "./NonHistograms";
 import { defaultTitle, curatedTitles } from "./behaviors";
-const $ = require("jquery");
-const _ = require("underscore");
 
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -32,15 +42,14 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         onClose={this.props.onClose}
       >
         {
-          (loaded)
-            ? null
-            : <div className="ui active indeterminate massive text loader">Loading...</div>
-        }
-
-        {
           (histogramEnabled(entityIds))
             ? <Histograms histograms={histograms} />
-            : <NonHistograms featureAttributes={attributes} layer={singleLayer(entityIds, layers)} />
+            : (
+              <NonHistograms
+                featureAttributes={attributes}
+                behavior={getBehavior(singleLayer(entityIds, layers))}
+              />
+            )
         }
       </Pane>
     );
@@ -54,102 +63,6 @@ const histogramEnabled = (entityIds) =>
 const numEntities = (entityIds) => _.size(_.flatten(_.values(entityIds)));
 
 const singleLayer = (entityIds, layers) => layers[_.keys(entityIds)[0]];
-
-const NonHistograms = ({ featureAttributes, layer }) => {
-  const behavior = getBehavior(layer);
-  return (
-    <div>
-      <Media featureAttributes={featureAttributes} behavior={behavior} />
-      <AttributesTable
-        featureAttributes={featureAttributes}
-        behavior={behavior}
-        order={behavior.isAnythingBlessed ? behavior.blessedAttributeOrder : behavior.unblessedAttributeOrder}
-      />
-      <div>
-        <div className="ui accordion" ref={x => $(x).accordion()}>
-          <div className="title">
-            <i className="dropdown icon"></i>
-            More attributes
-          </div>
-
-          <div className="content">
-            <AttributesTable
-              featureAttributes={featureAttributes}
-              behavior={behavior}
-              order={behavior.isAnythingBlessed ? behavior.unblessedAttributeOrder : behavior.blessedAttributeOrder}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Media = ({ featureAttributes, behavior }) => {
-  if (behavior.imageUrlKey) {
-    if (_.size(featureAttributes) === 1) {
-      return (
-        <Image url={_.values(featureAttributes)[0][behavior.imageUrlKey]} />
-      );
-    }
-
-    return (
-      <table className="ui very basic very compact small fixed table">
-        <tbody>
-          <tr>
-            {_.map(featureAttributes, (attrs, id) =>
-              <td key={id}><Image url={attrs[behavior.imageUrlKey]} /></td>
-            )}
-          </tr>
-        </tbody>
-      </table>
-    );
-  }
-
-  return null;
-};
-
-const Image = ({ url }) => {
-  if (!url) {
-    return null;
-  }
-
-  const isVideo = url.endsWith(".mp4");
-
-  return (isVideo ?
-    <video className="ui fluid image" autoPlay loop src={url} />
-    : <img role="presentation" className="ui fluid image" src={url} />);
-};
-
-const AttributesTable = ({ featureAttributes, behavior, order }) => (
-  <div style={{ maxHeight: "30em", overflow: "auto" }}>
-    <table className="ui celled very compact small fixed selectable definition table">
-      {
-        (_.size(featureAttributes) > 1) &&
-          <thead>
-            <tr>
-              <th />
-              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
-            </tr>
-          </thead>
-      }
-      <tbody>
-        {order
-          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
-          .map(key => (
-            <tr key={key}>
-              <td className="right aligned">{key}</td>
-              {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </div>
-);
-
-const isAttributeDisplayable = (key, attributes) =>
-  !key.startsWith("_") && (key in attributes) && (String(attributes[key]).trim() !== "");
 
 // TODO: blessed vs. non-blessed
 const Histograms = ({ histograms }) => (
