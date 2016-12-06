@@ -3,20 +3,7 @@ import {
   Button,
   Classes,
   Collapse,
-  Position,
-  Spinner,
-  Tooltip,
 } from "@blueprintjs/core";
-import {
-  Cell,
-  Column,
-  ColumnHeaderCell,
-  RowHeaderCell,
-  Table,
-} from "@blueprintjs/table";
-import classNames from "classnames";
-import naturalsort from "javascript-natural-sort";
-import * as $ from "jquery";
 import * as _ from "underscore";
 
 class NonHistograms extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -56,7 +43,7 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
       </div>
     );
   }
-};
+}
 
 const Media = ({ featureAttributes, behavior }) => {
   if (behavior.imageUrlKey) {
@@ -95,37 +82,30 @@ const Image = ({ url }) => {
   );
 };
 
-const AttributesTable = ({ featureAttributes, behavior, order }) => {
-  const filteredOrder = order.filter(name => _.some(
-    _.values(featureAttributes),
-    attrs => isAttributeDisplayable(name, attrs)
-  ));
-
-  return (
-    <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%" }}>
-      {
-        (_.size(featureAttributes) > 1) &&
-          <thead>
-            <tr>
-              <th />
-              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
-            </tr>
-          </thead>
+const AttributesTable = ({ featureAttributes, behavior, order }) => (
+  <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%" }}>
+    {
+      (_.size(featureAttributes) > 1) &&
+        <thead>
+          <tr>
+            <th />
+            {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
+          </tr>
+        </thead>
+    }
+    <tbody>
+      {order
+        .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
+        .map(key => (
+          <tr key={key}>
+            <td style={{ textAlign: "right" }}>{key}</td>
+            {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
+          </tr>
+        ))
       }
-      <tbody>
-        {order
-          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
-          .map(key => (
-            <tr key={key}>
-              <td style={{ textAlign: "right" }}>{key}</td>
-              {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  );
-};
+    </tbody>
+  </table>
+);
 
 const isAttributeDisplayable = (key, attributes) =>
   !key.startsWith("_") && (key in attributes) && (String(attributes[key]).trim() !== "");

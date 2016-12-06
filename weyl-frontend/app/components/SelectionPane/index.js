@@ -3,7 +3,6 @@ import {
   Classes,
   Spinner,
 } from "@blueprintjs/core";
-import * as $ from "jquery";
 import * as _ from "underscore";
 import naturalsort from "javascript-natural-sort";
 
@@ -45,7 +44,8 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
             attributes={attributes}
             layers={layers}
           />
-        : <div style={{ width: "100%", textAlign: "center"}}>
+        :
+          <div style={{ width: "100%", textAlign: "center" }}>
             <Spinner className={Classes.LARGE} />
           </div>
         }
@@ -54,17 +54,17 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-const SelectionView = ({entityIds, histograms, attributes, layers}) => {
-    if (histogramEnabled(entityIds)) {
-      return <Histograms histograms={histograms} />
-    }
-    return (
-      <NonHistograms
-        featureAttributes={attributes}
-        behavior={getBehavior(singleLayer(entityIds, layers))}
-      />
+const SelectionView = ({ entityIds, histograms, attributes, layers }) => {
+  if (histogramEnabled(entityIds)) {
+    return <Histograms histograms={histograms} />;
+  }
+  return (
+    <NonHistograms
+      featureAttributes={attributes}
+      behavior={getBehavior(singleLayer(entityIds, layers))}
+    />
   );
-}
+};
 
 // entityIds is an object { layerId -> [entityIds] }
 const histogramEnabled = (entityIds) =>
@@ -73,8 +73,6 @@ const histogramEnabled = (entityIds) =>
 const numEntities = (entityIds) => _.size(_.flatten(_.values(entityIds)));
 
 const singleLayer = (entityIds, layers) => layers[_.keys(entityIds)[0]];
-
-
 
 const getBehavior = (layer) => {
   const layerName = layer.metadata.name;
