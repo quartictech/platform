@@ -33,6 +33,11 @@ module.exports = (options) => ({
       include: /node_modules/,
       loaders: ['style-loader', 'css-loader'],
     }, {
+      // CSS files named appropriately get loaded into global scope (for plottable)
+      test: /\.css.global$/,
+      exclude: /node_modules/,
+      loaders: ['style-loader', 'css-loader'],
+    }, {
       test: /\.(eot|svg|ttf|woff|woff2)$/,
       loader: 'file-loader',
     }, {
