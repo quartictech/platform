@@ -3,7 +3,6 @@ import {
   Button,
   Classes,
   Collapse,
-  Overlay,
   Position,
   Spinner,
   Tooltip,
@@ -101,7 +100,6 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => {
     _.values(featureAttributes),
     attrs => isAttributeDisplayable(name, attrs)
   ));
-  const numFeatures = _.size(featureAttributes);
 
   return (
     <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%" }}>
@@ -119,7 +117,7 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => {
           .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
           .map(key => (
             <tr key={key}>
-              <td style={{textAlign: "right"}}>{key}</td>
+              <td style={{ textAlign: "right" }}>{key}</td>
               {_.map(featureAttributes, (attrs, id) => <td key={id}>{attrs[key]}</td>)}
             </tr>
           ))
