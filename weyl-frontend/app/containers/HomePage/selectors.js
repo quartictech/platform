@@ -9,11 +9,11 @@ export const selectUi = createSelector(selectHome, p => p.ui);
 export const selectSelection = createSelector(selectHome, p => p.selection);
 export const selectGeofence = createSelector(selectHome, p => p.geofence);
 export const selectConnectionUp = createSelector(selectHome, p => p.connection);
-export const selectSubscriptions = createSelector(selectHome, p => p.subscriptions);
+export const selectSubscriptions = createSelector(selectHomeImmutable, p => p.get("subscriptions"));
 
-export const selectChart = createSelector(selectSubscriptions, p => p.chart);
-export const selectHistograms = createSelector(selectSubscriptions, p => p.histograms);
-export const selectAttributes = createSelector(selectSubscriptions, p => p.attributes);
+export const selectChart = createSelector(selectSubscriptions, p => p.get("chart"));
+export const selectHistograms = createSelector(selectSubscriptions, p => p.get("histograms"));
+export const selectAttributes = createSelector(selectSubscriptions, p => p.get("attributes"));
 
 export const selectLiveLayerIds = createSelector(selectLayers,
   (layers) => _.values(layers.toJS())

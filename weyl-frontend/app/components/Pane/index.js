@@ -15,7 +15,7 @@ const Pane = ({
 }) => (
   <div
     className={classNames(Classes.DARK, Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-    style={{ overflow: "scroll", display: visible ? "block" : "none" }}
+    style={{ overflow: "auto", display: visible ? "flex" : "none", flexDirection: "column" }}
   >
     <div className={Classes.DIALOG_HEADER}>
       <span className={classNames(Classes.ICON_STANDARD, Classes.iconClass(iconName))}></span>
@@ -35,9 +35,11 @@ const Pane = ({
     </div>
     <div
       className={Classes.DIALOG_BODY}
-      style={{ margin: "10px", height: "100%" }}
+      style={{ margin: "10px", flex: 1 }}
     >
-      {children}
+      <div style={{ height: "100%", flex: 1 }} >
+        {children}
+      </div>
     </div>
   </div>
 );

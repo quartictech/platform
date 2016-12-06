@@ -3,21 +3,7 @@ import {
   Button,
   Classes,
   Collapse,
-  Overlay,
-  Position,
-  Spinner,
-  Tooltip,
 } from "@blueprintjs/core";
-import {
-  Cell,
-  Column,
-  ColumnHeaderCell,
-  RowHeaderCell,
-  Table,
-} from "@blueprintjs/table";
-import classNames from "classnames";
-import naturalsort from "javascript-natural-sort";
-import * as $ from "jquery";
 import * as _ from "underscore";
 
 class NonHistograms extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -57,7 +43,7 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
       </div>
     );
   }
-};
+}
 
 const Media = ({ featureAttributes, behavior }) => {
   if (behavior.imageUrlKey) {
@@ -96,49 +82,45 @@ const Image = ({ url }) => {
   );
 };
 
-const AttributesTable = ({ featureAttributes, behavior, order }) => {
-  const filteredOrder = order.filter(name => _.some(
-    _.values(featureAttributes),
-    attrs => isAttributeDisplayable(name, attrs)
-  ));
-  const numFeatures = _.size(featureAttributes);
-
-  return (
-    <Table
-      numRows={_.size(filteredOrder)}
-      isColumnResizable={false}
-      columnWidths={Array(numFeatures).fill(75)}
-      renderRowHeader={(row) => <MyRowHeaderCell name={filteredOrder[row]} />}
-    >
+const AttributesTable = ({ featureAttributes, behavior, order }) => (
+  <div style={{ maxHeight: "30em", overflow: "auto" }}>
+    <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%", tableLayout: "fixed" }}>
       {
-        _.map(featureAttributes, (attributeMap, id) => {
-          return (
-            <Column
-              key={id}
-              name={behavior.title(attributeMap)}
-              renderCell={row => <Cell>{attributeMap[filteredOrder[row]]}</Cell>}
-            />
-          );
-        })
+        (_.size(featureAttributes) > 1) &&
+          <thead>
+            <tr>
+              <th />
+              {_.map(featureAttributes, (attrs, id) => <th key={id}>{behavior.title(attrs)}</th>)}
+            </tr>
+          </thead>
       }
-    </Table>
-  );
-};
-
-const MyRowHeaderCell = ({ name }) => (
-  <Tooltip
-    content={name}
-    position={Position.LEFT}
-    hoverOpenDelay={50}
-  >
-    <div className="bp-table-header" style={{ width: "75px" }}>
-        <div className="bp-table-row-name">
-            <div className="bp-table-row-name-text bp-table-truncated-text">
-                {name}
-            </div>
-        </div>
-    </div>
-  </Tooltip>
+      <tbody>
+        {order
+          .filter(key => _.some(_.values(featureAttributes), attrs => isAttributeDisplayable(key, attrs)))
+          .map(key => (
+            <tr key={key}>
+              <td
+                style={{ textAlign: "right", wordWrap: "break-word" }}
+              >
+                <small>{key}</small>
+              </td>
+              {
+                _.map(featureAttributes, (attrs, id) => (
+                  <td
+                    className="bp-table-cell-client"
+                    style={{ fontWeight: "bold", wordWrap: "break-word" }}
+                    key={id}
+                  >
+                    <small>{attrs[key]}</small>
+                  </td>
+                ))
+              }
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
 );
 
 const isAttributeDisplayable = (key, attributes) =>
