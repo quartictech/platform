@@ -4,13 +4,9 @@ import {
   Classes,
   InputGroup,
   Intent,
-  Popover,
-  Position,
 } from "@blueprintjs/core";
-import classNames from "classnames";
 import * as _ from "underscore";
 import * as $ from "jquery";
-import Select from "../Select";
 import PredictingPicker from "../PredictingPicker";
 
 

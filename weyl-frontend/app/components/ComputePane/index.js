@@ -1,10 +1,7 @@
 import React from "react";
 import {
-  Classes,
   Position,
 } from "@blueprintjs/core";
-import classNames from "classnames";
-import * as _ from "underscore";
 import Pane from "../Pane";
 import NormalPicker from "../NormalPicker";
 import Bucket from "./Bucket";
@@ -16,7 +13,7 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
     this.state = {
       operation: "Bucket",
     };
-    this.onOperationChange= this.onOperationChange.bind(this);
+    this.onOperationChange = this.onOperationChange.bind(this);
   }
 
   render() {
@@ -38,14 +35,18 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
       >
         {
           (this.state.operation === "Bucket")
-            ? <Bucket
-                layers={this.props.layers}
-                onCompute={this.props.onCompute}
-              />
-            : <Buffer
-                layers={this.props.layers}
-                onCompute={this.props.onCompute}
-              />
+            ? (
+            <Bucket
+              layers={this.props.layers}
+              onCompute={this.props.onCompute}
+            />
+            )
+            : (
+            <Buffer
+              layers={this.props.layers}
+              onCompute={this.props.onCompute}
+            />
+            )
           }
       </Pane>
     );

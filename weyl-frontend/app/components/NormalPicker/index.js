@@ -7,8 +7,6 @@ import {
   MenuItem,
   Popover,
 } from "@blueprintjs/core";
-import classNames from "classnames";
-import * as _ from "underscore";
 
 const NormalPicker = ({
   iconName,

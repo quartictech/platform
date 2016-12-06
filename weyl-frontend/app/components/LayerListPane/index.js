@@ -8,9 +8,7 @@ import {
   MenuItem,
   Popover,
   PopoverInteractionKind,
-  PopoverPosition,
   Position,
-  Tag,
   Tree,
 } from "@blueprintjs/core";
 import classNames from "classnames";
@@ -18,7 +16,6 @@ import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
 
 import { layerThemes } from "../../themes";
-import LayerListItem from "./LayerListItem";
 import Pane from "../Pane";
 
 class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -51,7 +48,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           contents={this.state.nodes}
           onNodeExpand={n => n.onExpand()}
           onNodeCollapse={n => n.onCollapse()}
-          onNodeClick={(n, p, e) => (e.target.nodeName !== "BUTTON") && n.onClick() } // Because the buttons propagate events
+          onNodeClick={(n, p, e) => (e.target.nodeName !== "BUTTON") && n.onClick()} // Because the buttons propagate events
         />
       </Pane>
     );
@@ -123,14 +120,14 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       ..._.chain(categories)
         .sort(naturalsort)
         .map(c => this.attributeCategoryNode(c, !_.contains(filter.categories, c), () => onClick(c)))
-        .value()
+        .value(),
     ];
   }
 
   attributeCategoryNode(label, enabled, onClick) {
     return {
       id: label,
-      label: label,
+      label,
       secondaryLabel: (
         <Button
           iconName={enabled ? "eye-open" : "eye-off"}
@@ -139,7 +136,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           intent={enabled ? Intent.PRIMARY : Intent.NONE}
         />
       ),
-      onClick: onClick,
+      onClick,
       onExpand: () => {},
       onCollapse: () => {},
       updateExpansion: () => {},
@@ -147,13 +144,14 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   layerButtons(layer) {
+    const filterBasedIntent = this.filterActive(layer) ? Intent.WARNING : Intent.PRIMARY;
     return (
       <div className={Classes.BUTTON_GROUP}>
         <Button
           iconName={layer.visible ? "eye-open" : "eye-off"}
           onClick={() => this.props.layerToggleVisible(layer.id)}
           className={Classes.MINIMAL}
-          intent={layer.visible ? (this.filterActive(layer) ? Intent.WARNING : Intent.PRIMARY) : Intent.NONE}
+          intent={layer.visible ? filterBasedIntent : Intent.NONE}
         />
         <Popover
           autoFocus={false}
@@ -192,8 +190,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           }
         </MenuItem>
         <MenuItem iconName="info-sign" text="Info">
-          <MenuItem text={`Description: ${layer.metadata.description}`} disabled={true} />
-          <MenuItem text={`Attribution: ${layer.metadata.attribution}`} disabled={true} />
+          <MenuItem text={`Description: ${layer.metadata.description}`} disabled />
+          <MenuItem text={`Attribution: ${layer.metadata.attribution}`} disabled />
         </MenuItem>
         <MenuDivider />
         <MenuItem
@@ -202,7 +200,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           onClick={() => this.props.layerClose(layer.id)}
         />
       </Menu>
-    )
+    );
   }
 
   filterActive(layer) {
@@ -219,27 +217,13 @@ const recursivelyUpdateExpansionState = (nodes) => {
       recursivelyUpdateExpansionState(node.childNodes);
     });
   }
-}
+};
 
 const styleFromTheme = (theme) => ({
   color: theme.line,
   backgroundColor: theme.fill,
 });
 
-
-
-//   <LayerListItem
-//     key={layer.get("id")}
-//     layer={layer.toJS()}
-//     onButtonClick={(name) => this.onButtonClick(name, layer.get("id"))}
-//     onToggleValueVisible={this.props.onToggleValueVisible}
-//     onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), "ATTRIBUTE", attribute)}
-//     onLayerThemeChange={(idx) => this.props.onLayerStyleChange(layer.get("id"), "THEME", idx)}
-//     onBufferClick={(bufferDistance) => this.onBufferCompute(layer.get("id"), bufferDistance)}
-//     mode={(this.state.activeLayerId === layer.get("id")) ? this.state.activeMode : null}
-//   />
-// );
-
-
+// onLayerStyleChange={(attribute) => this.props.onLayerStyleChange(layer.get("id"), "ATTRIBUTE", attribute)}
 
 export default LayerListPane;

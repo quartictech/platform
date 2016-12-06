@@ -1,11 +1,5 @@
 import React from "react";
 import {
-  Button,
-  Classes,
-  IconContents,
-  Menu,
-  MenuItem,
-  Popover,
   Position,
 } from "@blueprintjs/core";
 import SizeMe from "react-sizeme";
