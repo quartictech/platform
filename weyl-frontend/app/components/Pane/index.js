@@ -15,7 +15,7 @@ const Pane = ({
 }) => (
   <div
     className={classNames(Classes.DARK, Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-    style={{ display: visible ? "block" : "none" }}
+    style={{ overflow: "scroll", display: visible ? "block" : "none" }}
   >
     <div className={Classes.DIALOG_HEADER}>
       <span className={classNames(Classes.ICON_STANDARD, Classes.iconClass(iconName))}></span>
