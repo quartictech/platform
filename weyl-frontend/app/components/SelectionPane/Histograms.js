@@ -1,57 +1,84 @@
 import React from "react";
 import naturalsort from "javascript-natural-sort";
-import * as $ from "jquery";
 import * as _ from "underscore";
 
+import {
+  Tree,
+} from "@blueprintjs/core";
+
 // TODO: blessed vs. non-blessed
-const Histograms = ({ histograms }) => (
-  <div style={{ maxHeight: "30em", overflow: "auto" }}>
-    <table className="ui celled very compact small fixed selectable table">
-      {
-        _.chain(histograms)
-          .sort((a, b) => naturalsort(a.attribute, b.attribute))
-          .map(histogram =>
-            <AttributeHistogram
-              key={histogram.attribute}
-              histogram={histogram}
-            />
-          )
-          .value()
-      }
-    </table>
-  </div>
-);
+class Histograms extends React.Component { // eslint-disable-line react/prefer-stateless-function
+  constructor() {
+    super();
+    this.state = {
+      activeAttribute: null,
+      nodes: [],
+    };
+  }
 
-const AttributeHistogram = ({ histogram }) => (
-  <tbody className="ui accordion" ref={x => $(x).accordion()}>
-    <tr className="title">
-      <td style={{ fontWeight: "bold" }}>
-        <i className="dropdown icon"></i>
-        {histogram.attribute}
-      </td>
-    </tr>
+  componentWillReceiveProps(nextProps) {
+    // We maintain the state for the tree, which we have to keep in-sync with props
+    if (nextProps.histograms !== this.props.histograms) {
+      this.setState({ nodes: this.attributeNodes(nextProps.histograms) });
+    }
+  }
 
-    <tr className="content">
-      <td>
-        <table className="ui celled very compact small fixed selectable definition table">
-          <tbody>
-            {
-              _.chain(histogram.buckets)
-                .sort((a, b) => naturalsort(a.value, b.value))  // Fall back to alphabetical
-                .sort((a, b) => b.count - a.count)              // Highest count first
-                .map(bucket =>
-                  <tr key={bucket.value}>
-                    <td className="right aligned">{bucket.value}</td>
-                    <td>{bucket.count}</td>
-                  </tr>
-                )
-                .value()
-            }
-          </tbody>
-        </table>
-      </td>
-    </tr>
-  </tbody>
-);
+  attributeNodes(histograms) {
+    return _.chain(histograms)
+      .sort((a, b) => naturalsort(a.attribute, b.attribute))
+      .map(h => {
+        const node = {
+          iconName: "property",
+          id: h.attribute,
+          label: h.attribute,
+          childNodes: this.bucketNodes(
+            h.buckets
+          ),
+        };
+        return node;
+      })
+      .value();
+  }
+
+  bucketNodes(buckets) {
+    return [
+      ..._.chain(buckets)
+        .sort((a, b) => naturalsort(a.value, b.value))  // Fall back to alphabetical
+        .sort((a, b) => b.count - a.count)              // Highest count first
+        .map(b => this.valueNode(b.value, b.count))
+        .value(),
+    ];
+  }
+
+  valueNode(label, count) {
+    return {
+      id: label,
+      label,
+      secondaryLabel: (
+        <span>
+          {count}
+        </span>
+      ),
+    };
+  }
+
+  nodeExpanded(node) {
+    node.isExpanded = true; // eslint-disable-line no-param-reassign
+    this.setState(this.state);
+  }
+
+  nodeCollapsed(node) {
+    node.isExpanded = false; // eslint-disable-line no-param-reassign
+    this.setState(this.state);
+  }
+
+  render() {
+    return (<Tree
+      contents={this.state.nodes}
+      onNodeExpand={n => this.nodeExpanded(n)}
+      onNodeCollapse={n => this.nodeCollapsed(n)}
+    />);
+  }
+}
 
 export default Histograms;
