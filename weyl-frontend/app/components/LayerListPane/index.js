@@ -98,7 +98,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         const node = {
           iconName: "property",
           id: k,
-          label: k,
+          label: <small>{k}</small>,
           childNodes: this.attributeCategoryNodes(
             attributes[k].categories,
             filter[k],
@@ -127,7 +127,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   attributeCategoryNode(label, enabled, onClick) {
     return {
       id: label,
-      label,
+      label: <small>{label}</small>,
       secondaryLabel: (
         <Button
           iconName={enabled ? "eye-open" : "eye-off"}

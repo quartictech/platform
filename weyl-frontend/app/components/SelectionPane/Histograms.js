@@ -34,7 +34,7 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
         const node = {
           iconName: "property",
           id: h.attribute,
-          label: h.attribute,
+          label: <small>{h.attribute}</small>,
           childNodes: this.bucketNodes(
             h.buckets
           ),
@@ -59,7 +59,7 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
     const barLength = maxValue > 0 ? (count / maxValue) : 0;
     return {
       id: label,
-      label,
+      label: <small>{label}</small>,
       secondaryLabel: (
         <span>
           <svg width="100" height="20">
