@@ -13,13 +13,17 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
     this.state = {
       activeAttribute: null,
       nodes: [],
+      histograms: null,
     };
   }
 
   componentWillReceiveProps(nextProps) {
     // We maintain the state for the tree, which we have to keep in-sync with props
-    if (nextProps.histograms !== this.props.histograms) {
-      this.setState({ nodes: this.attributeNodes(nextProps.histograms) });
+    if (nextProps.histograms !== this.state.histograms) {
+      this.setState({
+        nodes: this.attributeNodes(nextProps.histograms.toJS()),
+        histograms: nextProps.histograms,
+      });
     }
   }
 
@@ -41,21 +45,28 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
   }
 
   bucketNodes(buckets) {
+    const bucketMax = _.max(buckets, b => b.count).count;
     return [
       ..._.chain(buckets)
         .sort((a, b) => naturalsort(a.value, b.value))  // Fall back to alphabetical
         .sort((a, b) => b.count - a.count)              // Highest count first
-        .map(b => this.valueNode(b.value, b.count))
+        .map(b => this.valueNode(b.value, b.count, bucketMax))
         .value(),
     ];
   }
 
-  valueNode(label, count) {
+  valueNode(label, count, maxValue) {
+    const barLength = maxValue > 0 ? (count / maxValue) : 0;
     return {
       id: label,
       label,
       secondaryLabel: (
         <span>
+          <svg width="100" height="20">
+            <g transform="translate(0,0)">
+              <rect fill="#f5f8fa" width={90 * barLength} height="20"></rect>
+            </g>
+          </svg>
           {count}
         </span>
       ),

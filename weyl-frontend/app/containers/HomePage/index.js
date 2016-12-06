@@ -87,7 +87,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <SelectionPane
             selection={this.props.selection}
             histograms={this.props.histograms}
-            attributes={this.props.attributes}
+            attributes={this.props.attributes.toJS()}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
@@ -96,7 +96,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.bottomDrawer}>
           <Chart
             visible={this.props.ui.panels.chart}
-            timeSeries={this.props.chart.data}
+            timeSeries={this.props.chart.toJS().data}
             onUiToggle={this.props.onUiToggle}
           />
         </div>

@@ -15,7 +15,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
   render() {
     const layers = this.props.layers;
     const entityIds = this.props.selection.ids;
-    const histograms = this.props.histograms.data;
+    const histograms = this.props.histograms.get("data"); // immutable
     const attributes = this.props.attributes.data;
 
     // TODO: reconcile with visibility
@@ -23,7 +23,7 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
       return null;
     }
     const visible = true; // TODO
-    const loaded = (histogramEnabled(entityIds) ? this.props.histograms : this.props.attributes).seqNum === this.props.selection.seqNum;
+    const loaded = (histogramEnabled(entityIds) ? this.props.histograms.toJS() : this.props.attributes).seqNum === this.props.selection.seqNum;
 
     // TODO: depluralise appropriately
     const title = (numEntities(entityIds) > 1 || _.size(attributes) === 0)
