@@ -23,8 +23,6 @@ function* reportStatus(socket) {
   const selection = yield select(selectors.selectSelection);
   const geofence = yield select(selectors.selectGeofence);
 
-  console
-
   const msg = {
     type: "ClientStatus",
     subscribedLiveLayerIds: yield select(selectors.selectLiveLayerIds),

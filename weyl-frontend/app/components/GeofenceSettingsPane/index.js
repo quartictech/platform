@@ -7,6 +7,7 @@ import {
   Tag,
   Slider,
 } from "@blueprintjs/core";
+import classNames from "classnames";
 import * as _ from "underscore";
 import Pane from "../Pane";
 import Select from "../Select";
@@ -17,13 +18,14 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     super(props);
     this.layerIdsToNames = this.layerIdsToNames.bind(this);
     this.state = {
-      displayedSettings: this.props.geofence.settings,
+      settings: this.props.geofence.settings,
     };
     this.onModeChange = this.onModeChange.bind(this);
     this.onLayerChange = this.onLayerChange.bind(this);
     this.onBufferDistanceChange = this.onBufferDistanceChange.bind(this);
     this.commitChanges = this.commitChanges.bind(this);
     this.undoChanges = this.undoChanges.bind(this);
+    this.beginManualEditing = this.beginManualEditing.bind(this);
   }
 
   render() {
@@ -54,7 +56,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
           <div className="pt-control-group" id="aggregation">
             <Select
               entries={{ layer: "From layer", manual: "Manual" }}
-              selectedKey={this.state.displayedSettings.mode}
+              selectedKey={this.state.settings.mode}
               onChange={this.onModeChange}
             />
 
@@ -62,13 +64,22 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               iconName="layers"
               placeholder="Select layer..."
               entries={this.layerIdsToNames()}
-              selectedKey={this.state.displayedSettings.layerId}
+              selectedKey={this.state.settings.layerId}
               onChange={this.onLayerChange}
-              disabled={this.state.displayedSettings.mode !== "layer"}
+              disabled={this.state.settings.mode !== "layer"}
             />
           </div>
         </label>
 
+        <label className={classNames(Classes.LABEL, Classes.INLINE)}>
+          Draw manually
+          <Button
+            iconName="edit"
+            intent={Intent.PRIMARY}
+            onClick={this.beginManualEditing}
+            disabled={this.state.settings.mode !== "manual" || this.props.geofence.manualControlsVisible}
+          />
+        </label>
 
         <label className={Classes.LABEL}>
           <div>Buffer distance (m)</div>
@@ -78,7 +89,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               max={1000}
               stepSize={10}
               labelStepSize={200}
-              value={this.state.displayedSettings.bufferDistance}
+              value={this.state.settings.bufferDistance}
               onChange={this.onBufferDistanceChange}
             />
           </div>
@@ -104,26 +115,27 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
   }
 
   uncommittedChanges() {
-    console.log(this.props.geofence);
-    const a = this.state.displayedSettings;
+    const a = this.state.settings;
     const b = this.props.geofence.settings;
     return (
       (a.mode !== b.mode) ||
       (a.layerId !== b.layerId) ||
-      (a.bufferDistance !== b.bufferDistance)
+      (a.bufferDistance !== b.bufferDistance) ||
+      this.props.geofence.manualControlsVisible
     );
   }
 
   isValid() {
-    return (this.state.displayedSettings.mode === "manual") || (this.state.displayedSettings.layerId);
+    return (this.state.settings.mode === "manual") || (this.state.settings.layerId);
   }
 
   commitChanges() {
-    console.log("displayedSettings", this.state.displayedSettings);
-    this.props.onCommitSettings(this.state.displayedSettings);
+    this.props.onSetManualControlsVisibility(false);
+    this.props.onCommitSettings(this.state.settings);
   }
 
   undoChanges() {
+    this.props.onSetManualControlsVisibility(false);
     this.updateDisplayedSettings(this.props.geofence.settings);
   }
 
@@ -139,10 +151,16 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     this.updateDisplayedSettings({ bufferDistance });
   }
 
+  beginManualEditing() {
+    this.props.onSetManualControlsVisibility(true);
+  }
+
   updateDisplayedSettings(newSettings) {
-    const displayedSettings = { ...this.state.displayedSettings, ...newSettings };
-    this.props.onSetManualControlsVisibility(displayedSettings.mode === "manual");
-    this.setState({ displayedSettings });
+    const settings = { ...this.state.settings, ...newSettings };
+    if (settings.mode === "layer") {
+      this.props.onSetManualControlsVisibility(false);
+    }
+    this.setState({ settings });
   }
 
   layerIdsToNames() {
@@ -151,12 +169,5 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     );
   }
 }
-
-const initialSettings = () => ({
-  layerId: null,
-  bufferDistance: 250,
-  mode: "layer",
-});
-
 
 export default GeofenceSettingsPane;
