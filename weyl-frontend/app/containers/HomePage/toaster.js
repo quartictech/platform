@@ -10,8 +10,8 @@ import {
 const createToaster = (props) => {
   const containerElement = document.createElement("div");
   document.body.appendChild(containerElement);
-  return ReactDOM.render(<Toaster {...props} />, containerElement);
-}
+  ReactDOM.render(<Toaster {...props} />, containerElement);
+};
 
 const intent = (level) => {
   switch (level) {
@@ -22,7 +22,7 @@ const intent = (level) => {
     default:
       return Intent.PRIMARY;
   }
-}
+};
 
 const iconName = (level) => {
   switch (level) {
@@ -32,7 +32,7 @@ const iconName = (level) => {
     default:
       return "info-sign";
   }
-}
+};
 
 export const showToast = (alert) => {
   OurToaster.show({
@@ -40,8 +40,8 @@ export const showToast = (alert) => {
     intent: intent(alert.level),
     iconName: iconName(alert.level),
   });
-}
+};
 
 export const OurToaster = createToaster({
-    position: Position.TOP_RIGHT,
+  position: Position.TOP_RIGHT,
 });
