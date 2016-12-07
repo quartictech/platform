@@ -1,7 +1,6 @@
 plugins {
     id "java"
     id "idea"
-    id "com.palantir.git-version" version "0.5.2"
 }
 
 allprojects {
@@ -30,7 +29,7 @@ allprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    version gitVersion()
+    version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
 }
 
 

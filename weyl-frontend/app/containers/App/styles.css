@@ -8,7 +8,11 @@ h4,
 h5,
 input,
 textarea,
-select,
+select {
+  font-family: Roboto-Light !important;
+}
+
+/* This one's not !important because that seems to break icon buttons in some places */
 button {
   font-family: Roboto-Light;
 }
