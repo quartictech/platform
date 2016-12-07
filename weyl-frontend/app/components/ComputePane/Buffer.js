@@ -36,7 +36,7 @@ class Buffer extends React.Component { // eslint-disable-line react/prefer-state
         </label>
 
         <label className={Classes.LABEL}>
-          <div>Buffer Distance (m)</div>
+          <div>Distance (m)</div>
           <div style={{ margin: "10px" }}>
             <Slider
               min={0}
