@@ -7,7 +7,6 @@ import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -77,7 +76,7 @@ public class UpdateServerShould {
 
     @Test
     public void send_alert() throws Exception {
-        final Alert alert = AlertImpl.of("foo", "bar");
+        final Alert alert = AlertImpl.of("foo", Optional.of("bar"), Alert.Level.SEVERE);
 
         final UpdateServer server = createAndOpenServer();
         server.onAlert(alert);
