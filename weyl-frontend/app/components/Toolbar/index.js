@@ -67,8 +67,6 @@ function Toolbar(props) {
           <span className="pt-navbar-divider"></span>
 
           <div className={Classes.BUTTON_GROUP}>
-            <Button iconName="notifications" onClick={props.onTriggerToast} className={Classes.MINIMAL} />
-            
             <ThemePicker
               selected={props.ui.settings.theme}
               onSelect={props.onSetTheme}

@@ -1,9 +1,4 @@
 import React from "react";
-import {
-  Intent,
-  Position,
-  Toaster,
-} from "@blueprintjs/core";
 
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
@@ -14,7 +9,6 @@ import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
-import { OurToaster } from "./toaster";
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
@@ -23,19 +17,9 @@ import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  constructor(props) {
-    super(props);
-    this.key = 0;
-  }
-
   render() {
     return (
       <div className={styles.container}>
-        <Toaster
-          position={Position.TOP}
-          ref={(ref) => this.toaster = ref}
-        />
-
         <ConnectionStatus connectionUp={this.props.connectionUp} />
 
         <div className={styles.nonDrawer}>
@@ -62,11 +46,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
             onSetTheme={this.props.onSetTheme}
-            onTriggerToast={() => {
-              const toastKey = OurToaster.show(((this.key % 2) === 0) ? goodToast() : badToast());
-              this.key++;
-              console.log("toasts", OurToaster.getToasts());
-            }}
           />
         </div>
 
@@ -130,18 +109,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
     );
   }
 }
-
-const goodToast = () => ({
-  message: "Something weird occurred.",
-  intent: Intent.WARNING,
-  iconName: "warning-sign",
-});
-
-const badToast = () => ({
-  message: "Something truly terrible occurred.",
-  intent: Intent.DANGER,
-  iconName: "warning-sign",
-});
 
 const mapDispatchToProps = {
   onSearch: actions.search,

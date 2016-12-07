@@ -1,6 +1,7 @@
 import { take, takem, call, fork, cancel, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsUrl } from "../../../utils.js";
+import { showToast } from "../toaster";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -50,16 +51,11 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-const createNotification = (title, body) => {
-  const n = new Notification(title, { body });
-  setTimeout(n.close.bind(n), 5000);
-};
-
 function* handleAlert(msg) {
   // TODO: it's weird that the generic alert thing has to query the geofence state
   const geofence = yield select(selectors.selectGeofence);
   if (geofence.alertsEnabled) {
-    yield call(createNotification, msg.title, msg.body);
+    yield call(showToast, msg.title, msg.body);
   }
 }
 
