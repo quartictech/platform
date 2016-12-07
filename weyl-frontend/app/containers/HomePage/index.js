@@ -1,9 +1,10 @@
 import React from "react";
 import {
   Intent,
+  Position,
+  Toaster,
 } from "@blueprintjs/core";
 
-import { OurToaster } from "./weirdness";
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
 import ComputePane from "../../components/ComputePane";
@@ -13,7 +14,7 @@ import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
-
+import { OurToaster } from "./toaster";
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
@@ -25,29 +26,16 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
   constructor(props) {
     super(props);
     this.key = 0;
-
-    this.goodToast = {
-      message: "Wow! Great stuff!",
-      intent: Intent.SUCCESS,
-      iconName: "tick",
-      action: {
-        text: "Yum",
-      },
-    };
-
-    this.badToast = {
-      message: "Something bad occurred",
-      intent: Intent.DANGER,
-      iconName: "warning-sign",
-      action: {
-        text: "Yum",
-      },
-    };
   }
 
   render() {
     return (
       <div className={styles.container}>
+        <Toaster
+          position={Position.TOP}
+          ref={(ref) => this.toaster = ref}
+        />
+
         <ConnectionStatus connectionUp={this.props.connectionUp} />
 
         <div className={styles.nonDrawer}>
@@ -74,7 +62,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
             onSetTheme={this.props.onSetTheme}
-            onTriggerToast={() => { console.log(this.key++); OurToaster.show(((this.key % 2) === 0) ? this.goodToast : this.badToast) }}
+            onTriggerToast={() => {
+              const toastKey = OurToaster.show(((this.key % 2) === 0) ? goodToast() : badToast());
+              this.key++;
+              console.log("toasts", OurToaster.getToasts());
+            }}
           />
         </div>
 
@@ -138,6 +130,18 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
     );
   }
 }
+
+const goodToast = () => ({
+  message: "Something weird occurred.",
+  intent: Intent.WARNING,
+  iconName: "warning-sign",
+});
+
+const badToast = () => ({
+  message: "Something truly terrible occurred.",
+  intent: Intent.DANGER,
+  iconName: "warning-sign",
+});
 
 const mapDispatchToProps = {
   onSearch: actions.search,
