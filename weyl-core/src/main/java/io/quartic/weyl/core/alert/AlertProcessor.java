@@ -1,12 +1,14 @@
 package io.quartic.weyl.core.alert;
 
 import com.google.common.collect.Sets;
+import io.quartic.weyl.core.alert.Alert.Level;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 public class AlertProcessor {
@@ -16,7 +18,11 @@ public class AlertProcessor {
         geofenceStore.addListener(new GeofenceListener() {
             @Override
             public void onViolationBegin(Violation violation) {
-                createAlert(AlertImpl.of("Geofence violation", violation.message()));
+                createAlert(AlertImpl.of(
+                        "Geofence violation",
+                        Optional.of(violation.message()),
+                        Level.SEVERE
+                ));
             }
 
             @Override

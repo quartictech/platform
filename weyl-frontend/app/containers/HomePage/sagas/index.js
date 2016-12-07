@@ -33,10 +33,6 @@ function* runLayerComputation(action) {
   }
 }
 
-function* askForNotificationPermission() {
-  yield call(Notification.requestPermission);
-}
-
 // ////////////////////////
 
 function watch(action, generator) {
@@ -54,7 +50,6 @@ function prepare(generator) {
 }
 
 export default [
-  prepare(askForNotificationPermission),
   prepare(manageSocket),
   prepare(watch(constants.SEARCH, search)),
   prepare(watch(constants.LAYER_COMPUTATION_START, runLayerComputation)),
