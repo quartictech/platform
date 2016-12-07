@@ -10,7 +10,7 @@ input,
 textarea,
 select,
 button {
-  font-family: Roboto-Light;
+  font-family: Roboto-Light !important;
 }
 
 .container {
