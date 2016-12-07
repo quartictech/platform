@@ -23,6 +23,8 @@ function* reportStatus(socket) {
   const selection = yield select(selectors.selectSelection);
   const geofence = yield select(selectors.selectGeofence);
 
+  console
+
   const msg = {
     type: "ClientStatus",
     subscribedLiveLayerIds: yield select(selectors.selectLiveLayerIds),
@@ -31,10 +33,10 @@ function* reportStatus(socket) {
       seqNum: selection.seqNum,
     },
     geofence: {
-      features: (geofence.layerId === null) ? geofence.editGeojson : null,
-      layerId: geofence.layerId,
-      type: geofence.type,
-      bufferDistance: geofence.bufferDistance,
+      features: (geofence.settings.mode === "manual") ? geofence.manualGeojson : null,
+      layerId: (geofence.settings.mode === "layer") ? geofence.settings.layerId : null,
+      type: "EXCLUDE",
+      bufferDistance: geofence.settings.bufferDistance,
     },
   };
 
@@ -96,7 +98,7 @@ function* watchSubscriptionChanges(socket) {
     const selection = yield select(selectors.selectSelection);
 
     // TODO: cleanse this gross logic
-    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_COMMIT_CHANGES].indexOf(action.type) >= 0)) {
+    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_COMMIT_SETTINGS].indexOf(action.type) >= 0)) {
       if (lastTask) {
         yield cancel(lastTask);
       }

@@ -17,8 +17,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     super(props);
     this.layerIdsToNames = this.layerIdsToNames.bind(this);
     this.state = {
-      settings: initialSettings(),
-      displayedSettings: initialSettings(),
+      displayedSettings: this.props.geofence.settings,
     };
     this.onModeChange = this.onModeChange.bind(this);
     this.onLayerChange = this.onLayerChange.bind(this);
@@ -105,8 +104,9 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
   }
 
   uncommittedChanges() {
+    console.log(this.props.geofence);
     const a = this.state.displayedSettings;
-    const b = this.state.settings;
+    const b = this.props.geofence.settings;
     return (
       (a.mode !== b.mode) ||
       (a.layerId !== b.layerId) ||
@@ -119,12 +119,12 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
   }
 
   commitChanges() {
-    this.props.onCommitChanges(...this.state.displayedSettings);
-    this.setState({ settings: { ...this.state.displayedSettings } });
+    console.log("displayedSettings", this.state.displayedSettings);
+    this.props.onCommitSettings(this.state.displayedSettings);
   }
 
   undoChanges() {
-    this.updateDisplayedSettings(this.state.settings);
+    this.updateDisplayedSettings(this.props.geofence.settings);
   }
 
   onModeChange(mode) {
@@ -154,7 +154,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
 
 const initialSettings = () => ({
   layerId: null,
-  bufferDistance: 10,
+  bufferDistance: 250,
   mode: "layer",
 });
 

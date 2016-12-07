@@ -117,11 +117,9 @@ export const mapSetLocation = (location) => ({
 
 // Geofence
 
-export const geofenceCommitChanges = (mode, layerId, bufferDistance) => ({
-  type: constants.GEOFENCE_COMMIT_CHANGES,
-  mode,
-  layerId,
-  bufferDistance,
+export const geofenceCommitSettings = (settings) => ({
+  type: constants.GEOFENCE_COMMIT_SETTINGS,
+  settings,
 });
 
 export const geofenceSetManualControlsVisibility = (visible) => ({

@@ -62,7 +62,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             layers={this.props.layers}
             geofence={this.props.geofence}
             onSetManualControlsVisibility={this.props.onGeofenceSetManualControlsVisibility}
-            onCommitChanges={this.props.onGeofenceCommitChanges}
+            onCommitSettings={this.props.onGeofenceCommitSettings}
             onToggleAlerts={this.props.onGeofenceToggleAlerts}
             onClose={() => this.props.onUiToggle("geofence")}
             visible={this.props.ui.layerOp === "geofence"}
@@ -124,7 +124,7 @@ const mapDispatchToProps = {
   onMapMouseMove: actions.mapMouseMove,
   onMapMouseClick: actions.mapMouseClick,
   onGeofenceSetManualControlsVisibility: actions.geofenceSetManualControlsVisibility,
-  onGeofenceCommitChanges: actions.geofenceCommitChanges,
+  onGeofenceCommitSettings: actions.geofenceCommitSettings,
   onGeofenceSetManualGeometry: actions.geofenceSetManualGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
 };
