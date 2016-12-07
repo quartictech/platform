@@ -5,8 +5,8 @@ import {
   Intent,
   Switch,
   Tag,
+  Slider,
 } from "@blueprintjs/core";
-import { Slider } from "@blueprintjs/core";
 import * as _ from "underscore";
 import Pane from "../Pane";
 import PredictingPicker from "../PredictingPicker";
