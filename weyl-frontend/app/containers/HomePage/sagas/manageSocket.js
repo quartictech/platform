@@ -52,9 +52,9 @@ function* handleLayerUpdate(msg) {
 }
 
 function* handleAlert(msg) {
-  // TODO: it's weird that the generic alert thing has to query the geofence state
+  // TODO: make this a more generic filter mechanism
   const geofence = yield select(selectors.selectGeofence);
-  if (geofence.alertsEnabled) {
+  if (!msg.title.startsWith("Geofence") || geofence.alertsEnabled) {
     yield call(showToast, msg);
   }
 }
