@@ -131,7 +131,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "type": "fill",
           "paint": {
             "fill-color": "#86C67C",
-            "fill-opacity": 0.7,
+            "fill-opacity": 0.4,
           },
         },
         {
@@ -146,15 +146,31 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "fill_violated",
           "type": "fill",
           "paint": {
-            "fill-color": "#CC3300",
-            "fill-opacity": 0.7,
+            "fill-color": {
+              property: "_geofenceLevel",
+              stops: [
+                ["info", "#0E5A8A"],
+                ["warning", "#A66321"],
+                ["severe", "#A82A2A"],
+              ],
+              type: "categorical",
+            },
+            "fill-opacity": 0.4,
           },
         },
         {
           "id": "line_violated",
           "type": "line",
           "paint": {
-            "line-color": "#CC3300",
+            "line-color":  {
+              property: "_geofenceLevel",
+              stops: [
+                ["info", "#0E5A8A"],
+                ["warning", "#A66321"],
+                ["severe", "#A82A2A"],
+              ],
+              type: "categorical",
+            },
             "line-width": 5,
           },
         },
