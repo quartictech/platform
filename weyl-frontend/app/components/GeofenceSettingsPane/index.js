@@ -52,7 +52,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
         </label>
 
         <label className={Classes.LABEL}>
-          <div>Buffer Distance</div>
+          <div>Buffer Distance (m)</div>
           <div style={{ margin: "10px" }}>
             <Slider
               min={0}
