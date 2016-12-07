@@ -19,8 +19,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -64,7 +63,10 @@ public class AttributeSchemaInferrerShould {
     private void assertThatTypeInferredFromValues(AttributeType type, Map<AttributeName, Attribute> previous, Object... values) {
         final List<Feature> features = features("a", values);
 
-        assertThat(inferSchema(features, previous), equalTo(map(entry(name("a"), AttributeImpl.of(type, Optional.of(newHashSet(values)))))));
+        final Map<AttributeName, Attribute> schema = inferSchema(features, previous);
+        assertThat(schema.entrySet(), hasSize(1));
+        assertThat(schema, hasKey(name("a")));
+        assertThat(schema.get(name("a")).type(), equalTo(type));
     }
 
     @Test
@@ -73,6 +75,15 @@ public class AttributeSchemaInferrerShould {
 
         assertThat(inferSchema(features, emptyMap()), equalTo(map(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
+        )));
+    }
+
+    @Test
+    public void infer_no_categories_when_no_values() throws Exception {
+        final List<Feature> features = features("a", new Object[] { null });    // Synthesise a feature with a missing attribute
+
+        assertThat(inferSchema(features, emptyMap()), equalTo(map(
+                entry(name("a"), AttributeImpl.of(UNKNOWN, Optional.empty()))   // Specifically looking for Optional.empty() here
         )));
     }
 
@@ -118,6 +129,15 @@ public class AttributeSchemaInferrerShould {
 
         assertThat(inferSchema(features, previous), equalTo(map(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+        )));
+    }
+
+    @Test
+    public void infer_no_categories_for_non_primitive_types() throws Exception {
+        final List<Feature> features = features("a", "foo", new Object(), "baz");   // Second item is not a primitive type
+
+        assertThat(inferSchema(features, emptyMap()), equalTo(map(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "baz"))))
         )));
     }
 

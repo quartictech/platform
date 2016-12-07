@@ -42,10 +42,10 @@ public class AttributeSchemaInferrer {
 
         Set<Object> values = attributes.stream()
                 .map(a -> a.attributes().get(name))
-                .filter(Objects::nonNull)
+                .filter(v -> (v != null) && isPrimitive(v))
                 .collect(toCollection(() -> union));
 
-        return (values.size() <= MAX_CATEGORIES) ? Optional.of(values) : Optional.empty();
+        return (values.size() > 0 && values.size() <= MAX_CATEGORIES) ? Optional.of(values) : Optional.empty();
     }
 
     private static AttributeType inferAttributeType(AttributeName name, Collection<Attributes> attributes, Attribute previous) {
@@ -76,5 +76,9 @@ public class AttributeSchemaInferrer {
                 return STRING;
             }
         }
+    }
+
+    private static boolean isPrimitive(Object v) {
+        return (v instanceof String) || (v instanceof Number);
     }
 }
