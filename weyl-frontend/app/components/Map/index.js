@@ -162,7 +162,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "line_violated",
           "type": "line",
           "paint": {
-            "line-color":  {
+            "line-color": {
               property: "_geofenceLevel",
               stops: [
                 ["info", "#0E5A8A"],
