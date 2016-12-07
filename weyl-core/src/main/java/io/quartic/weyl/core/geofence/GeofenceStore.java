@@ -65,7 +65,7 @@ public class GeofenceStore  {
                 final Violation violation = ViolationImpl.builder()
                         .feature(feature)
                         .geofence(geofence)
-                        .message(String.format("Actor '%s' is in violation of geofence boundary", feature.entityId()))
+                        .message(String.format("Boundary violated by entity '%s'", feature.entityId()))
                         .build();
                 addViolation(vk, violation);
             } else if (!violating && previouslyViolating) {

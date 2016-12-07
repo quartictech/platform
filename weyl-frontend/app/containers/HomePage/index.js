@@ -1,4 +1,5 @@
 import React from "react";
+
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
 import ComputePane from "../../components/ComputePane";
@@ -8,7 +9,6 @@ import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
-
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
@@ -17,7 +17,6 @@ import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-
   render() {
     return (
       <div className={styles.container}>
