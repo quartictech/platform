@@ -8,10 +8,9 @@ import {
 
 // This is copy-pasted from blueprint toaster.tsx, but with the hardcoded "inline" prop removed
 const createToaster = (props) => {
-  console.log("Here");
   const containerElement = document.createElement("div");
   document.body.appendChild(containerElement);
-  return ReactDOM.render(<Toaster {...props} />, containerElement);
+  return ReactDOM.render(<Toaster {...props} />, containerElement); // eslint-disable-line react/no-render-return-value
 };
 
 const OurToaster = createToaster({
@@ -40,7 +39,6 @@ const iconName = (level) => {
 };
 
 export const showToast = (alert) => {
-  console.log(OurToaster);
   OurToaster.show({
     message: <div>{alert.title}<br /><small>{alert.body}</small></div>,
     intent: intent(alert.level),
