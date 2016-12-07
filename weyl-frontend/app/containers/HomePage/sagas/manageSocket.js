@@ -55,7 +55,7 @@ function* handleAlert(msg) {
   // TODO: it's weird that the generic alert thing has to query the geofence state
   const geofence = yield select(selectors.selectGeofence);
   if (geofence.alertsEnabled) {
-    yield call(showToast, msg.title, msg.body);
+    yield call(showToast, msg);
   }
 }
 

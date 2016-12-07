@@ -13,11 +13,32 @@ const createToaster = (props) => {
   return ReactDOM.render(<Toaster {...props} />, containerElement);
 }
 
-export const showToast = (title, body) => {
+const intent = (level) => {
+  switch (level) {
+    case "WARNING":
+      return Intent.WARNING;
+    case "SEVERE":
+      return Intent.DANGER;
+    default:
+      return Intent.PRIMARY;
+  }
+}
+
+const iconName = (level) => {
+  switch (level) {
+    case "WARNING":
+    case "SEVERE":
+      return "warning-sign";
+    default:
+      return "info-sign";
+  }
+}
+
+export const showToast = (alert) => {
   OurToaster.show({
-    message: <div>{title}<br /><small>{body}</small></div>,
-    intent: Intent.WARNING,
-    iconName: "warning-sign",
+    message: <div>{alert.title}<br /><small>{alert.body}</small></div>,
+    intent: intent(alert.level),
+    iconName: iconName(alert.level),
   });
 }
 
