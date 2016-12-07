@@ -159,7 +159,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
             "line-width": 5,
           },
         },
-      ]);
+      ], true);
     }
   }
 
@@ -284,8 +284,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     return this.addSubLayers(layer.id, subLayerDefs, layer.live);
   }
 
-  finaliseSubLayerDefs(sourceId, subLayerDefs, isLive) {
-    if (isLive) {
+  finaliseSubLayerDefs(sourceId, subLayerDefs, isGeoJson) {
+    if (isGeoJson) {
       return subLayerDefs.map((def) => ({
         ...def,
         "id": `${sourceId}_${def.id}`,
@@ -300,8 +300,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     }));
   }
 
-  addSubLayers(sourceId, subLayerDefs, isLive) {
-    const finalDefs = this.finaliseSubLayerDefs(sourceId, subLayerDefs, isLive);
+  addSubLayers(sourceId, subLayerDefs, isGeoJson) {
+    const finalDefs = this.finaliseSubLayerDefs(sourceId, subLayerDefs, isGeoJson);
     finalDefs.forEach(def => this.map.addLayer(def));
     return finalDefs.map(def => def.id);
   }
