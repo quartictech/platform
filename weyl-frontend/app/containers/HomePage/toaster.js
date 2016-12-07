@@ -10,8 +10,12 @@ import {
 const createToaster = (props) => {
   const containerElement = document.createElement("div");
   document.body.appendChild(containerElement);
-  ReactDOM.render(<Toaster {...props} />, containerElement);
+  return ReactDOM.render(<Toaster {...props} />, containerElement); // eslint-disable-line react/no-render-return-value
 };
+
+const OurToaster = createToaster({
+  position: Position.TOP_RIGHT,
+});
 
 const intent = (level) => {
   switch (level) {
@@ -41,7 +45,3 @@ export const showToast = (alert) => {
     iconName: iconName(alert.level),
   });
 };
-
-export const OurToaster = createToaster({
-  position: Position.TOP_RIGHT,
-});
