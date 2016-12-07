@@ -74,11 +74,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
 
     this.map.on("draw.create", () => {
-      this.props.onGeofenceEditSetGeometry(this.draw.getAll());
+      this.props.onGeofenceSetManualGeometry(this.draw.getAll());
     });
 
     this.map.on("draw.delete", () => {
-      this.props.onGeofenceEditSetGeometry(this.draw.getAll());
+      this.props.onGeofenceSetManualGeometry(this.draw.getAll());
     });
 
     this.draw = new MapboxDraw({   // eslint-disable-line new-cap
@@ -109,13 +109,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   toggleGeofenceEditControlsIfNeeded(props) {
-    if (props.geofence.editing !== this.props.geofence.editing) {
-      if (props.geofence.editing) {
-        this.map.addControl(this.draw);
-        this.props.onGeofenceEditClearGeometry();
-      } else {
-        this.map.removeControl(this.draw);
-      }
+    if (props.geofence.manualControlsVisible && !this.props.geofence.manualControlsVisible) {
+      this.map.addControl(this.draw);
+      this.props.onGeofenceSetManualGeometry();
+    }
+    if (!props.geofence.manualControlsVisible && this.props.geofence.manualControlsVisible) {
+      this.map.removeControl(this.draw);
     }
   }
 
@@ -166,7 +165,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateGeofenceLayer(geofence) {
     this.map.getSource("geofence").setData(geofence.geojson);
 
-    const visible = !geofence.editing;
+    const visible = !geofence.manualControlsVisible;
     this.setSubLayerVisibility("geofence_fill", visible);
     this.setSubLayerVisibility("geofence_line", visible);
     this.setSubLayerVisibility("geofence_fill_violated", visible);

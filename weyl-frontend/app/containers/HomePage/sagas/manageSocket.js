@@ -96,7 +96,7 @@ function* watchSubscriptionChanges(socket) {
     const selection = yield select(selectors.selectSelection);
 
     // TODO: cleanse this gross logic
-    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_EDIT_FINISH].indexOf(action.type) >= 0)) {
+    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_COMMIT_CHANGES].indexOf(action.type) >= 0)) {
       if (lastTask) {
         yield cancel(lastTask);
       }

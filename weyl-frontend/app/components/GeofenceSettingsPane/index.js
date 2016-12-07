@@ -9,12 +9,22 @@ import {
 } from "@blueprintjs/core";
 import * as _ from "underscore";
 import Pane from "../Pane";
+import Select from "../Select";
 import PredictingPicker from "../PredictingPicker";
 
 class GeofenceSettingsPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
     super(props);
     this.layerIdsToNames = this.layerIdsToNames.bind(this);
+    this.state = {
+      settings: initialSettings(),
+      displayedSettings: initialSettings(),
+    };
+    this.onModeChange = this.onModeChange.bind(this);
+    this.onLayerChange = this.onLayerChange.bind(this);
+    this.onBufferDistanceChange = this.onBufferDistanceChange.bind(this);
+    this.commitChanges = this.commitChanges.bind(this);
+    this.undoChanges = this.undoChanges.bind(this);
   }
 
   render() {
@@ -33,6 +43,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
           </Tag>
         }
       >
+
         <Switch
           label="Browser alerts"
           checked={this.props.geofence.alertsEnabled}
@@ -40,42 +51,98 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
         />
 
         <label className={Classes.LABEL}>
-          <div>Target layer</div>
-          <PredictingPicker
-            iconName="layers"
-            placeholder="Select layer..."
-            entries={this.layerIdsToNames()}
-            selectedKey={this.props.geofence.layerId}
-            onChange={layerId => this.props.onEdit.setLayer(layerId, 150)}
-            disabled={!this.props.geofence.editing}
-          />
+          <div>Geometry</div>
+          <div className="pt-control-group" id="aggregation">
+            <Select
+              entries={{ layer: "From layer", manual: "Manual" }}
+              selectedKey={this.state.displayedSettings.mode}
+              onChange={this.onModeChange}
+            />
+
+            <PredictingPicker
+              iconName="layers"
+              placeholder="Select layer..."
+              entries={this.layerIdsToNames()}
+              selectedKey={this.state.displayedSettings.layerId}
+              onChange={this.onLayerChange}
+              disabled={this.state.displayedSettings.mode !== "layer"}
+            />
+          </div>
         </label>
 
+
         <label className={Classes.LABEL}>
-          <div>Buffer Distance (m)</div>
+          <div>Buffer distance (m)</div>
           <div style={{ margin: "10px" }}>
             <Slider
               min={0}
               max={1000}
               stepSize={10}
               labelStepSize={200}
-              onChange={v => this.props.onEdit.setBufferDistance(v)}
-              value={this.props.geofence.bufferDistance}
-              disabled={!this.props.geofence.editing}
+              value={this.state.displayedSettings.bufferDistance}
+              onChange={this.onBufferDistanceChange}
             />
           </div>
         </label>
 
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
           <Button
-            iconName={this.props.geofence.editing ? "floppy-disk" : "edit"}
-            text={this.props.geofence.editing ? "Save" : "Edit"}
+            iconName="undo"
+            text="Undo"
+            onClick={this.undoChanges}
+            disabled={!this.uncommittedChanges()}
+          />
+          <Button
+            iconName="floppy-disk"
+            text="Save"
             intent={Intent.PRIMARY}
-            onClick={this.props.geofence.editing ? this.props.onEdit.finish : this.props.onEdit.start}
+            onClick={this.commitChanges}
+            disabled={!this.uncommittedChanges() || !this.isValid()}
           />
         </div>
       </Pane>
     );
+  }
+
+  uncommittedChanges() {
+    const a = this.state.displayedSettings;
+    const b = this.state.settings;
+    return (
+      (a.mode !== b.mode) ||
+      (a.layerId !== b.layerId) ||
+      (a.bufferDistance !== b.bufferDistance)
+    );
+  }
+
+  isValid() {
+    return (this.state.displayedSettings.mode === "manual") || (this.state.displayedSettings.layerId);
+  }
+
+  commitChanges() {
+    this.props.onCommitChanges(...this.state.displayedSettings);
+    this.setState({ settings: { ...this.state.displayedSettings } });
+  }
+
+  undoChanges() {
+    this.updateDisplayedSettings(this.state.settings);
+  }
+
+  onModeChange(mode) {
+    this.updateDisplayedSettings({ mode });
+  }
+
+  onLayerChange(layerId) {
+    this.updateDisplayedSettings({ layerId });
+  }
+
+  onBufferDistanceChange(bufferDistance) {
+    this.updateDisplayedSettings({ bufferDistance });
+  }
+
+  updateDisplayedSettings(newSettings) {
+    const displayedSettings = { ...this.state.displayedSettings, ...newSettings };
+    this.props.onSetManualControlsVisibility(displayedSettings.mode === "manual");
+    this.setState({ displayedSettings });
   }
 
   layerIdsToNames() {
@@ -84,5 +151,12 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     );
   }
 }
+
+const initialSettings = () => ({
+  layerId: null,
+  bufferDistance: 10,
+  mode: "layer",
+});
+
 
 export default GeofenceSettingsPane;

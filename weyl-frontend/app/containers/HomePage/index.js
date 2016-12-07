@@ -34,8 +34,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               selection={this.props.selection.ids}
               map={this.props.map}
               geofence={this.props.geofence}
-              onGeofenceEditSetGeometry={this.props.onGeofenceEditSetGeometry}
-              onGeofenceEditClearGeometry={this.props.onGeofenceEditClearGeometry}
+              onGeofenceSetManualGeometry={this.props.onGeofenceSetManualGeometry}
             />
           </div>
         </div>
@@ -62,13 +61,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <GeofenceSettingsPane
             layers={this.props.layers}
             geofence={this.props.geofence}
-            onEdit={{
-              start: this.props.onGeofenceEditStart,
-              finish: this.props.onGeofenceEditFinish,
-              setType: this.props.onGeofenceEditSetType,
-              setLayer: this.props.onGeofenceEditSetLayer,
-              setBufferDistance: this.props.onGeofenceSetBufferDistance,
-            }}
+            onSetManualControlsVisibility={this.props.onGeofenceSetManualControlsVisibility}
+            onCommitChanges={this.props.onGeofenceCommitChanges}
             onToggleAlerts={this.props.onGeofenceToggleAlerts}
             onClose={() => this.props.onUiToggle("geofence")}
             visible={this.props.ui.layerOp === "geofence"}
@@ -129,14 +123,9 @@ const mapDispatchToProps = {
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
   onMapMouseClick: actions.mapMouseClick,
-  onGeofenceEditStart: actions.geofenceEditStart,
-  onGeofenceEditFinish: actions.geofenceEditFinish,
-  onGeofenceEditSetLayer: actions.geofenceEditSetLayer,
-  onGeofenceEditSetType: actions.geofenceEditSetType,
-  onGeofenceEditSetGeometry: actions.geofenceEditSetGeometry,
-  onGeofenceEditClearGeometry: actions.geofenceEditClearGeometry,
-  onGeofenceSetBufferDistance: actions.geofenceSetBufferDistance,
-  onGeofenceSetGeometry: actions.geofenceSetGeometry,
+  onGeofenceSetManualControlsVisibility: actions.geofenceSetManualControlsVisibility,
+  onGeofenceCommitChanges: actions.geofenceCommitChanges,
+  onGeofenceSetManualGeometry: actions.geofenceSetManualGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
 };
 

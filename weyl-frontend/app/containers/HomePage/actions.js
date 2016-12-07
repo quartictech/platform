@@ -115,41 +115,28 @@ export const mapSetLocation = (location) => ({
   location,
 });
 
-export const geofenceEditStart = () => ({
-  type: constants.GEOFENCE_EDIT_START,
-});
+// Geofence
 
-export const geofenceEditFinish = () => ({
-  type: constants.GEOFENCE_EDIT_FINISH,
-});
-
-export const geofenceEditSetType = (geofenceType) => ({
-  type: constants.GEOFENCE_EDIT_SET_TYPE,
-  value: geofenceType,
-});
-
-export const geofenceEditSetLayer = (layerId) => ({
-  type: constants.GEOFENCE_EDIT_SET_LAYER,
+export const geofenceCommitChanges = (mode, layerId, bufferDistance) => ({
+  type: constants.GEOFENCE_COMMIT_CHANGES,
+  mode,
   layerId,
+  bufferDistance,
 });
 
-export const geofenceEditClearGeometry = () => ({
-  type: constants.GEOFENCE_EDIT_CLEAR_GEOMETRY,
+export const geofenceSetManualControlsVisibility = (visible) => ({
+  type: constants.GEOFENCE_TOGGLE_MANUAL_CONTROLS_VISIBILITY,
+  visible,
 });
 
-export const geofenceEditSetGeometry = (geojson) => ({
-  type: constants.GEOFENCE_EDIT_SET_GEOMETRY,
+export const geofenceSetManualGeometry = (geojson) => ({
+  type: constants.GEOFENCE_SET_MANUAL_GEOMETRY,
   geojson,
 });
 
 export const geofenceSetGeometry = (geojson) => ({
   type: constants.GEOFENCE_SET_GEOMETRY,
   geojson,
-});
-
-export const geofenceSetBufferDistance = (bufferDistance) => ({
-  type: constants.GEOFENCE_SET_BUFFER_DISTANCE,
-  bufferDistance,
 });
 
 export const geofenceSetViolatedGeofences = (violatedIds) => ({
