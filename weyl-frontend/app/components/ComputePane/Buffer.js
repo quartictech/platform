@@ -2,7 +2,6 @@ import React from "react";
 import {
   Button,
   Classes,
-  InputGroup,
   Slider,
   Intent,
 } from "@blueprintjs/core";
