@@ -90,7 +90,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               stepSize={10}
               labelStepSize={200}
               value={this.state.settings.bufferDistance}
-              onChange={this.onBufferDistanceChange}
+              onChange={(v) => this.onBufferDistanceChange(v)}
             />
           </div>
         </label>
