@@ -21,6 +21,8 @@ export default (state = initialState, action) => {
       return state.set("type", action.value);
     case constants.GEOFENCE_SET_GEOMETRY:
       return state.set("geojson", action.geojson);
+    case constants.GEOFENCE_SET_BUFFER_DISTANCE:
+      return state.set("bufferDistance", action.bufferDistance);
     case constants.GEOFENCE_SET_VIOLATED_GEOFENCES:
       return state.set("violatedIds", fromJS(action.violatedIds));
     case constants.GEOFENCE_TOGGLE_ALERTS:

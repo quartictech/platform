@@ -144,6 +144,11 @@ export const geofenceSetGeometry = (geojson) => ({
   geojson,
 });
 
+export const geofenceSetBufferDistance = (bufferDistance) => ({
+  type: constants.GEOFENCE_SET_BUFFER_DISTANCE,
+  bufferDistance,
+});
+
 export const geofenceSetViolatedGeofences = (violatedIds) => ({
   type: constants.GEOFENCE_SET_VIOLATED_GEOFENCES,
   violatedIds,

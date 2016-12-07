@@ -66,6 +66,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               finish: this.props.onGeofenceEditFinish,
               setType: this.props.onGeofenceEditSetType,
               setLayer: this.props.onGeofenceEditSetLayer,
+              setBufferDistance: this.props.onGeofenceSetBufferDistance,
             }}
             onToggleAlerts={this.props.onGeofenceToggleAlerts}
             onClose={() => this.props.onUiToggle("geofence")}
@@ -132,6 +133,7 @@ const mapDispatchToProps = {
   onGeofenceEditSetLayer: actions.geofenceEditSetLayer,
   onGeofenceEditSetType: actions.geofenceEditSetType,
   onGeofenceEditSetGeometry: actions.geofenceEditSetGeometry,
+  onGeofenceSetBufferDistance: actions.geofenceSetBufferDistance,
   onGeofenceSetGeometry: actions.geofenceSetGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
 };

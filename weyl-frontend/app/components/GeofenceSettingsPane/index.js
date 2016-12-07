@@ -6,6 +6,7 @@ import {
   Switch,
   Tag,
 } from "@blueprintjs/core";
+import { Slider } from "@blueprintjs/core";
 import * as _ from "underscore";
 import Pane from "../Pane";
 import PredictingPicker from "../PredictingPicker";
@@ -48,6 +49,20 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
             onChange={layerId => this.props.onEdit.setLayer(layerId, 150)}
             disabled={!this.props.geofence.editing}
           />
+        </label>
+
+        <label className={Classes.LABEL}>
+          <div>Buffer Distance</div>
+          <div style={{ margin: "10px" }}>
+            <Slider
+              min={0}
+              max={1000}
+              stepSize={10}
+              labelStepSize={200}
+              onChange={v => this.props.onEdit.setBufferDistance(v)}
+              value={this.props.geofence.bufferDistance}
+            />
+          </div>
         </label>
 
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
