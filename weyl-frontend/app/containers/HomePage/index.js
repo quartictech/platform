@@ -33,7 +33,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               selection={this.props.selection.ids}
               map={this.props.map}
               geofence={this.props.geofence}
-              onGeofenceEditSetGeometry={this.props.onGeofenceEditSetGeometry}
+              onGeofenceSetManualGeometry={this.props.onGeofenceSetManualGeometry}
             />
           </div>
         </div>
@@ -60,12 +60,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <GeofenceSettingsPane
             layers={this.props.layers}
             geofence={this.props.geofence}
-            onEdit={{
-              start: this.props.onGeofenceEditStart,
-              finish: this.props.onGeofenceEditFinish,
-              setType: this.props.onGeofenceEditSetType,
-              setLayer: this.props.onGeofenceEditSetLayer,
-            }}
+            onSetManualControlsVisibility={this.props.onGeofenceSetManualControlsVisibility}
+            onCommitSettings={this.props.onGeofenceCommitSettings}
             onToggleAlerts={this.props.onGeofenceToggleAlerts}
             onClose={() => this.props.onUiToggle("geofence")}
             visible={this.props.ui.layerOp === "geofence"}
@@ -126,12 +122,9 @@ const mapDispatchToProps = {
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
   onMapMouseClick: actions.mapMouseClick,
-  onGeofenceEditStart: actions.geofenceEditStart,
-  onGeofenceEditFinish: actions.geofenceEditFinish,
-  onGeofenceEditSetLayer: actions.geofenceEditSetLayer,
-  onGeofenceEditSetType: actions.geofenceEditSetType,
-  onGeofenceEditSetGeometry: actions.geofenceEditSetGeometry,
-  onGeofenceSetGeometry: actions.geofenceSetGeometry,
+  onGeofenceSetManualControlsVisibility: actions.geofenceSetManualControlsVisibility,
+  onGeofenceCommitSettings: actions.geofenceCommitSettings,
+  onGeofenceSetManualGeometry: actions.geofenceSetManualGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
 };
 

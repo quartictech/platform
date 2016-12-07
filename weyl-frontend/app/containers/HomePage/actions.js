@@ -115,27 +115,20 @@ export const mapSetLocation = (location) => ({
   location,
 });
 
-export const geofenceEditStart = () => ({
-  type: constants.GEOFENCE_EDIT_START,
+// Geofence
+
+export const geofenceCommitSettings = (settings) => ({
+  type: constants.GEOFENCE_COMMIT_SETTINGS,
+  settings,
 });
 
-export const geofenceEditFinish = () => ({
-  type: constants.GEOFENCE_EDIT_FINISH,
+export const geofenceSetManualControlsVisibility = (visible) => ({
+  type: constants.GEOFENCE_TOGGLE_MANUAL_CONTROLS_VISIBILITY,
+  visible,
 });
 
-export const geofenceEditSetType = (geofenceType) => ({
-  type: constants.GEOFENCE_EDIT_SET_TYPE,
-  value: geofenceType,
-});
-
-export const geofenceEditSetLayer = (layerId, bufferDistance) => ({
-  type: constants.GEOFENCE_EDIT_SET_LAYER,
-  layerId,
-  bufferDistance,
-});
-
-export const geofenceEditSetGeometry = (geojson) => ({
-  type: constants.GEOFENCE_EDIT_SET_GEOMETRY,
+export const geofenceSetManualGeometry = (geojson) => ({
+  type: constants.GEOFENCE_SET_MANUAL_GEOMETRY,
   geojson,
 });
 

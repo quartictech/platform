@@ -3,22 +3,12 @@ import * as constants from "../constants";
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case constants.GEOFENCE_EDIT_START:
-      return state.set("editing", true);
-    case constants.GEOFENCE_EDIT_FINISH:
-      return state.set("editing", false);
-    case constants.GEOFENCE_EDIT_SET_GEOMETRY:
-      return state
-        .set("editGeojson", action.geojson)
-        .set("layerId", null)
-        .set("bufferDistance", 0);
-    case constants.GEOFENCE_EDIT_SET_LAYER:
-      return state
-        .set("editGeojson", initialGeojson)
-        .set("layerId", action.layerId)
-        .set("bufferDistance", action.bufferDistance);
-    case constants.GEOFENCE_EDIT_SET_TYPE:
-      return state.set("type", action.value);
+    case constants.GEOFENCE_COMMIT_SETTINGS:
+      return state.set("settings", fromJS(action.settings));
+    case constants.GEOFENCE_TOGGLE_MANUAL_CONTROLS_VISIBILITY:
+      return state.set("manualControlsVisible", action.visible);
+    case constants.GEOFENCE_SET_MANUAL_GEOMETRY:
+      return state.set("manualGeojson", action.geojson || initialGeojson);
     case constants.GEOFENCE_SET_GEOMETRY:
       return state.set("geojson", action.geojson);
     case constants.GEOFENCE_SET_VIOLATED_GEOFENCES:
@@ -36,12 +26,17 @@ const initialGeojson = fromJS({
 });
 
 const initialState = fromJS({
-  editing: false,
-  editGeojson: initialGeojson,
+  manualControlsVisible: false,
+  manualGeojson: initialGeojson,
+
+  settings: {
+    mode: "layer",
+    layerId: null,
+    bufferDistance: 0,
+  },
+
   geojson: initialGeojson,
-  bufferDistance: 0,
-  layerId: null,
-  type: "EXCLUDE",
   violatedIds: [],
+
   alertsEnabled: false,
 });
