@@ -2,7 +2,7 @@ import React from "react";
 import {
   Button,
   Classes,
-  InputGroup,
+  Slider,
   Intent,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
@@ -15,7 +15,7 @@ class Buffer extends React.Component { // eslint-disable-line react/prefer-state
     super(props);
     this.state = {
       selectedLayer: null,
-      distance: "",
+      distance: 50,
     };
     this.onLayerChange = this.onLayerChange.bind(this);
     this.onComputeClick = this.onComputeClick.bind(this);
@@ -37,12 +37,16 @@ class Buffer extends React.Component { // eslint-disable-line react/prefer-state
 
         <label className={Classes.LABEL}>
           <div>Distance (m)</div>
-          <InputGroup
-            placeholder="Specify distance..."
-            value={this.state.distance}
-            onChange={(e) => this.setState({ distance: e.target.value })}
-            intent={this.isValidDistance() ? Intent.NONE : Intent.DANGER}
-          />
+          <div style={{ margin: "10px" }}>
+            <Slider
+              min={0}
+              max={1000}
+              stepSize={10}
+              labelStepSize={200}
+              onChange={v => this.setState({ distance: v })}
+              value={this.state.distance}
+            />
+          </div>
         </label>
 
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
