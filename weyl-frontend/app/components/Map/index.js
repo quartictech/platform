@@ -112,7 +112,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     if (props.geofence.editing !== this.props.geofence.editing) {
       if (props.geofence.editing) {
         this.map.addControl(this.draw);
-        this.props.onGeofenceEditSetGeometry(this.draw.getAll());
+        this.props.onGeofenceEditClearGeometry();
       } else {
         this.map.removeControl(this.draw);
       }

@@ -128,10 +128,13 @@ export const geofenceEditSetType = (geofenceType) => ({
   value: geofenceType,
 });
 
-export const geofenceEditSetLayer = (layerId, bufferDistance) => ({
+export const geofenceEditSetLayer = (layerId) => ({
   type: constants.GEOFENCE_EDIT_SET_LAYER,
   layerId,
-  bufferDistance,
+});
+
+export const geofenceEditClearGeometry = () => ({
+  type: constants.GEOFENCE_EDIT_CLEAR_GEOMETRY,
 });
 
 export const geofenceEditSetGeometry = (geojson) => ({

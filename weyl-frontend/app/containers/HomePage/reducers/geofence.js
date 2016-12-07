@@ -7,16 +7,17 @@ export default (state = initialState, action) => {
       return state.set("editing", true);
     case constants.GEOFENCE_EDIT_FINISH:
       return state.set("editing", false);
+    case constants.GEOFENCE_EDIT_CLEAR_GEOMETRY:
+      return state
+        .set("editGeojson", initialGeojson);
     case constants.GEOFENCE_EDIT_SET_GEOMETRY:
       return state
         .set("editGeojson", action.geojson)
-        .set("layerId", null)
-        .set("bufferDistance", 0);
+        .set("layerId", null);
     case constants.GEOFENCE_EDIT_SET_LAYER:
       return state
         .set("editGeojson", initialGeojson)
-        .set("layerId", action.layerId)
-        .set("bufferDistance", action.bufferDistance);
+        .set("layerId", action.layerId);
     case constants.GEOFENCE_EDIT_SET_TYPE:
       return state.set("type", action.value);
     case constants.GEOFENCE_SET_GEOMETRY:

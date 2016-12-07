@@ -61,6 +61,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               labelStepSize={200}
               onChange={v => this.props.onEdit.setBufferDistance(v)}
               value={this.props.geofence.bufferDistance}
+              disabled={!this.props.geofence.editing}
             />
           </div>
         </label>
