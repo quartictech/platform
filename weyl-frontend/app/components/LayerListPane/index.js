@@ -204,14 +204,15 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
               )
           }
         </MenuItem>
-        <MenuDivider />
         <MenuItem iconName="info-sign" text="Info">
           <MenuItem text={`Description: ${layer.metadata.description}`} disabled />
           <MenuItem text={`Attribution: ${layer.metadata.attribution}`} disabled />
         </MenuItem>
+        <MenuDivider />
         <MenuItem
-          iconName="cross"
+          iconName="trash"
           text="Remove"
+          intent={Intent.DANGER}
           onClick={() => this.props.layerClose(layer.id)}
         />
       </Menu>
