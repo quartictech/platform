@@ -82,7 +82,7 @@ public class UpdateServerShould {
         return ClientStatusMessageImpl.of(
                 emptyList(),
                 SelectionStatusImpl.of(42, emptyList()),
-                GeofenceStatusImpl.of(GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
+                GeofenceStatusImpl.of(true, GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
         );
     }
 
