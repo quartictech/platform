@@ -84,9 +84,9 @@ public class GeofenceStatusHandlerShould {
 
         sub.awaitValueCount(1, 100, MILLISECONDS);
         assertThat(sub.getOnNextEvents(), contains(
-                GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdA)),
-                GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdA, geofenceIdB)),
-                GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdB))
+                GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdA), 0, 0, 1),
+                GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdA, geofenceIdB), 0, 0, 2),
+                GeofenceViolationsUpdateMessageImpl.of(ImmutableList.of(geofenceIdB), 0, 0, 1)
         ));
     }
 

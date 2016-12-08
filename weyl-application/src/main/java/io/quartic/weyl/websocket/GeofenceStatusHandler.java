@@ -14,12 +14,20 @@ import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Emitter.BackpressureMode;
 import rx.Observable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.weyl.core.alert.Alert.Level.INFO;
+import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
+import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
 import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
+import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.fromEmitter;
@@ -78,25 +86,19 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
         geofenceStore.setGeofences(geofences);
     }
 
-    private Alert.Level alertLevel(Feature feature) {
-        final Object level = feature.attributes().attributes().get(ALERT_LEVEL);
-        try {
-            return Alert.Level.valueOf(level.toString().toUpperCase());
-        } catch (Exception e) {
-            return Alert.Level.SEVERE;    // Default
-        }
-    }
-
     private Observable<SocketMessage> upstream() {
         return fromEmitter(
                 emitter -> {
                     final GeofenceListener listener = new GeofenceListener() {
                         final Set<Violation> violations = newLinkedHashSet();
+                        final Map<Alert.Level, Integer> counts = newHashMap();
 
                         @Override
                         public void onViolationBegin(Violation violation) {
                             synchronized (violations) {
+                                final Alert.Level level = alertLevel(violation.geofence().feature());
                                 violations.add(violation);
+                                counts.put(level, counts.getOrDefault(level, 0) + 1);
                                 sendViolationsUpdate();
                             }
                         }
@@ -104,7 +106,9 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                         @Override
                         public void onViolationEnd(Violation violation) {
                             synchronized (violations) {
+                                final Alert.Level level = alertLevel(violation.geofence().feature());
                                 violations.remove(violation);
+                                counts.put(level, counts.getOrDefault(level, 1) - 1);   // Prevents going below 0 in cases that should never happen
                                 sendViolationsUpdate();
                             }
                         }
@@ -118,7 +122,10 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
                         private void sendViolationsUpdate() {
                             emitter.onNext(GeofenceViolationsUpdateMessageImpl.of(
-                                    violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList())
+                                    violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList()),
+                                    counts.getOrDefault(INFO, 0),
+                                    counts.getOrDefault(WARNING, 0),
+                                    counts.getOrDefault(SEVERE, 0)
                             ));
                         }
                     };

@@ -35,14 +35,12 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
         iconName="polygon-filter"
         visible={this.props.visible}
         onClose={this.props.onClose}
-        extraHeaderContent={
-          <Tag
-            className={Classes.MINIMAL}
-            intent={Intent.SUCCESS}
-          >
-            {this.props.geofence.geojson.features.length} zones
-          </Tag>
-        }
+        extraHeaderContent={[
+          tag(this.props.geofence.violations.numSevere, "", Intent.DANGER),
+          tag(this.props.geofence.violations.numWarning, "", Intent.WARNING),
+          tag(this.props.geofence.violations.numInfo, "", Intent.INFO),
+          tag(this.props.geofence.geojson.features.length, "zone(s)", Intent.SUCCESS),
+        ]}
       >
 
         <Switch
@@ -169,5 +167,8 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     );
   }
 }
+
+const tag = (count, suffix, intent) =>
+  (count > 0) && <Tag key={intent} className={Classes.MINIMAL} intent={intent}>{count} {suffix}</Tag>;
 
 export default GeofenceSettingsPane;
