@@ -3,16 +3,14 @@ package io.quartic.weyl.core.alert;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
-import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.AttributesImpl;
 import org.junit.Test;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.quartic.common.test.CollectionUtils.entry;
-import static io.quartic.common.test.CollectionUtils.map;
-import static io.quartic.weyl.core.alert.AlertProcessor.GEOFENCE_LEVEL;
-import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
+import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
+import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -23,35 +21,13 @@ public class AlertProcessorShould {
     private final AlertProcessor processor = new AlertProcessor(store);
 
     @Test
-    public void generate_alert_from_violation_without_level_attribute() throws Exception {
+    public void generate_alert_from_violation() throws Exception {
         final AlertListener listener = mock(AlertListener.class);
         processor.addListener(listener);
 
-        geofenceListener.get().onViolationBegin(violation(EMPTY_ATTRIBUTES));
+        geofenceListener.get().onViolationBegin(violation());
 
         verifyAlertGenerated(listener, Alert.Level.SEVERE);
-    }
-
-    @Test
-    public void generate_alert_from_violation_with_bad_level_attribute() throws Exception {
-        final AlertListener listener = mock(AlertListener.class);
-        processor.addListener(listener);
-
-        final Violation violation = violation(() -> map(entry(GEOFENCE_LEVEL, "gimpery")));
-        geofenceListener.get().onViolationBegin(violation);
-
-        verifyAlertGenerated(listener, Alert.Level.SEVERE);
-    }
-
-    @Test
-    public void generate_alert_from_violation_with_level_attribute() throws Exception {
-        final AlertListener listener = mock(AlertListener.class);
-        processor.addListener(listener);
-
-        final Violation violation = violation(() -> map(entry(GEOFENCE_LEVEL, "info")));
-        geofenceListener.get().onViolationBegin(violation);
-
-        verifyAlertGenerated(listener, Alert.Level.INFO);
     }
 
 
@@ -72,10 +48,10 @@ public class AlertProcessorShould {
         return store;
     }
 
-    private Violation violation(Attributes geofenceAttributes) {
+    private Violation violation() {
         final Violation violation = mock(Violation.class, RETURNS_DEEP_STUBS);
         when(violation.message()).thenReturn("Absolute gimp");
-        when(violation.geofence().feature().attributes()).thenReturn(geofenceAttributes);
+        when(violation.geofence().feature().attributes()).thenReturn(AttributesImpl.of(singletonMap(ALERT_LEVEL, Alert.Level.SEVERE)));
         return violation;
     }
 }

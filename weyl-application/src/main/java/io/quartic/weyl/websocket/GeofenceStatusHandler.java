@@ -2,12 +2,10 @@ package io.quartic.weyl.websocket;
 
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.*;
-import io.quartic.weyl.core.model.EntityIdImpl;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -16,13 +14,13 @@ import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Emitter.BackpressureMode;
 import rx.Observable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.fromEmitter;
 
@@ -70,6 +68,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private void updateStore(GeofenceType type, double bufferDistance, Stream<Feature> features) {
         final List<Geofence> geofences = features
                 .map(f -> FeatureImpl.copyOf(f)
+                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f))))
                         .withGeometry(bufferOp(f.geometry(), bufferDistance))
                         .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
                 )
@@ -77,6 +76,15 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .map(f -> GeofenceImpl.of(type, f))
                 .collect(toList());
         geofenceStore.setGeofences(geofences);
+    }
+
+    private Alert.Level alertLevel(Feature feature) {
+        final Object level = feature.attributes().attributes().get(ALERT_LEVEL);
+        try {
+            return Alert.Level.valueOf(level.toString().toUpperCase());
+        } catch (Exception e) {
+            return Alert.Level.SEVERE;    // Default
+        }
     }
 
     private Observable<SocketMessage> upstream() {

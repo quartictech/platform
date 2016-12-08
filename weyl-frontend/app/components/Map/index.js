@@ -1,5 +1,5 @@
 import React from "react";
-
+import { Colors } from "@blueprintjs/core";
 import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
@@ -125,12 +125,22 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         data: geofence.geojson,
       });
 
+      const stopsSpec = {
+        property: "_alertLevel",
+        stops: [
+          ["INFO", Colors.BLUE1],
+          ["WARNING", "#A66321"],
+          ["SEVERE", "#A82A2A"],
+        ],
+        type: "categorical",
+      };
+
       this.addSubLayers("geofence", [
         {
           "id": "fill",
           "type": "fill",
           "paint": {
-            "fill-color": "#86C67C",
+            "fill-color": Colors.GREEN1,
             "fill-opacity": 0.4,
           },
         },
@@ -138,7 +148,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "line",
           "type": "line",
           "paint": {
-            "line-color": "#86C67C",
+            "line-color": Colors.GREEN1,
             "line-width": 5,
           },
         },
@@ -146,15 +156,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "fill_violated",
           "type": "fill",
           "paint": {
-            "fill-color": {
-              property: "_geofenceLevel",
-              stops: [
-                ["info", "#0E5A8A"],
-                ["warning", "#A66321"],
-                ["severe", "#A82A2A"],
-              ],
-              type: "categorical",
-            },
+            "fill-color": stopsSpec,
             "fill-opacity": 0.4,
           },
         },
@@ -162,15 +164,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "line_violated",
           "type": "line",
           "paint": {
-            "line-color": {
-              property: "_geofenceLevel",
-              stops: [
-                ["info", "#0E5A8A"],
-                ["warning", "#A66321"],
-                ["severe", "#A82A2A"],
-              ],
-              type: "categorical",
-            },
+            "line-color": stopsSpec,
             "line-width": 5,
           },
         },
