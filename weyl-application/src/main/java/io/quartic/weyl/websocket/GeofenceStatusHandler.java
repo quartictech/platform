@@ -2,12 +2,10 @@ package io.quartic.weyl.websocket;
 
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.*;
-import io.quartic.weyl.core.model.EntityIdImpl;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -18,11 +16,19 @@ import rx.Observable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.weyl.core.alert.Alert.Level.INFO;
+import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
+import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
+import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
+import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.fromEmitter;
 
@@ -70,6 +76,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private void updateStore(GeofenceType type, double bufferDistance, Stream<Feature> features) {
         final List<Geofence> geofences = features
                 .map(f -> FeatureImpl.copyOf(f)
+                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f))))
                         .withGeometry(bufferOp(f.geometry(), bufferDistance))
                         .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
                 )
@@ -84,11 +91,14 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 emitter -> {
                     final GeofenceListener listener = new GeofenceListener() {
                         final Set<Violation> violations = newLinkedHashSet();
+                        final Map<Alert.Level, Integer> counts = newHashMap();
 
                         @Override
                         public void onViolationBegin(Violation violation) {
                             synchronized (violations) {
+                                final Alert.Level level = alertLevel(violation.geofence().feature());
                                 violations.add(violation);
+                                counts.put(level, counts.getOrDefault(level, 0) + 1);
                                 sendViolationsUpdate();
                             }
                         }
@@ -96,7 +106,9 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                         @Override
                         public void onViolationEnd(Violation violation) {
                             synchronized (violations) {
+                                final Alert.Level level = alertLevel(violation.geofence().feature());
                                 violations.remove(violation);
+                                counts.put(level, counts.getOrDefault(level, 1) - 1);   // Prevents going below 0 in cases that should never happen
                                 sendViolationsUpdate();
                             }
                         }
@@ -110,7 +122,10 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
                         private void sendViolationsUpdate() {
                             emitter.onNext(GeofenceViolationsUpdateMessageImpl.of(
-                                    violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList())
+                                    violations.stream().map(v -> v.geofence().feature().entityId()).collect(toList()),
+                                    counts.getOrDefault(INFO, 0),
+                                    counts.getOrDefault(WARNING, 0),
+                                    counts.getOrDefault(SEVERE, 0)
                             ));
                         }
                     };

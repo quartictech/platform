@@ -1,5 +1,5 @@
 import React from "react";
-
+import { Colors } from "@blueprintjs/core";
 import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
@@ -125,20 +125,30 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         data: geofence.geojson,
       });
 
+      const stopsSpec = {
+        property: "_alertLevel",
+        stops: [
+          ["INFO", Colors.BLUE1],
+          ["WARNING", "#A66321"],
+          ["SEVERE", "#A82A2A"],
+        ],
+        type: "categorical",
+      };
+
       this.addSubLayers("geofence", [
         {
           "id": "fill",
           "type": "fill",
           "paint": {
-            "fill-color": "#86C67C",
-            "fill-opacity": 0.7,
+            "fill-color": Colors.GREEN1,
+            "fill-opacity": 0.4,
           },
         },
         {
           "id": "line",
           "type": "line",
           "paint": {
-            "line-color": "#86C67C",
+            "line-color": Colors.GREEN1,
             "line-width": 5,
           },
         },
@@ -146,15 +156,15 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "fill_violated",
           "type": "fill",
           "paint": {
-            "fill-color": "#CC3300",
-            "fill-opacity": 0.7,
+            "fill-color": stopsSpec,
+            "fill-opacity": 0.4,
           },
         },
         {
           "id": "line_violated",
           "type": "line",
           "paint": {
-            "line-color": "#CC3300",
+            "line-color": stopsSpec,
             "line-width": 5,
           },
         },
@@ -171,8 +181,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.setSubLayerVisibility("geofence_fill_violated", visible);
     this.setSubLayerVisibility("geofence_line_violated", visible);
 
-    const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violatedIds);
-    const violatedFilter = ["in", "_entityId"].concat(geofence.violatedIds);
+    const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violations.ids);
+    const violatedFilter = ["in", "_entityId"].concat(geofence.violations.ids);
     this.map.setFilter("geofence_fill", unviolatedFilter);
     this.map.setFilter("geofence_line", unviolatedFilter);
     this.map.setFilter("geofence_fill_violated", violatedFilter);

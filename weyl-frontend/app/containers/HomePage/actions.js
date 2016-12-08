@@ -137,9 +137,9 @@ export const geofenceSetGeometry = (geojson) => ({
   geojson,
 });
 
-export const geofenceSetViolatedGeofences = (violatedIds) => ({
-  type: constants.GEOFENCE_SET_VIOLATED_GEOFENCES,
-  violatedIds,
+export const geofenceSetViolations = (violations) => ({
+  type: constants.GEOFENCE_SET_VIOLATIONS,
+  violations,
 });
 
 export const geofenceToggleAlerts = () => ({

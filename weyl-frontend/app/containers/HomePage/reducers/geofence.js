@@ -11,8 +11,8 @@ export default (state = initialState, action) => {
       return state.set("manualGeojson", action.geojson || initialGeojson);
     case constants.GEOFENCE_SET_GEOMETRY:
       return state.set("geojson", action.geojson);
-    case constants.GEOFENCE_SET_VIOLATED_GEOFENCES:
-      return state.set("violatedIds", fromJS(action.violatedIds));
+    case constants.GEOFENCE_SET_VIOLATIONS:
+      return state.set("violations", fromJS(action.violations));
     case constants.GEOFENCE_TOGGLE_ALERTS:
       return state.update("alertsEnabled", x => !x);
     default:
@@ -36,7 +36,12 @@ const initialState = fromJS({
   },
 
   geojson: initialGeojson,
-  violatedIds: [],
+  violations: {
+    ids: [],
+    numInfo: 0,
+    numWarning: 0,
+    numSevere: 0,
+  },
 
   alertsEnabled: false,
 });

@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.alert;
 
 import com.google.common.collect.Sets;
-import io.quartic.weyl.core.alert.Alert.Level;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
@@ -12,8 +11,10 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
+
 public class AlertProcessor {
-    public static final AttributeNameImpl GEOFENCE_LEVEL = AttributeNameImpl.of("_geofenceLevel");
+    public static final AttributeNameImpl ALERT_LEVEL = AttributeNameImpl.of("_alertLevel");
     private final Set<AlertListener> listeners = Sets.newHashSet();
 
     public AlertProcessor(GeofenceStore geofenceStore) {
@@ -23,7 +24,7 @@ public class AlertProcessor {
                 createAlert(AlertImpl.of(
                         "Geofence violation",
                         Optional.of(violation.message()),
-                        alertLevel(violation)
+                        alertLevel(violation.geofence().feature())
                 ));
             }
 
@@ -37,15 +38,6 @@ public class AlertProcessor {
                 // Do nothing
             }
         });
-    }
-
-    private Alert.Level alertLevel(Violation violation) {
-        final Object level = violation.geofence().feature().attributes().attributes().get(GEOFENCE_LEVEL);
-        try {
-            return Level.valueOf(level.toString().toUpperCase());
-        } catch (Exception e) {
-            return Level.SEVERE;    // Default
-        }
     }
 
     public synchronized void addListener(AlertListener listener) {
