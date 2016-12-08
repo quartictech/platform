@@ -38,7 +38,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
         extraHeaderContent={[
           tag(this.props.geofence.violations.numSevere, "", Intent.DANGER),
           tag(this.props.geofence.violations.numWarning, "", Intent.WARNING),
-          tag(this.props.geofence.violations.numInfo, "", Intent.INFO),
+          tag(this.props.geofence.violations.numInfo, "", Intent.PRIMARY),
           tag(this.props.geofence.geojson.features.length, "zone(s)", Intent.SUCCESS),
         ]}
       >
