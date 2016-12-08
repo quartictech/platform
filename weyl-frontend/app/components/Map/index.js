@@ -25,21 +25,25 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   onMouseMove(e) {
-    const features = this.queryRenderedFeatures(e.point);
-    this.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
     this.props.onMouseMove(e.lngLat);
+    if (!this.props.geofence.manualControlsVisible) {
+      const features = this.queryRenderedFeatures(e.point);
+      this.map.getCanvas().style.cursor = (features.length) ? "pointer" : "";
+    }
   }
 
   onMouseClick(e) {
-    const features = this.queryRenderedFeatures(e.point);
-    const feature = (features.length > 0)
-      ? {
-        entityId: features[0].properties["_entityId"], // eslint-disable-line dot-notation
-        layerId: features[0].layer.source,
-        properties: features[0].properties,
-      }
-      : undefined;
-    this.props.onMouseClick(feature, e.originalEvent.metaKey);
+    if (!this.props.geofence.manualControlsVisible) {
+      const features = this.queryRenderedFeatures(e.point);
+      const feature = (features.length > 0)
+        ? {
+          entityId: features[0].properties["_entityId"], // eslint-disable-line dot-notation
+          layerId: features[0].layer.source,
+          properties: features[0].properties,
+        }
+        : undefined;
+      this.props.onMouseClick(feature, e.originalEvent.metaKey);
+    }
   }
 
   queryRenderedFeatures(point) {
