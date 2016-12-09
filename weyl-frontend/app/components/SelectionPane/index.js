@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Classes,
+  Overlay,
   Spinner,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
@@ -37,34 +38,38 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         visible={visible}
         onClose={this.props.onClose}
       >
-        { (loaded) ?
-          <SelectionView
-            entityIds={entityIds}
-            histograms={histograms}
-            attributes={attributes}
-            layers={layers}
-          />
-        :
-          <div style={{ width: "100%", textAlign: "center" }}>
-            <Spinner className={Classes.LARGE} />
-          </div>
-        }
+        <SelectionView
+          entityIds={entityIds}
+          histograms={histograms}
+          attributes={attributes}
+          layers={layers}
+          loaded={loaded}
+        />
       </Pane>
     );
   }
 }
 
-const SelectionView = ({ entityIds, histograms, attributes, layers }) => {
-  if (histogramEnabled(entityIds)) {
-    return <Histograms histograms={histograms} />;
-  }
-  return (
-    <NonHistograms
-      featureAttributes={attributes}
-      behavior={getBehavior(singleLayer(entityIds, layers))}
-    />
-  );
-};
+const SelectionView = ({ entityIds, histograms, attributes, layers, loaded }) => (
+  <div>
+    <Overlay isOpen={!loaded} hasBackdrop={false} inline>
+      <div style={{ width: "100%", textAlign: "center" }}>
+        <Spinner className={Classes.LARGE} />
+      </div>
+    </Overlay>
+
+    {
+      histogramEnabled(entityIds)
+        ? <Histograms histograms={histograms} />
+        : (
+        <NonHistograms
+          featureAttributes={attributes}
+          behavior={getBehavior(singleLayer(entityIds, layers))}
+        />
+      )
+    }
+  </div>
+);
 
 // entityIds is an object { layerId -> [entityIds] }
 const histogramEnabled = (entityIds) =>
