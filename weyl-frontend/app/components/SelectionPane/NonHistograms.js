@@ -16,7 +16,7 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     return (
-      <div>
+      <div style={{ display: this.props.visible ? "block" : "none" }}>
         <Media
           featureAttributes={this.props.featureAttributes}
           behavior={this.props.behavior}

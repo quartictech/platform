@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Classes,
-  Overlay,
   Spinner,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
@@ -38,6 +37,12 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         visible={visible}
         onClose={this.props.onClose}
       >
+        {loaded || (
+          <div style={{ width: "100%", textAlign: "center" }}>
+            <Spinner className={Classes.LARGE} />
+          </div>
+        )}
+
         <SelectionView
           entityIds={entityIds}
           histograms={histograms}
@@ -52,22 +57,15 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
 
 const SelectionView = ({ entityIds, histograms, attributes, layers, loaded }) => (
   <div>
-    <Overlay isOpen={!loaded} hasBackdrop={false} inline>
-      <div style={{ width: "100%", textAlign: "center" }}>
-        <Spinner className={Classes.LARGE} />
-      </div>
-    </Overlay>
-
-    {
-      histogramEnabled(entityIds)
-        ? <Histograms histograms={histograms} />
-        : (
-        <NonHistograms
-          featureAttributes={attributes}
-          behavior={getBehavior(singleLayer(entityIds, layers))}
-        />
-      )
-    }
+    <Histograms
+      histograms={histograms}
+      visible={histogramEnabled(entityIds) && loaded}
+    />
+    <NonHistograms
+      featureAttributes={attributes}
+      behavior={getBehavior(singleLayer(entityIds, layers))}
+      visible={!histogramEnabled(entityIds) && loaded}
+    />
   </div>
 );
 
