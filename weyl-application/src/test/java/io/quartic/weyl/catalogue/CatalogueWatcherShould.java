@@ -4,30 +4,34 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.*;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.SourceDescriptor;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
-import org.junit.After;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import rx.functions.Action1;
+import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.catalogue.ExtensionParser.EXTENSION_KEY;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static rx.Observable.just;
-import static rx.functions.Actions.empty;
 
 public class CatalogueWatcherShould {
 
@@ -37,12 +41,10 @@ public class CatalogueWatcherShould {
 
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
-    private static class LocatorC implements DatasetLocator {}
 
     private final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = mock(WebsocketListener.class);
     private final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
     private final ExtensionParser extensionParser = mock(ExtensionParser.class);
-    private final LayerStore layerStore = mock(LayerStore.class);
     private final SourceUpdate updateA = createUpdate();
     private final SourceUpdate updateB = createUpdate();
     private final Source sourceA = importerOf(updateA, true);
@@ -51,14 +53,12 @@ public class CatalogueWatcherShould {
 
     private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceA,
-            LocatorB.class, config -> sourceB,
-            LocatorC.class, config -> { throw new RuntimeException("sad times"); }
+            LocatorB.class, config -> sourceB
     );
 
     private final CatalogueWatcher watcher = CatalogueWatcher.builder()
             .listenerFactory(listenerFactory)
             .sourceFactories(sourceFactories)
-            .layerStore(layerStore)
             .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
             .extensionParser(extensionParser)
             .build();
@@ -69,77 +69,62 @@ public class CatalogueWatcherShould {
         when(extensionParser.parse(any(), any())).thenReturn(extension());
     }
 
-    @After
-    public void after() throws Exception {
-        watcher.close();
-    }
-
     @Test
     public void create_and_import_layer_for_new_dataset() throws Exception {
-        final Action1<SourceUpdate> action = mock(Action1.class);
-        whenCreateLayerThenReturn("123", action);
-        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
+        when(listener.observable()).thenReturn(just(
+                map(entry(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())))
+        ));
 
-        watcher.start();
-
-        verify(layerStore).createLayer(
-                LayerIdImpl.of("123"),
-                LayerMetadataImpl.of("foo", "bar", Optional.of("baz"), Optional.empty()),
-                LOCATION_AND_TRACK.getLayerView(),
-                AttributeSchemaImpl.builder()
-                        .titleAttribute(TITLE_ATTRIBUTE)
-                        .imageAttribute(IMAGE_ATTRIBUTE)
-                        .blessedAttribute(BLESSED_ATTRIBUTES)
-                        .build(),
-                true
-        );
-        verify(action).call(updateA);
+        final SourceDescriptor descriptor = collectSourceDescriptors().get(0);
+        assertThat(descriptor.id(), equalTo(LayerIdImpl.of("123")));
+        assertThat(descriptor.metadata(), equalTo(LayerMetadataImpl.of("foo", "bar", Optional.of("baz"), Optional.empty())));
+        assertThat(descriptor.view(), equalTo(LOCATION_AND_TRACK.getLayerView()));
+        assertThat(descriptor.schema(), equalTo(AttributeSchemaImpl.builder()
+                .titleAttribute(TITLE_ATTRIBUTE)
+                .imageAttribute(IMAGE_ATTRIBUTE)
+                .blessedAttribute(BLESSED_ATTRIBUTES)
+                .build()));
+        assertThat(descriptor.indexable(), equalTo(true));
+        assertThat(descriptor.updates().toBlocking().single(), equalTo(updateA));
     }
 
     @Test
     public void only_process_each_dataset_once() throws Exception {
-        whenCreateLayerThenReturn("123", empty());
         when(listener.observable()).thenReturn(just(
-                ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
-                ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))
+                map(entry(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))),
+                map(entry(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())))
         ));
 
-        watcher.start();
-
-        verify(layerStore, times(1)).createLayer(any(), any(), any(), any(), anyBoolean());
+        assertThat(collectSourceDescriptors(), hasSize(1));
     }
 
     @Test
     public void process_datasets_appearing_later() throws Exception {
-        final Action1<SourceUpdate> actionA = mock(Action1.class);
-        final Action1<SourceUpdate> actionB = mock(Action1.class);
-        whenCreateLayerThenReturn("123", actionA);
-        whenCreateLayerThenReturn("456", actionB);
         when(listener.observable()).thenReturn(just(
-                ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())),
-                ImmutableMap.of(DatasetIdImpl.of("456"), datasetConfig(new LocatorB()))
+                map(entry(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))),
+                map(entry(DatasetIdImpl.of("456"), datasetConfig(new LocatorB())))
         ));
 
-        watcher.start();
-
-        verify(layerStore).createLayer(eq(LayerIdImpl.of("123")), any(), any(), any(), eq(true));
-        verify(actionA).call(updateA);
-        verify(layerStore).createLayer(eq(LayerIdImpl.of("456")), any(), any(), any(), eq(false));
-        verify(actionB).call(updateB);
+        assertThat(collectSourceDescriptors().stream().map(SourceDescriptor::id).collect(toList()),
+                Matchers.contains(LayerIdImpl.of("123"), LayerIdImpl.of("456")));
     }
 
     @Test
     public void pass_config_fields_to_extension_parser() throws Exception {
-        whenCreateLayerThenReturn("123", empty());
-        when(listener.observable()).thenReturn(just(ImmutableMap.of(DatasetIdImpl.of("123"), datasetConfig(new LocatorA()))));
+        when(listener.observable()).thenReturn(just(
+                map(entry(DatasetIdImpl.of("123"), datasetConfig(new LocatorA())))
+        ));
 
-        watcher.start();
+        collectSourceDescriptors();
 
         verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, rawExtension));
     }
 
-    private void whenCreateLayerThenReturn(String layerId, Action1<SourceUpdate> action) {
-        when(layerStore.createLayer(eq(LayerIdImpl.of(layerId)), any(), any(), any(), anyBoolean())).thenReturn(action);
+    private List<SourceDescriptor> collectSourceDescriptors() {
+        TestSubscriber<SourceDescriptor> sub = TestSubscriber.create();
+        watcher.sources().subscribe(sub);
+        sub.awaitTerminalEvent();
+        return sub.getOnNextEvents();
     }
 
     private SourceUpdate createUpdate() {

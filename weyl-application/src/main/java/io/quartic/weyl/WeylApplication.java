@@ -50,19 +50,9 @@ import java.util.function.Function;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
+    private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
+
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
-
-    private final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
-    private final LayerStore layerStore = LayerStoreImpl.builder()
-            .entityStore(entityStore).lidGenerator(lidGenerator).build();
-
-    private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
-            layerStore.allLayers(),
-            layerStore::liveLayerChanges
-    );
-
-    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
-    private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -71,10 +61,50 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     @Override
     public void initializeApplication(Bootstrap<WeylConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
-        bootstrap.addBundle(configureWebsockets());
+        bootstrap.addBundle(websocketBundle);
     }
 
-    private WebsocketBundle configureWebsockets() {
+    @Override
+    public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
+        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
+        environment.jersey().setUrlPattern("/api/*");
+
+        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
+
+        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
+                .listenerFactory(WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory))
+                .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
+                .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
+                .build();
+
+        final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
+        final LayerStore layerStore = LayerStoreImpl.builder()
+                .sources(catalogueWatcher.sources())
+                .entityStore(entityStore)
+                .lidGenerator(lidGenerator).build();
+
+        final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
+                layerStore.allLayers(),
+                layerStore::liveLayerChanges
+        );
+
+        final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
+        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+
+        environment.jersey().register(new PingPongResource());
+        environment.jersey().register(new LayerResource(layerStore));
+        environment.jersey().register(new TileResource(layerStore));
+        environment.jersey().register(new AlertResource(alertProcessor));
+
+        websocketBundle.addEndpoint(createWebsocketEndpoint(layerStore, entityStore, geofenceStore, alertProcessor));
+    }
+
+    private ServerEndpointConfig createWebsocketEndpoint(
+            LayerStore layerStore,
+            ObservableStore<EntityId, Feature> entityStore,
+            GeofenceStore geofenceStore,
+            AlertProcessor alertProcessor
+    ) {
         final SelectionHandler selectionHandler = new SelectionHandler(
                 newArrayList(
                         new ChartUpdateGenerator(),
@@ -94,7 +124,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 featureConverter()
         );
 
-        final ServerEndpointConfig config = ServerEndpointConfig.Builder
+        return ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
                     @Override
@@ -110,29 +140,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     }
                 })
                 .build();
-        return new WebsocketBundle(config);
-    }
-
-    @Override
-    public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
-        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
-        environment.jersey().setUrlPattern("/api/*");
-
-        environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore));
-        environment.jersey().register(new TileResource(layerStore));
-        environment.jersey().register(new AlertResource(alertProcessor));
-
-        final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
-
-        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
-                .listenerFactory(WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory))
-                .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
-                .layerStore(layerStore)
-                .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
-                .build();
-
-        catalogueWatcher.start();
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(

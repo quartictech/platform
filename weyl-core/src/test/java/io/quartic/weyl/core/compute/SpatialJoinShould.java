@@ -6,16 +6,12 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.ObservableStore;
-import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.LayerStoreImpl;
+import io.quartic.weyl.core.*;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.junit.Test;
-import rx.Observable;
-import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -28,11 +24,14 @@ import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.mock;
+import static rx.Observable.just;
 
 public class SpatialJoinShould {
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
+    private final PublishSubject<SourceDescriptor> sources = PublishSubject.create();
     private final LayerStore store = LayerStoreImpl.builder()
             .entityStore(mock(ObservableStore.class))
+            .sources(sources)
             .lidGenerator(lidGenerator)
             .build();
 
@@ -56,14 +55,15 @@ public class SpatialJoinShould {
 
     private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
-        final Action1<SourceUpdate> action = store.createLayer(
+
+        sources.onNext(SourceDescriptorImpl.of(
                 layerId,
                 LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
                 IDENTITY_VIEW,
                 AttributeSchemaImpl.builder().build(),
-                true);
-
-        Observable.just(SourceUpdateImpl.of(features)).subscribe(action);
+                true,
+                just(SourceUpdateImpl.of(features))
+        ));
 
         return store.getLayer(layerId).get();
     }

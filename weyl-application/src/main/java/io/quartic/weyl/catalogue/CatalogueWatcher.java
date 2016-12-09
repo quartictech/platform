@@ -6,37 +6,37 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.SourceDescriptor;
+import io.quartic.weyl.core.SourceDescriptorImpl;
 import io.quartic.weyl.core.model.*;
 import io.quartic.weyl.core.source.Source;
-import io.quartic.weyl.core.source.SourceUpdate;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 import rx.Scheduler;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Action1;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static rx.Observable.from;
 
 @Value.Immutable
-public abstract class CatalogueWatcher implements AutoCloseable {
+public abstract class CatalogueWatcher {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueWatcher.class);
 
     public static ImmutableCatalogueWatcher.Builder builder() {
         return ImmutableCatalogueWatcher.builder();
     }
 
-    private Subscription subscription = null;
     private final Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
 
     protected abstract Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories();
-    protected abstract LayerStore layerStore();
     protected abstract Scheduler scheduler();
     protected abstract WebsocketListener.Factory listenerFactory();
 
@@ -50,31 +50,26 @@ public abstract class CatalogueWatcher implements AutoCloseable {
         return listenerFactory().create(OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
     }
 
-    public void start() {
-        subscription = listener()
-                .observable()
-                .subscribe(this::update);
+    @Value.Lazy
+    public Observable<SourceDescriptor> sources() {
+        return listener().observable()
+                .flatMap(this::update)
+                .share();
     }
 
-    @Override
-    public void close() throws Exception {
-        if (subscription != null) {
-            subscription.unsubscribe();
-            subscription = null;
-        }
-    }
-
-    private void update(Map<DatasetId, DatasetConfig> datasets) {
+    private Observable<SourceDescriptor> update(Map<DatasetId, DatasetConfig> datasets) {
         LOG.info("Received catalogue update");
-        datasets.entrySet().stream()
+        final List<SourceDescriptor> sources = datasets.entrySet().stream()
                 .filter(e -> !this.datasets.containsKey(e.getKey()))
-                .forEach(e -> createAndImportLayer(e.getKey(), e.getValue()));
+                .flatMap(e -> createSource(e.getKey(), e.getValue()))
+                .collect(toList());
         // TODO: explicitly remove old layers
         this.datasets.clear();
         this.datasets.putAll(datasets);
+        return from(sources);
     }
 
-    private void createAndImportLayer(DatasetId id, DatasetConfig config) {
+    private Stream<SourceDescriptor> createSource(DatasetId id, DatasetConfig config) {
         try {
             final Function<DatasetConfig, Source> func = sourceFactories().get(config.locator().getClass());
             if (func == null) {
@@ -84,20 +79,19 @@ public abstract class CatalogueWatcher implements AutoCloseable {
             final String name = config.metadata().name();
             final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
             final Source source = func.apply(config);
-            final LayerId layerId = LayerIdImpl.of(id.uid());
-            final Action1<SourceUpdate> action = layerStore().createLayer(
-                    layerId,
+
+            LOG.info(format("[%s] Created layer", name));
+            return Stream.of(SourceDescriptorImpl.of(
+                    LayerIdImpl.of(id.uid()),
                     datasetMetadataFrom(config.metadata()),
                     extension.viewType().getLayerView(),
                     schemaFrom(extension),
-                    source.indexable()
-            );
-
-            LOG.info(format("[%s] Created layer", name));
-
-            source.observable().subscribeOn(scheduler()).subscribe(action);   // TODO: the scheduler should be chosen by the specific source
+                    source.indexable(),
+                    source.observable().subscribeOn(scheduler())    // TODO: the scheduler should be chosen by the specific source
+            ));
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
+            return Stream.empty();
         }
     }
 

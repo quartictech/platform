@@ -19,13 +19,14 @@ import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import rx.Observable;
-import rx.functions.Action1;
+import rx.exceptions.OnErrorNotImplementedException;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -37,17 +38,21 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
+import static rx.Observable.empty;
+import static rx.Observable.just;
 
 public class LayerStoreShould {
-    private static final LayerId LAYER_ID = LayerIdImpl.of("666");
-    private static final LayerId OTHER_LAYER_ID = LayerIdImpl.of("777");
+    private static final LayerId LAYER_ID = LayerId.fromString("666");
+    private static final LayerId OTHER_LAYER_ID = LayerId.fromString("777");
     private static final AttributeName ATTRIBUTE_NAME = AttributeNameImpl.of("timestamp");
     private static final Attributes ATTRIBUTES = () -> ImmutableMap.of(ATTRIBUTE_NAME, 1234);
 
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
     private final LayerComputation.Factory computationFactory = mock(LayerComputation.Factory.class);
+    private final PublishSubject<SourceDescriptor> sources = PublishSubject.create();
     private final LayerStore store = LayerStoreImpl.builder()
+            .sources(sources)
             .entityStore(entityStore)
             .lidGenerator(lidGenerator)
             .computationFactory(computationFactory)
@@ -62,26 +67,24 @@ public class LayerStoreShould {
         final AttributeSchema as1 = schema("foo");
         final AttributeSchema as2 = schema("bar");
 
-        store.createLayer(LAYER_ID, lm1, IDENTITY_VIEW, as1, true);
-        store.createLayer(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true);
+        createLayer(SourceDescriptorImpl.of(LAYER_ID, lm1, IDENTITY_VIEW, as1, true, empty()));
+        createLayer(SourceDescriptorImpl.of(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true, empty()));
 
         final Collection<Layer> layers = store.listLayers();
 
-        assertThat(layers.stream().map(Layer::layerId).collect(toList()),
-                containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
-        assertThat(layers.stream().map(Layer::metadata).collect(toList()),
-                containsInAnyOrder(lm1, lm2));
-        assertThat(layers.stream().map(Layer::indexable).collect(toList()),
-                containsInAnyOrder(true, true));
-        assertThat(layers.stream().map(Layer::schema).collect(toList()),
-                containsInAnyOrder(as1, as2));
+        assertThat(map(layers, Layer::layerId), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
+        assertThat(map(layers, Layer::metadata), containsInAnyOrder(lm1, lm2));
+        assertThat(map(layers, Layer::indexable), containsInAnyOrder(true, true));
+        assertThat(map(layers, Layer::schema), containsInAnyOrder(as1, as2));
+    }
+
+    private <T, R> List<R> map(Collection<T> input, Function<T, R> mapper) {
+        return input.stream().map(mapper).collect(toList());
     }
 
     @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
-        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
-
-        Observable.just(updateFor(modelFeature("a"))).subscribe(action);
+        createLayer(LAYER_ID, just(updateFor(modelFeature("a"))));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
@@ -89,72 +92,54 @@ public class LayerStoreShould {
 
     @Test
     public void add_observed_features_to_layer() throws Exception {
-        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
-
-        Observable.just(
+        createLayer(LAYER_ID, just(
                 updateFor(modelFeature("a")),
                 updateFor(modelFeature("b"))
-        ).subscribe(action);
+        ));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.features(),
-                containsInAnyOrder(feature("a"), feature("b")));
+        assertThat(layer.features(), containsInAnyOrder(feature("a"), feature("b")));
     }
 
     @Test
     public void put_attributes_to_store() throws Exception {
-        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
-
-        Observable.just(updateFor(modelFeature("a"), modelFeature("b"))).subscribe(action);
-
+        createLayer(LAYER_ID, just(updateFor(modelFeature("a"), modelFeature("b"))));
 
         verify(entityStore).putAll(any(), eq(newArrayList(feature("a"), feature("b"))));
     }
 
-
-
-    // TODO: using subjects is kind of gross (see e.g. http://tomstechnicalblog.blogspot.co.uk/2016/03/rxjava-problem-with-subjects.html)
-    // Luckily, this should go away once we model downstream stuff reactively too
     @Test
     public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID);
+        PublishSubject<SourceUpdate> updates = PublishSubject.create();
+        createLayer(LAYER_ID, updates);
 
-        PublishSubject<SourceUpdate> subject = PublishSubject.create();
-        subject.subscribe(sub);
-
-        subject.onNext(updateFor(modelFeature("a")));   // Observed before
+        updates.onNext(updateFor(modelFeature("a")));   // Observed before
 
         TestSubscriber<Layer> subscriber = TestSubscriber.create();
         store.layersForLayerId(LAYER_ID).subscribe(subscriber);
 
-        subject.onNext(updateFor(modelFeature("b")));   // Observed after
+        updates.onNext(updateFor(modelFeature("b")));   // Observed after
 
         assertThat(subscriber.getOnNextEvents().size(), equalTo(2));
-        assertThat(subscriber.getOnNextEvents().get(1).features(),
-                containsInAnyOrder(
-                        feature("a"),
-                        feature("b")
-                ));
+        assertThat(subscriber.getOnNextEvents().get(1).features(), containsInAnyOrder(feature("a"), feature("b")));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = OnErrorNotImplementedException.class)
     public void throw_if_create_called_on_an_existing_layer() throws Exception {
-        createLayer(LAYER_ID);
-        createLayer(LAYER_ID);
+        createLayer(LAYER_ID, empty());
+        createLayer(LAYER_ID, empty());
     }
 
     @Test
     public void notify_observers_on_new_features() throws Exception {
-        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
+        PublishSubject<SourceUpdate> updates = PublishSubject.create();
+        createLayer(LAYER_ID, updates);
 
         Observable<LiveLayerChange> newFeatures = store.liveLayerChanges(LAYER_ID);
-
         TestSubscriber<LiveLayerChange> sub = TestSubscriber.create();
         newFeatures.subscribe(sub);
 
-        Observable.just(
-                updateFor(modelFeature("a"))
-        ).subscribe(action);
+        updates.onNext(updateFor(modelFeature("a")));
 
         Collection<Feature> features = ImmutableList.of(feature("a"));
         sub.assertReceivedOnNext(newArrayList(liveLayerChange(LAYER_ID, features)));
@@ -162,15 +147,13 @@ public class LayerStoreShould {
 
     @Test
     public void notify_on_updates_to_layers() throws Exception {
-        final Action1<SourceUpdate> action = createLayer(LAYER_ID);
+        PublishSubject<SourceUpdate> updates = PublishSubject.create();
+        createLayer(LAYER_ID, updates);
 
         TestSubscriber<Layer> sub = TestSubscriber.create();
         store.layersForLayerId(LAYER_ID).subscribe(sub);
 
-        PublishSubject<SourceUpdate> sourceUpdates = PublishSubject.create();
-        sourceUpdates.subscribe(action);
-
-        sourceUpdates.onNext(updateFor(modelFeature("a")));
+        updates.onNext(updateFor(modelFeature("a")));
 
         List<Layer> layers = sub.getOnNextEvents();
         // This actually gets emitted twice currently (once empty, then once with the feature)
@@ -181,7 +164,8 @@ public class LayerStoreShould {
         assertThat(layers.get(1).features(), containsInAnyOrder(feature("a")));
 
         layers = sub.getOnNextEvents();
-        sourceUpdates.onNext(updateFor(modelFeature("b")));
+        updates.onNext(updateFor(modelFeature("b")));
+
         assertThat(layers.size(), equalTo(3));
         assertThat(layers.get(2).features(), containsInAnyOrder(feature("a"), feature("b")));
 
@@ -192,23 +176,21 @@ public class LayerStoreShould {
 
     @Test
     public void notify_on_layer_addition() {
-        createLayer(LAYER_ID);
+        createLayer(LAYER_ID, empty());
+
         TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
         store.allLayers().subscribe(sub);
 
         List<Collection<Layer>> layerEvents = sub.getOnNextEvents();
         assertThat(layerEvents.size(), equalTo(1));
         assertThat(layerEvents.get(0).size(), equalTo(1));
-        assertThat(layerEvents.get(0).stream().map(Layer::layerId).collect(toList()),
-                containsInAnyOrder(LAYER_ID));
+        assertThat(layerEvents.get(0).stream().map(Layer::layerId).collect(toList()), containsInAnyOrder(LAYER_ID));
 
-        LayerId layerId2 = LayerId.fromString("777");
-        createLayer(layerId2);
+        createLayer(OTHER_LAYER_ID, empty());
         layerEvents = sub.getOnNextEvents();
         assertThat(layerEvents.size(), equalTo(2));
         assertThat(layerEvents.get(1).size(), equalTo(2));
-        assertThat(layerEvents.get(1).stream().map(Layer::layerId).collect(toList()),
-                containsInAnyOrder(LAYER_ID, layerId2));
+        assertThat(layerEvents.get(1).stream().map(Layer::layerId).collect(toList()), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
     }
 
     @Test
@@ -245,11 +227,7 @@ public class LayerStoreShould {
     }
 
     private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
-        final Action1<SourceUpdate> sub = createLayer(LAYER_ID, indexable);
-
-        Observable.just(
-                updateFor(modelFeature("a"))
-        ).subscribe(sub);
+        createLayer(LAYER_ID, indexable, just(updateFor(modelFeature("a"))));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
 
@@ -280,16 +258,21 @@ public class LayerStoreShould {
         );
     }
 
-    private Action1<SourceUpdate> createLayer(LayerId id) {
-        return createLayer(id, true);
-    }
-
     private LiveLayerChange liveLayerChange(LayerId layerId, Collection<Feature> features) {
         return ImmutableLiveLayerChange.of(layerId, features);
     }
 
-    private Action1<SourceUpdate> createLayer(LayerId id, boolean indexable) {
-        return store.createLayer(id, metadata("foo", "bar"), IDENTITY_VIEW, schema("blah"), indexable);
+    private void createLayer(LayerId layerId, Observable<SourceUpdate> updates) {
+        createLayer(layerId, false, updates);
+    }
+
+    private void createLayer(LayerId layerId, boolean indexable, Observable<SourceUpdate> updates) {
+        final SourceDescriptor descriptor = SourceDescriptorImpl.of(layerId, metadata("foo", "bar"), IDENTITY_VIEW, schema("blah"), indexable, updates);
+        createLayer(descriptor);
+    }
+
+    private void createLayer(SourceDescriptor descriptor) {
+        sources.onNext(descriptor);
     }
 
     private AttributeSchema schema(String blessed) {
@@ -299,5 +282,4 @@ public class LayerStoreShould {
     private LayerMetadata metadata(String name, String description) {
         return LayerMetadataImpl.of(name, description, Optional.empty(), Optional.empty());
     }
-
 }
