@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Classes,
+  NonIdealState,
   Spinner,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
@@ -38,9 +39,9 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         onClose={this.props.onClose}
       >
         {loaded || (
-          <div style={{ width: "100%", textAlign: "center" }}>
-            <Spinner className={Classes.LARGE} />
-          </div>
+          <NonIdealState
+            visual={<Spinner className={Classes.LARGE} />}
+          />
         )}
 
         <SelectionView
