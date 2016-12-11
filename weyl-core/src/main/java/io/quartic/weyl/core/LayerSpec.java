@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.source;
+package io.quartic.weyl.core;
 
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.live.LayerView;
@@ -10,11 +10,12 @@ import rx.Observable;
 
 @SweetStyle
 @Value.Immutable
-public interface SourceDescriptor {
+public interface LayerSpec {
     LayerId id();
     LayerMetadata metadata();
     LayerView view();
     AttributeSchema schema();
     boolean indexable();
-    Observable<SourceUpdate> updates();
+    @Value.Auxiliary    // No point having this contribute to equals(), etc.
+    Observable<LayerUpdate> updates();
 }

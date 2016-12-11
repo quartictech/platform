@@ -1,29 +1,21 @@
 package io.quartic.weyl.core.compute;
 
-import io.quartic.weyl.core.LayerStore;
+import io.quartic.weyl.core.LayerPopulator;
+import io.quartic.weyl.core.model.LayerId;
 
-import java.util.Optional;
-
-public interface LayerComputation {
-
+public interface LayerComputation extends LayerPopulator {
     class Factory {
-        public Optional<ComputationResults> compute(LayerStore store, ComputationSpec computationSpec) {
-            LayerComputation result;
-            if (computationSpec instanceof BucketSpec) {
-                result = BucketComputationImpl.builder()
-                        .store(store)
-                        .bucketSpec((BucketSpec) computationSpec)
+        public LayerPopulator createPopulator(LayerId layerId, ComputationSpec spec) {
+            if (spec instanceof BucketSpec) {
+                return BucketComputationImpl.builder()
+                        .layerId(layerId)
+                        .bucketSpec((BucketSpec) spec)
                         .build();
+            } else if (spec instanceof BufferSpec) {
+                return new BufferComputation(layerId, (BufferSpec) spec);
+            } else {
+                throw new RuntimeException("Invalid computation spec: " + spec);
             }
-            else if (computationSpec instanceof BufferSpec) {
-                result = BufferComputation.create(store, (BufferSpec) computationSpec);
-            }
-            else {
-                throw new RuntimeException("Invalid computation spec: " + computationSpec);
-            }
-            return result.compute();
         }
     }
-
-    Optional<ComputationResults> compute();
 }

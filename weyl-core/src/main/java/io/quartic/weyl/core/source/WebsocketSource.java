@@ -4,6 +4,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.model.LiveEvent;
+import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -30,11 +31,11 @@ public abstract class WebsocketSource implements Source {
 
     @Value.Lazy
     @Override
-    public Observable<SourceUpdate> observable() {
+    public Observable<LayerUpdate> observable() {
         return listenerFactory().create(LiveEvent.class)
                 .observable()
                 .doOnNext(s -> messageRateMeter().mark())
-                .map(event -> SourceUpdateImpl.of(converter().toModel(event.featureCollection())));
+                .map(event -> LayerUpdateImpl.of(converter().toModel(event.featureCollection())));
     }
 
     @Override

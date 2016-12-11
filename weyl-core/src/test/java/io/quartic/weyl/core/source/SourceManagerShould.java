@@ -2,11 +2,26 @@ package io.quartic.weyl.core.source;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
 import io.quartic.common.test.rx.ObservableInterceptor;
+import io.quartic.weyl.core.LayerPopulator;
+import io.quartic.weyl.core.LayerSpec;
+import io.quartic.weyl.core.LayerSpecImpl;
+import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.catalogue.CatalogueEventImpl;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.MapDatasetExtension;
+import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -23,12 +38,17 @@ import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static io.quartic.weyl.core.source.ExtensionParser.EXTENSION_KEY;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static rx.Observable.never;
 
 public class SourceManagerShould {
 
@@ -40,13 +60,13 @@ public class SourceManagerShould {
     private static class LocatorB implements DatasetLocator {}
 
     private final PublishSubject<CatalogueEvent> catalogueEvents = PublishSubject.create();
-    private final PublishSubject<SourceUpdate> sourceUpdatesA = PublishSubject.create();
-    private final PublishSubject<SourceUpdate> sourceUpdatesB = PublishSubject.create();
-    private final ObservableInterceptor<SourceUpdate> interceptor = ObservableInterceptor.create(sourceUpdatesA);
+    private final PublishSubject<LayerUpdate> layerUpdatesA = PublishSubject.create();
+    private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
+    private final ObservableInterceptor<LayerUpdate> interceptor = ObservableInterceptor.create(layerUpdatesA);
 
     private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceOf(interceptor.observable(), true),
-            LocatorB.class, config -> sourceOf(sourceUpdatesB, false)
+            LocatorB.class, config -> sourceOf(layerUpdatesB, false)
     );
 
     private final ExtensionParser extensionParser = mock(ExtensionParser.class);
@@ -58,54 +78,59 @@ public class SourceManagerShould {
             .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
             .build();
 
-    private final TestSubscriber<SourceDescriptor> sub = TestSubscriber.create();
-    private final Map<LayerId, TestSubscriber<SourceUpdate>> updateSubscribers = Maps.newHashMap();
+    private final TestSubscriber<LayerPopulator> sub = TestSubscriber.create();
+    private final Map<LayerId, TestSubscriber<LayerUpdate>> updateSubscribers = Maps.newHashMap();
 
     @Before
     public void before() throws Exception {
         when(extensionParser.parse(any(), any())).thenReturn(extension());
-        manager.sources()
-                .doOnNext(desc -> {
+        manager.layerPopulators()
+                .doOnNext(populator -> {
                     // This mechanism allows us to capture source updates in a non-blocking way
-                    final TestSubscriber<SourceUpdate> updateSubscriber = TestSubscriber.create();
-                    desc.updates().subscribe(updateSubscriber);
-                    updateSubscribers.put(desc.id(), updateSubscriber);
+                    final TestSubscriber<LayerUpdate> updateSubscriber = TestSubscriber.create();
+                    final LayerSpec spec = populator.spec(emptyList());
+                    spec.updates().subscribe(updateSubscriber);
+                    updateSubscribers.put(spec.id(), updateSubscriber);
                 })
                 .subscribe(sub);
     }
 
     @Test
     public void create_layer_on_create_event() throws Exception {
-        final SourceUpdate sourceUpdate = mock(SourceUpdate.class);
+        final LayerUpdate layerUpdate = mock(LayerUpdate.class);
 
         catalogueEvents.onNext(event(CREATE, "123", "foo", new LocatorA()));
-        sourceUpdatesA.onNext(sourceUpdate);
-        sourceUpdatesA.onCompleted();
+        layerUpdatesA.onNext(layerUpdate);
+        layerUpdatesA.onCompleted();
         catalogueEvents.onCompleted();
 
-        final SourceDescriptor descriptor = collectedSourceDescriptors().get(0);
-        assertThat(descriptor.id(), equalTo(LayerIdImpl.of("123")));
-        assertThat(descriptor.metadata(), equalTo(LayerMetadataImpl.of("foo", "blah", Optional.of("quartic"), Optional.empty())));
-        assertThat(descriptor.view(), equalTo(LOCATION_AND_TRACK.getLayerView()));
-        assertThat(descriptor.schema(), equalTo(AttributeSchemaImpl.builder()
-                .titleAttribute(TITLE_ATTRIBUTE)
-                .imageAttribute(IMAGE_ATTRIBUTE)
-                .blessedAttribute(BLESSED_ATTRIBUTES)
-                .build()));
-        assertThat(descriptor.indexable(), equalTo(true));
-        assertThat(collectedUpdateSequenceFor("123"), contains(sourceUpdate));
+        final LayerPopulator populator = collectedLayerPopulators().get(0);
+        assertThat(populator.spec(emptyList()), equalTo(LayerSpecImpl.of(
+                LayerIdImpl.of("123"),
+                LayerMetadataImpl.of("foo", "blah", Optional.of("quartic"), Optional.empty()),
+                LOCATION_AND_TRACK.getLayerView(),
+                AttributeSchemaImpl.builder()
+                        .titleAttribute(TITLE_ATTRIBUTE)
+                        .imageAttribute(IMAGE_ATTRIBUTE)
+                        .blessedAttribute(BLESSED_ATTRIBUTES)
+                        .build(),
+                true,
+                never() // Don't care
+        )));
+        assertThat(populator.dependencies(), empty());
+        assertThat(collectedUpdateSequenceFor("123"), contains(layerUpdate));
     }
 
     @Test
     public void complete_source_observable_on_delete_event() throws Exception {
-        final SourceUpdate beforeDeletion = mock(SourceUpdate.class);
-        final SourceUpdate afterDeletion = mock(SourceUpdate.class);
+        final LayerUpdate beforeDeletion = mock(LayerUpdate.class);
+        final LayerUpdate afterDeletion = mock(LayerUpdate.class);
 
         catalogueEvents.onNext(event(CREATE, "123", "foo", new LocatorA()));
-        sourceUpdatesA.onNext(beforeDeletion);
+        layerUpdatesA.onNext(beforeDeletion);
         catalogueEvents.onNext(event(DELETE, "123", "foo", new LocatorA()));
-        sourceUpdatesA.onNext(afterDeletion);
-        sourceUpdatesA.onCompleted();
+        layerUpdatesA.onNext(afterDeletion);
+        layerUpdatesA.onCompleted();
         catalogueEvents.onCompleted();
 
         assertThat(collectedUpdateSequenceFor("123"), contains(beforeDeletion));    // But not afterDeletion
@@ -125,7 +150,7 @@ public class SourceManagerShould {
         catalogueEvents.onNext(event(CREATE, "456", "foo", new LocatorB()));
         catalogueEvents.onCompleted();
 
-        assertThat(collectedSourceDescriptors().stream().map(SourceDescriptor::id).collect(toList()),
+        assertThat(collectedLayerPopulators().stream().map(p -> p.spec(emptyList()).id()).collect(toList()),
                 contains(LayerIdImpl.of("123"), LayerIdImpl.of("456")));
     }
 
@@ -134,16 +159,16 @@ public class SourceManagerShould {
         catalogueEvents.onNext(event(CREATE, "123", "foo", new LocatorA()));
         catalogueEvents.onCompleted();
 
-        collectedSourceDescriptors();
+        collectedLayerPopulators();
 
         verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, "raw"));
     }
 
-    private List<SourceUpdate> collectedUpdateSequenceFor(String layerId) {
+    private List<LayerUpdate> collectedUpdateSequenceFor(String layerId) {
         return updateSubscribers.get(LayerIdImpl.of(layerId)).getOnNextEvents();
     }
 
-    private List<SourceDescriptor> collectedSourceDescriptors() {
+    private List<LayerPopulator> collectedLayerPopulators() {
         sub.awaitTerminalEvent();
         return sub.getOnNextEvents();
     }
@@ -169,7 +194,7 @@ public class SourceManagerShould {
                 .build();
     }
 
-    private Source sourceOf(Observable<SourceUpdate> updates, boolean indexable) {
+    private Source sourceOf(Observable<LayerUpdate> updates, boolean indexable) {
         final Source source = mock(Source.class);
         when(source.observable()).thenReturn(updates);
         when(source.indexable()).thenReturn(indexable);

@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.geojson.*;
+import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Rule;
@@ -46,7 +47,7 @@ public class GeoJsonSourceShould {
                 )
         );
 
-        TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
+        TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
 
         GeoJsonSource.builder()
                 .name("Budgie")
@@ -56,6 +57,6 @@ public class GeoJsonSourceShould {
                 .observable().subscribe(subscriber);
 
         verify(converter).toModel(original);
-        subscriber.assertValue(SourceUpdateImpl.of(modelFeatures));
+        subscriber.assertValue(LayerUpdateImpl.of(modelFeatures));
     }
 }

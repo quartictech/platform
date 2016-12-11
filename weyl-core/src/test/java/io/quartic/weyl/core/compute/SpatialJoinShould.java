@@ -6,14 +6,24 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.LayerPopulator;
+import io.quartic.weyl.core.LayerSpec;
+import io.quartic.weyl.core.LayerSpecImpl;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
 import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
-import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.source.SourceDescriptor;
-import io.quartic.weyl.core.source.SourceDescriptorImpl;
-import io.quartic.weyl.core.source.SourceUpdateImpl;
+import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.source.LayerUpdateImpl;
 import org.junit.Test;
 import rx.subjects.PublishSubject;
 
@@ -25,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.mock;
@@ -32,11 +43,10 @@ import static rx.Observable.just;
 
 public class SpatialJoinShould {
     private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
-    private final PublishSubject<SourceDescriptor> sources = PublishSubject.create();
+    private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final LayerStore store = LayerStoreImpl.builder()
             .entityStore(mock(ObservableStore.class))
-            .sources(sources)
-            .lidGenerator(lidGenerator)
+            .populators(populators)
             .build();
 
     @Test
@@ -60,14 +70,24 @@ public class SpatialJoinShould {
     private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
 
-        sources.onNext(SourceDescriptorImpl.of(
-                layerId,
-                LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
-                IDENTITY_VIEW,
-                AttributeSchemaImpl.builder().build(),
-                true,
-                just(SourceUpdateImpl.of(features))
-        ));
+        populators.onNext(new LayerPopulator() {
+            @Override
+            public List<LayerId> dependencies() {
+                return emptyList();
+            }
+
+            @Override
+            public LayerSpec spec(List<Layer> dependencies) {
+                return LayerSpecImpl.of(
+                        layerId,
+                        LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
+                        IDENTITY_VIEW,
+                        AttributeSchemaImpl.builder().build(),
+                        true,
+                        just(LayerUpdateImpl.of(features))
+                );
+            }
+        });
 
         return store.getLayer(layerId).get();
     }

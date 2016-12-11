@@ -7,6 +7,7 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.*;
 import io.quartic.model.LiveEvent;
 import io.quartic.model.LiveEventImpl;
+import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Test;
@@ -46,12 +47,12 @@ public class WebsocketSourceShould {
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
 
-        TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
+        TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
         verify(converter).toModel(FEATURE_COLLECTION);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(SourceUpdateImpl.of(modelFeatures)));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

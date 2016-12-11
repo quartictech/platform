@@ -6,7 +6,18 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
+import io.quartic.catalogue.api.WebsocketDatasetLocator;
+import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
@@ -21,6 +32,7 @@ import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
+import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
@@ -29,11 +41,23 @@ import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
-import io.quartic.weyl.core.source.*;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.PostgresSource;
+import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.SourceManager;
+import io.quartic.weyl.core.source.SourceManagerImpl;
+import io.quartic.weyl.core.source.TerminatorSourceFactory;
+import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
+import io.quartic.weyl.resource.ComputeResource;
+import io.quartic.weyl.resource.ComputeResourceImpl;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.update.*;
+import io.quartic.weyl.update.AttributesUpdateGenerator;
+import io.quartic.weyl.update.ChartUpdateGenerator;
+import io.quartic.weyl.update.HistogramsUpdateGenerator;
+import io.quartic.weyl.update.SelectionHandler;
+import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
 import rx.Observable;
@@ -45,6 +69,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -78,11 +103,16 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
 
+        final ComputeResource computeResource = ComputeResourceImpl.of(new LayerComputation.Factory(), lidGenerator);
+
         final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
         final LayerStore layerStore = LayerStoreImpl.builder()
-                .sources(sourceManager.sources())
+                .populators(merge(
+                        sourceManager.layerPopulators(),
+                        computeResource.layerPopulators()
+                ))
                 .entityStore(entityStore)
-                .lidGenerator(lidGenerator).build();
+                .build();
 
         final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
                 layerStore.allLayers(),
@@ -94,6 +124,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
+        environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(new AlertResource(alertProcessor));
 

@@ -5,19 +5,25 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.common.uid.SequenceUidGenerator;
-import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.ComputationResults;
-import io.quartic.weyl.core.compute.ComputationResultsImpl;
-import io.quartic.weyl.core.compute.ComputationSpec;
-import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
-import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.source.SourceDescriptor;
-import io.quartic.weyl.core.source.SourceDescriptorImpl;
-import io.quartic.weyl.core.source.SourceUpdate;
-import io.quartic.weyl.core.source.SourceUpdateImpl;
+import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.source.LayerUpdateImpl;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import rx.Observable;
@@ -31,15 +37,19 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -49,15 +59,11 @@ public class LayerStoreShould {
     private static final AttributeName ATTRIBUTE_NAME = AttributeNameImpl.of("timestamp");
     private static final Attributes ATTRIBUTES = () -> ImmutableMap.of(ATTRIBUTE_NAME, 1234);
 
-    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
     private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
-    private final LayerComputation.Factory computationFactory = mock(LayerComputation.Factory.class);
-    private final PublishSubject<SourceDescriptor> sources = PublishSubject.create();
+    private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final LayerStore store = LayerStoreImpl.builder()
-            .sources(sources)
+            .populators(populators)
             .entityStore(entityStore)
-            .lidGenerator(lidGenerator)
-            .computationFactory(computationFactory)
             .build();
     private final GeometryFactory factory = new GeometryFactory();
 
@@ -69,8 +75,8 @@ public class LayerStoreShould {
         final AttributeSchema as1 = schema("foo");
         final AttributeSchema as2 = schema("bar");
 
-        createLayer(SourceDescriptorImpl.of(LAYER_ID, lm1, IDENTITY_VIEW, as1, true, empty()));
-        createLayer(SourceDescriptorImpl.of(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true, empty()));
+        createLayer(LayerSpecImpl.of(LAYER_ID, lm1, IDENTITY_VIEW, as1, true, empty()));
+        createLayer(LayerSpecImpl.of(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true, empty()));
 
         final Collection<Layer> layers = store.listLayers();
 
@@ -112,7 +118,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
-        PublishSubject<SourceUpdate> updates = PublishSubject.create();
+        PublishSubject<LayerUpdate> updates = PublishSubject.create();
         createLayer(LAYER_ID, updates);
 
         updates.onNext(updateFor(modelFeature("a")));   // Observed before
@@ -134,7 +140,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_observers_on_new_features() throws Exception {
-        PublishSubject<SourceUpdate> updates = PublishSubject.create();
+        PublishSubject<LayerUpdate> updates = PublishSubject.create();
         createLayer(LAYER_ID, updates);
 
         Observable<LiveLayerChange> newFeatures = store.liveLayerChanges(LAYER_ID);
@@ -149,7 +155,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_on_updates_to_layers() throws Exception {
-        PublishSubject<SourceUpdate> updates = PublishSubject.create();
+        PublishSubject<LayerUpdate> updates = PublishSubject.create();
         createLayer(LAYER_ID, updates);
 
         TestSubscriber<Layer> sub = TestSubscriber.create();
@@ -196,29 +202,6 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void create_layer_for_computed_results() throws Exception {
-        final LayerMetadata metadata = mock(LayerMetadata.class);
-        final AttributeSchema schema = schema("pets");
-        final ComputationResults results = ComputationResultsImpl.of(
-                metadata,
-                schema,
-                newArrayList(modelFeature("a"), modelFeature("b"))
-        );
-        final ComputationSpec spec = mock(ComputationSpec.class);
-        when(computationFactory.compute(any(), any())).thenReturn(Optional.of(results));
-
-        final LayerId layerId = store.compute(spec).get();
-        final Layer layer = store.getLayer(layerId).get();
-
-        verify(computationFactory).compute(store, spec);
-        assertThat(layer.metadata(), equalTo(metadata));
-        assertThat(layer.schema(), equalTo(AttributeSchemaImpl.copyOf(schema)
-                .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.of(newHashSet(1234)))))
-        ));
-        assertThat(layer.features(), containsInAnyOrder(feature("1", "a"), feature("1", "b")));
-    }
-
-    @Test
     public void calculate_indices_for_indexable_layer() throws Exception {
         assertThatLayerIndexedFeaturesHasSize(true, 1);
     }
@@ -236,8 +219,8 @@ public class LayerStoreShould {
         assertThat(layer.indexedFeatures(), hasSize(size));
     }
 
-    private SourceUpdate updateFor(NakedFeature... features) {
-        return SourceUpdateImpl.of(asList(features));
+    private LayerUpdate updateFor(NakedFeature... features) {
+        return LayerUpdateImpl.of(asList(features));
     }
 
     private NakedFeature modelFeature(String externalId) {
@@ -264,17 +247,32 @@ public class LayerStoreShould {
         return ImmutableLiveLayerChange.of(layerId, features);
     }
 
-    private void createLayer(LayerId layerId, Observable<SourceUpdate> updates) {
+    private void createLayer(LayerId layerId, Observable<LayerUpdate> updates) {
         createLayer(layerId, false, updates);
     }
 
-    private void createLayer(LayerId layerId, boolean indexable, Observable<SourceUpdate> updates) {
-        final SourceDescriptor descriptor = SourceDescriptorImpl.of(layerId, metadata("foo", "bar"), IDENTITY_VIEW, schema("blah"), indexable, updates);
-        createLayer(descriptor);
+    private void createLayer(LayerId layerId, boolean indexable, Observable<LayerUpdate> updates) {
+        createLayer(LayerSpecImpl.of(
+                layerId,
+                metadata("foo", "bar"),
+                IDENTITY_VIEW,
+                schema("blah"),
+                indexable,
+                updates));
     }
 
-    private void createLayer(SourceDescriptor descriptor) {
-        sources.onNext(descriptor);
+    private void createLayer(final LayerSpec spec) {
+        populators.onNext(new LayerPopulator() {
+            @Override
+            public List<LayerId> dependencies() {
+                return emptyList();
+            }
+
+            @Override
+            public LayerSpec spec(List<Layer> dependencies) {
+                return spec;
+            }
+        });
     }
 
     private AttributeSchema schema(String blessed) {

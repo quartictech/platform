@@ -5,8 +5,19 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
+import io.quartic.weyl.core.LayerPopulator;
+import io.quartic.weyl.core.LayerSpec;
+import io.quartic.weyl.core.LayerSpecImpl;
+import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.MapDatasetExtension;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +25,14 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.observables.GroupedObservable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -36,14 +49,14 @@ public abstract class SourceManager {
     }
 
     @Value.Lazy
-    public Observable<SourceDescriptor> sources() {
+    public Observable<LayerPopulator> layerPopulators() {
         return catalogueEvents()
                 .groupBy(CatalogueEvent::id)
                 .flatMap(this::processEventsForId)
                 .share();
     }
 
-    private Observable<SourceDescriptor> processEventsForId(GroupedObservable<DatasetId, CatalogueEvent> group) {
+    private Observable<LayerPopulator> processEventsForId(GroupedObservable<DatasetId, CatalogueEvent> group) {
         final Observable<CatalogueEvent> events = group.cache();    // Because groupBy can only have one subscriber per group
 
         return events
@@ -56,19 +69,30 @@ public abstract class SourceManager {
                 );
     }
 
-    private SourceDescriptor createDescriptor(DatasetId id, DatasetConfig config, Source source) {
+    private LayerPopulator createDescriptor(DatasetId id, DatasetConfig config, Source source) {
         final String name = config.metadata().name();
         final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
 
         LOG.info(format("[%s] Created layer", name));
-        return SourceDescriptorImpl.of(
-                LayerIdImpl.of(id.uid()),
-                datasetMetadataFrom(config.metadata()),
-                extension.viewType().getLayerView(),
-                schemaFrom(extension),
-                source.indexable(),
-                source.observable().subscribeOn(scheduler())    // TODO: the scheduler should be chosen by the specific source
-        );
+
+        return new LayerPopulator() {
+            @Override
+            public List<LayerId> dependencies() {
+                return emptyList();
+            }
+
+            @Override
+            public LayerSpec spec(List<Layer> dependencies) {
+                return LayerSpecImpl.of(
+                        LayerIdImpl.of(id.uid()),
+                        datasetMetadataFrom(config.metadata()),
+                        extension.viewType().getLayerView(),
+                        schemaFrom(extension),
+                        source.indexable(),
+                        source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source
+                );
+            }
+        };
     }
 
     private Observable<Source> createSource(DatasetId id, DatasetConfig config) {
@@ -90,7 +114,7 @@ public abstract class SourceManager {
     private Source sourceUntil(Source source, Observable<?> until) {
         return new Source() {
             @Override
-            public Observable<SourceUpdate> observable() {
+            public Observable<LayerUpdate> observable() {
                 return source.observable().takeUntil(until);
             }
 

@@ -10,6 +10,7 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.*;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
+import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Before;
@@ -75,13 +76,13 @@ public class TerminatorSourceFactoryShould {
     }
 
     private void assertBehaviourForSource(Collection<NakedFeature> modelFeatures, FeatureCollection collection, Source source) {
-        SourceUpdate result = collectUpdate(source);
+        LayerUpdate result = collectUpdate(source);
         verify(converter).toModel(collection);
-        assertThat(result, equalTo(SourceUpdateImpl.of(modelFeatures)));
+        assertThat(result, equalTo(LayerUpdateImpl.of(modelFeatures)));
     }
 
-    private SourceUpdate collectUpdate(Source source) {
-        TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
+    private LayerUpdate collectUpdate(Source source) {
+        TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
         return subscriber.getOnNextEvents().get(0);
