@@ -57,14 +57,14 @@ public abstract class SourceManager {
         return events
                 .filter(e -> e.type() == CREATE)
                 .flatMap(event -> createSource(event.id(), event.config())
-                        .map(source -> createDescriptor(
+                        .map(source -> createPopulator(
                                 event.id(),
                                 event.config(),
                                 sourceUntil(source, events.filter(e -> e.type() == DELETE))))
                 );
     }
 
-    private LayerPopulator createDescriptor(DatasetId id, DatasetConfig config, Source source) {
+    private LayerPopulator createPopulator(DatasetId id, DatasetConfig config, Source source) {
         final String name = config.metadata().name();
         final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
 
