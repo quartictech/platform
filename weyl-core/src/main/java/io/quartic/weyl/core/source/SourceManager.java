@@ -7,7 +7,6 @@ import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.model.*;
-import org.apache.commons.lang3.tuple.Pair;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +49,11 @@ public abstract class SourceManager {
         return events
                 .filter(e -> e.type() == CREATE)
                 .flatMap(event -> createSource(event.id(), event.config())
-                        .map(s -> sourceUntil(s, events.filter(e -> e.type() == DELETE)))
-                        .map(s -> Pair.of(event, s))
-                )
-                .map(p -> createDescriptor(p.getLeft().id(), p.getLeft().config(), p.getRight()));
+                        .map(source -> createDescriptor(
+                                event.id(),
+                                event.config(),
+                                sourceUntil(source, events.filter(e -> e.type() == DELETE))))
+                );
     }
 
     private SourceDescriptor createDescriptor(DatasetId id, DatasetConfig config, Source source) {
