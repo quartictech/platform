@@ -35,7 +35,6 @@ import rx.subjects.BehaviorSubject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -77,10 +76,7 @@ public abstract class LayerStore {
     }
 
     public List<Layer> listLayers() {
-        return layers.entrySet()
-                .stream()
-                .map(Entry::getValue)
-                .collect(toList());
+        return ImmutableList.copyOf(layers.values());
     }
 
     public Optional<Layer> getLayer(LayerId layerId) {
@@ -129,13 +125,12 @@ public abstract class LayerStore {
     }
 
     private Layer newLayer(LayerSpec spec) {
-        final FeatureCollection features = EMPTY_COLLECTION;
         return LayerImpl.builder()
                 .spec(spec)
-                .features(features)
+                .features(EMPTY_COLLECTION)
                 .spatialIndex(spatialIndex(ImmutableList.of()))
                 .indexedFeatures(ImmutableList.of())
-                .layerStats(LayerStatsImpl.of(emptyMap(), features.size()))
+                .layerStats(LayerStatsImpl.of(emptyMap(), 0))
                 .build();
     }
 
