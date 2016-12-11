@@ -1,10 +1,13 @@
 package io.quartic.weyl.catalogue;
 
+import com.google.common.collect.MapDifference;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.common.SweetStyle;
 import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.rx.PairWithPrevious.WithPrevious;
 import io.quartic.weyl.core.SourceDescriptor;
 import io.quartic.weyl.core.SourceDescriptorImpl;
 import io.quartic.weyl.core.model.*;
@@ -15,11 +18,16 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Scheduler;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
+import static com.google.common.collect.Maps.difference;
+import static io.quartic.common.rx.PairWithPrevious.pairWithPrevious;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.weyl.catalogue.CatalogueWatcher.Event.Type.CREATE;
+import static io.quartic.weyl.catalogue.CatalogueWatcher.Event.Type.DELETE;
 import static java.lang.String.format;
 import static rx.Observable.*;
 
@@ -49,17 +57,43 @@ public abstract class CatalogueWatcher {
     public Observable<SourceDescriptor> sources() {
         return listener().observable()
                 .doOnNext((x) -> LOG.info("Received catalogue update"))
-                .concatMap(map -> from(map.entrySet()))
-                .groupBy(Entry::getKey)
+                .compose(pairWithPrevious(Collections.<DatasetId, DatasetConfig>emptyMap()))
+                .concatMap(this::extractUpdates)
+                .groupBy(Event::key)
                 .flatMap(this::processUpdatesForId)
                 .share();
     }
 
-    private Observable<SourceDescriptor> processUpdatesForId(Observable<Entry<DatasetId, DatasetConfig>> updates) {
+    @SweetStyle
+    @Value.Immutable
+    interface Event<K, V> {
+        enum Type {
+            CREATE,
+            DELETE
+        }
+
+        static <K, V> Event<K, V> of(Type type, Entry<K, V> entry) {
+            return EventImpl.of(type, entry.getKey(), entry.getValue());
+        }
+
+        Type type();
+        K key();
+        V value();
+    }
+
+    private Observable<Event<DatasetId, DatasetConfig>> extractUpdates(WithPrevious<Map<DatasetId, DatasetConfig>> pair) {
+        final MapDifference<DatasetId, DatasetConfig> diff = difference(pair.prev(), pair.current());
+        return merge(
+                Observable.from(diff.entriesOnlyOnLeft().entrySet()).map(e -> Event.of(DELETE, e)),
+                Observable.from(diff.entriesOnlyOnRight().entrySet()).map(e -> Event.of(CREATE, e))
+        );
+    }
+
+    private Observable<SourceDescriptor> processUpdatesForId(Observable<Event<DatasetId, DatasetConfig>> updates) {
         // TODO: deal with layer removal
         return updates
-                .distinctUntilChanged(Entry::getKey)
-                .flatMap(update -> createSource(update.getKey(), update.getValue()));
+                .distinctUntilChanged(Event::key)
+                .flatMap(update -> createSource(update.key(), update.value()));
     }
 
     private Observable<SourceDescriptor> createSource(DatasetId id, DatasetConfig config) {
