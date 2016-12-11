@@ -14,6 +14,8 @@ import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.source.SourceDescriptor;
+import io.quartic.weyl.core.source.SourceDescriptorImpl;
 import io.quartic.weyl.core.source.SourceUpdate;
 import io.quartic.weyl.core.source.SourceUpdateImpl;
 import org.hamcrest.Matchers;

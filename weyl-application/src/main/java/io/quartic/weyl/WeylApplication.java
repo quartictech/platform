@@ -13,12 +13,13 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
 import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
+import io.quartic.weyl.core.catalogue.CatalogueWatcher;
+import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
@@ -32,13 +33,9 @@ import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.update.AttributesUpdateGenerator;
-import io.quartic.weyl.update.ChartUpdateGenerator;
-import io.quartic.weyl.update.HistogramsUpdateGenerator;
-import io.quartic.weyl.update.SelectionHandler;
+import io.quartic.weyl.update.*;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
-import io.quartic.weyl.update.UpdateServer;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -71,15 +68,19 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
-        final CatalogueWatcher catalogueWatcher = CatalogueWatcher.builder()
-                .listenerFactory(WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory))
+        final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
+                WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory)
+        );
+
+        final SourceManager sourceManager = SourceManagerImpl.builder()
+                .catalogueEvents(catalogueWatcher.events())
                 .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
 
         final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
         final LayerStore layerStore = LayerStoreImpl.builder()
-                .sources(catalogueWatcher.sources())
+                .sources(sourceManager.sources())
                 .entityStore(entityStore)
                 .lidGenerator(lidGenerator).build();
 

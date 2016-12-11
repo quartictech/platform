@@ -20,6 +20,7 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "no.ecc.vectortile:java-vector-tile:${versions.vectorTile}"
     compile libraries.rxjava
+    compile libraries.commonsLang
     compile "io.dropwizard.metrics:metrics-core:${versions.metrics}"
 
     compile "org.geotools:gt-epsg-hsql:${versions.geoTools}"

@@ -1,11 +1,10 @@
-package io.quartic.weyl.core;
+package io.quartic.weyl.core.source;
 
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.source.SourceUpdate;
 import org.immutables.value.Value;
 import rx.Observable;
 

@@ -22,6 +22,7 @@ libraries.dropwizardTesting = "io.dropwizard:dropwizard-testing:${versions.dropw
 libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1.1.8"
 libraries.junit = "junit:junit:4.12"
 libraries.wiremock = "com.github.tomakehurst:wiremock:2.2.2"
+libraries.commonsLang = "org.apache.commons:commons-lang3:3.4"
 
 libraries.tyrus = [
         client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",

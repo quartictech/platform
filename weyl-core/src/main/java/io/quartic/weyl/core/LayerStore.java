@@ -15,6 +15,7 @@ import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
 import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.source.SourceDescriptor;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
