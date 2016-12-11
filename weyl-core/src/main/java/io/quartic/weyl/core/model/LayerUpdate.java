@@ -1,9 +1,8 @@
-package io.quartic.weyl.core;
+package io.quartic.weyl.core.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 
 import java.util.Collection;

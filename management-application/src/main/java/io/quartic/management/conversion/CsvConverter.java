@@ -1,7 +1,15 @@
 package io.quartic.management.conversion;
 
-import com.google.common.collect.*;
-import io.quartic.geojson.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.PointImpl;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -11,7 +19,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 

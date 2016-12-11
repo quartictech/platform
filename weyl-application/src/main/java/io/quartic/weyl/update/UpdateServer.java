@@ -16,7 +16,12 @@ import org.slf4j.Logger;
 import rx.Subscription;
 import rx.subjects.PublishSubject;
 
-import javax.websocket.*;
+import javax.websocket.CloseReason;
+import javax.websocket.EndpointConfig;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Collection;

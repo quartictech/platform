@@ -2,8 +2,6 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.LayerSpec;
-import io.quartic.weyl.core.LayerSpecImpl;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeImpl;
@@ -17,6 +15,9 @@ import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +43,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static rx.Observable.never;
 
 public class BucketComputationShould {
     private final LayerId myLayerId = mock(LayerId.class);
@@ -66,7 +66,7 @@ public class BucketComputationShould {
 
     @Test
     public void generate_correct_layer_metadata_and_schema() throws Exception {
-        final LayerSpec spec = computeSpec();
+        final LayerSpec spec = evaluateSpec();
 
         assertThat(spec, equalTo(LayerSpecImpl.of(
                 myLayerId,
@@ -81,12 +81,11 @@ public class BucketComputationShould {
                         .withPrimaryAttribute(name("Foo"))
                         .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB"))
                         .withAttributes(ImmutableMap.<AttributeName, Attribute>builder()
-                                .putAll(bucketLayer.schema().attributes())
+                                .putAll(bucketLayer.spec().schema().attributes())
                                 .put(name("Foo"), AttributeImpl.of(NUMERIC, Optional.empty()))
                                 .build()
                         ),
-                true,
-                never() // Don't care
+                true
         )));
     }
 
@@ -97,9 +96,7 @@ public class BucketComputationShould {
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
 
-        final LayerSpec spec = computeSpec();
-
-        assertThat(getLast(all(spec.updates()).get(0).features()).attributes().attributes(),
+        assertThat(getLast(evaluateUpdates().get(0).features()).attributes().attributes(),
                 equalTo(ImmutableMap.builder()
                         .putAll(bucketFeature.attributes().attributes())
                         .put(name("Foo"), 42.0)
@@ -119,23 +116,30 @@ public class BucketComputationShould {
         );
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
 
-        computeSpec();
+        evaluateUpdates();
 
         verify(joiner).innerJoin(bucketLayer, featureLayer, CONTAINS);
         verify(aggregation).aggregate(bucketFeature, newArrayList(groupFeatureA, groupFeatureB));
     }
 
-    private LayerSpec computeSpec() {
-        final Map<LayerId, Layer> layers = map(
+    private LayerSpec evaluateSpec() {
+        return computation.spec(transform(computation.dependencies(), layerMap()::get));
+    }
+
+    private List<LayerUpdate> evaluateUpdates() {
+        return all(computation.updates(transform(computation.dependencies(), layerMap()::get)));
+    }
+
+    private Map<LayerId, Layer> layerMap() {
+        return map(
                 entry(featureLayerId, featureLayer),
                 entry(bucketLayerId, bucketLayer)
         );
-        return computation.spec(transform(computation.dependencies(), layers::get));
     }
 
     private Layer featureLayer() {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.metadata().name()).thenReturn("Foo");
+        when(layer.spec().metadata().name()).thenReturn("Foo");
         return layer;
     }
 
@@ -143,8 +147,8 @@ public class BucketComputationShould {
         final AttributeSchema schema = bucketSchema();
 
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.metadata().name()).thenReturn("Bar");
-        when(layer.schema()).thenReturn(schema);
+        when(layer.spec().metadata().name()).thenReturn("Bar");
+        when(layer.spec().schema()).thenReturn(schema);
         when(layer.indexedFeatures()).thenReturn(emptyList());
         return layer;
     }

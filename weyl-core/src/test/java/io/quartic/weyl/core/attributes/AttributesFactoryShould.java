@@ -7,7 +7,9 @@ import org.junit.Test;
 
 import static io.quartic.common.test.CollectionUtils.entry;
 import static io.quartic.common.test.CollectionUtils.map;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 public class AttributesFactoryShould {

@@ -20,6 +20,9 @@ import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerStatsImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
@@ -66,7 +69,7 @@ public abstract class LayerStore {
                         final LayerSpec spec = populator.spec(dependencies);
                         checkLayerNotExists(spec.id());
                         putLayer(newLayer(spec));
-                        spec.updates().subscribe(update -> addToLayer(spec.id(), update.features()));
+                        populator.updates(dependencies).subscribe(update -> addToLayer(spec.id(), update.features()));
                     } catch (Exception e) {
                         LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
                     }
@@ -109,30 +112,26 @@ public abstract class LayerStore {
 
     private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
         final Layer layer = layers.get(layerId);
-        LOG.info("[{}] Accepted {} features", layer.metadata().name(), features.size());
+        LOG.info("[{}] Accepted {} features", layer.spec().metadata().name(), features.size());
 
         final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
         entityStore().putAll(Feature::entityId, elaboratedFeatures);
         final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
 
-        putLayer(layer.indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);
+        putLayer(layer.spec().indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);
         newFeatureObservables.put(layerId, elaboratedFeatures);
     }
 
     private void putLayer(Layer layer) {
-        layers.put(layer.layerId(), layer);
+        layers.put(layer.spec().id(), layer);
         allLayersObservable.onNext(layers.values());
-        layerObservables.put(layer.layerId(), layer);
+        layerObservables.put(layer.spec().id(), layer);
     }
 
     private Layer newLayer(LayerSpec spec) {
         final FeatureCollection features = EMPTY_COLLECTION;
         return LayerImpl.builder()
-                .layerId(spec.id())
-                .metadata(spec.metadata())
-                .indexable(spec.indexable())
-                .schema(spec.schema())
-                .view(spec.view())
+                .spec(spec)
                 .features(features)
                 .spatialIndex(spatialIndex(ImmutableList.of()))
                 .indexedFeatures(ImmutableList.of())
@@ -144,8 +143,11 @@ public abstract class LayerStore {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         return LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
-                .withSchema(AttributeSchemaImpl.copyOf(layer.schema())
-                        .withAttributes(inferSchema(features, layer.schema().attributes())));
+                .withSpec(LayerSpecImpl.copyOf(layer.spec())
+                        .withSchema(AttributeSchemaImpl.copyOf(layer.spec().schema())
+                                .withAttributes(inferSchema(features, layer.spec().schema().attributes()))
+                        )
+                );
     }
 
     private Layer updateIndicesAndStats(Layer layer) {
@@ -153,7 +155,7 @@ public abstract class LayerStore {
         return LayerImpl.copyOf(layer)
                 .withSpatialIndex(spatialIndex(indexedFeatures))
                 .withIndexedFeatures(indexedFeatures)
-                .withLayerStats(calculateStats(layer.schema(), layer.features()));
+                .withLayerStats(calculateStats(layer.spec().schema(), layer.features()));
     }
 
     private static Collection<IndexedFeature> indexedFeatures(FeatureCollection features) {

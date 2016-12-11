@@ -17,12 +17,11 @@ public class LiveLayerChangeAggregator {
     public static Observable<LiveLayerChange> layerChanges(Observable<Collection<Layer>> observeLayers,
                                                Function<LayerId, Observable<LiveLayerChange>> observeFeaturesForLayer) {
         Observable<Collection<Layer>> liveLayers = observeLayers
-                .map(layers -> layers.stream().filter(layer -> !layer.indexable()).collect(toList()));
+                .map(layers -> layers.stream().filter(layer -> !layer.spec().indexable()).collect(toList()));
 
-        return LiveLayerChangeAggregator.aggregate(
-                liveLayers, layers -> layers.stream()
-                        .map(layer -> observeFeaturesForLayer.apply(layer.layerId()))
-                        .collect(toList()));
+        return aggregate(liveLayers, layers -> layers.stream()
+                .map(layer -> observeFeaturesForLayer.apply(layer.spec().id()))
+                .collect(toList()));
     }
 
     public static <K, V> Observable<V> aggregate(Observable<K> selection,

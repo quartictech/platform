@@ -7,7 +7,12 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.response.LayerResponse;
 import io.quartic.weyl.response.LayerResponseImpl;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.Collection;
 
@@ -36,18 +41,18 @@ public class LayerResource {
         Preconditions.checkNotNull(query);
         return layerStore.listLayers()
                 .stream()
-                .filter(layer -> layer.metadata().name().toLowerCase().contains(query.toLowerCase()) && !layer.features().isEmpty())
+                .filter(layer -> layer.spec().metadata().name().toLowerCase().contains(query.toLowerCase()) && !layer.features().isEmpty())
                 .map(this::createLayerResponse)
                 .collect(toList());
     }
 
     private LayerResponse createLayerResponse(Layer layer) {
         return LayerResponseImpl.builder()
-                .id(layer.layerId())
-                .metadata(layer.metadata())
+                .id(layer.spec().id())
+                .metadata(layer.spec().metadata())
                 .stats(layer.layerStats())
-                .attributeSchema(layer.schema())
-                .live(!layer.indexable())
+                .attributeSchema(layer.spec().schema())
+                .live(!layer.spec().indexable())
                 .build();
     }
 }

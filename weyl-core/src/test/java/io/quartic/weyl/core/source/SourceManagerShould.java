@@ -8,10 +8,6 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
 import io.quartic.common.test.rx.ObservableInterceptor;
-import io.quartic.weyl.core.LayerPopulator;
-import io.quartic.weyl.core.LayerSpec;
-import io.quartic.weyl.core.LayerSpecImpl;
-import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.catalogue.CatalogueEventImpl;
 import io.quartic.weyl.core.model.AttributeName;
@@ -20,6 +16,10 @@ import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import org.junit.Before;
@@ -48,7 +48,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static rx.Observable.never;
 
 public class SourceManagerShould {
 
@@ -89,7 +88,7 @@ public class SourceManagerShould {
                     // This mechanism allows us to capture source updates in a non-blocking way
                     final TestSubscriber<LayerUpdate> updateSubscriber = TestSubscriber.create();
                     final LayerSpec spec = populator.spec(emptyList());
-                    spec.updates().subscribe(updateSubscriber);
+                    populator.updates(emptyList()).subscribe(updateSubscriber);
                     updateSubscribers.put(spec.id(), updateSubscriber);
                 })
                 .subscribe(sub);
@@ -114,8 +113,7 @@ public class SourceManagerShould {
                         .imageAttribute(IMAGE_ATTRIBUTE)
                         .blessedAttribute(BLESSED_ATTRIBUTES)
                         .build(),
-                true,
-                never() // Don't care
+                true
         )));
         assertThat(populator.dependencies(), empty());
         assertThat(collectedUpdateSequenceFor("123"), contains(layerUpdate));

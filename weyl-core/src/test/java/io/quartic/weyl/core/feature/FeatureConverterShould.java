@@ -5,10 +5,18 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.geojson.Feature;
-import io.quartic.geojson.*;
+import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.Geometry;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -23,7 +31,10 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class FeatureConverterShould {
     private final GeometryFactory factory = new GeometryFactory();

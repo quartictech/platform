@@ -7,7 +7,17 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerStats;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -115,12 +125,14 @@ public class LiveLayerChangeAggregatorShould {
 
     Layer layer(LayerId layerId) {
         return LayerImpl.of(
-                layerId,
-                mock(LayerMetadata.class),
-                false, // Needs to be false so that the layers get picked up
-                mock(AttributeSchema.class),
+                LayerSpecImpl.of(
+                        layerId,
+                        mock(LayerMetadata.class),
+                        mock(LayerView.class),
+                        mock(AttributeSchema.class),
+                        false // Needs to be false so that the layers get picked up
+                ),
                 FeatureCollection.EMPTY_COLLECTION,
-                mock(LayerView.class),
                 mock(SpatialIndex.class),
                 emptyList(),
                 mock(LayerStats.class)

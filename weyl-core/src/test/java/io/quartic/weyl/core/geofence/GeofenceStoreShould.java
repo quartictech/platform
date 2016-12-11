@@ -2,21 +2,27 @@ package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.LayerIdImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rx.subjects.PublishSubject;
 
-import java.util.Observable;
 import java.util.function.BiConsumer;
 
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GeofenceStoreShould {
     private final PublishSubject<LiveLayerChange> subject = PublishSubject.create();

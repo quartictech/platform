@@ -1,12 +1,14 @@
 package io.quartic.weyl.core.feature;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.geojson.*;
+import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.geojson.Utils;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

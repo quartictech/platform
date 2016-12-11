@@ -3,7 +3,14 @@ package io.quartic.weyl.resource;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.live.LayerView;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerStats;
 import org.junit.Test;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -32,12 +39,14 @@ public class LayerResourceShould {
         final LayerMetadata metadata = mock(LayerMetadata.class);
         when(metadata.name()).thenReturn(name);
         return LayerImpl.of(
-                mock(LayerId.class),
-                metadata,
-                false,
-                mock(AttributeSchema.class),
+                LayerSpecImpl.of(
+                        mock(LayerId.class),
+                        metadata,
+                        mock(LayerView.class),
+                        mock(AttributeSchema.class),
+                        false
+                ),
                 EMPTY_COLLECTION.append(asList(features)),
-                mock(LayerView.class),
                 mock(SpatialIndex.class),
                 emptyList(),
                 mock(LayerStats.class)

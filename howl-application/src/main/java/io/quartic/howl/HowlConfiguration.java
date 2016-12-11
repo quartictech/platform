@@ -2,8 +2,6 @@ package io.quartic.howl;
 
 import io.dropwizard.Configuration;
 
-import java.nio.file.Path;
-
 public class HowlConfiguration extends Configuration {
     private String bucketName;
     private String dataDir;

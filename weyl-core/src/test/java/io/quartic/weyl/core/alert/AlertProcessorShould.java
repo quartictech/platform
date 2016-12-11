@@ -12,7 +12,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AlertProcessorShould {
 

@@ -10,7 +10,10 @@ import org.skife.jdbi.v2.ResultIterator;
 import rx.observers.Subscribers;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PostgresSourceShould {
     @Test

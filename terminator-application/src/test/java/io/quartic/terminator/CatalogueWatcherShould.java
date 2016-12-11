@@ -2,7 +2,16 @@ package io.quartic.terminator;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetIdImpl;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.catalogue.api.TerminationId;
+import io.quartic.catalogue.api.TerminationIdImpl;
+import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.client.WebsocketListener;
 import org.junit.After;
 import org.junit.Before;

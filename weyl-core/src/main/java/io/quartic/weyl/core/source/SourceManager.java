@@ -5,18 +5,15 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.LayerPopulator;
-import io.quartic.weyl.core.LayerSpec;
-import io.quartic.weyl.core.LayerSpecImpl;
-import io.quartic.weyl.core.LayerUpdate;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.AttributeSchemaImpl;
-import io.quartic.weyl.core.model.Layer;
-import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -25,14 +22,12 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.observables.GroupedObservable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -75,24 +70,16 @@ public abstract class SourceManager {
 
         LOG.info(format("[%s] Created layer", name));
 
-        return new LayerPopulator() {
-            @Override
-            public List<LayerId> dependencies() {
-                return emptyList();
-            }
-
-            @Override
-            public LayerSpec spec(List<Layer> dependencies) {
-                return LayerSpecImpl.of(
+        return LayerPopulator.withoutDependencies(
+                LayerSpecImpl.of(
                         LayerIdImpl.of(id.uid()),
                         datasetMetadataFrom(config.metadata()),
                         extension.viewType().getLayerView(),
                         schemaFrom(extension),
-                        source.indexable(),
-                        source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source
-                );
-            }
-        };
+                        source.indexable()
+                ),
+                source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source;
+        );
     }
 
     private Observable<Source> createSource(DatasetId id, DatasetConfig config) {

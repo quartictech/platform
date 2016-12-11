@@ -2,13 +2,13 @@ package io.quartic.weyl.resource;
 
 import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.LayerPopulator;
 import io.quartic.weyl.core.compute.BucketComputationImpl;
 import io.quartic.weyl.core.compute.BucketSpec;
 import io.quartic.weyl.core.compute.BufferComputation;
 import io.quartic.weyl.core.compute.BufferSpec;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerPopulator;
 import org.immutables.value.Value;
 import rx.Observable;
 import rx.subjects.PublishSubject;

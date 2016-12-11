@@ -21,6 +21,11 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.hamcrest.Matchers;
@@ -38,8 +43,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -68,21 +71,14 @@ public class LayerStoreShould {
 
     @Test
     public void list_created_layers() throws Exception {
-        final LayerMetadata lm1 = metadata("foo", "bar");
-        final LayerMetadata lm2 = metadata("cheese", "monkey");
-
-        final AttributeSchema as1 = schema("foo");
-        final AttributeSchema as2 = schema("bar");
-
-        createLayer(LayerSpecImpl.of(LAYER_ID, lm1, IDENTITY_VIEW, as1, true, empty()));
-        createLayer(LayerSpecImpl.of(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true, empty()));
+        final LayerSpecImpl spec1 = LayerSpecImpl.of(LAYER_ID, metadata("foo", "bar"), IDENTITY_VIEW, schema("foo"), true);
+        final LayerSpecImpl spec2 = LayerSpecImpl.of(OTHER_LAYER_ID, metadata("cheese", "monkey"), IDENTITY_VIEW, schema("bar"), true);
+        createLayer(spec1, empty());
+        createLayer(spec2, empty());
 
         final List<Layer> layers = store.listLayers();
 
-        assertThat(transform(layers, Layer::layerId), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
-        assertThat(transform(layers, Layer::metadata), containsInAnyOrder(lm1, lm2));
-        assertThat(transform(layers, Layer::indexable), containsInAnyOrder(true, true));
-        assertThat(transform(layers, Layer::schema), containsInAnyOrder(as1, as2));
+        assertThat(transform(layers, Layer::spec), containsInAnyOrder(spec1, spec2));
     }
 
     @Test
@@ -90,7 +86,7 @@ public class LayerStoreShould {
         createLayer(LAYER_ID, just(updateFor(modelFeature("a"))));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
+        assertThat(layer.spec().schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
     }
 
     @Test
@@ -175,7 +171,7 @@ public class LayerStoreShould {
         assertThat(layers.size(), equalTo(3));
         assertThat(layers.get(2).features(), containsInAnyOrder(feature("a"), feature("b")));
 
-        assertThat(layers.get(1).schema(),
+        assertThat(layers.get(1).spec().schema(),
                 equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
                         .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.of(ImmutableSet.of(1234)))))));
     }
@@ -190,13 +186,13 @@ public class LayerStoreShould {
         List<Collection<Layer>> layerEvents = sub.getOnNextEvents();
         assertThat(layerEvents.size(), equalTo(1));
         assertThat(layerEvents.get(0).size(), equalTo(1));
-        assertThat(layerEvents.get(0).stream().map(Layer::layerId).collect(toList()), containsInAnyOrder(LAYER_ID));
+        assertThat(transform(layerEvents.get(0), l -> l.spec().id()), containsInAnyOrder(LAYER_ID));
 
         createLayer(OTHER_LAYER_ID, empty());
         layerEvents = sub.getOnNextEvents();
         assertThat(layerEvents.size(), equalTo(2));
         assertThat(layerEvents.get(1).size(), equalTo(2));
-        assertThat(layerEvents.get(1).stream().map(Layer::layerId).collect(toList()), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
+        assertThat(transform(layerEvents.get(1), l -> l.spec().id()), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
     }
 
     @Test
@@ -250,27 +246,20 @@ public class LayerStoreShould {
     }
 
     private void createLayer(LayerId layerId, boolean indexable, Observable<LayerUpdate> updates) {
-        createLayer(LayerSpecImpl.of(
-                layerId,
-                metadata("foo", "bar"),
-                IDENTITY_VIEW,
-                schema("blah"),
-                indexable,
-                updates));
+        createLayer(
+                LayerSpecImpl.of(
+                        layerId,
+                        metadata("foo", "bar"),
+                        IDENTITY_VIEW,
+                        schema("blah"),
+                        indexable
+                ),
+                updates
+        );
     }
 
-    private void createLayer(final LayerSpec spec) {
-        populators.onNext(new LayerPopulator() {
-            @Override
-            public List<LayerId> dependencies() {
-                return emptyList();
-            }
-
-            @Override
-            public LayerSpec spec(List<Layer> dependencies) {
-                return spec;
-            }
-        });
+    private void createLayer(LayerSpec spec, Observable<LayerUpdate> updates) {
+        populators.onNext(LayerPopulator.withoutDependencies(spec, updates));
     }
 
     private AttributeSchema schema(String blessed) {

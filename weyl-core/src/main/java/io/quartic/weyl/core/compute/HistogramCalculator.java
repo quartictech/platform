@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import static io.quartic.weyl.core.attributes.AttributeUtils.isSimple;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 
 public class HistogramCalculator {
     public Collection<Histogram> calculate(Collection<? extends Feature> features) {

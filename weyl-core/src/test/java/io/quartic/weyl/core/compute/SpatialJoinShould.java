@@ -6,12 +6,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.SequenceUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.LayerPopulator;
-import io.quartic.weyl.core.LayerSpec;
-import io.quartic.weyl.core.LayerSpecImpl;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
-import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeSchemaImpl;
@@ -22,6 +18,9 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Test;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
-import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.mock;
@@ -70,24 +68,16 @@ public class SpatialJoinShould {
     private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
         final LayerId layerId = lidGenerator.get();
 
-        populators.onNext(new LayerPopulator() {
-            @Override
-            public List<LayerId> dependencies() {
-                return emptyList();
-            }
-
-            @Override
-            public LayerSpec spec(List<Layer> dependencies) {
-                return LayerSpecImpl.of(
+        populators.onNext(LayerPopulator.withoutDependencies(
+                LayerSpecImpl.of(
                         layerId,
                         LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
                         IDENTITY_VIEW,
                         AttributeSchemaImpl.builder().build(),
-                        true,
-                        just(LayerUpdateImpl.of(features))
-                );
-            }
-        });
+                        true
+                ),
+                just(LayerUpdateImpl.of(features))
+        ));
 
         return store.getLayer(layerId).get();
     }

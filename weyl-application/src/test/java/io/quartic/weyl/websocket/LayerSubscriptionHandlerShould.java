@@ -33,7 +33,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
 public class LayerSubscriptionHandlerShould {
@@ -74,7 +77,7 @@ public class LayerSubscriptionHandlerShould {
 
         sub.awaitValueCount(1, 100, MILLISECONDS);
         verify(converter).toGeojson(newArrayList(layer.features()));
-        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, layer.schema(), featureCollection())));
+        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, layer.spec().schema(), featureCollection())));
     }
 
     @Test
@@ -123,10 +126,10 @@ public class LayerSubscriptionHandlerShould {
         final AttributeSchema schema = mock(AttributeSchema.class);
         final Collection<Feature> features = newArrayList(mock(Feature.class), mock(Feature.class));
 
-        final Layer layer = mock(Layer.class);
-        when(layer.view()).thenReturn(IDENTITY_VIEW);
+        final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
+        when(layer.spec().view()).thenReturn(IDENTITY_VIEW);
+        when(layer.spec().schema()).thenReturn(schema);
         when(layer.features()).thenReturn(EMPTY_COLLECTION.append(features));
-        when(layer.schema()).thenReturn(schema);
         return layer;
     }
 

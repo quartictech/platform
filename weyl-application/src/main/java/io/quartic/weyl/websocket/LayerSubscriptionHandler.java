@@ -40,10 +40,10 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
 
     private SocketMessage generateUpdateMessage(LayerId layerId, Layer layer) {
         final Collection<Feature> features = layer.features();
-        Stream<Feature> computed = layer.view().compute(features);
+        Stream<Feature> computed = layer.spec().view().compute(features);
         return LayerUpdateMessageImpl.builder()
                 .layerId(layerId)
-                .schema(layer.schema())
+                .schema(layer.spec().schema())
                 .featureCollection(featureConverter.toGeojson(computed.collect(toList())))  // TODO: obviously we never want to do this with large static layers
                 .build();
     }

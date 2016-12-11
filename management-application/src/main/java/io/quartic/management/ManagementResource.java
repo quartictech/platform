@@ -1,25 +1,34 @@
 package io.quartic.management;
 
-import feign.Response;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.TerminationId;
+import io.quartic.catalogue.api.TerminationIdImpl;
+import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.howl.api.HowlStorageId;
 import io.quartic.howl.api.HowlService;
+import io.quartic.howl.api.HowlStorageId;
 import io.quartic.management.conversion.CsvConverter;
 import io.quartic.management.conversion.GeoJsonConverter;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
 

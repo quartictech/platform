@@ -1,9 +1,9 @@
 package io.quartic.weyl.core.source;
 
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.LayerUpdate;
-import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
