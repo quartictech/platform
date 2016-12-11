@@ -3,8 +3,13 @@ package io.quartic.weyl.core.source;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.geojson.*;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.Geometry;
+import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.LayerUpdate;
+import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Rule;
@@ -14,15 +19,18 @@ import rx.observers.TestSubscriber;
 import java.util.Collection;
 import java.util.Optional;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GeoJsonSourceShould {
     @Rule

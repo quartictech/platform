@@ -23,25 +23,24 @@ import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
-import io.quartic.weyl.core.source.LayerUpdateImpl;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import rx.Observable;
-import rx.exceptions.OnErrorNotImplementedException;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
+import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -78,16 +77,12 @@ public class LayerStoreShould {
         createLayer(LayerSpecImpl.of(LAYER_ID, lm1, IDENTITY_VIEW, as1, true, empty()));
         createLayer(LayerSpecImpl.of(OTHER_LAYER_ID, lm2, IDENTITY_VIEW, as2, true, empty()));
 
-        final Collection<Layer> layers = store.listLayers();
+        final List<Layer> layers = store.listLayers();
 
-        assertThat(map(layers, Layer::layerId), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
-        assertThat(map(layers, Layer::metadata), containsInAnyOrder(lm1, lm2));
-        assertThat(map(layers, Layer::indexable), containsInAnyOrder(true, true));
-        assertThat(map(layers, Layer::schema), containsInAnyOrder(as1, as2));
-    }
-
-    private <T, R> List<R> map(Collection<T> input, Function<T, R> mapper) {
-        return input.stream().map(mapper).collect(toList());
+        assertThat(transform(layers, Layer::layerId), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
+        assertThat(transform(layers, Layer::metadata), containsInAnyOrder(lm1, lm2));
+        assertThat(transform(layers, Layer::indexable), containsInAnyOrder(true, true));
+        assertThat(transform(layers, Layer::schema), containsInAnyOrder(as1, as2));
     }
 
     @Test
@@ -132,10 +127,13 @@ public class LayerStoreShould {
         assertThat(subscriber.getOnNextEvents().get(1).features(), containsInAnyOrder(feature("a"), feature("b")));
     }
 
-    @Test(expected = OnErrorNotImplementedException.class)
-    public void throw_if_create_called_on_an_existing_layer() throws Exception {
-        createLayer(LAYER_ID, empty());
-        createLayer(LAYER_ID, empty());
+    @Test
+    public void prevent_overwriting_an_existing_layer() throws Exception {
+        createLayer(LAYER_ID, just(updateFor(modelFeature("a"))));
+        createLayer(LAYER_ID, just(updateFor(modelFeature("b"))));
+
+        final Layer layer = store.getLayer(LAYER_ID).get();
+        assertThat(layer.features(), contains(feature("a")));
     }
 
     @Test

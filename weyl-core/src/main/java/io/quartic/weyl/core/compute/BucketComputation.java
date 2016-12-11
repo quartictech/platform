@@ -2,8 +2,10 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableList;
 import io.quartic.common.SweetStyle;
+import io.quartic.weyl.core.LayerPopulator;
 import io.quartic.weyl.core.LayerSpec;
 import io.quartic.weyl.core.LayerSpecImpl;
+import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.Attribute;
@@ -19,8 +21,8 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
-import io.quartic.weyl.core.source.LayerUpdateImpl;
 import org.immutables.value.Value;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,11 +39,14 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Observable.just;
 
 @SweetStyle
 @Value.Immutable
-public abstract class BucketComputation implements LayerComputation {
+public abstract class BucketComputation implements LayerPopulator {
+    private static final Logger LOG = getLogger(BucketComputation.class);
+
     protected abstract LayerId layerId();
     protected abstract BucketSpec bucketSpec();
 
@@ -73,12 +78,11 @@ public abstract class BucketComputation implements LayerComputation {
 
         private LayerSpec compute() {
             final ForkJoinPool forkJoinPool = new ForkJoinPool(4);
-
             try {
                 return results(forkJoinPool.submit(this::bucketData).get(), schema());
-            } catch (InterruptedException | ExecutionException e) {
-                // TODO: what do we do?
-                return null;
+            } catch (ExecutionException | InterruptedException e) {
+                // TODO: this is naughty, we shouldn't be wrapping an IE in a RE
+                throw new RuntimeException("Error during computation", e);
             }
         }
 

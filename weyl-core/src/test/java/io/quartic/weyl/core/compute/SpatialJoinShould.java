@@ -11,6 +11,7 @@ import io.quartic.weyl.core.LayerSpec;
 import io.quartic.weyl.core.LayerSpecImpl;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
+import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeSchemaImpl;
@@ -23,7 +24,6 @@ import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
-import io.quartic.weyl.core.source.LayerUpdateImpl;
 import org.junit.Test;
 import rx.subjects.PublishSubject;
 

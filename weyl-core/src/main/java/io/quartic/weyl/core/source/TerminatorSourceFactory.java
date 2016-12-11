@@ -6,6 +6,7 @@ import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.LayerUpdate;
+import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;

@@ -5,6 +5,7 @@ import com.codahale.metrics.MetricRegistry;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.model.LiveEvent;
 import io.quartic.weyl.core.LayerUpdate;
+import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import org.immutables.value.Value;
 import org.slf4j.Logger;

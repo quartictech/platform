@@ -3,8 +3,11 @@ package io.quartic.weyl.resource;
 import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerPopulator;
+import io.quartic.weyl.core.compute.BucketComputationImpl;
+import io.quartic.weyl.core.compute.BucketSpec;
+import io.quartic.weyl.core.compute.BufferComputation;
+import io.quartic.weyl.core.compute.BufferSpec;
 import io.quartic.weyl.core.compute.ComputationSpec;
-import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 import rx.Observable;
@@ -21,7 +24,6 @@ import javax.ws.rs.core.MediaType;
 @Path("/compute")
 public abstract class ComputeResource {
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
-    protected abstract LayerComputation.Factory computationFactory();
     protected abstract UidGenerator<LayerId> lidGenerator();
 
     @POST
@@ -29,9 +31,21 @@ public abstract class ComputeResource {
     @Produces(MediaType.APPLICATION_JSON)
     public LayerId createComputedLayer(ComputationSpec spec) {
         final LayerId layerId = lidGenerator().get();
-        populators.onNext(computationFactory().createPopulator(layerId, spec));
+        populators.onNext(createPopulator(layerId, spec));
         return layerId;
-        // TODO: error handling
+    }
+
+    private LayerPopulator createPopulator(LayerId layerId, ComputationSpec spec) {
+        if (spec instanceof BucketSpec) {
+            return BucketComputationImpl.builder()
+                    .layerId(layerId)
+                    .bucketSpec((BucketSpec) spec)
+                    .build();
+        } else if (spec instanceof BufferSpec) {
+            return new BufferComputation(layerId, (BufferSpec) spec);
+        } else {
+            throw new RuntimeException("Invalid computation spec: " + spec);
+        }
     }
 
     public Observable<LayerPopulator> layerPopulators() {

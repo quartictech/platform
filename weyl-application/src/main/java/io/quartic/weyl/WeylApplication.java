@@ -32,7 +32,6 @@ import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
-import io.quartic.weyl.core.compute.LayerComputation;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
@@ -103,7 +102,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
 
-        final ComputeResource computeResource = ComputeResourceImpl.of(new LayerComputation.Factory(), lidGenerator);
+        final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
 
         final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
         final LayerStore layerStore = LayerStoreImpl.builder()

@@ -1,14 +1,15 @@
 package io.quartic.weyl.core.compute;
 
 import com.vividsolutions.jts.operation.buffer.BufferOp;
+import io.quartic.weyl.core.LayerPopulator;
 import io.quartic.weyl.core.LayerSpec;
 import io.quartic.weyl.core.LayerSpecImpl;
+import io.quartic.weyl.core.LayerUpdateImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
-import io.quartic.weyl.core.source.LayerUpdateImpl;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +20,7 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.singletonList;
 import static rx.Observable.just;
 
-public class BufferComputation implements LayerComputation {
+public class BufferComputation implements LayerPopulator {
     private final LayerId layerId;
     private final BufferSpec spec;
 

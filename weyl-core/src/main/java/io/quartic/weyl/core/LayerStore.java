@@ -30,15 +30,16 @@ import rx.Subscription;
 import rx.subjects.BehaviorSubject;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.collect.Lists.transform;
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
@@ -60,14 +61,19 @@ public abstract class LayerStore {
     protected Subscription populatorsSubscription() {
         return populators()
                 .subscribe(populator -> {
-                    final LayerSpec spec = populator.spec(emptyList()); // TODO - emptyList()
-                    checkLayerNotExists(spec.id());
-                    putLayer(newLayer(spec));
-                    spec.updates().subscribe(update -> addToLayer(spec.id(), update.features()));
+                    try {
+                        final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
+                        final LayerSpec spec = populator.spec(dependencies);
+                        checkLayerNotExists(spec.id());
+                        putLayer(newLayer(spec));
+                        spec.updates().subscribe(update -> addToLayer(spec.id(), update.features()));
+                    } catch (Exception e) {
+                        LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
+                    }
                 });
     }
 
-    public Collection<Layer> listLayers() {
+    public List<Layer> listLayers() {
         return layers.entrySet()
                 .stream()
                 .map(Entry::getValue)
