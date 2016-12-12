@@ -2,16 +2,12 @@ package io.quartic.weyl.core;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
-import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeSchema;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.EntityIdImpl;
@@ -19,18 +15,13 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
-import org.hamcrest.Matchers;
 import org.junit.Test;
-import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
@@ -38,24 +29,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
-import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.empty;
-import static rx.Observable.just;
 
 public class LayerStoreShould {
     private static final LayerId LAYER_ID = LayerId.fromString("666");
@@ -64,99 +51,106 @@ public class LayerStoreShould {
     private static final Attributes ATTRIBUTES = () -> ImmutableMap.of(ATTRIBUTE_NAME, 1234);
 
     private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
+    private final LayerReducer layerReducer = mock(LayerReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final LayerStore store = LayerStoreImpl.builder()
             .populators(populators)
             .entityStore(entityStore)
+            .layerReducer(layerReducer)
             .build();
     private final GeometryFactory factory = new GeometryFactory();
 
     @Test
     public void list_created_layers() throws Exception {
-        final LayerSpecImpl spec1 = LayerSpecImpl.of(LAYER_ID, metadata("foo", "bar"), IDENTITY_VIEW, schema("foo"), true);
-        final LayerSpecImpl spec2 = LayerSpecImpl.of(OTHER_LAYER_ID, metadata("cheese", "monkey"), IDENTITY_VIEW, schema("bar"), true);
-        createLayer(spec1, empty());
-        createLayer(spec2, empty());
+        final LayerSpec spec1 = spec(LAYER_ID);
+        final LayerSpec spec2 = spec(OTHER_LAYER_ID);
+        final List<Layer> expectedLayers = newArrayList(mockLayerCreationFor(spec1), mockLayerCreationFor(spec2));
 
+        createLayer(spec1);
+        createLayer(spec2);
         final List<Layer> layers = store.listLayers();
 
-        assertThat(transform(layers, Layer::spec), containsInAnyOrder(spec1, spec2));
+        assertThat(layers, equalTo(expectedLayers));
+    }
+
+    @Test
+    public void prevent_overwriting_an_existing_layer() throws Exception {
+        final LayerSpec spec = spec(LAYER_ID);
+        mockLayerCreationFor(spec);
+
+        createLayer(spec);
+        createLayer(spec);
+
+        verify(layerReducer, times(1)).create(any());
     }
 
     @Test
     public void resolve_layer_dependencies() throws Exception {
+        final LayerSpec specDependency = spec(LAYER_ID);
+        final LayerSpec specDependent = spec(OTHER_LAYER_ID);
+        final Layer dependency = mockLayerCreationFor(specDependency);
+        mockLayerCreationFor(specDependent);
+
+        createLayer(specDependency);
+
         final LayerPopulator populator = mock(LayerPopulator.class);
         when(populator.dependencies()).thenReturn(singletonList(LAYER_ID)); // Specify another layer as a dependency
-        when(populator.spec(any())).thenReturn(spec(OTHER_LAYER_ID));
+        when(populator.spec(any())).thenReturn(specDependent);
         when(populator.updates(any())).thenReturn(empty());
-
-        createLayer(spec(LAYER_ID), empty());
         populators.onNext(populator);
 
-        final Layer dependency = store.getLayer(LAYER_ID).get();
         verify(populator).spec(singletonList(dependency));
         verify(populator).updates(singletonList(dependency));
     }
 
     @Test
-    public void preserve_core_schema_info_upon_update() throws Exception {
-        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("a"))));
+    public void apply_updates_to_layer() throws Exception {
+        final LayerSpec spec = spec(LAYER_ID);
+        final Layer updatedLayer = mockLayerReductionFor(mockLayerCreationFor(spec));
 
-        final Layer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.spec().schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
+        createLayer(spec).onNext(updateFor(modelFeature("a")));
+
+        verify(layerReducer).reduce(any(), eq(newArrayList(feature("a"))));
+        assertThat(store.getLayer(LAYER_ID).get(), equalTo(updatedLayer));
     }
 
     @Test
-    public void add_observed_features_to_layer() throws Exception {
-        createLayer(spec(LAYER_ID, false), just(
-                updateFor(modelFeature("a")),
-                updateFor(modelFeature("b"))
-        ));
+    public void put_updated_attributes_to_store() throws Exception {
+        final LayerSpec spec = spec(LAYER_ID);
+        mockLayerReductionFor(mockLayerCreationFor(spec));
 
-        final Layer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.features(), containsInAnyOrder(feature("a"), feature("b")));
-    }
-
-    @Test
-    public void put_attributes_to_store() throws Exception {
-        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("a"), modelFeature("b"))));
+        createLayer(spec).onNext(updateFor(modelFeature("a"), modelFeature("b")));
 
         verify(entityStore).putAll(any(), eq(newArrayList(feature("a"), feature("b"))));
     }
 
     @Test
-    public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
-        PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        createLayer(spec(LAYER_ID, false), updates);
+    public void notify_subscribers_of_current_layer_state_and_subsequent_updates_upon_subscribing() throws Exception {
+        final LayerSpec spec = spec(LAYER_ID);
+        final Layer original = mockLayerCreationFor(spec);
+        final Layer firstUpdate = mockLayerReductionFor(original);
+        final Layer secondUpdate = mockLayerReductionFor(firstUpdate);
 
-        updates.onNext(updateFor(modelFeature("a")));   // Observed before
+        PublishSubject<LayerUpdate> updates = createLayer(spec);
+        updates.onNext(updateFor());   // Observed before subscription
 
         TestSubscriber<Layer> subscriber = TestSubscriber.create();
         store.layersForLayerId(LAYER_ID).subscribe(subscriber);
 
-        updates.onNext(updateFor(modelFeature("b")));   // Observed after
+        updates.onNext(updateFor());   // Observed after subscription
 
-        assertThat(subscriber.getOnNextEvents().size(), equalTo(2));
-        assertThat(subscriber.getOnNextEvents().get(1).features(), containsInAnyOrder(feature("a"), feature("b")));
-    }
-
-    @Test
-    public void prevent_overwriting_an_existing_layer() throws Exception {
-        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("a"))));
-        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("b"))));
-
-        final Layer layer = store.getLayer(LAYER_ID).get();
-        assertThat(layer.features(), contains(feature("a")));
+        assertThat(subscriber.getOnNextEvents(), contains(firstUpdate, secondUpdate));
     }
 
     @Test
     public void notify_observers_on_new_features() throws Exception {
-        PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        createLayer(spec(LAYER_ID, false), updates);
+        final LayerSpec spec = spec(LAYER_ID);
+        mockLayerReductionFor(mockLayerCreationFor(spec));
 
-        Observable<LiveLayerChange> newFeatures = store.liveLayerChanges(LAYER_ID);
+        PublishSubject<LayerUpdate> updates = createLayer(spec);
+
         TestSubscriber<LiveLayerChange> sub = TestSubscriber.create();
-        newFeatures.subscribe(sub);
+        store.liveLayerChanges(LAYER_ID).subscribe(sub);
 
         updates.onNext(updateFor(modelFeature("a")));
 
@@ -165,69 +159,34 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void notify_on_updates_to_layers() throws Exception {
-        PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        createLayer(spec(LAYER_ID, false), updates);
+    public void notify_on_layer_creation() {
+        final LayerSpec specA = spec(LAYER_ID);
+        final LayerSpec specB = spec(OTHER_LAYER_ID);
+        final Layer layerA = mockLayerCreationFor(specA);
+        final Layer layerB = mockLayerCreationFor(specB);
 
-        TestSubscriber<Layer> sub = TestSubscriber.create();
-        store.layersForLayerId(LAYER_ID).subscribe(sub);
-
-        updates.onNext(updateFor(modelFeature("a")));
-
-        List<Layer> layers = sub.getOnNextEvents();
-        // This actually gets emitted twice currently (once empty, then once with the feature)
-        assertThat(layers.size(), equalTo(2));
-        assertThat(layers.get(0).features().size(), equalTo(0));
-        // Second update contains feature "a"
-        assertThat(layers.get(1).features().size(), equalTo(1));
-        assertThat(layers.get(1).features(), containsInAnyOrder(feature("a")));
-
-        layers = sub.getOnNextEvents();
-        updates.onNext(updateFor(modelFeature("b")));
-
-        assertThat(layers.size(), equalTo(3));
-        assertThat(layers.get(2).features(), containsInAnyOrder(feature("a"), feature("b")));
-
-        assertThat(layers.get(1).spec().schema(),
-                equalTo(AttributeSchemaImpl.copyOf(schema("blah"))
-                        .withAttributes(ImmutableMap.of(ATTRIBUTE_NAME, AttributeImpl.of(NUMERIC, Optional.of(ImmutableSet.of(1234)))))));
-    }
-
-    @Test
-    public void notify_on_layer_addition() {
-        createLayer(spec(LAYER_ID, false), empty());
-
+        createLayer(specA);
         TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
         store.allLayers().subscribe(sub);
+        assertThat(sub.getOnNextEvents().get(0), contains(layerA));
 
-        List<Collection<Layer>> layerEvents = sub.getOnNextEvents();
-        assertThat(layerEvents.size(), equalTo(1));
-        assertThat(layerEvents.get(0).size(), equalTo(1));
-        assertThat(transform(layerEvents.get(0), l -> l.spec().id()), containsInAnyOrder(LAYER_ID));
-
-        createLayer(spec(OTHER_LAYER_ID, false), empty());
-        layerEvents = sub.getOnNextEvents();
-        assertThat(layerEvents.size(), equalTo(2));
-        assertThat(layerEvents.get(1).size(), equalTo(2));
-        assertThat(transform(layerEvents.get(1), l -> l.spec().id()), containsInAnyOrder(LAYER_ID, OTHER_LAYER_ID));
+        createLayer(specB);
+        assertThat(sub.getOnNextEvents().get(1), contains(layerA, layerB));
     }
 
-    @Test
-    public void calculate_indices_for_indexable_layer() throws Exception {
-        assertThatLayerIndexedFeaturesHasSize(true, 1);
+    private Layer mockLayerCreationFor(LayerSpec spec) {
+        final Layer layer = mock(Layer.class);
+        when(layer.spec()).thenReturn(spec);
+        when(layerReducer.create(spec)).thenReturn(layer);
+        return layer;
     }
 
-    @Test
-    public void not_calculate_indices_for_non_indexable_layer() throws Exception {
-        assertThatLayerIndexedFeaturesHasSize(false, 0);
-    }
-
-    private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
-        createLayer(spec(LAYER_ID, indexable), just(updateFor(modelFeature("a"))));
-
-        final Layer layer = store.getLayer(LAYER_ID).get();
-
-        assertThat(layer.indexedFeatures(), hasSize(size));
+    private Layer mockLayerReductionFor(Layer layer) {
+        final LayerSpec originalSpec = layer.spec();
+        final Layer updatedLayer = mock(Layer.class, RETURNS_DEEP_STUBS);
+        when(updatedLayer.spec()).thenReturn(originalSpec);
+        when(layerReducer.reduce(eq(layer), any())).thenReturn(updatedLayer);
+        return updatedLayer;
     }
 
     private LayerUpdate updateFor(NakedFeature... features) {
@@ -243,12 +202,8 @@ public class LayerStoreShould {
     }
 
     private Feature feature(String externalId) {
-        return feature(LAYER_ID.uid(), externalId);
-    }
-
-    private Feature feature(String layerId, String externalId) {
         return FeatureImpl.of(
-                EntityIdImpl.of(layerId + "/" + externalId),
+                EntityIdImpl.of(LAYER_ID.uid() + "/" + externalId),
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 ATTRIBUTES
         );
@@ -258,29 +213,16 @@ public class LayerStoreShould {
         return ImmutableLiveLayerChange.of(layerId, features);
     }
 
-    private void createLayer(LayerSpec spec, Observable<LayerUpdate> updates) {
+    private PublishSubject<LayerUpdate> createLayer(LayerSpec spec) {
+        final PublishSubject<LayerUpdate> updates = PublishSubject.create();
         populators.onNext(LayerPopulator.withoutDependencies(spec, updates));
+        return updates;
     }
 
-    private static LayerSpec spec(LayerId layerId) {
-        return spec(layerId, false);
-    }
-
-    private static LayerSpec spec(LayerId layerId, boolean indexable) {
-        return LayerSpecImpl.of(
-                layerId,
-                metadata("foo", "bar"),
-                IDENTITY_VIEW,
-                schema("blah"),
-                indexable
-        );
-    }
-
-    private static AttributeSchema schema(String blessed) {
-        return AttributeSchemaImpl.builder().blessedAttribute(AttributeNameImpl.of(blessed)).build();
-    }
-
-    private static LayerMetadata metadata(String name, String description) {
-        return LayerMetadataImpl.of(name, description, Optional.empty(), Optional.empty());
+    private LayerSpec spec(LayerId id) {
+        final LayerSpec spec = mock(LayerSpec.class, RETURNS_DEEP_STUBS);
+        when(spec.id()).thenReturn(id);
+        when(spec.metadata().name()).thenReturn("foo");
+        return spec;
     }
 }

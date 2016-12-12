@@ -3,27 +3,17 @@ package io.quartic.weyl.core;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
-import com.vividsolutions.jts.index.SpatialIndex;
-import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.ImmutableIndexedFeature;
-import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
-import io.quartic.weyl.core.model.LayerStatsImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -39,10 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.transform;
-import static io.quartic.weyl.core.StatsCalculator.calculateStats;
-import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
-import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
-import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 @SweetStyle
@@ -58,21 +44,28 @@ public abstract class LayerStore {
     protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract Observable<LayerPopulator> populators();
 
+    @Value.Default
+    protected LayerReducer layerReducer() {
+        return new LayerReducer();
+    }
+
     // TODO: what will we actually do with this subscription object?
     @Value.Derived
     protected Subscription populatorsSubscription() {
         return populators()
-                .subscribe(populator -> {
-                    try {
-                        final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
-                        final LayerSpec spec = populator.spec(dependencies);
-                        checkLayerNotExists(spec.id());
-                        putLayer(newLayer(spec));
-                        populator.updates(dependencies).subscribe(update -> addToLayer(spec.id(), update.features()));
-                    } catch (Exception e) {
-                        LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
-                    }
-                });
+                .subscribe(this::handlePopulator);
+    }
+
+    private void handlePopulator(LayerPopulator populator) {
+        try {
+            final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
+            final LayerSpec spec = populator.spec(dependencies);
+            checkLayerNotExists(spec.id());
+            putLayer(layerReducer().create(spec));
+            populator.updates(dependencies).subscribe(update -> addToLayer(spec.id(), update.features()));
+        } catch (Exception e) {
+            LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
+        }
     }
 
     public List<Layer> listLayers() {
@@ -110,62 +103,16 @@ public abstract class LayerStore {
         final Layer layer = layers.get(layerId);
         LOG.info("[{}] Accepted {} features", layer.spec().metadata().name(), features.size());
 
-        final Collection<Feature> elaboratedFeatures = elaborate(layerId, features);
-        entityStore().putAll(Feature::entityId, elaboratedFeatures);
-        final Layer updatedLayer = appendFeatures(layer, elaboratedFeatures);
-
-        putLayer(layer.spec().indexable() ? updateIndicesAndStats(updatedLayer) : updatedLayer);
-        newFeatureObservables.put(layerId, elaboratedFeatures);
+        final Collection<Feature> elaborated = elaborate(layerId, features);
+        entityStore().putAll(Feature::entityId, elaborated);
+        putLayer(layerReducer().reduce(layer, elaborated));
+        newFeatureObservables.put(layerId, elaborated);
     }
 
     private void putLayer(Layer layer) {
         layers.put(layer.spec().id(), layer);
         allLayersObservable.onNext(layers.values());
         layerObservables.put(layer.spec().id(), layer);
-    }
-
-    private Layer newLayer(LayerSpec spec) {
-        return LayerImpl.builder()
-                .spec(spec)
-                .features(EMPTY_COLLECTION)
-                .spatialIndex(spatialIndex(ImmutableList.of()))
-                .indexedFeatures(ImmutableList.of())
-                .layerStats(LayerStatsImpl.of(emptyMap(), 0))
-                .build();
-    }
-
-    private Layer appendFeatures(Layer layer, Collection<Feature> features) {
-        final FeatureCollection updatedFeatures = layer.features().append(features);
-        return LayerImpl.copyOf(layer)
-                .withFeatures(updatedFeatures)
-                .withSpec(LayerSpecImpl.copyOf(layer.spec())
-                        .withSchema(AttributeSchemaImpl.copyOf(layer.spec().schema())
-                                .withAttributes(inferSchema(features, layer.spec().schema().attributes()))
-                        )
-                );
-    }
-
-    private Layer updateIndicesAndStats(Layer layer) {
-        final Collection<IndexedFeature> indexedFeatures = indexedFeatures(layer.features());
-        return LayerImpl.copyOf(layer)
-                .withSpatialIndex(spatialIndex(indexedFeatures))
-                .withIndexedFeatures(indexedFeatures)
-                .withLayerStats(calculateStats(layer.spec().schema(), layer.features()));
-    }
-
-    private static Collection<IndexedFeature> indexedFeatures(FeatureCollection features) {
-        return features.stream()
-                .map(feature -> ImmutableIndexedFeature.builder()
-                        .feature(feature)
-                        .preparedGeometry(PreparedGeometryFactory.prepare(feature.geometry()))
-                        .build())
-                .collect(toList());
-    }
-
-    private static SpatialIndex spatialIndex(Collection<IndexedFeature> features) {
-        STRtree stRtree = new STRtree();
-        features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
-        return stRtree;
     }
 
     // TODO: this is going to double memory usage?
