@@ -19,7 +19,6 @@ export default (state = initialState, action) => {
       const element = action.element;
       switch (element) {
         case "calculate":
-        case "geofence":
           return state.update("layerOp", val => ((val === element) ? null : element));
         default:
           return state.updateIn(["panels", element], val => !val);

@@ -117,13 +117,17 @@ export const mapSetLocation = (location) => ({
 
 // Geofence
 
+export const geofencePaneToggleVisibility = () => ({
+  type: constants.GEOFENCE_PANE_TOGGLE_VISIBILITY,
+});
+
 export const geofenceCommitSettings = (settings) => ({
   type: constants.GEOFENCE_COMMIT_SETTINGS,
   settings,
 });
 
 export const geofenceSetManualControlsVisibility = (visible) => ({
-  type: constants.GEOFENCE_TOGGLE_MANUAL_CONTROLS_VISIBILITY,
+  type: constants.GEOFENCE_SET_MANUAL_CONTROLS_VISIBILITY,
   visible,
 });
 
