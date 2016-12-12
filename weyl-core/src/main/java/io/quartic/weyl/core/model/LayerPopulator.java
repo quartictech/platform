@@ -7,11 +7,11 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 
 public interface LayerPopulator {
-    static LayerPopulator withoutDependencies(LayerSpec spec, Observable<LayerUpdate> updates) {
+    static LayerPopulator of(List<LayerId> dependencies, LayerSpec spec, Observable<LayerUpdate> updates) {
         return new LayerPopulator() {
             @Override
             public List<LayerId> dependencies() {
-                return emptyList();
+                return dependencies;
             }
 
             @Override
@@ -24,6 +24,10 @@ public interface LayerPopulator {
                 return updates;
             }
         };
+    }
+
+    static LayerPopulator withoutDependencies(LayerSpec spec, Observable<LayerUpdate> updates) {
+        return LayerPopulator.of(emptyList(), spec, updates);
     }
 
     List<LayerId> dependencies();

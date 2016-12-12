@@ -43,6 +43,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -82,8 +84,23 @@ public class LayerStoreShould {
     }
 
     @Test
+    public void resolve_layer_dependencies() throws Exception {
+        final LayerPopulator populator = mock(LayerPopulator.class);
+        when(populator.dependencies()).thenReturn(singletonList(LAYER_ID)); // Specify another layer as a dependency
+        when(populator.spec(any())).thenReturn(spec(OTHER_LAYER_ID));
+        when(populator.updates(any())).thenReturn(empty());
+
+        createLayer(spec(LAYER_ID), empty());
+        populators.onNext(populator);
+
+        final Layer dependency = store.getLayer(LAYER_ID).get();
+        verify(populator).spec(singletonList(dependency));
+        verify(populator).updates(singletonList(dependency));
+    }
+
+    @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
-        createLayer(LAYER_ID, just(updateFor(modelFeature("a"))));
+        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("a"))));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.spec().schema().blessedAttributes(), Matchers.contains(AttributeNameImpl.of("blah")));
@@ -91,7 +108,7 @@ public class LayerStoreShould {
 
     @Test
     public void add_observed_features_to_layer() throws Exception {
-        createLayer(LAYER_ID, just(
+        createLayer(spec(LAYER_ID, false), just(
                 updateFor(modelFeature("a")),
                 updateFor(modelFeature("b"))
         ));
@@ -102,7 +119,7 @@ public class LayerStoreShould {
 
     @Test
     public void put_attributes_to_store() throws Exception {
-        createLayer(LAYER_ID, just(updateFor(modelFeature("a"), modelFeature("b"))));
+        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("a"), modelFeature("b"))));
 
         verify(entityStore).putAll(any(), eq(newArrayList(feature("a"), feature("b"))));
     }
@@ -110,7 +127,7 @@ public class LayerStoreShould {
     @Test
     public void notify_subscribers_of_all_features_upon_subscribing() throws Exception {
         PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        createLayer(LAYER_ID, updates);
+        createLayer(spec(LAYER_ID, false), updates);
 
         updates.onNext(updateFor(modelFeature("a")));   // Observed before
 
@@ -125,8 +142,8 @@ public class LayerStoreShould {
 
     @Test
     public void prevent_overwriting_an_existing_layer() throws Exception {
-        createLayer(LAYER_ID, just(updateFor(modelFeature("a"))));
-        createLayer(LAYER_ID, just(updateFor(modelFeature("b"))));
+        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("a"))));
+        createLayer(spec(LAYER_ID, false), just(updateFor(modelFeature("b"))));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
         assertThat(layer.features(), contains(feature("a")));
@@ -135,7 +152,7 @@ public class LayerStoreShould {
     @Test
     public void notify_observers_on_new_features() throws Exception {
         PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        createLayer(LAYER_ID, updates);
+        createLayer(spec(LAYER_ID, false), updates);
 
         Observable<LiveLayerChange> newFeatures = store.liveLayerChanges(LAYER_ID);
         TestSubscriber<LiveLayerChange> sub = TestSubscriber.create();
@@ -150,7 +167,7 @@ public class LayerStoreShould {
     @Test
     public void notify_on_updates_to_layers() throws Exception {
         PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        createLayer(LAYER_ID, updates);
+        createLayer(spec(LAYER_ID, false), updates);
 
         TestSubscriber<Layer> sub = TestSubscriber.create();
         store.layersForLayerId(LAYER_ID).subscribe(sub);
@@ -178,7 +195,7 @@ public class LayerStoreShould {
 
     @Test
     public void notify_on_layer_addition() {
-        createLayer(LAYER_ID, empty());
+        createLayer(spec(LAYER_ID, false), empty());
 
         TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
         store.allLayers().subscribe(sub);
@@ -188,7 +205,7 @@ public class LayerStoreShould {
         assertThat(layerEvents.get(0).size(), equalTo(1));
         assertThat(transform(layerEvents.get(0), l -> l.spec().id()), containsInAnyOrder(LAYER_ID));
 
-        createLayer(OTHER_LAYER_ID, empty());
+        createLayer(spec(OTHER_LAYER_ID, false), empty());
         layerEvents = sub.getOnNextEvents();
         assertThat(layerEvents.size(), equalTo(2));
         assertThat(layerEvents.get(1).size(), equalTo(2));
@@ -206,7 +223,7 @@ public class LayerStoreShould {
     }
 
     private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
-        createLayer(LAYER_ID, indexable, just(updateFor(modelFeature("a"))));
+        createLayer(spec(LAYER_ID, indexable), just(updateFor(modelFeature("a"))));
 
         final Layer layer = store.getLayer(LAYER_ID).get();
 
@@ -241,32 +258,29 @@ public class LayerStoreShould {
         return ImmutableLiveLayerChange.of(layerId, features);
     }
 
-    private void createLayer(LayerId layerId, Observable<LayerUpdate> updates) {
-        createLayer(layerId, false, updates);
-    }
-
-    private void createLayer(LayerId layerId, boolean indexable, Observable<LayerUpdate> updates) {
-        createLayer(
-                LayerSpecImpl.of(
-                        layerId,
-                        metadata("foo", "bar"),
-                        IDENTITY_VIEW,
-                        schema("blah"),
-                        indexable
-                ),
-                updates
-        );
-    }
-
     private void createLayer(LayerSpec spec, Observable<LayerUpdate> updates) {
         populators.onNext(LayerPopulator.withoutDependencies(spec, updates));
     }
 
-    private AttributeSchema schema(String blessed) {
+    private static LayerSpec spec(LayerId layerId) {
+        return spec(layerId, false);
+    }
+
+    private static LayerSpec spec(LayerId layerId, boolean indexable) {
+        return LayerSpecImpl.of(
+                layerId,
+                metadata("foo", "bar"),
+                IDENTITY_VIEW,
+                schema("blah"),
+                indexable
+        );
+    }
+
+    private static AttributeSchema schema(String blessed) {
         return AttributeSchemaImpl.builder().blessedAttribute(AttributeNameImpl.of(blessed)).build();
     }
 
-    private LayerMetadata metadata(String name, String description) {
+    private static LayerMetadata metadata(String name, String description) {
         return LayerMetadataImpl.of(name, description, Optional.empty(), Optional.empty());
     }
 }
