@@ -32,13 +32,9 @@ import io.quartic.weyl.core.source.*;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.update.AttributesUpdateGenerator;
-import io.quartic.weyl.update.ChartUpdateGenerator;
-import io.quartic.weyl.update.HistogramsUpdateGenerator;
-import io.quartic.weyl.update.SelectionHandler;
+import io.quartic.weyl.update.*;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
-import io.quartic.weyl.update.UpdateServer;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -48,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
@@ -55,14 +52,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
     private final LayerStore layerStore = LayerStoreImpl.builder()
             .entityStore(entityStore).lidGenerator(lidGenerator).build();
-
     private final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
             layerStore.allLayers(),
             layerStore::liveLayerChanges
     );
-
-    private final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
-    private final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+    private AlertResource alertResource = new AlertResource();
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -75,42 +69,54 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private WebsocketBundle configureWebsockets() {
-        final SelectionHandler selectionHandler = new SelectionHandler(
-                newArrayList(
-                        new ChartUpdateGenerator(),
-                        new HistogramsUpdateGenerator(new HistogramCalculator()),
-                        new AttributesUpdateGenerator()
-                ),
-                Multiplexer.create(entityStore::get));
-
-        final LayerSubscriptionHandler layerSubscriptionHandler = new LayerSubscriptionHandler(
-                layerStore,
-                featureConverter()
-        );
-
-        final GeofenceStatusHandler geofenceStatusHandler = new GeofenceStatusHandler(
-                geofenceStore,
-                layerStore,
-                featureConverter()
-        );
+        // These ones are global
+        final SelectionHandler selectionHandler = createSelectionHandler();
+        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler();
 
         final ServerEndpointConfig config = ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
                     @Override
-                    @SuppressWarnings("unchecked")
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new UpdateServer(
-                                alertProcessor,
-                                newArrayList(
-                                        selectionHandler,
-                                        layerSubscriptionHandler,
-                                        geofenceStatusHandler
-                                ));
+                        //noinspection unchecked
+                        return (T) createUpdateServer(selectionHandler, layerSubscriptionHandler);
                     }
                 })
                 .build();
         return new WebsocketBundle(config);
+    }
+
+    private UpdateServer createUpdateServer(SelectionHandler selectionHandler, LayerSubscriptionHandler layerSubscriptionHandler) {
+        // As a hack, theses one are per-user so each user has their own geofence state
+        final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
+        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore);
+
+        return new UpdateServer(
+                merge(alertProcessor.alerts(), alertResource.alerts()),
+                newArrayList(
+                        selectionHandler,
+                        layerSubscriptionHandler,
+                        geofenceStatusHandler
+                ));
+    }
+
+    private SelectionHandler createSelectionHandler() {
+        return new SelectionHandler(
+                    newArrayList(
+                            new ChartUpdateGenerator(),
+                            new HistogramsUpdateGenerator(new HistogramCalculator()),
+                            new AttributesUpdateGenerator()
+                    ),
+                    Multiplexer.create(entityStore::get));
+    }
+
+    private LayerSubscriptionHandler createLayerSubscriptionHandler() {
+        return new LayerSubscriptionHandler(layerStore, featureConverter());
+    }
+
+    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore) {
+        return new GeofenceStatusHandler(geofenceStore, layerStore, featureConverter());
     }
 
     @Override
@@ -121,7 +127,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
-        environment.jersey().register(new AlertResource(alertProcessor));
+        environment.jersey().register(alertResource);
 
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
