@@ -8,7 +8,6 @@ dependencies {
     processor libraries.immutables
 
     compile project(":common-core")
-    compile project(":model")
     compile project(":catalogue-api")  // TODO: this is probably wrong - should move the dataset types to common
     compile project(":terminator-api")
 
