@@ -1,6 +1,7 @@
 import { take, takem, call, fork, cancel, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsUrl } from "../../../utils.js";
+import { showToast } from "../toaster";
 import * as constants from "../constants";
 import * as actions from "../actions";
 import * as selectors from "../selectors";
@@ -31,10 +32,11 @@ function* reportStatus(socket) {
       seqNum: selection.seqNum,
     },
     geofence: {
-      features: (geofence.layerId === null) ? geofence.editGeojson : null,
-      layerId: geofence.layerId,
-      type: geofence.type,
-      bufferDistance: geofence.bufferDistance,
+      enabled: geofence.paneVisible,
+      features: (geofence.settings.mode === "manual") ? geofence.manualGeojson : null,
+      layerId: (geofence.settings.mode === "layer") ? geofence.settings.layerId : null,
+      type: "EXCLUDE",
+      bufferDistance: geofence.settings.bufferDistance,
     },
   };
 
@@ -50,16 +52,11 @@ function* handleLayerUpdate(msg) {
   }
 }
 
-const createNotification = (title, body) => {
-  const n = new Notification(title, { body });
-  setTimeout(n.close.bind(n), 5000);
-};
-
 function* handleAlert(msg) {
-  // TODO: it's weird that the generic alert thing has to query the geofence state
+  // TODO: make this a more generic filter mechanism
   const geofence = yield select(selectors.selectGeofence);
-  if (geofence.alertsEnabled) {
-    yield call(createNotification, msg.title, msg.body);
+  if (!msg.title.startsWith("Geofence") || geofence.alertsEnabled) {
+    yield call(showToast, msg);
   }
 }
 
@@ -74,7 +71,7 @@ function* handleMessages(channel) {
         yield* handleAlert(msg);
         break;
       case "GeofenceViolationsUpdate":
-        yield put(actions.geofenceSetViolatedGeofences(msg.violatingGeofenceIds));
+        yield put(actions.geofenceSetViolations(msg));
         break;
       case "GeofenceGeometryUpdate":
         yield put(actions.geofenceSetGeometry(msg.featureCollection));
@@ -96,7 +93,12 @@ function* watchSubscriptionChanges(socket) {
     const selection = yield select(selectors.selectSelection);
 
     // TODO: cleanse this gross logic
-    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_EDIT_FINISH].indexOf(action.type) >= 0)) {
+    if (([
+      constants.LAYER_CREATE,
+      constants.LAYER_CLOSE,
+      constants.GEOFENCE_COMMIT_SETTINGS,
+      constants.GEOFENCE_PANE_TOGGLE_VISIBILITY,
+    ].indexOf(action.type) >= 0)) {
       if (lastTask) {
         yield cancel(lastTask);
       }

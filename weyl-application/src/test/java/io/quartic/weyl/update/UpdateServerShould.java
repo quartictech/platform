@@ -4,16 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.common.test.rx.ObservableInterceptor;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertImpl;
-import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import rx.Observable;
 import rx.observers.TestSubscriber;
+import rx.subjects.PublishSubject;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -33,7 +32,7 @@ import static rx.Observable.just;
 
 public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
-    private final AlertProcessor alertProcessor = mock(AlertProcessor.class);
+    private final PublishSubject<Alert> alerts = PublishSubject.create();
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
 
     @Test
@@ -48,7 +47,7 @@ public class UpdateServerShould {
             return just(response);
         });
 
-        final UpdateServer server = createAndOpenServer();
+        final UpdateServer server = createAndOpenServer(alerts);
         server.onMessage(encode(msg));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
@@ -57,30 +56,24 @@ public class UpdateServerShould {
     }
 
     @Test
-    public void add_listener_on_open() {
-        final UpdateServer server = createAndOpenServer();
-
-        verify(alertProcessor).addListener(server);
-    }
-
-    @Test
     public void remove_listener_and_close_handlers_on_close() throws Exception {
-        final ObservableInterceptor<SocketMessage> interceptor = ObservableInterceptor.create();
-        when(handler.call(any())).thenReturn(interceptor.observable());
+        final ObservableInterceptor<SocketMessage> messageInterceptor = ObservableInterceptor.create();
+        final ObservableInterceptor<Alert> alertInterceptor = ObservableInterceptor.create(alerts);
+        when(handler.call(any())).thenReturn(messageInterceptor.observable());
 
-        final UpdateServer server = createAndOpenServer();
+        final UpdateServer server = createAndOpenServer(alertInterceptor.observable());
         server.onClose(session, mock(CloseReason.class));
 
-        verify(alertProcessor).removeListener(server);
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(alertInterceptor.unsubscribed(), equalTo(true));
+        assertThat(messageInterceptor.unsubscribed(), equalTo(true));
     }
 
     @Test
     public void send_alert() throws Exception {
-        final Alert alert = AlertImpl.of("foo", "bar");
+        final Alert alert = AlertImpl.of("foo", Optional.of("bar"), Alert.Level.SEVERE);
 
-        final UpdateServer server = createAndOpenServer();
-        server.onAlert(alert);
+        final UpdateServer server = createAndOpenServer(alerts);
+        alerts.onNext(alert);
 
         verifyMessage(AlertMessageImpl.of(alert));
     }
@@ -89,7 +82,7 @@ public class UpdateServerShould {
         return ClientStatusMessageImpl.of(
                 emptyList(),
                 SelectionStatusImpl.of(42, emptyList()),
-                GeofenceStatusImpl.of(GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
+                GeofenceStatusImpl.of(true, GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
         );
     }
 
@@ -97,15 +90,13 @@ public class UpdateServerShould {
         verify(session.getAsyncRemote()).sendText(encode(expected));
     }
 
-    private UpdateServer createAndOpenServer() {
-        final UpdateServer server = createServer();
+    private UpdateServer createAndOpenServer(Observable<Alert> alerts) {
+        final UpdateServer server = createServer(alerts);
         server.onOpen(session, mock(EndpointConfig.class));
         return server;
     }
 
-    private UpdateServer createServer() {
-        return new UpdateServer(
-                alertProcessor,
-                newArrayList(handler));
+    private UpdateServer createServer(Observable<Alert> alerts) {
+        return new UpdateServer(alerts, newArrayList(handler));
     }
 }

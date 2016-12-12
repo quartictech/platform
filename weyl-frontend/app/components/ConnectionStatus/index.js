@@ -1,22 +1,24 @@
 import React from "react";
-const $ = require("jquery");
+import { Classes, Dialog, Spinner } from "@blueprintjs/core";
 
-class ConnectionStatus extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    if (this.props.connectionUp) {
-      $(".ui.modal").modal("hide");
-    } else {
-      $(".ui.modal")
-        .modal({ blurring: true, closable: false })
-        .modal("show");
-    }
-
-    return (
-      <div className="ui basic modal">
-        <div className="ui massive active text loader">Establishing connection...</div>
+function ConnectionStatus(props) {
+  return (
+    <Dialog
+      isOpen={!props.connectionUp}
+      title="Server connection lost"
+      iconName="exchange"
+      isCloseButtonShown={false}
+      canEscapeKeyClose={false}
+      canOutsideClickClose={false}
+    >
+      <div className={Classes.DIALOG_BODY}>
+        <div style={{ textAlign: "center" }}>
+          <Spinner className={Classes.LARGE} />
+          <h5>Re-establishing connection...</h5>
+        </div>
       </div>
-    );
-  }
+    </Dialog>
+  );
 }
 
 export default ConnectionStatus;

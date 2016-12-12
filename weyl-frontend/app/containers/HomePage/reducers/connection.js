@@ -1,7 +1,7 @@
 import { fromJS } from "immutable";
 import * as constants from "../constants";
 
-const initialState = fromJS(false);
+const initialState = fromJS(true);
 
 export default (state = initialState, action) => {
   switch (action.type) {

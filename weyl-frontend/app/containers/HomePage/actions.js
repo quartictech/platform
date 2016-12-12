@@ -72,6 +72,11 @@ export function toggleUi(element) {
   };
 }
 
+export const uiSetTheme = (theme) => ({
+  type: constants.UI_SET_THEME,
+  theme,
+});
+
 export function clearSelection() {
   return {
     type: constants.CLEAR_SELECTION,
@@ -110,27 +115,24 @@ export const mapSetLocation = (location) => ({
   location,
 });
 
-export const geofenceEditStart = () => ({
-  type: constants.GEOFENCE_EDIT_START,
+// Geofence
+
+export const geofencePaneToggleVisibility = () => ({
+  type: constants.GEOFENCE_PANE_TOGGLE_VISIBILITY,
 });
 
-export const geofenceEditFinish = () => ({
-  type: constants.GEOFENCE_EDIT_FINISH,
+export const geofenceCommitSettings = (settings) => ({
+  type: constants.GEOFENCE_COMMIT_SETTINGS,
+  settings,
 });
 
-export const geofenceEditSetType = (geofenceType) => ({
-  type: constants.GEOFENCE_EDIT_SET_TYPE,
-  value: geofenceType,
+export const geofenceSetManualControlsVisibility = (visible) => ({
+  type: constants.GEOFENCE_SET_MANUAL_CONTROLS_VISIBILITY,
+  visible,
 });
 
-export const geofenceEditSetLayer = (layerId, bufferDistance) => ({
-  type: constants.GEOFENCE_EDIT_SET_LAYER,
-  layerId,
-  bufferDistance,
-});
-
-export const geofenceEditSetGeometry = (geojson) => ({
-  type: constants.GEOFENCE_EDIT_SET_GEOMETRY,
+export const geofenceSetManualGeometry = (geojson) => ({
+  type: constants.GEOFENCE_SET_MANUAL_GEOMETRY,
   geojson,
 });
 
@@ -139,9 +141,9 @@ export const geofenceSetGeometry = (geojson) => ({
   geojson,
 });
 
-export const geofenceSetViolatedGeofences = (violatedIds) => ({
-  type: constants.GEOFENCE_SET_VIOLATED_GEOFENCES,
-  violatedIds,
+export const geofenceSetViolations = (violations) => ({
+  type: constants.GEOFENCE_SET_VIOLATIONS,
+  violations,
 });
 
 export const geofenceToggleAlerts = () => ({

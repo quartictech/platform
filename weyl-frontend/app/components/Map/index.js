@@ -1,11 +1,11 @@
 import React from "react";
-
+import { Colors } from "@blueprintjs/core";
 import styles from "./styles.css";
 
 import mapboxgl from "./mapbox-gl-helper.js";
 
 // TODO: there is some quite special magic going on here that throws eslint
-import { Draw } from "mapbox-gl-draw/dist/mapbox-gl-draw";  // eslint-disable-line no-unused-vars
+import MapboxDraw from "mapbox-gl-draw/dist/mapbox-gl-draw.js";
 import "mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 import SizeMe from "react-sizeme";
@@ -60,7 +60,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       container: "map-inner",
       style: mapThemes[this.props.map.theme].mapbox,
       zoom: 9.7,
-      center: [-0.10, 51.4800],
+      center: [-0.0915, 51.5174],
     });
 
     this.map.dragRotate.disable();
@@ -74,14 +74,14 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     });
 
     this.map.on("draw.create", () => {
-      this.props.onGeofenceEditSetGeometry(this.draw.getAll());
+      this.props.onGeofenceSetManualGeometry(this.draw.getAll());
     });
 
     this.map.on("draw.delete", () => {
-      this.props.onGeofenceEditSetGeometry(this.draw.getAll());
+      this.props.onGeofenceSetManualGeometry(this.draw.getAll());
     });
 
-    this.draw = mapboxgl.Draw({   // eslint-disable-line new-cap
+    this.draw = new MapboxDraw({   // eslint-disable-line new-cap
       position: "top-right",
       displayControlsDefault: false,
       controls: {
@@ -109,13 +109,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   toggleGeofenceEditControlsIfNeeded(props) {
-    if (props.geofence.editing !== this.props.geofence.editing) {
-      if (props.geofence.editing) {
-        this.map.addControl(this.draw);
-        this.props.onGeofenceEditSetGeometry(this.draw.getAll());
-      } else {
-        this.draw.remove();
-      }
+    if (props.geofence.manualControlsVisible && !this.props.geofence.manualControlsVisible) {
+      this.map.addControl(this.draw);
+      this.props.onGeofenceSetManualGeometry();
+    }
+    if (!props.geofence.manualControlsVisible && this.props.geofence.manualControlsVisible) {
+      this.map.removeControl(this.draw);
     }
   }
 
@@ -126,20 +125,30 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         data: geofence.geojson,
       });
 
+      const stopsSpec = {
+        property: "_alertLevel",
+        stops: [
+          ["INFO", Colors.BLUE1],
+          ["WARNING", "#A66321"],
+          ["SEVERE", "#A82A2A"],
+        ],
+        type: "categorical",
+      };
+
       this.addSubLayers("geofence", [
         {
           "id": "fill",
           "type": "fill",
           "paint": {
-            "fill-color": "#86C67C",
-            "fill-opacity": 0.7,
+            "fill-color": Colors.GREEN1,
+            "fill-opacity": 0.4,
           },
         },
         {
           "id": "line",
           "type": "line",
           "paint": {
-            "line-color": "#86C67C",
+            "line-color": Colors.GREEN1,
             "line-width": 5,
           },
         },
@@ -147,33 +156,33 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
           "id": "fill_violated",
           "type": "fill",
           "paint": {
-            "fill-color": "#CC3300",
-            "fill-opacity": 0.7,
+            "fill-color": stopsSpec,
+            "fill-opacity": 0.4,
           },
         },
         {
           "id": "line_violated",
           "type": "line",
           "paint": {
-            "line-color": "#CC3300",
+            "line-color": stopsSpec,
             "line-width": 5,
           },
         },
-      ]);
+      ], true);
     }
   }
 
   updateGeofenceLayer(geofence) {
     this.map.getSource("geofence").setData(geofence.geojson);
 
-    const visible = !geofence.editing;
+    const visible = !geofence.manualControlsVisible && geofence.paneVisible;
     this.setSubLayerVisibility("geofence_fill", visible);
     this.setSubLayerVisibility("geofence_line", visible);
     this.setSubLayerVisibility("geofence_fill_violated", visible);
     this.setSubLayerVisibility("geofence_line_violated", visible);
 
-    const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violatedIds);
-    const violatedFilter = ["in", "_entityId"].concat(geofence.violatedIds);
+    const unviolatedFilter = ["!in", "_entityId"].concat(geofence.violations.ids);
+    const violatedFilter = ["in", "_entityId"].concat(geofence.violations.ids);
     this.map.setFilter("geofence_fill", unviolatedFilter);
     this.map.setFilter("geofence_line", unviolatedFilter);
     this.map.setFilter("geofence_fill_violated", violatedFilter);
@@ -281,16 +290,27 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "filter": ["in", "_entityId", ""],
     });
 
-    return this.addSubLayers(layer.id, subLayerDefs);
+    return this.addSubLayers(layer.id, subLayerDefs, layer.live);
   }
 
-  addSubLayers(sourceId, subLayerDefs) {
-    const finalDefs = subLayerDefs.map(def => ({
+  finaliseSubLayerDefs(sourceId, subLayerDefs, isGeoJson) {
+    if (isGeoJson) {
+      return subLayerDefs.map((def) => ({
+        ...def,
+        "id": `${sourceId}_${def.id}`,
+        "source": sourceId,
+      }));
+    }
+    return subLayerDefs.map((def) => ({
       ...def,
       "id": `${sourceId}_${def.id}`,
       "source": sourceId,
       "source-layer": sourceId,
     }));
+  }
+
+  addSubLayers(sourceId, subLayerDefs, isGeoJson) {
+    const finalDefs = this.finaliseSubLayerDefs(sourceId, subLayerDefs, isGeoJson);
     finalDefs.forEach(def => this.map.addLayer(def));
     return finalDefs.map(def => def.id);
   }

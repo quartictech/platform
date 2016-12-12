@@ -13,5 +13,8 @@ import java.util.Set;
 @JsonSerialize(as = GeofenceViolationsUpdateMessageImpl.class)
 @JsonDeserialize(as = GeofenceViolationsUpdateMessageImpl.class)
 public interface GeofenceViolationsUpdateMessage extends SocketMessage {
-    Set<EntityId> violatingGeofenceIds();
+    Set<EntityId> ids();
+    int numInfo();
+    int numWarning();
+    int numSevere();
 }

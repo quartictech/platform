@@ -5,6 +5,7 @@ import { apiRootUrl, mapboxToken } from "../../../utils.js";
 
 export default function* (action) {
   yield call(delay, 500); // Debounce
+
   const [layerResults, placeResults] = yield [
     call(fetchLayers, action.query),
     call(fetchPlaces, action.query),
@@ -29,7 +30,7 @@ export default function* (action) {
     },
   );
 
-  yield call(action.callback, { results });
+  yield call(action.callback, results);
 }
 
 function* fetchLayers(query) {
@@ -46,7 +47,8 @@ function* fetchPlaces(query) {
 
 const unpackResults = (results) => (
   results.features.map(f => ({
-    title: f.place_name,
+    title: f.text,
+    description: f.place_name,
     category: "place",
     payload: f.center,
   }))

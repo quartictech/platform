@@ -1,12 +1,14 @@
 import React from "react";
+
 import Map from "../../components/Map";
 import Toolbar from "../../components/Toolbar";
+import ComputePane from "../../components/ComputePane";
+import GeofenceSettingsPane from "../../components/GeofenceSettingsPane";
 import LayerListPane from "../../components/LayerListPane";
 import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
-
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
@@ -15,7 +17,6 @@ import * as actions from "./actions";
 import * as selectors from "./selectors";
 
 class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-
   render() {
     return (
       <div className={styles.container}>
@@ -32,7 +33,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
               selection={this.props.selection.ids}
               map={this.props.map}
               geofence={this.props.geofence}
-              onGeofenceEditSetGeometry={this.props.onGeofenceEditSetGeometry}
+              onGeofenceSetManualGeometry={this.props.onGeofenceSetManualGeometry}
             />
           </div>
         </div>
@@ -44,28 +45,38 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onSelectPlace={this.props.onSelectPlace}
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
+            geofencePaneVisible={this.props.geofence.paneVisible}
+            onGeofencePaneToggle={this.props.onGeofencePaneToggle}
+            onSetTheme={this.props.onSetTheme}
           />
         </div>
 
         <div className={styles.leftDrawer}>
+          <ComputePane
+            layers={this.props.layers}
+            onCompute={this.props.onCompute}
+            onClose={() => this.props.onUiToggle("calculate")}
+            visible={this.props.ui.layerOp === "calculate"}
+          />
+
+          <GeofenceSettingsPane
+            layers={this.props.layers}
+            geofence={this.props.geofence}
+            onSetManualControlsVisibility={this.props.onGeofenceSetManualControlsVisibility}
+            onCommitSettings={this.props.onGeofenceCommitSettings}
+            onToggleAlerts={this.props.onGeofenceToggleAlerts}
+            onClose={this.props.onGeofencePaneToggle}
+            visible={this.props.geofence.paneVisible}
+          />
+
           <LayerListPane
             layers={this.props.layers}
             layerToggleVisible={this.props.layerToggleVisible}
-            onCompute={this.props.onCompute}
-            ui={this.props.ui}
-            visible={this.props.ui.panels.layerList}
-            onUiToggle={this.props.onUiToggle}
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
-            geofence={this.props.geofence}
-            onGeofenceEdit={{
-              start: this.props.onGeofenceEditStart,
-              finish: this.props.onGeofenceEditFinish,
-              setType: this.props.onGeofenceEditSetType,
-              setLayer: this.props.onGeofenceEditSetLayer,
-            }}
-            onGeofenceToggleAlerts={this.props.onGeofenceToggleAlerts}
+            onClose={() => this.props.onUiToggle("layerList")}
+            visible={this.props.ui.panels.layerList}
           />
         </div>
 
@@ -73,7 +84,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
           <SelectionPane
             selection={this.props.selection}
             histograms={this.props.histograms}
-            attributes={this.props.attributes}
+            attributes={this.props.attributes.toJS()}
             layers={this.props.layers.toJS()}
             onClose={this.props.onSelectionClose}
           />
@@ -82,7 +93,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.bottomDrawer}>
           <Chart
             visible={this.props.ui.panels.chart}
-            timeSeries={this.props.chart.data}
+            timeSeries={this.props.chart.toJS().data}
             onUiToggle={this.props.onUiToggle}
           />
         </div>
@@ -105,6 +116,8 @@ const mapDispatchToProps = {
   layerClose: actions.layerClose,
   onCompute: actions.layerComputation,
   onUiToggle: actions.toggleUi,
+  onGeofencePaneToggle: actions.geofencePaneToggleVisibility,
+  onSetTheme: actions.uiSetTheme,
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
@@ -112,12 +125,9 @@ const mapDispatchToProps = {
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
   onMapMouseClick: actions.mapMouseClick,
-  onGeofenceEditStart: actions.geofenceEditStart,
-  onGeofenceEditFinish: actions.geofenceEditFinish,
-  onGeofenceEditSetLayer: actions.geofenceEditSetLayer,
-  onGeofenceEditSetType: actions.geofenceEditSetType,
-  onGeofenceEditSetGeometry: actions.geofenceEditSetGeometry,
-  onGeofenceSetGeometry: actions.geofenceSetGeometry,
+  onGeofenceSetManualControlsVisibility: actions.geofenceSetManualControlsVisibility,
+  onGeofenceCommitSettings: actions.geofenceCommitSettings,
+  onGeofenceSetManualGeometry: actions.geofenceSetManualGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
 };
 
