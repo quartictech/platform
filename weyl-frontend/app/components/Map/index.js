@@ -179,7 +179,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateGeofenceLayer(geofence) {
     this.map.getSource("geofence").setData(geofence.geojson);
 
-    const visible = !geofence.manualControlsVisible;
+    const visible = !geofence.manualControlsVisible && geofence.paneVisible;
     this.setSubLayerVisibility("geofence_fill", visible);
     this.setSubLayerVisibility("geofence_line", visible);
     this.setSubLayerVisibility("geofence_fill_violated", visible);

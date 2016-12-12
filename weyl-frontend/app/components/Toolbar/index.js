@@ -53,8 +53,8 @@ function Toolbar(props) {
           <Button
             text="Geofence"
             iconName="polygon-filter"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "geofence") })}
-            onClick={() => props.onUiToggle("geofence")}
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.geofencePaneVisible) })}
+            onClick={props.onGeofencePaneToggle}
           />
 
           <Button

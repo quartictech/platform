@@ -45,6 +45,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onSelectPlace={this.props.onSelectPlace}
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
+            geofencePaneVisible={this.props.geofence.paneVisible}
+            onGeofencePaneToggle={this.props.onGeofencePaneToggle}
             onSetTheme={this.props.onSetTheme}
           />
         </div>
@@ -63,8 +65,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onSetManualControlsVisibility={this.props.onGeofenceSetManualControlsVisibility}
             onCommitSettings={this.props.onGeofenceCommitSettings}
             onToggleAlerts={this.props.onGeofenceToggleAlerts}
-            onClose={() => this.props.onUiToggle("geofence")}
-            visible={this.props.ui.layerOp === "geofence"}
+            onClose={this.props.onGeofencePaneToggle}
+            visible={this.props.geofence.paneVisible}
           />
 
           <LayerListPane
@@ -114,6 +116,7 @@ const mapDispatchToProps = {
   layerClose: actions.layerClose,
   onCompute: actions.layerComputation,
   onUiToggle: actions.toggleUi,
+  onGeofencePaneToggle: actions.geofencePaneToggleVisibility,
   onSetTheme: actions.uiSetTheme,
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,
