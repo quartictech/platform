@@ -1,4 +1,4 @@
-package io.quartic.model;
+package io.quartic.weyl.core.source;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

@@ -39,29 +39,33 @@ function Toolbar(props) {
           <Button
             text="Layers"
             iconName="layers"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList })}
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList && !props.buttonsDisabled })}
             onClick={() => props.onUiToggle("layerList")}
+            disabled={props.buttonsDisabled}
           />
 
           <Button
             text="Compute"
             iconName="calculator"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") })}
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") && !props.buttonsDisabled })}
             onClick={() => props.onUiToggle("calculate")}
+            disabled={props.buttonsDisabled}
           />
 
           <Button
             text="Geofence"
             iconName="polygon-filter"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "geofence") })}
-            onClick={() => props.onUiToggle("geofence")}
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.geofencePaneVisible) && !props.buttonsDisabled })}
+            onClick={props.onGeofencePaneToggle}
+            disabled={props.buttonsDisabled}
           />
 
           <Button
             text="Chart"
             iconName="chart"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart })}
+            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart && !props.buttonsDisabled })}
             onClick={() => props.onUiToggle("chart")}
+            disabled={props.buttonsDisabled}
           />
 
           <span className="pt-navbar-divider"></span>

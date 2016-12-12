@@ -6,7 +6,18 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.catalogue.api.TerminatorDatasetLocator;
+import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
+import io.quartic.catalogue.api.WebsocketDatasetLocator;
+import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.client.WebsocketClientSessionFactory;
 import io.quartic.common.client.WebsocketListener;
@@ -29,11 +40,21 @@ import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
-import io.quartic.weyl.core.source.*;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.PostgresSource;
+import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.SourceManager;
+import io.quartic.weyl.core.source.SourceManagerImpl;
+import io.quartic.weyl.core.source.TerminatorSourceFactory;
+import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.update.*;
+import io.quartic.weyl.update.AttributesUpdateGenerator;
+import io.quartic.weyl.update.ChartUpdateGenerator;
+import io.quartic.weyl.update.HistogramsUpdateGenerator;
+import io.quartic.weyl.update.SelectionHandler;
+import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
 import rx.Observable;
@@ -45,10 +66,10 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
-
     private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     public static void main(String[] args) throws Exception {
@@ -87,60 +108,74 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
                 layerStore.allLayers(),
                 layerStore::liveLayerChanges
-        );
+        ).share();
 
-        final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
-        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+        final AlertResource alertResource = new AlertResource();
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(new TileResource(layerStore));
-        environment.jersey().register(new AlertResource(alertProcessor));
+        environment.jersey().register(alertResource);
 
-        websocketBundle.addEndpoint(createWebsocketEndpoint(layerStore, entityStore, geofenceStore, alertProcessor));
+        final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
+        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(layerStore);
+
+        websocketBundle.addEndpoint(ServerEndpointConfig.Builder
+                .create(UpdateServer.class, "/ws")
+                .configurator(new ServerEndpointConfig.Configurator() {
+                    @Override
+                    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+                        //noinspection unchecked
+                        return (T) createUpdateServer(
+                                layerStore,
+                                liveLayerChanges,
+                                selectionHandler,
+                                layerSubscriptionHandler,
+                                alertResource
+                        );
+                    }
+                })
+                .build()
+        );
     }
 
-    private ServerEndpointConfig createWebsocketEndpoint(
+    private UpdateServer createUpdateServer(
             LayerStore layerStore,
-            ObservableStore<EntityId, Feature> entityStore,
-            GeofenceStore geofenceStore,
-            AlertProcessor alertProcessor
+            Observable<LiveLayerChange> liveLayerChanges,
+            SelectionHandler selectionHandler,
+            LayerSubscriptionHandler layerSubscriptionHandler,
+            AlertResource alertResource
     ) {
-        final SelectionHandler selectionHandler = new SelectionHandler(
+        // These are per-user so each user has their own geofence state
+        final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
+        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
+        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, layerStore);
+
+        return new UpdateServer(
+                merge(alertProcessor.alerts(), alertResource.alerts()),
+                newArrayList(
+                        selectionHandler,
+                        layerSubscriptionHandler,
+                        geofenceStatusHandler
+                ));
+    }
+
+    private SelectionHandler createSelectionHandler(ObservableStore<EntityId, Feature> entityStore) {
+        return new SelectionHandler(
                 newArrayList(
                         new ChartUpdateGenerator(),
                         new HistogramsUpdateGenerator(new HistogramCalculator()),
                         new AttributesUpdateGenerator()
                 ),
                 Multiplexer.create(entityStore::get));
+    }
 
-        final LayerSubscriptionHandler layerSubscriptionHandler = new LayerSubscriptionHandler(
-                layerStore,
-                featureConverter()
-        );
+    private LayerSubscriptionHandler createLayerSubscriptionHandler(LayerStore layerStore) {
+        return new LayerSubscriptionHandler(layerStore, featureConverter());
+    }
 
-        final GeofenceStatusHandler geofenceStatusHandler = new GeofenceStatusHandler(
-                geofenceStore,
-                layerStore,
-                featureConverter()
-        );
-
-        return ServerEndpointConfig.Builder
-                .create(UpdateServer.class, "/ws")
-                .configurator(new ServerEndpointConfig.Configurator() {
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new UpdateServer(
-                                alertProcessor,
-                                newArrayList(
-                                        selectionHandler,
-                                        layerSubscriptionHandler,
-                                        geofenceStatusHandler
-                                ));
-                    }
-                })
-                .build();
+    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, LayerStore layerStore) {
+        return new GeofenceStatusHandler(geofenceStore, layerStore, featureConverter());
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
