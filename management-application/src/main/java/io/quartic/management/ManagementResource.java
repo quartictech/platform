@@ -60,7 +60,7 @@ public class ManagementResource {
                 }
                 catch (IOException e) {
                     e.printStackTrace();
-                    throw new BadRequestException("exception while preprocessing file: " + e);
+                    throw new RuntimeException("exception while preprocessing file: " + e);
                 }
             }
 
@@ -81,7 +81,11 @@ public class ManagementResource {
 
         switch (fileType) {
             case GEOJSON:
-                new GeoJsonParser(inputStream).validate();
+                try {
+                    new GeoJsonParser(inputStream).validate();
+                } catch (IOException e) {
+                    throw new BadRequestException("exception while valiodating geojson: " + e);
+                }
                 return fileName;
             case CSV:
                 GeoJsonConverter converter = new CsvConverter();
@@ -91,7 +95,7 @@ public class ManagementResource {
                                 converter.convert(inputStream, outputStream);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                throw new RuntimeException("exception while converting csv to geojson: " + e);
+                                throw new BadRequestException("exception while converting csv to geojson: " + e);
                             }
                         });
                 return storageId.uid();
