@@ -12,6 +12,8 @@ import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.howl.api.HowlClient;
 import io.quartic.howl.api.HowlService;
 
+import static io.quartic.common.client.Utils.userAgentFor;
+
 public class ManagementApplication extends ApplicationBase<ManagementConfiguration> {
     public static void main(String[] args) throws Exception {
         new ManagementApplication().run(args);
@@ -24,7 +26,7 @@ public class ManagementApplication extends ApplicationBase<ManagementConfigurati
 
     @Override
     public void runApplication(ManagementConfiguration configuration, Environment environment) throws Exception {
-        HowlService howlService = new HowlClient(ManagementApplication.class.toString(), configuration.getHowlUrl());
+        HowlService howlService = new HowlClient(userAgentFor(ManagementApplication.class), configuration.getHowlUrl());
 
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response

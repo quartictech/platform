@@ -60,7 +60,7 @@ public class ManagementResource {
                 }
                 catch (IOException e) {
                     e.printStackTrace();
-                    throw new RuntimeException("exception while preprocessing file: " + e);
+                    throw new BadRequestException("exception while preprocessing file: " + e);
                 }
             }
 
