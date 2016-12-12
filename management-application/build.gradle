@@ -19,7 +19,6 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":howl-api")
-    compile project(":model")
     runtime project(":management-frontend")
 
     compile "org.apache.commons:commons-csv:1.3"
