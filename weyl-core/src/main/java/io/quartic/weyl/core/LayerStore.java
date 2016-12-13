@@ -11,13 +11,16 @@ import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.Subscription;
+import rx.observables.ConnectableObservable;
 import rx.subjects.BehaviorSubject;
 
 import java.util.Collection;
@@ -28,6 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
 import static java.util.stream.Collectors.toList;
+import static rx.Observable.empty;
+import static rx.Observable.just;
 
 @SweetStyle
 @Value.Immutable
@@ -47,60 +52,34 @@ public abstract class LayerStore {
         return new LayerReducer();
     }
 
-    // TODO: what will we actually do with this subscription object?
     @Value.Derived
-    protected Subscription populatorsSubscription() {
-        return populators().subscribe(this::handlePopulator);
+    public Observable<LayerSnapshotSequence> snapshotSequences() {
+        final ConnectableObservable<LayerSnapshotSequence> sequences = populators()
+                .flatMap(this::populatorToSnapshotSequence)
+                .replay(1);
+        sequences.connect();
+        return sequences;
     }
 
-    private void handlePopulator(LayerPopulator populator) {
+    private Observable<LayerSnapshotSequence> populatorToSnapshotSequence(LayerPopulator populator) {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
             checkLayerNotExists(spec.id());
-            putLayer(layerReducer().create(spec));
-            populator.updates(dependencies).subscribe(update -> addToLayer(spec.id(), update.features()));
+
+            final ConnectableObservable<Layer> snapshots = populator.updates(dependencies)
+                    .scan(layerReducer().create(spec), this::updateLayer)
+                    .doOnNext(this::putLayer)
+                    .replay(1);
+
+            snapshots.connect();
+            return just(LayerSnapshotSequenceImpl.of(spec.id(), snapshots));
+
         } catch (Exception e) {
             LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
+            return empty();
         }
     }
-
-    @SweetStyle
-    @Value.Immutable
-    public interface Flippy {
-        LayerId id();
-        Observable<Layer> layerSnapshots();
-    }
-
-//    @Value.Derived
-//    public Observable<Flippy> flippies() {
-//        return populators()
-//                .flatMap(this::populatorToFlippy)
-//                .share();
-//    }
-//
-//    private Observable<Flippy> populatorToFlippy(LayerPopulator populator) {
-//        try {
-//            final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
-//            final LayerSpec spec = populator.spec(dependencies);
-//            checkLayerNotExists(spec.id());
-//
-//            final Observable<Layer> snapshots = populator.updates(dependencies)
-//                    .scan(
-//                            layerReducer().create(spec),
-//                            XX
-//                    )
-//                    .share();   // TODO: what happens when no-one's listening?  Should this be cache()?
-//
-//            return just(FlippyImpl.of(spec.id(), snapshots));
-//
-//            putLayer(layerReducer().create(spec));
-//            populator.updates(dependencies).subscribe(update -> addToLayer(spec.id(), update.features()));
-//        } catch (Exception e) {
-//            LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
-//            return empty();
-//        }
-//    }
 
     public Observable<LiveLayerChange> liveLayerChanges(LayerId layerId) {
         checkLayerExists(layerId);
@@ -124,25 +103,11 @@ public abstract class LayerStore {
         checkArgument(!layers.containsKey(layerId), "Already have layer with id=" + layerId.uid());
     }
 
-    private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
-        final Layer layer = layers.get(layerId);
-        LOG.info("[{}] Accepted {} features", layer.spec().metadata().name(), features.size());
-
-        final Collection<Feature> elaborated = elaborate(layerId, features);
-        entityStore().putAll(Feature::entityId, elaborated);
-        putLayer(layerReducer().reduce(layer, elaborated));
-        newFeatureObservables.put(layerId, elaborated);
-    }
-
-//    private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
-//        putLayer(addToLayer(layers.get(layerId), features));
-//    }
-
-    private Layer addToLayer(Layer layer, Collection<NakedFeature> features) {
-        LOG.info("[{}] Accepted {} features", layer.spec().metadata().name(), features.size());
+    private Layer updateLayer(Layer layer, LayerUpdate update) {
+        LOG.info("[{}] Accepted {} features", layer.spec().metadata().name(), update.features().size());
 
         final LayerId id = layer.spec().id();
-        final Collection<Feature> elaborated = elaborate(id, features);
+        final Collection<Feature> elaborated = elaborate(id, update.features());
         entityStore().putAll(Feature::entityId, elaborated);
         newFeatureObservables.put(id, elaborated);
         return layerReducer().reduce(layer, elaborated);

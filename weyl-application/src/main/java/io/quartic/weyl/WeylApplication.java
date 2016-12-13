@@ -41,6 +41,7 @@ import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
@@ -127,7 +128,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(alertResource);
 
         final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
-        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(layerStore);
+        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(layerStore.snapshotSequences());
 
         websocketBundle.addEndpoint(ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
@@ -185,8 +186,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 Multiplexer.create(entityStore::get));
     }
 
-    private LayerSubscriptionHandler createLayerSubscriptionHandler(LayerStore layerStore) {
-        return new LayerSubscriptionHandler(layerStore, featureConverter());
+    private LayerSubscriptionHandler createLayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+        return new LayerSubscriptionHandler(snapshotSequences, featureConverter());
     }
 
     private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, LayerStore layerStore) {

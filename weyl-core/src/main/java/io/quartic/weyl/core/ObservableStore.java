@@ -22,18 +22,18 @@ public class ObservableStore<K, V> {
     }
 
     public Observable<V> get(K id) {
-        return getSubject(id);
+        return getSubject(id, emptyOnMissingKey);
     }
 
     public void put(K id, V value) {
-        getSubject(id).onNext(value);
+        getSubject(id, false).onNext(value);
     }
 
     public void putAll(Function<V, K> id, Collection<V> values) {
         values.forEach(v -> put(id.apply(v), v));
     }
 
-    private synchronized BehaviorSubject<V> getSubject(K id) {
+    private synchronized BehaviorSubject<V> getSubject(K id, boolean emptyOnMissingKey) {
         BehaviorSubject<V> subject = observables.get(id);
         if (subject == null) {
             subject = BehaviorSubject.create();
