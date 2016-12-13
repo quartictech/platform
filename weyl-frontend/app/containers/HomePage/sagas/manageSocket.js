@@ -66,7 +66,7 @@ function* handleMessages(channel) {
     const msg = yield take(channel);
     switch (msg.type) {
       case "LayerListUpdate":
-        console.log("LayerListUpdate:", msg);
+        yield put(actions.layerListUpdate(msg.layers));
         break;
       case "LayerUpdate":
         yield* handleLayerUpdate(msg);

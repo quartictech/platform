@@ -8,13 +8,18 @@ export function search(query, callback) {
   };
 }
 
+export const layerListUpdate = (layers) => ({
+  type: constants.LAYER_LIST_UPDATE,
+  layers,
+});
+
 export function layerCreate(result) {
   return {
     type: constants.LAYER_CREATE,
     id: result.id,
     metadata: result.metadata,
     stats: result.stats,
-    attributeSchema: result.attributeSchema,
+    schema: result.schema,
     live: result.live,
   };
 }

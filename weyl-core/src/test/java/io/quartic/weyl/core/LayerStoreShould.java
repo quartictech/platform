@@ -26,7 +26,6 @@ import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -59,19 +58,6 @@ public class LayerStoreShould {
             .layerReducer(layerReducer)
             .build();
     private final GeometryFactory factory = new GeometryFactory();
-
-    @Test
-    public void list_created_layers() throws Exception {
-        final LayerSpec spec1 = spec(LAYER_ID);
-        final LayerSpec spec2 = spec(OTHER_LAYER_ID);
-        final List<Layer> expectedLayers = newArrayList(mockLayerCreationFor(spec1), mockLayerCreationFor(spec2));
-
-        createLayer(spec1);
-        createLayer(spec2);
-        final List<Layer> layers = store.listLayers();
-
-        assertThat(layers, equalTo(expectedLayers));
-    }
 
     @Test
     public void prevent_overwriting_an_existing_layer() throws Exception {

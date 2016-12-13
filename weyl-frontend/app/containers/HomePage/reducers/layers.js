@@ -51,7 +51,7 @@ const layerReducer = (state, action) => {
     case constants.LAYER_SET_DATA:
       return state
         .set("data", action.data)
-        .set("attributeSchema", action.schema);
+        .set("schema", action.schema);
 
     default:
       return state;
@@ -63,15 +63,15 @@ const newLayer = (action) => fromJS({
   metadata: action.metadata,
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(action.attributeSchema.primaryAttribute, 0),
+  style: defaultLayerStyle(action.schema.primaryAttribute, 0),
   stats: action.stats,
-  attributeSchema: action.attributeSchema,
+  schema: action.schema,
   live: action.live,
   data: {
     type: "FeatureCollection",
     features: [],
   },   // Only relevant in the case of live layers
-  filter: defaultFilter(action.attributeSchema),
+  filter: defaultFilter(action.schema),
 });
 
 const defaultFilter = (schema) =>

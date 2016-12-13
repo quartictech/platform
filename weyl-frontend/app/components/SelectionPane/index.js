@@ -80,7 +80,7 @@ const singleLayer = (entityIds, layers) => layers[_.keys(entityIds)[0]];
 
 const getBehavior = (layer) => {
   const layerName = layer.metadata.name;
-  const schema = layer.attributeSchema;
+  const schema = layer.schema;
   const attributeKeys = schema.attributes;
   const nonCuratedTitle = (schema.titleAttribute
     ? ((x) => ((schema.titleAttribute in x) ? x[schema.titleAttribute] : "<< Unknown title >>"))

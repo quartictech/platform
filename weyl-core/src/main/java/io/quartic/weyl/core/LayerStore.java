@@ -1,7 +1,6 @@
 package io.quartic.weyl.core;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
@@ -66,10 +65,6 @@ public abstract class LayerStore {
         } catch (Exception e) {
             LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
         }
-    }
-
-    public List<Layer> listLayers() {
-        return ImmutableList.copyOf(layers.values());
     }
 
     public Optional<Layer> getLayer(LayerId layerId) {

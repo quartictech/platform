@@ -31,7 +31,7 @@ public class LayerReducer {
                 .features(EMPTY_COLLECTION)
                 .spatialIndex(new STRtree())
                 .indexedFeatures(ImmutableList.of())
-                .layerStats(LayerStatsImpl.of(emptyMap(), 0))
+                .stats(LayerStatsImpl.of(emptyMap(), 0))
                 .build();
     }
 
@@ -50,7 +50,7 @@ public class LayerReducer {
             return withFeatures
                     .withSpatialIndex(spatialIndex(indexedFeatures))
                     .withIndexedFeatures(indexedFeatures)
-                    .withLayerStats(calculateStats(withFeatures.spec().schema(), updatedFeatures));
+                    .withStats(calculateStats(withFeatures.spec().schema(), updatedFeatures));
         } else {
             return withFeatures;
         }

@@ -51,7 +51,6 @@ import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.ComputeResourceImpl;
-import io.quartic.weyl.resource.LayerResource;
 import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
@@ -123,7 +122,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final AlertResource alertResource = new AlertResource();
 
         environment.jersey().register(new PingPongResource());
-        environment.jersey().register(new LayerResource(layerStore));
         environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(layerStore));
         environment.jersey().register(alertResource);
