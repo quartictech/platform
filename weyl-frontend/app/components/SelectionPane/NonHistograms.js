@@ -3,6 +3,7 @@ import {
   Button,
   Classes,
   Collapse,
+  Colors,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
 
@@ -109,8 +110,7 @@ const AttributesTable = ({ featureAttributes, behavior, order, showHeaders }) =>
               {
                 _.map(featureAttributes, (attrs, id) => (
                   <td
-                    className="bp-table-cell-client"
-                    style={{ fontWeight: "bold", wordWrap: "break-word" }}
+                    style={{ fontWeight: "bold", wordWrap: "break-word", backgroundColor: Colors.DARK_GRAY3 }}
                     key={id}
                   >
                     <small>{attrs[key]}</small>
