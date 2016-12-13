@@ -19,12 +19,12 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     this.state = {
       text: "",
       menuVisible: false,
+      shouldFilter: false,
     };
 
-    this.menu = this.menu.bind(this);
+    this.onInteraction = this.onInteraction.bind(this);
     this.onSelectEntry = this.onSelectEntry.bind(this);
     this.onChangeText = this.onChangeText.bind(this);
-    this.entriesAsMap = this.entriesAsMap.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -41,7 +41,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
         popoverClassName={Classes.MINIMAL}
         content={this.menu()}
         isOpen={!this.props.disabled && this.state.menuVisible}
-        onInteraction={(nextOpenState) => this.setState({ menuVisible: nextOpenState })}
+        onInteraction={this.onInteraction}
         interactionKind={PopoverInteractionKind.CLICK}
         position={Position.BOTTOM_LEFT}
       >
@@ -60,7 +60,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   menu() {
     const items = _.chain(this.entriesAsMap())
       .pairs()
-      .filter(entry => !this.state.text || entry[1].toLowerCase().includes(this.state.text.toLowerCase()))
+      .filter(entry => !this.state.shouldFilter || !this.state.text || entry[1].toLowerCase().includes(this.state.text.toLowerCase()))
       .map(entry =>
         <MenuItem
           key={entry[0]}
@@ -84,13 +84,17 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     );
   }
 
+  onInteraction(nextOpenState) {
+    this.setState({ menuVisible: nextOpenState, shouldFilter: false });
+  }
+
   onSelectEntry(key) {
     this.setState({ menuVisible: false });
     this.props.onChange(key);
   }
 
   onChangeText(text) {
-    this.setState({ text, menuVisible: true });
+    this.setState({ text, menuVisible: true, shouldFilter: true });
     this.props.onChange(_.invert(this.entriesAsMap())[text]);
   }
 

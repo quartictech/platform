@@ -27,6 +27,25 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
     }
   }
 
+  render() {
+    return (
+      <div style={{ display: this.props.visible ? "block" : "none" }}>
+        <Tree
+          contents={this.state.nodes}
+          onClick={n => n.onClick()}
+          onNodeExpand={n => n.onExpand()}
+          onNodeCollapse={n => n.onCollapse()}
+        />
+      </div>
+    );
+  }
+
+  setState(nextState) {
+    this.state = { ...this.state, ...nextState };
+    recursivelyUpdateExpansionState(this.state.nodes);  // Get the nodes to update their own isExpanded values
+    super.setState(this.state);
+  }
+
   attributeNodes(histograms) {
     return _.chain(histograms)
       .sort((a, b) => naturalsort(a.attribute, b.attribute))
@@ -35,10 +54,12 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
           iconName: "property",
           id: h.attribute,
           label: <small>{h.attribute}</small>,
-          childNodes: this.bucketNodes(
-            h.buckets
-          ),
+          childNodes: this.bucketNodes(h.buckets),
         };
+        node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === h.attribute);
+        node.onExpand = () => this.setState({ activeAttribute: h.attribute });
+        node.onCollapse = () => this.setState({ activeAttribute: null });
+        node.updateExpansion = () => (node.isExpanded = (this.state.activeAttribute === h.attribute));
         return node;
       })
       .value();
@@ -70,26 +91,23 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
           {count}
         </span>
       ),
+      onClick: () => {},
+      onExpand: () => {},
+      onCollapse: () => {},
+      updateExpansion: () => {},
     };
   }
-
-  nodeExpanded(node) {
-    node.isExpanded = true; // eslint-disable-line no-param-reassign
-    this.setState(this.state);
-  }
-
-  nodeCollapsed(node) {
-    node.isExpanded = false; // eslint-disable-line no-param-reassign
-    this.setState(this.state);
-  }
-
-  render() {
-    return (<Tree
-      contents={this.state.nodes}
-      onNodeExpand={n => this.nodeExpanded(n)}
-      onNodeCollapse={n => this.nodeCollapsed(n)}
-    />);
-  }
 }
+
+const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
+
+const recursivelyUpdateExpansionState = (nodes) => {
+  if (nodes) {
+    nodes.forEach(node => {
+      node.updateExpansion();
+      recursivelyUpdateExpansionState(node.childNodes);
+    });
+  }
+};
 
 export default Histograms;
