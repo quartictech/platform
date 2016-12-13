@@ -1,16 +1,6 @@
 {
-  "name": "react-boilerplate",
-  "version": "3.0.0",
-  "description": "A highly scalable, offline-first foundation with the best DX and a focus on performance and best practices",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mxstbr/react-boilerplate.git"
-  },
-  "engines": {
-    "npm": ">=3"
-  },
-  "author": "Max Stoiber",
-  "license": "MIT",
+  "name": "weyl-frontend",
+  "description": "Quartic Map Frontend",
   "scripts": {
     "build": "NODE_ENV=production webpack --config internals/webpack/webpack.prod.babel.js --color -p",
     "start": "NODE_ENV=development node server",
