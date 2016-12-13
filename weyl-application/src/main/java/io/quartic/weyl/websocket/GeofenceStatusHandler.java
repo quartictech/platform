@@ -8,7 +8,6 @@ import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityIdImpl;
@@ -24,6 +23,7 @@ import rx.Emitter.BackpressureMode;
 import rx.Observable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,9 +61,13 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .switchMap(x -> upstream());    // TODO: this is an utterly gross hack
     }
 
-    private void handleMessage(GeofenceStatus geofence) {
-        geofence.features().ifPresent(f -> updateStore(geofence.type(), geofence.bufferDistance(), featuresFrom(f)));
-        geofence.layerId().ifPresent(id -> updateStore(geofence.type(), geofence.bufferDistance(), featuresFrom(id)));
+    private void handleMessage(GeofenceStatus status) {
+        if (status.enabled()) {
+            status.features().ifPresent(f -> updateStore(status, featuresFrom(f)));
+            status.layerId().ifPresent(id -> updateStore(status, featuresFrom(id)));
+        } else {
+            updateStore(status, Collections.<Feature>emptyList().stream());
+        }
     }
 
     private Stream<Feature> featuresFrom(FeatureCollection features) {
@@ -82,15 +86,15 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .features().stream();
     }
 
-    private void updateStore(GeofenceType type, double bufferDistance, Stream<Feature> features) {
+    private void updateStore(GeofenceStatus status, Stream<Feature> features) {
         final List<Geofence> geofences = features
                 .map(f -> FeatureImpl.copyOf(f)
                         .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f))))
-                        .withGeometry(bufferOp(f.geometry(), bufferDistance))
+                        .withGeometry(bufferOp(f.geometry(), status.bufferDistance()))
                         .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
                 )
                 .filter(f -> !f.geometry().isEmpty())
-                .map(f -> GeofenceImpl.of(type, f))
+                .map(f -> GeofenceImpl.of(status.type(), f))
                 .collect(toList());
         geofenceStore.setGeofences(geofences);
     }

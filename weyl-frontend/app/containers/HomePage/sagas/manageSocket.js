@@ -32,6 +32,7 @@ function* reportStatus(socket) {
       seqNum: selection.seqNum,
     },
     geofence: {
+      enabled: geofence.paneVisible,
       features: (geofence.settings.mode === "manual") ? geofence.manualGeojson : null,
       layerId: (geofence.settings.mode === "layer") ? geofence.settings.layerId : null,
       type: "EXCLUDE",
@@ -92,7 +93,12 @@ function* watchSubscriptionChanges(socket) {
     const selection = yield select(selectors.selectSelection);
 
     // TODO: cleanse this gross logic
-    if (([constants.LAYER_CREATE, constants.LAYER_CLOSE, constants.GEOFENCE_COMMIT_SETTINGS].indexOf(action.type) >= 0)) {
+    if (([
+      constants.LAYER_CREATE,
+      constants.LAYER_CLOSE,
+      constants.GEOFENCE_COMMIT_SETTINGS,
+      constants.GEOFENCE_PANE_TOGGLE_VISIBILITY,
+    ].indexOf(action.type) >= 0)) {
       if (lastTask) {
         yield cancel(lastTask);
       }

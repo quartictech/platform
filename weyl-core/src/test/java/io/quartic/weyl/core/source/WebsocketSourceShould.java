@@ -11,8 +11,6 @@ import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.geojson.PointImpl;
-import io.quartic.model.LiveEvent;
-import io.quartic.model.LiveEventImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;

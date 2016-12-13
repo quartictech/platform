@@ -25,6 +25,7 @@ dependencies {
     compile "com.netflix.feign:feign-jackson:${versions.feign}"
     compile "com.netflix.feign:feign-slf4j:${versions.feign}"
     compile "commons-io:commons-io:2.5"
+    compile "com.squareup.okhttp3:okhttp:3.4.2"
 
     testCompile project(":common-test")
     testCompile libraries.testCommon

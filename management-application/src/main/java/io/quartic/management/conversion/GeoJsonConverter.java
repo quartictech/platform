@@ -1,10 +1,9 @@
 package io.quartic.management.conversion;
 
-import io.quartic.geojson.FeatureCollection;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public interface GeoJsonConverter {
-    FeatureCollection convert(InputStream data) throws IOException;
+    void convert(InputStream data, OutputStream outputStream) throws IOException;
 }

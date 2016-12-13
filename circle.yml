@@ -1,13 +1,13 @@
 machine:
   java:
     version: openjdk8
-  node:
-    version: 6.8.0
   services:
     - docker
 
 dependencies:
   cache_directories:
+    - weyl-frontend/.gradle/nodejs
+    - management-frontend/.gradle/nodejs
     - weyl-frontend/node_modules
     - management-frontend/node_modules
   override:

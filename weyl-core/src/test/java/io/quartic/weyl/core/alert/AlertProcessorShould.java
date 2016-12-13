@@ -4,18 +4,21 @@ import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AttributesImpl;
+import org.hamcrest.Matchers;
 import org.junit.Test;
+import rx.observers.TestSubscriber;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static java.util.Collections.singletonMap;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AlertProcessorShould {
@@ -26,21 +29,17 @@ public class AlertProcessorShould {
 
     @Test
     public void generate_alert_from_violation() throws Exception {
-        final AlertListener listener = mock(AlertListener.class);
-        processor.addListener(listener);
+        final TestSubscriber<Alert> sub = TestSubscriber.create();
+        processor.alerts().subscribe(sub);
 
         geofenceListener.get().onViolationBegin(violation());
 
-        verifyAlertGenerated(listener, Alert.Level.SEVERE);
-    }
-
-
-    private void verifyAlertGenerated(AlertListener listener, Alert.Level level) {
-        verify(listener).onAlert(AlertImpl.of(
+        sub.awaitValueCount(1, 250, MILLISECONDS);
+        assertThat(sub.getOnNextEvents(), Matchers.contains(AlertImpl.of(
                 "Geofence violation",
                 Optional.of("Absolute gimp"),
-                level
-        ));
+                Alert.Level.SEVERE
+        )));
     }
 
     private GeofenceStore store(AtomicReference<GeofenceListener> listener) {

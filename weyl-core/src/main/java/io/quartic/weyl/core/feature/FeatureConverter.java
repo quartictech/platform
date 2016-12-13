@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.feature;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
@@ -41,8 +42,12 @@ public class FeatureConverter {
         this.fromModel = fromModel;
     }
 
-    public Collection<NakedFeature> toModel(io.quartic.geojson.FeatureCollection featureCollection) {
-        return featureCollection.features().stream()
+    public Collection<NakedFeature> toModel(FeatureCollection featureCollection) {
+        return toModel(featureCollection.features());
+    }
+
+    private Collection<NakedFeature> toModel(Collection<io.quartic.geojson.Feature> features) {
+        return features.stream()
                 .filter(f -> f.geometry().isPresent())
                 .map(this::toModel)
                 .collect(toList());
