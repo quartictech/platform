@@ -10,7 +10,7 @@ apply plugin: io.quartic.gradle.ServicePlugin
 service {
     simpleName = "management"
     mainClassName = "io.quartic.management.ManagementApplication"
-    memory = System.env.MANAGEMENT_MEMORY ?: "64m"
+    memory = System.env.MANAGEMENT_MEMORY ?: "128m"
 }
 
 dependencies {
@@ -19,7 +19,6 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":howl-api")
-    compile project(":model")
     runtime project(":management-frontend")
 
     compile "org.apache.commons:commons-csv:1.3"
@@ -28,4 +27,5 @@ dependencies {
     testCompile libraries.testCommon
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 }
+
 

@@ -2,8 +2,6 @@ include "common-core"
 include "common-application"
 include "common-test"
 
-include "model"
-
 include "terminator-api"
 include "terminator-application"
 

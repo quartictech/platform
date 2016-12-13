@@ -1,6 +1,8 @@
 package io.quartic.weyl.core.source;
 
 import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.GeoJsonParser;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
@@ -9,11 +11,12 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static java.util.stream.Collectors.toList;
 
 @Value.Immutable
 public abstract class GeoJsonSource implements Source {
@@ -45,7 +48,9 @@ public abstract class GeoJsonSource implements Source {
     }
 
     private Collection<NakedFeature> importAllFeatures() throws IOException {
-        final FeatureCollection featureCollection = OBJECT_MAPPER.readValue(parseURL(url()), FeatureCollection.class);
+        InputStream inputStream = parseURL(url()).openStream();
+        FeatureCollection featureCollection = FeatureCollectionImpl.of(new GeoJsonParser(inputStream).features()
+                .collect(toList()));
         return converter().toModel(featureCollection);
     }
 

@@ -41,7 +41,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       <Pane
         title="Layers"
         iconName="layers"
-        visible={this.props.visible && _.size(this.props.layers.toJS()) > 0}
+        visible={this.props.visible}
         onClose={this.props.onClose}
       >
         <Tree
