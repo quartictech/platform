@@ -2,7 +2,6 @@
 const express = require("express");
 const path = require("path");
 const compression = require("compression");
-const pkg = require(path.resolve(process.cwd(), "package.json"));
 
 // Dev middleware
 const addDevMiddlewares = (app, webpackConfig) => {
@@ -23,13 +22,6 @@ const addDevMiddlewares = (app, webpackConfig) => {
   // Since webpackDevMiddleware uses memory-fs internally to store build
   // artifacts, we use it instead
   const fs = middleware.fileSystem;
-
-  if (pkg.dllPlugin) {
-    app.get(/\.dll\.js$/, (req, res) => {
-      const filename = req.path.replace(/^\//, "");
-      res.sendFile(path.join(process.cwd(), pkg.dllPlugin.path, filename));
-    });
-  }
 
   app.get("*", (req, res) => {
     fs.readFile(path.join(compiler.outputPath, "index.html"), (err, file) => {
