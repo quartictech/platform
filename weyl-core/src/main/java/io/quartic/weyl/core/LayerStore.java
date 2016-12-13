@@ -65,6 +65,43 @@ public abstract class LayerStore {
         }
     }
 
+    @SweetStyle
+    @Value.Immutable
+    public interface Flippy {
+        LayerId id();
+        Observable<Layer> layerSnapshots();
+    }
+
+//    @Value.Derived
+//    public Observable<Flippy> flippies() {
+//        return populators()
+//                .flatMap(this::populatorToFlippy)
+//                .share();
+//    }
+//
+//    private Observable<Flippy> populatorToFlippy(LayerPopulator populator) {
+//        try {
+//            final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
+//            final LayerSpec spec = populator.spec(dependencies);
+//            checkLayerNotExists(spec.id());
+//
+//            final Observable<Layer> snapshots = populator.updates(dependencies)
+//                    .scan(
+//                            layerReducer().create(spec),
+//                            XX
+//                    )
+//                    .share();   // TODO: what happens when no-one's listening?  Should this be cache()?
+//
+//            return just(FlippyImpl.of(spec.id(), snapshots));
+//
+//            putLayer(layerReducer().create(spec));
+//            populator.updates(dependencies).subscribe(update -> addToLayer(spec.id(), update.features()));
+//        } catch (Exception e) {
+//            LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
+//            return empty();
+//        }
+//    }
+
     public Observable<LiveLayerChange> liveLayerChanges(LayerId layerId) {
         checkLayerExists(layerId);
         return newFeatureObservables.get(layerId)
@@ -95,6 +132,20 @@ public abstract class LayerStore {
         entityStore().putAll(Feature::entityId, elaborated);
         putLayer(layerReducer().reduce(layer, elaborated));
         newFeatureObservables.put(layerId, elaborated);
+    }
+
+//    private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {
+//        putLayer(addToLayer(layers.get(layerId), features));
+//    }
+
+    private Layer addToLayer(Layer layer, Collection<NakedFeature> features) {
+        LOG.info("[{}] Accepted {} features", layer.spec().metadata().name(), features.size());
+
+        final LayerId id = layer.spec().id();
+        final Collection<Feature> elaborated = elaborate(id, features);
+        entityStore().putAll(Feature::entityId, elaborated);
+        newFeatureObservables.put(id, elaborated);
+        return layerReducer().reduce(layer, elaborated);
     }
 
     private void putLayer(Layer layer) {
