@@ -4,9 +4,7 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
-import io.quartic.weyl.websocket.message.AlertMessageImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.PingMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
@@ -38,16 +36,16 @@ import static rx.Observable.merge;
 public class UpdateServer {
     private static final Logger LOG = getLogger(UpdateServer.class);
     private final PublishSubject<ClientStatusMessage> clientStatus = PublishSubject.create();
-    private final Observable<Alert> alerts;
+    private final Observable<? extends SocketMessage> messages;
     private final Collection<ClientStatusMessageHandler> handlers;
     private Subscription subscription;
     private Session session;
 
     public UpdateServer(
-            Observable<Alert> alerts,
+            Observable<? extends SocketMessage> messages,
             Collection<ClientStatusMessageHandler> handlers
     ) {
-        this.alerts = alerts;
+        this.messages = messages;
         this.handlers = handlers;
     }
 
@@ -57,7 +55,7 @@ public class UpdateServer {
         this.session = session;
         this.subscription = merge(
                 merge(handlers.stream().map(clientStatus::compose).collect(toList())),
-                alerts.map(AlertMessageImpl::of)
+                messages
         ).subscribe(this::sendMessage);
     }
 

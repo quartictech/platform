@@ -27,6 +27,7 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.LayerStoreImpl;
 import io.quartic.weyl.core.ObservableStore;
+import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
@@ -59,6 +60,8 @@ import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
+import io.quartic.weyl.websocket.message.AlertMessageImpl;
+import io.quartic.weyl.websocket.message.LayerListUpdateMessage;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -159,13 +162,19 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
         final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, layerStore);
 
+        final Observable<Alert> alerts = merge(alertProcessor.alerts(), alertResource.alerts());
+
         return new UpdateServer(
-                merge(alertProcessor.alerts(), alertResource.alerts()),
+                merge(
+                        alerts.map(AlertMessageImpl::of),
+                        layerStore.allLayers().map(LayerListUpdateMessage::of)
+                ),
                 newArrayList(
                         selectionHandler,
                         layerSubscriptionHandler,
                         geofenceStatusHandler
-                ));
+                )
+        );
     }
 
     private SelectionHandler createSelectionHandler(ObservableStore<EntityId, Feature> entityStore) {

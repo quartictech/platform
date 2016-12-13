@@ -19,7 +19,7 @@ public interface Layer {
     // Index features
     SpatialIndex spatialIndex();
     Collection<IndexedFeature> indexedFeatures();
-    LayerStats layerStats();
+    LayerStats stats();
     default Stream<IndexedFeature> intersects(Envelope envelope) {
         return spatialIndex().query(envelope).stream();
     }

@@ -50,7 +50,7 @@ public class LayerResource {
         return LayerResponseImpl.builder()
                 .id(layer.spec().id())
                 .metadata(layer.spec().metadata())
-                .stats(layer.layerStats())
+                .stats(layer.stats())
                 .attributeSchema(layer.spec().schema())
                 .live(!layer.spec().indexable())
                 .build();
