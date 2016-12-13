@@ -3,6 +3,7 @@ import {
   Button,
   Classes,
   Collapse,
+  Colors,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
 
@@ -16,7 +17,7 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
 
   render() {
     return (
-      <div>
+      <div style={{ display: this.props.visible ? "block" : "none" }}>
         <Media
           featureAttributes={this.props.featureAttributes}
           behavior={this.props.behavior}
@@ -25,6 +26,7 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
           featureAttributes={this.props.featureAttributes}
           behavior={this.props.behavior}
           order={this.props.behavior.isAnythingBlessed ? this.props.behavior.blessedAttributeOrder : this.props.behavior.unblessedAttributeOrder}
+          showHeaders={_.size(this.props.featureAttributes) > 1}
         />
         <div style={{ textAlign: "center" }}>
           <Button
@@ -38,6 +40,7 @@ class NonHistograms extends React.Component { // eslint-disable-line react/prefe
             featureAttributes={this.props.featureAttributes}
             behavior={this.props.behavior}
             order={this.props.behavior.isAnythingBlessed ? this.props.behavior.unblessedAttributeOrder : this.props.behavior.blessedAttributeOrder}
+            showHeaders={false}
           />
         </Collapse>
       </div>
@@ -82,11 +85,11 @@ const Image = ({ url }) => {
   );
 };
 
-const AttributesTable = ({ featureAttributes, behavior, order }) => (
+const AttributesTable = ({ featureAttributes, behavior, order, showHeaders }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
     <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%", tableLayout: "fixed" }}>
       {
-        (_.size(featureAttributes) > 1) &&
+        showHeaders &&
           <thead>
             <tr>
               <th />
@@ -107,8 +110,7 @@ const AttributesTable = ({ featureAttributes, behavior, order }) => (
               {
                 _.map(featureAttributes, (attrs, id) => (
                   <td
-                    className="bp-table-cell-client"
-                    style={{ fontWeight: "bold", wordWrap: "break-word" }}
+                    style={{ fontWeight: "bold", wordWrap: "break-word", backgroundColor: Colors.DARK_GRAY3 }}
                     key={id}
                   >
                     <small>{attrs[key]}</small>

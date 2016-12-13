@@ -133,7 +133,6 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^1.2.0",
-    "@blueprintjs/table": "^1.2.0",
     "babel-polyfill": "6.13.0",
     "chroma-js": "^1.2.1",
     "classnames": "^2.2.5",
