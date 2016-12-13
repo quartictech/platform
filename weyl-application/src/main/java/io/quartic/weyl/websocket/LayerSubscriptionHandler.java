@@ -34,7 +34,7 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
     }
 
     private Observable<SocketMessage> upstream(LayerId layerId) {
-        return layerStore.layersForLayerId(layerId)
+        return layerStore.layer(layerId)
                 .map(layer -> generateUpdateMessage(layerId, layer));
     }
 

@@ -87,8 +87,12 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     private Stream<Feature> featuresFrom(LayerId layerId) {
         // TODO: validate that layer exists
-        return layerStore.getLayer(layerId).get()
-                .features().stream();
+        return layerStore.layer(layerId)
+                .first()
+                .toBlocking()
+                .single()
+                .features()
+                .stream();
     }
 
     private void updateStore(GeofenceStatus status, Stream<Feature> features) {

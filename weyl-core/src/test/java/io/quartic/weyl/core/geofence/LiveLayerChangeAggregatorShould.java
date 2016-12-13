@@ -112,7 +112,7 @@ public class LiveLayerChangeAggregatorShould {
 
 
     LiveLayerChange liveLayerChange(LayerId layerId, Collection<Feature> features){
-        return ImmutableLiveLayerChange.of(layerId, features);
+        return LiveLayerChangeImpl.of(layerId, features);
     }
 
     <T> List<T> listOf(T... args) {

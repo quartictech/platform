@@ -11,9 +11,14 @@ import static com.google.common.collect.Maps.newHashMap;
 
 public class ObservableStore<K, V> {
     private final Map<K, BehaviorSubject<V>> observables = newHashMap();
+    private final boolean emptyOnMissingKey;
 
-    public void putAll(Function<V, K> id, Collection<V> values) {
-        values.forEach(v -> getSubject(id.apply(v)).onNext(v));
+    public ObservableStore() {
+        this.emptyOnMissingKey = false;
+    }
+
+    public ObservableStore(boolean emptyOnMissingKey) {
+        this.emptyOnMissingKey = emptyOnMissingKey;
     }
 
     public Observable<V> get(K id) {
@@ -24,11 +29,20 @@ public class ObservableStore<K, V> {
         getSubject(id).onNext(value);
     }
 
+    public void putAll(Function<V, K> id, Collection<V> values) {
+        values.forEach(v -> put(id.apply(v), v));
+    }
+
     private synchronized BehaviorSubject<V> getSubject(K id) {
         BehaviorSubject<V> subject = observables.get(id);
         if (subject == null) {
             subject = BehaviorSubject.create();
-            observables.put(id, subject);
+
+            if (emptyOnMissingKey) {
+                subject.onCompleted();
+            } else {
+                observables.put(id, subject);
+            }
         }
         return subject;
     }

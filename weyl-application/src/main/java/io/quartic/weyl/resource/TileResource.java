@@ -1,10 +1,8 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
-import com.vividsolutions.jts.io.ParseException;
 import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.render.VectorTileRenderer;
 import org.slf4j.Logger;
@@ -15,7 +13,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import java.io.IOException;
+import java.util.NoSuchElementException;
 
 @Path("/")
 public class TileResource {
@@ -33,16 +31,19 @@ public class TileResource {
     public byte[] protobuf(@PathParam("layerId") LayerId layerId,
                              @PathParam("z") Integer z,
                              @PathParam("x") Integer x,
-                             @PathParam("y") Integer y) throws ParseException, IOException {
-        Layer layer = layerStore.getLayer(layerId)
-                .orElseThrow(() -> new NotFoundException("No layer with id: " + layerId));
+                             @PathParam("y") Integer y) {
 
-        byte[] data = new VectorTileRenderer(ImmutableList.of(layer))
-                .render(z, x, y);
-        if (data.length == 0) {
-            return null;
+        try {
+            return layerStore.layer(layerId)
+                    .first()
+                    .map(layer -> {
+                        final byte[] data = new VectorTileRenderer(ImmutableList.of(layer)).render(z, x, y);
+                        return (data.length > 0) ? data : null;
+                    })
+                    .toBlocking()
+                    .single();
+        } catch (NoSuchElementException e) {
+            throw new NotFoundException("No layer with id " + layerId);
         }
-
-        return data;
     }
 }

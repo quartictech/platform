@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChangeImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
@@ -32,7 +32,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
@@ -90,14 +89,13 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void apply_updates_to_layer() throws Exception {
+    public void apply_updates_to_layer_via_reducer() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);
-        final Layer updatedLayer = mockLayerReductionFor(mockLayerCreationFor(spec));
+        mockLayerReductionFor(mockLayerCreationFor(spec));
 
         createLayer(spec).onNext(updateFor(modelFeature("a")));
 
         verify(layerReducer).reduce(any(), eq(newArrayList(feature("a"))));
-        assertThat(store.getLayer(LAYER_ID).get(), equalTo(updatedLayer));
     }
 
     @Test
@@ -121,7 +119,7 @@ public class LayerStoreShould {
         updates.onNext(updateFor());   // Observed before subscription
 
         TestSubscriber<Layer> subscriber = TestSubscriber.create();
-        store.layersForLayerId(LAYER_ID).subscribe(subscriber);
+        store.layer(LAYER_ID).subscribe(subscriber);
 
         updates.onNext(updateFor());   // Observed after subscription
 
@@ -196,7 +194,7 @@ public class LayerStoreShould {
     }
 
     private LiveLayerChange liveLayerChange(LayerId layerId, Collection<Feature> features) {
-        return ImmutableLiveLayerChange.of(layerId, features);
+        return LiveLayerChangeImpl.of(layerId, features);
     }
 
     private PublishSubject<LayerUpdate> createLayer(LayerSpec spec) {

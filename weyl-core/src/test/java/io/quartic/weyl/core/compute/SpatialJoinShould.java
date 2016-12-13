@@ -4,11 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.common.uid.SequenceUidGenerator;
-import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.LayerStoreImpl;
-import io.quartic.weyl.core.ObservableStore;
+import io.quartic.weyl.core.LayerReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityIdImpl;
@@ -16,70 +12,54 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
-import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerSpecImpl;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Test;
-import rx.subjects.PublishSubject;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static com.google.common.collect.Lists.transform;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.mockito.Mockito.mock;
-import static rx.Observable.just;
 
 public class SpatialJoinShould {
-    private final UidGenerator<LayerId> lidGenerator = SequenceUidGenerator.of(LayerIdImpl::of);
-    private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
-    private final LayerStore store = LayerStoreImpl.builder()
-            .entityStore(mock(ObservableStore.class))
-            .populators(populators)
-            .build();
-
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {
         NakedFeature polyA = square(0, 0, 0.1);
         NakedFeature polyB = square(1, 1, 0.1);
         NakedFeature pointA = point(0, 0);
         NakedFeature pointB = point(1, 1);
-        Layer layerA = makeLayer(ImmutableList.of(polyA, polyB));
-        Layer layerB = makeLayer(ImmutableList.of(pointA, pointB));
+        Layer layerA = makeLayer("1", ImmutableList.of(polyA, polyB));
+        Layer layerB = makeLayer("2", ImmutableList.of(pointA, pointB));
 
         List<Tuple> joinResults = new SpatialJoiner().innerJoin(layerA, layerB, SpatialJoiner.SpatialPredicate.CONTAINS)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         assertThat(joinResults, containsInAnyOrder(
-                TupleImpl.of(feature(polyA, "1", "1"), feature(pointA, "2", "3")),
-                TupleImpl.of(feature(polyB, "1", "2"), feature(pointB, "2", "4"))
+                TupleImpl.of(feature(polyA, "1"), feature(pointA, "2")),
+                TupleImpl.of(feature(polyB, "1"), feature(pointB, "2"))
         ));
     }
 
-    private Layer makeLayer(Collection<NakedFeature> features) throws IOException {
-        final LayerId layerId = lidGenerator.get();
+    private Layer makeLayer(String layerId, List<NakedFeature> features) throws IOException {
+        final LayerSpec spec = LayerSpecImpl.of(
+                LayerId.fromString(layerId),
+                LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
+                IDENTITY_VIEW,
+                AttributeSchemaImpl.builder().build(),
+                true
+        );
 
-        populators.onNext(LayerPopulator.withoutDependencies(
-                LayerSpecImpl.of(
-                        layerId,
-                        LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
-                        IDENTITY_VIEW,
-                        AttributeSchemaImpl.builder().build(),
-                        true
-                ),
-                just(LayerUpdateImpl.of(features))
-        ));
-
-        return store.getLayer(layerId).get();
+        final LayerReducer reducer = new LayerReducer();
+        return reducer.reduce(reducer.create(spec), transform(features, f -> feature(f, layerId)));
     }
 
     private NakedFeature point(double x, double y) {
@@ -104,7 +84,7 @@ public class SpatialJoinShould {
        return NakedFeatureImpl.of(Optional.of("123"), geometry, EMPTY_ATTRIBUTES);
     }
 
-    private Feature feature(NakedFeature feature, String layerId, String id) {
+    private Feature feature(NakedFeature feature, String layerId) {
         return FeatureImpl.of(
                 EntityIdImpl.of(layerId + "/" + feature.externalId().get()),
                 feature.geometry(),

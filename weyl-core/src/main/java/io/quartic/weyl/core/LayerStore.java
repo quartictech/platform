@@ -1,10 +1,9 @@
 package io.quartic.weyl.core;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
+import io.quartic.weyl.core.geofence.LiveLayerChangeImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
@@ -24,9 +23,9 @@ import rx.subjects.BehaviorSubject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
 import static java.util.stream.Collectors.toList;
 
@@ -35,7 +34,7 @@ import static java.util.stream.Collectors.toList;
 public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final ObservableStore<LayerId, Layer> layerObservables = new ObservableStore<>();
+    private final ObservableStore<LayerId, Layer> layerObservables = new ObservableStore<>(true);
     private final ObservableStore<LayerId, Collection<Feature>> newFeatureObservables = new ObservableStore<>();
     private final BehaviorSubject<Collection<Layer>> allLayersObservable = BehaviorSubject.create();
     private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
@@ -51,8 +50,7 @@ public abstract class LayerStore {
     // TODO: what will we actually do with this subscription object?
     @Value.Derived
     protected Subscription populatorsSubscription() {
-        return populators()
-                .subscribe(this::handlePopulator);
+        return populators().subscribe(this::handlePopulator);
     }
 
     private void handlePopulator(LayerPopulator populator) {
@@ -67,31 +65,26 @@ public abstract class LayerStore {
         }
     }
 
-    public Optional<Layer> getLayer(LayerId layerId) {
-        return Optional.ofNullable(layers.get(layerId));
-    }
-
     public Observable<LiveLayerChange> liveLayerChanges(LayerId layerId) {
         checkLayerExists(layerId);
         return newFeatureObservables.get(layerId)
-                .map(newFeatures -> ImmutableLiveLayerChange.of(layerId, newFeatures));
+                .map(newFeatures -> LiveLayerChangeImpl.of(layerId, newFeatures));
     }
 
     public Observable<Collection<Layer>> allLayers() {
         return allLayersObservable;
     }
 
-    public Observable<Layer> layersForLayerId(LayerId layerId) {
-        checkLayerExists(layerId);
+    public Observable<Layer> layer(LayerId layerId) {
         return layerObservables.get(layerId);
     }
 
     private void checkLayerExists(LayerId layerId) {
-        Preconditions.checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
+        checkArgument(layers.containsKey(layerId), "No layer with id=" + layerId.uid());
     }
 
     private void checkLayerNotExists(LayerId layerId) {
-        Preconditions.checkArgument(!layers.containsKey(layerId), "Already have layer with id=" + layerId.uid());
+        checkArgument(!layers.containsKey(layerId), "Already have layer with id=" + layerId.uid());
     }
 
     private void addToLayer(LayerId layerId, Collection<NakedFeature> features) {

@@ -1,73 +1,90 @@
 package io.quartic.weyl.core;
 
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.EntityIdImpl;
-import io.quartic.weyl.core.model.Feature;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ObservableStoreShould {
 
-    private final ObservableStore<EntityId, Feature> store = new ObservableStore<>();
-
     @Test
-    public void emit_entity_changes() throws Exception {
-        final EntityId id = EntityIdImpl.of("123");
-        final Feature featureA = feature(id);
-        final Feature featureB = feature(id);
-        final TestSubscriber<Feature> sub = TestSubscriber.create();
+    public void emit_value_changes_after_subscribed() throws Exception {
+        final Key key = new Key();
+        final Value valueA = new Value(key);
+        final Value valueB = new Value(key);
 
-        store.get(id).subscribe(sub);
-        store.putAll(Feature::entityId, newArrayList(featureA));
-        store.putAll(Feature::entityId, newArrayList(featureB));
+        final ObservableStore<Key, Value> store = new ObservableStore<>();
+        final TestSubscriber<Value> sub = subscriberFor(store, key);
+        store.putAll(Value::key, newArrayList(valueA));
+        store.putAll(Value::key, newArrayList(valueB));
+
         sub.awaitValueCount(2, 100, MILLISECONDS);
-
-        assertThat(sub.getOnNextEvents(), contains(featureA, featureB));
+        assertThat(sub.getOnNextEvents(), contains(valueA, valueB));
     }
 
     @Test
-    public void emit_entities_for_different_ids() throws Exception {
-        final EntityId idA = EntityIdImpl.of("123");
-        final EntityId idB = EntityIdImpl.of("456");
-        final Feature featureA = feature(idA);
-        final Feature featureB = feature(idB);
-        final TestSubscriber<Feature> subA = TestSubscriber.create();
-        final TestSubscriber<Feature> subB = TestSubscriber.create();
+    public void emit_values_for_different_ids() throws Exception {
+        final Key keyA = new Key();
+        final Key keyB = new Key();
+        final Value valueA = new Value(keyA);
+        final Value valueB = new Value(keyB);
 
-        store.get(idA).subscribe(subA);
-        store.get(idB).subscribe(subB);
-        store.putAll(Feature::entityId, newArrayList(featureA));
-        store.putAll(Feature::entityId, newArrayList(featureB));
+        final ObservableStore<Key, Value> store = new ObservableStore<>();
+        final TestSubscriber<Value> subA = subscriberFor(store, keyA);
+        final TestSubscriber<Value> subB = subscriberFor(store, keyB);
+        store.putAll(Value::key, newArrayList(valueA));
+        store.putAll(Value::key, newArrayList(valueB));
+
         subA.awaitValueCount(1, 100, MILLISECONDS);
         subB.awaitValueCount(1, 100, MILLISECONDS);
-
-        assertThat(subA.getOnNextEvents(), contains(featureA));
-        assertThat(subB.getOnNextEvents(), contains(featureB));
+        assertThat(subA.getOnNextEvents(), contains(valueA));
+        assertThat(subB.getOnNextEvents(), contains(valueB));
     }
 
     @Test
-    public void emit_latest_entity_changes_on_subscription() throws Exception {
-        final EntityId id = EntityIdImpl.of("123");
-        final Feature feature = feature(id);
-        final TestSubscriber<Feature> sub = TestSubscriber.create();
+    public void emit_current_value_on_subscription() throws Exception {
+        final Key key = new Key();
+        final Value value = new Value(key);
 
-        store.putAll(Feature::entityId, newArrayList(feature));
-        store.get(id).subscribe(sub);
+        final ObservableStore<Key, Value> store = new ObservableStore<>();
+        store.putAll(Value::key, newArrayList(value));  // Before subscription
+
+        final TestSubscriber<Value> sub = subscriberFor(store, key);
+
         sub.awaitValueCount(1, 100, MILLISECONDS);
-
-        assertThat(sub.getOnNextEvents(), contains(feature));
+        assertThat(sub.getOnNextEvents(), contains(value));
     }
 
-    private Feature feature(EntityId id) {
-        final Feature feature = mock(Feature.class);
-        when(feature.entityId()).thenReturn(id);
-        return feature;
+    @Test
+    public void complete_immediately_where_key_not_found_when_empty_mode_enabled() throws Exception {
+        final Key key = new Key();
+
+        final ObservableStore<Key, Value> store = new ObservableStore<>(true);
+        final TestSubscriber<Value> sub = subscriberFor(store, key);
+
+        sub.awaitTerminalEvent();
+        assertThat(sub.getOnNextEvents(), empty());
+    }
+
+    private TestSubscriber<Value> subscriberFor(ObservableStore<Key, Value> store, Key key) {
+        final TestSubscriber<Value> sub = TestSubscriber.create();
+        store.get(key).subscribe(sub);
+        return sub;
+    }
+
+    private static class Key {}
+
+    private static class Value {
+        private final Key key;
+
+        private Value(Key key) {
+            this.key = key;
+        }
+
+        Key key() { return key; }
     }
 }

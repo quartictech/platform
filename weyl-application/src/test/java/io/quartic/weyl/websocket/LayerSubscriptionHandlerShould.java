@@ -50,15 +50,15 @@ public class LayerSubscriptionHandlerShould {
         final LayerId idB = mock(LayerId.class);
         final ObservableInterceptor<Layer> interceptorA = ObservableInterceptor.create();
         final ObservableInterceptor<Layer> interceptorB = ObservableInterceptor.create();
-        when(store.layersForLayerId(idA)).thenReturn(interceptorA.observable());
-        when(store.layersForLayerId(idB)).thenReturn(interceptorB.observable());
+        when(store.layer(idA)).thenReturn(interceptorA.observable());
+        when(store.layer(idB)).thenReturn(interceptorB.observable());
 
         just(status(idA, idB))
                 .compose(handler)
                 .subscribe();
 
-        verify(store).layersForLayerId(eq(idA));
-        verify(store).layersForLayerId(eq(idB));
+        verify(store).layer(eq(idA));
+        verify(store).layer(eq(idB));
         assertThat(interceptorA.subscribed(), equalTo(true));
         assertThat(interceptorB.subscribed(), equalTo(true));
     }
@@ -67,7 +67,7 @@ public class LayerSubscriptionHandlerShould {
     public void send_update_messages_when_layer_changes() throws Exception {
         final LayerId id = mock(LayerId.class);
         final Layer layer = layer();
-        when(store.layersForLayerId(any())).thenReturn(just(layer));
+        when(store.layer(any())).thenReturn(just(layer));
         when(converter.toGeojson(any())).thenReturn(featureCollection());
 
         TestSubscriber<SocketMessage> sub = TestSubscriber.create();
@@ -83,7 +83,7 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void unsubscribe_from_layer_when_no_longer_in_list() throws Exception {
         final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
-        when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
+        when(store.layer(any())).thenReturn(interceptor.observable());
 
         just(status(mock(LayerId.class)), status(mock(LayerId.class)))
                 .compose(handler)
@@ -95,7 +95,7 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
-        when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
+        when(store.layer(any())).thenReturn(interceptor.observable());
 
         final Subscription subscription = just(status(mock(LayerId.class)))
                 .compose(handler)
@@ -113,7 +113,7 @@ public class LayerSubscriptionHandlerShould {
         final ClientStatusMessage statusB = status(id);
         when(statusA.selection()).thenReturn(mock(SelectionStatus.class));
         when(statusB.selection()).thenReturn(mock(SelectionStatus.class));  // Different
-        when(store.layersForLayerId(any())).thenReturn(interceptor.observable());
+        when(store.layer(any())).thenReturn(interceptor.observable());
 
         just(statusA, statusB)
                 .compose(handler)
