@@ -20,7 +20,6 @@ import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.observables.ConnectableObservable;
 import rx.subjects.BehaviorSubject;
 
 import java.util.Collection;
@@ -30,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
+import static io.quartic.common.rx.RxUtils.likeBehavior;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.empty;
@@ -54,12 +54,9 @@ public abstract class LayerStore {
 
     @Value.Derived
     public Observable<LayerSnapshotSequence> snapshotSequences() {
-        final ConnectableObservable<LayerSnapshotSequence> sequences = populators()
+        return populators()
                 .flatMap(this::populatorToSnapshotSequence)
-                .replay(1);
-        sequences.connect();
-        sequences.subscribe();
-        return sequences;
+                .compose(likeBehavior());
     }
 
     private Observable<LayerSnapshotSequence> populatorToSnapshotSequence(LayerPopulator populator) {
@@ -68,13 +65,10 @@ public abstract class LayerStore {
             final LayerSpec spec = populator.spec(dependencies);
             checkLayerNotExists(spec.id());
 
-            final ConnectableObservable<Snapshot> snapshots = populator.updates(dependencies)
+            final Observable<Snapshot> snapshots = populator.updates(dependencies)
                     .scan(initialSnapshot(spec), this::nextSnapshot)
                     .doOnNext(this::recordSnapshot)
-                    .replay(1);
-
-            snapshots.connect();
-            snapshots.subscribe();
+                    .compose(likeBehavior());
             return just(LayerSnapshotSequenceImpl.of(spec.id(), snapshots));
 
         } catch (Exception e) {
@@ -106,11 +100,7 @@ public abstract class LayerStore {
 
         final LayerId id = prevLayer.spec().id();
         final Collection<Feature> elaborated = elaborate(id, update.features());
-        entityStore().putAll(Feature::entityId, elaborated);
-        return SnapshotImpl.of(
-                layerReducer().reduce(prevLayer, elaborated),
-                elaborated
-        );
+        return SnapshotImpl.of(layerReducer().reduce(prevLayer, elaborated), elaborated);
     }
 
     private void recordSnapshot(Snapshot snapshot) {
@@ -118,6 +108,7 @@ public abstract class LayerStore {
         layers.put(layer.spec().id(), layer);
         allLayersObservable.onNext(layers.values());
         layerObservables.put(layer.spec().id(), layer);
+        entityStore().putAll(Feature::entityId, snapshot.diff());
     }
 
     // TODO: this is going to double memory usage?
