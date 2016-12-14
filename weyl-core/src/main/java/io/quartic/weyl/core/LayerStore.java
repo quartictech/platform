@@ -93,7 +93,6 @@ public abstract class LayerStore {
         entityStore().putAll(Feature::entityId, snapshot.diff());
     }
 
-    // TODO: this is going to double memory usage?
     private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
         return features.stream().map(f -> FeatureImpl.of(
                 EntityIdImpl.of(layerId.uid() + "/" +

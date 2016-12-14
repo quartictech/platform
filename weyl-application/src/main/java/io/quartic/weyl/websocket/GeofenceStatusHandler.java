@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.common.rx.RxUtils.latest;
 import static io.quartic.weyl.core.alert.Alert.Level.INFO;
 import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
 import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
@@ -93,10 +94,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     private Stream<Feature> featuresFrom(LayerId layerId) {
         // TODO: validate that layer exists
-        return sequences.getOrDefault(layerId, empty())
-                .first()
-                .toBlocking()
-                .single()
+        return latest(sequences.getOrDefault(layerId, empty()))
                 .absolute().features()
                 .stream();
     }

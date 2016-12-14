@@ -3,6 +3,7 @@ package io.quartic.weyl.resource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.dropwizard.jersey.caching.CacheControl;
+import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
@@ -16,6 +17,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import java.util.Map;
 
+import static io.quartic.common.rx.RxUtils.latest;
 import static rx.Observable.error;
 
 @Path("/")
@@ -34,14 +36,10 @@ public class TileResource {
                              @PathParam("z") Integer z,
                              @PathParam("x") Integer x,
                              @PathParam("y") Integer y) {
-        return getOrError(layerId)
-                .first()
-                .map(snapshot -> {
-                    final byte[] data = new VectorTileRenderer(ImmutableList.of(snapshot.absolute())).render(z, x, y);
-                    return (data.length > 0) ? data : null;
-                })
-                .toBlocking()
-                .single();
+
+        final Layer layer = latest(getOrError(layerId)).absolute();
+        final byte[] data = new VectorTileRenderer(ImmutableList.of(layer)).render(z, x, y);
+        return (data.length > 0) ? data : null;
     }
 
     private Observable<Snapshot> getOrError(LayerId id) {

@@ -46,4 +46,11 @@ public final class RxUtils {
             return prev;
         });
     }
+
+    /**
+     * This only makes sense for observables that have behavior-like behaviour.
+     */
+    public static <T> T latest(Observable<T> observable) {
+        return observable.first().toBlocking().single();
+    }
 }
