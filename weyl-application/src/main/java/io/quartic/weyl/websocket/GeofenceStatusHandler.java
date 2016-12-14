@@ -4,8 +4,17 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.geofence.*;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.geofence.Geofence;
+import io.quartic.weyl.core.geofence.GeofenceImpl;
+import io.quartic.weyl.core.geofence.GeofenceListener;
+import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.Violation;
+import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -14,7 +23,11 @@ import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Emitter.BackpressureMode;
 import rx.Observable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -61,11 +74,15 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private Stream<Feature> featuresFrom(FeatureCollection features) {
         return featureConverter.toModel(features)
                 .stream()
-                .map(f -> FeatureImpl.of(
-                        EntityIdImpl.of("custom"),
-                        f.geometry(),
-                        f.attributes()
-                ));
+                .map(this::annotateFeature);
+    }
+
+    private Feature annotateFeature(NakedFeature feature) {
+        return FeatureImpl.of(
+                EntityIdImpl.of("custom"),
+                feature.geometry(),
+                feature.attributes()
+        );
     }
 
     private Stream<Feature> featuresFrom(LayerId layerId) {
@@ -77,7 +94,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private void updateStore(GeofenceStatus status, Stream<Feature> features) {
         final List<Geofence> geofences = features
                 .map(f -> FeatureImpl.copyOf(f)
-                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f))))
+                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f, status.defaultLevel()))))
                         .withGeometry(bufferOp(f.geometry(), status.bufferDistance()))
                         .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
                 )
