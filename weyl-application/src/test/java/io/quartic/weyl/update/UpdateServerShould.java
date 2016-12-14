@@ -7,7 +7,12 @@ import io.quartic.weyl.core.alert.AlertImpl;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
-import io.quartic.weyl.websocket.message.*;
+import io.quartic.weyl.websocket.message.AlertMessageImpl;
+import io.quartic.weyl.websocket.message.ClientStatusMessage;
+import io.quartic.weyl.websocket.message.ClientStatusMessageImpl;
+import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
+import io.quartic.weyl.websocket.message.SelectionStatusImpl;
+import io.quartic.weyl.websocket.message.SocketMessage;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import rx.Observable;
@@ -27,7 +32,10 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
 public class UpdateServerShould {
@@ -72,17 +80,25 @@ public class UpdateServerShould {
     public void send_alert() throws Exception {
         final Alert alert = AlertImpl.of("foo", Optional.of("bar"), Alert.Level.SEVERE);
 
-        final UpdateServer server = createAndOpenServer(alerts);
+        createAndOpenServer(alerts);
         alerts.onNext(alert);
 
         verifyMessage(AlertMessageImpl.of(alert));
     }
 
     private ClientStatusMessage clientStatusMessage() {
+        // It would be nice to mock all of this, but we need to serialise
         return ClientStatusMessageImpl.of(
                 emptyList(),
                 SelectionStatusImpl.of(42, emptyList()),
-                GeofenceStatusImpl.of(true, GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
+                GeofenceStatusImpl.of(
+                        true,
+                        GeofenceType.EXCLUDE,
+                        Alert.Level.WARNING,
+                        Optional.empty(),
+                        Optional.empty(),
+                        0.0
+                )
         );
     }
 
