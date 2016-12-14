@@ -14,11 +14,15 @@ public interface Geofence {
     Feature feature();
 
     static Alert.Level alertLevel(Feature feature) {
+        return alertLevel(feature, Alert.Level.SEVERE); // Default default!
+    }
+
+    static Alert.Level alertLevel(Feature feature, Alert.Level defaultLevel) {
         final Object level = feature.attributes().attributes().get(ALERT_LEVEL);
         try {
             return Alert.Level.valueOf(level.toString().toUpperCase());
         } catch (Exception e) {
-            return Alert.Level.SEVERE;    // Default
+            return defaultLevel;
         }
     }
 }
