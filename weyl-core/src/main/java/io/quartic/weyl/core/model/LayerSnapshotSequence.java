@@ -4,9 +4,18 @@ import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 import rx.Observable;
 
+import java.util.Collection;
+
 @SweetStyle
 @Value.Immutable
 public interface LayerSnapshotSequence {
+    @SweetStyle
+    @Value.Immutable
+    interface Snapshot {
+        Layer absolute();
+        Collection<Feature> diff();
+    }
+
     LayerId id();
-    Observable<Layer> snapshots();
+    Observable<Snapshot> snapshots();
 }

@@ -35,8 +35,6 @@ import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.geofence.LiveLayerChange;
-import io.quartic.weyl.core.geofence.LiveLayerChangeAggregator;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -115,11 +113,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .entityStore(entityStore)
                 .build();
 
-        final Observable<LiveLayerChange> liveLayerChanges = LiveLayerChangeAggregator.layerChanges(
-                layerStore.allLayers(),
-                layerStore::liveLayerChanges
-        ).share();
-
         final AlertResource alertResource = new AlertResource();
 
         environment.jersey().register(new PingPongResource());
@@ -138,7 +131,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         //noinspection unchecked
                         return (T) createUpdateServer(
                                 layerStore,
-                                liveLayerChanges,
                                 selectionHandler,
                                 layerSubscriptionHandler,
                                 alertResource
@@ -151,13 +143,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private UpdateServer createUpdateServer(
             LayerStore layerStore,
-            Observable<LiveLayerChange> liveLayerChanges,
             SelectionHandler selectionHandler,
             LayerSubscriptionHandler layerSubscriptionHandler,
             AlertResource alertResource
     ) {
         // These are per-user so each user has their own geofence state
-        final GeofenceStore geofenceStore = new GeofenceStore(liveLayerChanges);
+        final GeofenceStore geofenceStore = new GeofenceStore(layerStore.snapshotSequences());
         final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
         final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, layerStore);
 

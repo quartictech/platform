@@ -1,11 +1,8 @@
 package io.quartic.weyl.core;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.weyl.core.geofence.LiveLayerChange;
-import io.quartic.weyl.core.geofence.LiveLayerChangeImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
@@ -57,6 +54,8 @@ public class LayerStoreShould {
             .layerReducer(layerReducer)
             .build();
     private final GeometryFactory factory = new GeometryFactory();
+
+    // TODO: test for snapshotSequences
 
     @Test
     public void prevent_overwriting_an_existing_layer() throws Exception {
@@ -127,22 +126,6 @@ public class LayerStoreShould {
     }
 
     @Test
-    public void notify_observers_on_new_features() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        mockLayerReductionFor(mockLayerCreationFor(spec));
-
-        PublishSubject<LayerUpdate> updates = createLayer(spec);
-
-        TestSubscriber<LiveLayerChange> sub = TestSubscriber.create();
-        store.liveLayerChanges(LAYER_ID).subscribe(sub);
-
-        updates.onNext(updateFor(modelFeature("a")));
-
-        Collection<Feature> features = ImmutableList.of(feature("a"));
-        sub.assertReceivedOnNext(newArrayList(liveLayerChange(LAYER_ID, features)));
-    }
-
-    @Test
     public void notify_on_layer_creation() {
         final LayerSpec specA = spec(LAYER_ID);
         final LayerSpec specB = spec(OTHER_LAYER_ID);
@@ -191,10 +174,6 @@ public class LayerStoreShould {
                 factory.createPoint(new Coordinate(123.0, 456.0)),
                 ATTRIBUTES
         );
-    }
-
-    private LiveLayerChange liveLayerChange(LayerId layerId, Collection<Feature> features) {
-        return LiveLayerChangeImpl.of(layerId, features);
     }
 
     private PublishSubject<LayerUpdate> createLayer(LayerSpec spec) {

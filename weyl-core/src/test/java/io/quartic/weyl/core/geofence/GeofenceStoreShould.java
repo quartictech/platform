@@ -5,7 +5,10 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -13,20 +16,23 @@ import rx.subjects.PublishSubject;
 
 import java.util.function.BiConsumer;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static rx.Observable.just;
 
 public class GeofenceStoreShould {
-    private final PublishSubject<LiveLayerChange> subject = PublishSubject.create();
-    private final GeofenceStore store = new GeofenceStore(subject);
+    private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
+    private final GeofenceStore store = new GeofenceStore(snapshotSequences);
     private final GeofenceListener listener = mock(GeofenceListener.class);
     private final Geometry fenceGeometry = mock(Geometry.class);
 
@@ -176,7 +182,15 @@ public class GeofenceStoreShould {
 
     private void updatePoint(boolean containsResult, Feature point) {
         when(fenceGeometry.contains(point.geometry())).thenReturn(containsResult);
-        store.onLiveLayerEvent(LayerIdImpl.of("666"), point);
+
+        final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
+        when(snapshot.absolute().spec().indexable()).thenReturn(false);     // Makes the layer "live"
+        when(snapshot.diff()).thenReturn(newArrayList(point));
+
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(
+                mock(LayerId.class),
+                just(snapshot)
+        ));
     }
 
     private Feature point() {

@@ -4,12 +4,11 @@ import com.google.common.collect.Lists;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import java.util.Collection;
 import java.util.Map;
@@ -33,10 +32,11 @@ public class GeofenceStore  {
     private final Set<Geofence> geofences = newHashSet();
     private final Set<GeofenceListener> listeners = newHashSet();
 
-    public GeofenceStore(Observable<LiveLayerChange> liveLayerChanges) {
-        liveLayerChanges.subscribeOn(Schedulers.computation())
-                .subscribe(event -> event.features()
-                        .forEach(feature -> onLiveLayerEvent(event.layerId(), feature)));
+    public GeofenceStore(Observable<LayerSnapshotSequence> snapshotSequences) {
+        snapshotSequences
+                .flatMap(LayerSnapshotSequence::snapshots)
+                .filter(snapshot -> !snapshot.absolute().spec().indexable())
+                .subscribe(snapshot -> snapshot.diff().forEach(this::processFeature));
     }
 
     public synchronized void setGeofences(Collection<Geofence> geofences) {
@@ -54,7 +54,7 @@ public class GeofenceStore  {
         listeners.remove(listener);
     }
 
-    public synchronized void onLiveLayerEvent(LayerId layerId, Feature feature) {
+    private synchronized void processFeature(Feature feature) {
         geofences.forEach(geofence -> {
             final ViolationKey vk = ViolationKeyImpl.of(feature.entityId(), geofence.feature().entityId());
             final boolean violating = inViolation(geofence, feature);

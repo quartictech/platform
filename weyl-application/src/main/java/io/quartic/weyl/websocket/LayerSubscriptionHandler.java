@@ -5,6 +5,7 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
@@ -51,7 +52,7 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
     }
 
     private Map<LayerId, Observable<Layer>> addToMap(Map<LayerId, Observable<Layer>> map, LayerSnapshotSequence flippy) {
-        map.put(flippy.id(), flippy.snapshots());
+        map.put(flippy.id(), flippy.snapshots().map(Snapshot::absolute));
         return map;
     }
 

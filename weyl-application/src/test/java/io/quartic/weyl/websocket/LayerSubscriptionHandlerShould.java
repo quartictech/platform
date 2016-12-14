@@ -11,7 +11,9 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
@@ -28,6 +30,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -59,7 +62,7 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void subscribe_to_and_unsubscribe_from_layer_based_on_status_message() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
+        final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, interceptor.observable()));
         statuses.onNext(status(id));
@@ -75,7 +78,7 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void send_update_corresponding_to_snapshot() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Layer snapshot = layer(id);
+        final Snapshot snapshot = snapshot(id);
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, just(snapshot)));
         statuses.onNext(status(id));
@@ -83,8 +86,8 @@ public class LayerSubscriptionHandlerShould {
         snapshotSequences.onCompleted();
 
         sub.awaitTerminalEvent();
-        verify(converter).toGeojson(newArrayList(snapshot.features()));
-        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, snapshot.spec().schema(), featureCollection())));
+        verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
+        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, snapshot.absolute().spec().schema(), featureCollection())));
     }
 
     @Test
@@ -104,8 +107,8 @@ public class LayerSubscriptionHandlerShould {
     public void not_send_updates_if_layer_list_unaffected() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
-        final Layer snapshotA = layer(idA);
-        final Layer snapshotB = layer(idB);
+        final Snapshot snapshotA = snapshot(idA);
+        final Snapshot snapshotB = snapshot(idB);
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idA, just(snapshotA)));
         statuses.onNext(status(idA));
@@ -122,8 +125,8 @@ public class LayerSubscriptionHandlerShould {
     public void send_updates_for_multiple_layers() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
-        final Layer snapshotA = layer(idA);
-        final Layer snapshotB = layer(idB);
+        final Snapshot snapshotA = snapshot(idA);
+        final Snapshot snapshotB = snapshot(idB);
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idA, just(snapshotA)));
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idB, just(snapshotB)));
@@ -133,15 +136,15 @@ public class LayerSubscriptionHandlerShould {
 
         sub.awaitTerminalEvent();
         assertThat(sub.getOnNextEvents(), containsInAnyOrder(
-                LayerUpdateMessageImpl.of(idA, snapshotA.spec().schema(), featureCollection()),
-                LayerUpdateMessageImpl.of(idB, snapshotB.spec().schema(), featureCollection())
+                LayerUpdateMessageImpl.of(idA, snapshotA.absolute().spec().schema(), featureCollection()),
+                LayerUpdateMessageImpl.of(idB, snapshotB.absolute().spec().schema(), featureCollection())
         ));
     }
 
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final ObservableInterceptor<Layer> interceptor = ObservableInterceptor.create();
+        final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, interceptor.observable()));
         statuses.onNext(status(id));
@@ -151,7 +154,7 @@ public class LayerSubscriptionHandlerShould {
         assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
-    private Layer layer(LayerId id) {
+    private Snapshot snapshot(LayerId id) {
         final AttributeSchema schema = mock(AttributeSchema.class);
         final Collection<Feature> features = newArrayList(mock(Feature.class), mock(Feature.class));
 
@@ -160,7 +163,7 @@ public class LayerSubscriptionHandlerShould {
         when(layer.spec().view()).thenReturn(IDENTITY_VIEW);
         when(layer.spec().schema()).thenReturn(schema);
         when(layer.features()).thenReturn(EMPTY_COLLECTION.append(features));
-        return layer;
+        return SnapshotImpl.of(layer, emptyList());
     }
 
     private ClientStatusMessage status(LayerId... ids) {
