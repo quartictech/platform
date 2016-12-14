@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Button,
+  AnchorButton,
   Classes,
   IconContents,
   Menu,
@@ -37,7 +38,7 @@ function Toolbar(props) {
 
           <span className="pt-navbar-divider"></span>
           <Tooltip content="Layers" position={Position.BOTTOM}>
-            <Button
+            <AnchorButton
               iconName="layers"
               className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList && !props.buttonsDisabled })}
               onClick={() => props.onUiToggle("layerList")}
@@ -46,7 +47,7 @@ function Toolbar(props) {
           </Tooltip>
 
           <Tooltip content="Compute" position={Position.BOTTOM}>
-            <Button
+            <AnchorButton
               iconName="calculator"
               className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") && !props.buttonsDisabled })}
               onClick={() => props.onUiToggle("calculate")}
@@ -55,7 +56,7 @@ function Toolbar(props) {
           </Tooltip>
 
           <Tooltip content="Geofence" position={Position.BOTTOM}>
-            <Button
+            <AnchorButton
               iconName="polygon-filter"
               className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.geofencePaneVisible) && !props.buttonsDisabled })}
               onClick={props.onGeofencePaneToggle}
@@ -64,7 +65,7 @@ function Toolbar(props) {
           </Tooltip>
 
           <Tooltip content="Chart" position={Position.BOTTOM}>
-            <Button
+            <AnchorButton
               iconName="chart"
               className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart && !props.buttonsDisabled })}
               onClick={() => props.onUiToggle("chart")}
