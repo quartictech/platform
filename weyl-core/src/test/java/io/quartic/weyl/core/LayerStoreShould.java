@@ -145,24 +145,6 @@ public class LayerStoreShould {
         ));
     }
 
-    @Test
-    public void notify_subscribers_of_current_layer_state_and_subsequent_updates_upon_subscribing() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        final Layer original = mockLayerCreationFor(spec);
-        final Layer firstUpdate = mockLayerReductionFor(original);
-        final Layer secondUpdate = mockLayerReductionFor(firstUpdate);
-
-        PublishSubject<LayerUpdate> updates = createLayer(spec);
-        updates.onNext(updateFor());   // Observed before subscription
-
-        TestSubscriber<Layer> subscriber = TestSubscriber.create();
-        store.layer(LAYER_ID).subscribe(subscriber);
-
-        updates.onNext(updateFor());   // Observed after subscription
-
-        assertThat(subscriber.getOnNextEvents(), contains(firstUpdate, secondUpdate));
-    }
-
     private Layer mockLayerCreationFor(LayerSpec spec) {
         final Layer layer = mock(Layer.class);
         when(layer.spec()).thenReturn(spec);

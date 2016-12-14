@@ -128,7 +128,6 @@ public class GeofenceStatusHandlerShould {
         final LayerId layerId = mock(LayerId.class);
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
         final Layer layer = mock(Layer.class);
-        when(layerStore.layer(layerId)).thenReturn(just(layer));
         when(layer.features()).thenReturn(featureCollection);
         when(featureCollection.stream()).thenReturn(
                 newArrayList(

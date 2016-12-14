@@ -39,7 +39,6 @@ import static rx.Observable.just;
 public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final ObservableStore<LayerId, Layer> layerObservables = new ObservableStore<>(true);
     private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
     protected abstract ObservableStore<EntityId, Feature> entityStore();
@@ -75,10 +74,6 @@ public abstract class LayerStore {
         }
     }
 
-    public Observable<Layer> layer(LayerId layerId) {
-        return layerObservables.get(layerId);
-    }
-
     private Snapshot initialSnapshot(LayerSpec spec) {
         return SnapshotImpl.of(layerReducer().create(spec), emptyList());
     }
@@ -95,7 +90,6 @@ public abstract class LayerStore {
     private void recordSnapshot(Snapshot snapshot) {
         final Layer layer = snapshot.absolute();
         layers.put(layer.spec().id(), layer);
-        layerObservables.put(layer.spec().id(), layer);
         entityStore().putAll(Feature::entityId, snapshot.diff());
     }
 
