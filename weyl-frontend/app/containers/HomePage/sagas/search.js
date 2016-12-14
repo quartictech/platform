@@ -1,16 +1,15 @@
 import { call, select } from "redux-saga/effects";
 import { delay } from "redux-saga";
-import * as _ from "underscore";
 import request from "utils/request";
 import * as selectors from "../selectors";
-import { apiRootUrl, mapboxToken } from "../../../utils.js";
+import { mapboxToken } from "../../../utils.js";
 
 export default function* (action) {
   yield call(delay, 500); // Debounce
 
   const [layerResults, placeResults] = yield [
     call(fetchLayers, action.query),
-    call(fetchPlaces, action.query)
+    call(fetchPlaces, action.query),
   ];
 
   const results = Object.assign({},
