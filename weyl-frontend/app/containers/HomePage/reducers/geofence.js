@@ -10,7 +10,7 @@ export default (state = initialState, action) => {
     case constants.GEOFENCE_SET_MANUAL_CONTROLS_VISIBILITY:
       return state.set("manualControlsVisible", action.visible);
     case constants.GEOFENCE_SET_MANUAL_GEOMETRY:
-      return state.set("manualGeojson", action.geojson || initialGeojson);
+      return state.set("manualGeojson", fromJS(action.geojson) || initialGeojson);
     case constants.GEOFENCE_SET_GEOMETRY:
       return state.set("geojson", action.geojson);
     case constants.GEOFENCE_SET_VIOLATIONS:
@@ -31,6 +31,7 @@ const initialSettings = fromJS({
   mode: "layer",
   layerId: null,
   bufferDistance: 0,
+  defaultLevel: "INFO",
 });
 
 const initialState = fromJS({
