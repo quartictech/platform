@@ -63,12 +63,12 @@ public abstract class LayerStore {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
-            checkLayerNotExists(spec.id());
+            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().uid());
 
             final Observable<Snapshot> snapshots = populator.updates(dependencies)
                     .scan(initialSnapshot(spec), this::nextSnapshot)
                     .doOnNext(this::recordSnapshot)
-                    .compose(likeBehavior());
+                    .compose(likeBehavior());   // These need to flow regardless of whether anybody's currently subscribed
             return just(LayerSnapshotSequenceImpl.of(spec.id(), snapshots));
 
         } catch (Exception e) {
@@ -85,10 +85,6 @@ public abstract class LayerStore {
         return layerObservables.get(layerId);
     }
 
-    private void checkLayerNotExists(LayerId layerId) {
-        checkArgument(!layers.containsKey(layerId), "Already have layer with id=" + layerId.uid());
-    }
-
     private Snapshot initialSnapshot(LayerSpec spec) {
         return SnapshotImpl.of(layerReducer().create(spec), emptyList());
     }
@@ -98,8 +94,7 @@ public abstract class LayerStore {
 
         LOG.info("[{}] Accepted {} features", prevLayer.spec().metadata().name(), update.features().size());
 
-        final LayerId id = prevLayer.spec().id();
-        final Collection<Feature> elaborated = elaborate(id, update.features());
+        final Collection<Feature> elaborated = elaborate(prevLayer.spec().id(), update.features());
         return SnapshotImpl.of(layerReducer().reduce(prevLayer, elaborated), elaborated);
     }
 

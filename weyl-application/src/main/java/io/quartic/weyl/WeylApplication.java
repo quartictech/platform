@@ -57,9 +57,9 @@ import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
+import io.quartic.weyl.websocket.LayerListUpdateGenerator;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
 import io.quartic.weyl.websocket.message.AlertMessageImpl;
-import io.quartic.weyl.websocket.message.LayerListUpdateMessage;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -157,7 +157,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new UpdateServer(
                 merge(
                         alerts.map(AlertMessageImpl::of),
-                        layerStore.allLayers().map(LayerListUpdateMessage::of)
+                        layerStore.snapshotSequences().compose(new LayerListUpdateGenerator())
                 ),
                 newArrayList(
                         selectionHandler,

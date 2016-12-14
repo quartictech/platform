@@ -18,25 +18,25 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
-import static com.google.common.collect.Maps.newHashMap;
+import static io.quartic.common.rx.RxUtils.accumulateMap;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 import static rx.Observable.empty;
 
 public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
-    private final Observable<LayerSnapshotSequence> snapshotSequences;
+    private final Observable<Map<LayerId, Observable<Snapshot>>> sequenceMap;
     private final FeatureConverter featureConverter;
 
     public LayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
-        this.snapshotSequences = snapshotSequences;
+        // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
+        this.sequenceMap = snapshotSequences
+                .compose(accumulateMap(LayerSnapshotSequence::id, LayerSnapshotSequence::snapshots))
+                .share();
         this.featureConverter = featureConverter;
     }
 
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
-        // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
-        final Observable<Map<LayerId, Observable<Layer>>> sequenceMap = accumulateSequenceMap();
-
         final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::subscribedLiveLayerIds);
 
         return combineLatest(keys, sequenceMap, this::collectSequences)
@@ -45,22 +45,12 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
                 .map(this::toMessage);
     }
 
-    private Observable<Map<LayerId, Observable<Layer>>> accumulateSequenceMap() {
-        return snapshotSequences
-                .scan(newHashMap(), this::addToMap)
-                .share();
-    }
-
-    private Map<LayerId, Observable<Layer>> addToMap(Map<LayerId, Observable<Layer>> map, LayerSnapshotSequence flippy) {
-        map.put(flippy.id(), flippy.snapshots().map(Snapshot::absolute));
-        return map;
-    }
-
-    private List<Observable<Layer>> collectSequences(List<LayerId> ids, Map<LayerId, Observable<Layer>> sequenceMap) {
+    private List<Observable<Snapshot>> collectSequences(List<LayerId> ids, Map<LayerId, Observable<Snapshot>> sequenceMap) {
         return copyOf(transform(ids, id -> sequenceMap.getOrDefault(id, empty()))); // empty() to handle invalid IDs gracefully
     }
 
-    private SocketMessage toMessage(Layer layer) {
+    private SocketMessage toMessage(Snapshot snapshot) {
+        final Layer layer = snapshot.absolute();
         final Collection<Feature> features = layer.features();
         Stream<Feature> computed = layer.spec().view().compute(features);
         return LayerUpdateMessageImpl.builder()

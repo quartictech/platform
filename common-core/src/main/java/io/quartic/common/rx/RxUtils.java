@@ -3,7 +3,12 @@ package io.quartic.common.rx;
 import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 import rx.Observable;
+import rx.functions.Func1;
 import rx.observables.ConnectableObservable;
+
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 public final class RxUtils {
     private RxUtils() {}
@@ -33,5 +38,12 @@ public final class RxUtils {
             connectable.subscribe();
             return connectable;
         };
+    }
+
+    public static <R, K, V> Observable.Transformer<R, Map<K, V>> accumulateMap(Func1<R, K> toKey, Func1<R, V> toValue) {
+        return observable -> observable.scan(newHashMap(), (prev, r) -> {
+            prev.put(toKey.call(r), toValue.call(r));
+            return prev;
+        });
     }
 }

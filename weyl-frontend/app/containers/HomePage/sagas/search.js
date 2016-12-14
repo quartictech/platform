@@ -37,8 +37,7 @@ export default function* (action) {
 
 function* fetchLayers(query) {
   const layerResults = yield select(selectors.selectLayerList);
-  return _.map(layerResults, (v, id) => ({ ...v, id, }))
-    .filter(r => includes(r.metadata.name, query));
+  return layerResults.filter(r => includes(r.metadata.name, query));
 }
 
 const includes = (str, substr) => str.toLowerCase().includes(substr.toLowerCase());
