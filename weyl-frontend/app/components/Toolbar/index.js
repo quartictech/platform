@@ -46,7 +46,7 @@ function Toolbar(props) {
             />
           </Tooltip>
 
-          <Tooltip content="Compute" position={Position.BOTTOM} inlin>
+          <Tooltip content="Compute" position={Position.BOTTOM}>
             <AnchorButton
               iconName="calculator"
               className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") && !props.buttonsDisabled })}
