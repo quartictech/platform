@@ -20,7 +20,7 @@
   position: absolute;
   left: 0;
   height: calc(100vh - 70px);
-  top: 70px;
+  top: 60px;
   width: 25vw;
   padding: 10px;
   pointer-events: none;
@@ -30,7 +30,7 @@
   position: absolute;
   left: 75vw;
   height: calc(100vh - 70px);
-  top: 70px;
+  top: 60px;
   width: 25vw;
   padding: 10px;
   pointer-events: none;

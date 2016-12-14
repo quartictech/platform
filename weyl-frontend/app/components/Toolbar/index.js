@@ -5,8 +5,10 @@ import {
   IconContents,
   Menu,
   MenuItem,
+  MenuDivider,
   Popover,
   Position,
+  Tooltip,
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
@@ -17,17 +19,16 @@ import logo from "./quartic.svg";
 
 function Toolbar(props) {
   return (
-    <div className={styles.toolbar}>
+    <div className={classNames(styles.toolbar, "pt-elevation-3")}>
       <nav className="pt-navbar pt-dark">
         <div className="pt-navbar-group pt-align-left">
           <img
-            className={styles.logo}
             src={logo}
             role="presentation"
+            style={{ maxWidth: "70%", maxHeight: "70%" }}
           />
 
           <span className="pt-navbar-divider"></span>
-
           <Search
             onSearch={props.onSearch}
             onSelectLayer={props.onSelectLayer}
@@ -35,73 +36,54 @@ function Toolbar(props) {
           />
 
           <span className="pt-navbar-divider"></span>
+          <Tooltip content="Layers" position={Position.BOTTOM}>
+            <Button
+              iconName="layers"
+              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList && !props.buttonsDisabled })}
+              onClick={() => props.onUiToggle("layerList")}
+              disabled={props.buttonsDisabled}
+            />
+          </Tooltip>
 
-          <Button
-            text="Layers"
-            iconName="layers"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList && !props.buttonsDisabled })}
-            onClick={() => props.onUiToggle("layerList")}
-            disabled={props.buttonsDisabled}
-          />
+          <Tooltip content="Compute" position={Position.BOTTOM}>
+            <Button
+              iconName="calculator"
+              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") && !props.buttonsDisabled })}
+              onClick={() => props.onUiToggle("calculate")}
+              disabled={props.buttonsDisabled}
+            />
+          </Tooltip>
 
-          <Button
-            text="Compute"
-            iconName="calculator"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") && !props.buttonsDisabled })}
-            onClick={() => props.onUiToggle("calculate")}
-            disabled={props.buttonsDisabled}
-          />
+          <Tooltip content="Geofence" position={Position.BOTTOM}>
+            <Button
+              iconName="polygon-filter"
+              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.geofencePaneVisible) && !props.buttonsDisabled })}
+              onClick={props.onGeofencePaneToggle}
+              disabled={props.buttonsDisabled}
+            />
+          </Tooltip>
 
-          <Button
-            text="Geofence"
-            iconName="polygon-filter"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.geofencePaneVisible) && !props.buttonsDisabled })}
-            onClick={props.onGeofencePaneToggle}
-            disabled={props.buttonsDisabled}
-          />
-
-          <Button
-            text="Chart"
-            iconName="chart"
-            className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart && !props.buttonsDisabled })}
-            onClick={() => props.onUiToggle("chart")}
-            disabled={props.buttonsDisabled}
-          />
+          <Tooltip content="Chart" position={Position.BOTTOM}>
+            <Button
+              iconName="chart"
+              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart && !props.buttonsDisabled })}
+              onClick={() => props.onUiToggle("chart")}
+              disabled={props.buttonsDisabled}
+            />
+          </Tooltip>
 
           <span className="pt-navbar-divider"></span>
-
-          <div className={Classes.BUTTON_GROUP}>
+          <Tooltip content="Pick a theme" position={Position.BOTTOM}>
             <ThemePicker
               selected={props.ui.settings.theme}
               onSelect={props.onSetTheme}
             />
-            <Info />
-          </div>
+          </Tooltip>
         </div>
       </nav>
     </div>
   );
 }
-
-const Info = () => (
-  <Popover
-    content={
-      <div>
-        <h5>Quartic Map</h5>
-        <p>
-          <b>Version:</b> {process.env.BUILD_VERSION || "unknown"}
-        </p>
-      </div>
-    }
-    popoverClassName="pt-popover-content-sizing"
-    position={Position.BOTTOM}
-  >
-    <Button
-      className={Classes.MINIMAL}
-      iconName="info-sign"
-    />
-  </Popover>
-);
 
 const ThemePicker = ({ selected, onSelect }) => {
   const menu = (
@@ -113,8 +95,14 @@ const ThemePicker = ({ selected, onSelect }) => {
           iconName={theme.icon}
           label={(selected === key) ? IconContents.TICK : ""}
           onClick={() => onSelect(key)}
-        />
-      )}
+        />)}
+      <MenuDivider />
+      <MenuItem
+        key={"info"}
+        text={`Quartic Map (version: ${process.env.BUILD_VERSION || "unknown"})`}
+        iconName="info-sign"
+        disabled
+      />
     </Menu>
   );
 
