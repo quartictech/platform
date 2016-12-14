@@ -101,6 +101,7 @@ const ThemePicker = ({ selected, onSelect }) => {
         key={"info"}
         text={`Quartic Map (version: ${process.env.BUILD_VERSION || "unknown"})`}
         iconName="info-sign"
+        disabled={true}
       />
     </Menu>
   );
