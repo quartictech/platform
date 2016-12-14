@@ -60,6 +60,7 @@ import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
 import io.quartic.weyl.websocket.LayerSubscriptionHandler;
 import io.quartic.weyl.websocket.message.AlertMessageImpl;
+import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -69,6 +70,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.rx.RxUtils.likeBehavior;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
@@ -117,11 +119,14 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(computeResource);
-        environment.jersey().register(new TileResource(layerStore));
+        environment.jersey().register(new TileResource(layerStore.snapshotSequences()));
         environment.jersey().register(alertResource);
 
         final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
         final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(layerStore.snapshotSequences());
+        final Observable<SocketMessage> layerListUpdates = layerStore.snapshotSequences()
+                .compose(new LayerListUpdateGenerator())
+                .compose(likeBehavior());
 
         websocketBundle.addEndpoint(ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
@@ -133,7 +138,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                                 layerStore,
                                 selectionHandler,
                                 layerSubscriptionHandler,
-                                alertResource
+                                alertResource,
+                                layerListUpdates
                         );
                     }
                 })
@@ -145,7 +151,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             LayerStore layerStore,
             SelectionHandler selectionHandler,
             LayerSubscriptionHandler layerSubscriptionHandler,
-            AlertResource alertResource
+            AlertResource alertResource,
+            Observable<SocketMessage> layerListUpdates
     ) {
         // These are per-user so each user has their own geofence state
         final GeofenceStore geofenceStore = new GeofenceStore(layerStore.snapshotSequences());
@@ -157,7 +164,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new UpdateServer(
                 merge(
                         alerts.map(AlertMessageImpl::of),
-                        layerStore.snapshotSequences().compose(new LayerListUpdateGenerator())
+                        layerListUpdates
                 ),
                 newArrayList(
                         selectionHandler,
