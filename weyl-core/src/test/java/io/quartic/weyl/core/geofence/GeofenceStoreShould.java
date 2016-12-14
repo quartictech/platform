@@ -151,6 +151,15 @@ public class GeofenceStoreShould {
         verifyViolationDetails(GeofenceListener::onViolationEnd, point);
     }
 
+    @Test
+    public void ignore_changes_from_non_live_layers() throws Exception {
+        final Feature point = point();
+        createGeofence(GeofenceType.EXCLUDE);
+        updatePoint(true, point, false);
+
+        verify(listener, never()).onViolationBegin(any());
+    }
+
     private void verifyViolationDetails(BiConsumer<GeofenceListener, Violation> consumer, Feature point) {
         ArgumentCaptor<Violation> captor = ArgumentCaptor.forClass(Violation.class);
         consumer.accept(verify(listener), captor.capture());
@@ -181,10 +190,14 @@ public class GeofenceStoreShould {
     }
 
     private void updatePoint(boolean containsResult, Feature point) {
+        updatePoint(containsResult, point, true);
+    }
+
+    private void updatePoint(boolean containsResult, Feature point, boolean live) {
         when(fenceGeometry.contains(point.geometry())).thenReturn(containsResult);
 
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        when(snapshot.absolute().spec().indexable()).thenReturn(false);     // Makes the layer "live"
+        when(snapshot.absolute().spec().indexable()).thenReturn(!live);
         when(snapshot.diff()).thenReturn(newArrayList(point));
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(
