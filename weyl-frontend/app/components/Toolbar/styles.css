@@ -3,9 +3,3 @@
   display: block;
   float: left;
 }
-
-.toolbarRight {
-  pointer-events: all;
-  display: block;
-  float: right;
-}
