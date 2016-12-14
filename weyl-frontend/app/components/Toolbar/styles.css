@@ -1,9 +1,11 @@
 .toolbar { /* stylelint-ignore */
   pointer-events: all;
   display: block;
+  float: left;
 }
 
-.logo {
-  max-width: 70%;
-  max-height: 70%;
+.toolbarRight {
+  pointer-events: all;
+  display: block;
+  float: right;
 }
