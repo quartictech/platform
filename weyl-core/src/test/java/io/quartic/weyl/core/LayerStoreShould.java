@@ -13,20 +13,23 @@ import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.SnapshotImpl;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.transform;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -54,8 +57,6 @@ public class LayerStoreShould {
             .layerReducer(layerReducer)
             .build();
     private final GeometryFactory factory = new GeometryFactory();
-
-    // TODO: test for snapshotSequences
 
     @Test
     public void prevent_overwriting_an_existing_layer() throws Exception {
@@ -108,6 +109,43 @@ public class LayerStoreShould {
     }
 
     @Test
+    public void emit_sequence_every_time_layer_is_created() throws Exception {
+        final LayerSpec specA = spec(LAYER_ID);
+        final LayerSpec specB = spec(OTHER_LAYER_ID);
+        mockLayerCreationFor(specA);
+        mockLayerCreationFor(specB);
+
+        TestSubscriber<LayerSnapshotSequence> sub = TestSubscriber.create();
+        store.snapshotSequences().subscribe(sub);
+
+        createLayer(specA);
+        createLayer(specB);
+
+        assertThat(transform(sub.getOnNextEvents(), LayerSnapshotSequence::id), contains(LAYER_ID, OTHER_LAYER_ID));
+    }
+
+    @Test
+    public void emit_snapshot_every_time_layer_is_updated() throws Exception {
+        final LayerSpec spec = spec(LAYER_ID);
+        final Layer original = mockLayerCreationFor(spec);
+        final Layer update1 = mockLayerReductionFor(original);
+        final Layer update2 = mockLayerReductionFor(update1);
+
+        TestSubscriber<LayerSnapshotSequence.Snapshot> sub = TestSubscriber.create();
+        store.snapshotSequences().subscribe(s -> s.snapshots().subscribe(sub)); // Subscribe to the nested snapshot observable
+
+        PublishSubject<LayerUpdate> updates = createLayer(spec);
+        updates.onNext(updateFor(modelFeature("a")));
+        updates.onNext(updateFor(modelFeature("b")));
+
+        assertThat(sub.getOnNextEvents(), contains(
+                SnapshotImpl.of(original, emptyList()),
+                SnapshotImpl.of(update1, newArrayList(feature("a"))),
+                SnapshotImpl.of(update2, newArrayList(feature("b")))
+        ));
+    }
+
+    @Test
     public void notify_subscribers_of_current_layer_state_and_subsequent_updates_upon_subscribing() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);
         final Layer original = mockLayerCreationFor(spec);
@@ -123,22 +161,6 @@ public class LayerStoreShould {
         updates.onNext(updateFor());   // Observed after subscription
 
         assertThat(subscriber.getOnNextEvents(), contains(firstUpdate, secondUpdate));
-    }
-
-    @Test
-    public void notify_on_layer_creation() {
-        final LayerSpec specA = spec(LAYER_ID);
-        final LayerSpec specB = spec(OTHER_LAYER_ID);
-        final Layer layerA = mockLayerCreationFor(specA);
-        final Layer layerB = mockLayerCreationFor(specB);
-
-        createLayer(specA);
-        TestSubscriber<Collection<Layer>> sub = TestSubscriber.create();
-        store.allLayers().subscribe(sub);
-        assertThat(sub.getOnNextEvents().get(0), contains(layerA));
-
-        createLayer(specB);
-        assertThat(sub.getOnNextEvents().get(1), contains(layerA, layerB));
     }
 
     private Layer mockLayerCreationFor(LayerSpec spec) {

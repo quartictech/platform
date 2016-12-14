@@ -20,7 +20,6 @@ import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.subjects.BehaviorSubject;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +40,6 @@ public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
     private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
     private final ObservableStore<LayerId, Layer> layerObservables = new ObservableStore<>(true);
-    private final BehaviorSubject<Collection<Layer>> allLayersObservable = BehaviorSubject.create();
     private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
     protected abstract ObservableStore<EntityId, Feature> entityStore();
@@ -77,10 +75,6 @@ public abstract class LayerStore {
         }
     }
 
-    public Observable<Collection<Layer>> allLayers() {
-        return allLayersObservable;
-    }
-
     public Observable<Layer> layer(LayerId layerId) {
         return layerObservables.get(layerId);
     }
@@ -101,7 +95,6 @@ public abstract class LayerStore {
     private void recordSnapshot(Snapshot snapshot) {
         final Layer layer = snapshot.absolute();
         layers.put(layer.spec().id(), layer);
-        allLayersObservable.onNext(layers.values());
         layerObservables.put(layer.spec().id(), layer);
         entityStore().putAll(Feature::entityId, snapshot.diff());
     }
