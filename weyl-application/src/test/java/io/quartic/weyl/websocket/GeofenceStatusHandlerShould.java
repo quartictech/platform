@@ -25,6 +25,7 @@ import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
@@ -34,6 +35,7 @@ import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
+import rx.subjects.PublishSubject;
 
 import java.util.List;
 import java.util.Optional;
@@ -68,8 +70,9 @@ public class GeofenceStatusHandlerShould {
     private final NakedFeature featureB = NakedFeatureImpl.of(Optional.empty(), polygon(6.0), featureAttributes);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
     private final LayerStore layerStore = mock(LayerStore.class);
+    private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
-    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, layerStore, converter);
+    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, snapshotSequences, converter);
 
     @Test
     public void send_geometry_update() throws Exception {

@@ -114,6 +114,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 ))
                 .entityStore(entityStore)
                 .build();
+        final Observable<LayerSnapshotSequence> snapshotSequences = layerStore.snapshotSequences();
 
         final AlertResource alertResource = new AlertResource();
 
@@ -123,8 +124,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(alertResource);
 
         final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
-        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(layerStore.snapshotSequences());
-        final Observable<SocketMessage> layerListUpdates = layerStore.snapshotSequences()
+        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(snapshotSequences);
+        final Observable<SocketMessage> layerListUpdates = snapshotSequences
                 .compose(new LayerListUpdateGenerator())
                 .compose(likeBehavior());
 
@@ -135,11 +136,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         //noinspection unchecked
                         return (T) createUpdateServer(
-                                layerStore,
                                 selectionHandler,
                                 layerSubscriptionHandler,
                                 alertResource,
-                                layerListUpdates
+                                layerListUpdates,
+                                snapshotSequences
                         );
                     }
                 })
@@ -148,16 +149,16 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private UpdateServer createUpdateServer(
-            LayerStore layerStore,
             SelectionHandler selectionHandler,
             LayerSubscriptionHandler layerSubscriptionHandler,
             AlertResource alertResource,
-            Observable<SocketMessage> layerListUpdates
+            Observable<SocketMessage> layerListUpdates,
+            Observable<LayerSnapshotSequence> snapshotSequences
     ) {
         // These are per-user so each user has their own geofence state
-        final GeofenceStore geofenceStore = new GeofenceStore(layerStore.snapshotSequences());
+        final GeofenceStore geofenceStore = new GeofenceStore(snapshotSequences);
         final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
-        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, layerStore);
+        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, snapshotSequences);
 
         final Observable<Alert> alerts = merge(alertProcessor.alerts(), alertResource.alerts());
 
@@ -188,8 +189,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new LayerSubscriptionHandler(snapshotSequences, featureConverter());
     }
 
-    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, LayerStore layerStore) {
-        return new GeofenceStatusHandler(geofenceStore, layerStore, featureConverter());
+    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences) {
+        return new GeofenceStatusHandler(geofenceStore, snapshotSequences, featureConverter());
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(

@@ -1,7 +1,7 @@
 package io.quartic.weyl.websocket;
 
+import com.google.common.collect.Maps;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -15,6 +15,8 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -22,6 +24,7 @@ import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Emitter.BackpressureMode;
 import rx.Observable;
+import rx.Subscription;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,16 +43,18 @@ import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
+import static rx.Observable.empty;
 import static rx.Observable.fromEmitter;
 
 public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private final GeofenceStore geofenceStore;
-    private final LayerStore layerStore;
+    private final Map<LayerId, Observable<Snapshot>> sequences = Maps.newConcurrentMap();
+    private final Subscription subscription;
     private final FeatureConverter featureConverter;
 
-    public GeofenceStatusHandler(GeofenceStore geofenceStore, LayerStore layerStore, FeatureConverter featureConverter) {
+    public GeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         this.geofenceStore = geofenceStore;
-        this.layerStore = layerStore;
+        this.subscription = snapshotSequences.subscribe(s -> sequences.put(s.id(), s.snapshots()));
         this.featureConverter = featureConverter;
     }
 
@@ -59,7 +64,8 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .map(ClientStatusMessage::geofence)
                 .distinctUntilChanged()
                 .doOnNext(this::handleMessage)
-                .switchMap(x -> upstream());    // TODO: this is an utterly gross hack
+                .switchMap(x -> upstream())
+                .doOnUnsubscribe(subscription::unsubscribe);    // TODO: this is an utterly gross hack
     }
 
     private void handleMessage(GeofenceStatus status) {
@@ -87,11 +93,11 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     private Stream<Feature> featuresFrom(LayerId layerId) {
         // TODO: validate that layer exists
-        return layerStore.layer(layerId)
+        return sequences.getOrDefault(layerId, empty())
                 .first()
                 .toBlocking()
                 .single()
-                .features()
+                .absolute().features()
                 .stream();
     }
 
