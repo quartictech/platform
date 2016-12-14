@@ -61,7 +61,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               placeholder="Select layer..."
               entries={this.layerIdsToNames()}
               selectedKey={this.state.settings.layerId}
-              onChange={layer => this.updateDisplayedSettings({ layer })}
+              onChange={layerId => this.updateDisplayedSettings({ layerId })}
               disabled={this.state.settings.mode !== "layer"}
             />
           </div>
