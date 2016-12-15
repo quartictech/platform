@@ -5,10 +5,10 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -201,7 +201,7 @@ public class GeofenceStoreShould {
         when(snapshot.diff()).thenReturn(newArrayList(point));
 
         snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(
-                mock(LayerId.class),
+                mock(LayerSpec.class),
                 just(snapshot)
         ));
     }

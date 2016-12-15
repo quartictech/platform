@@ -45,7 +45,7 @@ public class SnapshotReducer {
                         .dynamicSchema(EMPTY_SCHEMA)
                         .spatialIndex(new STRtree())
                         .indexedFeatures(ImmutableList.of())
-                        .stats(LayerStatsImpl.of(emptyMap(), 0))
+                        .stats(LayerStatsImpl.of(emptyMap()))
                         .build(),
                 emptyList()
         );

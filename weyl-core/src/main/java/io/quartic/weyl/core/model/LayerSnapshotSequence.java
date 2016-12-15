@@ -16,6 +16,6 @@ public interface LayerSnapshotSequence {
         Collection<Feature> diff();
     }
 
-    LayerId id();
+    LayerSpec spec();
     Observable<Snapshot> snapshots();
 }

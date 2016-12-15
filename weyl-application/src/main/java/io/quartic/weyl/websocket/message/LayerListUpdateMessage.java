@@ -3,10 +3,9 @@ package io.quartic.weyl.websocket.message;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.LayerStats;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.immutables.value.Value;
 
 import java.util.Set;
@@ -24,7 +23,6 @@ public interface LayerListUpdateMessage extends SocketMessage {
     interface LayerInfo {
         LayerId id();
         LayerMetadata metadata();
-        LayerStats stats();             // TODO: eliminate
         StaticSchema staticSchema();
         boolean live();
     }

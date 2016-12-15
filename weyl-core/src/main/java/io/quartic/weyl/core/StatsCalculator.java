@@ -40,8 +40,6 @@ public class StatsCalculator {
                         entry.getKey(),
                         AttributeStatsImpl.of(minNumeric.get(entry.getKey()), maxNumeric.get(entry.getKey()))
                 ));
-
-        builder.featureCount(features.size());
         return builder.build();
     }
 

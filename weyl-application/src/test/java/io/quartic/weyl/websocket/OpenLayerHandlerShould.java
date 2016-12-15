@@ -12,6 +12,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
@@ -64,7 +65,7 @@ public class OpenLayerHandlerShould {
         final LayerId id = mock(LayerId.class);
         final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
 
-        nextSequence(id, interceptor.observable());
+        nextSequence(spec(id, true), interceptor.observable());
         nextStatus(status(id));
 
         assertThat(interceptor.subscribed(), equalTo(true));
@@ -78,14 +79,15 @@ public class OpenLayerHandlerShould {
     @Test
     public void send_update_corresponding_to_snapshot() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Snapshot snapshot = snapshot(id, true);
+        final LayerSpec spec = spec(id, true);
+        final Snapshot snapshot = snapshot(spec);
 
-        nextSequence(id, just(snapshot));
+        nextSequence(spec, just(snapshot));
         nextStatus(status(id));
 
         completeInputsAndAwait();
         verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
-        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, snapshot.absolute().dynamicSchema(), featureCollection())));
+        assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
     @Test
@@ -102,9 +104,9 @@ public class OpenLayerHandlerShould {
     @Test
     public void send_no_features_in_updates_if_layer_is_not_live() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Snapshot snapshot = snapshot(id, false);  // Not live
+        final LayerSpec spec = spec(id, false); // Not live
 
-        nextSequence(id, just(snapshot));
+        nextSequence(spec, just(snapshot(spec)));
         nextStatus(status(id));
 
         completeInputsAndAwait();
@@ -115,13 +117,13 @@ public class OpenLayerHandlerShould {
     public void not_send_updates_if_layer_list_unaffected() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
-        final Snapshot snapshotA = snapshot(idA, true);
-        final Snapshot snapshotB = snapshot(idB, true);
+        final LayerSpec specA = spec(idA, true);
+        final LayerSpec specB = spec(idB, true);
 
-        nextSequence(idA, just(snapshotA));
+        nextSequence(specA, just(snapshot(specA)));
         nextStatus(status(idA));
         nextStatus(status(idA));
-        nextSequence(idB, just(snapshotB));
+        nextSequence(specB, just(snapshot(specB)));
 
         completeInputsAndAwait();
         assertThat(sub.getOnNextEvents(), hasSize(1));
@@ -131,18 +133,17 @@ public class OpenLayerHandlerShould {
     public void send_updates_for_multiple_layers() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
-        final Snapshot snapshotA = snapshot(idA, true);
-        final Snapshot snapshotB = snapshot(idB, true);
+        final LayerSpec specA = spec(idA, true);
+        final LayerSpec specB = spec(idB, true);
+        final Snapshot snapshotA = snapshot(specA);
+        final Snapshot snapshotB = snapshot(specB);
 
-        nextSequence(idA, just(snapshotA));
-        nextSequence(idB, just(snapshotB));
+        nextSequence(specA, just(snapshotA));
+        nextSequence(specB, just(snapshotB));
         nextStatus(status(idA, idB));
 
         completeInputsAndAwait();
-        assertThat(sub.getOnNextEvents(), containsInAnyOrder(
-                LayerUpdateMessageImpl.of(idA, snapshotA.absolute().dynamicSchema(), featureCollection()),
-                LayerUpdateMessageImpl.of(idB, snapshotB.absolute().dynamicSchema(), featureCollection())
-        ));
+        assertThat(sub.getOnNextEvents(), containsInAnyOrder(message(idA, snapshotA), message(idB, snapshotB)));
     }
 
     @Test
@@ -150,7 +151,7 @@ public class OpenLayerHandlerShould {
         final LayerId id = mock(LayerId.class);
         final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
 
-        nextSequence(id, interceptor.observable());
+        nextSequence(spec(id, true), interceptor.observable());
         nextStatus(status(id));
         subscription.unsubscribe();
 
@@ -163,28 +164,38 @@ public class OpenLayerHandlerShould {
         sub.awaitTerminalEvent();
     }
 
-    private void nextSequence(LayerId id, Observable<Snapshot> snapshots) {
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, snapshots));
+    private void nextSequence(LayerSpec spec, Observable<Snapshot> snapshots) {
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, snapshots));
     }
 
     private void nextStatus(ClientStatusMessage status) {
         statuses.onNext(status);
     }
 
-    private Snapshot snapshot(LayerId id, boolean live) {
+    private Snapshot snapshot(LayerSpec spec) {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec().id()).thenReturn(id);
-        when(layer.spec().view()).thenReturn(IDENTITY_VIEW);
-        when(layer.spec().staticSchema()).thenReturn(mock(StaticSchema.class));
-        when(layer.spec().indexable()).thenReturn(!live);
+        when(layer.spec()).thenReturn(spec);
         when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
         return SnapshotImpl.of(layer, emptyList());
+    }
+
+    private LayerSpec spec(LayerId id, boolean live) {
+        final LayerSpec spec = mock(LayerSpec.class);
+        when(spec.id()).thenReturn(id);
+        when(spec.view()).thenReturn(IDENTITY_VIEW);
+        when(spec.staticSchema()).thenReturn(mock(StaticSchema.class));
+        when(spec.indexable()).thenReturn(!live);
+        return spec;
     }
 
     private ClientStatusMessage status(LayerId... ids) {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
         when(msg.openLayerIds()).thenReturn(asList(ids));
         return msg;
+    }
+
+    private LayerUpdateMessageImpl message(LayerId id, Snapshot snapshot) {
+        return LayerUpdateMessageImpl.of(id, snapshot.absolute().dynamicSchema(), snapshot.absolute().stats(), featureCollection());
     }
 
     private FeatureCollection featureCollection() {

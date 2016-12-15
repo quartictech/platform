@@ -32,7 +32,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
     public OpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
         this.sequenceMap = snapshotSequences
-                .compose(accumulateMap(LayerSnapshotSequence::id, LayerSnapshotSequence::snapshots))
+                .compose(accumulateMap(seq -> seq.spec().id(), LayerSnapshotSequence::snapshots))
                 .share();
         this.featureConverter = featureConverter;
     }
@@ -56,6 +56,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
         return LayerUpdateMessageImpl.builder()
                 .layerId(layer.spec().id())
                 .dynamicSchema(layer.dynamicSchema())
+                .stats(layer.stats())
                 .featureCollection(featureCollection(layer))
                 .build();
     }

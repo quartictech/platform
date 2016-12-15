@@ -52,6 +52,7 @@ const layerReducer = (state, action) => {
     case constants.LAYER_UPDATE:
       return state
         .set("data", action.data)
+        .set("stats", action.stats)
         .set("dynamicSchema", action.dynamicSchema);
 
     default:
@@ -64,9 +65,11 @@ const newLayer = (action) => fromJS({
   metadata: action.metadata,
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(action.staticSchema.primaryAttribute, 0),
-  stats: action.stats,
   staticSchema: action.staticSchema,
+  style: defaultLayerStyle(action.staticSchema.primaryAttribute, 0),
+  stats: {
+    attributeStats: {},
+  },
   dynamicSchema: {
     attributes: {},
   },

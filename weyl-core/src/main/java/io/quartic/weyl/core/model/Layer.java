@@ -11,7 +11,7 @@ import java.util.Collection;
 @SweetStyle
 @Value.Immutable
 public interface Layer {
-    LayerSpec spec();
+    LayerSpec spec();   // Should be able to remove this
     FeatureCollection features();
     DynamicSchema dynamicSchema();
 

@@ -49,8 +49,7 @@ public class StatsCalculatorShould {
         assertThat(stats, equalTo(LayerStatsImpl.of(map(
                 entry(HEIGHT, AttributeStatsImpl.of(120.0, 140.0)),
                 entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
-                ),
-                3
+                )
         )));
     }
 
@@ -70,8 +69,7 @@ public class StatsCalculatorShould {
         assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
                 entry(HEIGHT, AttributeStatsImpl.of(120.0, 130.0)),
                 entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
-                ),
-                3
+                )
         )));
     }
 
@@ -90,8 +88,7 @@ public class StatsCalculatorShould {
 
         assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
                 entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
-                ),
-                3
+                )
         )));
     }
 
@@ -110,8 +107,7 @@ public class StatsCalculatorShould {
 
         assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
                 entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
-                ),
-                3
+                )
         )));
     }
 
