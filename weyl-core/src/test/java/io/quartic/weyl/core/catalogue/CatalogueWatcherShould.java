@@ -9,9 +9,9 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static io.quartic.common.rx.RxUtils.all;
 import static io.quartic.common.test.CollectionUtils.entry;
 import static io.quartic.common.test.CollectionUtils.map;
-import static io.quartic.common.test.rx.RxUtils.all;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static org.hamcrest.Matchers.contains;

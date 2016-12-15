@@ -6,6 +6,7 @@ import rx.Observable;
 import rx.functions.Func1;
 import rx.observables.ConnectableObservable;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -52,5 +53,9 @@ public final class RxUtils {
      */
     public static <T> T latest(Observable<T> observable) {
         return observable.first().toBlocking().single();
+    }
+
+    public static <T> List<T> all(Observable<T> observable) {
+        return observable.toList().toBlocking().single();
     }
 }
