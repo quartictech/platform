@@ -1,8 +1,6 @@
 package io.quartic.weyl.core;
 
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -35,7 +33,6 @@ import static rx.Observable.just;
 public abstract class LayerRouter {
     private static final Logger LOG = LoggerFactory.getLogger(LayerRouter.class);
 
-    protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract Observable<LayerPopulator> populators();
 
     @Value.Default
@@ -91,12 +88,8 @@ public abstract class LayerRouter {
     }
 
     private Transformer<LayerUpdate, Snapshot> toSnapshots(LayerSpec spec) {
-        return updates -> updates.scan(snapshotReducer().create(spec), (s, u) -> snapshotReducer().next(s, u))
-                .doOnNext(this::performSideEffects)
+        return updates -> updates
+                .scan(snapshotReducer().create(spec), (s, u) -> snapshotReducer().next(s, u))
                 .compose(likeBehavior());      // These need to flow regardless of whether anybody's currently subscribed;
-    }
-
-    private void performSideEffects(Snapshot snapshot) {
-        entityStore().putAll(Feature::entityId, snapshot.diff());
     }
 }

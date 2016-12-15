@@ -1,7 +1,5 @@
 package io.quartic.weyl.core;
 
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
@@ -11,8 +9,6 @@ import io.quartic.weyl.core.model.LayerUpdate;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
-
-import java.util.Collection;
 
 import static com.google.common.collect.Lists.transform;
 import static java.util.Collections.singletonList;
@@ -31,12 +27,10 @@ public class LayerRouterShould {
     private static final LayerId LAYER_ID = LayerId.fromString("666");
     private static final LayerId OTHER_LAYER_ID = LayerId.fromString("777");
 
-    private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
     private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final LayerRouter router = LayerRouterImpl.builder()
             .populators(populators)
-            .entityStore(entityStore)
             .snapshotReducer(snapshotReducer)
             .build();
 
@@ -79,18 +73,6 @@ public class LayerRouterShould {
         createLayer(spec).onNext(update);
 
         verify(snapshotReducer).next(any(), eq(update));
-    }
-
-    @Test
-    public void put_updated_attributes_to_store() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        final Snapshot snapshot = mockSnapshotReductionFor(mockSnapshotCreationFor(spec));
-        final Collection<Feature> features = mock(Collection.class);
-        when(snapshot.diff()).thenReturn(features);
-
-        createLayer(spec).onNext(mock(LayerUpdate.class));
-
-        verify(entityStore).putAll(any(), eq(features));
     }
 
     @Test

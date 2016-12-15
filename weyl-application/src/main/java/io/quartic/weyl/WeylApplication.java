@@ -24,9 +24,9 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
-import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -35,8 +35,6 @@ import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
@@ -106,14 +104,14 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
 
-        final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
+
         final LayerRouter router = LayerRouterImpl.builder()
                 .populators(merge(
                         sourceManager.layerPopulators(),
                         computeResource.layerPopulators()
                 ))
-                .entityStore(entityStore)
                 .build();
+
         final Observable<LayerSnapshotSequence> snapshotSequences = router.snapshotSequences();
 
         final AlertResource alertResource = new AlertResource();
@@ -123,7 +121,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
-        final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
+        final SelectionHandler selectionHandler = createSelectionHandler(snapshotSequences);
         final OpenLayerHandler openLayerHandler = createLayerSubscriptionHandler(snapshotSequences);
         final Observable<SocketMessage> layerListUpdates = snapshotSequences
                 .compose(new LayerListUpdateGenerator())
@@ -175,7 +173,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         );
     }
 
-    private SelectionHandler createSelectionHandler(ObservableStore<EntityId, Feature> entityStore) {
+    private SelectionHandler createSelectionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+        final EntityStore entityStore = new EntityStore(snapshotSequences);
         return new SelectionHandler(
                 newArrayList(
                         new ChartUpdateGenerator(),
