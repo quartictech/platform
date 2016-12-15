@@ -58,7 +58,7 @@ import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.update.UpdateServer;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
-import io.quartic.weyl.websocket.LayerSubscriptionHandler;
+import io.quartic.weyl.websocket.OpenLayerHandler;
 import io.quartic.weyl.websocket.message.AlertMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
@@ -124,7 +124,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(alertResource);
 
         final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
-        final LayerSubscriptionHandler layerSubscriptionHandler = createLayerSubscriptionHandler(snapshotSequences);
+        final OpenLayerHandler openLayerHandler = createLayerSubscriptionHandler(snapshotSequences);
         final Observable<SocketMessage> layerListUpdates = snapshotSequences
                 .compose(new LayerListUpdateGenerator())
                 .compose(likeBehavior());
@@ -137,7 +137,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         //noinspection unchecked
                         return (T) createUpdateServer(
                                 selectionHandler,
-                                layerSubscriptionHandler,
+                                openLayerHandler,
                                 alertResource,
                                 layerListUpdates,
                                 snapshotSequences
@@ -150,7 +150,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private UpdateServer createUpdateServer(
             SelectionHandler selectionHandler,
-            LayerSubscriptionHandler layerSubscriptionHandler,
+            OpenLayerHandler openLayerHandler,
             AlertResource alertResource,
             Observable<SocketMessage> layerListUpdates,
             Observable<LayerSnapshotSequence> snapshotSequences
@@ -169,7 +169,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 ),
                 newArrayList(
                         selectionHandler,
-                        layerSubscriptionHandler,
+                        openLayerHandler,
                         geofenceStatusHandler
                 )
         );
@@ -185,8 +185,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 Multiplexer.create(entityStore::get));
     }
 
-    private LayerSubscriptionHandler createLayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
-        return new LayerSubscriptionHandler(snapshotSequences, featureConverter());
+    private OpenLayerHandler createLayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+        return new OpenLayerHandler(snapshotSequences, featureConverter());
     }
 
     private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences) {

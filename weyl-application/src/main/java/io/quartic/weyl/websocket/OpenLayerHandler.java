@@ -23,11 +23,11 @@ import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 import static rx.Observable.empty;
 
-public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
+public class OpenLayerHandler implements ClientStatusMessageHandler {
     private final Observable<Map<LayerId, Observable<Snapshot>>> sequenceMap;
     private final FeatureConverter featureConverter;
 
-    public LayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
+    public OpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
         this.sequenceMap = snapshotSequences
                 .compose(accumulateMap(LayerSnapshotSequence::id, LayerSnapshotSequence::snapshots))
@@ -37,11 +37,12 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
 
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
-        final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::subscribedLiveLayerIds);
+        final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::openLayerIds);
 
         return combineLatest(keys, sequenceMap, this::collectSequences)
                 .distinctUntilChanged()
                 .switchMap(Observable::merge)
+                .filter(s -> !s.absolute().spec().indexable())  // Only "live" layers
                 .map(this::toMessage);
     }
 

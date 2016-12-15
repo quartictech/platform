@@ -16,9 +16,8 @@ export const selectChart = createSelector(selectSubscriptions, p => p.get("chart
 export const selectHistograms = createSelector(selectSubscriptions, p => p.get("histograms"));
 export const selectAttributes = createSelector(selectSubscriptions, p => p.get("attributes"));
 
-export const selectLiveLayerIds = createSelector(selectLayers,
+export const selectOpenLayerIds = createSelector(selectLayers,
   (layers) => _.values(layers.toJS())
-    .filter(layer => layer.live)
     .map(layer => layer.id)
 );
 

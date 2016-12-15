@@ -199,8 +199,8 @@ public class GeofenceStatusHandlerShould {
     public void ignore_status_changes_not_involving_geofence_change() throws Exception {
         final ClientStatusMessage statusA = status(identity());
         final ClientStatusMessage statusB = status(identity());
-        when(statusA.subscribedLiveLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
-        when(statusB.subscribedLiveLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
+        when(statusA.openLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
+        when(statusB.openLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
 
         subscribeToHandler(statusA, statusB);
 

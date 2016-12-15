@@ -26,7 +26,7 @@ function* reportStatus(socket) {
 
   const msg = {
     type: "ClientStatus",
-    subscribedLiveLayerIds: yield select(selectors.selectLiveLayerIds),
+    openLayerIds: yield select(selectors.selectOpenLayerIds),
     selection: {
       entityIds: _.flatten(_.values(selection.ids)),
       seqNum: selection.seqNum,

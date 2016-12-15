@@ -66,7 +66,7 @@ public class UpdateServer {
             if (msg instanceof ClientStatusMessage) {
                 ClientStatusMessage csm = (ClientStatusMessage)msg;
                 LOG.info("[{}] Subscribed to layers {} + entities {}",
-                        session.getId(), stringify(csm.subscribedLiveLayerIds()), stringify(csm.selection().entityIds()));
+                        session.getId(), stringify(csm.openLayerIds()), stringify(csm.selection().entityIds()));
                 clientStatus.onNext(csm);
             } else if (msg instanceof PingMessage) {
                 LOG.info("[{}] Received ping", session.getId());
