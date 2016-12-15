@@ -2,6 +2,7 @@ package io.quartic.weyl;
 
 import org.apache.commons.lang3.tuple.Pair;
 import rx.Observable;
+import rx.Observable.Transformer;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +14,7 @@ import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 import static rx.Observable.just;
 
-public class Multiplexer<T, K, V> implements Observable.Transformer<Pair<T, List<K>>, Pair<T, List<V>>> {
+public class Multiplexer<T, K, V> implements Transformer<Pair<T, List<K>>, Pair<T, List<V>>> {
     private final Function<K, Observable<V>> mapper;
 
     public static <T, K, V> Multiplexer<T, K, V> create(Function<K, Observable<V>> mapper) {

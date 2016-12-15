@@ -37,6 +37,7 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
@@ -104,13 +105,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
 
-
-        final LayerRouter router = LayerRouterImpl.builder()
-                .populators(merge(
-                        sourceManager.layerPopulators(),
-                        computeResource.layerPopulators()
-                ))
-                .build();
+        final LayerRouter router = createRouter(merge(
+                sourceManager.layerPopulators(),
+                computeResource.layerPopulators()
+        ));
 
         final Observable<LayerSnapshotSequence> snapshotSequences = router.snapshotSequences();
 
@@ -144,6 +142,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 })
                 .build()
         );
+    }
+
+    private LayerRouterImpl createRouter(Observable<LayerPopulator> populators) {
+        return LayerRouterImpl.builder()
+                .populators(populators)
+                .build();
     }
 
     private UpdateServer createUpdateServer(

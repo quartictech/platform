@@ -44,6 +44,9 @@ public final class RxUtils {
         };
     }
 
+    /**
+     * Note that this mutates the map, so only the most-recently emitted item is valid.
+     */
     public static <R, K, V> Transformer<R, Map<K, V>> accumulateMap(Func1<R, K> toKey, Func1<R, V> toValue) {
         return observable -> observable.scan(newHashMap(), (prev, r) -> {
             prev.put(toKey.call(r), toValue.call(r));
@@ -51,6 +54,9 @@ public final class RxUtils {
         });
     }
 
+    /**
+     * Note that this mutates the set, so only the most-recently emitted item is valid.
+     */
     public static <R, V> Transformer<R, Set<V>> accumulateSet(Func1<R, V> toValue) {
         return observable -> observable.scan(newHashSet(), (prev, r) -> {
             prev.add(toValue.call(r));
