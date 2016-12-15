@@ -20,9 +20,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
     this.state = {
       settings: this.props.geofence.settings,
     };
-    this.onModeChange = this.onModeChange.bind(this);
-    this.onLayerChange = this.onLayerChange.bind(this);
-    this.onBufferDistanceChange = this.onBufferDistanceChange.bind(this);
+    this.updateDisplayedSettings = this.updateDisplayedSettings.bind(this);
     this.commitChanges = this.commitChanges.bind(this);
     this.undoChanges = this.undoChanges.bind(this);
     this.beginManualEditing = this.beginManualEditing.bind(this);
@@ -55,7 +53,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
             <Select
               entries={{ layer: "From layer", manual: "Manual" }}
               selectedKey={this.state.settings.mode}
-              onChange={this.onModeChange}
+              onChange={mode => this.updateDisplayedSettings({ mode })}
             />
 
             <PredictingPicker
@@ -63,7 +61,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               placeholder="Select layer..."
               entries={this.layerIdsToNames()}
               selectedKey={this.state.settings.layerId}
-              onChange={this.onLayerChange}
+              onChange={layerId => this.updateDisplayedSettings({ layerId })}
               disabled={this.state.settings.mode !== "layer"}
             />
           </div>
@@ -80,6 +78,15 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
         </label>
 
         <label className={Classes.LABEL}>
+          <div>Default alert level</div>
+          <Select
+            entries={{ INFO: "Info", WARNING: "Warning", SEVERE: "Severe" }}
+            selectedKey={this.state.settings.defaultLevel}
+            onChange={defaultLevel => this.updateDisplayedSettings({ defaultLevel })}
+          />
+        </label>
+
+        <label className={Classes.LABEL}>
           <div>Buffer distance (m)</div>
           <div style={{ margin: "10px" }}>
             <Slider
@@ -88,7 +95,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
               stepSize={10}
               labelStepSize={200}
               value={this.state.settings.bufferDistance}
-              onChange={(v) => this.onBufferDistanceChange(v)}
+              onChange={bufferDistance => this.updateDisplayedSettings({ bufferDistance })}
             />
           </div>
         </label>
@@ -119,6 +126,7 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
       (a.mode !== b.mode) ||
       (a.layerId !== b.layerId) ||
       (a.bufferDistance !== b.bufferDistance) ||
+      (a.defaultLevel !== b.defaultLevel) ||
       this.props.geofence.manualControlsVisible
     );
   }
@@ -135,18 +143,6 @@ class GeofenceSettingsPane extends React.Component { // eslint-disable-line reac
   undoChanges() {
     this.props.onSetManualControlsVisibility(false);
     this.updateDisplayedSettings(this.props.geofence.settings);
-  }
-
-  onModeChange(mode) {
-    this.updateDisplayedSettings({ mode });
-  }
-
-  onLayerChange(layerId) {
-    this.updateDisplayedSettings({ layerId });
-  }
-
-  onBufferDistanceChange(bufferDistance) {
-    this.updateDisplayedSettings({ bufferDistance });
   }
 
   beginManualEditing() {
