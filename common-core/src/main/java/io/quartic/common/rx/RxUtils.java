@@ -5,7 +5,8 @@ import org.immutables.value.Value;
 import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Func1;
-import rx.observables.ConnectableObservable;
+import rx.internal.util.ObserverSubscriber;
+import rx.subjects.BehaviorSubject;
 
 import java.util.List;
 import java.util.Map;
@@ -37,10 +38,9 @@ public final class RxUtils {
      */
     public static <T> Transformer<T, T> likeBehavior() {
         return observable -> {
-            ConnectableObservable<T> connectable = observable.replay(1);
-            connectable.connect();
-            connectable.subscribe();
-            return connectable;
+            BehaviorSubject<T> bs = BehaviorSubject.create();
+            observable.subscribe(new ObserverSubscriber<>(bs));
+            return bs;
         };
     }
 
