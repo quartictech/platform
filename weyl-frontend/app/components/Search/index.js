@@ -25,7 +25,11 @@ class Search extends React.Component {
   }
 
   formatLayerList() {
-    return _.object(_.map(this.props.layerList, item => [item.id, { name: item.metadata.name, description: item.metadata.description }]));
+    return _.object(_.map(this.props.layerList, item => [item.id, {
+      name: item.metadata.name,
+      description: item.metadata.description,
+      category: item.live ? "Live layers" : "Static layers",
+    }]));
   }
 
   onChange(layerId) {
