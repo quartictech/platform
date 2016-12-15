@@ -8,7 +8,6 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
-import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -69,7 +68,6 @@ public class GeofenceStatusHandlerShould {
     private final NakedFeature featureA = NakedFeatureImpl.of(Optional.empty(), polygon(5.0), featureAttributes);
     private final NakedFeature featureB = NakedFeatureImpl.of(Optional.empty(), polygon(6.0), featureAttributes);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
-    private final LayerStore layerStore = mock(LayerStore.class);
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
     private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, snapshotSequences, converter);

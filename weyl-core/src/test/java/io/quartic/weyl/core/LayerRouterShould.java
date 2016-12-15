@@ -27,14 +27,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.empty;
 
-public class LayerStoreShould {
+public class LayerRouterShould {
     private static final LayerId LAYER_ID = LayerId.fromString("666");
     private static final LayerId OTHER_LAYER_ID = LayerId.fromString("777");
 
     private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
     private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
-    private final LayerStore store = LayerStoreImpl.builder()
+    private final LayerRouter router = LayerRouterImpl.builder()
             .populators(populators)
             .entityStore(entityStore)
             .snapshotReducer(snapshotReducer)
@@ -101,7 +101,7 @@ public class LayerStoreShould {
         mockSnapshotCreationFor(specB);
 
         TestSubscriber<LayerSnapshotSequence> sub = TestSubscriber.create();
-        store.snapshotSequences().subscribe(sub);
+        router.snapshotSequences().subscribe(sub);
 
         createLayer(specA);
         createLayer(specB);
@@ -117,7 +117,7 @@ public class LayerStoreShould {
         final Snapshot update2 = mockSnapshotReductionFor(update1);
 
         TestSubscriber<Snapshot> sub = TestSubscriber.create();
-        store.snapshotSequences().subscribe(s -> s.snapshots().subscribe(sub)); // Subscribe to the nested snapshot observable
+        router.snapshotSequences().subscribe(s -> s.snapshots().subscribe(sub)); // Subscribe to the nested snapshot observable
 
         PublishSubject<LayerUpdate> updates = createLayer(spec);
         updates.onNext(mock(LayerUpdate.class));

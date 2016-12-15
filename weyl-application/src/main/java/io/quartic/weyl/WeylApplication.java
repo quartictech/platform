@@ -24,8 +24,8 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.LayerStore;
-import io.quartic.weyl.core.LayerStoreImpl;
+import io.quartic.weyl.core.LayerRouter;
+import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.ObservableStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.alert.AlertProcessor;
@@ -107,20 +107,20 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
 
         final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
-        final LayerStore layerStore = LayerStoreImpl.builder()
+        final LayerRouter router = LayerRouterImpl.builder()
                 .populators(merge(
                         sourceManager.layerPopulators(),
                         computeResource.layerPopulators()
                 ))
                 .entityStore(entityStore)
                 .build();
-        final Observable<LayerSnapshotSequence> snapshotSequences = layerStore.snapshotSequences();
+        final Observable<LayerSnapshotSequence> snapshotSequences = router.snapshotSequences();
 
         final AlertResource alertResource = new AlertResource();
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(computeResource);
-        environment.jersey().register(new TileResource(layerStore.snapshotSequences()));
+        environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
         final SelectionHandler selectionHandler = createSelectionHandler(entityStore);

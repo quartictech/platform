@@ -32,8 +32,8 @@ import static rx.Observable.just;
 
 @SweetStyle
 @Value.Immutable
-public abstract class LayerStore {
-    private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
+public abstract class LayerRouter {
+    private static final Logger LOG = LoggerFactory.getLogger(LayerRouter.class);
 
     protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract Observable<LayerPopulator> populators();
@@ -45,7 +45,7 @@ public abstract class LayerStore {
 
     @SweetStyle
     @Value.Immutable
-    public interface State {
+    interface State {
         Map<LayerId, LayerSnapshotSequence> sequences();
         Observable<LayerSnapshotSequence> latest();
     }
@@ -60,18 +60,21 @@ public abstract class LayerStore {
     }
 
     private State nextState(State state, LayerPopulator populator) {
-        final Map<LayerId, Layer> layers = state.sequences()
-                .entrySet()
-                .stream()
-                .collect(toMap(Entry::getKey, e -> latest(e.getValue().snapshots()).absolute()));
-
+        final Map<LayerId, Layer> layers = latestLayerSnapshots(state);
         final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(layers, populator);
 
         final StateImpl.Builder builder = StateImpl.builder()
                 .latest(nextSequence)
-                .sequences(state.sequences());
+                .sequences(state.sequences());  // Rebuilding the map each time is expensive, but we're doing this infrequently
         nextSequence.subscribe(s -> builder.sequence(s.id(), s));
         return builder.build();
+    }
+
+    private Map<LayerId, Layer> latestLayerSnapshots(State state) {
+        return state.sequences()
+                .entrySet()
+                .stream()
+                .collect(toMap(Entry::getKey, e -> latest(e.getValue().snapshots()).absolute()));
     }
 
     private Observable<LayerSnapshotSequence> maybeCreateSequence(Map<LayerId, Layer> layers, LayerPopulator populator) {
