@@ -1,6 +1,7 @@
 package io.quartic.weyl.core;
 
 import io.quartic.common.SweetStyle;
+import io.quartic.common.rx.RxUtils;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -17,13 +18,14 @@ import rx.Observable.Transformer;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
-import static io.quartic.common.rx.RxUtils.latest;
 import static io.quartic.common.rx.RxUtils.likeBehavior;
-import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static rx.Observable.empty;
 import static rx.Observable.just;
@@ -43,13 +45,13 @@ public abstract class LayerRouter {
     @SweetStyle
     @Value.Immutable
     interface State {
-        Map<LayerId, LayerSnapshotSequence> sequences();
+        Set<LayerSnapshotSequence> sequences();
         Observable<LayerSnapshotSequence> latest();
     }
 
     @Value.Derived
     public Observable<LayerSnapshotSequence> snapshotSequences() {
-        final State initialState = StateImpl.of(emptyMap(), empty());
+        final State initialState = StateImpl.of(emptySet(), empty());
         return populators()
                 .scan(initialState, this::nextState)
                 .flatMap(State::latest)
@@ -57,21 +59,30 @@ public abstract class LayerRouter {
     }
 
     private State nextState(State state, LayerPopulator populator) {
-        final Map<LayerId, Layer> layers = latestLayerSnapshots(state);
-        final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(layers, populator);
+        final Set<LayerSnapshotSequence> sequences = state.sequences();
+        final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(latestLayerSnapshots(sequences), populator);
 
         final StateImpl.Builder builder = StateImpl.builder()
                 .latest(nextSequence)
-                .sequences(state.sequences());  // Rebuilding the map each time is expensive, but we're doing this infrequently
-        nextSequence.subscribe(s -> builder.sequence(s.spec().id(), s));
+                .sequences(sequences);  // Rebuilding the map each time is expensive, but we're doing this infrequently
+        nextSequence.subscribe(builder::sequence);
         return builder.build();
     }
 
-    private Map<LayerId, Layer> latestLayerSnapshots(State state) {
-        return state.sequences()
-                .entrySet()
+    private Map<LayerId, Layer> latestLayerSnapshots(Set<LayerSnapshotSequence> sequences) {
+        return sequences
                 .stream()
-                .collect(toMap(Entry::getKey, e -> latest(e.getValue().snapshots()).absolute()));
+                .flatMap(this::latest)
+                .collect(toMap(layer -> layer.spec().id(), identity()));
+    }
+
+    // Deal with completed (i.e. deleted) layers
+    private Stream<Layer> latest(LayerSnapshotSequence sequence) {
+        try {
+            return Stream.of(RxUtils.latest(sequence.snapshots()).absolute());
+        } catch (Exception e) {
+            return Stream.empty();
+        }
     }
 
     private Observable<LayerSnapshotSequence> maybeCreateSequence(Map<LayerId, Layer> layers, LayerPopulator populator) {

@@ -18,6 +18,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,6 +63,39 @@ public class LayerRouterShould {
 
         verify(populator).spec(singletonList(dependency.absolute()));
         verify(populator).updates(singletonList(dependency.absolute()));
+        verify(snapshotReducer).create(specDependency);
+        verify(snapshotReducer).create(specDependent);
+    }
+
+    @Test
+    public void prevent_layer_creation_if_dependencies_have_completed() throws Exception {
+        final LayerSpec specDependency = spec(LAYER_ID);
+        final LayerSpec specDependent = spec(OTHER_LAYER_ID);
+        mockSnapshotCreationFor(specDependency);
+        mockSnapshotCreationFor(specDependent);
+
+        createLayer(specDependency).onCompleted();
+
+        final LayerPopulator populator = mock(LayerPopulator.class);
+        when(populator.dependencies()).thenReturn(singletonList(LAYER_ID)); // Specify another layer as a dependency
+        populators.onNext(populator);
+
+        verify(snapshotReducer, times(1)).create(specDependency);
+        verify(snapshotReducer, never()).create(specDependent);
+    }
+
+    @Test
+    public void not_prevent_layer_creation_if_non_dependencies_have_completed() throws Exception {
+        final LayerSpec specA = spec(LAYER_ID);
+        final LayerSpec specB = spec(OTHER_LAYER_ID);
+        mockSnapshotCreationFor(specA);
+        mockSnapshotCreationFor(specB);
+
+        createLayer(specA).onCompleted();
+        createLayer(specB);
+
+        verify(snapshotReducer).create(specA);
+        verify(snapshotReducer).create(specB);
     }
 
     @Test

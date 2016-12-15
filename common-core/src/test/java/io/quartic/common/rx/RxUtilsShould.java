@@ -9,10 +9,13 @@ import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
+import static io.quartic.common.rx.RxUtils.latest;
 import static io.quartic.common.rx.RxUtils.likeBehavior;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class RxUtilsShould {
@@ -51,6 +54,24 @@ public class RxUtilsShould {
                 contains(1),
                 empty()
         );
+    }
+
+    @Test
+    public void return_latest_item() throws Exception {
+        final BehaviorSubject<Integer> subject = BehaviorSubject.create();
+        subject.onNext(1);
+        subject.onNext(2);
+
+        assertThat(latest(subject), equalTo(2));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void throw_on_latest_if_terminated() throws Exception {
+        final BehaviorSubject<Integer> subject = BehaviorSubject.create();
+        subject.onNext(1);
+        subject.onCompleted();
+
+        latest(subject);
     }
 
     private void assertBeforeDuringAfter(

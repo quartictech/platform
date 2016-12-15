@@ -43,7 +43,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
 
         return combineLatest(keys, sequenceMap, this::collectSequences)
                 .distinctUntilChanged()
-                .switchMap(Observable::merge)
+                .switchMap(Observable::merge)   // switchMap (and thus resubscription) is fine because we only care about absolute state
                 .map(this::toMessage);
     }
 
