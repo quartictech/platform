@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import no.ecc.vectortile.VectorTileEncoder;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static io.quartic.weyl.core.feature.FeatureConverter.getRawProperties;
 
@@ -63,7 +65,7 @@ public class VectorTileRenderer {
             final AtomicInteger featureCount = new AtomicInteger();
 
             Stopwatch stopwatch = Stopwatch.createStarted();
-            layer.intersects(envelope).parallel().map( (feature) -> VectorTileFeature.of(
+            layerIntersection(layer, envelope).map( (feature) -> VectorTileFeature.of(
                     scaleGeometry(feature.feature().geometry(), envelope),
                     getRawProperties(feature.feature()))
             ).sequential().forEach(vectorTileFeature -> {
@@ -74,6 +76,11 @@ public class VectorTileRenderer {
         }
 
         return encoder.encode();
+    }
+
+    private Stream<IndexedFeature> layerIntersection(Layer layer, Envelope envelope) {
+        //noinspection unchecked
+        return layer.spatialIndex().query(envelope).stream();
     }
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {
