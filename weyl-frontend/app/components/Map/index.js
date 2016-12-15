@@ -352,10 +352,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.map.targetLocation !== this.props.map.targetLocation) {
-      this.map.flyTo({ center: nextProps.map.targetLocation, zoom: 16 });
-    }
-
     if (nextProps.map.theme !== this.props.map.theme) {
       this.props.onMapLoading();
       this.map.setStyle(mapThemes[nextProps.map.theme].mapbox);

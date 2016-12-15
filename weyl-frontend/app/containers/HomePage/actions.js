@@ -84,6 +84,8 @@ export function clearSelection() {
   };
 }
 
+// Map
+
 export function mapLoading() {
   return {
     type: constants.MAP_LOADING,
@@ -110,11 +112,6 @@ export function mapMouseClick(feature, multiSelectEnabled) {
     multiSelectEnabled,
   };
 }
-
-export const mapSetLocation = (location) => ({
-  type: constants.MAP_SET_LOCATION,
-  location,
-});
 
 // Geofence
 

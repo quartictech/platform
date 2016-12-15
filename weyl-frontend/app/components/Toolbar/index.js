@@ -31,9 +31,9 @@ function Toolbar(props) {
 
           <span className="pt-navbar-divider"></span>
           <Search
+            layerList={props.layerList}
             onSearch={props.onSearch}
             onSelectLayer={props.onSelectLayer}
-            onSelectPlace={props.onSelectPlace}
           />
 
           <span className="pt-navbar-divider"></span>

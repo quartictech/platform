@@ -42,9 +42,9 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 
         <div className={styles.topDrawer}>
           <Toolbar
+            layerList={this.props.layerList}
             onSearch={this.props.onSearch}
             onSelectLayer={this.props.onSelectLayer}
-            onSelectPlace={this.props.onSelectPlace}
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
             geofencePaneVisible={this.props.geofence.paneVisible}
@@ -114,7 +114,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 const mapDispatchToProps = {
   onSearch: actions.search,
   onSelectLayer: actions.layerCreate,
-  onSelectPlace: actions.mapSetLocation,
   layerToggleVisible: actions.layerToggleVisible,
   layerClose: actions.layerClose,
   onCompute: actions.layerComputation,
@@ -135,6 +134,7 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
+  layerList: selectors.selectLayerList,
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
   selection: selectors.selectSelection,
