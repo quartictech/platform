@@ -49,7 +49,7 @@ import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.ComputeResourceImpl;
-import io.quartic.weyl.resource.TileResource;
+import io.quartic.weyl.resource.TileResourceImpl;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
@@ -116,7 +116,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(computeResource);
-        environment.jersey().register(new TileResource(snapshotSequences));
+        environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
         final SelectionHandler selectionHandler = createSelectionHandler(snapshotSequences);
@@ -142,6 +142,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 })
                 .build()
         );
+    }
+
+    private TileResourceImpl createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
+        return TileResourceImpl.builder()
+                .snapshotSequences(snapshotSequences)
+                .build();
     }
 
     private LayerRouterImpl createRouter(Observable<LayerPopulator> populators) {
