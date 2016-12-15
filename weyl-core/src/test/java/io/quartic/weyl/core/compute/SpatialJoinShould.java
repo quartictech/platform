@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.SnapshotReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -18,6 +17,7 @@ import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class SpatialJoinShould {
+
     @Test
     public void join_a_polygon_containing_a_point() throws Exception {
         NakedFeature polyA = square(0, 0, 0.1);
@@ -54,7 +55,7 @@ public class SpatialJoinShould {
                 LayerId.fromString(layerId),
                 LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
                 IDENTITY_VIEW,
-                AttributeSchemaImpl.builder().build(),
+                StaticSchemaImpl.builder().build(),
                 true
         );
 

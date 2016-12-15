@@ -89,7 +89,7 @@ public class LayerListUpdateGeneratorShould {
                 snapshot.absolute().spec().id(),
                 snapshot.absolute().spec().metadata(),
                 snapshot.absolute().stats(),
-                snapshot.absolute().spec().schema(),
+                snapshot.absolute().spec().staticSchema(),
                 !snapshot.absolute().spec().indexable()
         );
     }

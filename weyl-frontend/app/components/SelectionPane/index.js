@@ -80,19 +80,19 @@ const singleLayer = (entityIds, layers) => layers[_.keys(entityIds)[0]];
 
 const getBehavior = (layer) => {
   const layerName = layer.metadata.name;
-  const schema = layer.schema;
-  const attributeKeys = schema.attributes;
-  const nonCuratedTitle = (schema.titleAttribute
-    ? ((x) => ((schema.titleAttribute in x) ? x[schema.titleAttribute] : "<< Unknown title >>"))
+  const staticSchema = layer.staticSchema;
+  const attributeKeys = layer.dynamicSchema.attributes;
+  const nonCuratedTitle = (staticSchema.titleAttribute
+    ? ((x) => ((staticSchema.titleAttribute in x) ? x[staticSchema.titleAttribute] : "<< Unknown title >>"))
     : defaultTitle);
   return {
     title: (layerName in curatedTitles) ? curatedTitles[layerName] : nonCuratedTitle,
-    imageUrlKey: schema.imageAttribute,
-    isAnythingBlessed: schema.blessedAttributes.length > 0,
+    imageUrlKey: staticSchema.imageAttribute,
+    isAnythingBlessed: staticSchema.blessedAttributes.length > 0,
     // In the specified order
-    blessedAttributeOrder: schema.blessedAttributes.filter(k => k in attributeKeys),
+    blessedAttributeOrder: staticSchema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
-    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (schema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
+    unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (staticSchema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
   };
 };
 

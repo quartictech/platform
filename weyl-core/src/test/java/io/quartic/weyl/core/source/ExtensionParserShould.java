@@ -3,15 +3,14 @@ package io.quartic.weyl.core.source;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static io.quartic.weyl.core.source.ExtensionParser.DEFAULT_EXTENSION;
 import static io.quartic.weyl.core.source.ExtensionParser.EXTENSION_KEY;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -36,7 +35,7 @@ public class ExtensionParserShould {
         final Map<String, Object> raw = ImmutableMap.of("viewType", "LOCATION_AND_TRACK");
 
         assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK, Optional.empty(), Optional.empty(), emptyList())));
+                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK, StaticSchemaImpl.builder().build())));
     }
 
     @Test
@@ -47,6 +46,7 @@ public class ExtensionParserShould {
         );
 
         assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK, Optional.of(AttributeNameImpl.of("foo")), Optional.empty(), emptyList())));
+                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
+                        StaticSchemaImpl.builder().titleAttribute(AttributeNameImpl.of("foo")).build())));
     }
 }

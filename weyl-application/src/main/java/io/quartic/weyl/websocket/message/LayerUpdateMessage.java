@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;
 
@@ -14,6 +14,6 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = LayerUpdateMessageImpl.class)
 public interface LayerUpdateMessage extends SocketMessage {
     LayerId layerId();
-    AttributeSchema schema();
+    DynamicSchema dynamicSchema();
     FeatureCollection featureCollection();
 }

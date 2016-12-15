@@ -3,8 +3,6 @@ package io.quartic.weyl.core;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeSchema;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -18,6 +16,8 @@ import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.StaticSchema;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -54,7 +54,7 @@ public class SnapshotReducerShould {
         Snapshot original = initialSnapshot();
         Snapshot updated = reducer.next(original, updateFor(nakedFeature(Optional.of("a"))));
 
-        assertThat(updated.absolute().spec().schema().blessedAttributes(), contains(AttributeNameImpl.of("blah")));
+        assertThat(updated.absolute().spec().staticSchema().blessedAttributes(), contains(AttributeNameImpl.of("blah")));
     }
 
     @Test
@@ -88,8 +88,10 @@ public class SnapshotReducerShould {
         );
     }
 
-    private static AttributeSchema schema(String blessed) {
-        return AttributeSchemaImpl.builder().blessedAttribute(AttributeNameImpl.of(blessed)).build();
+    private static StaticSchema schema(String blessed) {
+        return StaticSchemaImpl.builder()
+                .blessedAttribute(AttributeNameImpl.of(blessed))
+                .build();
     }
 
     private static LayerMetadata metadata(String name, String description) {

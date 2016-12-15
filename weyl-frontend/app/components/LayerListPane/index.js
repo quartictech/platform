@@ -76,7 +76,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         ),
         secondaryLabel: this.layerButtons(layer),
         childNodes: this.attributeNodes(
-          layer.schema.attributes,
+          layer.dynamicSchema.attributes,
           layer.filter,
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
         ),
@@ -191,8 +191,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         </MenuItem>
         <MenuItem iconName="tint" text="Colour by...">
           {
-            _.keys(layer.schema.attributes)
-              .filter(k => layer.schema.attributes[k].type === "NUMERIC")
+            _.keys(layer.dynamicSchema.attributes)
+              .filter(k => layer.dynamicSchema.attributes[k].type === "NUMERIC")
               .sort(naturalsort)
               .map(k =>
                 <MenuItem

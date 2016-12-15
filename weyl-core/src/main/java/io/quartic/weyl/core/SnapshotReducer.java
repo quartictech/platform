@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.weyl.core.feature.FeatureCollection;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -16,7 +15,6 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerImpl;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerStatsImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
@@ -30,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
+import static io.quartic.weyl.core.model.DynamicSchema.EMPTY_SCHEMA;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
@@ -43,6 +42,7 @@ public class SnapshotReducer {
                 LayerImpl.builder()
                         .spec(spec)
                         .features(EMPTY_COLLECTION)
+                        .dynamicSchema(EMPTY_SCHEMA)
                         .spatialIndex(new STRtree())
                         .indexedFeatures(ImmutableList.of())
                         .stats(LayerStatsImpl.of(emptyMap(), 0))
@@ -64,18 +64,14 @@ public class SnapshotReducer {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
-                .withSpec(LayerSpecImpl.copyOf(layer.spec())
-                        .withSchema(AttributeSchemaImpl.copyOf(layer.spec().schema())
-                                .withAttributes(inferSchema(features, layer.spec().schema().attributes()))
-                        )
-                );
+                .withDynamicSchema(inferSchema(features, layer.dynamicSchema()));
 
         if (layer.spec().indexable()) {
             final Collection<IndexedFeature> indexedFeatures = indexedFeatures(updatedFeatures);
             return withFeatures
                     .withSpatialIndex(spatialIndex(indexedFeatures))
                     .withIndexedFeatures(indexedFeatures)
-                    .withStats(calculateStats(withFeatures.spec().schema(), updatedFeatures));
+                    .withStats(calculateStats(withFeatures.dynamicSchema(), updatedFeatures));
         } else {
             return withFeatures;
         }

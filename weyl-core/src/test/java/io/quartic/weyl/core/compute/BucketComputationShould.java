@@ -3,12 +3,8 @@ package io.quartic.weyl.core.compute;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
-import io.quartic.weyl.core.model.Attribute;
-import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeSchema;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -18,6 +14,8 @@ import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.StaticSchema;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +32,6 @@ import static io.quartic.common.test.CollectionUtils.entry;
 import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
-import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -77,14 +74,9 @@ public class BucketComputationShould {
                         Optional.empty()
                 ),
                 IDENTITY_VIEW,
-                bucketSchema()
+                StaticSchemaImpl.copyOf(bucketSchema())
                         .withPrimaryAttribute(name("Foo"))
-                        .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB"))
-                        .withAttributes(ImmutableMap.<AttributeName, Attribute>builder()
-                                .putAll(bucketLayer.spec().schema().attributes())
-                                .put(name("Foo"), AttributeImpl.of(NUMERIC, Optional.empty()))
-                                .build()
-                        ),
+                        .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB")),
                 true
         )));
     }
@@ -144,23 +136,20 @@ public class BucketComputationShould {
     }
 
     private Layer bucketLayer() {
-        final AttributeSchema schema = bucketSchema();
-
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.spec().metadata().name()).thenReturn("Bar");
-        when(layer.spec().schema()).thenReturn(schema);
+        when(layer.spec().staticSchema()).thenReturn(bucketSchema());
         when(layer.indexedFeatures()).thenReturn(emptyList());
         return layer;
     }
 
-    private AttributeSchemaImpl bucketSchema() {
-        return AttributeSchemaImpl.of(
-                    Optional.of(name("Title")),
-                    Optional.of(name("Primary")),
-                    Optional.of(name("Image")),
-                    newArrayList(name("BlessedA"), name("BlessedB")),
-                    ImmutableMap.of(name("WhateverC"), mock(Attribute.class), name("WhateverD"), mock(Attribute.class))
-            );
+    private StaticSchema bucketSchema() {
+        return StaticSchemaImpl.of(
+                Optional.of(name("Title")),
+                Optional.of(name("Primary")),
+                Optional.of(name("Image")),
+                newArrayList(name("BlessedA"), name("BlessedB"))
+        );
     }
 
     private FeatureImpl bucketFeature() {

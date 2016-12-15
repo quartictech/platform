@@ -5,6 +5,8 @@ import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.DynamicSchema;
+import io.quartic.weyl.core.model.DynamicSchemaImpl;
 import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
@@ -30,15 +32,16 @@ public class AttributeSchemaInferrer {
 
     public static final int MAX_CATEGORIES = 19;
 
-    public static Map<AttributeName, Attribute> inferSchema(Collection<Feature> newFeatures, Map<AttributeName, Attribute> previousInference) {
+    public static DynamicSchema inferSchema(Collection<Feature> newFeatures, DynamicSchema previousInference) {
         final List<Attributes> attributes = newFeatures.stream().map(Feature::attributes).collect(toList());
         if (attributes.isEmpty()) {
-            return emptyMap();
+            return DynamicSchemaImpl.of(emptyMap());
         }
 
         final Collection<AttributeName> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
-        return names.parallelStream()
-                .collect(toConcurrentMap(identity(), attribute -> inferAttribute(attribute, attributes, previousInference)));
+        return DynamicSchemaImpl.of(names.parallelStream()
+                .collect(toConcurrentMap(identity(), attribute -> inferAttribute(attribute, attributes, previousInference.attributes())))
+        );
     }
 
     private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes, Map<AttributeName, Attribute> previousInference) {

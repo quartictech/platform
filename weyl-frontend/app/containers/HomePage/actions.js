@@ -19,7 +19,7 @@ export function layerCreate(result) {
     id: result.id,
     metadata: result.metadata,
     stats: result.stats,
-    schema: result.schema,
+    staticSchema: result.staticSchema,
     live: result.live,
   };
 }
@@ -54,12 +54,12 @@ export function layerClose(layerId) {
   };
 }
 
-export function layerSetData(layerId, data, schema) {
+export function layerSetData(layerId, data, dynamicSchema) {
   return {
     type: constants.LAYER_SET_DATA,
     layerId,
     data,
-    schema,
+    dynamicSchema,
   };
 }
 

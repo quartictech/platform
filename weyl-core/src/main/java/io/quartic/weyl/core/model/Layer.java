@@ -13,6 +13,7 @@ import java.util.Collection;
 public interface Layer {
     LayerSpec spec();
     FeatureCollection features();
+    DynamicSchema dynamicSchema();
 
     // Index features
     SpatialIndex spatialIndex();

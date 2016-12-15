@@ -1,4 +1,4 @@
-import { fromJS, OrderedMap, Set } from "immutable";
+import { fromJS, OrderedMap } from "immutable";
 import { layerThemes } from "../../../themes";
 import * as constants from "../constants";
 const _ = require("underscore");
@@ -51,7 +51,7 @@ const layerReducer = (state, action) => {
     case constants.LAYER_SET_DATA:
       return state
         .set("data", action.data)
-        .set("schema", action.schema);
+        .set("dynamicSchema", action.dynamcicSchema);
 
     default:
       return state;
@@ -63,24 +63,19 @@ const newLayer = (action) => fromJS({
   metadata: action.metadata,
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(action.schema.primaryAttribute, 0),
+  style: defaultLayerStyle(action.staticSchema.primaryAttribute, 0),
   stats: action.stats,
-  schema: action.schema,
+  staticSchema: action.staticSchema,
+  dynamicSchema: {
+    attributes: {},
+  },
   live: action.live,
   data: {
     type: "FeatureCollection",
     features: [],
   },   // Only relevant in the case of live layers
-  filter: defaultFilter(action.schema),
+  filter: {},
 });
-
-const defaultFilter = (schema) =>
-  _.chain(schema.attributes)
-    .keys()
-    .filter(k => schema.attributes[k].categories !== null)
-    .map(k => [k, { notApplicable: false, categories: new Set() }])
-    .object()
-    .value();
 
 const defaultLayerStyle = (attribute, themeIdx) => ({
   type: "DEFAULT",

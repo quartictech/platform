@@ -6,7 +6,6 @@ import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
@@ -14,6 +13,7 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.SnapshotImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
@@ -24,7 +24,6 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -86,7 +85,7 @@ public class OpenLayerHandlerShould {
 
         completeInputsAndAwait();
         verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
-        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, snapshot.absolute().spec().schema(), featureCollection())));
+        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, snapshot.absolute().dynamicSchema(), featureCollection())));
     }
 
     @Test
@@ -142,8 +141,8 @@ public class OpenLayerHandlerShould {
 
         completeInputsAndAwait();
         assertThat(sub.getOnNextEvents(), containsInAnyOrder(
-                LayerUpdateMessageImpl.of(idA, snapshotA.absolute().spec().schema(), featureCollection()),
-                LayerUpdateMessageImpl.of(idB, snapshotB.absolute().spec().schema(), featureCollection())
+                LayerUpdateMessageImpl.of(idA, snapshotA.absolute().dynamicSchema(), featureCollection()),
+                LayerUpdateMessageImpl.of(idB, snapshotB.absolute().dynamicSchema(), featureCollection())
         ));
     }
 
@@ -174,15 +173,12 @@ public class OpenLayerHandlerShould {
     }
 
     private Snapshot snapshot(LayerId id, boolean live) {
-        final AttributeSchema schema = mock(AttributeSchema.class);
-        final Collection<Feature> features = newArrayList(mock(Feature.class), mock(Feature.class));
-
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.spec().id()).thenReturn(id);
         when(layer.spec().view()).thenReturn(IDENTITY_VIEW);
-        when(layer.spec().schema()).thenReturn(schema);
+        when(layer.spec().staticSchema()).thenReturn(mock(StaticSchema.class));
         when(layer.spec().indexable()).thenReturn(!live);
-        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(features));
+        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
         return SnapshotImpl.of(layer, emptyList());
     }
 

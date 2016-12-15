@@ -42,7 +42,7 @@ public class LayerListUpdateGenerator implements Observable.Transformer<LayerSna
                 layer.spec().id(),
                 layer.spec().metadata(),
                 layer.stats(),
-                layer.spec().schema(),
+                layer.spec().staticSchema(),
                 !layer.spec().indexable()
         );
     }

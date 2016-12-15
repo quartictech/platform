@@ -56,7 +56,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
         Stream<Feature> computed = layer.spec().view().compute(features);
         return LayerUpdateMessageImpl.builder()
                 .layerId(layer.spec().id())
-                .schema(layer.spec().schema())
+                .dynamicSchema(layer.dynamicSchema())
                 .featureCollection(featureConverter.toGeojson(computed.collect(toList())))  // TODO: obviously we never want to do this with large static layers
                 .build();
     }

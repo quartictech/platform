@@ -127,8 +127,9 @@ class Bucket extends React.Component { // eslint-disable-line react/prefer-state
     const selectedFeatureLayer = this.props.layers.get(this.state.selectedLayer);
     const numericAttributes = [];
     if (selectedFeatureLayer !== undefined) {
-      for (const key of Object.keys(selectedFeatureLayer.toJS().schema.attributes)) {
-        const attribute = selectedFeatureLayer.toJS().schema.attributes[key];
+      const attributes = selectedFeatureLayer.toJS().dynamicSchema.attributes;
+      for (const key of Object.keys(attributes)) {
+        const attribute = attributes[key];
         if (attribute.type === "NUMERIC") {
           numericAttributes.push(key);
         }
