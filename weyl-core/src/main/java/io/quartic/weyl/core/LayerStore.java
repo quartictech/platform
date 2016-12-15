@@ -1,11 +1,8 @@
 package io.quartic.weyl.core;
 
-import com.google.common.collect.Maps;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -14,23 +11,22 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.SnapshotImpl;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
+import rx.Observable.Transformer;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
+import static io.quartic.common.rx.RxUtils.latest;
 import static io.quartic.common.rx.RxUtils.likeBehavior;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -38,67 +34,70 @@ import static rx.Observable.just;
 @Value.Immutable
 public abstract class LayerStore {
     private static final Logger LOG = LoggerFactory.getLogger(LayerStore.class);
-    private final Map<LayerId, Layer> layers = Maps.newConcurrentMap();
-    private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
     protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract Observable<LayerPopulator> populators();
 
     @Value.Default
-    protected LayerReducer layerReducer() {
-        return new LayerReducer();
+    protected SnapshotReducer snapshotReducer() {
+        return new SnapshotReducer();
+    }
+
+    @SweetStyle
+    @Value.Immutable
+    public interface State {
+        Map<LayerId, LayerSnapshotSequence> sequences();
+        Observable<LayerSnapshotSequence> latest();
     }
 
     @Value.Derived
     public Observable<LayerSnapshotSequence> snapshotSequences() {
+        final State initialState = StateImpl.of(emptyMap(), empty());
         return populators()
-                .flatMap(this::populatorToSnapshotSequence)
+                .scan(initialState, this::nextState)
+                .flatMap(State::latest)
                 .compose(likeBehavior());
     }
 
-    private Observable<LayerSnapshotSequence> populatorToSnapshotSequence(LayerPopulator populator) {
+    private State nextState(State state, LayerPopulator populator) {
+        final Map<LayerId, Layer> layers = state.sequences()
+                .entrySet()
+                .stream()
+                .collect(toMap(Entry::getKey, e -> latest(e.getValue().snapshots()).absolute()));
+
+        final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(layers, populator);
+
+        final StateImpl.Builder builder = StateImpl.builder()
+                .latest(nextSequence)
+                .sequences(state.sequences());
+        nextSequence.subscribe(s -> builder.sequence(s.id(), s));
+        return builder.build();
+    }
+
+    private Observable<LayerSnapshotSequence> maybeCreateSequence(Map<LayerId, Layer> layers, LayerPopulator populator) {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
             checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().uid());
 
-            final Observable<Snapshot> snapshots = populator.updates(dependencies)
-                    .scan(initialSnapshot(spec), this::nextSnapshot)
-                    .doOnNext(this::recordSnapshot)
-                    .compose(likeBehavior());   // These need to flow regardless of whether anybody's currently subscribed
-            return just(LayerSnapshotSequenceImpl.of(spec.id(), snapshots));
+            return just(LayerSnapshotSequenceImpl.of(
+                    spec.id(),
+                    populator.updates(dependencies).compose(toSnapshots(spec))
+            ));
 
         } catch (Exception e) {
-            LOG.error("Could not populate layer", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
+            LOG.error("Could not create sequence", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
             return empty();
         }
     }
 
-    private Snapshot initialSnapshot(LayerSpec spec) {
-        return SnapshotImpl.of(layerReducer().create(spec), emptyList());
+    private Transformer<LayerUpdate, Snapshot> toSnapshots(LayerSpec spec) {
+        return updates -> updates.scan(snapshotReducer().create(spec), (s, u) -> snapshotReducer().next(s, u))
+                .doOnNext(this::performSideEffects)
+                .compose(likeBehavior());      // These need to flow regardless of whether anybody's currently subscribed;
     }
 
-    private Snapshot nextSnapshot(Snapshot previous, LayerUpdate update) {
-        final Layer prevLayer = previous.absolute();
-
-        LOG.info("[{}] Accepted {} features", prevLayer.spec().metadata().name(), update.features().size());
-
-        final Collection<Feature> elaborated = elaborate(prevLayer.spec().id(), update.features());
-        return SnapshotImpl.of(layerReducer().reduce(prevLayer, elaborated), elaborated);
-    }
-
-    private void recordSnapshot(Snapshot snapshot) {
-        final Layer layer = snapshot.absolute();
-        layers.put(layer.spec().id(), layer);
+    private void performSideEffects(Snapshot snapshot) {
         entityStore().putAll(Feature::entityId, snapshot.diff());
-    }
-
-    private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
-        return features.stream().map(f -> FeatureImpl.of(
-                EntityIdImpl.of(layerId.uid() + "/" +
-                        f.externalId().orElse(String.valueOf(missingExternalIdGenerator.incrementAndGet()))),
-                f.geometry(),
-                f.attributes()
-        )).collect(toList());
     }
 }

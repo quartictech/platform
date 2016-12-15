@@ -6,36 +6,61 @@ import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.ImmutableIndexedFeature;
 import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerImpl;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerStatsImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.SnapshotImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.quartic.weyl.core.StatsCalculator.calculateStats;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
-public class LayerReducer {
+public class SnapshotReducer {
+    private static final Logger LOG = LoggerFactory.getLogger(SnapshotReducer.class);
+    private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
-    public Layer create(LayerSpec spec) {
-        return LayerImpl.builder()
-                .spec(spec)
-                .features(EMPTY_COLLECTION)
-                .spatialIndex(new STRtree())
-                .indexedFeatures(ImmutableList.of())
-                .stats(LayerStatsImpl.of(emptyMap(), 0))
-                .build();
+    public Snapshot create(LayerSpec spec) {
+        return SnapshotImpl.of(
+                LayerImpl.builder()
+                        .spec(spec)
+                        .features(EMPTY_COLLECTION)
+                        .spatialIndex(new STRtree())
+                        .indexedFeatures(ImmutableList.of())
+                        .stats(LayerStatsImpl.of(emptyMap(), 0))
+                        .build(),
+                emptyList()
+        );
     }
 
-    public Layer reduce(Layer layer, Collection<Feature> features) {
+    public Snapshot next(Snapshot previous, LayerUpdate update) {
+        final Layer prevLayer = previous.absolute();
+
+        LOG.info("[{}] Accepted {} features", prevLayer.spec().metadata().name(), update.features().size());
+
+        final Collection<Feature> elaborated = elaborate(prevLayer.spec().id(), update.features());
+        return SnapshotImpl.of(next(prevLayer, elaborated), elaborated);
+    }
+
+    public Layer next(Layer layer, Collection<Feature> features) {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
@@ -69,5 +94,15 @@ public class LayerReducer {
         STRtree stRtree = new STRtree();
         features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
         return stRtree;
+    }
+
+
+    private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
+        return features.stream().map(f -> FeatureImpl.of(
+                EntityIdImpl.of(layerId.uid() + "/" +
+                        f.externalId().orElse(String.valueOf(missingExternalIdGenerator.incrementAndGet()))),
+                f.geometry(),
+                f.attributes()
+        )).collect(toList());
     }
 }

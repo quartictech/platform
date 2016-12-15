@@ -1,35 +1,20 @@
 package io.quartic.weyl.core;
 
-import com.google.common.collect.ImmutableMap;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
-import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
-import io.quartic.weyl.core.model.SnapshotImpl;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Optional;
+import java.util.Collection;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -45,38 +30,35 @@ import static rx.Observable.empty;
 public class LayerStoreShould {
     private static final LayerId LAYER_ID = LayerId.fromString("666");
     private static final LayerId OTHER_LAYER_ID = LayerId.fromString("777");
-    private static final AttributeName ATTRIBUTE_NAME = AttributeNameImpl.of("timestamp");
-    private static final Attributes ATTRIBUTES = () -> ImmutableMap.of(ATTRIBUTE_NAME, 1234);
 
     private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
-    private final LayerReducer layerReducer = mock(LayerReducer.class);
+    private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final LayerStore store = LayerStoreImpl.builder()
             .populators(populators)
             .entityStore(entityStore)
-            .layerReducer(layerReducer)
+            .snapshotReducer(snapshotReducer)
             .build();
-    private final GeometryFactory factory = new GeometryFactory();
 
     @Test
     public void prevent_overwriting_an_existing_layer() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);
-        mockLayerCreationFor(spec);
+        mockSnapshotCreationFor(spec);
 
         createLayer(spec);
         createLayer(spec);
 
-        verify(layerReducer, times(1)).create(any());
+        verify(snapshotReducer, times(1)).create(any());
     }
 
     @Test
-    public void resolve_layer_dependencies() throws Exception {
+    public void resolve_layer_dependencies_to_latest_snapshot() throws Exception {
         final LayerSpec specDependency = spec(LAYER_ID);
         final LayerSpec specDependent = spec(OTHER_LAYER_ID);
-        final Layer dependency = mockLayerCreationFor(specDependency);
-        mockLayerCreationFor(specDependent);
+        final Snapshot dependency = mockSnapshotReductionFor(mockSnapshotCreationFor(specDependency));
+        mockSnapshotCreationFor(specDependent);
 
-        createLayer(specDependency);
+        createLayer(specDependency).onNext(mock(LayerUpdate.class));
 
         final LayerPopulator populator = mock(LayerPopulator.class);
         when(populator.dependencies()).thenReturn(singletonList(LAYER_ID)); // Specify another layer as a dependency
@@ -84,36 +66,39 @@ public class LayerStoreShould {
         when(populator.updates(any())).thenReturn(empty());
         populators.onNext(populator);
 
-        verify(populator).spec(singletonList(dependency));
-        verify(populator).updates(singletonList(dependency));
+        verify(populator).spec(singletonList(dependency.absolute()));
+        verify(populator).updates(singletonList(dependency.absolute()));
     }
 
     @Test
-    public void apply_updates_to_layer_via_reducer() throws Exception {
+    public void apply_updates_via_reducer() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);
-        mockLayerReductionFor(mockLayerCreationFor(spec));
+        mockSnapshotReductionFor(mockSnapshotCreationFor(spec));
 
-        createLayer(spec).onNext(updateFor(modelFeature("a")));
+        final LayerUpdate update = mock(LayerUpdate.class);
+        createLayer(spec).onNext(update);
 
-        verify(layerReducer).reduce(any(), eq(newArrayList(feature("a"))));
+        verify(snapshotReducer).next(any(), eq(update));
     }
 
     @Test
     public void put_updated_attributes_to_store() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);
-        mockLayerReductionFor(mockLayerCreationFor(spec));
+        final Snapshot snapshot = mockSnapshotReductionFor(mockSnapshotCreationFor(spec));
+        final Collection<Feature> features = mock(Collection.class);
+        when(snapshot.diff()).thenReturn(features);
 
-        createLayer(spec).onNext(updateFor(modelFeature("a"), modelFeature("b")));
+        createLayer(spec).onNext(mock(LayerUpdate.class));
 
-        verify(entityStore).putAll(any(), eq(newArrayList(feature("a"), feature("b"))));
+        verify(entityStore).putAll(any(), eq(features));
     }
 
     @Test
     public void emit_sequence_every_time_layer_is_created() throws Exception {
         final LayerSpec specA = spec(LAYER_ID);
         final LayerSpec specB = spec(OTHER_LAYER_ID);
-        mockLayerCreationFor(specA);
-        mockLayerCreationFor(specB);
+        mockSnapshotCreationFor(specA);
+        mockSnapshotCreationFor(specB);
 
         TestSubscriber<LayerSnapshotSequence> sub = TestSubscriber.create();
         store.snapshotSequences().subscribe(sub);
@@ -127,57 +112,33 @@ public class LayerStoreShould {
     @Test
     public void emit_snapshot_every_time_layer_is_updated() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);
-        final Layer original = mockLayerCreationFor(spec);
-        final Layer update1 = mockLayerReductionFor(original);
-        final Layer update2 = mockLayerReductionFor(update1);
+        final Snapshot original = mockSnapshotCreationFor(spec);
+        final Snapshot update1 = mockSnapshotReductionFor(original);
+        final Snapshot update2 = mockSnapshotReductionFor(update1);
 
-        TestSubscriber<LayerSnapshotSequence.Snapshot> sub = TestSubscriber.create();
+        TestSubscriber<Snapshot> sub = TestSubscriber.create();
         store.snapshotSequences().subscribe(s -> s.snapshots().subscribe(sub)); // Subscribe to the nested snapshot observable
 
         PublishSubject<LayerUpdate> updates = createLayer(spec);
-        updates.onNext(updateFor(modelFeature("a")));
-        updates.onNext(updateFor(modelFeature("b")));
+        updates.onNext(mock(LayerUpdate.class));
+        updates.onNext(mock(LayerUpdate.class));
 
-        assertThat(sub.getOnNextEvents(), contains(
-                SnapshotImpl.of(original, emptyList()),
-                SnapshotImpl.of(update1, newArrayList(feature("a"))),
-                SnapshotImpl.of(update2, newArrayList(feature("b")))
-        ));
+        assertThat(sub.getOnNextEvents(), contains(original, update1, update2));
     }
 
-    private Layer mockLayerCreationFor(LayerSpec spec) {
-        final Layer layer = mock(Layer.class);
-        when(layer.spec()).thenReturn(spec);
-        when(layerReducer.create(spec)).thenReturn(layer);
-        return layer;
+    private Snapshot mockSnapshotCreationFor(LayerSpec spec) {
+        final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
+        when(snapshot.absolute().spec()).thenReturn(spec);
+        when(snapshotReducer.create(spec)).thenReturn(snapshot);
+        return snapshot;
     }
 
-    private Layer mockLayerReductionFor(Layer layer) {
-        final LayerSpec originalSpec = layer.spec();
-        final Layer updatedLayer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(updatedLayer.spec()).thenReturn(originalSpec);
-        when(layerReducer.reduce(eq(layer), any())).thenReturn(updatedLayer);
-        return updatedLayer;
-    }
-
-    private LayerUpdate updateFor(NakedFeature... features) {
-        return LayerUpdateImpl.of(asList(features));
-    }
-
-    private NakedFeature modelFeature(String externalId) {
-        return NakedFeatureImpl.of(
-                Optional.ofNullable(externalId),
-                factory.createPoint(new Coordinate(123.0, 456.0)),
-                ATTRIBUTES
-        );
-    }
-
-    private Feature feature(String externalId) {
-        return FeatureImpl.of(
-                EntityIdImpl.of(LAYER_ID.uid() + "/" + externalId),
-                factory.createPoint(new Coordinate(123.0, 456.0)),
-                ATTRIBUTES
-        );
+    private Snapshot mockSnapshotReductionFor(Snapshot snapshot) {
+        final LayerSpec originalSpec = snapshot.absolute().spec();
+        final Snapshot next = mock(Snapshot.class, RETURNS_DEEP_STUBS);
+        when(next.absolute().spec()).thenReturn(originalSpec);
+        when(snapshotReducer.next(eq(snapshot), any())).thenReturn(next);
+        return next;
     }
 
     private PublishSubject<LayerUpdate> createLayer(LayerSpec spec) {

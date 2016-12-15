@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.weyl.core.LayerReducer;
+import io.quartic.weyl.core.SnapshotReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.EntityIdImpl;
@@ -15,6 +15,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Test;
@@ -23,7 +24,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static com.google.common.collect.Lists.transform;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.stream.Collectors.toList;
@@ -58,8 +58,8 @@ public class SpatialJoinShould {
                 true
         );
 
-        final LayerReducer reducer = new LayerReducer();
-        return reducer.reduce(reducer.create(spec), transform(features, f -> feature(f, layerId)));
+        final SnapshotReducer reducer = new SnapshotReducer();
+        return reducer.next(reducer.create(spec), LayerUpdateImpl.of(features)).absolute();
     }
 
     private NakedFeature point(double x, double y) {
