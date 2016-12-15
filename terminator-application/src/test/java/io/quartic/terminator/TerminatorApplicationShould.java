@@ -2,7 +2,12 @@ package io.quartic.terminator;
 
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.testing.DropwizardTestSupport;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.TerminationId;
+import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.test.websocket.WebsocketServerRule;
 import io.quartic.geojson.FeatureCollection;

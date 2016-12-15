@@ -4,6 +4,8 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.GeoJsonParser;
 import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -31,10 +33,10 @@ public abstract class GeoJsonSource implements Source {
     protected abstract FeatureConverter converter();
 
     @Override
-    public Observable<SourceUpdate> observable() {
+    public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(SourceUpdateImpl.of(importAllFeatures()));
+                sub.onNext(LayerUpdateImpl.of(importAllFeatures()));
                 sub.onCompleted();
             } catch (IOException e) {
                 sub.onError(e);

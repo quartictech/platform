@@ -1,5 +1,6 @@
 import { Map } from "immutable";
 import layers from "./layers";
+import layerList from "./layerList";
 import map from "./map";
 import geofence from "./geofence";
 import ui from "./ui";
@@ -17,6 +18,7 @@ const combineReducers = (reducers) =>
 
 export default combineReducers({
   layers,
+  layerList,
   map,
   geofence,
   ui,

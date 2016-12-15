@@ -12,16 +12,16 @@ import static com.google.common.collect.Maps.newHashMap;
 public class ObservableStore<K, V> {
     private final Map<K, BehaviorSubject<V>> observables = newHashMap();
 
-    public void putAll(Function<V, K> id, Collection<V> values) {
-        values.forEach(v -> getSubject(id.apply(v)).onNext(v));
-    }
-
     public Observable<V> get(K id) {
         return getSubject(id);
     }
 
     public void put(K id, V value) {
         getSubject(id).onNext(value);
+    }
+
+    public void putAll(Function<V, K> id, Collection<V> values) {
+        values.forEach(v -> put(id.apply(v), v));
     }
 
     private synchronized BehaviorSubject<V> getSubject(K id) {

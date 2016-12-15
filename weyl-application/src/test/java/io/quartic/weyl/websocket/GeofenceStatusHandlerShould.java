@@ -8,7 +8,6 @@ import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
-import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -25,8 +24,11 @@ import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
@@ -34,6 +36,7 @@ import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
+import rx.subjects.PublishSubject;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +49,7 @@ import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
 import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
 import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -61,15 +65,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.from;
+import static rx.Observable.just;
 
 public class GeofenceStatusHandlerShould {
     private final Attributes featureAttributes = mock(Attributes.class);
     private final NakedFeature featureA = NakedFeatureImpl.of(Optional.empty(), polygon(5.0), featureAttributes);
     private final NakedFeature featureB = NakedFeatureImpl.of(Optional.empty(), polygon(6.0), featureAttributes);
     private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
-    private final LayerStore layerStore = mock(LayerStore.class);
+    private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
-    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, layerStore, converter);
+    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, snapshotSequences, converter);
 
     @Test
     public void send_geometry_update() throws Exception {
@@ -125,7 +130,6 @@ public class GeofenceStatusHandlerShould {
         final LayerId layerId = mock(LayerId.class);
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
         final Layer layer = mock(Layer.class);
-        when(layerStore.getLayer(layerId)).thenReturn(Optional.of(layer));
         when(layer.features()).thenReturn(featureCollection);
         when(featureCollection.stream()).thenReturn(
                 newArrayList(
@@ -133,6 +137,8 @@ public class GeofenceStatusHandlerShould {
                         modelFeatureOf(featureB)
                 ).stream()
         );
+
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(layerId, just(SnapshotImpl.of(layer, emptyList()))));
 
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 

@@ -1,7 +1,14 @@
 package io.quartic.weyl.core.attributes;
 
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
 import org.junit.Test;
 
 import java.util.List;
@@ -14,12 +21,18 @@ import static io.quartic.common.test.CollectionUtils.entry;
 import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.MAX_CATEGORIES;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
-import static io.quartic.weyl.core.model.AttributeType.*;
+import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
+import static io.quartic.weyl.core.model.AttributeType.STRING;
+import static io.quartic.weyl.core.model.AttributeType.TIME_SERIES;
+import static io.quartic.weyl.core.model.AttributeType.UNKNOWN;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 

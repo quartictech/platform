@@ -4,6 +4,7 @@ const _ = require("underscore");
 const selectHome = (state) => state.get("home").toJS();
 const selectHomeImmutable = (state) => state.get("home"); // TODO: eventually everything will be immutable
 
+export const selectLayerList = createSelector(selectHome, p => p.layerList);
 export const selectLayers = createSelector(selectHomeImmutable, p => p.get("layers"));
 export const selectUi = createSelector(selectHome, p => p.ui);
 export const selectSelection = createSelector(selectHome, p => p.selection);

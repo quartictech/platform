@@ -58,7 +58,7 @@ public class VectorTileRenderer {
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
         for (Layer layer : layers) {
-            final LayerId layerId = layer.layerId();
+            final LayerId layerId = layer.spec().id();
             LOG.info("Encoding layer {}", layerId);
             final AtomicInteger featureCount = new AtomicInteger();
 

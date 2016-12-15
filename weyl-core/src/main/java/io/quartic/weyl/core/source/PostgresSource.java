@@ -8,6 +8,8 @@ import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.immutables.value.Value;
@@ -50,9 +52,9 @@ public abstract class PostgresSource implements Source {
     }
 
     @Override
-    public Observable<SourceUpdate> observable() {
+    public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(SourceUpdateImpl.of(importAllFeatures()));
+            sub.onNext(LayerUpdateImpl.of(importAllFeatures()));
             sub.onCompleted();
         });
     }

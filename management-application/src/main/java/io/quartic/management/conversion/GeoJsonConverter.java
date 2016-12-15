@@ -1,7 +1,5 @@
 package io.quartic.management.conversion;
 
-import io.quartic.geojson.FeatureCollection;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

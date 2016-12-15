@@ -2,7 +2,14 @@ package io.quartic.weyl.core;
 
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.feature.FeatureCollection;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.AttributeStatsImpl;
+import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.LayerStats;
+import io.quartic.weyl.core.model.LayerStatsImpl;
 import org.junit.Test;
 
 import java.util.Map;

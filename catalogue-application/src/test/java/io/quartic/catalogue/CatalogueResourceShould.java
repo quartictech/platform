@@ -2,7 +2,12 @@ package io.quartic.catalogue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetIdImpl;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
 import io.quartic.common.uid.SequenceUidGenerator;
 import org.junit.Test;
 
@@ -14,7 +19,10 @@ import java.util.Optional;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.Collections.emptyMap;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
     private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), OBJECT_MAPPER);

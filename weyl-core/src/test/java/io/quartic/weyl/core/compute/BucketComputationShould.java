@@ -2,67 +2,91 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.transform;
+import static io.quartic.common.rx.RxUtils.all;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
 import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
+import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class BucketComputationShould {
+    private final LayerId myLayerId = mock(LayerId.class);
     private final Layer bucketLayer = bucketLayer();
     private final Layer featureLayer = featureLayer();
     private final LayerId bucketLayerId = mock(LayerId.class);
     private final LayerId featureLayerId = mock(LayerId.class);
     private final BucketAggregation aggregation = mock(BucketAggregation.class);
-    private final BucketSpec spec = BucketSpecImpl.of(bucketLayerId, featureLayerId, aggregation, false);
-    private final LayerStore store = mock(LayerStore.class);
+    private final BucketSpec bucketSpec = BucketSpecImpl.of(bucketLayerId, featureLayerId, aggregation, false);
     private final SpatialJoiner joiner = mock(SpatialJoiner.class);
     private BucketComputation computation;
 
     @Before
     public void before() throws Exception {
-        when(store.getLayer(bucketLayerId)).thenReturn(Optional.of(bucketLayer));
-        when(store.getLayer(featureLayerId)).thenReturn(Optional.of(featureLayer));
-
         computation = BucketComputationImpl.builder()
-                .store(store)
-                .bucketSpec(spec)
+                .layerId(myLayerId)
+                .bucketSpec(bucketSpec)
                 .joiner(joiner)
                 .build();
     }
 
     @Test
     public void generate_correct_layer_metadata_and_schema() throws Exception {
-        final ComputationResults results = computation.compute().get();
+        final LayerSpec spec = evaluateSpec();
 
-        assertThat(results.metadata(), equalTo(LayerMetadataImpl.of(
-                "Foo (bucketed)",
-                "Foo bucketed by Bar aggregating by " + aggregation.toString(),
-                Optional.empty(),
-                Optional.empty()
+        assertThat(spec, equalTo(LayerSpecImpl.of(
+                myLayerId,
+                LayerMetadataImpl.of(
+                        "Foo (bucketed)",
+                        "Foo bucketed by Bar aggregating by " + aggregation.toString(),
+                        Optional.empty(),
+                        Optional.empty()
+                ),
+                IDENTITY_VIEW,
+                bucketSchema()
+                        .withPrimaryAttribute(name("Foo"))
+                        .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB"))
+                        .withAttributes(ImmutableMap.<AttributeName, Attribute>builder()
+                                .putAll(bucketLayer.spec().schema().attributes())
+                                .put(name("Foo"), AttributeImpl.of(NUMERIC, Optional.empty()))
+                                .build()
+                        ),
+                true
         )));
-        assertThat(results.schema(), equalTo(bucketSchema()
-                .withPrimaryAttribute(name("Foo"))
-                .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB"))
-                .withAttributes(ImmutableMap.<AttributeName, Attribute>builder()
-                        .putAll(bucketLayer.schema().attributes())
-                        .put(name("Foo"), AttributeImpl.of(NUMERIC, Optional.empty()))
-                        .build()
-                )
-        ));
     }
 
     @Test
@@ -72,9 +96,7 @@ public class BucketComputationShould {
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
 
-        final ComputationResults results = computation.compute().get();
-
-        assertThat(getLast(results.features()).attributes().attributes(),
+        assertThat(getLast(evaluateUpdates().get(0).features()).attributes().attributes(),
                 equalTo(ImmutableMap.builder()
                         .putAll(bucketFeature.attributes().attributes())
                         .put(name("Foo"), 42.0)
@@ -94,15 +116,30 @@ public class BucketComputationShould {
         );
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
 
-        computation.compute().get();
+        evaluateUpdates();
 
         verify(joiner).innerJoin(bucketLayer, featureLayer, CONTAINS);
         verify(aggregation).aggregate(bucketFeature, newArrayList(groupFeatureA, groupFeatureB));
     }
 
+    private LayerSpec evaluateSpec() {
+        return computation.spec(transform(computation.dependencies(), layerMap()::get));
+    }
+
+    private List<LayerUpdate> evaluateUpdates() {
+        return all(computation.updates(transform(computation.dependencies(), layerMap()::get)));
+    }
+
+    private Map<LayerId, Layer> layerMap() {
+        return map(
+                entry(featureLayerId, featureLayer),
+                entry(bucketLayerId, bucketLayer)
+        );
+    }
+
     private Layer featureLayer() {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.metadata().name()).thenReturn("Foo");
+        when(layer.spec().metadata().name()).thenReturn("Foo");
         return layer;
     }
 
@@ -110,8 +147,8 @@ public class BucketComputationShould {
         final AttributeSchema schema = bucketSchema();
 
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.metadata().name()).thenReturn("Bar");
-        when(layer.schema()).thenReturn(schema);
+        when(layer.spec().metadata().name()).thenReturn("Bar");
+        when(layer.spec().schema()).thenReturn(schema);
         when(layer.indexedFeatures()).thenReturn(emptyList());
         return layer;
     }

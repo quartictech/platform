@@ -1,7 +1,8 @@
-import { call } from "redux-saga/effects";
+import { call, select } from "redux-saga/effects";
 import { delay } from "redux-saga";
 import request from "utils/request";
-import { apiRootUrl, mapboxToken } from "../../../utils.js";
+import * as selectors from "../selectors";
+import { mapboxToken } from "../../../utils.js";
 
 export default function* (action) {
   yield call(delay, 500); // Debounce
@@ -12,14 +13,14 @@ export default function* (action) {
   ];
 
   const results = Object.assign({},
-    layerResults.err ? {} : {
+    {
       layers: {
         name: "Layers",
-        results: layerResults.data.filter(x => !x.live).map(unpackLayer),
+        results: layerResults.filter(x => !x.live).map(unpackLayer),
       },
       live: {
         name: "Live layers",
-        results: layerResults.data.filter(x => x.live).map(unpackLayer),
+        results: layerResults.filter(x => x.live).map(unpackLayer),
       },
     },
     placeResults.err ? {} : {
@@ -34,10 +35,11 @@ export default function* (action) {
 }
 
 function* fetchLayers(query) {
-  const requestURL = `${apiRootUrl}/layer?query=${encodeURI(query)}`;
-  const results = yield call(request, requestURL, { method: "GET" });
-  return results;
+  const layerResults = yield select(selectors.selectLayerList);
+  return layerResults.filter(r => includes(r.metadata.name, query));
 }
+
+const includes = (str, substr) => str.toLowerCase().includes(substr.toLowerCase());
 
 function* fetchPlaces(query) {
   const requestURL = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURI(query)}.json?access_token=${mapboxToken}`;

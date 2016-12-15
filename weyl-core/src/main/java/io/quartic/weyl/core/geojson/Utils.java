@@ -2,22 +2,26 @@ package io.quartic.weyl.core.geojson;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.*;
-import io.quartic.geojson.*;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
 import io.quartic.geojson.Geometry;
+import io.quartic.geojson.GeometryVisitor;
 import io.quartic.geojson.LineString;
+import io.quartic.geojson.LineStringImpl;
 import io.quartic.geojson.MultiLineString;
 import io.quartic.geojson.MultiPoint;
 import io.quartic.geojson.MultiPolygon;
+import io.quartic.geojson.MultiPolygonImpl;
 import io.quartic.geojson.Point;
+import io.quartic.geojson.PointImpl;
 import io.quartic.geojson.Polygon;
+import io.quartic.geojson.PolygonImpl;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 

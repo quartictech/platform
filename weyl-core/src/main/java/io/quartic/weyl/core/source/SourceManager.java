@@ -6,7 +6,15 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.AttributeSchemaImpl;
+import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.MapDatasetExtension;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,38 +44,41 @@ public abstract class SourceManager {
     }
 
     @Value.Lazy
-    public Observable<SourceDescriptor> sources() {
+    public Observable<LayerPopulator> layerPopulators() {
         return catalogueEvents()
                 .groupBy(CatalogueEvent::id)
                 .flatMap(this::processEventsForId)
                 .share();
     }
 
-    private Observable<SourceDescriptor> processEventsForId(GroupedObservable<DatasetId, CatalogueEvent> group) {
+    private Observable<LayerPopulator> processEventsForId(GroupedObservable<DatasetId, CatalogueEvent> group) {
         final Observable<CatalogueEvent> events = group.cache();    // Because groupBy can only have one subscriber per group
 
         return events
                 .filter(e -> e.type() == CREATE)
                 .flatMap(event -> createSource(event.id(), event.config())
-                        .map(source -> createDescriptor(
+                        .map(source -> createPopulator(
                                 event.id(),
                                 event.config(),
                                 sourceUntil(source, events.filter(e -> e.type() == DELETE))))
                 );
     }
 
-    private SourceDescriptor createDescriptor(DatasetId id, DatasetConfig config, Source source) {
+    private LayerPopulator createPopulator(DatasetId id, DatasetConfig config, Source source) {
         final String name = config.metadata().name();
         final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
 
         LOG.info(format("[%s] Created layer", name));
-        return SourceDescriptorImpl.of(
-                LayerIdImpl.of(id.uid()),
-                datasetMetadataFrom(config.metadata()),
-                extension.viewType().getLayerView(),
-                schemaFrom(extension),
-                source.indexable(),
-                source.observable().subscribeOn(scheduler())    // TODO: the scheduler should be chosen by the specific source
+
+        return LayerPopulator.withoutDependencies(
+                LayerSpecImpl.of(
+                        LayerIdImpl.of(id.uid()),
+                        datasetMetadataFrom(config.metadata()),
+                        extension.viewType().getLayerView(),
+                        schemaFrom(extension),
+                        source.indexable()
+                ),
+                source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source;
         );
     }
 
@@ -90,7 +101,7 @@ public abstract class SourceManager {
     private Source sourceUntil(Source source, Observable<?> until) {
         return new Source() {
             @Override
-            public Observable<SourceUpdate> observable() {
+            public Observable<LayerUpdate> observable() {
                 return source.observable().takeUntil(until);
             }
 

@@ -2,27 +2,35 @@ package io.quartic.management.conversion;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.quartic.common.serdes.ObjectMappers;
-import io.quartic.geojson.*;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.PointImpl;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
 public class CsvConverter implements GeoJsonConverter {
-    private static final Logger LOG = LoggerFactory.getLogger(CsvConverter.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(CsvConverter.class);
 
     private Optional<Feature> parseFeature(CSVRecord record, String latStr, String lonStr, Set<String> columns)
             throws NumberFormatException {

@@ -1,8 +1,9 @@
 package io.quartic.weyl.core.source;
 
+import io.quartic.weyl.core.model.LayerUpdate;
 import rx.Observable;
 
 public interface Source {
-    Observable<SourceUpdate> observable();
+    Observable<LayerUpdate> observable();
     boolean indexable();
 }

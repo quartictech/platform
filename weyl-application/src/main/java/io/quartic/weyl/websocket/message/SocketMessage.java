@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes({
+        @JsonSubTypes.Type(value = LayerListUpdateMessageImpl.class, name = "LayerListUpdate"),
         @JsonSubTypes.Type(value = LayerUpdateMessageImpl.class, name = "LayerUpdate"),
         @JsonSubTypes.Type(value = GeofenceGeometryUpdateMessageImpl.class, name = "GeofenceGeometryUpdate"),
         @JsonSubTypes.Type(value = GeofenceViolationsUpdateMessageImpl.class, name = "GeofenceViolationsUpdate"),

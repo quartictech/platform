@@ -1,25 +1,31 @@
 package io.quartic.weyl.resource;
 
 import com.google.common.collect.ImmutableList;
-import com.vividsolutions.jts.io.ParseException;
+import com.google.common.collect.Maps;
 import io.dropwizard.jersey.caching.CacheControl;
-import io.quartic.weyl.core.LayerStore;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.render.VectorTileRenderer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import rx.Observable;
 
-import javax.ws.rs.*;
-import java.io.IOException;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import java.util.Map;
+
+import static io.quartic.common.rx.RxUtils.latest;
+import static rx.Observable.error;
 
 @Path("/")
 public class TileResource {
-    private static final Logger log = LoggerFactory.getLogger(TileResource.class);
-    private final LayerStore layerStore;
+    private final Map<LayerId, Observable<Snapshot>> sequences = Maps.newConcurrentMap();
 
-    public TileResource(LayerStore layerStore) {
-        this.layerStore = layerStore;
+    public TileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
+        snapshotSequences.subscribe(s -> sequences.put(s.id(), s.snapshots()));
     }
 
     @GET
@@ -29,16 +35,14 @@ public class TileResource {
     public byte[] protobuf(@PathParam("layerId") LayerId layerId,
                              @PathParam("z") Integer z,
                              @PathParam("x") Integer x,
-                             @PathParam("y") Integer y) throws ParseException, IOException {
-        Layer layer = layerStore.getLayer(layerId)
-                .orElseThrow(() -> new NotFoundException("No layer with id: " + layerId));
+                             @PathParam("y") Integer y) {
 
-        byte[] data = new VectorTileRenderer(ImmutableList.of(layer))
-                .render(z, x, y);
-        if (data.length == 0) {
-            return null;
-        }
+        final Layer layer = latest(getOrError(layerId)).absolute();
+        final byte[] data = new VectorTileRenderer(ImmutableList.of(layer)).render(z, x, y);
+        return (data.length > 0) ? data : null;
+    }
 
-        return data;
+    private Observable<Snapshot> getOrError(LayerId id) {
+        return sequences.getOrDefault(id, error(new NotFoundException("No layer with id " + id)));
     }
 }

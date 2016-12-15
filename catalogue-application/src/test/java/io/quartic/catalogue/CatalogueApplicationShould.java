@@ -1,7 +1,12 @@
 package io.quartic.catalogue;
 
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
 import io.quartic.common.client.ClientBuilder;
 import org.junit.ClassRule;
 import org.junit.Test;

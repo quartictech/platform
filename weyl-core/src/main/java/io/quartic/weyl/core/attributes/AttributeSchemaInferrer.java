@@ -1,14 +1,30 @@
 package io.quartic.weyl.core.attributes;
 
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.Feature;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.weyl.core.model.AttributeType.*;
+import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
+import static io.quartic.weyl.core.model.AttributeType.STRING;
+import static io.quartic.weyl.core.model.AttributeType.TIME_SERIES;
+import static io.quartic.weyl.core.model.AttributeType.UNKNOWN;
 import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toConcurrentMap;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class AttributeSchemaInferrer {
 

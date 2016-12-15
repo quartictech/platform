@@ -4,8 +4,16 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.geojson.*;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.Geometry;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -19,7 +27,10 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
 public class WebsocketSourceShould {
@@ -44,12 +55,12 @@ public class WebsocketSourceShould {
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
                 .build();
 
-        TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
+        TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
         verify(converter).toModel(FEATURE_COLLECTION);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(SourceUpdateImpl.of(modelFeatures)));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

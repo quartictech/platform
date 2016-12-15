@@ -3,15 +3,14 @@ package io.quartic.weyl.core.source;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.source.ExtensionParser;
 import org.junit.Test;
 
 import java.util.Map;
 import java.util.Optional;
 
+import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static io.quartic.weyl.core.source.ExtensionParser.DEFAULT_EXTENSION;
 import static io.quartic.weyl.core.source.ExtensionParser.EXTENSION_KEY;
-import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;

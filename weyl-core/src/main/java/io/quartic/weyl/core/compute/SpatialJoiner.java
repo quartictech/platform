@@ -4,8 +4,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.IndexedFeature;
+import io.quartic.weyl.core.model.Layer;
 import org.immutables.value.Value;
 
 import java.util.stream.Stream;

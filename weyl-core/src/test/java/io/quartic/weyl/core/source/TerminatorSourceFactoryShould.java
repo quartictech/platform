@@ -7,10 +7,18 @@ import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.geojson.*;
+import io.quartic.geojson.Feature;
+import io.quartic.geojson.FeatureCollection;
+import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.geojson.FeatureImpl;
+import io.quartic.geojson.Geometry;
+import io.quartic.geojson.Point;
+import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +31,10 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
 public class TerminatorSourceFactoryShould {
@@ -75,13 +86,13 @@ public class TerminatorSourceFactoryShould {
     }
 
     private void assertBehaviourForSource(Collection<NakedFeature> modelFeatures, FeatureCollection collection, Source source) {
-        SourceUpdate result = collectUpdate(source);
+        LayerUpdate result = collectUpdate(source);
         verify(converter).toModel(collection);
-        assertThat(result, equalTo(SourceUpdateImpl.of(modelFeatures)));
+        assertThat(result, equalTo(LayerUpdateImpl.of(modelFeatures)));
     }
 
-    private SourceUpdate collectUpdate(Source source) {
-        TestSubscriber<SourceUpdate> subscriber = TestSubscriber.create();
+    private LayerUpdate collectUpdate(Source source) {
+        TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
         source.observable().subscribe(subscriber);
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
         return subscriber.getOnNextEvents().get(0);
