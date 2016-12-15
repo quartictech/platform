@@ -25,8 +25,10 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
@@ -47,6 +49,7 @@ import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
 import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
 import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -62,6 +65,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.from;
+import static rx.Observable.just;
 
 public class GeofenceStatusHandlerShould {
     private final Attributes featureAttributes = mock(Attributes.class);
@@ -133,6 +137,8 @@ public class GeofenceStatusHandlerShould {
                         modelFeatureOf(featureB)
                 ).stream()
         );
+
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(layerId, just(SnapshotImpl.of(layer, emptyList()))));
 
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
