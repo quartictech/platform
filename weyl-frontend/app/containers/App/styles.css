@@ -9,12 +9,14 @@ h5,
 input,
 textarea,
 select {
-  font-family: Roboto-Light !important;
+  font-family: Roboto !important;
+  font-weight: 300;
 }
 
 /* This one's not !important because that seems to break icon buttons in some places */
 button {
-  font-family: Roboto-Light;
+  font-family: Roboto;
+  font-weight: 300;
 }
 
 .container {
