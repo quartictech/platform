@@ -54,14 +54,12 @@ export function layerClose(layerId) {
   };
 }
 
-export function layerSetData(layerId, data, dynamicSchema) {
-  return {
-    type: constants.LAYER_SET_DATA,
-    layerId,
-    data,
-    dynamicSchema,
-  };
-}
+export const layerUpdate = (layerId, data, dynamicSchema) => ({
+  type: constants.LAYER_UPDATE,
+  layerId,
+  data,
+  dynamicSchema,
+});
 
 export function layerComputation(computation) {
   return {

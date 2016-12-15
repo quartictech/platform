@@ -115,11 +115,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   attributeCategoryNodes(categories, filter, onClick) {
+    // Filter for this attribute may be undefined, initially
     return [
-      this.attributeCategoryNode("< N/A >", !filter.notApplicable, () => onClick()),  // Note no argument to callback
+      this.attributeCategoryNode("< N/A >", !filter || !filter.notApplicable, () => onClick()),  // Note no argument to callback
       ..._.chain(categories)
         .sort(naturalsort)
-        .map(c => this.attributeCategoryNode(c, !_.contains(filter.categories, c), () => onClick(c)))
+        .map(c => this.attributeCategoryNode(c, !filter || !_.contains(filter.categories, c), () => onClick(c)))
         .value(),
     ];
   }

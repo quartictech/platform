@@ -100,7 +100,7 @@ public class OpenLayerHandlerShould {
     }
 
     @Test
-    public void send_no_updates_if_layer_is_not_live() throws Exception {
+    public void send_no_features_in_updates_if_layer_is_not_live() throws Exception {
         final LayerId id = mock(LayerId.class);
         final Snapshot snapshot = snapshot(id, false);  // Not live
 
@@ -108,8 +108,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verifyZeroInteractions(converter);
-        assertThat(sub.getOnNextEvents(), empty());
+        verify(converter).toGeojson(newArrayList());    // No features converted
     }
 
     @Test

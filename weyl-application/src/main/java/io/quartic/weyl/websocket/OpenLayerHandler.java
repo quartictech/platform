@@ -1,5 +1,6 @@
 package io.quartic.weyl.websocket;
 
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
 import static io.quartic.common.rx.RxUtils.accumulateMap;
+import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 import static rx.Observable.empty;
@@ -42,7 +44,6 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
         return combineLatest(keys, sequenceMap, this::collectSequences)
                 .distinctUntilChanged()
                 .switchMap(Observable::merge)
-                .filter(s -> !s.absolute().spec().indexable())  // Only "live" layers
                 .map(this::toMessage);
     }
 
@@ -52,12 +53,16 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
 
     private SocketMessage toMessage(Snapshot snapshot) {
         final Layer layer = snapshot.absolute();
-        final Collection<Feature> features = layer.features();
-        Stream<Feature> computed = layer.spec().view().compute(features);
         return LayerUpdateMessageImpl.builder()
                 .layerId(layer.spec().id())
                 .dynamicSchema(layer.dynamicSchema())
-                .featureCollection(featureConverter.toGeojson(computed.collect(toList())))  // TODO: obviously we never want to do this with large static layers
+                .featureCollection(featureCollection(layer))
                 .build();
+    }
+
+    private FeatureCollection featureCollection(Layer layer) {
+        final Collection<Feature> features = layer.spec().indexable() ? EMPTY_COLLECTION : layer.features();
+        Stream<Feature> computed = layer.spec().view().compute(features);
+        return featureConverter.toGeojson(computed.collect(toList()));
     }
 }
