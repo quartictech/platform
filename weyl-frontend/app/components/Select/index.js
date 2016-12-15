@@ -13,6 +13,7 @@ const Select = (props) => (
         value={props.selectedKey || ""}
         onChange={(e) => props.onChange(e.target.value === "" ? null : e.target.value)}
         className={Classes.FILL}
+        disabled={props.disabled}
       >
         {props.default && <option key="" value="">{props.default}</option>}
         {
@@ -22,6 +23,10 @@ const Select = (props) => (
     </div>
   </label>
 );
+
+Select.defaultProps = {
+  disabled: false,
+};
 
 const toMap = (entries) => (_.isArray(entries)
   ? _.object(_.map(entries, x => [x, x]))

@@ -80,17 +80,25 @@ public class UpdateServerShould {
     public void send_alert() throws Exception {
         final Alert alert = AlertImpl.of("foo", Optional.of("bar"), Alert.Level.SEVERE);
 
-        final UpdateServer server = createAndOpenServer(alerts);
+        createAndOpenServer(alerts);
         alerts.onNext(alert);
 
         verifyMessage(AlertMessageImpl.of(alert));
     }
 
     private ClientStatusMessage clientStatusMessage() {
+        // It would be nice to mock all of this, but we need to serialise
         return ClientStatusMessageImpl.of(
                 emptyList(),
                 SelectionStatusImpl.of(42, emptyList()),
-                GeofenceStatusImpl.of(true, GeofenceType.EXCLUDE, Optional.empty(), Optional.empty(), 0.0)
+                GeofenceStatusImpl.of(
+                        true,
+                        GeofenceType.EXCLUDE,
+                        Alert.Level.WARNING,
+                        Optional.empty(),
+                        Optional.empty(),
+                        0.0
+                )
         );
     }
 

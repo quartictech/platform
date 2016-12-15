@@ -14,6 +14,7 @@ import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -73,11 +74,15 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private Stream<Feature> featuresFrom(FeatureCollection features) {
         return featureConverter.toModel(features)
                 .stream()
-                .map(f -> FeatureImpl.of(
-                        EntityIdImpl.of("custom"),
-                        f.geometry(),
-                        f.attributes()
-                ));
+                .map(this::annotateFeature);
+    }
+
+    private Feature annotateFeature(NakedFeature feature) {
+        return FeatureImpl.of(
+                EntityIdImpl.of("custom"),
+                feature.geometry(),
+                feature.attributes()
+        );
     }
 
     private Stream<Feature> featuresFrom(LayerId layerId) {
@@ -89,7 +94,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private void updateStore(GeofenceStatus status, Stream<Feature> features) {
         final List<Geofence> geofences = features
                 .map(f -> FeatureImpl.copyOf(f)
-                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f))))
+                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f, status.defaultLevel()))))
                         .withGeometry(bufferOp(f.geometry(), status.bufferDistance()))
                         .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
                 )

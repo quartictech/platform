@@ -3,6 +3,7 @@ package io.quartic.weyl.core.alert;
 import io.quartic.weyl.core.geofence.GeofenceListener;
 import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Feature;
 import rx.Observable;
@@ -14,7 +15,7 @@ import java.util.Optional;
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 
 public class AlertProcessor {
-    public static final AttributeNameImpl ALERT_LEVEL = AttributeNameImpl.of("_alertLevel");
+    public static final AttributeName ALERT_LEVEL = AttributeNameImpl.of("_alertLevel");
     private final PublishSubject<Alert> alerts = PublishSubject.create();
 
     public AlertProcessor(GeofenceStore geofenceStore) {
