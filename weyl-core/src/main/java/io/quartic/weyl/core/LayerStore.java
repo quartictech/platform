@@ -15,12 +15,12 @@ import io.quartic.weyl.core.geofence.ImmutableLiveLayerChange;
 import io.quartic.weyl.core.geofence.LiveLayerChange;
 import io.quartic.weyl.core.live.LayerView;
 import io.quartic.weyl.core.model.*;
-import io.quartic.weyl.core.source.SourceUpdate;
+import io.quartic.weyl.core.source.SourceDescriptor;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.functions.Action1;
+import rx.Subscription;
 import rx.subjects.BehaviorSubject;
 
 import java.util.Collection;
@@ -49,16 +49,21 @@ public abstract class LayerStore {
     protected abstract ObservableStore<EntityId, Feature> entityStore();
     protected abstract UidGenerator<LayerId> lidGenerator();
 
+    protected abstract Observable<SourceDescriptor> sources();
 
     @Value.Default
     protected LayerComputation.Factory computationFactory() {
         return new LayerComputation.Factory();
     }
 
-    public Action1<SourceUpdate> createLayer(LayerId id, LayerMetadata metadata, LayerView view, AttributeSchema schema, boolean indexable) {
-        checkLayerNotExists(id);
-        putLayer(newLayer(id, metadata, view, schema, indexable));
-        return update -> addToLayer(id, update.features());
+    // TODO: what will we actually do with this subscription object?
+    @Value.Derived
+    protected Subscription sourcesSubscription() {
+        return sources().subscribe(source -> {
+            checkLayerNotExists(source.id());
+            putLayer(newLayer(source.id(), source.metadata(), source.view(), source.schema(), source.indexable()));
+            source.updates().subscribe(update -> addToLayer(source.id(), update.features()));
+        });
     }
 
     public Collection<Layer> listLayers() {

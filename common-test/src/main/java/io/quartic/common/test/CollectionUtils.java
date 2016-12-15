@@ -10,7 +10,8 @@ import static java.util.Collections.unmodifiableMap;
 
 public final class CollectionUtils {
     private CollectionUtils() {}
-    
+
+    @SafeVarargs
     public static <K, V> Map<K, V> map(Map.Entry<K, V>... entries) {
         final Map<K, V> map = Maps.newHashMap();
         stream(entries).forEach(e -> map.put(e.getKey(), e.getValue()));
