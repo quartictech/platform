@@ -197,13 +197,12 @@ public class GeofenceStoreShould {
         when(fenceGeometry.contains(point.geometry())).thenReturn(containsResult);
 
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        when(snapshot.absolute().spec().indexable()).thenReturn(!live);
         when(snapshot.diff()).thenReturn(newArrayList(point));
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(
-                mock(LayerSpec.class),
-                just(snapshot)
-        ));
+        final LayerSpec spec = mock(LayerSpec.class);
+        when(spec.indexable()).thenReturn(!live);
+
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(snapshot)));
     }
 
     private Feature point() {

@@ -34,8 +34,8 @@ public class GeofenceStore  {
 
     public GeofenceStore(Observable<LayerSnapshotSequence> snapshotSequences) {
         snapshotSequences
+                .filter(seq -> !seq.spec().indexable())
                 .flatMap(LayerSnapshotSequence::snapshots)
-                .filter(snapshot -> !snapshot.absolute().spec().indexable())
                 .subscribe(snapshot -> snapshot.diff().forEach(this::processFeature));
     }
 
