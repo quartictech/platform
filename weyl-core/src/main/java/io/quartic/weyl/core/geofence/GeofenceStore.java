@@ -60,12 +60,7 @@ public class GeofenceStore  {
 
             if (violating && !previouslyViolating) {
                 LOG.info("Violation triggered: entityId: {}, geofenceId: {}", feature.entityId(), geofence.feature().entityId());
-                final Violation violation = ViolationImpl.builder()
-                        .feature(feature)
-                        .geofence(geofence)
-                        .message(String.format("Boundary violated by entity '%s'", feature.entityId()))
-                        .build();
-                addViolation(vk, violation);
+                addViolation(vk, ViolationImpl.of(feature, geofence));
             } else if (!violating && previouslyViolating) {
                 LOG.info("Violation removed: entityId: {}, geofenceId: {}", feature.entityId(), geofence.feature().entityId());
                 removeViolation(vk);

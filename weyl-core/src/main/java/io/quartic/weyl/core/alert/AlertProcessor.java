@@ -22,7 +22,7 @@ public class AlertProcessor {
             public void onViolationBegin(Violation violation) {
                 alerts.onNext(AlertImpl.of(
                         "Geofence violation",
-                        Optional.of(violation.message()),
+                        Optional.of(String.format("Boundary violated by entity '%s'", violation.feature().entityId())),
                         alertLevel(violation.geofence().feature())
                 ));
             }

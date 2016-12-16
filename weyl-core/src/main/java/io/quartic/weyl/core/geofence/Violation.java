@@ -9,5 +9,4 @@ import org.immutables.value.Value;
 public interface Violation {
     Feature feature();
     Geofence geofence();
-    String message();
 }

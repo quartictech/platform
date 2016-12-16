@@ -18,7 +18,6 @@ import java.util.function.BiConsumer;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -157,7 +156,6 @@ public class GeofenceStoreShould {
         final Violation violation = captor.getValue();
         assertThat(violation.geofence(), equalTo(geofence(GeofenceType.EXCLUDE)));
         assertThat(violation.feature(), equalTo(point));
-        assertThat(violation.message(), containsString("ducks"));
     }
 
     private void createGeofence(GeofenceType type) {

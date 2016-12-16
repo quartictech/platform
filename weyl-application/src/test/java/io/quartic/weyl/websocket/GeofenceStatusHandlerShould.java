@@ -280,10 +280,6 @@ public class GeofenceStatusHandlerShould {
     private Violation violation(EntityId geofenceId) {
         final Geofence geofence = mock(Geofence.class, RETURNS_DEEP_STUBS);
         when(geofence.feature().entityId()).thenReturn(geofenceId);
-        return ViolationImpl.of(
-                mock(Feature.class),
-                geofence,
-                "Hmmm"
-        );
+        return ViolationImpl.of(mock(Feature.class), geofence);
     }
 }
