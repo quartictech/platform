@@ -5,9 +5,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
-import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.alert.Alert;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -39,7 +36,6 @@ import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,7 +47,6 @@ import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
 import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Function.identity;
@@ -76,22 +71,6 @@ public class GeofenceStatusHandlerShould {
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
     private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, snapshotSequences, converter);
-
-    @Test
-    public void send_geometry_update() throws Exception {
-        final List<Feature> features = mock(List.class);
-        final FeatureCollection featureCollection = FeatureCollectionImpl.of(newArrayList(
-                FeatureImpl.of(Optional.of("foo"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())
-        ));
-        when(converter.toGeojson(any())).thenReturn(featureCollection);
-        onListen(listener -> listener.onGeometryChange(features));
-
-        TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-
-        sub.awaitValueCount(1, 100, MILLISECONDS);
-        verify(converter).toGeojson(features);
-        assertThat(sub.getOnNextEvents(), contains(GeofenceGeometryUpdateMessageImpl.of(featureCollection)));
-    }
 
     @Test
     public void send_violation_update_accounting_for_cumulative_changes() throws Exception {
@@ -119,6 +98,7 @@ public class GeofenceStatusHandlerShould {
     public void set_geofence_based_on_features() throws Exception {
         final FeatureCollection features = mock(FeatureCollection.class);
         when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
+        when(converter.toGeojson(any())).thenReturn(features);
 
         subscribeToHandler(status(builder -> builder.features(features)));
 
@@ -130,6 +110,16 @@ public class GeofenceStatusHandlerShould {
     public void set_geofence_based_on_layer() throws Exception {
         final LayerId layerId = mock(LayerId.class);
         final LayerSpec spec = mock(LayerSpec.class);
+        final Layer layer = createLayer(layerId, spec);
+
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(SnapshotImpl.of(layer, emptyList()))));
+
+        subscribeToHandler(status(builder -> builder.layerId(layerId)));
+
+        verifyGeofence("xyz", featureA, featureB);
+    }
+
+    private Layer createLayer(LayerId layerId, LayerSpec spec) {
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
         final Layer layer = mock(Layer.class);
         when(spec.id()).thenReturn(layerId);
@@ -140,12 +130,19 @@ public class GeofenceStatusHandlerShould {
                         modelFeatureOf(featureB)
                 ).stream()
         );
+        return layer;
+    }
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(SnapshotImpl.of(layer, emptyList()))));
+    @Test
+    public void send_geometry_update_when_geofence_changes() throws Exception {
+        final FeatureCollection features = mock(FeatureCollection.class);
+        when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
+        when(converter.toGeojson(any())).thenReturn(features);
 
-        subscribeToHandler(status(builder -> builder.layerId(layerId)));
+        final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(builder -> builder.features(features)));
 
-        verifyGeofence("xyz", featureA, featureB);
+        sub.awaitValueCount(1, 100, MILLISECONDS);
+        assertThat(sub.getOnNextEvents(), contains(GeofenceGeometryUpdateMessageImpl.of(features)));
     }
 
     @Test

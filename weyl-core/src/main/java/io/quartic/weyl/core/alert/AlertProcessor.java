@@ -5,11 +5,9 @@ import io.quartic.weyl.core.geofence.GeofenceStore;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.Feature;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-import java.util.Collection;
 import java.util.Optional;
 
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
@@ -31,11 +29,6 @@ public class AlertProcessor {
 
             @Override
             public void onViolationEnd(Violation violation) {
-                // Do nothing
-            }
-
-            @Override
-            public void onGeometryChange(Collection<Feature> features) {
                 // Do nothing
             }
         });

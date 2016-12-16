@@ -16,7 +16,6 @@ import java.util.Set;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static java.util.stream.Collectors.toList;
 
 public class GeofenceStore  {
     private static final Logger LOG = LoggerFactory.getLogger(GeofenceStore.class);
@@ -43,7 +42,6 @@ public class GeofenceStore  {
         Lists.newArrayList(this.currentViolations.keySet()).forEach(this::removeViolation);
         this.geofences.clear();
         this.geofences.addAll(geofences);
-        notifyListeners(geofences);
     }
 
     public synchronized void addListener(GeofenceListener listener) {
@@ -88,11 +86,5 @@ public class GeofenceStore  {
     private boolean inViolation(Geofence geofence, Feature feature) {
         final boolean contains = geofence.feature().geometry().contains(feature.geometry());
         return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
-    }
-
-    private void notifyListeners(Collection<Geofence> geofences) {
-        listeners.forEach(l -> l.onGeometryChange(geofences.stream()
-                .map(Geofence::feature)
-                .collect(toList())));
     }
 }

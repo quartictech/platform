@@ -43,15 +43,6 @@ public class GeofenceStoreShould {
     }
 
     @Test
-    public void notify_on_geometry_change() throws Exception {
-        createGeofence(GeofenceType.INCLUDE);
-
-        verify(listener).onGeometryChange(ImmutableList.of(
-                FeatureImpl.of(EntityIdImpl.of("geofence/99"), fenceGeometry, EMPTY_ATTRIBUTES)
-        ));
-    }
-
-    @Test
     public void not_notify_if_inside_inclusive_boundary() throws Exception {
         createGeofence(GeofenceType.INCLUDE);
         updatePoint(true);

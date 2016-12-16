@@ -14,9 +14,9 @@ import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -25,8 +25,8 @@ import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Emitter.BackpressureMode;
 import rx.Observable;
 import rx.Subscription;
+import rx.subjects.BehaviorSubject;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,12 +46,14 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.empty;
 import static rx.Observable.fromEmitter;
+import static rx.Observable.merge;
 
 public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private final GeofenceStore geofenceStore;
     private final Map<LayerId, Observable<Snapshot>> sequences = Maps.newConcurrentMap();
     private final Subscription subscription;
     private final FeatureConverter featureConverter;
+    private final BehaviorSubject<SocketMessage> geometryUpdates = BehaviorSubject.create();
 
     public GeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         this.geofenceStore = geofenceStore;
@@ -65,7 +67,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .map(ClientStatusMessage::geofence)
                 .distinctUntilChanged()
                 .doOnNext(this::handleMessage)
-                .switchMap(x -> upstream())
+                .switchMap(x -> merge(upstream(), geometryUpdates))
                 .doOnUnsubscribe(subscription::unsubscribe);    // TODO: this is an utterly gross hack
     }
 
@@ -110,6 +112,9 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .map(f -> GeofenceImpl.of(status.type(), f))
                 .collect(toList());
         geofenceStore.setGeofences(geofences);
+        geometryUpdates.onNext(GeofenceGeometryUpdateMessageImpl.of(
+                featureConverter.toGeojson(geofences.stream().map(Geofence::feature).collect(toList()))
+        ));
     }
 
     private Observable<SocketMessage> upstream() {
@@ -137,13 +142,6 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                                 counts.put(level, counts.getOrDefault(level, 1) - 1);   // Prevents going below 0 in cases that should never happen
                                 sendViolationsUpdate();
                             }
-                        }
-
-                        @Override
-                        public void onGeometryChange(Collection<Feature> features) {
-                            emitter.onNext(GeofenceGeometryUpdateMessageImpl.of(
-                                    featureConverter.toGeojson(features)
-                            ));
                         }
 
                         private void sendViolationsUpdate() {
