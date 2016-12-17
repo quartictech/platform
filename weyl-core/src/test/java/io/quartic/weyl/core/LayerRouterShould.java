@@ -35,6 +35,8 @@ public class LayerRouterShould {
             .snapshotReducer(snapshotReducer)
             .build();
 
+    // TODO: tests for replay/behaviour semantics of observables
+
     @Test
     public void prevent_overwriting_an_existing_layer() throws Exception {
         final LayerSpec spec = spec(LAYER_ID);

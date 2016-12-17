@@ -5,6 +5,7 @@ import org.immutables.value.Value;
 import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Func1;
+import rx.functions.Func2;
 import rx.internal.util.ObserverSubscriber;
 import rx.subjects.BehaviorSubject;
 
@@ -31,6 +32,27 @@ public final class RxUtils {
                     .scan(WithPreviousImpl.of(null, initial), (prev, current) -> WithPreviousImpl.of(prev.current(), current));
             return scan.skip(1);    // Because scan() emits the initial value
         };
+    }
+
+    @SweetStyle
+    @Value.Immutable
+    public interface StateAndOutput<State, Output> {
+        State state();
+        @Nullable Output output();
+
+        static <State, Output> StateAndOutput<State, Output> of(State state, Output output) {
+            return StateAndOutputImpl.of(state, output);
+        }
+    }
+
+    public static <Input, State, Output> Transformer<Input, Output> mealy(State initial, Func2<State, Input, StateAndOutput<State, Output>> next) {
+        final StateAndOutput<State, Output> wrappedInitial = StateAndOutput.of(initial, null);
+        final Func2<StateAndOutput<State, Output>, Input, StateAndOutput<State, Output>> wrappedNext =
+                (wrapped, input) -> next.call(wrapped.state(), input);
+        return observable -> observable
+                .scan(wrappedInitial, wrappedNext)
+                .skip(1)
+                .map(StateAndOutput::output);
     }
 
     /**
