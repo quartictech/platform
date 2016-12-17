@@ -34,7 +34,7 @@ import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -164,9 +164,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Observable<LayerSnapshotSequence> snapshotSequences
     ) {
         // These are per-user so each user has their own geofence state
-        final GeofenceStore geofenceStore = new GeofenceStore(snapshotSequences);
-        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
-        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, snapshotSequences);
+        final GeofenceViolationDetector geofenceViolationDetector = new GeofenceViolationDetector(snapshotSequences);
+        final AlertProcessor alertProcessor = new AlertProcessor(geofenceViolationDetector);
+        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceViolationDetector, snapshotSequences);
 
         final Observable<Alert> alerts = merge(alertProcessor.alerts(), alertResource.alerts());
 
@@ -198,8 +198,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new OpenLayerHandler(snapshotSequences, featureConverter());
     }
 
-    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences) {
-        return new GeofenceStatusHandler(geofenceStore, snapshotSequences, featureConverter());
+    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceViolationDetector geofenceViolationDetector, Observable<LayerSnapshotSequence> snapshotSequences) {
+        return new GeofenceStatusHandler(geofenceViolationDetector, snapshotSequences, featureConverter());
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(

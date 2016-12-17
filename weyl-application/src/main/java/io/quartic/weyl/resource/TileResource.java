@@ -58,7 +58,7 @@ public abstract class TileResource {
         try {
             return latest(getOrError(id)).absolute();
         } catch (NoSuchElementException e) {
-            throw new NotFoundException("Layer with id " + id + " was deleted");    // TODO: it would be more gracedul to return empty in the case of deletion
+            throw new NotFoundException("Layer with id " + id + " was deleted");    // TODO: it would be more graceful to return empty in the case of deletion
         }
     }
 

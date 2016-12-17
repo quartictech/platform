@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.alert;
 
 import io.quartic.weyl.core.geofence.GeofenceListener;
-import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
@@ -16,16 +16,14 @@ import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AlertProcessorShould {
 
     private final AtomicReference<GeofenceListener> geofenceListener = new AtomicReference<>();
-    private final GeofenceStore store = store(geofenceListener);
+    private final GeofenceViolationDetector store = store(geofenceListener);
     private final AlertProcessor processor = new AlertProcessor(store);
 
     @Test
@@ -43,12 +41,12 @@ public class AlertProcessorShould {
         )));
     }
 
-    private GeofenceStore store(AtomicReference<GeofenceListener> listener) {
-        final GeofenceStore store = mock(GeofenceStore.class);
-        doAnswer(invocation -> {
-            listener.set(invocation.getArgument(0));
-            return null;
-        }).when(store).addListener(any());
+    private GeofenceViolationDetector store(AtomicReference<GeofenceListener> listener) {
+        final GeofenceViolationDetector store = mock(GeofenceViolationDetector.class);
+//        doAnswer(invocation -> {
+//            listener.set(invocation.getArgument(0));
+//            return null;
+//        }).when(store).addListener(any());
         return store;
     }
 

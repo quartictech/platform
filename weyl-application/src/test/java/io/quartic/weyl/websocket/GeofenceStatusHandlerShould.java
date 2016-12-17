@@ -10,7 +10,7 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceListener;
-import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.geofence.ViolationImpl;
@@ -67,10 +67,10 @@ public class GeofenceStatusHandlerShould {
     private final Attributes featureAttributes = mock(Attributes.class);
     private final NakedFeature featureA = NakedFeatureImpl.of(Optional.empty(), polygon(5.0), featureAttributes);
     private final NakedFeature featureB = NakedFeatureImpl.of(Optional.empty(), polygon(6.0), featureAttributes);
-    private final GeofenceStore geofenceStore = mock(GeofenceStore.class);
+    private final GeofenceViolationDetector geofenceViolationDetector = mock(GeofenceViolationDetector.class);
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
-    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceStore, snapshotSequences, converter);
+    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(geofenceViolationDetector, snapshotSequences, converter);
 
     @Test
     public void send_violation_update_accounting_for_cumulative_changes() throws Exception {
@@ -192,7 +192,7 @@ public class GeofenceStatusHandlerShould {
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(builder -> builder.bufferDistance(1.0)));
         sub.unsubscribe();
 
-        verify(geofenceStore).removeListener(any());
+        verify(geofenceViolationDetector).removeListener(any());
     }
 
     @Test
@@ -204,7 +204,7 @@ public class GeofenceStatusHandlerShould {
 
         subscribeToHandler(statusA, statusB);
 
-        verify(geofenceStore, never()).removeListener(any());
+        verify(geofenceViolationDetector, never()).removeListener(any());
     }
 
     private ClientStatusMessage status(Function<GeofenceStatusImpl.Builder, GeofenceStatusImpl.Builder> builderHacks) {
@@ -231,7 +231,7 @@ public class GeofenceStatusHandlerShould {
     }
 
     private void verifyGeofence(String id, Alert.Level level, NakedFeature... features) {
-        verify(geofenceStore).setGeofences(
+        verify(geofenceViolationDetector).setGeofences(
                 stream(features)
                         .map(p -> geofenceOf(id, level, p.geometry()))
                         .collect(toList()));
@@ -274,7 +274,7 @@ public class GeofenceStatusHandlerShould {
             final GeofenceListener listener = invocation.getArgument(0);
             consumer.accept(listener);
             return null;
-        }).when(geofenceStore).addListener(any());
+        }).when(geofenceViolationDetector).addListener(any());
     }
 
     private Violation violation(EntityId geofenceId) {

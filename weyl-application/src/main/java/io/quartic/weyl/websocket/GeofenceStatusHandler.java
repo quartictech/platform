@@ -7,7 +7,7 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceListener;
-import io.quartic.weyl.core.geofence.GeofenceStore;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityIdImpl;
@@ -49,14 +49,14 @@ import static rx.Observable.fromEmitter;
 import static rx.Observable.merge;
 
 public class GeofenceStatusHandler implements ClientStatusMessageHandler {
-    private final GeofenceStore geofenceStore;
+    private final GeofenceViolationDetector geofenceViolationDetector;
     private final Map<LayerId, Observable<Snapshot>> sequences = Maps.newConcurrentMap();
     private final Subscription subscription;
     private final FeatureConverter featureConverter;
     private final BehaviorSubject<SocketMessage> geometryUpdates = BehaviorSubject.create();
 
-    public GeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
-        this.geofenceStore = geofenceStore;
+    public GeofenceStatusHandler(GeofenceViolationDetector geofenceViolationDetector, Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
+        this.geofenceViolationDetector = geofenceViolationDetector;
         this.subscription = snapshotSequences.subscribe(s -> sequences.put(s.spec().id(), s.snapshots()));
         this.featureConverter = featureConverter;
     }
@@ -111,7 +111,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .filter(f -> !f.geometry().isEmpty())
                 .map(f -> GeofenceImpl.of(status.type(), f))
                 .collect(toList());
-        geofenceStore.setGeofences(geofences);
+        geofenceViolationDetector.setGeofences(geofences);
         geometryUpdates.onNext(GeofenceGeometryUpdateMessageImpl.of(
                 featureConverter.toGeojson(geofences.stream().map(Geofence::feature).collect(toList()))
         ));
@@ -154,8 +154,8 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                         }
                     };
 
-                    geofenceStore.addListener(listener);
-                    emitter.setCancellation(() -> geofenceStore.removeListener(listener));
+                    geofenceViolationDetector.addListener(listener);
+                    emitter.setCancellation(() -> geofenceViolationDetector.removeListener(listener));
                 },
                 BackpressureMode.BUFFER
         );
