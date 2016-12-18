@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import rx.Observable;
-import rx.Observable.Transformer;
 import rx.Observer;
 import rx.functions.Func2;
 import rx.observers.TestSubscriber;
@@ -31,7 +30,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.just;
-import static rx.Observable.never;
 
 @RunWith(Enclosed.class)
 public class RxUtilsShould {
@@ -153,69 +151,52 @@ public class RxUtilsShould {
     }
 
     public static class CombineShould {
-        interface Input {}
-        interface Output {}
-
         @Test
         public void merge_outputs_from_all_transformers() throws Exception {
-            final Input inputA = mock(Input.class);
-            final Input inputB = mock(Input.class);
-            final Output outputA = mock(Output.class);
-            final Output outputB = mock(Output.class);
-
-            final TestSubscriber<Input> subInput1 = TestSubscriber.create();
-            final TestSubscriber<Input> subInput2 = TestSubscriber.create();
-            final Transformer<Input, Output> t1 = mockTransformer(subInput1, just(outputA));
-            final Transformer<Input, Output> t2 = mockTransformer(subInput2, just(outputB));
-
-            TestSubscriber<Output> sub = TestSubscriber.create();
-
-            just(inputA, inputB)
-                    .compose(combine(t1, t2))
+            final TestSubscriber<Integer> sub = TestSubscriber.create();
+            just(1, 2, 3)
+                    .compose(combine(
+                            x -> x.map(y -> y + 1),
+                            x -> x.map(y -> y * 10)
+                    ))
                     .subscribe(sub);
 
             sub.awaitTerminalEvent();
-            assertThat(subInput1.getOnNextEvents(), contains(inputA, inputB));
-            assertThat(subInput2.getOnNextEvents(), contains(inputA, inputB));
-            assertThat(sub.getOnNextEvents(), containsInAnyOrder(outputA, outputB));
+            assertThat(sub.getOnNextEvents(), containsInAnyOrder(2, 3, 4, 10, 20, 30));
         }
 
         @Test
         public void share_input() throws Exception {
-            final Transformer<Input, Output> t1 = mockTransformer(TestSubscriber.create(), never());
-            final Transformer<Input, Output> t2 = mockTransformer(TestSubscriber.create(), never());
+            final PublishSubject<Integer> input = PublishSubject.create();
+            final Interceptor<Integer> interceptor = Interceptor.create();
 
-            final Interceptor<Input> interceptor = Interceptor.create();
-
-            Observable.<Input>never()
+            input
                     .compose(interceptor)
-                    .compose(combine(t1, t2))
+                    .compose(combine(
+                            x -> x.map(y -> y + 1),
+                            x -> x.map(y -> y * 10)
+                    ))
                     .subscribe();
+
+            input.onNext(1);
+            input.onNext(2);
+            input.onNext(3);
+            input.onCompleted();
 
             assertThat(interceptor.subscribeCount(), equalTo(1));
         }
 
         @Test
         public void unsubscribe_from_upstream_when_downstream_unsubscribes() throws Exception {
-            final Interceptor<Input> interceptor = Interceptor.create();
+            final Interceptor<Integer> interceptor = Interceptor.create();
 
-            Observable.<Input>never()
+            Observable.<Integer>never()
                     .compose(interceptor)
                     .compose(combine(x -> x, x -> x))
                     .subscribe()
                     .unsubscribe();
 
             assertThat(interceptor.unsubscribed(), equalTo(true));
-        }
-
-        private <T, R> Transformer<T, R> mockTransformer(TestSubscriber<T> testSubscriber, Observable<R> output) {
-            @SuppressWarnings("unchecked") final Transformer<T, R> transformer = mock(Transformer.class);
-            when(transformer.call(any())).thenAnswer(invocation -> {
-                Observable<T> input = invocation.getArgument(0);
-                input.subscribe(testSubscriber);
-                return output;
-            });
-            return transformer;
         }
     }
 }

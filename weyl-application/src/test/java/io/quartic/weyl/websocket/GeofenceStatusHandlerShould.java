@@ -60,13 +60,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.empty;
 import static rx.Observable.from;
 import static rx.Observable.just;
-import static rx.Observable.never;
 
 public class GeofenceStatusHandlerShould {
     private final Attributes featureAttributes = mock(Attributes.class);
@@ -120,7 +120,7 @@ public class GeofenceStatusHandlerShould {
 
         subscribeToHandler(status(builder -> builder.features(featureCollection)));
 
-        verify(converter).toModel(featureCollection);
+        verify(converter, atLeastOnce()).toModel(featureCollection);
         assertGeofences(interceptor, "custom", featureA, featureB);
     }
 
@@ -129,8 +129,8 @@ public class GeofenceStatusHandlerShould {
         final LayerId layerId = mock(LayerId.class);
         final LayerSpec spec = mock(LayerSpec.class);
         final Layer layer = createLayer(layerId, spec);
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(SnapshotImpl.of(layer, emptyList()))));
         final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(SnapshotImpl.of(layer, emptyList()))));
 
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
@@ -142,12 +142,7 @@ public class GeofenceStatusHandlerShould {
         final Layer layer = mock(Layer.class);
         when(spec.id()).thenReturn(layerId);
         when(layer.features()).thenReturn(featureCollection);
-        when(featureCollection.stream()).thenReturn(
-                newArrayList(
-                        modelFeatureOf(featureA),
-                        modelFeatureOf(featureB)
-                ).stream()
-        );
+        when(featureCollection.stream()).thenAnswer(invocation -> newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB)).stream());
         return layer;
     }
 
@@ -246,11 +241,22 @@ public class GeofenceStatusHandlerShould {
     private TestSubscriber<SocketMessage> subscribeToHandler(ClientStatusMessage... statuses) {
         TestSubscriber<SocketMessage> sub = TestSubscriber.create();
         from(statuses)
-                .concatWith(never())    // Because we're expecting an infinite stream
+//                .concatWith(never())    // Because we're expecting an infinite stream
                 .compose(handler)
                 .subscribe(sub);
         return sub;
     }
+
+    public class IoContext {
+        private final PublishSubject<ClientStatusMessage> input = PublishSubject.create();
+        private final TestSubscriber<SocketMessage> output = TestSubscriber.create();
+
+        public IoContext() {
+            input.compose(handler).subscribe(output);
+        }
+    }
+
+
 
     private Interceptor<Collection<Geofence>> mockDetectorBehaviour() {
         return mockDetectorBehaviour(empty());
@@ -262,7 +268,7 @@ public class GeofenceStatusHandlerShould {
             Observable<Collection<Geofence>> obs = invocation.getArgument(0);
             return obs
                     .compose(interceptor)
-                    .concatMap(x -> violationEvents.concatWith(never())); // Simulate infinite stream
+                    .concatMap(x -> violationEvents);//.concatWith(never())); // Simulate infinite stream
         });
         return interceptor;
     }

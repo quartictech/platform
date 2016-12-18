@@ -97,7 +97,7 @@ public final class RxUtils {
 
     public static <T, R> Transformer<T, R> combine(Collection<? extends Transformer<T, ? extends R>> transformers) {
         return observable -> {
-            final Observable<T> shared = observable.publish().autoConnect(transformers.size());
+            final Observable<T> shared = observable.share();
             return merge(transformers.stream().map(shared::compose).collect(toList()));
         };
     }
