@@ -7,7 +7,7 @@ import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
-import io.quartic.common.test.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.catalogue.CatalogueEventImpl;
 import io.quartic.weyl.core.model.AttributeName;
@@ -61,10 +61,10 @@ public class SourceManagerShould {
     private final PublishSubject<CatalogueEvent> catalogueEvents = PublishSubject.create();
     private final PublishSubject<LayerUpdate> layerUpdatesA = PublishSubject.create();
     private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
-    private final ObservableInterceptor<LayerUpdate> interceptor = ObservableInterceptor.create(layerUpdatesA);
+    private final Interceptor<LayerUpdate> interceptor = Interceptor.create();
 
     private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
-            LocatorA.class, config -> sourceOf(interceptor.observable(), true),
+            LocatorA.class, config -> sourceOf(layerUpdatesA.compose(interceptor), true),
             LocatorB.class, config -> sourceOf(layerUpdatesB, false)
     );
 

@@ -128,9 +128,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         websocketBundle.addEndpoint(ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
+                    @SuppressWarnings("unchecked")
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        //noinspection unchecked
                         return (T) createUpdateServer(
                                 selectionHandler,
                                 openLayerHandler,

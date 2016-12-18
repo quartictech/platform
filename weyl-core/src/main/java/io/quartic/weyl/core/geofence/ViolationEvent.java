@@ -1,16 +1,18 @@
 package io.quartic.weyl.core.geofence;
 
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.EntityId;
 import org.immutables.value.Value;
 
-interface ViolationEvent {
+public interface ViolationEvent {
 
     @SweetStyle
     @Value.Immutable
     interface ViolationBeginEvent extends ViolationEvent {
-        Geofence geofence();
-        Feature feature();
+        EntityId entityId();
+        EntityId geofenceId();
+        Alert.Level level();
 
         @Override
         default <T> T accept(Visitor<T> visitor) {
@@ -21,8 +23,9 @@ interface ViolationEvent {
     @SweetStyle
     @Value.Immutable
     interface ViolationEndEvent extends ViolationEvent {
-        Geofence geofence();
-        Feature feature();
+        EntityId entityId();
+        EntityId geofenceId();
+        Alert.Level level();
 
         @Override
         default <T> T accept(Visitor<T> visitor) {

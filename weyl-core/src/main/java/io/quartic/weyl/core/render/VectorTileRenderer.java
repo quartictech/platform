@@ -71,8 +71,8 @@ public class VectorTileRenderer {
         return encoder.encode();
     }
 
+    @SuppressWarnings("unchecked")
     private Stream<IndexedFeature> layerIntersection(Layer layer, Envelope envelope) {
-        //noinspection unchecked
         return layer.spatialIndex().query(envelope).stream();
     }
 

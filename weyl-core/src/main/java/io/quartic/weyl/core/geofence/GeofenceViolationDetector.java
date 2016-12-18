@@ -19,6 +19,7 @@ import java.util.Set;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.common.rx.RxUtils.mealy;
+import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 
 public class GeofenceViolationDetector implements Transformer<Collection<Geofence>, ViolationEvent> {
     private static final Logger LOG = LoggerFactory.getLogger(GeofenceViolationDetector.class);
@@ -58,18 +59,20 @@ public class GeofenceViolationDetector implements Transformer<Collection<Geofenc
         final List<ViolationEvent> output = newArrayList();
 
         features.forEach(feature -> geofences.forEach(geofence -> {
-            final ViolationKeyImpl key = ViolationKeyImpl.of(feature.entityId(), geofence.feature().entityId());
+            final EntityId entityId = feature.entityId();
+            final EntityId geofenceId = geofence.feature().entityId();
+            final ViolationKeyImpl key = ViolationKeyImpl.of(entityId, geofenceId);
 
             final boolean violating = inViolation(geofence, feature);
             final boolean previouslyViolating = state.contains(key);
 
             if (violating && !previouslyViolating) {
-                LOG.info("Violation begin: {} -> {}", feature.entityId(), geofence.feature().entityId());
-                output.add(ViolationBeginEventImpl.of(geofence, feature));
+                LOG.info("Violation begin: {} -> {}", entityId, geofenceId);
+                output.add(ViolationBeginEventImpl.of(entityId, geofenceId, alertLevel(geofence.feature())));
                 state.add(key);
             } else if (!violating && previouslyViolating) {
-                LOG.info("Violation end: {} -> {}", feature.entityId(), geofence.feature().entityId());
-                output.add(ViolationEndEventImpl.of(geofence, feature));
+                LOG.info("Violation end: {} -> {}", entityId, geofenceId);
+                output.add(ViolationEndEventImpl.of(entityId, geofenceId, alertLevel(geofence.feature())));
                 state.remove(key);
             }
         }));

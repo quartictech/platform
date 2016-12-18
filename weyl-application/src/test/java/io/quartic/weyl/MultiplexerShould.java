@@ -1,7 +1,7 @@
 package io.quartic.weyl;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.common.test.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.Interceptor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import rx.Observable;
@@ -21,10 +21,10 @@ import static rx.Observable.just;
 public class MultiplexerShould {
     private final PublishSubject<Integer> subjectA = PublishSubject.create();
     private final PublishSubject<Integer> subjectB = PublishSubject.create();
-    private final ObservableInterceptor<Integer> interceptor = ObservableInterceptor.create(subjectA);
+    private final Interceptor<Integer> interceptor = Interceptor.create();
 
     private final Map<String, Observable<Integer>> streams = ImmutableMap.of(
-            "abc", interceptor.observable(),
+            "abc", subjectA.compose(interceptor),
             "def", subjectB
     );
     private final Multiplexer<Double, String, Integer> mux = Multiplexer.create(streams::get);

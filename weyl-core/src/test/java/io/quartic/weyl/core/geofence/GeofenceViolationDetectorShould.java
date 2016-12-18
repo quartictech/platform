@@ -17,6 +17,7 @@ import rx.subjects.BehaviorSubject;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -192,11 +193,11 @@ public class GeofenceViolationDetectorShould {
     }
 
     private ViolationBeginEventImpl beginEvent(Geofence geofence, Feature feature) {
-        return ViolationBeginEventImpl.of(geofence, feature);
+        return ViolationBeginEventImpl.of(feature.entityId(), geofence.feature().entityId(), alertLevel(geofence.feature()));
     }
 
     private ViolationEndEventImpl endEvent(Geofence geofence, Feature featureB) {
-        return ViolationEndEventImpl.of(geofence, featureB);
+        return ViolationEndEventImpl.of(featureB.entityId(), geofence.feature().entityId(), alertLevel(geofence.feature()));
     }
 
     private ViolationEvent.ViolationClearEvent clearEvent() {

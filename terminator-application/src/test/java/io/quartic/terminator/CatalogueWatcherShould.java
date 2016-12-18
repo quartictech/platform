@@ -30,10 +30,12 @@ import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
 public class CatalogueWatcherShould {
+    @SuppressWarnings("unchecked")
     private final WebsocketListener<Map<DatasetId, DatasetConfig>> listener = mock(WebsocketListener.class);
     private final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
     private final CatalogueWatcher proxy = CatalogueWatcher.of(listenerFactory);
 
+    @SuppressWarnings("unchecked")
     @Before
     public void before() throws Exception {
         when(listenerFactory.create(any(JavaType.class))).thenReturn((WebsocketListener)listener);

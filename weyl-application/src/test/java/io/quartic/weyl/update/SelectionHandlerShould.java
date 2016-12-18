@@ -30,6 +30,7 @@ import static rx.Observable.empty;
 import static rx.Observable.just;
 
 public class SelectionHandlerShould {
+    @SuppressWarnings("unchecked")
     private final Multiplexer<Integer, EntityId, Feature> mux = mock(Multiplexer.class);
     private final SelectionDrivenUpdateGenerator generator = mock(SelectionDrivenUpdateGenerator.class);
 

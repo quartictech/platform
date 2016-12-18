@@ -15,13 +15,8 @@ import java.util.Optional;
 
 public class GeoJsonShould {
 
-    public static <T> List<T> list(T... stuff) {
-        return ImmutableList.copyOf(stuff);
-    }
-
     @Test
     public void deserializeBackToOriginal() throws Exception {
-
         FeatureCollection original = FeatureCollectionImpl.of(list(
                 FeatureImpl.of(
                         Optional.empty(),
@@ -61,5 +56,10 @@ public class GeoJsonShould {
         String json = sw.toString();
 
         Assert.assertThat(mapper.readValue(json, FeatureCollection.class), Matchers.equalTo(original));
+    }
+
+    @SafeVarargs
+    public static <T> List<T> list(T... stuff) {
+        return ImmutableList.copyOf(stuff);
     }
 }

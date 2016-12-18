@@ -9,12 +9,16 @@ import rx.functions.Func2;
 import rx.internal.util.ObserverSubscriber;
 import rx.subjects.BehaviorSubject;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static rx.Observable.merge;
 
 public final class RxUtils {
     private RxUtils() {}
@@ -84,6 +88,18 @@ public final class RxUtils {
             prev.add(toValue.call(r));
             return prev;
         });
+    }
+
+    @SafeVarargs
+    public static <T, R> Transformer<T, R> combine(Transformer<T, ? extends R>... transformers) {
+        return combine(asList(transformers));
+    }
+
+    public static <T, R> Transformer<T, R> combine(Collection<? extends Transformer<T, ? extends R>> transformers) {
+        return observable -> {
+            final Observable<T> shared = observable.publish().autoConnect(transformers.size());
+            return merge(transformers.stream().map(shared::compose).collect(toList()));
+        };
     }
 
     /**
