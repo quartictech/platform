@@ -162,7 +162,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Observable<LayerSnapshotSequence> snapshotSequences
     ) {
         // These are per-user so each user has their own geofence state
-        final GeofenceViolationDetector geofenceViolationDetector = new GeofenceViolationDetector(snapshotSequences);
+        final GeofenceViolationDetector geofenceViolationDetector = new GeofenceViolationDetector();
         final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceViolationDetector, snapshotSequences);
 
         return new UpdateServer(

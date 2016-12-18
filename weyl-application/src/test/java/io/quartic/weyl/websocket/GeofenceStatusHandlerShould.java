@@ -3,18 +3,19 @@ package io.quartic.weyl.websocket;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.common.rx.StateAndOutputImpl;
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.model.Alert;
-import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
-import io.quartic.weyl.core.geofence.ViolationBeginEventImpl;
-import io.quartic.weyl.core.geofence.ViolationEndEventImpl;
-import io.quartic.weyl.core.geofence.ViolationEvent;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
+import io.quartic.weyl.core.geofence.Violation;
+import io.quartic.weyl.core.model.Alert;
+import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
@@ -39,35 +40,39 @@ import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
-import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.common.test.CollectionUtils.entry;
+import static io.quartic.common.test.CollectionUtils.map;
+import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
+import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
 import static io.quartic.weyl.core.model.Alert.Level.WARNING;
-import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static rx.Observable.empty;
 import static rx.Observable.from;
 import static rx.Observable.just;
 
@@ -76,6 +81,9 @@ public class GeofenceStatusHandlerShould {
     private final NakedFeature featureA = NakedFeatureImpl.of(Optional.empty(), polygon(5.0), featureAttributes);
     private final NakedFeature featureB = NakedFeatureImpl.of(Optional.empty(), polygon(6.0), featureAttributes);
     private final FeatureCollection featureCollection = mock(FeatureCollection.class);
+
+    private final LayerId layerId = mock(LayerId.class);
+    private final LayerSpec layerSpec = mock(LayerSpec.class);
 
     private final GeofenceViolationDetector detector = mock(GeofenceViolationDetector.class);
 
@@ -90,86 +98,133 @@ public class GeofenceStatusHandlerShould {
 
     @Before
     public void before() throws Exception {
+        when(layerSpec.id()).thenReturn(layerId);
+
         when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
         when(converter.toGeojson(any())).thenReturn(featureCollection);
+
+        // Default behaviour
+        when(detector.create(any())).thenReturn(mock(State.class));
+        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), mock(Output.class)));
     }
 
-    // TODO: individual tests for clear/begin/end events
+    // TODO: handling of layer completion
 
     @Test
-    public void send_violation_updates_accounting_for_cumulative_changes() throws Exception {
-        final EntityId entityIdA = mock(EntityId.class);
-        final EntityId entityIdB = mock(EntityId.class);
-        final EntityId geofenceIdA = mock(EntityId.class);
-        final EntityId geofenceIdB = mock(EntityId.class);
-        mockDetectorBehaviour(just(
-                ViolationBeginEventImpl.of(entityIdA, geofenceIdA, SEVERE),
-                ViolationBeginEventImpl.of(entityIdB, geofenceIdB, WARNING),
-                ViolationEndEventImpl.of(entityIdA, geofenceIdA, SEVERE)
-        ));
+    public void send_violation_update_when_changed() throws Exception {
+        mockDetectorBehaviour(false, true);
 
-        TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
+        final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
+        snapshotSequences.onNext(sequence(layer(), emptyList()));
 
         assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), contains(
-                GeofenceViolationsUpdateMessageImpl.of(newArrayList(geofenceIdA), 0, 0, 1),
-                GeofenceViolationsUpdateMessageImpl.of(newArrayList(geofenceIdA, geofenceIdB), 0, 1, 1),
-                GeofenceViolationsUpdateMessageImpl.of(newArrayList(geofenceIdB), 0, 1, 0)
+                GeofenceViolationsUpdateMessageImpl.of(newArrayList(EntityId.fromString("Pluto")), 1, 2, 3)
         ));
     }
 
     @Test
-    public void send_alert_when_violation_begun() throws Exception {
-        final EntityId entityIdA = EntityId.fromString("Goofy");
-        final EntityId geofenceIdA = mock(EntityId.class);
-        mockDetectorBehaviour(just(ViolationBeginEventImpl.of(entityIdA, geofenceIdA, SEVERE)));
+    public void not_send_violation_update_when_not_changed() throws Exception {
+        mockDetectorBehaviour(false, false);
 
-        TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
+        final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
+        snapshotSequences.onNext(sequence(layer(), emptyList()));
+
+        assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), empty());
+    }
+
+    @Test
+    public void send_alert_for_new_violation() throws Exception {
+        mockDetectorBehaviour(true, false);
+
+        final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
+        snapshotSequences.onNext(sequence(layer(), emptyList()));
 
         assertThat(extractByType(sub, AlertMessage.class), contains(
                 AlertMessageImpl.of(AlertImpl.of(
                         "Geofence violation",
                         Optional.of("Boundary violated by entity 'Goofy'"),
-                        Alert.Level.SEVERE
+                        SEVERE
                 ))
         ));
     }
 
     @Test
-    public void set_geofence_based_on_features() throws Exception {
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
+    public void maintain_detector_state_between_calls() throws Exception {
+        final State state = mock(State.class);
+        when(detector.create(any())).thenReturn(state);
 
+        mockDetectorBehaviour(false, false);
+
+        subscribeToHandler(status(identity()));
+        snapshotSequences.onNext(sequence(layer(), emptyList()));
+
+        verify(detector).next(eq(state), any());
+    }
+
+    @Test
+    public void call_detector_with_layer_diff() throws Exception {
+        final List<Feature> diff = newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB));
+        mockDetectorBehaviour(false, false);
+
+        subscribeToHandler(status(identity()));
+        snapshotSequences.onNext(sequence(layer(), diff));
+
+        verify(detector).next(any(), eq(diff));
+    }
+
+    @Test
+    public void ignore_non_live_layer_changes() throws Exception {
+        when(layerSpec.indexable()).thenReturn(true);
+        final List<Feature> diff = newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB));
+        mockDetectorBehaviour(false, false);
+
+        subscribeToHandler(status(identity()));
+        snapshotSequences.onNext(sequence(layer(), diff));
+
+        verify(detector, never()).next(any(), any());
+    }
+
+    private void mockDetectorBehaviour(boolean newViolations, boolean hasChanged) {
+        final Violation violation = mock(Violation.class);
+        when(violation.entityId()).thenReturn(EntityId.fromString("Goofy"));
+        when(violation.geofenceId()).thenReturn(EntityId.fromString("Pluto"));
+        when(violation.level()).thenReturn(SEVERE);
+
+        final Output output = mock(Output.class);
+        when(output.hasChanged()).thenReturn(hasChanged);
+        if (newViolations) {
+            when(output.newViolations()).thenReturn(newArrayList(violation));
+        } else {
+            when(output.violations()).thenReturn(newHashSet(violation));
+        }
+
+        when(output.counts()).thenReturn(map(
+                entry(INFO, 1),
+                entry(WARNING, 2),
+                entry(SEVERE, 3)
+        ));
+
+        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), output));
+    }
+
+    @Test
+    public void set_geofence_based_on_features() throws Exception {
         subscribeToHandler(status(builder -> builder.features(featureCollection)));
 
         verify(converter, atLeastOnce()).toModel(featureCollection);
-        assertGeofences(interceptor, "custom", featureA, featureB);
+        verifyGeofences("custom", featureA, featureB);
     }
 
     @Test
     public void set_geofence_based_on_layer() throws Exception {
-        final LayerId layerId = mock(LayerId.class);
-        final LayerSpec spec = mock(LayerSpec.class);
-        final Layer layer = createLayer(layerId, spec);
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(SnapshotImpl.of(layer, emptyList()))));
-
+        snapshotSequences.onNext(sequence(layer(), emptyList()));
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
-        assertGeofences(interceptor, "xyz", featureA, featureB);
-    }
-
-    private Layer createLayer(LayerId layerId, LayerSpec spec) {
-        final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
-        final Layer layer = mock(Layer.class);
-        when(spec.id()).thenReturn(layerId);
-        when(layer.features()).thenReturn(featureCollection);
-        when(featureCollection.stream()).thenAnswer(invocation -> newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB)).stream());
-        return layer;
+        verifyGeofences("xyz", featureA, featureB);
     }
 
     @Test
     public void send_geometry_update_when_geofence_changes() throws Exception {
-        mockDetectorBehaviour();
-
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(builder -> builder.features(featureCollection)));
 
         assertThat(extractByType(sub, GeofenceGeometryUpdateMessage.class),
@@ -178,21 +233,18 @@ public class GeofenceStatusHandlerShould {
 
     @Test
     public void set_empty_geofence_when_disabled() throws Exception {
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
-
         subscribeToHandler(status(builder -> builder.enabled(false)));
 
-        assertGeofences(interceptor, "");
+        verifyGeofences("");
     }
 
     @Test
     public void set_level_attribute_based_on_attribute_from_features() throws Exception {
         when(featureAttributes.attributes()).thenReturn(singletonMap(ALERT_LEVEL, "warning"));
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
 
         subscribeToHandler(status(builder -> builder.features(mock(FeatureCollection.class))));
 
-        assertGeofences(interceptor, "custom", WARNING, featureA, featureB);
+        verifyGeofences("custom", WARNING, featureA, featureB);
     }
 
     @Test
@@ -202,11 +254,10 @@ public class GeofenceStatusHandlerShould {
                 featureA,
                 NakedFeatureImpl.of(Optional.empty(), point(), featureAttributes)
         ));
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
 
         subscribeToHandler(status(builder -> builder.features(features)));
 
-        assertGeofences(interceptor, "custom", featureA);
+        verifyGeofences("custom", featureA);
     }
 
     @Test
@@ -215,11 +266,10 @@ public class GeofenceStatusHandlerShould {
         when(converter.toModel(any())).thenReturn(newArrayList(
                 NakedFeatureImpl.of(Optional.empty(), point(), featureAttributes)
         ));
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
 
         subscribeToHandler(status(builder -> builder.features(features).bufferDistance(1.0)));
 
-        assertGeofences(interceptor, "custom", NakedFeatureImpl.of(Optional.empty(), bufferOp(point(), 1.0), featureAttributes));
+        verifyGeofences("custom", NakedFeatureImpl.of(Optional.empty(), bufferOp(point(), 1.0), featureAttributes));
     }
 
     @Test
@@ -228,18 +278,15 @@ public class GeofenceStatusHandlerShould {
         final ClientStatusMessage statusB = status(identity());
         when(statusA.openLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
         when(statusB.openLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
-        final Interceptor<Collection<Geofence>> interceptor = mockDetectorBehaviour();
 
         subscribeToHandler(statusA, statusB);
 
-        assertThat(interceptor.values(), hasSize(1));
+        verify(detector, times(1)).create(any());
     }
 
     // This covers the non-reactive hackery we still have in the implementation
     @Test
     public void unsubscribe_from_snapshots_on_unsubscribe() throws Exception {
-        mockDetectorBehaviour();
-
         subscribeToHandler(status(identity())).unsubscribe();
 
         assertThat(interceptor.unsubscribed(), equalTo(true));
@@ -272,31 +319,27 @@ public class GeofenceStatusHandlerShould {
         return sub;
     }
 
-    private Interceptor<Collection<Geofence>> mockDetectorBehaviour() {
-        return mockDetectorBehaviour(empty());
+    private void verifyGeofences(String id, NakedFeature... features) {
+        verifyGeofences(id, SEVERE, features);
     }
 
-    private Interceptor<Collection<Geofence>> mockDetectorBehaviour(Observable<ViolationEvent> violationEvents) {
-        final Interceptor<Collection<Geofence>> interceptor = Interceptor.create();
-        when(detector.call(any())).thenAnswer(invocation -> {
-            Observable<Collection<Geofence>> obs = invocation.getArgument(0);
-            return obs
-                    .compose(interceptor)
-                    .concatMap(x -> violationEvents);//.concatWith(never())); // Simulate infinite stream
-        });
-        return interceptor;
-    }
-
-    private void assertGeofences(Interceptor<Collection<Geofence>> interceptor, String id, NakedFeature... features) {
-        assertGeofences(interceptor, id, SEVERE, features);
-    }
-
-    private void assertGeofences(Interceptor<Collection<Geofence>> interceptor, String id, Alert.Level level, NakedFeature... features) {
-        assertThat(interceptor.values(), contains(
-                stream(features)
-                        .map(p -> geofenceOf(id, level, p.geometry()))
-                        .collect(toList()))
+    private void verifyGeofences(String id, Alert.Level level, NakedFeature... features) {
+        verify(detector).create(
+                stream(features).map(p -> geofenceOf(id, level, p.geometry())).collect(toList())
         );
+    }
+
+    private LayerSnapshotSequence sequence(Layer layer, List<Feature> diff) {
+        return LayerSnapshotSequenceImpl.of(layerSpec, just(SnapshotImpl.of(layer, diff)));
+    }
+
+    private Layer layer() {
+        final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
+        final Layer layer = mock(Layer.class);
+
+        when(layer.features()).thenReturn(featureCollection);
+        when(featureCollection.stream()).thenAnswer(invocation -> newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB)).stream());
+        return layer;
     }
 
     private Geofence geofenceOf(String id, Alert.Level level, Geometry geometry) {

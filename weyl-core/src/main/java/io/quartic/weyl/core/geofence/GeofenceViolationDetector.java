@@ -1,90 +1,100 @@
 package io.quartic.weyl.core.geofence;
 
-import io.quartic.common.SweetStyle;
+import com.google.common.collect.ImmutableList;
 import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.Observable.Transformer;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.common.rx.RxUtils.mealy;
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableSet;
+import static org.slf4j.LoggerFactory.getLogger;
 
-public class GeofenceViolationDetector implements Transformer<Collection<Geofence>, ViolationEvent> {
-    private static final Logger LOG = LoggerFactory.getLogger(GeofenceViolationDetector.class);
-    private final Observable<LayerSnapshotSequence> snapshotSequences;
+public class GeofenceViolationDetector {
+    private static final Logger LOG = getLogger(GeofenceViolationDetector.class);
 
-    @SweetStyle
-    @Value.Immutable
-    interface ViolationKey {
-        EntityId entityId();
-        EntityId geofenceId();
+    public static class State {
+        final List<Geofence> geofences;
+        final Map<Alert.Level, Integer> counts = newHashMap();
+        final Set<Violation> violations = newHashSet();
+        boolean reset = true;
+
+        State(Collection<Geofence> geofences) {
+            this.geofences = ImmutableList.copyOf(geofences);
+        }
     }
 
-    public GeofenceViolationDetector(Observable<LayerSnapshotSequence> snapshotSequences) {
-        this.snapshotSequences = snapshotSequences;
+    public static class Output {
+        private Map<Alert.Level, Integer> counts;
+        private Set<Violation> violations;
+        private List<Violation> newViolations = newArrayList();
+        private boolean hasChanged = false;
+
+        public Map<Alert.Level, Integer> counts() {
+            return unmodifiableMap(counts);
+        }
+
+        public Set<Violation> violations() {
+            return unmodifiableSet(violations);
+        }
+
+        public List<Violation> newViolations() {
+            return unmodifiableList(newViolations);
+        }
+
+        public boolean hasChanged() {
+            return hasChanged;
+        }
     }
 
-    @Override
-    public Observable<ViolationEvent> call(Observable<Collection<Geofence>> geofenceStatuses) {
-        // switchMap is fine - a few dupes/missing results due to resubscription are acceptable
-        return geofenceStatuses.switchMap(this::detectViolationsForGeofenceStatus);
-    }
-
-    private Observable<ViolationEvent> detectViolationsForGeofenceStatus(Collection<Geofence> geofences) {
-        final Set<ViolationKey> initial = newHashSet();
-        return diffs()
-                .compose(mealy(initial, (state, diffs) -> nextState(state, geofences, diffs)))
-                .concatMap(Observable::from)
-                .startWith(ViolationClearEventImpl.builder().build());
+    public State create(Collection<Geofence> geofences) {
+        return new State(geofences);
     }
 
     // Note that this actually just mutates the state, which is obviously cheating
-    private StateAndOutput<Set<ViolationKey>, List<ViolationEvent>> nextState(
-            Set<ViolationKey> state,
-            Collection<Geofence> geofences,
-            Collection<Feature> features
-    ) {
-        final List<ViolationEvent> output = newArrayList();
+    public StateAndOutput<State, Output> next(State state, Collection<Feature> features) {
+        final Output output = new Output();
 
-        features.forEach(feature -> geofences.forEach(geofence -> {
+        features.forEach(feature -> state.geofences.forEach(geofence -> {
             final EntityId entityId = feature.entityId();
             final EntityId geofenceId = geofence.feature().entityId();
-            final ViolationKeyImpl key = ViolationKeyImpl.of(entityId, geofenceId);
+            final Alert.Level level = alertLevel(geofence.feature());
+            final Violation violation = ViolationImpl.of(entityId, geofenceId, level);
 
             final boolean violating = inViolation(geofence, feature);
-            final boolean previouslyViolating = state.contains(key);
+            final boolean previouslyViolating = state.violations.contains(violation);
 
             if (violating && !previouslyViolating) {
                 LOG.info("Violation begin: {} -> {}", entityId, geofenceId);
-                output.add(ViolationBeginEventImpl.of(entityId, geofenceId, alertLevel(geofence.feature())));
-                state.add(key);
+                state.violations.add(violation);
+                state.counts.put(level, state.counts.getOrDefault(level, 0) + 1);
+                output.newViolations.add(violation);
+                output.hasChanged = true;
             } else if (!violating && previouslyViolating) {
                 LOG.info("Violation end: {} -> {}", entityId, geofenceId);
-                output.add(ViolationEndEventImpl.of(entityId, geofenceId, alertLevel(geofence.feature())));
-                state.remove(key);
+                state.violations.remove(violation);
+                state.counts.put(level, state.counts.getOrDefault(level, 1) - 1);   // Prevents going below 0 in cases that should never happen
+                output.hasChanged = true;
             }
         }));
 
-        return StateAndOutput.of(state, output);
-    }
+        output.violations = state.violations;
+        output.counts = state.counts;
+        output.hasChanged |= state.reset;
+        state.reset = false;
 
-    private Observable<Collection<Feature>> diffs() {
-        return snapshotSequences
-                .filter(seq -> !seq.spec().indexable())
-                .flatMap(LayerSnapshotSequence::snapshots)
-                .map(Snapshot::diff);
+        return StateAndOutput.of(state, output);
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
