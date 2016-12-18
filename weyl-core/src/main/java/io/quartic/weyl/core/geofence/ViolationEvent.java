@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.geofence;
 
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
 import org.immutables.value.Value;
 

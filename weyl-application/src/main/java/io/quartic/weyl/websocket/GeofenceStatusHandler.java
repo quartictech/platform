@@ -3,7 +3,8 @@ package io.quartic.weyl.websocket;
 import com.google.common.collect.Maps;
 import io.quartic.common.rx.RxUtils.StateAndOutput;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
+import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
@@ -22,6 +23,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.websocket.message.AlertMessageImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -33,6 +35,7 @@ import rx.Subscription;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -42,10 +45,10 @@ import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.common.rx.RxUtils.combine;
 import static io.quartic.common.rx.RxUtils.latest;
 import static io.quartic.common.rx.RxUtils.mealy;
-import static io.quartic.weyl.core.alert.Alert.Level.INFO;
-import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
-import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
-import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
+import static io.quartic.weyl.core.model.Alert.Level.INFO;
+import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
+import static io.quartic.weyl.core.model.Alert.Level.WARNING;
+import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
@@ -138,28 +141,38 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     // TODO: this mutates the state :(
     private StateAndOutput<State, Observable<SocketMessage>> nextState(State state, ViolationEvent event) {
-        final State nextState = event.accept(new Visitor<State>() {
+        return event.accept(new Visitor<StateAndOutput<State, Observable<SocketMessage>>>() {
             @Override
-            public State visit(ViolationBeginEvent event) {
+            public StateAndOutput<State, Observable<SocketMessage>> visit(ViolationBeginEvent event) {
                 state.violations.add(Pair.of(event.entityId(), event.geofenceId()));
                 state.counts.put(event.level(), state.counts.getOrDefault(event.level(), 0) + 1);
-                return state;
+                return StateAndOutput.of(state, just(
+                        violationUpdate(state),
+                        alertMessageFor(event)
+                ));
             }
 
             @Override
-            public State visit(ViolationEndEvent event) {
+            public StateAndOutput<State, Observable<SocketMessage>> visit(ViolationEndEvent event) {
                 state.violations.remove(Pair.of(event.entityId(), event.geofenceId()));
                 state.counts.put(event.level(), state.counts.getOrDefault(event.level(), 1) - 1);   // Prevents going below 0 in cases that should never happen
-                return state;
+                return StateAndOutput.of(state, just(violationUpdate(state)));
             }
 
             @Override
-            public State visit(ViolationClearEvent event) {
-                return new State(); // Reset
+            public StateAndOutput<State, Observable<SocketMessage>> visit(ViolationClearEvent event) {
+                final State nextState = new State();    // Reset
+                return StateAndOutput.of(nextState, just(violationUpdate(nextState)));
+            }
+
+            private AlertMessageImpl alertMessageFor(ViolationBeginEvent event) {
+                return AlertMessageImpl.of(AlertImpl.of(
+                        "Geofence violation",
+                        Optional.of("Boundary violated by entity '" + event.entityId() + "'"),
+                        event.level()
+                ));
             }
         });
-
-        return StateAndOutput.of(nextState, just(violationUpdate(nextState)));
     }
 
     private SocketMessage violationUpdate(State state) {

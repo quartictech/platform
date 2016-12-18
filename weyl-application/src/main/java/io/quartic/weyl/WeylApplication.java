@@ -27,8 +27,6 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
-import io.quartic.weyl.core.alert.Alert;
-import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
@@ -165,14 +163,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     ) {
         // These are per-user so each user has their own geofence state
         final GeofenceViolationDetector geofenceViolationDetector = new GeofenceViolationDetector(snapshotSequences);
-        final AlertProcessor alertProcessor = new AlertProcessor(geofenceViolationDetector);
         final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceViolationDetector, snapshotSequences);
-
-        final Observable<Alert> alerts = merge(alertProcessor.alerts(), alertResource.alerts());
 
         return new UpdateServer(
                 merge(
-                        alerts.map(AlertMessageImpl::of),
+                        alertResource.alerts().map(AlertMessageImpl::of),
                         layerListUpdates
                 ),
                 newArrayList(

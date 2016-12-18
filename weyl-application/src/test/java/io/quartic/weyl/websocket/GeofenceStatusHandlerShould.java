@@ -5,7 +5,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
+import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
@@ -27,6 +28,8 @@ import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.model.SnapshotImpl;
+import io.quartic.weyl.websocket.message.AlertMessage;
+import io.quartic.weyl.websocket.message.AlertMessageImpl;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessage;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
@@ -41,15 +44,15 @@ import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
-import static io.quartic.weyl.core.alert.Alert.Level.SEVERE;
-import static io.quartic.weyl.core.alert.Alert.Level.WARNING;
-import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
+import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
+import static io.quartic.weyl.core.model.Alert.Level.WARNING;
+import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
@@ -107,10 +110,27 @@ public class GeofenceStatusHandlerShould {
 
         TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
 
-        assertThat(filter(sub.getOnNextEvents(), msg -> msg instanceof GeofenceViolationsUpdateMessage), contains(
+        assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), contains(
                 GeofenceViolationsUpdateMessageImpl.of(newArrayList(geofenceIdA), 0, 0, 1),
                 GeofenceViolationsUpdateMessageImpl.of(newArrayList(geofenceIdA, geofenceIdB), 0, 1, 1),
                 GeofenceViolationsUpdateMessageImpl.of(newArrayList(geofenceIdB), 0, 1, 0)
+        ));
+    }
+
+    @Test
+    public void send_alert_when_violation_begun() throws Exception {
+        final EntityId entityIdA = EntityId.fromString("Goofy");
+        final EntityId geofenceIdA = mock(EntityId.class);
+        mockDetectorBehaviour(just(ViolationBeginEventImpl.of(entityIdA, geofenceIdA, SEVERE)));
+
+        TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
+
+        assertThat(extractByType(sub, AlertMessage.class), contains(
+                AlertMessageImpl.of(AlertImpl.of(
+                        "Geofence violation",
+                        Optional.of("Boundary violated by entity 'Goofy'"),
+                        Alert.Level.SEVERE
+                ))
         ));
     }
 
@@ -152,7 +172,7 @@ public class GeofenceStatusHandlerShould {
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(builder -> builder.features(featureCollection)));
 
-        assertThat(filter(sub.getOnNextEvents(), msg -> msg instanceof GeofenceGeometryUpdateMessage),
+        assertThat(extractByType(sub, GeofenceGeometryUpdateMessage.class),
                 contains(GeofenceGeometryUpdateMessageImpl.of(featureCollection)));
     }
 
@@ -238,25 +258,19 @@ public class GeofenceStatusHandlerShould {
         return msg;
     }
 
+    @SuppressWarnings("unchecked")
+    private <T extends SocketMessage> List<T> extractByType(TestSubscriber<SocketMessage> sub, Class<T> clazz) {
+        return sub.getOnNextEvents().stream()
+                .filter(msg -> clazz.isAssignableFrom(msg.getClass()))
+                .map(msg -> (T) msg)
+                .collect(toList());
+    }
+
     private TestSubscriber<SocketMessage> subscribeToHandler(ClientStatusMessage... statuses) {
         TestSubscriber<SocketMessage> sub = TestSubscriber.create();
-        from(statuses)
-//                .concatWith(never())    // Because we're expecting an infinite stream
-                .compose(handler)
-                .subscribe(sub);
+        from(statuses).compose(handler).subscribe(sub);
         return sub;
     }
-
-    public class IoContext {
-        private final PublishSubject<ClientStatusMessage> input = PublishSubject.create();
-        private final TestSubscriber<SocketMessage> output = TestSubscriber.create();
-
-        public IoContext() {
-            input.compose(handler).subscribe(output);
-        }
-    }
-
-
 
     private Interceptor<Collection<Geofence>> mockDetectorBehaviour() {
         return mockDetectorBehaviour(empty());
