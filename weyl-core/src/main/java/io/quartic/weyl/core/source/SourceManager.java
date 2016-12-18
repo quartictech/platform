@@ -6,8 +6,6 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
-import io.quartic.weyl.core.model.AttributeSchema;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
@@ -75,7 +73,7 @@ public abstract class SourceManager {
                         LayerIdImpl.of(id.uid()),
                         datasetMetadataFrom(config.metadata()),
                         extension.viewType().getLayerView(),
-                        schemaFrom(extension),
+                        extension.staticSchema(),
                         source.indexable()
                 ),
                 source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source;
@@ -110,14 +108,6 @@ public abstract class SourceManager {
                 return source.indexable();
             }
         };
-    }
-
-    private AttributeSchema schemaFrom(MapDatasetExtension extension) {
-        return AttributeSchemaImpl.builder()
-                .titleAttribute(extension.titleAttribute())
-                .imageAttribute(extension.imageAttribute())
-                .blessedAttributes(extension.blessedAttributes())
-                .build();
     }
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?

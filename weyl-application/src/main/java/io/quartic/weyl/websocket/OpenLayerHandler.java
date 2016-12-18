@@ -1,5 +1,6 @@
 package io.quartic.weyl.websocket;
 
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -19,25 +20,26 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
 import static io.quartic.common.rx.RxUtils.accumulateMap;
+import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 import static rx.Observable.empty;
 
-public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
+public class OpenLayerHandler implements ClientStatusMessageHandler {
     private final Observable<Map<LayerId, Observable<Snapshot>>> sequenceMap;
     private final FeatureConverter featureConverter;
 
-    public LayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
+    public OpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
         this.sequenceMap = snapshotSequences
-                .compose(accumulateMap(LayerSnapshotSequence::id, LayerSnapshotSequence::snapshots))
+                .compose(accumulateMap(seq -> seq.spec().id(), LayerSnapshotSequence::snapshots))
                 .share();
         this.featureConverter = featureConverter;
     }
 
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
-        final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::subscribedLiveLayerIds);
+        final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::openLayerIds);
 
         return combineLatest(keys, sequenceMap, this::collectSequences)
                 .distinctUntilChanged()
@@ -51,12 +53,17 @@ public class LayerSubscriptionHandler implements ClientStatusMessageHandler {
 
     private SocketMessage toMessage(Snapshot snapshot) {
         final Layer layer = snapshot.absolute();
-        final Collection<Feature> features = layer.features();
-        Stream<Feature> computed = layer.spec().view().compute(features);
         return LayerUpdateMessageImpl.builder()
                 .layerId(layer.spec().id())
-                .schema(layer.spec().schema())
-                .featureCollection(featureConverter.toGeojson(computed.collect(toList())))  // TODO: obviously we never want to do this with large static layers
+                .dynamicSchema(layer.dynamicSchema())
+                .stats(layer.stats())
+                .featureCollection(featureCollection(layer))
                 .build();
+    }
+
+    private FeatureCollection featureCollection(Layer layer) {
+        final Collection<Feature> features = layer.spec().indexable() ? EMPTY_COLLECTION : layer.features();
+        Stream<Feature> computed = layer.spec().view().compute(features);
+        return featureConverter.toGeojson(computed.collect(toList()));
     }
 }

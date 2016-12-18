@@ -26,6 +26,7 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.model.SnapshotImpl;
@@ -128,8 +129,10 @@ public class GeofenceStatusHandlerShould {
     @Test
     public void set_geofence_based_on_layer() throws Exception {
         final LayerId layerId = mock(LayerId.class);
+        final LayerSpec spec = mock(LayerSpec.class);
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
         final Layer layer = mock(Layer.class);
+        when(spec.id()).thenReturn(layerId);
         when(layer.features()).thenReturn(featureCollection);
         when(featureCollection.stream()).thenReturn(
                 newArrayList(
@@ -138,7 +141,7 @@ public class GeofenceStatusHandlerShould {
                 ).stream()
         );
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(layerId, just(SnapshotImpl.of(layer, emptyList()))));
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, just(SnapshotImpl.of(layer, emptyList()))));
 
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
@@ -199,8 +202,8 @@ public class GeofenceStatusHandlerShould {
     public void ignore_status_changes_not_involving_geofence_change() throws Exception {
         final ClientStatusMessage statusA = status(identity());
         final ClientStatusMessage statusB = status(identity());
-        when(statusA.subscribedLiveLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
-        when(statusB.subscribedLiveLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
+        when(statusA.openLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
+        when(statusB.openLayerIds()).thenReturn(newArrayList(mock(LayerId.class)));
 
         subscribeToHandler(statusA, statusB);
 

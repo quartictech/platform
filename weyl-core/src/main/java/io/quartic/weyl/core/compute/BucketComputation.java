@@ -4,13 +4,8 @@ import com.google.common.collect.ImmutableList;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
-import io.quartic.weyl.core.model.Attribute;
-import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeSchema;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
-import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
@@ -22,6 +17,8 @@ import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.StaticSchema;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import rx.Observable;
@@ -34,7 +31,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.singletonList;
@@ -80,25 +76,15 @@ public abstract class BucketComputation implements LayerPopulator {
                         Optional.empty()
                 ),
                 IDENTITY_VIEW,
-                schemaFrom(bucketLayer, featureName),
+                schemaFrom(bucketLayer.spec().staticSchema(), featureName),
                 true
         );
     }
 
-    private AttributeSchema schemaFrom(Layer bucketLayer, String rawAttributeName) {
-        final AttributeSchema originalSchema = bucketLayer.spec().schema();
-
-        Map<AttributeName, Attribute> attributeMap = newHashMap(originalSchema.attributes());
-        Attribute newAttribute = AttributeImpl.builder()
-                .type(AttributeType.NUMERIC)
-                .build();
+    private StaticSchema schemaFrom(StaticSchema original, String rawAttributeName) {
         final AttributeName attributeName = AttributeNameImpl.of(rawAttributeName);
-        attributeMap.put(attributeName, newAttribute);
-
-        return AttributeSchemaImpl
-                .copyOf(originalSchema)
-                .withAttributes(attributeMap)
-                .withBlessedAttributes(concat(singletonList(attributeName), originalSchema.blessedAttributes()))
+        return StaticSchemaImpl.copyOf(original)
+                .withBlessedAttributes(concat(singletonList(attributeName), original.blessedAttributes()))
                 .withPrimaryAttribute(attributeName);
     }
 

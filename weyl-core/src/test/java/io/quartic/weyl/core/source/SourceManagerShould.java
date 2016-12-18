@@ -12,7 +12,6 @@ import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.catalogue.CatalogueEventImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeSchemaImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
@@ -22,6 +21,7 @@ import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -108,11 +108,7 @@ public class SourceManagerShould {
                 LayerIdImpl.of("123"),
                 LayerMetadataImpl.of("foo", "blah", Optional.of("quartic"), Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
-                AttributeSchemaImpl.builder()
-                        .titleAttribute(TITLE_ATTRIBUTE)
-                        .imageAttribute(IMAGE_ATTRIBUTE)
-                        .blessedAttribute(BLESSED_ATTRIBUTES)
-                        .build(),
+                staticSchema(),
                 true
         )));
         assertThat(populator.dependencies(), empty());
@@ -186,6 +182,12 @@ public class SourceManagerShould {
     private MapDatasetExtension extension() {
         return MapDatasetExtensionImpl.builder()
                 .viewType(LOCATION_AND_TRACK)
+                .staticSchema(staticSchema())
+                .build();
+    }
+
+    private StaticSchemaImpl staticSchema() {
+        return StaticSchemaImpl.builder()
                 .titleAttribute(TITLE_ATTRIBUTE)
                 .imageAttribute(IMAGE_ATTRIBUTE)
                 .blessedAttribute(BLESSED_ATTRIBUTES)

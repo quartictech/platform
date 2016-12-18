@@ -4,7 +4,6 @@ import { takeLatest } from "redux-saga";
 import { LOCATION_CHANGE } from "react-router-redux";
 import * as constants from "../constants";
 
-import search from "./search";
 import manageSocket from "./manageSocket";
 import performComputation from "./performComputation";
 
@@ -24,6 +23,5 @@ function prepare(generator) {
 
 export default [
   prepare(manageSocket),
-  prepare(watch(constants.SEARCH, search)),
   prepare(watch(constants.LAYER_COMPUTATION_START, performComputation)),
 ];

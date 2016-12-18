@@ -25,7 +25,7 @@ public class TileResource {
     private final Map<LayerId, Observable<Snapshot>> sequences = Maps.newConcurrentMap();
 
     public TileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
-        snapshotSequences.subscribe(s -> sequences.put(s.id(), s.snapshots()));
+        snapshotSequences.subscribe(s -> sequences.put(s.spec().id(), s.snapshots()));
     }
 
     @GET

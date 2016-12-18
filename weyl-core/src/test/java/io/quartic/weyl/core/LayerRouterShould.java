@@ -106,7 +106,7 @@ public class LayerRouterShould {
         createLayer(specA);
         createLayer(specB);
 
-        assertThat(transform(sub.getOnNextEvents(), LayerSnapshotSequence::id), contains(LAYER_ID, OTHER_LAYER_ID));
+        assertThat(transform(sub.getOnNextEvents(), LayerSnapshotSequence::spec), contains(specA, specB));
     }
 
     @Test

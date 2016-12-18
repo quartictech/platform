@@ -47,7 +47,7 @@ public class BufferComputation implements LayerPopulator {
                         .description(layer.spec().metadata().description() + " buffered by " + spec.bufferDistance() + "m")
                         .build(),
                 IDENTITY_VIEW,
-                layer.spec().schema(),
+                layer.spec().staticSchema(),
                 true
         );
     }

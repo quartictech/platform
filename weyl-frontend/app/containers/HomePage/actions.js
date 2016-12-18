@@ -13,16 +13,13 @@ export const layerListUpdate = (layers) => ({
   layers,
 });
 
-export function layerCreate(result) {
-  return {
-    type: constants.LAYER_CREATE,
-    id: result.id,
-    metadata: result.metadata,
-    stats: result.stats,
-    schema: result.schema,
-    live: result.live,
-  };
-}
+export const layerCreate = (result) => ({
+  type: constants.LAYER_CREATE,
+  id: result.id,
+  metadata: result.metadata,
+  staticSchema: result.staticSchema,
+  live: result.live,
+});
 
 export const layerSetStyle = (layerId, key, value) => ({
   type: constants.LAYER_SET_STYLE,
@@ -54,14 +51,13 @@ export function layerClose(layerId) {
   };
 }
 
-export function layerSetData(layerId, data, schema) {
-  return {
-    type: constants.LAYER_SET_DATA,
-    layerId,
-    data,
-    schema,
-  };
-}
+export const layerUpdate = (layerId, data, stats, dynamicSchema) => ({
+  type: constants.LAYER_UPDATE,
+  layerId,
+  data,
+  stats,
+  dynamicSchema,
+});
 
 export function layerComputation(computation) {
   return {
@@ -87,6 +83,8 @@ export function clearSelection() {
     type: constants.CLEAR_SELECTION,
   };
 }
+
+// Map
 
 export function mapLoading() {
   return {
@@ -114,11 +112,6 @@ export function mapMouseClick(feature, multiSelectEnabled) {
     multiSelectEnabled,
   };
 }
-
-export const mapSetLocation = (location) => ({
-  type: constants.MAP_SET_LOCATION,
-  location,
-});
 
 // Geofence
 

@@ -7,10 +7,14 @@ import org.immutables.value.Value;
 
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
+
 @SweetStyle
 @Value.Immutable
-@JsonSerialize(as = LayerStatsImpl.class)
-@JsonDeserialize(as = LayerStatsImpl.class)
-public interface LayerStats {
-    Map<AttributeName, AttributeStats> attributeStats();
+@JsonSerialize(as = DynamicSchemaImpl.class)
+@JsonDeserialize(as = DynamicSchemaImpl.class)
+public interface DynamicSchema {
+    DynamicSchema EMPTY_SCHEMA = DynamicSchemaImpl.of(emptyMap());
+
+    Map<AttributeName, Attribute> attributes();
 }

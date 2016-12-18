@@ -4,6 +4,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.websocket.message.LayerInfoImpl;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage.LayerInfo;
@@ -11,7 +12,6 @@ import io.quartic.weyl.websocket.message.LayerListUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
-import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
@@ -33,50 +33,46 @@ public class LayerListUpdateGeneratorShould {
     }
 
     @Test
-    public void send_messages_on_updates_to_layer() throws Exception {
-        final BehaviorSubject<Snapshot> foo = registerSequence("foo");
-
-        final Snapshot snapshotA = snapshot("a");
-        final Snapshot snapshotB = snapshot("b");
-        foo.onNext(snapshotA);
-        foo.onNext(snapshotB);
-
-        sequences.onCompleted();
-        foo.onCompleted();
-
-        sub.awaitTerminalEvent();
-        assertThat(sub.getOnNextEvents(), contains(
-                message(layerInfo(snapshotA)),
-                message(layerInfo(snapshotB))
-        ));
-    }
-
-    @Test
     public void send_messages_on_new_layers() throws Exception {
-        final BehaviorSubject<Snapshot> foo = registerSequence("foo");
-
-        final Snapshot snapshotA = snapshot("a");
-        foo.onNext(snapshotA);
-
-        final BehaviorSubject<Snapshot> bar = registerSequence("bar");
-
-        final Snapshot snapshotB = snapshot("b");
-        bar.onNext(snapshotB);
+        final LayerSpec specFoo = spec("foo");
+        final LayerSpec specBar = spec("bar");
+        final BehaviorSubject<Snapshot> foo = registerSequence(specFoo);
+        final BehaviorSubject<Snapshot> bar = registerSequence(specBar);
 
         sequences.onCompleted();
         foo.onCompleted();
         bar.onCompleted();
 
         sub.awaitTerminalEvent();
+        for (SocketMessage socketMessage : sub.getOnNextEvents()) {
+            System.out.println("YYY: " + socketMessage);
+        }
         assertThat(sub.getOnNextEvents(), contains(
-                message(layerInfo(snapshotA)),
-                message(layerInfo(snapshotA), layerInfo(snapshotB))
+                message(),
+                message(layerInfo(specFoo)),
+                message(layerInfo(specFoo), layerInfo(specBar))
         ));
     }
 
-    private BehaviorSubject<Snapshot> registerSequence(String id) {
+    @Test
+    public void not_send_messages_on_updates_to_layer() throws Exception {
+        final LayerSpec specFoo = spec("foo");
+        final BehaviorSubject<Snapshot> foo = registerSequence(specFoo);
+
+        foo.onNext(snapshot("a"));
+        sequences.onCompleted();
+        foo.onCompleted();
+
+        sub.awaitTerminalEvent();
+        assertThat(sub.getOnNextEvents(), contains(
+                message(),
+                message(layerInfo(specFoo)) // And no more messages even though there are snapshots
+        ));
+    }
+
+    private BehaviorSubject<Snapshot> registerSequence(LayerSpec spec) {
         final BehaviorSubject<Snapshot> snapshots = BehaviorSubject.create();
-        sequences.onNext(sequence(id, snapshots));
+        sequences.onNext(LayerSnapshotSequenceImpl.of(spec, snapshots));
         return snapshots;
     }
 
@@ -84,23 +80,25 @@ public class LayerListUpdateGeneratorShould {
         return LayerListUpdateMessageImpl.of(asList(infos));
     }
 
-    private LayerInfo layerInfo(Snapshot snapshot) {
+    private LayerInfo layerInfo(LayerSpec spec) {
         return LayerInfoImpl.of(
-                snapshot.absolute().spec().id(),
-                snapshot.absolute().spec().metadata(),
-                snapshot.absolute().stats(),
-                snapshot.absolute().spec().schema(),
-                !snapshot.absolute().spec().indexable()
+                spec.id(),
+                spec.metadata(),
+                spec.staticSchema(),
+                !spec.indexable()
         );
-    }
-
-    private LayerSnapshotSequence sequence(String id, Observable<Snapshot> snapshots) {
-        return LayerSnapshotSequenceImpl.of(LayerId.fromString(id), snapshots);
     }
 
     private Snapshot snapshot(String id) {
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        when(snapshot.absolute().spec().id()).thenReturn(LayerId.fromString(id));
+        final LayerSpec spec = spec(id);
+        when(snapshot.absolute().spec()).thenReturn(spec);
         return snapshot;
+    }
+
+    private LayerSpec spec(String id) {
+        final LayerSpec spec = mock(LayerSpec.class, RETURNS_DEEP_STUBS);
+        when(spec.id()).thenReturn(LayerId.fromString(id));
+        return spec;
     }
 }

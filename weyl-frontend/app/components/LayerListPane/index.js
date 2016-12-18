@@ -76,7 +76,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         ),
         secondaryLabel: this.layerButtons(layer),
         childNodes: this.attributeNodes(
-          layer.schema.attributes,
+          layer.dynamicSchema.attributes,
           layer.filter,
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
         ),
@@ -115,11 +115,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   attributeCategoryNodes(categories, filter, onClick) {
+    // Filter for this attribute may be undefined, initially
     return [
-      this.attributeCategoryNode("< N/A >", !filter.notApplicable, () => onClick()),  // Note no argument to callback
+      this.attributeCategoryNode("< N/A >", !filter || !filter.notApplicable, () => onClick()),  // Note no argument to callback
       ..._.chain(categories)
         .sort(naturalsort)
-        .map(c => this.attributeCategoryNode(c, !_.contains(filter.categories, c), () => onClick(c)))
+        .map(c => this.attributeCategoryNode(c, !filter || !_.contains(filter.categories, c), () => onClick(c)))
         .value(),
     ];
   }
@@ -191,8 +192,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         </MenuItem>
         <MenuItem iconName="tint" text="Colour by...">
           {
-            _.keys(layer.schema.attributes)
-              .filter(k => layer.schema.attributes[k].type === "NUMERIC")
+            _.keys(layer.dynamicSchema.attributes)
+              .filter(k => layer.dynamicSchema.attributes[k].type === "NUMERIC")
               .sort(naturalsort)
               .map(k =>
                 <MenuItem

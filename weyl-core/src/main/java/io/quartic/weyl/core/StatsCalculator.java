@@ -3,7 +3,7 @@ package io.quartic.weyl.core;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeSchema;
+import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.AttributeStatsImpl;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.LayerStats;
@@ -18,7 +18,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public class StatsCalculator {
-    public static LayerStats calculateStats(AttributeSchema schema, FeatureCollection features) {
+    public static LayerStats calculateStats(DynamicSchema schema, FeatureCollection features) {
         Map<AttributeName, Double> maxNumeric = newHashMap();
         Map<AttributeName, Double> minNumeric = newHashMap();
 
@@ -40,12 +40,10 @@ public class StatsCalculator {
                         entry.getKey(),
                         AttributeStatsImpl.of(minNumeric.get(entry.getKey()), maxNumeric.get(entry.getKey()))
                 ));
-
-        builder.featureCount(features.size());
         return builder.build();
     }
 
-    private static Attribute getAttribute(AttributeSchema schema, AttributeName name) {
+    private static Attribute getAttribute(DynamicSchema schema, AttributeName name) {
         if (!schema.attributes().containsKey(name)) {
             throw new IllegalStateException("Attribute not present in schema: " + name.name());
         }

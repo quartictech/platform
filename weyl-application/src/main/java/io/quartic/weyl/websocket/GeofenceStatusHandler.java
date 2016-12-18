@@ -55,7 +55,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     public GeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         this.geofenceStore = geofenceStore;
-        this.subscription = snapshotSequences.subscribe(s -> sequences.put(s.id(), s.snapshots()));
+        this.subscription = snapshotSequences.subscribe(s -> sequences.put(s.spec().id(), s.snapshots()));
         this.featureConverter = featureConverter;
     }
 

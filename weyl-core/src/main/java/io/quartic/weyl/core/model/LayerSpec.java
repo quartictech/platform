@@ -10,6 +10,6 @@ public interface LayerSpec {
     LayerId id();
     LayerMetadata metadata();
     LayerView view();
-    AttributeSchema schema();
+    StaticSchema staticSchema();
     boolean indexable();
 }

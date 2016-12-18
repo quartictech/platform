@@ -66,7 +66,7 @@ public abstract class LayerRouter {
         final StateImpl.Builder builder = StateImpl.builder()
                 .latest(nextSequence)
                 .sequences(state.sequences());  // Rebuilding the map each time is expensive, but we're doing this infrequently
-        nextSequence.subscribe(s -> builder.sequence(s.id(), s));
+        nextSequence.subscribe(s -> builder.sequence(s.spec().id(), s));
         return builder.build();
     }
 
@@ -83,11 +83,7 @@ public abstract class LayerRouter {
             final LayerSpec spec = populator.spec(dependencies);
             checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().uid());
 
-            return just(LayerSnapshotSequenceImpl.of(
-                    spec.id(),
-                    populator.updates(dependencies).compose(toSnapshots(spec))
-            ));
-
+            return just(LayerSnapshotSequenceImpl.of(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
         } catch (Exception e) {
             LOG.error("Could not create sequence", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
             return empty();

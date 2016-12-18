@@ -6,24 +6,25 @@ import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.model.AttributeSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.SnapshotImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
+import rx.Observable;
 import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -46,12 +47,12 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
-public class LayerSubscriptionHandlerShould {
+public class OpenLayerHandlerShould {
     private final TestSubscriber<SocketMessage> sub = TestSubscriber.create();
     private final PublishSubject<ClientStatusMessage> statuses = PublishSubject.create();
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
-    private final ClientStatusMessageHandler handler = new LayerSubscriptionHandler(snapshotSequences, converter);
+    private final ClientStatusMessageHandler handler = new OpenLayerHandler(snapshotSequences, converter);
     private final Subscription subscription = statuses.compose(handler).subscribe(sub);
 
     @Before
@@ -64,13 +65,13 @@ public class LayerSubscriptionHandlerShould {
         final LayerId id = mock(LayerId.class);
         final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, interceptor.observable()));
-        statuses.onNext(status(id));
+        nextSequence(spec(id, true), interceptor.observable());
+        nextStatus(status(id));
 
         assertThat(interceptor.subscribed(), equalTo(true));
         assertThat(interceptor.unsubscribed(), equalTo(false));
 
-        statuses.onNext(status());
+        nextStatus(status());
 
         assertThat(interceptor.unsubscribed(), equalTo(true));
     }
@@ -78,46 +79,53 @@ public class LayerSubscriptionHandlerShould {
     @Test
     public void send_update_corresponding_to_snapshot() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Snapshot snapshot = snapshot(id);
+        final LayerSpec spec = spec(id, true);
+        final Snapshot snapshot = snapshot(spec);
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, just(snapshot)));
-        statuses.onNext(status(id));
-        statuses.onCompleted();
-        snapshotSequences.onCompleted();
+        nextSequence(spec, just(snapshot));
+        nextStatus(status(id));
 
-        sub.awaitTerminalEvent();
+        completeInputsAndAwait();
         verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
-        assertThat(sub.getOnNextEvents(), contains(LayerUpdateMessageImpl.of(id, snapshot.absolute().spec().schema(), featureCollection())));
+        assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
     @Test
     public void send_no_updates_when_layer_not_found() throws Exception {
         final LayerId id = mock(LayerId.class);
 
-        statuses.onNext(status(id));
-        statuses.onCompleted();
-        snapshotSequences.onCompleted();
+        nextStatus(status(id));
 
-        sub.awaitTerminalEvent();
+        completeInputsAndAwait();
         verifyZeroInteractions(converter);
         assertThat(sub.getOnNextEvents(), empty());
+    }
+
+    @Test
+    public void send_no_features_in_updates_if_layer_is_not_live() throws Exception {
+        final LayerId id = mock(LayerId.class);
+        final LayerSpec spec = spec(id, false); // Not live
+
+        nextSequence(spec, just(snapshot(spec)));
+        nextStatus(status(id));
+
+        completeInputsAndAwait();
+        verify(converter).toGeojson(newArrayList());    // No features converted
     }
 
     @Test
     public void not_send_updates_if_layer_list_unaffected() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
-        final Snapshot snapshotA = snapshot(idA);
-        final Snapshot snapshotB = snapshot(idB);
+        final LayerSpec specA = spec(idA, true);
+        final LayerSpec specB = spec(idB, true);
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idA, just(snapshotA)));
-        statuses.onNext(status(idA));
-        statuses.onNext(status(idA));                                                       // Duplicate
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idB, just(snapshotB)));       // Change to map
-        statuses.onCompleted();
-        snapshotSequences.onCompleted();
+        nextSequence(specA, just(snapshot(specA)));
+        nextStatus(status(idA));
+        nextStatus(status(idA));
+        nextSequence(specB, just(snapshot(specB)));
 
-        sub.awaitTerminalEvent();
+        completeInputsAndAwait();
         assertThat(sub.getOnNextEvents(), hasSize(1));
     }
 
@@ -125,20 +133,17 @@ public class LayerSubscriptionHandlerShould {
     public void send_updates_for_multiple_layers() throws Exception {
         final LayerId idA = mock(LayerId.class);
         final LayerId idB = mock(LayerId.class);
-        final Snapshot snapshotA = snapshot(idA);
-        final Snapshot snapshotB = snapshot(idB);
+        final LayerSpec specA = spec(idA, true);
+        final LayerSpec specB = spec(idB, true);
+        final Snapshot snapshotA = snapshot(specA);
+        final Snapshot snapshotB = snapshot(specB);
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idA, just(snapshotA)));
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(idB, just(snapshotB)));
-        statuses.onNext(status(idA, idB));
-        statuses.onCompleted();
-        snapshotSequences.onCompleted();
+        nextSequence(specA, just(snapshotA));
+        nextSequence(specB, just(snapshotB));
+        nextStatus(status(idA, idB));
 
-        sub.awaitTerminalEvent();
-        assertThat(sub.getOnNextEvents(), containsInAnyOrder(
-                LayerUpdateMessageImpl.of(idA, snapshotA.absolute().spec().schema(), featureCollection()),
-                LayerUpdateMessageImpl.of(idB, snapshotB.absolute().spec().schema(), featureCollection())
-        ));
+        completeInputsAndAwait();
+        assertThat(sub.getOnNextEvents(), containsInAnyOrder(message(idA, snapshotA), message(idB, snapshotB)));
     }
 
     @Test
@@ -146,30 +151,51 @@ public class LayerSubscriptionHandlerShould {
         final LayerId id = mock(LayerId.class);
         final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
 
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(id, interceptor.observable()));
-        statuses.onNext(status(id));
-
+        nextSequence(spec(id, true), interceptor.observable());
+        nextStatus(status(id));
         subscription.unsubscribe();
 
         assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
-    private Snapshot snapshot(LayerId id) {
-        final AttributeSchema schema = mock(AttributeSchema.class);
-        final Collection<Feature> features = newArrayList(mock(Feature.class), mock(Feature.class));
+    private void completeInputsAndAwait() {
+        statuses.onCompleted();
+        snapshotSequences.onCompleted();
+        sub.awaitTerminalEvent();
+    }
 
+    private void nextSequence(LayerSpec spec, Observable<Snapshot> snapshots) {
+        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, snapshots));
+    }
+
+    private void nextStatus(ClientStatusMessage status) {
+        statuses.onNext(status);
+    }
+
+    private Snapshot snapshot(LayerSpec spec) {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec().id()).thenReturn(id);
-        when(layer.spec().view()).thenReturn(IDENTITY_VIEW);
-        when(layer.spec().schema()).thenReturn(schema);
-        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(features));
+        when(layer.spec()).thenReturn(spec);
+        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
         return SnapshotImpl.of(layer, emptyList());
+    }
+
+    private LayerSpec spec(LayerId id, boolean live) {
+        final LayerSpec spec = mock(LayerSpec.class);
+        when(spec.id()).thenReturn(id);
+        when(spec.view()).thenReturn(IDENTITY_VIEW);
+        when(spec.staticSchema()).thenReturn(mock(StaticSchema.class));
+        when(spec.indexable()).thenReturn(!live);
+        return spec;
     }
 
     private ClientStatusMessage status(LayerId... ids) {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
-        when(msg.subscribedLiveLayerIds()).thenReturn(asList(ids));
+        when(msg.openLayerIds()).thenReturn(asList(ids));
         return msg;
+    }
+
+    private LayerUpdateMessageImpl message(LayerId id, Snapshot snapshot) {
+        return LayerUpdateMessageImpl.of(id, snapshot.absolute().dynamicSchema(), snapshot.absolute().stats(), featureCollection());
     }
 
     private FeatureCollection featureCollection() {

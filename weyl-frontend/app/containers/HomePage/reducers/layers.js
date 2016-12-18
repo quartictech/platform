@@ -1,7 +1,6 @@
 import { fromJS, OrderedMap, Set } from "immutable";
 import { layerThemes } from "../../../themes";
 import * as constants from "../constants";
-const _ = require("underscore");
 
 export default (state = new OrderedMap(), action) => {
   switch (action.type) {
@@ -12,7 +11,7 @@ export default (state = new OrderedMap(), action) => {
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
-    case constants.LAYER_SET_DATA:
+    case constants.LAYER_UPDATE:
       return state.update(action.layerId, val => layerReducer(val, action));
     default:
       return state;
@@ -38,20 +37,23 @@ const layerReducer = (state, action) => {
       }
 
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
-      if (action.value === undefined) {
-        return state.updateIn(["filter", action.attribute, "notApplicable"], na => !na);
-      }
-      return state.updateIn(["filter", action.attribute, "categories"], set => {
-        if (set.includes(action.value)) {
-          return set.remove(action.value);
+      return state.updateIn(["filter", action.attribute], defaultAttributeFilter(), filter => {
+        if (action.value === undefined) {
+          return filter.update("notApplicable", x => !x);
         }
-        return set.add(action.value);
+        return filter.update("categories", set => {
+          if (set.includes(action.value)) {
+            return set.remove(action.value);
+          }
+          return set.add(action.value);
+        });
       });
 
-    case constants.LAYER_SET_DATA:
+    case constants.LAYER_UPDATE:
       return state
         .set("data", action.data)
-        .set("schema", action.schema);
+        .set("stats", action.stats)
+        .set("dynamicSchema", action.dynamicSchema);
 
     default:
       return state;
@@ -63,24 +65,26 @@ const newLayer = (action) => fromJS({
   metadata: action.metadata,
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(action.schema.primaryAttribute, 0),
-  stats: action.stats,
-  schema: action.schema,
+  staticSchema: action.staticSchema,
+  style: defaultLayerStyle(action.staticSchema.primaryAttribute, 0),
+  stats: {
+    attributeStats: {},
+  },
+  dynamicSchema: {
+    attributes: {},
+  },
   live: action.live,
   data: {
     type: "FeatureCollection",
     features: [],
   },   // Only relevant in the case of live layers
-  filter: defaultFilter(action.schema),
+  filter: {},
 });
 
-const defaultFilter = (schema) =>
-  _.chain(schema.attributes)
-    .keys()
-    .filter(k => schema.attributes[k].categories !== null)
-    .map(k => [k, { notApplicable: false, categories: new Set() }])
-    .object()
-    .value();
+const defaultAttributeFilter = () => fromJS({
+  notApplicable: false,
+  categories: new Set(),
+});
 
 const defaultLayerStyle = (attribute, themeIdx) => ({
   type: "DEFAULT",

@@ -46,7 +46,7 @@ public interface ClientStatusMessage extends SocketMessage {
         double bufferDistance();    // TODO: what units?
     }
 
-    List<LayerId> subscribedLiveLayerIds();
+    List<LayerId> openLayerIds();
     SelectionStatus selection();
     GeofenceStatus geofence();
 }
