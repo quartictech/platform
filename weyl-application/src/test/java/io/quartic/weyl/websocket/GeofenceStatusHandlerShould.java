@@ -41,7 +41,7 @@ import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
-import rx.subjects.PublishSubject;
+import rx.subjects.ReplaySubject;
 
 import java.util.List;
 import java.util.Optional;
@@ -88,7 +88,7 @@ public class GeofenceStatusHandlerShould {
     private final GeofenceViolationDetector detector = mock(GeofenceViolationDetector.class);
 
     private final Interceptor<LayerSnapshotSequence> interceptor = Interceptor.create();
-    private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
+    private final ReplaySubject<LayerSnapshotSequence> snapshotSequences = ReplaySubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
     private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(
             detector,

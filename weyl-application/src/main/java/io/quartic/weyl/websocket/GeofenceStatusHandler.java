@@ -1,6 +1,5 @@
 package io.quartic.weyl.websocket;
 
-import com.google.common.collect.Maps;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -24,7 +23,6 @@ import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
-import rx.Subscription;
 
 import java.util.Collection;
 import java.util.Map;
@@ -32,8 +30,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
+import static io.quartic.common.rx.RxUtils.accumulateMap;
 import static io.quartic.common.rx.RxUtils.combine;
 import static io.quartic.common.rx.RxUtils.latest;
+import static io.quartic.common.rx.RxUtils.likeBehavior;
 import static io.quartic.common.rx.RxUtils.mealy;
 import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
@@ -48,15 +48,17 @@ import static rx.Observable.just;
 public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private final GeofenceViolationDetector detector;
     private final Observable<LayerSnapshotSequence> snapshotSequences;
-    private final Map<LayerId, Observable<Snapshot>> sequences = Maps.newConcurrentMap();
-    private final Subscription subscription;
+    private final Observable<Map<LayerId, Observable<Snapshot>>> sequenceMap;
     private final FeatureConverter featureConverter;
 
     public GeofenceStatusHandler(GeofenceViolationDetector detector, Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         this.detector = detector;
         this.snapshotSequences = snapshotSequences;
         this.featureConverter = featureConverter;
-        this.subscription = snapshotSequences.subscribe(s -> sequences.put(s.spec().id(), s.snapshots()));
+        // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
+        this.sequenceMap = snapshotSequences
+                .compose(accumulateMap(seq -> seq.spec().id(), LayerSnapshotSequence::snapshots))
+                .compose(likeBehavior());
     }
 
     @Override
@@ -65,8 +67,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .map(ClientStatusMessage::geofence)
                 .distinctUntilChanged()
                 .map(this::toGeofences)
-                .compose(combine(this::generateGeometryUpdates, this::processViolations))
-                .doOnUnsubscribe(subscription::unsubscribe);    // TODO: get rid of grossness
+                .compose(combine(this::generateGeometryUpdates, this::processViolations));
     }
 
     private Collection<Geofence> toGeofences(GeofenceStatus status) {
@@ -93,7 +94,8 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     private Stream<Feature> featuresFrom(LayerId layerId) {
         // TODO: validate that layer exists
-        return latest(sequences.getOrDefault(layerId, empty()))
+        final Observable<Snapshot> sequence = latest(sequenceMap).get(layerId);
+        return latest(sequence)
                 .absolute().features()
                 .stream();
     }
@@ -125,22 +127,23 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     }
 
     public Observable<SocketMessage> detectViolationsForGeofenceStatus(Collection<Geofence> geofences) {
-        return diffs()
+        return snapshotSequences
+                .compose(this::extractLiveFeatures)
                 .compose(mealy(detector.create(geofences), detector::next))
                 .concatMap(this::processOutput);
+    }
+
+    private Observable<Collection<Feature>> extractLiveFeatures(Observable<LayerSnapshotSequence> sequences) {
+        return sequences
+                .filter(seq -> !seq.spec().indexable())
+                .flatMap(LayerSnapshotSequence::snapshots)
+                .map(Snapshot::diff);
     }
 
     private Observable<SocketMessage> processOutput(Output output) {
         return Observable.from(output.newViolations())
                 .map(this::alertMessage)
                 .concatWith(output.hasChanged() ? just(violationUpdateMessage(output)) : empty());
-    }
-
-    private Observable<Collection<Feature>> diffs() {
-        return snapshotSequences
-                .filter(seq -> !seq.spec().indexable())
-                .flatMap(LayerSnapshotSequence::snapshots)
-                .map(Snapshot::diff);
     }
 
     private SocketMessage violationUpdateMessage(Output output) {
