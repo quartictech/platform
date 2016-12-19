@@ -97,6 +97,6 @@ public abstract class LayerRouter {
     private Transformer<LayerUpdate, Snapshot> toSnapshots(LayerSpec spec) {
         return updates -> updates
                 .scan(snapshotReducer().create(spec), (s, u) -> snapshotReducer().next(s, u))
-                .compose(likeBehavior());      // These need to flow regardless of whether anybody's currently subscribed;
+                .compose(likeBehavior());      // These need to flow regardless of whether anybody's currently subscribed
     }
 }
