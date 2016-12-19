@@ -53,6 +53,7 @@ import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.update.UpdateServer;
+import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
 import io.quartic.weyl.websocket.OpenLayerHandler;
@@ -62,6 +63,7 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -117,8 +119,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
-        final SelectionHandler selectionHandler = createSelectionHandler(snapshotSequences);
-        final OpenLayerHandler openLayerHandler = createLayerSubscriptionHandler(snapshotSequences);
+        final Collection<ClientStatusMessageHandler> handlers = newArrayList(
+                createSelectionHandler(snapshotSequences),
+                createOpenLayerHandler(snapshotSequences),
+                createGeofenceStatusHandler(new GeofenceViolationDetector(), snapshotSequences)
+        );
+
         final Observable<SocketMessage> layerListUpdates = snapshotSequences
                 .compose(new LayerListUpdateGenerator())
                 .compose(likeBehavior());
@@ -129,12 +135,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                     @SuppressWarnings("unchecked")
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) createUpdateServer(
-                                selectionHandler,
-                                openLayerHandler,
-                                alertResource,
-                                layerListUpdates,
-                                snapshotSequences
+                        return (T) new UpdateServer(
+                                merge(
+                                        alertResource.alerts().map(AlertMessageImpl::of),
+                                        layerListUpdates
+                                ),
+                                handlers
                         );
                     }
                 })
@@ -154,30 +160,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .build();
     }
 
-    private UpdateServer createUpdateServer(
-            SelectionHandler selectionHandler,
-            OpenLayerHandler openLayerHandler,
-            AlertResource alertResource,
-            Observable<SocketMessage> layerListUpdates,
-            Observable<LayerSnapshotSequence> snapshotSequences
-    ) {
-        // These are per-user so each user has their own geofence state
-        final GeofenceViolationDetector geofenceViolationDetector = new GeofenceViolationDetector();
-        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceViolationDetector, snapshotSequences);
-
-        return new UpdateServer(
-                merge(
-                        alertResource.alerts().map(AlertMessageImpl::of),
-                        layerListUpdates
-                ),
-                newArrayList(
-                        selectionHandler,
-                        openLayerHandler,
-                        geofenceStatusHandler
-                )
-        );
-    }
-
     private SelectionHandler createSelectionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
         final EntityStore entityStore = new EntityStore(snapshotSequences);
         return new SelectionHandler(
@@ -189,7 +171,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 Multiplexer.create(entityStore::get));
     }
 
-    private OpenLayerHandler createLayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+    private OpenLayerHandler createOpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
         return new OpenLayerHandler(snapshotSequences, featureConverter());
     }
 
