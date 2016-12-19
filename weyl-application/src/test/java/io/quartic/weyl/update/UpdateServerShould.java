@@ -88,7 +88,6 @@ public class UpdateServerShould {
                 emptyList(),
                 SelectionStatusImpl.of(42, emptyList()),
                 GeofenceStatusImpl.of(
-                        true,
                         GeofenceType.EXCLUDE,
                         Alert.Level.WARNING,
                         Optional.empty(),

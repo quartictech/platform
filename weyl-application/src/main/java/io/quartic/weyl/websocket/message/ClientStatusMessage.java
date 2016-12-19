@@ -38,7 +38,6 @@ public interface ClientStatusMessage extends SocketMessage {
     @JsonSerialize(as = GeofenceStatusImpl.class)
     @JsonDeserialize(as = GeofenceStatusImpl.class)
     interface GeofenceStatus {
-        boolean enabled();
         GeofenceType type();
         Alert.Level defaultLevel();
         Optional<FeatureCollection> features();

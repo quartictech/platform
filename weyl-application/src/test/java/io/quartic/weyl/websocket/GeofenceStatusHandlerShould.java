@@ -24,6 +24,7 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.NakedFeature;
@@ -43,6 +44,7 @@ import org.junit.Test;
 import rx.observers.TestSubscriber;
 import rx.subjects.ReplaySubject;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -74,12 +76,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.from;
-import static rx.Observable.just;
 
 public class GeofenceStatusHandlerShould {
     private final Attributes featureAttributes = mock(Attributes.class);
-    private final NakedFeature featureA = NakedFeatureImpl.of(Optional.empty(), polygon(5.0), featureAttributes);
-    private final NakedFeature featureB = NakedFeatureImpl.of(Optional.empty(), polygon(6.0), featureAttributes);
+    private final NakedFeature featureA = nakedFeature(polygon(5.0));
+    private final NakedFeature featureB = nakedFeature(polygon(6.0));
     private final FeatureCollection featureCollection = mock(FeatureCollection.class);
 
     private final LayerId layerId = mock(LayerId.class);
@@ -115,7 +116,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, true);
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(layer(), emptyList()));
+        snapshotSequences.onNext(sequence(snapshot(layer())));
 
         assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), contains(
                 GeofenceViolationsUpdateMessageImpl.of(newArrayList(EntityId.fromString("Pluto")), 1, 2, 3)
@@ -127,7 +128,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(layer(), emptyList()));
+        snapshotSequences.onNext(sequence(snapshot(layer())));
 
         assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), empty());
     }
@@ -137,7 +138,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(true, false);
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(layer(), emptyList()));
+        snapshotSequences.onNext(sequence(snapshot(layer())));
 
         assertThat(extractByType(sub, AlertMessage.class), contains(
                 AlertMessageImpl.of(AlertImpl.of(
@@ -156,7 +157,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(layer(), emptyList()));
+        snapshotSequences.onNext(sequence(snapshot(layer())));
 
         verify(detector).next(eq(state), any());
     }
@@ -167,7 +168,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(layer(), diff));
+        snapshotSequences.onNext(sequence(snapshot(layer(), diff)));
 
         verify(detector).next(any(), eq(diff));
     }
@@ -179,7 +180,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(layer(), diff));
+        snapshotSequences.onNext(sequence(snapshot(layer(), diff)));
 
         verify(detector, never()).next(any(), any());
     }
@@ -212,15 +213,36 @@ public class GeofenceStatusHandlerShould {
         subscribeToHandler(status(builder -> builder.features(featureCollection)));
 
         verify(converter, atLeastOnce()).toModel(featureCollection);
-        verifyGeofences("custom", featureA, featureB);
+        verifyGeofences("custom", newArrayList(featureA, featureB));
     }
 
     @Test
     public void set_geofence_based_on_layer() throws Exception {
-        snapshotSequences.onNext(sequence(layer(), emptyList()));
+        snapshotSequences.onNext(sequence(snapshot(layer())));
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
-        verifyGeofences("xyz", featureA, featureB);
+        verifyGeofences("xyz", newArrayList(featureA, featureB));
+    }
+
+    @Test
+    public void update_geofence_when_layer_changes() throws Exception {
+        final NakedFeature featureC = nakedFeature(polygon(7.0));
+        final NakedFeature featureD = nakedFeature(polygon(8.0));
+
+        snapshotSequences.onNext(sequence(
+                snapshot(layer()),
+                snapshot(layer(modelFeatureOf(featureC), modelFeatureOf(featureD)))
+        ));
+        subscribeToHandler(status(builder -> builder.layerId(layerId)));
+
+        verifyGeofences("xyz", newArrayList(featureA, featureB), newArrayList(featureC, featureD));
+    }
+
+    @Test
+    public void set_empty_geofence_when_no_features_or_layer() throws Exception {
+        subscribeToHandler(status(identity()));
+
+        verifyGeofences("", emptyList());
     }
 
     @Test
@@ -232,19 +254,12 @@ public class GeofenceStatusHandlerShould {
     }
 
     @Test
-    public void set_empty_geofence_when_disabled() throws Exception {
-        subscribeToHandler(status(builder -> builder.enabled(false)));
-
-        verifyGeofences("");
-    }
-
-    @Test
     public void set_level_attribute_based_on_attribute_from_features() throws Exception {
         when(featureAttributes.attributes()).thenReturn(singletonMap(ALERT_LEVEL, "warning"));
 
         subscribeToHandler(status(builder -> builder.features(mock(FeatureCollection.class))));
 
-        verifyGeofences("custom", WARNING, featureA, featureB);
+        verifyGeofences("custom", WARNING, newArrayList(featureA, featureB));
     }
 
     @Test
@@ -252,24 +267,24 @@ public class GeofenceStatusHandlerShould {
         final FeatureCollection features = mock(FeatureCollection.class);
         when(converter.toModel(any())).thenReturn(newArrayList(
                 featureA,
-                NakedFeatureImpl.of(Optional.empty(), point(), featureAttributes)
+                nakedFeature(point())
         ));
 
         subscribeToHandler(status(builder -> builder.features(features)));
 
-        verifyGeofences("custom", featureA);
+        verifyGeofences("custom", newArrayList(featureA));
     }
 
     @Test
     public void add_buffering_to_geometries() throws Exception {
         final FeatureCollection features = mock(FeatureCollection.class);
         when(converter.toModel(any())).thenReturn(newArrayList(
-                NakedFeatureImpl.of(Optional.empty(), point(), featureAttributes)
+                nakedFeature(point())
         ));
 
         subscribeToHandler(status(builder -> builder.features(features).bufferDistance(1.0)));
 
-        verifyGeofences("custom", NakedFeatureImpl.of(Optional.empty(), bufferOp(point(), 1.0), featureAttributes));
+        verifyGeofences("custom", newArrayList(nakedFeature(bufferOp(point(), 1.0))));
     }
 
     @Test
@@ -294,7 +309,6 @@ public class GeofenceStatusHandlerShould {
 
     private ClientStatusMessage status(Function<GeofenceStatusImpl.Builder, GeofenceStatusImpl.Builder> builderHacks) {
         GeofenceStatusImpl.Builder builder = GeofenceStatusImpl.builder()
-                .enabled(true)
                 .type(GeofenceType.INCLUDE)
                 .features(Optional.empty())
                 .defaultLevel(SEVERE)
@@ -319,26 +333,40 @@ public class GeofenceStatusHandlerShould {
         return sub;
     }
 
-    private void verifyGeofences(String id, NakedFeature... features) {
+    @SafeVarargs
+    private final void verifyGeofences(String id, Collection<NakedFeature>... features) {
         verifyGeofences(id, SEVERE, features);
     }
 
-    private void verifyGeofences(String id, Alert.Level level, NakedFeature... features) {
+    @SafeVarargs
+    private final void verifyGeofences(String id, Alert.Level level, Collection<NakedFeature>... features) {
         verify(detector).create(
-                stream(features).map(p -> geofenceOf(id, level, p.geometry())).collect(toList())
+                features[0].stream().map(p -> geofenceOf(id, level, p.geometry())).collect(toList())
         );
     }
 
-    private LayerSnapshotSequence sequence(Layer layer, List<Feature> diff) {
-        return LayerSnapshotSequenceImpl.of(layerSpec, just(SnapshotImpl.of(layer, diff)));
+    private LayerSnapshotSequence sequence(Snapshot... snapshots) {
+        return LayerSnapshotSequenceImpl.of(layerSpec, from(snapshots));
+    }
+
+    private Snapshot snapshot(Layer layer) {
+        return SnapshotImpl.of(layer, emptyList());
+    }
+
+    private Snapshot snapshot(Layer layer, List<Feature> diff) {
+        return SnapshotImpl.of(layer, diff);
     }
 
     private Layer layer() {
+        return layer(modelFeatureOf(featureA), modelFeatureOf(featureB));
+    }
+
+    private Layer layer(Feature... features) {
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
         final Layer layer = mock(Layer.class);
 
         when(layer.features()).thenReturn(featureCollection);
-        when(featureCollection.stream()).thenAnswer(invocation -> newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB)).stream());
+        when(featureCollection.stream()).thenAnswer(invocation -> stream(features));
         return layer;
     }
 
@@ -373,4 +401,9 @@ public class GeofenceStatusHandlerShould {
                 new Coordinate(1.0 + offset, 2.0 + offset)
         });
     }
+
+    private NakedFeature nakedFeature(Geometry polygon) {
+        return NakedFeatureImpl.of(Optional.empty(), polygon, featureAttributes);
+    }
+
 }

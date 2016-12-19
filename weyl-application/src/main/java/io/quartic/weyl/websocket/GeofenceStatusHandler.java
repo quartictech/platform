@@ -27,7 +27,6 @@ import rx.Observable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.common.rx.RxUtils.accumulateMap;
@@ -40,9 +39,11 @@ import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
 import static io.quartic.weyl.core.model.Alert.Level.WARNING;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.empty;
+import static rx.Observable.from;
 import static rx.Observable.just;
 
 public class GeofenceStatusHandler implements ClientStatusMessageHandler {
@@ -66,22 +67,19 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
         return clientStatus
                 .map(ClientStatusMessage::geofence)
                 .distinctUntilChanged()
-                .map(this::toGeofences)
+                .switchMap(this::toGeofences)   // TODO: is switchMap a good idea here?  Means we resubscribe to sequenceMap all the time
                 .compose(combine(this::generateGeometryUpdates, this::processViolations));
     }
 
-    private Collection<Geofence> toGeofences(GeofenceStatus status) {
-        return toGeofences(
-                status,
-                status.enabled()
-                        ? status.features().map(this::featuresFrom)
-                        .orElse(status.layerId().map(this::featuresFrom).orElse(Stream.empty()))
-                        : Stream.empty()
-        );
+    private Observable<Collection<Geofence>> toGeofences(GeofenceStatus status) {
+        final Observable<Collection<Feature>> features =
+                status.layerId().map(this::featuresFrom)
+                .orElse(status.features().map(this::featuresFrom).orElse(just(emptyList())));
+        return features.map(f -> toGeofences(status, f));
     }
 
-    private Collection<Geofence> toGeofences(GeofenceStatus status, Stream<Feature> features) {
-        return features
+    private Collection<Geofence> toGeofences(GeofenceStatus status, Collection<Feature> features) {
+        return features.stream()
                 .map(f -> FeatureImpl.copyOf(f)
                         .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f, status.defaultLevel()))))
                         .withGeometry(bufferOp(f.geometry(), status.bufferDistance()))
@@ -92,18 +90,17 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 .collect(toList());
     }
 
-    private Stream<Feature> featuresFrom(LayerId layerId) {
-        // TODO: validate that layer exists
-        final Observable<Snapshot> sequence = latest(sequenceMap).get(layerId);
-        return latest(sequence)
-                .absolute().features()
-                .stream();
+    private Observable<Collection<Feature>> featuresFrom(LayerId layerId) {
+        // TODO: handle layer being missing or completed
+        return latest(sequenceMap).get(layerId)
+                .map(s -> s.absolute().features());
     }
 
-    private Stream<Feature> featuresFrom(FeatureCollection features) {
-        return featureConverter.toModel(features)
+    private Observable<Collection<Feature>> featuresFrom(FeatureCollection features) {
+        return just(featureConverter.toModel(features)
                 .stream()
-                .map(this::annotateFeature);
+                .map(this::annotateFeature)
+                .collect(toList()));
     }
 
     private Feature annotateFeature(NakedFeature feature) {
@@ -126,7 +123,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
         return geofenceStatuses.switchMap(this::detectViolationsForGeofenceStatus);
     }
 
-    public Observable<SocketMessage> detectViolationsForGeofenceStatus(Collection<Geofence> geofences) {
+    private Observable<SocketMessage> detectViolationsForGeofenceStatus(Collection<Geofence> geofences) {
         return snapshotSequences
                 .compose(this::extractLiveFeatures)
                 .compose(mealy(detector.create(geofences), detector::next))
@@ -141,7 +138,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     }
 
     private Observable<SocketMessage> processOutput(Output output) {
-        return Observable.from(output.newViolations())
+        return from(output.newViolations())
                 .map(this::alertMessage)
                 .concatWith(output.hasChanged() ? just(violationUpdateMessage(output)) : empty());
     }
