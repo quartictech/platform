@@ -32,6 +32,9 @@ public class GeofenceViolationDetector {
 
         State(Collection<Geofence> geofences) {
             this.geofences = ImmutableList.copyOf(geofences);
+            for (Alert.Level level : Alert.Level.values()) {
+                counts.put(level, 0);
+            }
         }
     }
 
@@ -77,14 +80,14 @@ public class GeofenceViolationDetector {
 
             if (violating && !previouslyViolating) {
                 LOG.info("Violation begin: {} -> {}", entityId, geofenceId);
+                state.counts.put(level, state.counts.get(level) + 1);
                 state.violations.add(violation);
-                state.counts.put(level, state.counts.getOrDefault(level, 0) + 1);
                 output.newViolations.add(violation);
                 output.hasChanged = true;
             } else if (!violating && previouslyViolating) {
                 LOG.info("Violation end: {} -> {}", entityId, geofenceId);
+                state.counts.put(level, state.counts.get(level) - 1);
                 state.violations.remove(violation);
-                state.counts.put(level, state.counts.getOrDefault(level, 1) - 1);   // Prevents going below 0 in cases that should never happen
                 output.hasChanged = true;
             }
         }));

@@ -146,9 +146,9 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private SocketMessage violationUpdateMessage(Output output) {
         return GeofenceViolationsUpdateMessageImpl.of(
                 output.violations().stream().map(Violation::geofenceId).collect(toList()),
-                output.counts().getOrDefault(INFO, 0),
-                output.counts().getOrDefault(WARNING, 0),
-                output.counts().getOrDefault(SEVERE, 0)
+                output.counts().get(INFO),
+                output.counts().get(WARNING),
+                output.counts().get(SEVERE)
         );
     }
 
