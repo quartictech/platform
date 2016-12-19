@@ -77,13 +77,6 @@ public class TileResourceShould {
         render(layerId);
     }
 
-    @Test(expected = NotFoundException.class)
-    public void respond_with_4xx_when_layer_complete() throws Exception {
-        nextSequence(layerId).onCompleted();
-
-        render(layerId);
-    }
-
     private byte[] render(LayerId layerId) {
         return resource.render(layerId, 5, 6, 7);
     }

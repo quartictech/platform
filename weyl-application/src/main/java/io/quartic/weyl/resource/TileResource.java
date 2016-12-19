@@ -3,7 +3,6 @@ package io.quartic.weyl.resource;
 import com.google.common.collect.Maps;
 import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
@@ -18,7 +17,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import static io.quartic.common.rx.RxUtils.latest;
 import static rx.Observable.error;
@@ -38,6 +36,7 @@ public abstract class TileResource {
 
     @Value.Derived
     protected Subscription sequenceSubscription() {
+        // Don't do anything smart with deleted layers
         return snapshotSequences().subscribe(s -> sequences.put(s.spec().id(), s.snapshots()));
     }
 
@@ -50,16 +49,8 @@ public abstract class TileResource {
                          @PathParam("x") Integer x,
                          @PathParam("y") Integer y) {
 
-        final byte[] data = renderer().render(getLayer(layerId), z, x, y);
-        return (data.length > 0) ? data : null;
-    }
-
-    private Layer getLayer(LayerId id) {
-        try {
-            return latest(getOrError(id)).absolute();
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Layer with id " + id + " was deleted");    // TODO: it would be more graceful to return empty in the case of deletion
-        }
+        final byte[] data = renderer().render(latest(getOrError(layerId)).absolute(), z, x, y);
+        return (data.length > 0) ? data : null; // The (length == 0) case will also occur for deleted layers
     }
 
     private Observable<Snapshot> getOrError(LayerId id) {

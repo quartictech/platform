@@ -4,7 +4,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.rx.StateAndOutputImpl;
-import io.quartic.common.test.rx.Interceptor;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -41,7 +40,9 @@ import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
+import rx.Observable;
 import rx.observers.TestSubscriber;
+import rx.subjects.PublishSubject;
 import rx.subjects.ReplaySubject;
 
 import java.util.Collection;
@@ -65,7 +66,6 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -76,6 +76,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.from;
+import static rx.Observable.just;
 
 public class GeofenceStatusHandlerShould {
     private final Attributes featureAttributes = mock(Attributes.class);
@@ -88,12 +89,11 @@ public class GeofenceStatusHandlerShould {
 
     private final GeofenceViolationDetector detector = mock(GeofenceViolationDetector.class);
 
-    private final Interceptor<LayerSnapshotSequence> interceptor = Interceptor.create();
     private final ReplaySubject<LayerSnapshotSequence> snapshotSequences = ReplaySubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
     private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(
             detector,
-            snapshotSequences.compose(interceptor),
+            snapshotSequences,
             converter
     );
 
@@ -116,7 +116,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, true);
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(snapshot(layer())));
+        snapshotSequences.onNext(sequence(just(snapshot(layer()))));
 
         assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), contains(
                 GeofenceViolationsUpdateMessageImpl.of(newArrayList(EntityId.fromString("Pluto")), 1, 2, 3)
@@ -128,7 +128,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(snapshot(layer())));
+        snapshotSequences.onNext(sequence(just(snapshot(layer()))));
 
         assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), empty());
     }
@@ -138,7 +138,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(true, false);
 
         final TestSubscriber<SocketMessage> sub = subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(snapshot(layer())));
+        snapshotSequences.onNext(sequence(just(snapshot(layer()))));
 
         assertThat(extractByType(sub, AlertMessage.class), contains(
                 AlertMessageImpl.of(AlertImpl.of(
@@ -157,7 +157,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(snapshot(layer())));
+        snapshotSequences.onNext(sequence(just(snapshot(layer()))));
 
         verify(detector).next(eq(state), any());
     }
@@ -168,7 +168,7 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(snapshot(layer(), diff)));
+        snapshotSequences.onNext(sequence(just(snapshot(layer(), diff))));
 
         verify(detector).next(any(), eq(diff));
     }
@@ -180,32 +180,9 @@ public class GeofenceStatusHandlerShould {
         mockDetectorBehaviour(false, false);
 
         subscribeToHandler(status(identity()));
-        snapshotSequences.onNext(sequence(snapshot(layer(), diff)));
+        snapshotSequences.onNext(sequence(just(snapshot(layer(), diff))));
 
         verify(detector, never()).next(any(), any());
-    }
-
-    private void mockDetectorBehaviour(boolean newViolations, boolean hasChanged) {
-        final Violation violation = mock(Violation.class);
-        when(violation.entityId()).thenReturn(EntityId.fromString("Goofy"));
-        when(violation.geofenceId()).thenReturn(EntityId.fromString("Pluto"));
-        when(violation.level()).thenReturn(SEVERE);
-
-        final Output output = mock(Output.class);
-        when(output.hasChanged()).thenReturn(hasChanged);
-        if (newViolations) {
-            when(output.newViolations()).thenReturn(newArrayList(violation));
-        } else {
-            when(output.violations()).thenReturn(newHashSet(violation));
-        }
-
-        when(output.counts()).thenReturn(map(
-                entry(INFO, 1),
-                entry(WARNING, 2),
-                entry(SEVERE, 3)
-        ));
-
-        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), output));
     }
 
     @Test
@@ -218,29 +195,47 @@ public class GeofenceStatusHandlerShould {
 
     @Test
     public void set_geofence_based_on_layer() throws Exception {
-        snapshotSequences.onNext(sequence(snapshot(layer())));
+        snapshotSequences.onNext(sequence(just(snapshot(layer()))));
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
         verifyGeofences("xyz", newArrayList(featureA, featureB));
     }
 
     @Test
-    public void update_geofence_when_layer_changes() throws Exception {
+    public void update_geofence_when_layer_updates() throws Exception {
         final NakedFeature featureC = nakedFeature(polygon(7.0));
         final NakedFeature featureD = nakedFeature(polygon(8.0));
 
-        snapshotSequences.onNext(sequence(
-                snapshot(layer()),
-                snapshot(layer(modelFeatureOf(featureC), modelFeatureOf(featureD)))
-        ));
+        final PublishSubject<Snapshot> snapshots = PublishSubject.create();
+        snapshotSequences.onNext(sequence(snapshots));
+
         subscribeToHandler(status(builder -> builder.layerId(layerId)));
+
+        snapshots.onNext(snapshot(layer()));
+        snapshots.onNext(snapshot(layer(modelFeatureOf(featureC), modelFeatureOf(featureD))));
 
         verifyGeofences("xyz", newArrayList(featureA, featureB), newArrayList(featureC, featureD));
     }
 
     @Test
+    public void set_empty_geofence_when_layer_empty() throws Exception {
+        snapshotSequences.onNext(sequence(just(snapshot(layer(new Feature[] {})))));    // Empty!
+        subscribeToHandler(status(builder -> builder.layerId(layerId)));
+
+        verifyGeofences("", emptyList());
+    }
+
+    @Test
     public void set_empty_geofence_when_no_features_or_layer() throws Exception {
         subscribeToHandler(status(identity()));
+
+        verifyGeofences("", emptyList());
+    }
+
+    @Test
+    public void set_empty_geofence_when_layer_missing() throws Exception {
+        // Nothing added to snapshotSequences!
+        subscribeToHandler(status(builder -> builder.layerId(layerId)));
 
         verifyGeofences("", emptyList());
     }
@@ -299,14 +294,6 @@ public class GeofenceStatusHandlerShould {
         verify(detector, times(1)).create(any());
     }
 
-    // This covers the non-reactive hackery we still have in the implementation
-    @Test
-    public void unsubscribe_from_snapshots_on_unsubscribe() throws Exception {
-        subscribeToHandler(status(identity())).unsubscribe();
-
-        assertThat(interceptor.unsubscribed(), equalTo(true));
-    }
-
     private ClientStatusMessage status(Function<GeofenceStatusImpl.Builder, GeofenceStatusImpl.Builder> builderHacks) {
         GeofenceStatusImpl.Builder builder = GeofenceStatusImpl.builder()
                 .type(GeofenceType.INCLUDE)
@@ -317,6 +304,29 @@ public class GeofenceStatusHandlerShould {
         ClientStatusMessage msg = mock(ClientStatusMessage.class);
         when(msg.geofence()).thenReturn(builder.build());
         return msg;
+    }
+
+    private void mockDetectorBehaviour(boolean newViolations, boolean hasChanged) {
+        final Violation violation = mock(Violation.class);
+        when(violation.entityId()).thenReturn(EntityId.fromString("Goofy"));
+        when(violation.geofenceId()).thenReturn(EntityId.fromString("Pluto"));
+        when(violation.level()).thenReturn(SEVERE);
+
+        final Output output = mock(Output.class);
+        when(output.hasChanged()).thenReturn(hasChanged);
+        if (newViolations) {
+            when(output.newViolations()).thenReturn(newArrayList(violation));
+        } else {
+            when(output.violations()).thenReturn(newHashSet(violation));
+        }
+
+        when(output.counts()).thenReturn(map(
+                entry(INFO, 1),
+                entry(WARNING, 2),
+                entry(SEVERE, 3)
+        ));
+
+        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), output));
     }
 
     @SuppressWarnings("unchecked")
@@ -345,8 +355,8 @@ public class GeofenceStatusHandlerShould {
         );
     }
 
-    private LayerSnapshotSequence sequence(Snapshot... snapshots) {
-        return LayerSnapshotSequenceImpl.of(layerSpec, from(snapshots));
+    private LayerSnapshotSequence sequence(Observable<Snapshot> snapshots) {
+        return LayerSnapshotSequenceImpl.of(layerSpec, snapshots);
     }
 
     private Snapshot snapshot(Layer layer) {

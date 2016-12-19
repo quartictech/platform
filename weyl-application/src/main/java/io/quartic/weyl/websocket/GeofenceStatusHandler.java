@@ -22,6 +22,7 @@ import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.GeofenceGeometryUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.GeofenceViolationsUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
+import org.slf4j.Logger;
 import rx.Observable;
 
 import java.util.Collection;
@@ -42,11 +43,13 @@ import static io.quartic.weyl.core.model.Alert.Level.WARNING;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Observable.empty;
 import static rx.Observable.from;
 import static rx.Observable.just;
 
 public class GeofenceStatusHandler implements ClientStatusMessageHandler {
+    private static final Logger LOG = getLogger(GeofenceStatusHandler.class);
     private final GeofenceViolationDetector detector;
     private final Observable<LayerSnapshotSequence> snapshotSequences;
     private final Observable<Map<LayerId, Observable<Snapshot>>> sequenceMap;
@@ -72,28 +75,37 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     }
 
     private Observable<Collection<Geofence>> toGeofences(GeofenceStatus status) {
-        final Observable<Collection<Feature>> features =
-                status.layerId().map(this::featuresFrom)
-                .orElse(status.features().map(this::featuresFrom).orElse(just(emptyList())));
-        return features.map(f -> toGeofences(status, f));
+        return status.layerId().map(this::featuresFrom)
+                .orElse(status.features().map(this::featuresFrom).orElse(just(emptyList())))
+                .map(f -> toGeofences(status, f));
     }
 
     private Collection<Geofence> toGeofences(GeofenceStatus status, Collection<Feature> features) {
         return features.stream()
-                .map(f -> FeatureImpl.copyOf(f)
-                        .withAttributes(AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f, status.defaultLevel()))))
-                        .withGeometry(bufferOp(f.geometry(), status.bufferDistance()))
-                        .withEntityId(EntityIdImpl.of("geofence/" + f.entityId().uid()))
-                )
-                .filter(f -> !f.geometry().isEmpty())
-                .map(f -> GeofenceImpl.of(status.type(), f))
+                .map(f -> toGeofence(status, f))
+                .filter(g -> !g.feature().geometry().isEmpty())
                 .collect(toList());
     }
 
+    private Geofence toGeofence(GeofenceStatus status, Feature f) {
+        return GeofenceImpl.of(
+                status.type(),
+                FeatureImpl.of(
+                        EntityIdImpl.of("geofence/" + f.entityId().uid()),
+                        bufferOp(f.geometry(), status.bufferDistance()),
+                        AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f, status.defaultLevel())))
+                )
+        );
+    }
+
     private Observable<Collection<Feature>> featuresFrom(LayerId layerId) {
-        // TODO: handle layer being missing or completed
-        return latest(sequenceMap).get(layerId)
-                .map(s -> s.absolute().features());
+        // Handling of deleted layers is implicit - we rely on the final snapshot being empty -> no geofences
+        return Optional.ofNullable(latest(sequenceMap).get(layerId))
+                .map(snapshots -> snapshots.map(s -> (Collection<Feature>) s.absolute().features()))
+                .orElseGet(() -> {
+                    LOG.warn("Trying to create geofence from non-existent layer with id {}", layerId);
+                    return just(emptyList());   // No geofences in the case of missing layer
+                });
     }
 
     private Observable<Collection<Feature>> featuresFrom(FeatureCollection features) {

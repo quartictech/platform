@@ -1,10 +1,10 @@
 package io.quartic.common.rx;
 
+import de.bechte.junit.runners.context.HierarchicalContextRunner;
 import io.quartic.common.rx.RxUtils.StateAndOutput;
 import io.quartic.common.test.rx.Interceptor;
 import org.hamcrest.Matcher;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import rx.Observable;
 import rx.Observer;
@@ -31,10 +31,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
-@RunWith(Enclosed.class)
+@RunWith(HierarchicalContextRunner.class)
 public class RxUtilsShould {
+    private interface Input {}
+    private interface State {}
+    private interface Output {}
 
-    public static class LikeBehaviorShould {
+    public class LikeBehaviorShould {
         @Test
         public void understand_publishsubject() throws Exception {
             final PublishSubject<Integer> subject = PublishSubject.create();
@@ -101,7 +104,7 @@ public class RxUtilsShould {
         }
     }
 
-    public static class LatestShould {
+    public class LatestShould {
         @Test
         public void return_latest_item() throws Exception {
             final BehaviorSubject<Integer> subject = BehaviorSubject.create();
@@ -121,11 +124,7 @@ public class RxUtilsShould {
         }
     }
 
-    public static class MealyShould {
-        interface Input {}
-        interface State {}
-        interface Output {}
-
+    public class MealyShould {
         @Test
         public void wrap_callback_correctly() throws Exception {
             final State initialState = mock(State.class);
@@ -150,7 +149,7 @@ public class RxUtilsShould {
         }
     }
 
-    public static class CombineShould {
+    public class CombineShould {
         @Test
         public void merge_outputs_from_all_transformers() throws Exception {
             final TestSubscriber<Integer> sub = TestSubscriber.create();
