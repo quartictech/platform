@@ -33,20 +33,19 @@ public class LayerListUpdateGeneratorShould {
     }
 
     @Test
-    public void send_messages_on_new_layers() throws Exception {
+    public void send_messages_on_new_layers_with_features() throws Exception {
         final LayerSpec specFoo = spec("foo");
         final LayerSpec specBar = spec("bar");
         final BehaviorSubject<Snapshot> foo = registerSequence(specFoo);
         final BehaviorSubject<Snapshot> bar = registerSequence(specBar);
 
+        foo.onNext(snapshot(specFoo, 100));
+        bar.onNext(snapshot(specBar, 100));
         sequences.onCompleted();
         foo.onCompleted();
         bar.onCompleted();
 
         sub.awaitTerminalEvent();
-        for (SocketMessage socketMessage : sub.getOnNextEvents()) {
-            System.out.println("YYY: " + socketMessage);
-        }
         assertThat(sub.getOnNextEvents(), contains(
                 message(),
                 message(layerInfo(specFoo)),
@@ -55,11 +54,30 @@ public class LayerListUpdateGeneratorShould {
     }
 
     @Test
-    public void not_send_messages_on_updates_to_layer() throws Exception {
+    public void not_list_empty_layers() throws Exception {
+        final LayerSpec spec = spec("foo");
+        final BehaviorSubject<Snapshot> foo = registerSequence(spec);
+
+        foo.onNext(snapshot(spec, 100)); // Initially present
+        foo.onNext(snapshot(spec, 0));   // Then empty
+        sequences.onCompleted();
+        foo.onCompleted();
+
+        sub.awaitTerminalEvent();
+        assertThat(sub.getOnNextEvents(), contains(
+                message(),
+                message(layerInfo(spec)),
+                message()                   // Empty
+        ));
+    }
+
+    @Test
+    public void not_send_messages_on_updates_to_layer_not_affecting_emptiness() throws Exception {
         final LayerSpec specFoo = spec("foo");
         final BehaviorSubject<Snapshot> foo = registerSequence(specFoo);
 
-        foo.onNext(snapshot("a"));
+        foo.onNext(snapshot(specFoo, 100));
+        foo.onNext(snapshot(specFoo, 200));
         sequences.onCompleted();
         foo.onCompleted();
 
@@ -89,10 +107,11 @@ public class LayerListUpdateGeneratorShould {
         );
     }
 
-    private Snapshot snapshot(String id) {
+    private Snapshot snapshot(LayerSpec spec, int size) {
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        final LayerSpec spec = spec(id);
         when(snapshot.absolute().spec()).thenReturn(spec);
+        when(snapshot.absolute().features().size()).thenReturn(size);
+        when(snapshot.absolute().features().isEmpty()).thenReturn(size == 0);
         return snapshot;
     }
 
