@@ -32,9 +32,8 @@ function* reportStatus(socket) {
       seqNum: selection.seqNum,
     },
     geofence: {
-      enabled: geofence.paneVisible,
-      features: (geofence.settings.mode === "manual") ? geofence.manualGeojson : null,
-      layerId: (geofence.settings.mode === "layer") ? geofence.settings.layerId : null,
+      features: (geofence.paneVisible && geofence.settings.mode === "manual") ? geofence.manualGeojson : null,
+      layerId: (geofence.paneVisible && geofence.settings.mode === "layer") ? geofence.settings.layerId : null,
       defaultLevel: geofence.settings.defaultLevel,
       type: "EXCLUDE",
       bufferDistance: geofence.settings.bufferDistance,

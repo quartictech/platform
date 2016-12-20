@@ -12,7 +12,6 @@ import no.ecc.vectortile.VectorTileEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,7 +21,6 @@ import static io.quartic.weyl.core.feature.FeatureConverter.getRawProperties;
 
 public class VectorTileRenderer {
     private static final Logger LOG = LoggerFactory.getLogger(VectorTileRenderer.class);
-    private final Collection<Layer> layers;
 
     private static class VectorTileFeature {
         private final Map<String, Object> attributes;
@@ -46,11 +44,7 @@ public class VectorTileRenderer {
         }
     }
 
-    public VectorTileRenderer(Collection<Layer> layers) {
-        this.layers = layers;
-    }
-
-    public byte[] render(int z, int x, int y) {
+    public byte[] render(Layer layer, int z, int x, int y) {
         Envelope bounds = Mercator.bounds(z, x, y);
         Coordinate southWest = Mercator.xy(new Coordinate(bounds.getMinX(), bounds.getMinY()));
         Coordinate northEast = Mercator.xy(new Coordinate(bounds.getMaxX(), bounds.getMaxY()));
@@ -59,27 +53,26 @@ public class VectorTileRenderer {
         LOG.info("Envelope: {}", envelope.toString());
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
-        for (Layer layer : layers) {
-            final LayerId layerId = layer.spec().id();
-            LOG.info("Encoding layer {}", layerId);
-            final AtomicInteger featureCount = new AtomicInteger();
 
-            Stopwatch stopwatch = Stopwatch.createStarted();
-            layerIntersection(layer, envelope).map( (feature) -> VectorTileFeature.of(
-                    scaleGeometry(feature.feature().geometry(), envelope),
-                    getRawProperties(feature.feature()))
-            ).sequential().forEach(vectorTileFeature -> {
-                    featureCount.incrementAndGet();
-                    encoder.addFeature(layerId.uid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
-            });
-            LOG.info("Encoded {} features in {}ms", featureCount.get(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-        }
+        final LayerId layerId = layer.spec().id();
+        LOG.info("Encoding layer {}", layerId);
+        final AtomicInteger featureCount = new AtomicInteger();
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        layerIntersection(layer, envelope).map( (feature) -> VectorTileFeature.of(
+                scaleGeometry(feature.feature().geometry(), envelope),
+                getRawProperties(feature.feature()))
+        ).sequential().forEach(vectorTileFeature -> {
+                featureCount.incrementAndGet();
+                encoder.addFeature(layerId.uid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
+        });
+        LOG.info("Encoded {} features in {}ms", featureCount.get(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
         return encoder.encode();
     }
 
+    @SuppressWarnings("unchecked")
     private Stream<IndexedFeature> layerIntersection(Layer layer, Envelope envelope) {
-        //noinspection unchecked
         return layer.spatialIndex().query(envelope).stream();
     }
 

@@ -1,22 +1,28 @@
 package io.quartic.weyl.core;
 
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
+import de.bechte.junit.runners.context.HierarchicalContextRunner;
+import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import rx.Observable.Transformer;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Collection;
-
-import static com.google.common.collect.Lists.transform;
+import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.collect.Iterables.transform;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
@@ -27,109 +33,271 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.empty;
 
+@RunWith(HierarchicalContextRunner.class)
 public class LayerRouterShould {
     private static final LayerId LAYER_ID = LayerId.fromString("666");
     private static final LayerId OTHER_LAYER_ID = LayerId.fromString("777");
 
-    private final ObservableStore<EntityId, Feature> entityStore = mock(ObservableStore.class);
     private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
+    private final Interceptor<LayerPopulator> interceptor = Interceptor.create();
     private final LayerRouter router = LayerRouterImpl.builder()
-            .populators(populators)
-            .entityStore(entityStore)
+            .populators(populators.compose(interceptor))
             .snapshotReducer(snapshotReducer)
             .build();
 
-    @Test
-    public void prevent_overwriting_an_existing_layer() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        mockSnapshotCreationFor(spec);
+    public class UpstreamConsumption {
+        @Test
+        public void consume_even_if_no_subscribers() throws Exception {
+            final LayerSpec spec = spec(LAYER_ID);
+            mockSnapshotCreationFor(spec);
 
-        createLayer(spec);
-        createLayer(spec);
+            // Note no subscribers
 
-        verify(snapshotReducer, times(1)).create(any());
+            createLayer(spec);
+
+            assertThat(interceptor.values(), hasSize(1));
+        }
+
+        @Test
+        public void consume_updates_even_if_no_subscribers() throws Exception {
+            final LayerSpec spec = spec(LAYER_ID);
+            mockSnapshotCreationFor(spec);
+
+            final Interceptor<LayerUpdate> interceptor = Interceptor.create();
+            createLayer(spec, interceptor).onNext(mock(LayerUpdate.class));
+
+            // Note no subscribers
+
+            assertThat(interceptor.values(), hasSize(1));
+        }
     }
 
-    @Test
-    public void resolve_layer_dependencies_to_latest_snapshot() throws Exception {
-        final LayerSpec specDependency = spec(LAYER_ID);
-        final LayerSpec specDependent = spec(OTHER_LAYER_ID);
-        final Snapshot dependency = mockSnapshotReductionFor(mockSnapshotCreationFor(specDependency));
-        mockSnapshotCreationFor(specDependent);
+    public class SequencesObservableSemantics {
+        private final LayerSpec specA = spec(LAYER_ID);
+        private final LayerSpec specB = spec(OTHER_LAYER_ID);
 
-        createLayer(specDependency).onNext(mock(LayerUpdate.class));
+        @Before
+        public void before() throws Exception {
+            mockSnapshotCreationFor(specA);
+            mockSnapshotCreationFor(specB);
+        }
 
-        final LayerPopulator populator = mock(LayerPopulator.class);
-        when(populator.dependencies()).thenReturn(singletonList(LAYER_ID)); // Specify another layer as a dependency
-        when(populator.spec(any())).thenReturn(specDependent);
-        when(populator.updates(any())).thenReturn(empty());
-        populators.onNext(populator);
+        @Test
+        public void emit_sequence_for_every_populator() throws Exception {
+            final TestSubscriber<LayerSnapshotSequence> subscriber = subscribeToSequences();
 
-        verify(populator).spec(singletonList(dependency.absolute()));
-        verify(populator).updates(singletonList(dependency.absolute()));
+            createLayer(specA);
+            createLayer(specB);
+
+            assertThat(transform(subscriber.getOnNextEvents(), LayerSnapshotSequence::spec), contains(specA, specB));
+        }
+
+        @Test
+        public void emit_all_previous_sequences_on_subscription() throws Exception {
+            createLayer(specA);
+            createLayer(specB);
+
+            final TestSubscriber<LayerSnapshotSequence> subscriber = subscribeToSequences();
+
+            assertThat(transform(subscriber.getOnNextEvents(), LayerSnapshotSequence::spec), contains(specA, specB));
+        }
     }
 
-    @Test
-    public void apply_updates_via_reducer() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        mockSnapshotReductionFor(mockSnapshotCreationFor(spec));
+    public class SnapshotObservableSemantics {
+        private final LayerSpec spec = spec(LAYER_ID);
+        private final Snapshot empty = mockSnapshotCreationFor(spec);
+        private final Snapshot updateA = mockSnapshotReductionFor(empty);
+        private final Snapshot updateB = mockSnapshotReductionFor(updateA);
 
-        final LayerUpdate update = mock(LayerUpdate.class);
-        createLayer(spec).onNext(update);
+        @Test
+        public void emit_initial_snapshot_on_layer_creation() throws Exception {
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
 
-        verify(snapshotReducer).next(any(), eq(update));
+            createLayer(spec);
+
+            assertThat(snapshotSubscriber.getOnNextEvents(), contains(empty));
+        }
+
+        @Test
+        public void emit_empty_snapshot_and_complete_on_layer_completion() throws Exception {
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
+
+            final PublishSubject<LayerUpdate> layer = createLayer(spec);
+            layer.onCompleted();
+
+            assertThat(snapshotSubscriber.getOnNextEvents(), contains(anySnapshot(), equalTo(empty)));
+            assertCompleted(snapshotSubscriber);
+        }
+
+        @Test
+        public void emit_empty_snapshot_and_complete_if_subscribed_after_source_completion() throws Exception {
+            final PublishSubject<LayerUpdate> layer = createLayer(spec);
+            layer.onCompleted();
+
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
+
+            assertThat(snapshotSubscriber.getOnNextEvents(), contains(equalTo(empty)));
+            assertCompleted(snapshotSubscriber);
+        }
+
+        @Test
+        public void emit_latest_element_on_layer_subscription() throws Exception {
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
+
+            final PublishSubject<LayerUpdate> layer = createLayer(spec);
+            layer.onNext(mock(LayerUpdate.class));
+
+            assertThat(getLast(snapshotSubscriber.getOnNextEvents()), equalTo(updateA));
+        }
+
+        @Test
+        public void emit_snapshot_on_every_update() throws Exception {
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
+
+            PublishSubject<LayerUpdate> updates = createLayer(spec);
+            updates.onNext(mock(LayerUpdate.class));
+            updates.onNext(mock(LayerUpdate.class));
+
+            assertThat(snapshotSubscriber.getOnNextEvents(), contains(anySnapshot(), equalTo(updateA), equalTo(updateB)));
+        }
     }
 
-    @Test
-    public void put_updated_attributes_to_store() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        final Snapshot snapshot = mockSnapshotReductionFor(mockSnapshotCreationFor(spec));
-        final Collection<Feature> features = mock(Collection.class);
-        when(snapshot.diff()).thenReturn(features);
+    public final class ErrorHandling {
+        private final LayerSpec spec = spec(LAYER_ID);
+        private final Snapshot empty = mockSnapshotCreationFor(spec);
 
-        createLayer(spec).onNext(mock(LayerUpdate.class));
+        @Test
+        public void not_throw_error_or_emit_sequence_if_layer_creation_fails() throws Exception {
+            TestSubscriber<LayerSnapshotSequence> subscriber = subscribeToSequences();
 
-        verify(entityStore).putAll(any(), eq(features));
+            failWhenCreatingLayer();
+
+            assertNoInteractions(subscriber);
+        }
+
+        @Test
+        public void not_throw_error_or_emit_sequence_if_reducer_empty_fails() throws Exception {
+            TestSubscriber<LayerSnapshotSequence> subscriber = subscribeToSequences();
+            mockFailedSnapshotCreationFor(spec);
+
+            createLayer(spec);
+
+            assertNoInteractions(subscriber);
+        }
+
+        @Test
+        public void complete_stream_if_reducer_next_fails() throws Exception {
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
+            mockFailedSnapshotReductionFor(empty);
+
+            PublishSubject<LayerUpdate> updates = createLayer(spec);
+            updates.onNext(mock(LayerUpdate.class));
+
+            assertThat(snapshotSubscriber.getOnNextEvents(), contains(anySnapshot(), equalTo(empty)));
+            assertCompleted(snapshotSubscriber);
+        }
+
+        @Test
+        public void complete_stream_on_nested_upstream_error() throws Exception {
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(spec);
+
+            PublishSubject<LayerUpdate> updates = createLayer(spec);
+            updates.onError(exception());
+
+            assertThat(snapshotSubscriber.getOnNextEvents(), contains(anySnapshot(), equalTo(empty)));
+            assertCompleted(snapshotSubscriber);
+        }
+
+        private void failWhenCreatingLayer() {
+            final LayerPopulator populator = mock(LayerPopulator.class);
+            when(populator.dependencies()).thenThrow(exception());
+            populators.onNext(populator);
+        }
+
+        private void mockFailedSnapshotCreationFor(LayerSpec spec) {
+            when(snapshotReducer.empty(spec)).thenThrow(exception());
+        }
+
+        private void mockFailedSnapshotReductionFor(Snapshot snapshot) {
+            when(snapshotReducer.next(eq(snapshot), any())).thenThrow(exception());
+        }
+
+        private RuntimeException exception() {
+            return new RuntimeException("So sadness");
+        }
     }
 
-    @Test
-    public void emit_sequence_every_time_layer_is_created() throws Exception {
-        final LayerSpec specA = spec(LAYER_ID);
-        final LayerSpec specB = spec(OTHER_LAYER_ID);
-        mockSnapshotCreationFor(specA);
-        mockSnapshotCreationFor(specB);
+    public class DependencyManagement {
+        private final LayerSpec specDependency = spec(LAYER_ID);
+        private final LayerSpec specDependent = spec(OTHER_LAYER_ID);
+        private final LayerPopulator populatorForDependent = mock(LayerPopulator.class);
 
-        TestSubscriber<LayerSnapshotSequence> sub = TestSubscriber.create();
-        router.snapshotSequences().subscribe(sub);
+        @Before
+        public void before() throws Exception {
+            when(populatorForDependent.dependencies()).thenReturn(singletonList(LAYER_ID)); // Specify another layer as a dependency
+            when(populatorForDependent.spec(any())).thenReturn(specDependent);
+            when(populatorForDependent.updates(any())).thenReturn(empty());
+        }
 
-        createLayer(specA);
-        createLayer(specB);
+        @Test
+        public void prevent_overwriting_an_existing_layer() throws Exception {
+            final LayerSpec spec = spec(LAYER_ID);
+            mockSnapshotCreationFor(spec);
 
-        assertThat(transform(sub.getOnNextEvents(), LayerSnapshotSequence::spec), contains(specA, specB));
+            createLayer(spec);
+            createLayer(spec);
+
+            verify(snapshotReducer, times(1)).empty(any());
+        }
+
+        @Test
+        public void resolve_layer_dependencies_to_latest_snapshot() throws Exception {
+            final Snapshot dependency = mockSnapshotReductionFor(mockSnapshotCreationFor(specDependency));
+            mockSnapshotCreationFor(specDependent);
+            createLayer(specDependency).onNext(mock(LayerUpdate.class));
+
+            populators.onNext(populatorForDependent);
+
+            verify(populatorForDependent).spec(singletonList(dependency.absolute()));
+            verify(populatorForDependent).updates(singletonList(dependency.absolute()));
+            verify(snapshotReducer).empty(specDependency);
+            verify(snapshotReducer).empty(specDependent);
+        }
+
+        @Test
+        public void complete_layer_if_dependencies_have_completed() throws Exception {
+            mockSnapshotCreationFor(specDependency);
+            mockSnapshotCreationFor(specDependent);
+            createLayer(specDependency).onCompleted();
+
+            TestSubscriber<Snapshot> snapshotSubscriber = subscribeToSnapshotsFor(specDependent);
+
+            populators.onNext(populatorForDependent);
+
+            assertCompleted(snapshotSubscriber);
+        }
     }
 
-    @Test
-    public void emit_snapshot_every_time_layer_is_updated() throws Exception {
-        final LayerSpec spec = spec(LAYER_ID);
-        final Snapshot original = mockSnapshotCreationFor(spec);
-        final Snapshot update1 = mockSnapshotReductionFor(original);
-        final Snapshot update2 = mockSnapshotReductionFor(update1);
+    public final class ReducerManagement {
+        @Test
+        public void apply_creation_and_updates_via_reducer() throws Exception {
+            final LayerSpec spec = spec(LAYER_ID);
+            final Snapshot empty = mockSnapshotCreationFor(spec);
+            mockSnapshotReductionFor(empty);
 
-        TestSubscriber<Snapshot> sub = TestSubscriber.create();
-        router.snapshotSequences().subscribe(s -> s.snapshots().subscribe(sub)); // Subscribe to the nested snapshot observable
+            final LayerUpdate update = mock(LayerUpdate.class);
+            createLayer(spec).onNext(update);
 
-        PublishSubject<LayerUpdate> updates = createLayer(spec);
-        updates.onNext(mock(LayerUpdate.class));
-        updates.onNext(mock(LayerUpdate.class));
-
-        assertThat(sub.getOnNextEvents(), contains(original, update1, update2));
+            verify(snapshotReducer).empty(spec);
+            verify(snapshotReducer).next(empty, update);
+        }
     }
 
     private Snapshot mockSnapshotCreationFor(LayerSpec spec) {
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
         when(snapshot.absolute().spec()).thenReturn(spec);
-        when(snapshotReducer.create(spec)).thenReturn(snapshot);
+        when(snapshotReducer.empty(spec)).thenReturn(snapshot);
         return snapshot;
     }
 
@@ -141,9 +309,27 @@ public class LayerRouterShould {
         return next;
     }
 
+    private TestSubscriber<LayerSnapshotSequence> subscribeToSequences() {
+        TestSubscriber<LayerSnapshotSequence> sub = TestSubscriber.create();
+        router.snapshotSequences().subscribe(sub);
+        return sub;
+    }
+
+    private TestSubscriber<Snapshot> subscribeToSnapshotsFor(LayerSpec spec) {
+        TestSubscriber<Snapshot> sub = TestSubscriber.create();
+        router.snapshotSequences()
+                .first(s -> s.spec().equals(spec))
+                .subscribe(s -> s.snapshots().subscribe(sub));
+        return sub;
+    }
+
     private PublishSubject<LayerUpdate> createLayer(LayerSpec spec) {
+        return createLayer(spec, x -> x);
+    }
+
+    private PublishSubject<LayerUpdate> createLayer(LayerSpec spec, Transformer<LayerUpdate, LayerUpdate> transformer) {
         final PublishSubject<LayerUpdate> updates = PublishSubject.create();
-        populators.onNext(LayerPopulator.withoutDependencies(spec, updates));
+        populators.onNext(LayerPopulator.withoutDependencies(spec, updates.compose(transformer)));
         return updates;
     }
 
@@ -152,5 +338,19 @@ public class LayerRouterShould {
         when(spec.id()).thenReturn(id);
         when(spec.metadata().name()).thenReturn("foo");
         return spec;
+    }
+
+    private Matcher<Snapshot> anySnapshot() {
+        return Matchers.any(Snapshot.class);
+    }
+
+    private void assertNoInteractions(TestSubscriber<LayerSnapshotSequence> subscriber) {
+        assertThat(subscriber.getOnNextEvents(), hasSize(0));
+        assertThat(subscriber.getOnErrorEvents(), hasSize(0));
+        assertThat(subscriber.getCompletions(), equalTo(0));
+    }
+
+    private void assertCompleted(TestSubscriber<?> snapshotSubscriber) {
+        assertThat(snapshotSubscriber.getCompletions(), equalTo(1));
     }
 }

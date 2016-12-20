@@ -37,7 +37,7 @@ public class SnapshotReducer {
     private static final Logger LOG = LoggerFactory.getLogger(SnapshotReducer.class);
     private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
 
-    public Snapshot create(LayerSpec spec) {
+    public Snapshot empty(LayerSpec spec) {
         return SnapshotImpl.of(
                 LayerImpl.builder()
                         .spec(spec)
@@ -60,7 +60,7 @@ public class SnapshotReducer {
         return SnapshotImpl.of(next(prevLayer, elaborated), elaborated);
     }
 
-    public Layer next(Layer layer, Collection<Feature> features) {
+    private Layer next(Layer layer, Collection<Feature> features) {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)

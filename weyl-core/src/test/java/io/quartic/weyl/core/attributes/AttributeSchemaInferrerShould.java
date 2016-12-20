@@ -102,7 +102,7 @@ public class AttributeSchemaInferrerShould {
 
     @Test
     public void infer_no_categories_when_too_many() throws Exception {
-        final List<Feature> features = features("a", distinctValuesPlusOneRepeated(MAX_CATEGORIES + 1));
+        final List<Feature> features = features("a", (Object[]) distinctValuesPlusOneRepeated(MAX_CATEGORIES + 1));
 
         assertThat(inferSchema(features, schema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
@@ -126,7 +126,7 @@ public class AttributeSchemaInferrerShould {
         final DynamicSchema previous = schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("bar"))))
         );
-        final List<Feature> features = features("a", distinctValuesPlusOneRepeated(MAX_CATEGORIES));
+        final List<Feature> features = features("a", (Object[]) distinctValuesPlusOneRepeated(MAX_CATEGORIES));
 
         assertThat(inferSchema(features, previous), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))

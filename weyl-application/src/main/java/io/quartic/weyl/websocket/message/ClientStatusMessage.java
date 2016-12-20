@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.LayerId;
@@ -38,7 +38,6 @@ public interface ClientStatusMessage extends SocketMessage {
     @JsonSerialize(as = GeofenceStatusImpl.class)
     @JsonDeserialize(as = GeofenceStatusImpl.class)
     interface GeofenceStatus {
-        boolean enabled();
         GeofenceType type();
         Alert.Level defaultLevel();
         Optional<FeatureCollection> features();

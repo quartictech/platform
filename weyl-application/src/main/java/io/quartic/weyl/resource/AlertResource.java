@@ -1,6 +1,6 @@
 package io.quartic.weyl.resource;
 
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 

@@ -60,7 +60,7 @@ public class SpatialJoinShould {
         );
 
         final SnapshotReducer reducer = new SnapshotReducer();
-        return reducer.next(reducer.create(spec), LayerUpdateImpl.of(features)).absolute();
+        return reducer.next(reducer.empty(spec), LayerUpdateImpl.of(features)).absolute();
     }
 
     private NakedFeature point(double x, double y) {

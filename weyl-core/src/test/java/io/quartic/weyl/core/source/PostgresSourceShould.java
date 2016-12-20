@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.source;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import org.junit.Test;
@@ -24,8 +23,6 @@ public class PostgresSourceShould {
         when(dbi.open()).thenReturn(handle);
         when(handle.createQuery(anyString()).iterator()).thenReturn(ri);
         when(ri.hasNext()).thenReturn(false);
-
-        ObjectMapper mapper = new ObjectMapper();
 
         PostgresSource importer = PostgresSource.builder()
                 .name("Budgie")

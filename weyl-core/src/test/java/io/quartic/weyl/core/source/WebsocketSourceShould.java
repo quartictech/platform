@@ -39,9 +39,11 @@ public class WebsocketSourceShould {
 
     @Test
     public void import_things() throws Exception {
+        @SuppressWarnings("unchecked")
         final WebsocketListener<LiveEvent> listener = mock(WebsocketListener.class);
         final WebsocketListener.Factory listenerFactory = mock(WebsocketListener.Factory.class);
         final FeatureConverter converter = mock(FeatureConverter.class);
+        @SuppressWarnings("unchecked")
         final Collection<NakedFeature> modelFeatures = mock(Collection.class);
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);

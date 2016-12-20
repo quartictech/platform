@@ -68,14 +68,14 @@ public class SnapshotReducerShould {
     }
 
     private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
-        Snapshot original = reducer.create(spec(LAYER_ID, indexable));
+        Snapshot original = reducer.empty(spec(LAYER_ID, indexable));
         Snapshot updated = reducer.next(original, updateFor(nakedFeature(Optional.of("a"))));
 
         assertThat(updated.absolute().indexedFeatures(), hasSize(size));
     }
 
     private Snapshot initialSnapshot() {
-        return reducer.create(spec(LAYER_ID, true));
+        return reducer.empty(spec(LAYER_ID, true));
     }
 
     private static LayerSpec spec(LayerId layerId, boolean indexable) {

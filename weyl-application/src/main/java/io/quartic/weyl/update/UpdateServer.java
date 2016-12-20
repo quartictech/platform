@@ -23,9 +23,9 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Collection;
 
+import static io.quartic.common.rx.RxUtils.combine;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.uid.UidUtils.stringify;
-import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Observable.merge;
 
@@ -54,7 +54,7 @@ public class UpdateServer {
         LOG.info("[{}] Open", session.getId());
         this.session = session;
         this.subscription = merge(
-                merge(handlers.stream().map(clientStatus::compose).collect(toList())),
+                clientStatus.compose(combine(handlers)),
                 messages
         ).subscribe(this::sendMessage);
     }

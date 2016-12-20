@@ -10,6 +10,7 @@ public final class WebsocketServerUtils {
         return ServerEndpointConfig.Builder
                 .create(endpoint.getClass(), path)
                 .configurator(new ServerEndpointConfig.Configurator() {
+                    @SuppressWarnings("unchecked")
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                         return (T) endpoint;

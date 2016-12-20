@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
 import org.immutables.value.Value;
 
 @SweetStyle

@@ -24,21 +24,18 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
-import io.quartic.weyl.core.ObservableStore;
-import io.quartic.weyl.core.alert.Alert;
-import io.quartic.weyl.core.alert.AlertProcessor;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.geofence.GeofenceStore;
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
@@ -50,12 +47,13 @@ import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.ComputeResourceImpl;
-import io.quartic.weyl.resource.TileResource;
+import io.quartic.weyl.resource.TileResourceImpl;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.update.UpdateServer;
+import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
 import io.quartic.weyl.websocket.OpenLayerHandler;
@@ -65,6 +63,7 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -106,25 +105,26 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
 
-        final ObservableStore<EntityId, Feature> entityStore = new ObservableStore<>();
-        final LayerRouter router = LayerRouterImpl.builder()
-                .populators(merge(
-                        sourceManager.layerPopulators(),
-                        computeResource.layerPopulators()
-                ))
-                .entityStore(entityStore)
-                .build();
+        final LayerRouter router = createRouter(merge(
+                sourceManager.layerPopulators(),
+                computeResource.layerPopulators()
+        ));
+
         final Observable<LayerSnapshotSequence> snapshotSequences = router.snapshotSequences();
 
         final AlertResource alertResource = new AlertResource();
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(computeResource);
-        environment.jersey().register(new TileResource(snapshotSequences));
+        environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
-        final SelectionHandler selectionHandler = createSelectionHandler(entityStore);
-        final OpenLayerHandler openLayerHandler = createLayerSubscriptionHandler(snapshotSequences);
+        final Collection<ClientStatusMessageHandler> handlers = newArrayList(
+                createSelectionHandler(snapshotSequences),
+                createOpenLayerHandler(snapshotSequences),
+                createGeofenceStatusHandler(new GeofenceViolationDetector(), snapshotSequences)
+        );
+
         final Observable<SocketMessage> layerListUpdates = snapshotSequences
                 .compose(new LayerListUpdateGenerator())
                 .compose(likeBehavior());
@@ -132,15 +132,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         websocketBundle.addEndpoint(ServerEndpointConfig.Builder
                 .create(UpdateServer.class, "/ws")
                 .configurator(new ServerEndpointConfig.Configurator() {
+                    @SuppressWarnings("unchecked")
                     @Override
                     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        //noinspection unchecked
-                        return (T) createUpdateServer(
-                                selectionHandler,
-                                openLayerHandler,
-                                alertResource,
-                                layerListUpdates,
-                                snapshotSequences
+                        return (T) new UpdateServer(
+                                merge(
+                                        alertResource.alerts().map(AlertMessageImpl::of),
+                                        layerListUpdates
+                                ),
+                                handlers
                         );
                     }
                 })
@@ -148,34 +148,20 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         );
     }
 
-    private UpdateServer createUpdateServer(
-            SelectionHandler selectionHandler,
-            OpenLayerHandler openLayerHandler,
-            AlertResource alertResource,
-            Observable<SocketMessage> layerListUpdates,
-            Observable<LayerSnapshotSequence> snapshotSequences
-    ) {
-        // These are per-user so each user has their own geofence state
-        final GeofenceStore geofenceStore = new GeofenceStore(snapshotSequences);
-        final AlertProcessor alertProcessor = new AlertProcessor(geofenceStore);
-        final GeofenceStatusHandler geofenceStatusHandler = createGeofenceStatusHandler(geofenceStore, snapshotSequences);
-
-        final Observable<Alert> alerts = merge(alertProcessor.alerts(), alertResource.alerts());
-
-        return new UpdateServer(
-                merge(
-                        alerts.map(AlertMessageImpl::of),
-                        layerListUpdates
-                ),
-                newArrayList(
-                        selectionHandler,
-                        openLayerHandler,
-                        geofenceStatusHandler
-                )
-        );
+    private TileResourceImpl createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
+        return TileResourceImpl.builder()
+                .snapshotSequences(snapshotSequences)
+                .build();
     }
 
-    private SelectionHandler createSelectionHandler(ObservableStore<EntityId, Feature> entityStore) {
+    private LayerRouterImpl createRouter(Observable<LayerPopulator> populators) {
+        return LayerRouterImpl.builder()
+                .populators(populators)
+                .build();
+    }
+
+    private SelectionHandler createSelectionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+        final EntityStore entityStore = new EntityStore(snapshotSequences);
         return new SelectionHandler(
                 newArrayList(
                         new ChartUpdateGenerator(),
@@ -185,12 +171,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 Multiplexer.create(entityStore::get));
     }
 
-    private OpenLayerHandler createLayerSubscriptionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+    private OpenLayerHandler createOpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
         return new OpenLayerHandler(snapshotSequences, featureConverter());
     }
 
-    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceStore geofenceStore, Observable<LayerSnapshotSequence> snapshotSequences) {
-        return new GeofenceStatusHandler(geofenceStore, snapshotSequences, featureConverter());
+    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceViolationDetector geofenceViolationDetector, Observable<LayerSnapshotSequence> snapshotSequences) {
+        return new GeofenceStatusHandler(geofenceViolationDetector, snapshotSequences, featureConverter());
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(

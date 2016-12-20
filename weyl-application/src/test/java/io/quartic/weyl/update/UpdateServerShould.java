@@ -1,8 +1,8 @@
 package io.quartic.weyl.update;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.quartic.common.test.rx.ObservableInterceptor;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.common.test.rx.Interceptor;
+import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
@@ -71,11 +71,11 @@ public class UpdateServerShould {
 
     @Test
     public void remove_listener_and_close_handlers_on_close() throws Exception {
-        final ObservableInterceptor<SocketMessage> handlerMessageInterceptor = ObservableInterceptor.create();
-        final ObservableInterceptor<SocketMessage> messageInterceptor = ObservableInterceptor.create();
-        when(handler.call(any())).thenReturn(handlerMessageInterceptor.observable());
+        final Interceptor<SocketMessage> handlerMessageInterceptor = Interceptor.create();
+        final Interceptor<SocketMessage> messageInterceptor = Interceptor.create();
+        when(handler.call(any())).thenReturn(Observable.<SocketMessage>never().compose(handlerMessageInterceptor));
 
-        final UpdateServer server = createAndOpenServer(messageInterceptor.observable());
+        final UpdateServer server = createAndOpenServer(Observable.<SocketMessage>never().compose(messageInterceptor));
         server.onClose(session, mock(CloseReason.class));
 
         assertThat(messageInterceptor.unsubscribed(), equalTo(true));
@@ -88,7 +88,6 @@ public class UpdateServerShould {
                 emptyList(),
                 SelectionStatusImpl.of(42, emptyList()),
                 GeofenceStatusImpl.of(
-                        true,
                         GeofenceType.EXCLUDE,
                         Alert.Level.WARNING,
                         Optional.empty(),

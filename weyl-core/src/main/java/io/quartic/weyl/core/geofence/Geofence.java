@@ -1,15 +1,17 @@
 package io.quartic.weyl.core.geofence;
 
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.alert.Alert;
+import io.quartic.weyl.core.model.Alert;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Feature;
 import org.immutables.value.Value;
-
-import static io.quartic.weyl.core.alert.AlertProcessor.ALERT_LEVEL;
 
 @Value.Immutable
 @SweetStyle
 public interface Geofence {
+    AttributeName ALERT_LEVEL = AttributeNameImpl.of("_alertLevel");
+
     GeofenceType type();
     Feature feature();
 

@@ -1,6 +1,6 @@
 package io.quartic.weyl.websocket;
 
-import io.quartic.common.test.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.Interceptor;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
@@ -63,9 +63,9 @@ public class OpenLayerHandlerShould {
     @Test
     public void subscribe_to_and_unsubscribe_from_layer_based_on_status_message() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
+        final Interceptor<Snapshot> interceptor = Interceptor.create();
 
-        nextSequence(spec(id, true), interceptor.observable());
+        nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
 
         assertThat(interceptor.subscribed(), equalTo(true));
@@ -149,9 +149,9 @@ public class OpenLayerHandlerShould {
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final ObservableInterceptor<Snapshot> interceptor = ObservableInterceptor.create();
+        final Interceptor<Snapshot> interceptor = Interceptor.create();
 
-        nextSequence(spec(id, true), interceptor.observable());
+        nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
         subscription.unsubscribe();
 

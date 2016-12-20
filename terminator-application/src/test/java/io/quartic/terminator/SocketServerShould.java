@@ -1,7 +1,7 @@
 package io.quartic.terminator;
 
 import io.quartic.catalogue.api.TerminationIdImpl;
-import io.quartic.common.test.rx.ObservableInterceptor;
+import io.quartic.common.test.rx.Interceptor;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
@@ -59,9 +59,9 @@ public class SocketServerShould {
     public void unsubscribe_on_close() throws Exception {
         final Session session = createSession("sessionA");
 
-        final ObservableInterceptor<FeatureCollectionWithTerminationId> interceptor = ObservableInterceptor.create(just(fcwi()));
+        final Interceptor<FeatureCollectionWithTerminationId> interceptor = Interceptor.create();
 
-        SocketServer server = new SocketServer(interceptor.observable(), OBJECT_MAPPER);
+        SocketServer server = new SocketServer(just(fcwi()).compose(interceptor), OBJECT_MAPPER);
         server.onOpen(session, mock(EndpointConfig.class));
         server.onClose(session, mock(CloseReason.class));
 

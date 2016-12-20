@@ -1,4 +1,4 @@
-package io.quartic.weyl.core.alert;
+package io.quartic.weyl.core.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -7,7 +7,7 @@ import org.immutables.value.Value;
 
 import java.util.Optional;
 
-import static io.quartic.weyl.core.alert.Alert.Level.INFO;
+import static io.quartic.weyl.core.model.Alert.Level.INFO;
 
 @SweetStyle
 @Value.Immutable
