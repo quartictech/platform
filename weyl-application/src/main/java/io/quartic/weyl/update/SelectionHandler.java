@@ -21,7 +21,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
+import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.rx.RxUtils.likeBehavior;
 import static io.quartic.common.rx.RxUtils.mealy;
@@ -72,6 +74,38 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         return StateAndOutput.of(state, state.entityLookup);
     }
 
+    // This approach re-performs the selection lookup every time *any* upstream data changes.
+    // i.e. this is O(S*N) overall (where S = selection size, N = number of updates).  However, S is generally small.
+    // An alternative scheme would be to lookup individual update values in a map of currently-selected IDs.  This
+    // would be O(K*N) (where K = update size).  Unclear if that's actually better.
+    @Override
+    public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
+        return combineLatest(
+                clientStatus.map(ClientStatusMessage::selection).distinctUntilChanged(),    // Behaviourally unnecessary, but reduces superfluous lookups
+                entityLookup,
+                this::lookupSelectedEntities)
+                .distinctUntilChanged()             // To avoid re-running potentially heavy computations in the generators
+                .concatMap(this::generateMessages);
+    }
+
+    private Results lookupSelectedEntities(SelectionStatus selectionStatus, Map<EntityId, Feature> map) {
+        return ResultsImpl.of(
+                selectionStatus.seqNum(),
+                selectionStatus.entityIds()
+                        .stream()
+                        .map(map::get)
+                        .filter(Objects::nonNull)
+                        .map(Identity::of)
+                        .collect(toList())
+        );
+    }
+
+    private Observable<SocketMessage> generateMessages(Results results) {
+        return from(generators).map(generator -> SelectionDrivenUpdateMessageImpl.of(
+                generator.name(), results.seqNum(), generator.generate(transform(results.entities(), Identity::get))
+        ));
+    }
+
     @SweetStyle
     @Value.Immutable
     interface LayerEvent {
@@ -90,41 +124,39 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         private final Map<EntityId, Feature> entityLookup = newHashMap();
     }
 
-    // This approach re-performs the selection lookup every time *any* upstream data changes.
-    // i.e. this is O(S*N) overall (where S = selection size, N = number of updates).  However, S is generally small.
-    // An alternative scheme would be to lookup individual update values in a map of currently-selected IDs.  This
-    // would be O(K*N) (where K = update size).  Unclear if that's actually better.
-    @Override
-    public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
-        return combineLatest(
-                clientStatus.map(ClientStatusMessage::selection).distinctUntilChanged(),    // Behaviourally unnecessary, but reduces superfluous lookups
-                entityLookup,
-                this::lookupSelectedEntities)
-                .distinctUntilChanged()                         // To avoid re-running potentially heavy computations in the generators (TODO: this is way expensive!  Replace with shallow check)
-                .concatMap(this::generateMessages);
-    }
 
-    private Results lookupSelectedEntities(SelectionStatus selectionStatus, Map<EntityId, Feature> map) {
-        return ResultsImpl.of(
-                selectionStatus.seqNum(),
-                selectionStatus.entityIds()
-                        .stream()
-                        .map(map::get)
-                        .filter(Objects::nonNull)
-                        .collect(toList())
-        );
-    }
-
-    private Observable<SocketMessage> generateMessages(Results results) {
-        return from(generators).map(generator -> SelectionDrivenUpdateMessageImpl.of(
-                generator.name(), results.seqNum(), generator.generate(results.entities())
-        ));
-    }
 
     @SweetStyle
     @Value.Immutable
     interface Results {
         int seqNum();
-        List<Feature> entities();
+        List<Identity<Feature>> entities(); // Use of Identity enables cheap (shallow) equality check
+    }
+
+    /**
+     * This wraps the underlying objects, but provides an equals() method based on identity.
+     */
+    static class Identity<T> implements Supplier<T> {
+        private final T t;
+
+        public static <T> Identity<T> of(T t) {
+            return new Identity<>(t);
+        }
+
+        public Identity(T t) {
+            this.t = t;
+        }
+
+        @Override
+        public T get() {
+            return t;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return (other instanceof Identity) && (t == ((Identity)other).t);
+        }
+
+        // Don't care about hashcode
     }
 }
