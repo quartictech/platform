@@ -24,7 +24,6 @@ import io.quartic.common.client.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.EntityStore;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -47,6 +46,7 @@ import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.ComputeResourceImpl;
+import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.resource.TileResourceImpl;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
@@ -122,7 +122,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final Collection<ClientStatusMessageHandler> handlers = newArrayList(
                 createSelectionHandler(snapshotSequences),
                 createOpenLayerHandler(snapshotSequences),
-                createGeofenceStatusHandler(new GeofenceViolationDetector(), snapshotSequences)
+                createGeofenceStatusHandler(snapshotSequences)
         );
 
         final Observable<SocketMessage> layerListUpdates = snapshotSequences
@@ -148,41 +148,43 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         );
     }
 
-    private TileResourceImpl createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
+    private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
         return TileResourceImpl.builder()
                 .snapshotSequences(snapshotSequences)
                 .build();
     }
 
-    private LayerRouterImpl createRouter(Observable<LayerPopulator> populators) {
+    private LayerRouter createRouter(Observable<LayerPopulator> populators) {
         return LayerRouterImpl.builder()
                 .populators(populators)
                 .build();
     }
 
     private SelectionHandler createSelectionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
-        final EntityStore entityStore = new EntityStore(snapshotSequences);
         return new SelectionHandler(
+                snapshotSequences,
                 newArrayList(
                         new ChartUpdateGenerator(),
                         new HistogramsUpdateGenerator(new HistogramCalculator()),
                         new AttributesUpdateGenerator()
-                ),
-                Multiplexer.create(entityStore::get));
+                )
+        );
     }
 
     private OpenLayerHandler createOpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
         return new OpenLayerHandler(snapshotSequences, featureConverter());
     }
 
-    private GeofenceStatusHandler createGeofenceStatusHandler(GeofenceViolationDetector geofenceViolationDetector, Observable<LayerSnapshotSequence> snapshotSequences) {
-        return new GeofenceStatusHandler(geofenceViolationDetector, snapshotSequences, featureConverter());
+    private GeofenceStatusHandler createGeofenceStatusHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
+        final GeofenceViolationDetector geofenceViolationDetector = new GeofenceViolationDetector();
+        return new GeofenceStatusHandler(snapshotSequences, geofenceViolationDetector, featureConverter());
     }
 
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
-            WebsocketClientSessionFactory websocketFactory) {
+            WebsocketClientSessionFactory websocketFactory
+    ) {
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
                 .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
                 .metrics(environment.metrics())

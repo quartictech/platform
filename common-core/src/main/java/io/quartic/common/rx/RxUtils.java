@@ -49,13 +49,21 @@ public final class RxUtils {
         }
     }
 
+    /**
+     * Implements a Mealy state machine, supporting computation of the form
+     * {@code {state[n], output[n]} = f(state[n-1], input[n])}.
+     *
+     * <p>
+     * This is for cases where {@link rx.Observable#scan(Object, Func2)} would be ugly because of the need to
+     * shoehorn state and output into the same type.
+     */
     public static <Input, State, Output> Transformer<Input, Output> mealy(State initial, Func2<State, Input, StateAndOutput<State, Output>> next) {
         final StateAndOutput<State, Output> wrappedInitial = StateAndOutput.of(initial, null);
         final Func2<StateAndOutput<State, Output>, Input, StateAndOutput<State, Output>> wrappedNext =
                 (wrapped, input) -> next.call(wrapped.state(), input);
         return observable -> observable
                 .scan(wrappedInitial, wrappedNext)
-                .skip(1)
+                .skip(1)                        // Because scan() emits the initial value
                 .map(StateAndOutput::output);
     }
 

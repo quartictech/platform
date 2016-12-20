@@ -91,11 +91,7 @@ public class GeofenceStatusHandlerShould {
 
     private final ReplaySubject<LayerSnapshotSequence> snapshotSequences = ReplaySubject.create();
     private final FeatureConverter converter = mock(FeatureConverter.class);
-    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(
-            detector,
-            snapshotSequences,
-            converter
-    );
+    private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(snapshotSequences, detector, converter);
 
     @Before
     public void before() throws Exception {
@@ -108,8 +104,6 @@ public class GeofenceStatusHandlerShould {
         when(detector.create(any())).thenReturn(mock(State.class));
         when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), mock(Output.class)));
     }
-
-    // TODO: handling of layer completion
 
     @Test
     public void send_violation_update_when_changed() throws Exception {
