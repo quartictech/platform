@@ -1,6 +1,5 @@
 const PREFIX = "weyl/home";
 
-export const SEARCH = `${PREFIX}/SEARCH`;
 export const LAYER_COMPUTATION_START = `${PREFIX}/LAYER_COMPUTATION_START`;
 
 export const UI_TOGGLE = `${PREFIX}/UI_TOGGLE`;
@@ -36,5 +35,3 @@ export const CONNECTION_DOWN = `${PREFIX}/CONNECTION_DOWN`;
 export const SELECTION_SENT = `${PREFIX}/SELECTION_STATUS_SENT`;
 
 export const SUBSCRIPTIONS_POST = `${PREFIX}/SUBSCRIPTIONS_POST`;
-
-export const BUFFER_LAYER = `${PREFIX}/BUFFER_LAYER`;
