@@ -73,12 +73,10 @@ function Toolbar(props) {
           </Tooltip>
 
           <span className="pt-navbar-divider"></span>
-          <Tooltip content="Pick a theme" position={Position.BOTTOM}>
-            <ThemePicker
-              selected={props.ui.settings.theme}
-              onSelect={props.onSetTheme}
-            />
-          </Tooltip>
+          <ThemePicker
+            selected={props.ui.settings.theme}
+            onSelect={props.onSetTheme}
+          />
         </div>
       </nav>
     </div>
@@ -111,10 +109,12 @@ const ThemePicker = ({ selected, onSelect }) => {
       content={menu}
       position={Position.BOTTOM}
     >
-      <Button
-        className={Classes.MINIMAL}
-        iconName="settings"
-      />
+      <Tooltip content="Pick a theme" position={Position.BOTTOM}>
+        <Button
+          className={Classes.MINIMAL}
+          iconName="settings"
+        />
+      </Tooltip>
     </Popover>
   );
 };

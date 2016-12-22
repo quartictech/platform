@@ -63,9 +63,10 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
 
   menu() {
     const items = _.chain(this.entriesAsMap())
+      .mapObject(v => normalize(v))
       .pairs()
-      .filter(entry => !this.state.shouldFilter || !this.state.text || entryName(entry[1]).toLowerCase().includes(this.state.text.toLowerCase()))
-      .groupBy(entry => entryCategory(entry[1]))
+      .filter(entry => !this.state.shouldFilter || !this.state.text || entry[1].name.toLowerCase().includes(this.state.text.toLowerCase()))
+      .groupBy(entry => entry[1].category)
       .map((entries, category) => (
         <div key={category}>
           {
@@ -89,14 +90,31 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     );
   }
 
+  // 25px is a hack - compensates for hardcoded ::before size in Blueprint CSS
   menuItem(entry) {
     return (
       <MenuItem
         key={entry[0]}
         text={
-          <div>
-            <div>{entryName(entry[1])}</div>
-            <small className="pt-text-muted">{entryDescription(entry[1])}</small>
+          <div style={{ marginLeft:"25px" }}>
+            <div><b>{entry[1].name}</b></div>
+            <small className="pt-text-muted">
+              {
+                entry[1].extra
+                  ? (
+                    <div>
+                      <p><b>{entry[1].description}</b></p>
+                      <div style={{textAlign:"right"}}>
+                        <em>{entry[1].extra}</em>
+                      </div>
+                    </div>
+                  )
+                  : (
+                    <b>{entry[1].description}</b>
+                  )
+              }
+
+            </small>
           </div>
         }
         label={(this.props.selectedKey === entry[0]) ? IconContents.TICK : ""}
@@ -128,9 +146,12 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   }
 }
 
-const entryName = (entry) => ((typeof entry === "object") ? entry.name : entry);
-const entryDescription = (entry) => ((typeof entry === "object") ? entry.description : undefined);
-const entryCategory = (entry) => ((typeof entry === "object") ? entry.category : undefined);
+const normalize = (entry) => ({
+  name: ((typeof entry === "object") ? entry.name : entry),
+  description: ((typeof entry === "object") ? entry.description : undefined),
+  extra: ((typeof entry === "object") ? entry.extra : undefined),
+  category: ((typeof entry === "object") ? entry.category : undefined),
+});
 
 PredictingPicker.defaultProps = {
   errorDisabled: false,
