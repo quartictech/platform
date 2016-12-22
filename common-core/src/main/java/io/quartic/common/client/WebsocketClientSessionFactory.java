@@ -29,7 +29,7 @@ public class WebsocketClientSessionFactory {
     }
 
     public Session create(Endpoint endpoint, String url) throws URISyntaxException, IOException, DeploymentException {
-        return clientManager()
+        return clientManager(url)
                 .connectToServer(endpoint, websocketClientConfig(), new URI(url));
     }
 
@@ -44,19 +44,20 @@ public class WebsocketClientSessionFactory {
                 .build();
     }
 
-    private ClientManager clientManager() {
+    private ClientManager clientManager(String url) {
         ClientManager clientManager = ClientManager.createClient();
         ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
 
             @Override
             public boolean onDisconnect(CloseReason closeReason) {
-                LOG.warn("Disconnecting: {}", closeReason);
+                LOG.warn("[{}] Disconnecting: {}", url, closeReason);
                 return true;
             }
 
             @Override
             public boolean onConnectFailure(Exception exception) {
-                LOG.warn("Connection failure: {}\n{}",
+                LOG.warn("[{}] Connection failure: {}\n{}",
+                        url,
                         exception.getMessage(),
                         formatStackTrace(exception.getStackTrace()));
                 return true;
