@@ -13,6 +13,8 @@ import io.quartic.common.uid.UidGenerator;
 
 import javax.websocket.server.ServerEndpointConfig;
 
+import java.time.Clock;
+
 import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
 
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
@@ -33,7 +35,7 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final CatalogueResource catalogue = new CatalogueResource(didGenerator, environment.getObjectMapper());
+        final CatalogueResource catalogue = new CatalogueResource(didGenerator, Clock.systemUTC(), environment.getObjectMapper());
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(catalogue);

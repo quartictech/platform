@@ -96,21 +96,21 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       <MenuItem
         key={entry[0]}
         text={
-          <div style={{ marginLeft:"25px" }}>
+          <div style={{ marginLeft: "25px" }}>
             <div><b>{entry[1].name}</b></div>
             <small className="pt-text-muted">
               {
                 entry[1].extra
                   ? (
-                    <div>
-                      <p><b>{entry[1].description}</b></p>
-                      <div style={{textAlign:"right"}}>
-                        <em>{entry[1].extra}</em>
-                      </div>
+                  <div>
+                    <p><b>{entry[1].description}</b></p>
+                    <div style={{ textAlign: "right" }}>
+                      <em>{entry[1].extra}</em>
                     </div>
+                  </div>
                   )
                   : (
-                    <b>{entry[1].description}</b>
+                  <b>{entry[1].description}</b>
                   )
               }
 
@@ -146,12 +146,15 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   }
 }
 
-const normalize = (entry) => ({
-  name: ((typeof entry === "object") ? entry.name : entry),
-  description: ((typeof entry === "object") ? entry.description : undefined),
-  extra: ((typeof entry === "object") ? entry.extra : undefined),
-  category: ((typeof entry === "object") ? entry.category : undefined),
-});
+const normalize = (entry) => {
+  const isObject = (typeof entry === "object");
+  return {
+    name: isObject ? entry.name : entry,
+    description: isObject ? entry.description : undefined,
+    extra: isObject ? entry.extra : undefined,
+    category: isObject ? entry.category : undefined,
+  };
+};
 
 PredictingPicker.defaultProps = {
   errorDisabled: false,
