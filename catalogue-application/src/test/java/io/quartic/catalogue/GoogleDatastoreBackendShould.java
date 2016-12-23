@@ -33,9 +33,9 @@ public class GoogleDatastoreBackendShould {
     @Test
     public void store_and_retrieve_dataset() throws IOException {
         DatasetMetadata metadata = DatasetMetadataImpl.of(
-                "test",
-                "test",
-                "wat",
+                "name",
+                "description",
+                "attribution",
                 Optional.empty());
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
         DatasetLocator locator = CloudGeoJsonDatasetLocatorImpl.of("WAT");
