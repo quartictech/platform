@@ -1,13 +1,5 @@
 import * as constants from "./constants";
 
-export function search(query, callback) {
-  return {
-    type: constants.SEARCH,
-    query,
-    callback,
-  };
-}
-
 export const layerListUpdate = (layers) => ({
   type: constants.LAYER_LIST_UPDATE,
   layers,
@@ -147,14 +139,6 @@ export const geofenceSetViolations = (violations) => ({
 export const geofenceToggleAlerts = () => ({
   type: constants.GEOFENCE_TOGGLE_ALERTS,
 });
-
-export function bufferLayer(layerId, bufferDistance) {
-  return {
-    type: constants.BUFFER_LAYER,
-    layerId,
-    bufferDistance,
-  };
-}
 
 export const connectionUp = () => ({
   type: constants.CONNECTION_UP,

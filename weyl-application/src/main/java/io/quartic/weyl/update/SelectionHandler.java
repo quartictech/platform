@@ -124,8 +124,6 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         private final Map<EntityId, Feature> entityLookup = newHashMap();
     }
 
-
-
     @SweetStyle
     @Value.Immutable
     interface Results {

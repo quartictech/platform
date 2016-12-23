@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @SweetStyle
@@ -15,5 +16,6 @@ public interface DatasetMetadata {
     String name();
     String description();
     String attribution();
+    Optional<Instant> registered();
     Optional<Icon> icon();
 }

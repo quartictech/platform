@@ -19,6 +19,9 @@ import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +61,7 @@ public class BucketComputationShould {
                 .layerId(myLayerId)
                 .bucketSpec(bucketSpec)
                 .joiner(joiner)
+                .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
                 .build();
     }
 
@@ -70,7 +74,8 @@ public class BucketComputationShould {
                 LayerMetadataImpl.of(
                         "Foo (bucketed)",
                         "Foo bucketed by Bar aggregating by " + aggregation.toString(),
-                        Optional.empty(),
+                        "Alice / Bob",
+                        Instant.EPOCH,
                         Optional.empty()
                 ),
                 IDENTITY_VIEW,
@@ -132,12 +137,14 @@ public class BucketComputationShould {
     private Layer featureLayer() {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.spec().metadata().name()).thenReturn("Foo");
+        when(layer.spec().metadata().attribution()).thenReturn("Alice");
         return layer;
     }
 
     private Layer bucketLayer() {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.spec().metadata().name()).thenReturn("Bar");
+        when(layer.spec().metadata().attribution()).thenReturn("Bob");
         when(layer.spec().staticSchema()).thenReturn(bucketSchema());
         when(layer.indexedFeatures()).thenReturn(emptyList());
         return layer;

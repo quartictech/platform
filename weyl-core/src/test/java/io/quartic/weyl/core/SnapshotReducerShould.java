@@ -20,6 +20,7 @@ import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
@@ -95,7 +96,7 @@ public class SnapshotReducerShould {
     }
 
     private static LayerMetadata metadata(String name, String description) {
-        return LayerMetadataImpl.of(name, description, Optional.empty(), Optional.empty());
+        return LayerMetadataImpl.of(name, description, "", Instant.now(), Optional.empty());
     }
 
     private LayerUpdate updateFor(NakedFeature... features) {
