@@ -132,7 +132,7 @@
     }
   },
   "dependencies": {
-    "@blueprintjs/core": "^1.2.0",
+    "@blueprintjs/core": "1.4.0",
     "babel-polyfill": "6.13.0",
     "chroma-js": "^1.2.1",
     "classnames": "^2.2.5",
@@ -144,9 +144,9 @@
     "javascript-natural-sort": "^0.7.1",
     "jquery": "3.1.1",
     "lodash": "4.14.1",
-    "mapbox-gl": "^0.28.0",
+    "mapbox-gl": "^0.29.0",
     "mapbox-gl-draw": "^0.16.0",
-    "plottable": "^2.2.0",
+    "plottable": "2.5.0",
     "react": "15.3.0",
     "react-addons-css-transition-group": "^15.3.2",
     "react-dom": "15.3.0",
