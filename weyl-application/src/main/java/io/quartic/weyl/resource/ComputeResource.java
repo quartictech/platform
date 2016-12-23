@@ -4,7 +4,7 @@ import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.compute.BucketComputationImpl;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.compute.BufferComputation;
+import io.quartic.weyl.core.compute.BufferComputationImpl;
 import io.quartic.weyl.core.compute.BufferSpec;
 import io.quartic.weyl.core.compute.ComputationSpec;
 import io.quartic.weyl.core.model.LayerId;
@@ -42,7 +42,10 @@ public abstract class ComputeResource {
                     .bucketSpec((BucketSpec) spec)
                     .build();
         } else if (spec instanceof BufferSpec) {
-            return new BufferComputation(layerId, (BufferSpec) spec);
+            return BufferComputationImpl.builder()
+                    .layerId(layerId)
+                    .bufferSpec((BufferSpec) spec)
+                    .build();
         } else {
             throw new RuntimeException("Invalid computation spec: " + spec);
         }

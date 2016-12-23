@@ -116,6 +116,7 @@ public abstract class SourceManager {
                 .name(metadata.name())
                 .description(metadata.description())
                 .attribution(metadata.attribution())
+                .registered(metadata.registered().get())    // Should always be set
                 .icon(metadata.icon())
                 .build();
     }

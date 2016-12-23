@@ -74,6 +74,10 @@ module.exports = (options) => ({
     }),
 
     new CopyWebpackPlugin([{ from: 'static' }]),
+
+    // Some BS for moment.js (see https://github.com/moment/moment/issues/2979)
+    // If you ever remove this line, also remove the devDependency on empty-module
+    new webpack.ContextReplacementPlugin(/\.\/locale$/, 'empty-module', false, /js$/),
   ]),
   postcss: () => options.postcssPlugins,
   resolve: {
