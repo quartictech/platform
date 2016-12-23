@@ -6,6 +6,7 @@ import io.quartic.catalogue.api.Icon;
 import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @SweetStyle
@@ -15,6 +16,7 @@ import java.util.Optional;
 public interface LayerMetadata {
     String name();
     String description();
-    Optional<String> attribution();
+    String attribution();
+    Instant registered();
     Optional<Icon> icon();
 }

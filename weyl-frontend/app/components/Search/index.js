@@ -1,4 +1,5 @@
 import React from "react";
+import moment from "moment";
 import * as _ from "underscore";
 
 import PredictingPicker from "../PredictingPicker";
@@ -28,6 +29,7 @@ class Search extends React.Component {
     return _.object(_.map(this.props.layerList, item => [item.id, {
       name: item.metadata.name,
       description: item.metadata.description,
+      extra: moment.unix(item.metadata.registered).format("YYYY-MM-DD HH:mm:ss"),
       category: item.live ? "Live layers" : "Static layers",
     }]));
   }

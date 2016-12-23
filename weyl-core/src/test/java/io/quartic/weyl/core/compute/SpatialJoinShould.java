@@ -21,6 +21,7 @@ import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class SpatialJoinShould {
     private Layer makeLayer(String layerId, List<NakedFeature> features) throws IOException {
         final LayerSpec spec = LayerSpecImpl.of(
                 LayerId.fromString(layerId),
-                LayerMetadataImpl.of("test", "test", Optional.empty(), Optional.empty()),
+                LayerMetadataImpl.of("test", "test", "test", Instant.now(), Optional.empty()),
                 IDENTITY_VIEW,
                 StaticSchemaImpl.builder().build(),
                 true

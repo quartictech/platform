@@ -29,6 +29,7 @@ import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -106,7 +107,7 @@ public class SourceManagerShould {
         final LayerPopulator populator = collectedLayerPopulators().get(0);
         assertThat(populator.spec(emptyList()), equalTo(LayerSpecImpl.of(
                 LayerIdImpl.of("123"),
-                LayerMetadataImpl.of("foo", "blah", Optional.of("quartic"), Optional.empty()),
+                LayerMetadataImpl.of("foo", "blah", "quartic", Instant.EPOCH, Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
                 staticSchema(),
                 true
@@ -173,7 +174,7 @@ public class SourceManagerShould {
 
     private DatasetConfig datasetConfig(String name, DatasetLocator source) {
         return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(name, "blah", "quartic", Optional.empty()),
+                DatasetMetadataImpl.of(name, "blah", "quartic", Optional.of(Instant.EPOCH), Optional.empty()),
                 source,
                 ImmutableMap.of(EXTENSION_KEY, "raw")
         );

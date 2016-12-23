@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -71,7 +72,13 @@ public class CatalogueWatcherShould {
         return ImmutableMap.of(
                 DatasetIdImpl.of("123"),
                 DatasetConfigImpl.of(
-                        DatasetMetadataImpl.of("foo", "bar", "baz", Optional.empty()),
+                        DatasetMetadataImpl.of(
+                                "foo",
+                                "bar",
+                                "baz",
+                                Optional.of(Instant.now()),
+                                Optional.empty()
+                        ),
                         locator,
                         emptyMap()
                 ));

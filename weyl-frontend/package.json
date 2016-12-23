@@ -85,7 +85,10 @@
       "no-console": [
         2,
         {
-          "allow": ["warn", "error"]
+          "allow": [
+            "warn",
+            "error"
+          ]
         }
       ],
       "no-use-before-define": 0,
@@ -146,6 +149,7 @@
     "lodash": "4.14.1",
     "mapbox-gl": "^0.28.0",
     "mapbox-gl-draw": "^0.16.0",
+    "moment": "2.17.1",
     "plottable": "^2.2.0",
     "react": "15.3.0",
     "react-addons-css-transition-group": "^15.3.2",
@@ -178,6 +182,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "copy-webpack-plugin": "3.0.1",
     "css-loader": "0.23.1",
+    "empty-module": "0.0.2",
     "eslint": "3.5.0",
     "eslint-config-airbnb": "10.0.0",
     "eslint-import-resolver-webpack": "0.4.0",
