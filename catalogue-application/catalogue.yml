@@ -1,3 +1,4 @@
+backend: GOOGLE_DATASTORE
 server:
   applicationContextPath: /
   applicationConnectors:

@@ -25,7 +25,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
-    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), OBJECT_MAPPER);
+    private final CatalogueResource resource = new CatalogueResource(new InMemoryStorageBackend(),
+            SequenceUidGenerator.of(DatasetIdImpl::of), OBJECT_MAPPER);
 
     @Test
     public void send_current_catalogue_state_on_websocket_open() throws Exception {

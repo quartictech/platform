@@ -1,3 +1,5 @@
+backend: IN_MEMORY
+
 server:
   applicationContextPath: /
   applicationConnectors:

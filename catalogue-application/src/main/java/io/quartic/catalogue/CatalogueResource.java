@@ -17,43 +17,77 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import javax.ws.rs.NotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class CatalogueResource extends Endpoint implements CatalogueService {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueService.class);
 
-    private final Map<DatasetId, DatasetConfig> datasets = Maps.newConcurrentMap();
+    private final StorageBackend storageBackend;
     private final UidGenerator<DatasetId> didGenerator;
     private final ObjectMapper objectMapper;
     private final Set<Session> sessions = Sets.newHashSet();
 
-    public CatalogueResource(UidGenerator<DatasetId> didGenerator, ObjectMapper objectMapper) {
+    public CatalogueResource(StorageBackend storageBackend, UidGenerator<DatasetId> didGenerator,
+                             ObjectMapper objectMapper) {
+        this.storageBackend = storageBackend;
         this.didGenerator = didGenerator;
         this.objectMapper = objectMapper;
     }
 
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface ThrowingVoid {
+        void apply() throws IOException;
+    }
+
+    private <T> T wrapException(ThrowingSupplier<T> f) {
+        try {
+            return f.get();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void wrapException(ThrowingVoid f) {
+       try {
+           f.apply();
+       } catch (IOException e) {
+           throw new RuntimeException(e);
+       }
+    }
+
+    @Override
     public synchronized DatasetId registerDataset(DatasetConfig config) {
         // TODO: basic validation
         DatasetId id = didGenerator.get();
-        datasets.put(id, config);
+        wrapException(() -> storageBackend.put(id, config));
         updateClients();
         return id;
     }
 
+    @Override
     public synchronized void deleteDataset(DatasetId id) {
         throwIfDatasetNotFound(id);
-        datasets.remove(id);
+        wrapException(() -> storageBackend.remove(id));
         updateClients();
     }
 
+    @Override
     public synchronized Map<DatasetId, DatasetConfig> getDatasets() {
-        return ImmutableMap.copyOf(datasets);
+        return wrapException(() -> ImmutableMap.copyOf(storageBackend.getAll()));
     }
 
     public synchronized DatasetConfig getDataset(DatasetId id) {
         throwIfDatasetNotFound(id);
-        return datasets.get(id);
+        return wrapException(() -> storageBackend.get(id));
     }
 
     @Override
@@ -75,15 +109,20 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
 
     private void updateClient(Session session) {
         try {
-            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
+            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(
+                    wrapException(storageBackend::getAll)));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }
     }
 
     private void throwIfDatasetNotFound(DatasetId id) {
-        if (!datasets.containsKey(id)) {
-            throw new NotFoundException("No dataset " + id);
+        try {
+            if (!storageBackend.containsKey(id)) {
+                throw new NotFoundException("No dataset " + id);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
