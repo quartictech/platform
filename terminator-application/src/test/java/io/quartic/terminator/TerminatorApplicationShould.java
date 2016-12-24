@@ -15,7 +15,6 @@ import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
-import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import io.quartic.terminator.api.TerminatorService;
 import org.junit.After;
 import org.junit.Before;
@@ -71,7 +70,7 @@ public class TerminatorApplicationShould {
         terminator.postToDataset(TERMINATION_ID, featureCollection());
         collector.awaitMessages(1, 250, MILLISECONDS);
 
-        assertThat(collector.messages(), contains(FeatureCollectionWithTerminationIdImpl.of(TERMINATION_ID, featureCollection())));
+        assertThat(collector.messages(), contains(new FeatureCollectionWithTerminationId(TERMINATION_ID, featureCollection())));
     }
 
     private Map<DatasetId, DatasetConfig> datasets() {

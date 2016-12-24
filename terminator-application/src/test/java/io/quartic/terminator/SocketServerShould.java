@@ -7,7 +7,6 @@ import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
-import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import org.junit.Test;
 import rx.Observable;
 
@@ -75,7 +74,7 @@ public class SocketServerShould {
     }
 
     private FeatureCollectionWithTerminationId fcwi() {
-        return FeatureCollectionWithTerminationIdImpl.of(
+        return new FeatureCollectionWithTerminationId(
                 TerminationIdImpl.of("123"),
                 featureCollection()
         );

@@ -7,7 +7,6 @@ import io.quartic.geojson.FeatureCollectionImpl;
 import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
-import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
@@ -38,7 +37,7 @@ public class TerminatorResourceShould {
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 
         assertThat(subscriber.getOnNextEvents(),
-                contains(FeatureCollectionWithTerminationIdImpl.of(TERMINATION_ID, featureCollection())));
+                contains(new FeatureCollectionWithTerminationId(TERMINATION_ID, featureCollection())));
     }
 
     @Test(expected = NotFoundException.class)

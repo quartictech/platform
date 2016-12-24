@@ -3,7 +3,6 @@ package io.quartic.terminator
 import io.quartic.catalogue.api.TerminationId
 import io.quartic.geojson.FeatureCollection
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
-import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl
 import io.quartic.terminator.api.TerminatorService
 import rx.Observable
 import rx.subjects.PublishSubject
@@ -16,15 +15,12 @@ class TerminatorResource(private val catalogueWatcher: CatalogueWatcher) : Termi
     val featureCollections: Observable<FeatureCollectionWithTerminationId>
         get() = subject
 
-    // TODO: get rid of nullables in interface
-    override fun postToDataset(id: TerminationId, featureCollection: FeatureCollection) {
-        // TODO: validate that IDs are present on each feature?
-
-        if (catalogueWatcher.terminationIds().contains(id)) {
-            subject.onNext(FeatureCollectionWithTerminationIdImpl.of(id, featureCollection))
-        } else {
-            throw NotFoundException("Dataset $id not found")
-        }
-    }
+    // TODO: validate that IDs are present on each feature?
+    override fun postToDataset(id: TerminationId, featureCollection: FeatureCollection) =
+            if (catalogueWatcher.terminationIds().contains(id)) {
+                subject.onNext(FeatureCollectionWithTerminationId(id, featureCollection))
+            } else {
+                throw NotFoundException("Dataset $id not found")
+            }
 }
 
