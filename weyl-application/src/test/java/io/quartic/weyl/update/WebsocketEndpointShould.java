@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 import static rx.Observable.never;
 
-public class UpdateServerShould {
+public class WebsocketEndpointShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
 
@@ -63,7 +63,7 @@ public class UpdateServerShould {
             return just(response);
         });
 
-        createAndOpenServer();
+        createAndOpenEndpoint();
         captureMessageHandler().onMessage(encode(msg));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
@@ -75,7 +75,7 @@ public class UpdateServerShould {
     public void send_message() throws Exception {
         final SocketMessage message = new SocketMessage() {};
 
-        createAndOpenServer(just(message));
+        createAndOpenEndpoint(just(message));
 
         verifyMessage(message);
     }
@@ -86,8 +86,8 @@ public class UpdateServerShould {
         final Interceptor<SocketMessage> messageInterceptor = Interceptor.create();
         when(handler.call(any())).thenReturn(Observable.<SocketMessage>never().compose(handlerMessageInterceptor));
 
-        final UpdateServer server = createAndOpenServer(Observable.<SocketMessage>never().compose(messageInterceptor));
-        server.onClose(session, mock(CloseReason.class));
+        final WebsocketEndpoint endpoint = createAndOpenEndpoint(Observable.<SocketMessage>never().compose(messageInterceptor));
+        endpoint.onClose(session, mock(CloseReason.class));
 
         assertThat(messageInterceptor.unsubscribed(), equalTo(true));
         assertThat(handlerMessageInterceptor.unsubscribed(), equalTo(true));
@@ -112,14 +112,14 @@ public class UpdateServerShould {
         verify(session.getAsyncRemote()).sendText(encode(expected));
     }
 
-    private UpdateServer createAndOpenServer() {
-        return createAndOpenServer(never());
+    private WebsocketEndpoint createAndOpenEndpoint() {
+        return createAndOpenEndpoint(never());
     }
 
-    private UpdateServer createAndOpenServer(Observable<SocketMessage> messages) {
-        final UpdateServer server = new UpdateServer(messages, newArrayList(handler));
-        server.onOpen(session, mock(EndpointConfig.class));
-        return server;
+    private WebsocketEndpoint createAndOpenEndpoint(Observable<SocketMessage> messages) {
+        final WebsocketEndpoint endpoint = new WebsocketEndpoint(messages, newArrayList(handler));
+        endpoint.onOpen(session, mock(EndpointConfig.class));
+        return endpoint;
     }
 
     private Whole<String> captureMessageHandler() throws Exception {

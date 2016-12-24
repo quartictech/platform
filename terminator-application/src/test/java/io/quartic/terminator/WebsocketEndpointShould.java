@@ -13,9 +13,11 @@ import rx.Observable;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
@@ -26,15 +28,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
-public class SocketServerShould {
+public class WebsocketEndpointShould {
     @Test
     public void send_messages_for_emitted_feature_collections() throws Exception {
         final Session session = createSession("sessionA");
 
         Observable<FeatureCollectionWithTerminationId> observable = just(fcwi());
 
-        SocketServer server = new SocketServer(observable, OBJECT_MAPPER);
-        server.onOpen(session, mock(EndpointConfig.class));
+        WebsocketEndpoint endpoint = new WebsocketEndpoint(observable);
+        endpoint.onOpen(session, mock(EndpointConfig.class));
 
         verify(session.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(fcwi()));
     }
@@ -46,9 +48,9 @@ public class SocketServerShould {
 
         Observable<FeatureCollectionWithTerminationId> observable = just(fcwi());
 
-        SocketServer server = new SocketServer(observable, OBJECT_MAPPER);
-        server.onOpen(sessionA, mock(EndpointConfig.class));
-        server.onOpen(sessionB, mock(EndpointConfig.class));
+        WebsocketEndpoint endpoint = new WebsocketEndpoint(observable);
+        endpoint.onOpen(sessionA, mock(EndpointConfig.class));
+        endpoint.onOpen(sessionB, mock(EndpointConfig.class));
 
         verify(sessionA.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(fcwi()));
         verify(sessionB.getAsyncRemote()).sendText(OBJECT_MAPPER.writeValueAsString(fcwi()));
@@ -60,17 +62,19 @@ public class SocketServerShould {
 
         final Interceptor<FeatureCollectionWithTerminationId> interceptor = Interceptor.create();
 
-        SocketServer server = new SocketServer(just(fcwi()).compose(interceptor), OBJECT_MAPPER);
-        server.onOpen(session, mock(EndpointConfig.class));
-        server.onClose(session, mock(CloseReason.class));
+        WebsocketEndpoint endpoint = new WebsocketEndpoint(just(fcwi()).compose(interceptor));
+        endpoint.onOpen(session, mock(EndpointConfig.class));
+        endpoint.onClose(session, mock(CloseReason.class));
 
         assertThat(interceptor.unsubscribed(), equalTo(true));
     }
 
     private Session createSession(String id) {
-        final Session sessionA = mock(Session.class, RETURNS_DEEP_STUBS);
-        when(sessionA.getId()).thenReturn(id);
-        return sessionA;
+        final Map<String, Object> map = newHashMap();
+        final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
+        when(session.getId()).thenReturn(id);
+        when(session.getUserProperties()).thenReturn(map);
+        return session;
     }
 
     private FeatureCollectionWithTerminationId fcwi() {
@@ -84,6 +88,4 @@ public class SocketServerShould {
         return FeatureCollectionImpl.of(newArrayList(
                 FeatureImpl.of(Optional.of("456"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())));
     }
-
-    // TODO: handle multiple subscribers
 }
