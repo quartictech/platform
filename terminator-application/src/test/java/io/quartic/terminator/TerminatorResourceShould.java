@@ -33,7 +33,7 @@ public class TerminatorResourceShould {
         when(catalogue.terminationIds()).thenReturn(ImmutableSet.of(TERMINATION_ID));
 
         TestSubscriber<FeatureCollectionWithTerminationId> subscriber = TestSubscriber.create();
-        resource.featureCollections().subscribe(subscriber);
+        resource.getFeatureCollections().subscribe(subscriber);
         resource.postToDataset(TERMINATION_ID, featureCollection());
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 
@@ -52,7 +52,7 @@ public class TerminatorResourceShould {
 
         TestSubscriber<FeatureCollectionWithTerminationId> subscriber = TestSubscriber.create();
         resource.postToDataset(TERMINATION_ID, featureCollection());
-        resource.featureCollections().subscribe(subscriber);
+        resource.getFeatureCollections().subscribe(subscriber);
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
 
         assertThat(subscriber.getOnNextEvents(), empty());

@@ -36,7 +36,7 @@ public class TerminatorApplication extends ApplicationBase<TerminatorConfigurati
         ));
         final TerminatorResource terminator = new TerminatorResource(catalogueWatcher);
         websocketBundle.addEndpoint(
-                createEndpointConfig("/ws", new SocketServer(terminator.featureCollections(), environment.getObjectMapper())));
+                createEndpointConfig("/ws", new SocketServer(terminator.getFeatureCollections(), environment.getObjectMapper())));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(terminator);
