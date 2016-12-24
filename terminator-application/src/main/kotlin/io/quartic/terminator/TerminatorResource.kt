@@ -16,7 +16,7 @@ class TerminatorResource(private val catalogueWatcher: CatalogueWatcher) : Termi
 
     // TODO: validate that IDs are present on each feature?
     override fun postToDataset(id: TerminationId, featureCollection: FeatureCollection) =
-            if (catalogueWatcher.terminationIds().contains(id)) {
+            if (catalogueWatcher.terminationIds.contains(id)) {
                 subject.onNext(FeatureCollectionWithTerminationId(id, featureCollection))
             } else {
                 throw NotFoundException("Dataset $id not found")

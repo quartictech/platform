@@ -16,7 +16,7 @@ import javax.websocket.Session
 @Timed
 @ExceptionMetered
 class WebsocketEndpoint(private val observable: Observable<FeatureCollectionWithTerminationId>) : ResourceManagingEndpoint<Subscription>() {
-    val LOG by logger()
+    private val LOG by logger()
 
     override fun createResourceFor(session: Session) = observable.subscribe { fcwdi ->
         try {

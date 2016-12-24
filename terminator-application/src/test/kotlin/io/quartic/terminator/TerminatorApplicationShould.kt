@@ -73,10 +73,10 @@ class TerminatorApplicationShould {
                     Optional.empty<Icon>()
             ),
             TerminatorDatasetLocatorImpl.of(terminationId),
-            emptyMap<String, Any>()
+            emptyMap()
     ))
 
     private fun featureCollection() = FeatureCollectionImpl.of(newArrayList(
-            FeatureImpl.of(Optional.of("abc"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap<String, Any>()) as Feature
+            FeatureImpl.of(Optional.of("abc"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap()) as Feature
     ))
 }

@@ -15,8 +15,6 @@ service {
 }
 
 dependencies {
-    processor libraries.immutables
-
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":terminator-api")

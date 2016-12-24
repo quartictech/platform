@@ -20,7 +20,7 @@ import javax.ws.rs.NotFoundException
 
 class TerminatorResourceShould {
     private val featureCollection = FeatureCollectionImpl.of(newArrayList(
-            FeatureImpl.of(Optional.of("456"), Optional.of(mock()), emptyMap<String, Any>()) as Feature
+            FeatureImpl.of(Optional.of("456"), Optional.of(mock()), emptyMap()) as Feature
     ))
     private val terminationId = mock<TerminationId>()
     private val catalogue = mock<CatalogueWatcher>()
@@ -28,7 +28,7 @@ class TerminatorResourceShould {
 
     @Test
     fun emit_collections_for_things_in_catalogue() {
-        whenever(catalogue.terminationIds()).thenReturn(ImmutableSet.of(terminationId))
+        whenever(catalogue.terminationIds).thenReturn(ImmutableSet.of(terminationId))
 
         val subscriber = TestSubscriber.create<FeatureCollectionWithTerminationId>()
         resource.featureCollections.subscribe(subscriber)
@@ -45,12 +45,12 @@ class TerminatorResourceShould {
 
     @Test
     fun not_emit_collections_from_before_subscription() {
-        whenever(catalogue.terminationIds()).thenReturn(ImmutableSet.of(terminationId))
+        whenever(catalogue.terminationIds).thenReturn(ImmutableSet.of(terminationId))
 
         val subscriber = TestSubscriber.create<FeatureCollectionWithTerminationId>()
         resource.postToDataset(terminationId, featureCollection)
         resource.featureCollections.subscribe(subscriber)
 
-        assertThat(subscriber.onNextEvents, empty<FeatureCollectionWithTerminationId>())
+        assertThat(subscriber.onNextEvents, empty())
     }
 }

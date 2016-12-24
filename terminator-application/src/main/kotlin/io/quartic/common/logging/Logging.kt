@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import kotlin.reflect.companionObject
 
 // See http://stackoverflow.com/a/34462577/129570
-public fun <R : Any> R.logger(): Lazy<Logger> {
+fun <R : Any> R.logger(): Lazy<Logger> {
     return lazy { LoggerFactory.getLogger(unwrapCompanionClass(this.javaClass).name) }
 }
 
