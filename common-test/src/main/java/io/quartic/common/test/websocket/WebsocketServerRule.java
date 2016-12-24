@@ -1,29 +1,33 @@
 package io.quartic.common.test.websocket;
 
-import com.google.common.collect.Lists;
-import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.server.TyrusServerContainer;
+import org.glassfish.tyrus.spi.ServerContainer;
+import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.junit.rules.ExternalResource;
 
-import javax.websocket.OnOpen;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
+import javax.websocket.server.ServerEndpointConfig.Configurator;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 
 public class WebsocketServerRule extends ExternalResource {
-    private Server server;
+    private ServerContainer container;
+    private int port;
 
-    // TODO: This use of statics is utterly gross, but unclear how to avoid the static endpoint class
-    private static final AtomicInteger numConnections = new AtomicInteger();
-    private static final List<String> messages = Lists.newArrayList();
+    private final AtomicInteger numConnections = new AtomicInteger();
+    private final List<String> messages = newArrayList();
 
-    @ServerEndpoint("/ws")
-    public static class DummyEndpoint {
-        @OnOpen
-        public void onOpen(Session session) throws IOException {
+    public class DummyEndpoint extends Endpoint {
+        @Override
+        public void onOpen(Session session, EndpointConfig config) {
             numConnections.incrementAndGet();
             messages.forEach(m -> {
                 try {
@@ -36,21 +40,39 @@ public class WebsocketServerRule extends ExternalResource {
     }
 
     public String uri() {
-        return "ws://localhost:" + server.getPort() + "/ws";
+        return "ws://localhost:" + port + "/ws";
     }
 
     @Override
     protected void before() throws Throwable {
-        numConnections.set(0);
-        messages.clear();
+        try {
+            container = ServerContainerFactory.createServerContainer(null);
+            container.addEndpoint(ServerEndpointConfig.Builder
+                    .create(DummyEndpoint.class, "/ws")
+                    .configurator(new Configurator() {
+                        @SuppressWarnings("unchecked")
+                        @Override
+                        public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+                            return (T) new DummyEndpoint();
+                        }
+                    })
+                    .build()
+            );
 
-        server = new Server("localhost", -1, "", null, DummyEndpoint.class);
-        server.start();
+            container.start("", 0);
+            port = ((TyrusServerContainer) container).getPort();
+        } catch (IOException e) {
+            throw new DeploymentException(e.getMessage(), e);
+        }
     }
 
     @Override
     protected void after() {
-        server.stop();
+        if (container != null) {
+            container.stop();
+            container = null;
+            port = 0;
+        }
     }
 
     public int numConnections() {
@@ -62,7 +84,7 @@ public class WebsocketServerRule extends ExternalResource {
     }
 
     public void setMessages(List<String> messages) {
-        WebsocketServerRule.messages.clear();
-        WebsocketServerRule.messages.addAll(messages);
+        this.messages.clear();
+        this.messages.addAll(messages);
     }
 }
