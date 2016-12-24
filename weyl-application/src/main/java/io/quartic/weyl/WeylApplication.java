@@ -120,6 +120,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
+        websocketBundle.addEndpoint(createEndpointConfig("/ws", createUpdateServer(snapshotSequences, alertResource)));
+    }
+
+    private UpdateServer createUpdateServer(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {
         final Collection<ClientStatusMessageHandler> handlers = newArrayList(
                 createSelectionHandler(snapshotSequences),
                 createOpenLayerHandler(snapshotSequences),
@@ -130,14 +134,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .compose(new LayerListUpdateGenerator())
                 .compose(likeBehavior());
 
-        websocketBundle.addEndpoint(createEndpointConfig("/ws",
-                new UpdateServer(
-                        merge(
-                                alertResource.alerts().map(AlertMessageImpl::of),
-                                layerListUpdates
-                        ),
-                        handlers
-                )));
+        final Observable<SocketMessage> messages = merge(
+                alertResource.alerts().map(AlertMessageImpl::of),
+                layerListUpdates
+        );
+
+        return new UpdateServer(messages, handlers);
     }
 
     private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
