@@ -12,6 +12,7 @@ import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
 import io.quartic.weyl.websocket.message.SelectionStatusImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rx.Observable;
@@ -22,9 +23,11 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler.Whole;
 import javax.websocket.Session;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappers.encode;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -41,6 +44,12 @@ import static rx.Observable.never;
 public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
+
+    @Before
+    public void before() throws Exception {
+        final Map<String, Object> map = newHashMap();
+        when(session.getUserProperties()).thenReturn(map);
+    }
 
     @Test
     public void compose_received_messages_via_handlers() throws Exception {

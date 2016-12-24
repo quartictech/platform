@@ -131,7 +131,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .compose(likeBehavior());
 
         websocketBundle.addEndpoint(createEndpointConfig("/ws",
-                () -> new UpdateServer(
+                new UpdateServer(
                         merge(
                                 alertResource.alerts().map(AlertMessageImpl::of),
                                 layerListUpdates
