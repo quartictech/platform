@@ -26,7 +26,6 @@ import static io.quartic.common.uid.UidUtils.stringify;
 import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Emitter.BackpressureMode.BUFFER;
 import static rx.Observable.fromEmitter;
-import static rx.Observable.merge;
 
 @Metered
 @Timed
@@ -48,10 +47,10 @@ public class UpdateServer extends Endpoint {
     @Override
     public void onOpen(final Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
-        final Subscription subscription = merge(
-                receivedMessages(session).compose(combine(handlers)),
-                messages
-        ).subscribe((message) -> sendMessage(session, message));
+        final Subscription subscription = receivedMessages(session)
+                .compose(combine(handlers))
+                .mergeWith(messages)
+                .subscribe(message -> sendMessage(session, message));
         session.getUserProperties().put(SUBSCRIPTION, subscription);
     }
 
