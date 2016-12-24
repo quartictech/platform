@@ -70,7 +70,7 @@ public class GeoJsonParser implements Iterator<Feature> {
     private Feature getNext() throws IOException {
         switch (state) {
             case FEATURES:
-                Feature feature = parser.readValueAs(FeatureImpl.class);
+                Feature feature = parser.readValueAs(Feature.class);
                 token = parser.nextToken();
                 return feature;
             default:

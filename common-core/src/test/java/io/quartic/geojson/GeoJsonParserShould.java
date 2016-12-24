@@ -49,23 +49,23 @@ public class GeoJsonParserShould {
     public void parse_valid_geojson() throws IOException {
 
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollectionImpl.class);
+        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollection.class);
 
         int count = 0;
         while (parser.hasNext()) {
-            assertThat(parser.next(), equalTo(featureCollection.features().get(count)));
+            assertThat(parser.next(), equalTo(featureCollection.getFeatures().get(count)));
             count += 1;
         }
 
-        assertThat(count, equalTo(featureCollection.features().size()));
+        assertThat(count, equalTo(featureCollection.getFeatures().size()));
     }
 
     @Test
     public void parse_all_features() throws IOException {
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollectionImpl.class);
+        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollection.class);
 
-        assertThat(featureCollection.features(), equalTo(parser.features().collect(toList())));
+        assertThat(featureCollection.getFeatures(), equalTo(parser.features().collect(toList())));
     }
 
     @Test
@@ -119,14 +119,14 @@ public class GeoJsonParserShould {
                 "       ]\n" +
                 "     }";
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(input.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(input, FeatureCollectionImpl.class);
+        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(input, FeatureCollection.class);
 
         int count = 0;
         while (parser.hasNext()) {
-            assertThat(parser.next(), equalTo(featureCollection.features().get(count)));
+            assertThat(parser.next(), equalTo(featureCollection.getFeatures().get(count)));
             count += 1;
         }
 
-        assertThat(count, equalTo(featureCollection.features().size()));
+        assertThat(count, equalTo(featureCollection.getFeatures().size()));
     }
 }

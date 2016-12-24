@@ -103,7 +103,7 @@ public abstract class LayerRouter {
         final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(latestLayerSnapshots(state), populator);
         final Set<LayerSnapshotSequence> nextState = newHashSet(state); // Rebuilding the set each time is expensive, but we're doing this infrequently
         nextSequence.subscribe(nextState::add);
-        return StateAndOutput.of(nextState, nextSequence);
+        return StateAndOutput.Companion.of(nextState, nextSequence);
     }
 
     private Map<LayerId, Layer> latestLayerSnapshots(Set<LayerSnapshotSequence> sequences) {
@@ -116,7 +116,7 @@ public abstract class LayerRouter {
     // Deal with completed (i.e. deleted) layers
     private Stream<Layer> latest(LayerSnapshotSequence sequence) {
         try {
-            return Stream.of(RxUtils.latest(sequence.snapshots()).absolute());
+            return Stream.of(RxUtils.INSTANCE.latest(sequence.snapshots()).absolute());
         } catch (Exception e) {
             return Stream.empty();
         }

@@ -34,6 +34,7 @@ class CatalogueWatcherShould {
 
     @Test
     fun expose_returned_ids() {
+        @Suppress("USELESS_CAST")
         val terminationId = TerminationIdImpl.of("456") as TerminationId
         val datasets = datasetsWithLocator(TerminatorDatasetLocatorImpl.of(terminationId))
         whenever(listener.observable()).thenReturn(just(datasets))
