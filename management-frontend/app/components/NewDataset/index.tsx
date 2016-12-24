@@ -146,14 +146,19 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
           <label className="pt-label">
             Files
-            <Dropzone onDrop={this.onDrop.bind(this)} className="pt-card" style={{height: "150px", width: "100%"}}>
+            <Dropzone
+              disableClick
+              onDrop={this.onDrop.bind(this)}
+              className="pt-card"
+              style={{height: "150px", width: "100%"}}
+            >
                {
                  this.state.files.length === 0 ?
                  <div>Try dropping some files here, or click to select files to upload.</div> :
                  <FilesList files={this.state.files}/>
                }
-             </Dropzone>
-           </label>
+            </Dropzone>
+          </label>
            <label className="pt-label">
             File Type
             <FileTypeChooser
