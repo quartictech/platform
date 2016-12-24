@@ -12,8 +12,7 @@ import javax.ws.rs.NotFoundException
 class TerminatorResource(private val catalogueWatcher: CatalogueWatcher) : TerminatorService {
     private val subject: SerializedSubject<FeatureCollectionWithTerminationId, FeatureCollectionWithTerminationId>
             = PublishSubject.create<FeatureCollectionWithTerminationId>().toSerialized()
-    val featureCollections: Observable<FeatureCollectionWithTerminationId>
-        get() = subject
+    val featureCollections: Observable<FeatureCollectionWithTerminationId> get() = subject
 
     // TODO: validate that IDs are present on each feature?
     override fun postToDataset(id: TerminationId, featureCollection: FeatureCollection) =
