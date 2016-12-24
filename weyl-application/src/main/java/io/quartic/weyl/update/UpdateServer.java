@@ -11,15 +11,12 @@ import io.quartic.weyl.websocket.message.SocketMessage;
 import org.slf4j.Logger;
 import rx.Observable;
 import rx.Subscription;
-import rx.subjects.PublishSubject;
 
 import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
+import javax.websocket.MessageHandler.Whole;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -27,19 +24,17 @@ import static io.quartic.common.rx.RxUtils.combine;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.uid.UidUtils.stringify;
 import static org.slf4j.LoggerFactory.getLogger;
-import static rx.Observable.merge;
+import static rx.Emitter.BackpressureMode.BUFFER;
+import static rx.Observable.fromEmitter;
 
 @Metered
 @Timed
 @ExceptionMetered
-@ServerEndpoint("/ws")
-public class UpdateServer {
+public class UpdateServer extends Endpoint {
     private static final Logger LOG = getLogger(UpdateServer.class);
-    private final PublishSubject<ClientStatusMessage> clientStatus = PublishSubject.create();
+    private static final String SUBSCRIPTION = "subscription";
     private final Observable<? extends SocketMessage> messages;
     private final Collection<ClientStatusMessageHandler> handlers;
-    private Subscription subscription;
-    private Session session;
 
     public UpdateServer(
             Observable<? extends SocketMessage> messages,
@@ -49,46 +44,55 @@ public class UpdateServer {
         this.handlers = handlers;
     }
 
-    @OnOpen
+    @Override
     public void onOpen(final Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
-        this.session = session;
-        this.subscription = merge(
-                clientStatus.compose(combine(handlers)),
-                messages
-        ).subscribe(this::sendMessage);
+        final Subscription subscription = receivedMessages(session)
+                .compose(combine(handlers))
+                .mergeWith(messages)
+                .subscribe(message -> sendMessage(session, message));
+        session.getUserProperties().put(SUBSCRIPTION, subscription);
     }
 
-    @OnMessage
-    public void onMessage(String message) {
-        try {
-            final SocketMessage msg = OBJECT_MAPPER.readValue(message, SocketMessage.class);
-            if (msg instanceof ClientStatusMessage) {
-                ClientStatusMessage csm = (ClientStatusMessage)msg;
-                LOG.info("[{}] Subscribed to layers {} + entities {}",
-                        session.getId(), stringify(csm.openLayerIds()), stringify(csm.selection().entityIds()));
-                clientStatus.onNext(csm);
-            } else if (msg instanceof PingMessage) {
-                LOG.info("[{}] Received ping", session.getId());
-            } else {
-                throw new RuntimeException("Unrecognised type '" + msg.getClass().getCanonicalName() + "'");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private Observable<ClientStatusMessage> receivedMessages(Session session) {
+        return fromEmitter(emitter -> {
+            // See https://github.com/eclipse/jetty.project/issues/207
+            // noinspection Convert2Lambda,Anonymous2MethodRef
+            session.addMessageHandler(new Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    try {
+                        final SocketMessage msg = OBJECT_MAPPER.readValue(message, SocketMessage.class);
+                        if (msg instanceof ClientStatusMessage) {
+                            ClientStatusMessage csm = (ClientStatusMessage)msg;
+                            LOG.info("[{}] Subscribed to layers {} + entities {}",
+                                    session.getId(), stringify(csm.openLayerIds()), stringify(csm.selection().entityIds()));
+                            emitter.onNext(csm);
+                        } else if (msg instanceof PingMessage) {
+                            LOG.info("[{}] Received ping", session.getId());
+                        } else {
+                            throw new RuntimeException("Unrecognised type '" + msg.getClass().getCanonicalName() + "'");
+                        }
+                    } catch (IOException e) {
+                        LOG.warn("Error handling message", e);
+                    }
+                }
+            });
+        }, BUFFER);
     }
 
-    @OnClose
-    public void onClose(Session session, CloseReason closeReason) {
-        LOG.info("[{}] Close", session.getId());
-        subscription.unsubscribe();
-    }
-
-    private void sendMessage(SocketMessage message) {
+    private void sendMessage(Session session, SocketMessage message) {
         try {
             session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(message));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }
+    }
+
+    @Override
+    public void onClose(Session session, CloseReason closeReason) {
+        LOG.info("[{}] Close", session.getId());
+        final Subscription subscription = (Subscription) session.getUserProperties().get(SUBSCRIPTION);
+        subscription.unsubscribe();
     }
 }
