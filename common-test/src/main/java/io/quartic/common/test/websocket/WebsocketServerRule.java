@@ -2,21 +2,20 @@ package io.quartic.common.test.websocket;
 
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ServerContainer;
-import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.junit.rules.ExternalResource;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpointConfig;
-import javax.websocket.server.ServerEndpointConfig.Configurator;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
 import static java.util.Arrays.asList;
+import static org.glassfish.tyrus.spi.ServerContainerFactory.createServerContainer;
 
 public class WebsocketServerRule extends ExternalResource {
     private ServerContainer container;
@@ -46,19 +45,8 @@ public class WebsocketServerRule extends ExternalResource {
     @Override
     protected void before() throws Throwable {
         try {
-            container = ServerContainerFactory.createServerContainer(null);
-            container.addEndpoint(ServerEndpointConfig.Builder
-                    .create(DummyEndpoint.class, "/ws")
-                    .configurator(new Configurator() {
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                            return (T) new DummyEndpoint();
-                        }
-                    })
-                    .build()
-            );
-
+            container = createServerContainer(null);
+            container.addEndpoint(createEndpointConfig("/ws", new DummyEndpoint()));
             container.start("", 0);
             port = ((TyrusServerContainer) container).getPort();
         } catch (IOException e) {
