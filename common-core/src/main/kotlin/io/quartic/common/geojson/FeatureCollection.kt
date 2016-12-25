@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 @JsonTypeName("FeatureCollection")
 data class FeatureCollection @JvmOverloads constructor(
         val features: List<Feature>,
-        // TODO
-        val crs: Map<String, Any>? = emptyMap(),
-        val bbox: List<Double>? = emptyList()
+        override val crs: Map<String, Any>? = null,
+        override val bbox: List<Double>? = null
 ) : GeoJsonObject
