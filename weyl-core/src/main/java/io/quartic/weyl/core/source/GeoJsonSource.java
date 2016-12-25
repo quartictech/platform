@@ -17,9 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toList;
+import static com.google.common.collect.Lists.newArrayList;
 
 @Value.Immutable
 public abstract class GeoJsonSource implements Source {
@@ -51,9 +49,7 @@ public abstract class GeoJsonSource implements Source {
 
     private Collection<NakedFeature> importAllFeatures() throws IOException {
         InputStream inputStream = parseURL(url()).openStream();
-        FeatureCollection featureCollection = new FeatureCollection(
-                new GeoJsonParser(inputStream).features().collect(toList()),
-                emptyMap(), emptyList());
+        FeatureCollection featureCollection = new FeatureCollection(newArrayList(new GeoJsonParser(inputStream)));
         return converter().toModel(featureCollection);
     }
 

@@ -91,8 +91,8 @@ public class ManagementResource {
             case GEOJSON:
                 try {
                     new GeoJsonParser(inputStream).validate();
-                } catch (IOException e) {
-                    throw new BadRequestException("exception while valiodating geojson: " + e);
+                } catch (Exception e) {
+                    throw new BadRequestException("Exception while validating geojson: " + e);
                 }
                 return fileName;
             case CSV:
@@ -103,7 +103,7 @@ public class ManagementResource {
                                 converter.convert(inputStream, outputStream);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                throw new BadRequestException("exception while converting csv to geojson: " + e);
+                                throw new BadRequestException("Exception while converting csv to geojson: " + e);
                             }
                         });
                 return storageId.getUid();
