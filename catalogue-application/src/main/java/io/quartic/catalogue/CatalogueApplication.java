@@ -6,17 +6,17 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetIdImpl;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.time.Clock;
 
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
-    private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetIdImpl::of);
+    private final UidGenerator<DatasetId> didGenerator = randomGenerator(DatasetIdImpl::of);
 
     public static void main(String[] args) throws Exception {
         new CatalogueApplication().run(args);

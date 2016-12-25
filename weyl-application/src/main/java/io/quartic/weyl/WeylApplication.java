@@ -18,7 +18,6 @@ import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
 import io.quartic.common.websocket.WebsocketListener;
@@ -68,12 +67,13 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
-    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+    private final UidGenerator<LayerId> lidGenerator = randomGenerator(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);

@@ -1,6 +1,5 @@
 package io.quartic.howl;
 
-import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.howl.api.HowlStorageId;
 import io.quartic.howl.api.HowlStorageIdImpl;
@@ -24,12 +23,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 @Path("/{namespace}")
 public class HowlResource {
     private final StorageBackend storageBackend;
-    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = RandomUidGenerator.of(HowlStorageIdImpl::of);
+    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = randomGenerator(HowlStorageIdImpl::of);
 
     public HowlResource(StorageBackend storageBackend) {
         this.storageBackend = storageBackend;

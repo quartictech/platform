@@ -8,9 +8,8 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.TerminationId;
 import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
-import io.quartic.common.uid.RandomUidGenerator;
-import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.geojson.GeoJsonParser;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;
 import io.quartic.management.conversion.CsvConverter;
@@ -30,13 +29,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static java.util.Collections.emptyMap;
 
 @Path("/")
 public class ManagementResource {
     private static final String HOWL_NAMESPACE = "management";
     private final CatalogueService catalogueService;
-    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminationIdImpl::of);
+    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = randomGenerator(TerminationIdImpl::of);
     private final HowlService howlService;
 
     public ManagementResource(CatalogueService catalogueService, HowlService howlService) {

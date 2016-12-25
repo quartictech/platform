@@ -8,7 +8,6 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetIdImpl;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
-import io.quartic.common.uid.SequenceUidGenerator;
 import org.junit.Test;
 
 import javax.websocket.CloseReason;
@@ -22,6 +21,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
+import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
     private final Clock clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), clock, objectMapper());
+    private final CatalogueResource resource = new CatalogueResource(sequenceGenerator(DatasetIdImpl::of), clock, objectMapper());
 
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
