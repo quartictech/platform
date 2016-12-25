@@ -42,7 +42,7 @@ Note that this will build the images with a registry name of `null` and a tag of
 
 Service    | Port (app/admin)
 -----------|-----------------
-Weyl       | 8080 / 8091
+Weyl       | 8080 / 8081
 Catalogue  | 8090 / 8091
 Management | 8100 / 8101
 Terminator | 8110 / 8111
