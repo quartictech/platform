@@ -5,7 +5,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.api.*
-import io.quartic.common.client.WebsocketListener
+import io.quartic.common.websocket.WebsocketListener
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.junit.After

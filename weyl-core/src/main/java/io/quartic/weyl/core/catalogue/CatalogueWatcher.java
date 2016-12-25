@@ -4,7 +4,7 @@ import com.google.common.collect.MapDifference;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.SweetStyle;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.common.rx.WithPrevious;
 import org.immutables.value.Value;
 import org.slf4j.Logger;

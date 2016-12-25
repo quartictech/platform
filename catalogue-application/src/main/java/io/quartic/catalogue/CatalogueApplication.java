@@ -14,7 +14,7 @@ import io.quartic.common.uid.UidGenerator;
 import javax.websocket.server.ServerEndpointConfig;
 import java.time.Clock;
 
-import static io.quartic.common.websocket.WebsocketUtilsKt.createEndpointConfig;
+import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -39,6 +39,6 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(catalogue);
 
-        websocketBundle.addEndpoint(createEndpointConfig("/api/datasets/watch", catalogue));
+        websocketBundle.addEndpoint(serverEndpointConfig("/api/datasets/watch", catalogue));
     }
 }

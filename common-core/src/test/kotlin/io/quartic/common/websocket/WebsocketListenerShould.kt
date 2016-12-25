@@ -1,4 +1,4 @@
-package io.quartic.common.client
+package io.quartic.common.websocket
 
 import io.quartic.common.serdes.encode
 import io.quartic.common.test.websocket.WebsocketServerRule

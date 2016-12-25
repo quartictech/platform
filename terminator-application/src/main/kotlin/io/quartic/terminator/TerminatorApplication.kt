@@ -5,10 +5,10 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.client.WebsocketClientSessionFactory
-import io.quartic.common.client.WebsocketListener
+import io.quartic.common.websocket.WebsocketClientSessionFactory
+import io.quartic.common.websocket.WebsocketListener
 import io.quartic.common.pingpong.PingPongResource
-import io.quartic.common.websocket.createEndpointConfig
+import io.quartic.common.websocket.serverEndpointConfig
 import javax.websocket.server.ServerEndpointConfig
 
 class TerminatorApplication : ApplicationBase<TerminatorConfiguration>() {
@@ -24,7 +24,7 @@ class TerminatorApplication : ApplicationBase<TerminatorConfiguration>() {
                 WebsocketClientSessionFactory(javaClass)
         ))
         val terminator = TerminatorResource(catalogueWatcher)
-        websocketBundle.addEndpoint(createEndpointConfig("/ws", WebsocketEndpoint(terminator.featureCollections)))
+        websocketBundle.addEndpoint(serverEndpointConfig("/ws", WebsocketEndpoint(terminator.featureCollections)))
 
         with(environment.jersey()) {
             urlPattern = "/api/*"

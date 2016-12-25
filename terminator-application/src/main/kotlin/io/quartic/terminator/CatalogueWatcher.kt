@@ -4,7 +4,7 @@ import io.quartic.catalogue.api.DatasetConfig
 import io.quartic.catalogue.api.DatasetId
 import io.quartic.catalogue.api.TerminationId
 import io.quartic.catalogue.api.TerminatorDatasetLocator
-import io.quartic.common.client.WebsocketListener
+import io.quartic.common.websocket.WebsocketListener
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.objectMapper
 import rx.Subscription

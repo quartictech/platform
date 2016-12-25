@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.websocket.WebsocketUtilsKt.createEndpointConfig;
+import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static java.util.Arrays.asList;
 import static org.glassfish.tyrus.spi.ServerContainerFactory.createServerContainer;
 
@@ -46,7 +46,7 @@ public class WebsocketServerRule extends ExternalResource {
     protected void before() throws Throwable {
         try {
             container = createServerContainer(null);
-            container.addEndpoint(createEndpointConfig("/ws", new DummyEndpoint()));
+            container.addEndpoint(serverEndpointConfig("/ws", new DummyEndpoint()));
             container.start("", 0);
             port = ((TyrusServerContainer) container).getPort();
         } catch (IOException e) {

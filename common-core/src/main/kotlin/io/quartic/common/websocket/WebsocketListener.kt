@@ -1,4 +1,4 @@
-package io.quartic.common.client
+package io.quartic.common.websocket
 
 import com.fasterxml.jackson.databind.JavaType
 import io.quartic.common.logging.logger

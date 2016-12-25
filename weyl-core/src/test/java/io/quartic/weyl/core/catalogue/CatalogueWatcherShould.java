@@ -3,7 +3,7 @@ package io.quartic.weyl.core.catalogue;
 import com.fasterxml.jackson.databind.JavaType;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketListener;
 import org.junit.Before;
 import org.junit.Test;
 

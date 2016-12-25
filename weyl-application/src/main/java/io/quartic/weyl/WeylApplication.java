@@ -19,8 +19,8 @@ import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.client.WebsocketClientSessionFactory;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketClientSessionFactory;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
@@ -70,7 +70,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
-import static io.quartic.common.websocket.WebsocketUtilsKt.createEndpointConfig;
+import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
@@ -120,7 +120,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
-        websocketBundle.addEndpoint(createEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
+        websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
 
     private WebsocketEndpoint createWebsocketEndpoint(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {

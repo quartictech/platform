@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
