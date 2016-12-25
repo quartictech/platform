@@ -4,9 +4,11 @@ import de.thomaskrille.dropwizard_template_config.TemplateConfigBundle;
 import io.dropwizard.Application;
 import io.dropwizard.Configuration;
 import io.dropwizard.java8.Java8Bundle;
+import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.common.ApplicationDetails;
+import io.quartic.common.pingpong.PingPongResource;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 
@@ -41,6 +43,11 @@ public abstract class ApplicationBase<T extends Configuration> extends Applicati
     @Override
     public final void run(T configuration, Environment environment) throws Exception {
         LOG.info("Running " + details.getName() + " " + details.getVersion() + " (Java " + details.getJavaVersion() + ")");
+
+        environment.jersey().setUrlPattern("/api/*");
+        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response (TODO: upgrade to DW 1.0.5+?)
+        environment.jersey().register(new PingPongResource());
+
         runApplication(configuration, environment);
     }
 

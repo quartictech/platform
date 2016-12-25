@@ -2,7 +2,6 @@ package io.quartic.weyl;
 
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
@@ -19,11 +18,10 @@ import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.websocket.WebsocketClientSessionFactory;
-import io.quartic.common.websocket.WebsocketListener;
-import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.common.websocket.WebsocketClientSessionFactory;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -89,9 +87,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     @Override
     public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
-        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
-        environment.jersey().setUrlPattern("/api/*");
-
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
@@ -115,7 +110,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final AlertResource alertResource = new AlertResource();
 
-        environment.jersey().register(new PingPongResource());
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
