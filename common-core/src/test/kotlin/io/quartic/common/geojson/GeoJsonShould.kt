@@ -2,7 +2,6 @@ package io.quartic.common.geojson
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.serdes.objectMapper
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -29,10 +28,10 @@ class GeoJsonShould {
                         ))))
         ))
 
-        objectMapper().enable(SerializationFeature.INDENT_OUTPUT)
+        OBJECT_MAPPER.enable(SerializationFeature.INDENT_OUTPUT)
 
         val sw = StringWriter()
-        objectMapper().writeValue(sw, original)
+        OBJECT_MAPPER.writeValue(sw, original)
 
         val json = sw.toString()
 

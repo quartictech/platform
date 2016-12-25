@@ -7,7 +7,7 @@ import com.nhaarman.mockito_kotlin.verify
 import io.quartic.catalogue.api.TerminationId
 import io.quartic.common.geojson.Feature
 import io.quartic.common.geojson.FeatureCollection
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.rx.Interceptor
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import org.hamcrest.Matchers.equalTo
@@ -32,7 +32,7 @@ class WebsocketEndpointShould {
         val endpoint = WebsocketEndpoint(observable)
         endpoint.onOpen(session, mock())
 
-        verify(session.asyncRemote).sendText(objectMapper().writeValueAsString(fcwti))
+        verify(session.asyncRemote).sendText(OBJECT_MAPPER.writeValueAsString(fcwti))
     }
 
     @Test
@@ -46,8 +46,8 @@ class WebsocketEndpointShould {
         endpoint.onOpen(sessionA, mock())
         endpoint.onOpen(sessionB, mock())
 
-        verify(sessionA.asyncRemote).sendText(objectMapper().writeValueAsString(fcwti))
-        verify(sessionB.asyncRemote).sendText(objectMapper().writeValueAsString(fcwti))
+        verify(sessionA.asyncRemote).sendText(OBJECT_MAPPER.writeValueAsString(fcwti))
+        verify(sessionB.asyncRemote).sendText(OBJECT_MAPPER.writeValueAsString(fcwti))
     }
 
     @Test

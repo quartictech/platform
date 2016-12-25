@@ -5,7 +5,7 @@ import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
 import com.fasterxml.jackson.core.JsonProcessingException
 import io.quartic.common.logging.logger
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.websocket.ResourceManagingEndpoint
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import rx.Observable
@@ -20,7 +20,7 @@ class WebsocketEndpoint(private val observable: Observable<FeatureCollectionWith
 
     override fun createResourceFor(session: Session) = observable.subscribe { fcwdi ->
         try {
-            session.asyncRemote.sendText(objectMapper().writeValueAsString(fcwdi))
+            session.asyncRemote.sendText(OBJECT_MAPPER.writeValueAsString(fcwdi))
         } catch (e: JsonProcessingException) {
             LOG.error("Error producing JSON", e)
         }

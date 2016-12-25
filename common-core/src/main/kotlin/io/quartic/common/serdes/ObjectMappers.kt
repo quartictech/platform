@@ -19,18 +19,14 @@ fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
         .registerModule(KotlinModule())
         .setSerializationInclusion(Include.NON_NULL)
 
-fun encode(obj: Any): String {
-    try {
-        return OBJECT_MAPPER.writeValueAsString(obj)
-    } catch (e: JsonProcessingException) {
-        throw RuntimeException("Could not encode", e)
-    }
+fun encode(obj: Any) = try {
+    OBJECT_MAPPER.writeValueAsString(obj)
+} catch (e: JsonProcessingException) {
+    throw RuntimeException("Could not encode", e)
 }
 
-fun <T> decode(src: String, type: Class<T>): T {
-    try {
-        return OBJECT_MAPPER.readValue(src, type)
-    } catch (e: IOException) {
-        throw RuntimeException("Could not decode", e)
-    }
+fun <T> decode(src: String, type: Class<T>): T = try {
+    OBJECT_MAPPER.readValue(src, type)
+} catch (e: IOException) {
+    throw RuntimeException("Could not decode", e)
 }

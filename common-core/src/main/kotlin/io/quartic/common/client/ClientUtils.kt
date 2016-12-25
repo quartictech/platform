@@ -11,7 +11,7 @@ import feign.jackson.JacksonEncoder
 import feign.jaxrs.JAXRSContract
 import feign.slf4j.Slf4jLogger
 import io.quartic.common.ApplicationDetails
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import org.apache.commons.io.IOUtils.copy
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -24,8 +24,8 @@ inline fun <reified T : Any> client(owner: Class<*>, url: String): T = client(T:
 // TODO: eliminate overload once everything ported to Kotlin
 fun <T> client(target: Class<T>, owner: Class<*>, url: String): T = Feign.builder()
         .contract(JAXRSContract())
-        .encoder(inputStreamEncoder(JacksonEncoder(objectMapper())))
-        .decoder(JacksonDecoder(objectMapper()))
+        .encoder(inputStreamEncoder(JacksonEncoder(OBJECT_MAPPER)))
+        .decoder(JacksonDecoder(OBJECT_MAPPER))
         .retryer(Retryer.Default(0, 0, 1))
         .requestInterceptor { template -> template.header(USER_AGENT, userAgentFor(owner)) }
         .logger(Slf4jLogger())

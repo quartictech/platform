@@ -1,6 +1,6 @@
 package io.quartic.terminator
 
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import java.util.concurrent.TimeUnit
 import javax.websocket.Endpoint
 import javax.websocket.EndpointConfig
@@ -10,7 +10,7 @@ import javax.websocket.Session
 class CollectingEndpoint<out T>(private val converter: (String) -> T) : Endpoint() {
     companion object {
         inline fun <reified T : Any> create(): CollectingEndpoint<T> {
-            return CollectingEndpoint({ objectMapper().readValue(it, T::class.java) })
+            return CollectingEndpoint({ OBJECT_MAPPER.readValue(it, T::class.java) })
         }
     }
 

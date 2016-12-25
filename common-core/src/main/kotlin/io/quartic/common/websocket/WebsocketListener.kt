@@ -3,7 +3,6 @@ package io.quartic.common.websocket
 import com.fasterxml.jackson.databind.JavaType
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.serdes.objectMapper
 import rx.Emitter.BackpressureMode
 import rx.Observable
 import rx.Observable.*
@@ -53,7 +52,7 @@ class WebsocketListener<T>(
 
 
     private fun convert(message: String) = try {
-        just(objectMapper().readValue<T>(message, type))
+        just(OBJECT_MAPPER.readValue<T>(message, type))
     } catch (e: IOException) {
         LOG.error("Error converting message", e)
         empty<T>()

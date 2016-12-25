@@ -8,7 +8,7 @@ import io.quartic.common.client.client
 import io.quartic.common.geojson.Feature
 import io.quartic.common.geojson.FeatureCollection
 import io.quartic.common.geojson.Point
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import io.quartic.terminator.api.TerminatorService
@@ -39,7 +39,7 @@ class TerminatorApplicationShould {
 
     @Before
     fun before() {
-        catalogue.messages = listOf(objectMapper().writeValueAsString(datasets()))
+        catalogue.messages = listOf(OBJECT_MAPPER.writeValueAsString(datasets()))
         app.before()
     }
 
