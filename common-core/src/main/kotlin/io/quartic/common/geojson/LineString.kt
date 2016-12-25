@@ -1,6 +1,6 @@
-package io.quartic.geojson
+package io.quartic.common.geojson
 
-data class MultiPoint @JvmOverloads constructor(
+data class LineString @JvmOverloads constructor(
         val coordinates: List<List<Double>>,
         // TODO
         val crs: Map<String, Any>? = emptyMap(),

@@ -1,7 +1,7 @@
 package io.quartic.terminator.api
 
 import io.quartic.catalogue.api.TerminationId
-import io.quartic.geojson.FeatureCollection
+import io.quartic.common.geojson.FeatureCollection
 import javax.ws.rs.Consumes
 import javax.ws.rs.POST
 import javax.ws.rs.Path

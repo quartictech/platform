@@ -1,4 +1,4 @@
-package io.quartic.geojson
+package io.quartic.common.geojson
 
 data class MultiPolygon @JvmOverloads constructor(
         val coordinates: List<List<List<List<Double>>>>,

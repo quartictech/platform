@@ -21,8 +21,8 @@ public final class ClientBuilder {
     private static <T> T build(Class<T> target, String userAgent, String url) {
         return Feign.builder()
                 .contract(new JAXRSContract())
-                .encoder(new InputStreamEncoder(new JacksonEncoder(OBJECT_MAPPER)))
-                .decoder(new JacksonDecoder(OBJECT_MAPPER))
+                .encoder(new InputStreamEncoder(new JacksonEncoder(INSTANCE.getOBJECT_MAPPER())))
+                .decoder(new JacksonDecoder(INSTANCE.getOBJECT_MAPPER()))
                 .retryer(new Retryer.Default(0, 0, 1))
                 .requestInterceptor(template -> template.header(USER_AGENT, userAgent))
                 .logger(new Slf4jLogger(ClientBuilder.class))

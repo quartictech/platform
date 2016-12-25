@@ -7,9 +7,9 @@ import io.quartic.catalogue.api.*
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
 import io.quartic.common.test.websocket.WebsocketServerRule
-import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollection
-import io.quartic.geojson.Point
+import io.quartic.common.geojson.Feature
+import io.quartic.common.geojson.FeatureCollection
+import io.quartic.common.geojson.Point
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import io.quartic.terminator.api.TerminatorService
 import org.hamcrest.Matchers.contains

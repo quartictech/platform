@@ -31,7 +31,7 @@ public abstract class CatalogueWatcher {
 
     @Value.Lazy
     protected WebsocketListener<Map<DatasetId, DatasetConfig>> listener() {
-        return listenerFactory().create(OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
+        return listenerFactory().create(INSTANCE.getOBJECT_MAPPER().getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
     }
 
     @Value.Lazy

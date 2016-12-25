@@ -23,7 +23,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void emit_items_from_socket() throws Exception {
-        server.setMessages(encode(TestThingImpl.of("foo")), encode(TestThingImpl.of("bar")));
+        server.setMessages(INSTANCE.encode(TestThingImpl.of("foo")), INSTANCE.encode(TestThingImpl.of("bar")));
 
         final WebsocketListener<TestThing> listener = createListener();
 
@@ -36,7 +36,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void skip_undecodable_items() throws Exception {
-        server.setMessages("bad", encode(TestThingImpl.of("bar")));
+        server.setMessages("bad", INSTANCE.encode(TestThingImpl.of("bar")));
 
         final WebsocketListener<TestThing> listener = createListener();
 

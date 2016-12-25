@@ -1,4 +1,4 @@
-package io.quartic.geojson;
+package io.quartic.common.geojson;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -29,7 +29,7 @@ public class GeoJsonParser implements Iterator<Feature> {
 
     public GeoJsonParser(InputStream inputStream) throws IOException {
         JsonFactory jsonFactory = new JsonFactory();
-        jsonFactory.setCodec(ObjectMappers.OBJECT_MAPPER);
+        jsonFactory.setCodec(ObjectMappers.INSTANCE.getOBJECT_MAPPER());
         parser = jsonFactory.createParser(inputStream);
     }
 

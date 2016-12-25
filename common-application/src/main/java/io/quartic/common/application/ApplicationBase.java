@@ -26,7 +26,7 @@ public abstract class ApplicationBase<T extends Configuration> extends Applicati
 
     @Override
     public final void initialize(Bootstrap<T> bootstrap) {
-        configureObjectMapper(bootstrap.getObjectMapper());
+        INSTANCE.configureObjectMapper(bootstrap.getObjectMapper());
 
         bootstrap.setConfigurationSourceProvider((path) -> new SequenceInputStream(
                 new FileInputStream(path),

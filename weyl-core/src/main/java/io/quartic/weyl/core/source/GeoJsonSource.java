@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.source;
 
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.GeoJsonParser;
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;

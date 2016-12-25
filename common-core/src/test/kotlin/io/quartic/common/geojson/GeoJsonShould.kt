@@ -1,4 +1,4 @@
-package io.quartic.geojson
+package io.quartic.common.geojson
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER

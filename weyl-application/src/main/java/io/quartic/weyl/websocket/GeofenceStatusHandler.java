@@ -1,6 +1,6 @@
 package io.quartic.weyl.websocket;
 
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;

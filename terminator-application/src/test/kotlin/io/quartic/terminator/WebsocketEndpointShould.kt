@@ -7,8 +7,8 @@ import com.nhaarman.mockito_kotlin.verify
 import io.quartic.catalogue.api.TerminationIdImpl
 import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
 import io.quartic.common.test.rx.Interceptor
-import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollection
+import io.quartic.common.geojson.Feature
+import io.quartic.common.geojson.FeatureCollection
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat

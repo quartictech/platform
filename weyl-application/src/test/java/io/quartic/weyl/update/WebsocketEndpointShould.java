@@ -64,7 +64,7 @@ public class WebsocketEndpointShould {
         });
 
         createAndOpenEndpoint();
-        captureMessageHandler().onMessage(encode(msg));
+        captureMessageHandler().onMessage(INSTANCE.encode(msg));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
         assertThat(subscriber.getOnNextEvents().get(0), equalTo(msg));
@@ -109,7 +109,7 @@ public class WebsocketEndpointShould {
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {
-        verify(session.getAsyncRemote()).sendText(encode(expected));
+        verify(session.getAsyncRemote()).sendText(INSTANCE.encode(expected));
     }
 
     private WebsocketEndpoint createAndOpenEndpoint() {

@@ -1,4 +1,4 @@
-package io.quartic.geojson
+package io.quartic.common.geojson
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 

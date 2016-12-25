@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.feature;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.Attributes;
@@ -45,14 +45,14 @@ public class FeatureConverter {
         return toModel(featureCollection.getFeatures());
     }
 
-    private Collection<NakedFeature> toModel(Collection<io.quartic.geojson.Feature> features) {
+    private Collection<NakedFeature> toModel(Collection<io.quartic.common.geojson.Feature> features) {
         return features.stream()
                 .filter(f -> f.getGeometry() != null)
                 .map(this::toModel)
                 .collect(toList());
     }
 
-    private NakedFeature toModel(io.quartic.geojson.Feature f) {
+    private NakedFeature toModel(io.quartic.common.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         return NakedFeatureImpl.of(
                 Optional.ofNullable(f.getId()),
@@ -63,7 +63,7 @@ public class FeatureConverter {
 
     private Attributes convertToModelAttributes(Map<String, Object> rawAttributes) {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder();
-        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(OBJECT_MAPPER, k, v)));
+        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(INSTANCE.getOBJECT_MAPPER(), k, v)));
         return builder.build();
     }
 
@@ -85,8 +85,8 @@ public class FeatureConverter {
         return new FeatureCollection(features.stream().map(this::toGeojson).collect(toList()));
     }
 
-    private io.quartic.geojson.Feature toGeojson(Feature f) {
-        return new io.quartic.geojson.Feature(
+    private io.quartic.common.geojson.Feature toGeojson(Feature f) {
+        return new io.quartic.common.geojson.Feature(
                 null,
                 fromJts(fromModel.transform(f.geometry())),
                 getRawProperties(f)

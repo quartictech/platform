@@ -7,8 +7,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.quartic.common.serdes.ObjectMappers;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.Point;
+import io.quartic.common.geojson.Feature;
+import io.quartic.common.geojson.Point;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -76,7 +76,7 @@ public class CsvConverter implements GeoJsonConverter {
     public void convert(InputStream data, OutputStream outputStream) throws IOException {
         JsonFactory jsonFactory = new JsonFactory();
         JsonGenerator jsonGenerator = jsonFactory.createGenerator(outputStream);
-        jsonGenerator.setCodec(ObjectMappers.OBJECT_MAPPER);
+        jsonGenerator.setCodec(ObjectMappers.INSTANCE.getOBJECT_MAPPER());
         CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(data));
 
         Map<String, Integer> firstRow = csvParser.getHeaderMap();

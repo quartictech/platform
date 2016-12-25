@@ -34,7 +34,7 @@ public abstract class WebsocketListener<T> {
         protected abstract WebsocketClientSessionFactory websocketFactory();
 
         public <T> WebsocketListener<T> create(Class<T> type) {
-            return create(OBJECT_MAPPER.getTypeFactory().uncheckedSimpleType(type));
+            return create(INSTANCE.getOBJECT_MAPPER().getTypeFactory().uncheckedSimpleType(type));
         }
 
         public <T> WebsocketListener<T> create(JavaType type) {
@@ -70,7 +70,7 @@ public abstract class WebsocketListener<T> {
 
     private Observable<T> convert(String message) {
         try {
-            return just(OBJECT_MAPPER.readValue(message, type()));
+            return just(INSTANCE.getOBJECT_MAPPER().readValue(message, type()));
         } catch (IOException e) {
             LOG.error("Error converting message", e);
             return empty();

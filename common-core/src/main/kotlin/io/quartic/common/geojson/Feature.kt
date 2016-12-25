@@ -1,4 +1,4 @@
-package io.quartic.geojson
+package io.quartic.common.geojson
 
 data class Feature @JvmOverloads constructor(
         val id: String? = null,

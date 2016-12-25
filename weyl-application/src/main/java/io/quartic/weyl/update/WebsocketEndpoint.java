@@ -62,7 +62,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
                 @Override
                 public void onMessage(String message) {
                     try {
-                        final SocketMessage msg = OBJECT_MAPPER.readValue(message, SocketMessage.class);
+                        final SocketMessage msg = INSTANCE.getOBJECT_MAPPER().readValue(message, SocketMessage.class);
                         if (msg instanceof ClientStatusMessage) {
                             ClientStatusMessage csm = (ClientStatusMessage)msg;
                             LOG.info("[{}] Subscribed to layers {} + entities {}",
@@ -83,7 +83,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
 
     private void sendMessage(Session session, SocketMessage message) {
         try {
-            session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(message));
+            session.getAsyncRemote().sendText(INSTANCE.getOBJECT_MAPPER().writeValueAsString(message));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }

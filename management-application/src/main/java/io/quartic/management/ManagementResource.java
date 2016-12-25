@@ -10,7 +10,7 @@ import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.geojson.GeoJsonParser;
+import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;
 import io.quartic.management.conversion.CsvConverter;

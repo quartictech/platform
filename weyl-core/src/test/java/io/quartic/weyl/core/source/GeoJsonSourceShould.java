@@ -2,9 +2,9 @@ package io.quartic.weyl.core.source;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Point;
+import io.quartic.common.geojson.Feature;
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.geojson.Point;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -42,7 +42,7 @@ public class GeoJsonSourceShould {
         stubFor(WireMock.get(urlEqualTo("/"))
                 .willReturn(aResponse()
                         .withHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .withBody(OBJECT_MAPPER.writeValueAsString(original))
+                        .withBody(INSTANCE.getOBJECT_MAPPER().writeValueAsString(original))
                 )
         );
 

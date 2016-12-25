@@ -88,7 +88,7 @@ public class HowlClient implements HowlService {
                 .url(url(namespace))
                 .post(requestBody(contentType, upload))
                 .build();
-        return ObjectMappers.decode(client.newCall(request).execute().body().string(), HowlStorageId.class);
+        return ObjectMappers.INSTANCE.decode(client.newCall(request).execute().body().string(), HowlStorageId.class);
     }
 
     @Override

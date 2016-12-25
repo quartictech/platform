@@ -1,4 +1,4 @@
-package io.quartic.geojson;
+package io.quartic.common.geojson;
 
 import org.glassfish.grizzly.utils.Charsets;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class GeoJsonParserShould {
     public void parse_valid_geojson() throws IOException {
 
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollection.class);
+        FeatureCollection featureCollection = INSTANCE.getOBJECT_MAPPER().readValue(GEOJSON, FeatureCollection.class);
 
         int count = 0;
         while (parser.hasNext()) {
@@ -63,7 +63,7 @@ public class GeoJsonParserShould {
     @Test
     public void parse_all_features() throws IOException {
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(GEOJSON, FeatureCollection.class);
+        FeatureCollection featureCollection = INSTANCE.getOBJECT_MAPPER().readValue(GEOJSON, FeatureCollection.class);
 
         assertThat(featureCollection.getFeatures(), equalTo(parser.features().collect(toList())));
     }
@@ -119,7 +119,7 @@ public class GeoJsonParserShould {
                 "       ]\n" +
                 "     }";
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(input.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = OBJECT_MAPPER.readValue(input, FeatureCollection.class);
+        FeatureCollection featureCollection = INSTANCE.getOBJECT_MAPPER().readValue(input, FeatureCollection.class);
 
         int count = 0;
         while (parser.hasNext()) {

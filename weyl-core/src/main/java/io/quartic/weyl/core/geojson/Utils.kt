@@ -2,7 +2,7 @@ package io.quartic.weyl.core.geojson
 
 import com.vividsolutions.jts.geom.Coordinate
 import com.vividsolutions.jts.geom.GeometryFactory
-import io.quartic.geojson.*
+import io.quartic.common.geojson.*
 
 private val factory = GeometryFactory()
 

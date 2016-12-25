@@ -1,8 +1,8 @@
 package io.quartic.weyl.websocket;
 
 import io.quartic.common.test.rx.Interceptor;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Point;
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.geojson.Point;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -194,6 +194,6 @@ public class OpenLayerHandlerShould {
     }
 
     private FeatureCollection featureCollection() {
-        return new FeatureCollection(newArrayList(new io.quartic.geojson.Feature("foo", new Point(newArrayList(1.0, 2.0)))));
+        return new FeatureCollection(newArrayList(new io.quartic.common.geojson.Feature("foo", new Point(newArrayList(1.0, 2.0)))));
     }
 }

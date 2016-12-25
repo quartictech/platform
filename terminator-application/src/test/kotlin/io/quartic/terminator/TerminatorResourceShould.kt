@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableSet
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.api.TerminationId
-import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollection
+import io.quartic.common.geojson.Feature
+import io.quartic.common.geojson.FeatureCollection
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty

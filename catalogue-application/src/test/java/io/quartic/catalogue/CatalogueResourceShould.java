@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
     private final Clock clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), clock, OBJECT_MAPPER);
+    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), clock, INSTANCE.getOBJECT_MAPPER());
 
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
@@ -99,7 +99,7 @@ public class CatalogueResourceShould {
 
     private String serialize(Object object) {
         try {
-            return OBJECT_MAPPER.writeValueAsString(object);
+            return INSTANCE.getOBJECT_MAPPER().writeValueAsString(object);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

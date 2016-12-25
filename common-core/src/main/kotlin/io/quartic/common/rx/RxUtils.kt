@@ -33,7 +33,7 @@ fun <Input, State, Output>
         .map({ it.output })
 }
 
-data class StateAndOutput<State, Output>(
+data class StateAndOutput<out State, out Output>(
         val state: State,
         val output: Output?
 )

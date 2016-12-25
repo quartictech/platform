@@ -22,7 +22,7 @@ public class ExtensionParser {
         final Object extension = extensions.get(EXTENSION_KEY);
         if (extension != null) {
             try {
-                return OBJECT_MAPPER.convertValue(extension, MapDatasetExtension.class);
+                return INSTANCE.getOBJECT_MAPPER().convertValue(extension, MapDatasetExtension.class);
             } catch (IllegalArgumentException e) {
                 LOG.warn(format("[%s] Unable to interpret extension, so using default", name), e);
             }
