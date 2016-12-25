@@ -11,13 +11,17 @@ import java.io.IOException;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public final class ObjectMappers {
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModule(new Jdk8Module())
-            .registerModule(new JavaTimeModule())
-            .registerModule(new KotlinModule())
-            .setSerializationInclusion(Include.NON_ABSENT);
+    public static final ObjectMapper OBJECT_MAPPER = configureObjectMapper(new ObjectMapper());
 
     private ObjectMappers() {}
+
+    public static ObjectMapper configureObjectMapper(ObjectMapper mapper) {
+        return mapper
+                .registerModule(new Jdk8Module())
+                .registerModule(new JavaTimeModule())
+                .registerModule(new KotlinModule())
+                .setSerializationInclusion(Include.NON_NULL);
+    }
 
     public static String encode(Object object) {
         try {

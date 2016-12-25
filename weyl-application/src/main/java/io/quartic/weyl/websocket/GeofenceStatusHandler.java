@@ -30,11 +30,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
-import static io.quartic.common.rx.RxUtils.accumulateMap;
-import static io.quartic.common.rx.RxUtils.combine;
-import static io.quartic.common.rx.RxUtils.latest;
-import static io.quartic.common.rx.RxUtils.likeBehavior;
-import static io.quartic.common.rx.RxUtils.mealy;
+import static io.quartic.common.rx.RxUtilsKt.accumulateMap;
+import static io.quartic.common.rx.RxUtilsKt.combine;
+import static io.quartic.common.rx.RxUtilsKt.latest;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+import static io.quartic.common.rx.RxUtilsKt.mealy;
 import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;

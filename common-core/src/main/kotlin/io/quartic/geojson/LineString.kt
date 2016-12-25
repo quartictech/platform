@@ -1,6 +1,6 @@
 package io.quartic.geojson
 
-data class LineString(
+data class LineString @JvmOverloads constructor(
         val coordinates: List<List<Double>>,
         // TODO
         val crs: Map<String, Any>? = emptyMap(),

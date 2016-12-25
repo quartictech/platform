@@ -9,11 +9,8 @@ import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
-import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
@@ -24,7 +21,6 @@ import org.junit.Test;
 import rx.observers.TestSubscriber;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -49,7 +45,7 @@ public class TerminatorSourceFactoryShould {
     @Test
     public void import_things() throws Exception {
         final Collection<NakedFeature> modelFeatures = mock(Collection.class);
-        final FeatureCollection collection = featureCollection(geojsonFeature("a", Optional.of(point())));
+        final FeatureCollection collection = featureCollection(geojsonFeature("a", point()));
         final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
 
         when(listener.observable()).thenReturn(just(
@@ -66,8 +62,8 @@ public class TerminatorSourceFactoryShould {
     public void demultiplex_to_multiple_sources() throws Exception {
         final Collection<NakedFeature> modelFeaturesA = mock(Collection.class);
         final Collection<NakedFeature> modelFeaturesB = mock(Collection.class);
-        final FeatureCollection collectionA = featureCollection(geojsonFeature("a", Optional.of(point())));
-        final FeatureCollection collectionB = featureCollection(geojsonFeature("b", Optional.of(point())));
+        final FeatureCollection collectionA = featureCollection(geojsonFeature("a", point()));
+        final FeatureCollection collectionB = featureCollection(geojsonFeature("b", point()));
         final TerminatorDatasetLocator locatorA = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
         final TerminatorDatasetLocator locatorB = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("456"));
 
@@ -107,14 +103,11 @@ public class TerminatorSourceFactoryShould {
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)
 
     private static FeatureCollection featureCollection(Feature... features) {
-        return FeatureCollectionImpl.of(newArrayList(features));
+        return new FeatureCollection(newArrayList(features));
     }
 
-    private static Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return FeatureImpl.of(
-                Optional.of(id),
-                geometry,
-                ImmutableMap.of("timestamp", 1234));
+    private static Feature geojsonFeature(String id, Geometry geometry) {
+        return new Feature(id, geometry, ImmutableMap.of("timestamp", 1234));
     }
 
     private static Point point() {
@@ -122,6 +115,6 @@ public class TerminatorSourceFactoryShould {
     }
 
     private static Point point(double x, double y) {
-        return PointImpl.of(ImmutableList.of(x, y));
+        return new Point(ImmutableList.of(x, y));
     }
 }

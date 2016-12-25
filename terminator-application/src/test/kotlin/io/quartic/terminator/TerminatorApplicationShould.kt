@@ -1,6 +1,5 @@
 package io.quartic.terminator
 
-import com.google.common.collect.Lists.newArrayList
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.DropwizardTestSupport
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
@@ -9,9 +8,8 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
 import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollectionImpl
-import io.quartic.geojson.FeatureImpl
-import io.quartic.geojson.PointImpl
+import io.quartic.geojson.FeatureCollection
+import io.quartic.geojson.Point
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import io.quartic.terminator.api.TerminatorService
 import org.hamcrest.Matchers.contains
@@ -55,8 +53,7 @@ class TerminatorApplicationShould {
         val terminator = ClientBuilder.build(TerminatorService::class.java, javaClass, "http://localhost:" + app.localPort + "/api")
 
         val collector = CollectingEndpoint.create<FeatureCollectionWithTerminationId>()
-        ContainerProvider.getWebSocketContainer()
-                .connectToServer(collector, URI("ws://localhost:" + app.localPort + "/ws"))
+        ContainerProvider.getWebSocketContainer().connectToServer(collector, URI("ws://localhost:" + app.localPort + "/ws"))
 
         terminator.postToDataset(terminationId, featureCollection())
         collector.awaitMessages(1, 250, MILLISECONDS)
@@ -76,7 +73,5 @@ class TerminatorApplicationShould {
             emptyMap()
     ))
 
-    private fun featureCollection() = FeatureCollectionImpl.of(newArrayList(
-            FeatureImpl.of(Optional.of("abc"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap()) as Feature
-    ))
+    private fun featureCollection() = FeatureCollection(listOf(Feature("abc", Point(listOf(1.0, 2.0)))))
 }

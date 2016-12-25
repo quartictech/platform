@@ -18,7 +18,7 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Collection;
 
-import static io.quartic.common.rx.RxUtils.combine;
+import static io.quartic.common.rx.RxUtilsKt.combine;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.common.uid.UidUtils.stringify;
 import static org.slf4j.LoggerFactory.getLogger;

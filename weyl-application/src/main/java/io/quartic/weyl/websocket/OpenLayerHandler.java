@@ -19,8 +19,8 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.transform;
-import static io.quartic.common.rx.RxUtils.accumulateMap;
-import static io.quartic.common.rx.RxUtils.likeBehavior;
+import static io.quartic.common.rx.RxUtilsKt.accumulateMap;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;

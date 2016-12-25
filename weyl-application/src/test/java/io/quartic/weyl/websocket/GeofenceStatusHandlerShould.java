@@ -3,7 +3,7 @@ package io.quartic.weyl.websocket;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.common.rx.StateAndOutputImpl;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
@@ -102,7 +102,7 @@ public class GeofenceStatusHandlerShould {
 
         // Default behaviour
         when(detector.create(any())).thenReturn(mock(State.class));
-        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), mock(Output.class)));
+        when(detector.next(any(), any())).thenReturn(new StateAndOutput<>(mock(State.class), mock(Output.class)));
     }
 
     @Test
@@ -320,7 +320,7 @@ public class GeofenceStatusHandlerShould {
                 entry(SEVERE, 3)
         ));
 
-        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), output));
+        when(detector.next(any(), any())).thenReturn(new StateAndOutput<>(mock(State.class), output));
     }
 
     @SuppressWarnings("unchecked")

@@ -5,7 +5,7 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.SweetStyle;
 import io.quartic.common.client.WebsocketListener;
-import io.quartic.common.rx.RxUtils.WithPrevious;
+import io.quartic.common.rx.WithPrevious;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.difference;
-import static io.quartic.common.rx.RxUtils.pairWithPrevious;
+import static io.quartic.common.rx.RxUtilsKt.pairWithPrevious;
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
@@ -43,7 +43,7 @@ public abstract class CatalogueWatcher {
     }
 
     private Observable<CatalogueEvent> extractEvents(WithPrevious<Map<DatasetId, DatasetConfig>> pair) {
-        final MapDifference<DatasetId, DatasetConfig> diff = difference(pair.prev(), pair.current());
+        final MapDifference<DatasetId, DatasetConfig> diff = difference(pair.getPrev(), pair.getCurrent());
         return merge(
                 from(diff.entriesOnlyOnLeft().entrySet()).map(e -> CatalogueEventImpl.of(DELETE, e.getKey(), e.getValue())),
                 from(diff.entriesOnlyOnRight().entrySet()).map(e -> CatalogueEventImpl.of(CREATE, e.getKey(), e.getValue()))

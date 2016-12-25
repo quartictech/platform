@@ -6,11 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.common.client.WebsocketListener;
 import io.quartic.geojson.Feature;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
-import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -20,7 +17,6 @@ import rx.observers.TestSubscriber;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -34,7 +30,7 @@ import static org.mockito.Mockito.when;
 import static rx.Observable.just;
 
 public class WebsocketSourceShould {
-    private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", Optional.of(point())));
+    private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", point()));
     private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(Instant.now(), FEATURE_COLLECTION);
 
     @Test
@@ -68,14 +64,11 @@ public class WebsocketSourceShould {
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)
 
     private static FeatureCollection featureCollection(Feature... features) {
-        return FeatureCollectionImpl.of(newArrayList(features));
+        return new FeatureCollection(newArrayList(features));
     }
 
-    private static Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return FeatureImpl.of(
-                Optional.of(id),
-                geometry,
-                ImmutableMap.of("timestamp", 1234));
+    private static Feature geojsonFeature(String id, Geometry geometry) {
+        return new Feature(id, geometry, ImmutableMap.of("timestamp", 1234));
     }
 
     private static Point point() {
@@ -83,7 +76,7 @@ public class WebsocketSourceShould {
     }
 
     private static Point point(double x, double y) {
-        return PointImpl.of(ImmutableList.of(x, y));
+        return new Point(ImmutableList.of(x, y));
     }
 
 }

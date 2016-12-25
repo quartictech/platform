@@ -2,9 +2,7 @@ package io.quartic.weyl.websocket;
 
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
-import io.quartic.geojson.PointImpl;
+import io.quartic.geojson.Point;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -25,14 +23,11 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Optional;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -199,8 +194,6 @@ public class OpenLayerHandlerShould {
     }
 
     private FeatureCollection featureCollection() {
-        return FeatureCollectionImpl.of(newArrayList(
-                FeatureImpl.of(Optional.of("foo"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())
-        ));
+        return new FeatureCollection(newArrayList(new io.quartic.geojson.Feature("foo", new Point(newArrayList(1.0, 2.0)))));
     }
 }

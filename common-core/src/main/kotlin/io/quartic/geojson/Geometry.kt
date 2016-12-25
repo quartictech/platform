@@ -13,7 +13,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
         Type(value = MultiPoint::class, name = "MultiPoint"),
         Type(value = MultiLineString::class, name = "MultiLineString")
 )
-interface Geometry {
-    // TODO
-//    fun <T> accept(geometryVisitor: GeometryVisitor<T>): T
-}
+interface Geometry

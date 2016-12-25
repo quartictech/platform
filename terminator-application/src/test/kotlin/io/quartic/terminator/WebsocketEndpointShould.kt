@@ -1,6 +1,5 @@
 package io.quartic.terminator
 
-import com.google.common.collect.Lists.newArrayList
 import com.google.common.collect.Maps.newHashMap
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -9,24 +8,19 @@ import io.quartic.catalogue.api.TerminationIdImpl
 import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
 import io.quartic.common.test.rx.Interceptor
 import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollectionImpl
-import io.quartic.geojson.FeatureImpl
+import io.quartic.geojson.FeatureCollection
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 import rx.Observable.just
-import java.util.*
-import java.util.Collections.emptyMap
 import javax.websocket.RemoteEndpoint
 import javax.websocket.Session
 
 class WebsocketEndpointShould {
     private val fcwti = FeatureCollectionWithTerminationId(
             TerminationIdImpl.of("123"),
-            FeatureCollectionImpl.of(newArrayList(
-                    FeatureImpl.of(Optional.of("456"), Optional.of(mock()), emptyMap()) as Feature
-            ))
+            FeatureCollection(listOf(Feature("456", mock())))
     )
 
     @Test

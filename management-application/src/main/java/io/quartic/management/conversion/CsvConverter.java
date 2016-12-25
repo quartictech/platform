@@ -8,9 +8,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.quartic.common.serdes.ObjectMappers;
 import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureImpl;
 import io.quartic.geojson.Point;
-import io.quartic.geojson.PointImpl;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -38,14 +36,14 @@ public class CsvConverter implements GeoJsonConverter {
             Double lat = Double.parseDouble(latStr);
             Double lon = Double.parseDouble(lonStr);
 
-            Point point = PointImpl.of(ImmutableList.of(lon, lat));
+            Point point = new Point(ImmutableList.of(lon, lat));
 
             Map<String, Object> properties = Maps.newHashMap();
             for (String key : columns) {
                 properties.put(key, record.get(key));
             }
 
-            return Optional.of(FeatureImpl.of(Optional.empty(), Optional.of(point), properties));
+            return Optional.of(new Feature(null, point, properties));
         }
 
         return Optional.empty();

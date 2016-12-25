@@ -4,12 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
-import io.quartic.geojson.Geometry;
-import io.quartic.geojson.Point;
-import io.quartic.geojson.PointImpl;
+import io.quartic.geojson.*;
+import io.quartic.geojson.FeatureCollection;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
@@ -50,10 +46,10 @@ public class FeatureConverterShould {
         when(attributesFactory.builder())
                 .thenReturn(builderA)
                 .thenReturn(builderB);
-        final Feature featureA = geojsonFeature("a", Optional.of(point()));
-        final Feature featureB = geojsonFeature("b", Optional.of(point()));
+        final Feature featureA = geojsonFeature("a", point());
+        final Feature featureB = geojsonFeature("b", point());
 
-        final Collection<NakedFeature> modelFeatures = converter.toModel(FeatureCollectionImpl.of(newArrayList(featureA, featureB)));
+        final Collection<NakedFeature> modelFeatures = converter.toModel(new FeatureCollection(newArrayList(featureA, featureB)));
 
         verify(attributesFactory, times(2)).builder();
         verify(builderA).put("timestamp", 1234);
@@ -63,9 +59,9 @@ public class FeatureConverterShould {
 
     @Test
     public void ignore_features_with_null_geometry() throws Exception {
-        final Feature feature = geojsonFeature("a", Optional.empty());
+        final Feature feature = geojsonFeature("a", null);
 
-        final Collection<NakedFeature> modelFeatures = converter.toModel(FeatureCollectionImpl.of(newArrayList(feature)));
+        final Collection<NakedFeature> modelFeatures = converter.toModel(new FeatureCollection(newArrayList(feature)));
 
         assertThat(modelFeatures, empty());
     }
@@ -96,11 +92,8 @@ public class FeatureConverterShould {
         return NakedFeatureImpl.of(Optional.of(id), factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
     }
 
-    private Feature geojsonFeature(String id, Optional<Geometry> geometry) {
-        return FeatureImpl.of(
-                Optional.of(id),
-                geometry,
-                ImmutableMap.of("timestamp", 1234));
+    private Feature geojsonFeature(String id, Geometry geometry) {
+        return new Feature(id, geometry, ImmutableMap.of("timestamp", 1234));
     }
 
     private Point point() {
@@ -108,7 +101,7 @@ public class FeatureConverterShould {
     }
 
     private Point point(double x, double y) {
-        return PointImpl.of(ImmutableList.of(x, y));
+        return new Point(ImmutableList.of(x, y));
     }
 
     private AttributeName name(String name) {
