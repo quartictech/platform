@@ -35,8 +35,6 @@ class GeoJsonShould {
 
         val json = sw.toString()
 
-        println(json)
-
         Assert.assertThat(OBJECT_MAPPER.readValue(json, FeatureCollection::class.java), Matchers.equalTo(original))
     }
 }

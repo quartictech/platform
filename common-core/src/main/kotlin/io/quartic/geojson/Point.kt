@@ -6,5 +6,3 @@ data class Point @JvmOverloads constructor(
         val crs: Map<String, Any>? = emptyMap(),
         val bbox: List<Double>? = emptyList()
 ) : Geometry
-
-fun of(coordinates: List<Double>) = Point(coordinates)
