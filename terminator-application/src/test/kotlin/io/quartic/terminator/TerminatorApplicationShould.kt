@@ -5,11 +5,11 @@ import io.dropwizard.testing.DropwizardTestSupport
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.quartic.catalogue.api.*
 import io.quartic.common.client.ClientBuilder
-import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
-import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.common.geojson.Feature
 import io.quartic.common.geojson.FeatureCollection
 import io.quartic.common.geojson.Point
+import io.quartic.common.serdes.objectMapper
+import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import io.quartic.terminator.api.TerminatorService
 import org.hamcrest.Matchers.contains
@@ -39,7 +39,7 @@ class TerminatorApplicationShould {
 
     @Before
     fun before() {
-        catalogue.setMessages(OBJECT_MAPPER.writeValueAsString(datasets()))
+        catalogue.setMessages(objectMapper().writeValueAsString(datasets()))
         app.before()
     }
 

@@ -3,7 +3,6 @@ package io.quartic.common.geojson;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import io.quartic.common.serdes.ObjectMappers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +11,8 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
 /**
  * GeoJsonParser is a very forgiving parser of geojson files containing a simple FeatureCollection
@@ -29,7 +30,7 @@ public class GeoJsonParser implements Iterator<Feature> {
 
     public GeoJsonParser(InputStream inputStream) throws IOException {
         JsonFactory jsonFactory = new JsonFactory();
-        jsonFactory.setCodec(ObjectMappers.INSTANCE.getOBJECT_MAPPER());
+        jsonFactory.setCodec(objectMapper());
         parser = jsonFactory.createParser(inputStream);
     }
 

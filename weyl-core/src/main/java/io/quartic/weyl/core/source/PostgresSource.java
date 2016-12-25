@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
 @Value.Immutable
 public abstract class PostgresSource implements Source {
@@ -130,7 +130,7 @@ public abstract class PostgresSource implements Source {
         PGobject pgObject = (PGobject) value;
         if (pgObject.getType().equals("json") || pgObject.getType().equals("jsonb")) {
             try {
-                return Optional.of(INSTANCE.getOBJECT_MAPPER().readValue(pgObject.getValue(), ComplexAttribute.class));
+                return Optional.of(objectMapper().readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
                 LOG.warn("[{}] Exception parsing json to attribute: {}", name(), e.toString());
                 return Optional.empty();

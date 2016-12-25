@@ -1,7 +1,7 @@
 package io.quartic.common.geojson
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
+import io.quartic.common.serdes.objectMapper
 import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.Test
@@ -28,13 +28,13 @@ class GeoJsonShould {
                         ))))
         ))
 
-        OBJECT_MAPPER.enable(SerializationFeature.INDENT_OUTPUT)
+        objectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 
         val sw = StringWriter()
-        OBJECT_MAPPER.writeValue(sw, original)
+        objectMapper().writeValue(sw, original)
 
         val json = sw.toString()
 
-        Assert.assertThat(OBJECT_MAPPER.readValue(json, FeatureCollection::class.java), Matchers.equalTo(original))
+        Assert.assertThat(objectMapper().readValue(json, FeatureCollection::class.java), Matchers.equalTo(original))
     }
 }

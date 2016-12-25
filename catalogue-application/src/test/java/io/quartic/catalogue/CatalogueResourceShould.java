@@ -21,7 +21,7 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
     private final Clock clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), clock, INSTANCE.getOBJECT_MAPPER());
+    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), clock, objectMapper());
 
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
@@ -99,7 +99,7 @@ public class CatalogueResourceShould {
 
     private String serialize(Object object) {
         try {
-            return INSTANCE.getOBJECT_MAPPER().writeValueAsString(object);
+            return objectMapper().writeValueAsString(object);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

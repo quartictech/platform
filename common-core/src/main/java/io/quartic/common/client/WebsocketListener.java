@@ -1,6 +1,7 @@
 package io.quartic.common.client;
 
 import com.fasterxml.jackson.databind.JavaType;
+import io.quartic.common.serdes.ObjectMappersKt;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
@@ -34,7 +35,7 @@ public abstract class WebsocketListener<T> {
         protected abstract WebsocketClientSessionFactory websocketFactory();
 
         public <T> WebsocketListener<T> create(Class<T> type) {
-            return create(INSTANCE.getOBJECT_MAPPER().getTypeFactory().uncheckedSimpleType(type));
+            return create(objectMapper().getTypeFactory().uncheckedSimpleType(type));
         }
 
         public <T> WebsocketListener<T> create(JavaType type) {
@@ -70,7 +71,7 @@ public abstract class WebsocketListener<T> {
 
     private Observable<T> convert(String message) {
         try {
-            return just(INSTANCE.getOBJECT_MAPPER().readValue(message, type()));
+            return just(objectMapper().readValue(message, type()));
         } catch (IOException e) {
             LOG.error("Error converting message", e);
             return empty();

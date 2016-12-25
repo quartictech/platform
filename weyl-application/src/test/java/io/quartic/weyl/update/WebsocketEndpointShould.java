@@ -28,7 +28,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
-import static io.quartic.common.serdes.ObjectMappers.encode;
+import static io.quartic.common.serdes.ObjectMappersKt.encode;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.equalTo;
@@ -64,7 +64,7 @@ public class WebsocketEndpointShould {
         });
 
         createAndOpenEndpoint();
-        captureMessageHandler().onMessage(INSTANCE.encode(msg));
+        captureMessageHandler().onMessage(encode(msg));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
         assertThat(subscriber.getOnNextEvents().get(0), equalTo(msg));
@@ -109,7 +109,7 @@ public class WebsocketEndpointShould {
     }
 
     private void verifyMessage(Object expected) throws JsonProcessingException {
-        verify(session.getAsyncRemote()).sendText(INSTANCE.encode(expected));
+        verify(session.getAsyncRemote()).sendText(encode(expected));
     }
 
     private WebsocketEndpoint createAndOpenEndpoint() {

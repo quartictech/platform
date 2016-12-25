@@ -3,6 +3,7 @@ package io.quartic.common.client;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
+import io.quartic.common.serdes.ObjectMappersKt;
 import io.quartic.common.test.websocket.WebsocketServerRule;
 import org.hamcrest.Matchers;
 import org.immutables.value.Value;
@@ -10,7 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
-import static io.quartic.common.serdes.ObjectMappers.encode;
+import static io.quartic.common.serdes.ObjectMappersKt.encode;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -23,7 +24,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void emit_items_from_socket() throws Exception {
-        server.setMessages(INSTANCE.encode(TestThingImpl.of("foo")), INSTANCE.encode(TestThingImpl.of("bar")));
+        server.setMessages(encode(TestThingImpl.of("foo")), encode(TestThingImpl.of("bar")));
 
         final WebsocketListener<TestThing> listener = createListener();
 
@@ -36,7 +37,7 @@ public class WebsocketListenerShould {
 
     @Test
     public void skip_undecodable_items() throws Exception {
-        server.setMessages("bad", INSTANCE.encode(TestThingImpl.of("bar")));
+        server.setMessages("bad", encode(TestThingImpl.of("bar")));
 
         final WebsocketListener<TestThing> listener = createListener();
 

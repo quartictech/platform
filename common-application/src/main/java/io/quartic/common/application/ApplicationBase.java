@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 
-import static io.quartic.common.serdes.ObjectMappers.configureObjectMapper;
+import static io.quartic.common.serdes.ObjectMappersKt.configureObjectMapper;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -26,7 +26,7 @@ public abstract class ApplicationBase<T extends Configuration> extends Applicati
 
     @Override
     public final void initialize(Bootstrap<T> bootstrap) {
-        INSTANCE.configureObjectMapper(bootstrap.getObjectMapper());
+        configureObjectMapper(bootstrap.getObjectMapper());
 
         bootstrap.setConfigurationSourceProvider((path) -> new SequenceInputStream(
                 new FileInputStream(path),

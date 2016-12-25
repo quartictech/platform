@@ -8,9 +8,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import java.io.IOException
 
-val OBJECT_MAPPER = configureObjectMapper(ObjectMapper())
+val OBJECT_MAPPER: ObjectMapper = configureObjectMapper(ObjectMapper())
 
-fun configureObjectMapper(mapper: ObjectMapper) = mapper
+fun objectMapper() = OBJECT_MAPPER
+
+fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
         .registerModule(Jdk8Module())
         .registerModule(JavaTimeModule())
         .registerModule(KotlinModule())

@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -49,7 +49,7 @@ public class GeoJsonParserShould {
     public void parse_valid_geojson() throws IOException {
 
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = INSTANCE.getOBJECT_MAPPER().readValue(GEOJSON, FeatureCollection.class);
+        FeatureCollection featureCollection = objectMapper().readValue(GEOJSON, FeatureCollection.class);
 
         int count = 0;
         while (parser.hasNext()) {
@@ -63,7 +63,7 @@ public class GeoJsonParserShould {
     @Test
     public void parse_all_features() throws IOException {
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(GEOJSON.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = INSTANCE.getOBJECT_MAPPER().readValue(GEOJSON, FeatureCollection.class);
+        FeatureCollection featureCollection = objectMapper().readValue(GEOJSON, FeatureCollection.class);
 
         assertThat(featureCollection.getFeatures(), equalTo(parser.features().collect(toList())));
     }
@@ -78,8 +78,7 @@ public class GeoJsonParserShould {
                 "        }\n" +
                 "       ]\n" +
                 "     }";
-        new GeoJsonParser(new ByteArrayInputStream(input.getBytes(Charsets.UTF8_CHARSET)))
-                .validate();
+        new GeoJsonParser(new ByteArrayInputStream(input.getBytes(Charsets.UTF8_CHARSET))).validate();
     }
 
     @Test
@@ -119,7 +118,7 @@ public class GeoJsonParserShould {
                 "       ]\n" +
                 "     }";
         GeoJsonParser parser = new GeoJsonParser(new ByteArrayInputStream(input.getBytes(Charsets.UTF8_CHARSET)));
-        FeatureCollection featureCollection = INSTANCE.getOBJECT_MAPPER().readValue(input, FeatureCollection.class);
+        FeatureCollection featureCollection = objectMapper().readValue(input, FeatureCollection.class);
 
         int count = 0;
         while (parser.hasNext()) {

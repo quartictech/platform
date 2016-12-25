@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.feature;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
@@ -17,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.weyl.core.geojson.UtilsKt.fromJts;
 import static io.quartic.weyl.core.geojson.UtilsKt.toJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
@@ -63,15 +62,15 @@ public class FeatureConverter {
 
     private Attributes convertToModelAttributes(Map<String, Object> rawAttributes) {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder();
-        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(INSTANCE.getOBJECT_MAPPER(), k, v)));
+        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(k, v)));
         return builder.build();
     }
 
-    private static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
+    private static Object convertAttributeValue(String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             try {
-                return objectMapper.convertValue(value, ComplexAttribute.class);
+                return objectMapper().convertValue(value, ComplexAttribute.class);
             }
             catch (IllegalArgumentException e) {
                 LOG.warn("Couldn't convert attribute {}. Exception: {}", key, e);

@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import static io.quartic.common.rx.RxUtilsKt.combine;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.common.uid.UidUtils.stringify;
 import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Emitter.BackpressureMode.BUFFER;
@@ -62,7 +62,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
                 @Override
                 public void onMessage(String message) {
                     try {
-                        final SocketMessage msg = INSTANCE.getOBJECT_MAPPER().readValue(message, SocketMessage.class);
+                        final SocketMessage msg = objectMapper().readValue(message, SocketMessage.class);
                         if (msg instanceof ClientStatusMessage) {
                             ClientStatusMessage csm = (ClientStatusMessage)msg;
                             LOG.info("[{}] Subscribed to layers {} + entities {}",
@@ -83,7 +83,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
 
     private void sendMessage(Session session, SocketMessage message) {
         try {
-            session.getAsyncRemote().sendText(INSTANCE.getOBJECT_MAPPER().writeValueAsString(message));
+            session.getAsyncRemote().sendText(objectMapper().writeValueAsString(message));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }

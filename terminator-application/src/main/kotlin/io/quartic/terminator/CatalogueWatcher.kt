@@ -6,7 +6,7 @@ import io.quartic.catalogue.api.TerminationId
 import io.quartic.catalogue.api.TerminatorDatasetLocator
 import io.quartic.common.client.WebsocketListener
 import io.quartic.common.logging.logger
-import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
+import io.quartic.common.serdes.objectMapper
 import rx.Subscription
 
 class CatalogueWatcher(private val listenerFactory: WebsocketListener.Factory) : AutoCloseable {
@@ -23,7 +23,7 @@ class CatalogueWatcher(private val listenerFactory: WebsocketListener.Factory) :
 
     private val listener: WebsocketListener<Map<DatasetId, DatasetConfig>> by lazy {
         listenerFactory.create<Map<DatasetId, DatasetConfig>>(
-                OBJECT_MAPPER.typeFactory.constructMapType(Map::class.java, DatasetId::class.java, DatasetConfig::class.java)
+                objectMapper().typeFactory.constructMapType(Map::class.java, DatasetId::class.java, DatasetConfig::class.java)
         )
     }
 

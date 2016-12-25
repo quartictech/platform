@@ -1,5 +1,8 @@
 package io.quartic.common.geojson
 
+import com.fasterxml.jackson.annotation.JsonTypeName
+
+@JsonTypeName("Feature")
 data class Feature @JvmOverloads constructor(
         val id: String? = null,
         val geometry: Geometry? = null,

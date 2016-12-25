@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static com.google.common.collect.Maps.difference;
 import static io.quartic.common.rx.RxUtilsKt.pairWithPrevious;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static rx.Observable.from;
@@ -31,7 +31,7 @@ public abstract class CatalogueWatcher {
 
     @Value.Lazy
     protected WebsocketListener<Map<DatasetId, DatasetConfig>> listener() {
-        return listenerFactory().create(INSTANCE.getOBJECT_MAPPER().getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
+        return listenerFactory().create(objectMapper().getTypeFactory().constructMapType(Map.class, DatasetId.class, DatasetConfig.class));
     }
 
     @Value.Lazy

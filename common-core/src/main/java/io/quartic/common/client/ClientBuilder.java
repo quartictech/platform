@@ -9,7 +9,7 @@ import feign.jaxrs.JAXRSContract;
 import feign.slf4j.Slf4jLogger;
 
 import static com.google.common.net.HttpHeaders.USER_AGENT;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
 public final class ClientBuilder {
     private ClientBuilder() {}
@@ -21,8 +21,8 @@ public final class ClientBuilder {
     private static <T> T build(Class<T> target, String userAgent, String url) {
         return Feign.builder()
                 .contract(new JAXRSContract())
-                .encoder(new InputStreamEncoder(new JacksonEncoder(INSTANCE.getOBJECT_MAPPER())))
-                .decoder(new JacksonDecoder(INSTANCE.getOBJECT_MAPPER()))
+                .encoder(new InputStreamEncoder(new JacksonEncoder(objectMapper())))
+                .decoder(new JacksonDecoder(objectMapper()))
                 .retryer(new Retryer.Default(0, 0, 1))
                 .requestInterceptor(template -> template.header(USER_AGENT, userAgent))
                 .logger(new Slf4jLogger(ClientBuilder.class))

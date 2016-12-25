@@ -1,5 +1,8 @@
 package io.quartic.common.geojson
 
+import com.fasterxml.jackson.annotation.JsonTypeName
+
+@JsonTypeName("MultiPolygon")
 data class MultiPolygon @JvmOverloads constructor(
         val coordinates: List<List<List<List<Double>>>>,
         // TODO

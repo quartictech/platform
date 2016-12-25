@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,7 +42,7 @@ public class GeoJsonSourceShould {
         stubFor(WireMock.get(urlEqualTo("/"))
                 .willReturn(aResponse()
                         .withHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .withBody(INSTANCE.getOBJECT_MAPPER().writeValueAsString(original))
+                        .withBody(objectMapper().writeValueAsString(original))
                 )
         );
 
