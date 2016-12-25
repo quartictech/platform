@@ -35,7 +35,7 @@ class CatalogueWatcherShould {
     @Test
     fun expose_returned_ids() {
         @Suppress("USELESS_CAST")
-        val terminationId = TerminationIdImpl.of("456") as TerminationId
+        val terminationId = TerminationId("456") as TerminationId
         val datasets = datasetsWithLocator(TerminatorDatasetLocatorImpl.of(terminationId))
         whenever(listener.observable).thenReturn(just(datasets))
 
@@ -54,7 +54,7 @@ class CatalogueWatcherShould {
         assertThat(proxy.terminationIds, empty())
     }
 
-    private fun datasetsWithLocator(locator: DatasetLocator): Map<DatasetId, DatasetConfig> = hashMapOf(DatasetIdImpl.of("123") to DatasetConfigImpl.of(
+    private fun datasetsWithLocator(locator: DatasetLocator): Map<DatasetId, DatasetConfig> = hashMapOf(DatasetId("123") to DatasetConfigImpl.of(
             DatasetMetadataImpl.of(
                     "foo",
                     "bar",

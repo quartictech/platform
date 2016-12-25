@@ -8,7 +8,7 @@ import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.DynamicSchemaImpl;
-import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import org.junit.Test;
@@ -185,7 +185,7 @@ public class AttributeSchemaInferrerShould {
 
     private Feature feature(Map<AttributeName, Object> attributes) {
         return FeatureImpl.builder()
-                .entityId(EntityIdImpl.of("xyz"))
+                .entityId(new EntityId("xyz"))
                 .geometry(mock(Geometry.class))
                 .attributes(() -> attributes)
                 .build();

@@ -126,7 +126,7 @@ public abstract class LayerRouter {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
-            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().uid());
+            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().getUid());
 
             return just(LayerSnapshotSequenceImpl.of(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
         } catch (Exception e) {

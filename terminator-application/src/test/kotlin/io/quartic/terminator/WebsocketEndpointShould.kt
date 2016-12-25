@@ -4,7 +4,7 @@ import com.google.common.collect.Maps.newHashMap
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import io.quartic.catalogue.api.TerminationIdImpl
+import io.quartic.catalogue.api.TerminationId
 import io.quartic.common.geojson.Feature
 import io.quartic.common.geojson.FeatureCollection
 import io.quartic.common.serdes.objectMapper
@@ -19,7 +19,7 @@ import javax.websocket.Session
 
 class WebsocketEndpointShould {
     private val fcwti = FeatureCollectionWithTerminationId(
-            TerminationIdImpl.of("123"),
+            TerminationId("123"),
             FeatureCollection(listOf(Feature("456", mock())))
     )
 

@@ -1,9 +1,10 @@
 package io.quartic.common.geojson
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.serdes.objectMapper
-import org.hamcrest.Matchers
-import org.junit.Assert
+import org.hamcrest.Matchers.equalTo
+import org.junit.Assert.assertThat
 import org.junit.Test
 import java.io.StringWriter
 
@@ -35,6 +36,6 @@ class GeoJsonShould {
 
         val json = sw.toString()
 
-        Assert.assertThat(objectMapper().readValue(json, FeatureCollection::class.java), Matchers.equalTo(original))
+        assertThat(OBJECT_MAPPER.readValue(json, FeatureCollection::class.java), equalTo(original))
     }
 }

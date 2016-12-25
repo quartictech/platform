@@ -3,14 +3,14 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.TerminationIdImpl;
+import io.quartic.catalogue.api.TerminationId;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
-import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
 import io.quartic.common.geojson.Point;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
@@ -46,7 +46,7 @@ public class TerminatorSourceFactoryShould {
     public void import_things() throws Exception {
         final Collection<NakedFeature> modelFeatures = mock(Collection.class);
         final FeatureCollection collection = featureCollection(geojsonFeature("a", point()));
-        final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
+        final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(new TerminationId("123"));
 
         when(listener.getObservable()).thenReturn(just(
                 new FeatureCollectionWithTerminationId(locator.id(), collection)
@@ -64,8 +64,8 @@ public class TerminatorSourceFactoryShould {
         final Collection<NakedFeature> modelFeaturesB = mock(Collection.class);
         final FeatureCollection collectionA = featureCollection(geojsonFeature("a", point()));
         final FeatureCollection collectionB = featureCollection(geojsonFeature("b", point()));
-        final TerminatorDatasetLocator locatorA = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
-        final TerminatorDatasetLocator locatorB = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("456"));
+        final TerminatorDatasetLocator locatorA = TerminatorDatasetLocatorImpl.of(new TerminationId("123"));
+        final TerminatorDatasetLocator locatorB = TerminatorDatasetLocatorImpl.of(new TerminationId("456"));
 
         when(listener.getObservable()).thenReturn(just(
                 new FeatureCollectionWithTerminationId(locatorA.id(), collectionA),

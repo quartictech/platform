@@ -97,7 +97,7 @@ public class FeatureConverter {
         feature.attributes().attributes().entrySet().stream()
                 .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_entityId", feature.entityId().uid());
+        output.put("_entityId", feature.entityId().getUid());
         return output;
     }
 }

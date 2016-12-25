@@ -6,7 +6,6 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.TerminationId;
-import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.common.uid.UidGenerator;
@@ -36,7 +35,7 @@ import static java.util.Collections.emptyMap;
 public class ManagementResource {
     private static final String HOWL_NAMESPACE = "management";
     private final CatalogueService catalogueService;
-    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = randomGenerator(TerminationIdImpl::of);
+    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = randomGenerator(TerminationId::new);
     private final HowlService howlService;
 
     public ManagementResource(CatalogueService catalogueService, HowlService howlService) {
@@ -107,7 +106,7 @@ public class ManagementResource {
                                 throw new BadRequestException("exception while converting csv to geojson: " + e);
                             }
                         });
-                return storageId.uid();
+                return storageId.getUid();
             default:
                 return fileName;
         }

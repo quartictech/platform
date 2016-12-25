@@ -65,7 +65,7 @@ public abstract class BufferComputation implements LayerPopulator {
 
         Collection<NakedFeature> bufferedFeatures = layer.features().parallelStream()
                 .map(feature -> NakedFeatureImpl.of(
-                        Optional.of(feature.entityId().uid()),
+                        Optional.of(feature.entityId().getUid()),
                         BufferOp.bufferOp(feature.geometry(), bufferSpec().bufferDistance()),
                         feature.attributes())
                 )

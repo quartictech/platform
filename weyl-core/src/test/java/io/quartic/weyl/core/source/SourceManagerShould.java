@@ -13,7 +13,6 @@ import io.quartic.weyl.core.catalogue.CatalogueEventImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSpec;
@@ -106,7 +105,7 @@ public class SourceManagerShould {
 
         final LayerPopulator populator = collectedLayerPopulators().get(0);
         assertThat(populator.spec(emptyList()), equalTo(LayerSpecImpl.of(
-                LayerIdImpl.of("123"),
+                new LayerId("123"),
                 LayerMetadataImpl.of("foo", "blah", "quartic", Instant.EPOCH, Optional.empty()),
                 LOCATION_AND_TRACK.getLayerView(),
                 staticSchema(),
@@ -146,7 +145,7 @@ public class SourceManagerShould {
         catalogueEvents.onCompleted();
 
         assertThat(collectedLayerPopulators().stream().map(p -> p.spec(emptyList()).id()).collect(toList()),
-                contains(LayerIdImpl.of("123"), LayerIdImpl.of("456")));
+                contains(new LayerId("123"), new LayerId("456")));
     }
 
     @Test
@@ -160,7 +159,7 @@ public class SourceManagerShould {
     }
 
     private List<LayerUpdate> collectedUpdateSequenceFor(String layerId) {
-        return updateSubscribers.get(LayerIdImpl.of(layerId)).getOnNextEvents();
+        return updateSubscribers.get(new LayerId(layerId)).getOnNextEvents();
     }
 
     private List<LayerPopulator> collectedLayerPopulators() {
@@ -169,7 +168,7 @@ public class SourceManagerShould {
     }
 
     private CatalogueEvent event(CatalogueEvent.Type type, String id, String name, DatasetLocator locator) {
-        return CatalogueEventImpl.of(type, DatasetId.fromString(id), datasetConfig(name, locator));
+        return CatalogueEventImpl.of(type, new DatasetId(id), datasetConfig(name, locator));
     }
 
     private DatasetConfig datasetConfig(String name, DatasetLocator source) {

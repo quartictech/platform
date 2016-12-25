@@ -2,7 +2,6 @@ package io.quartic.howl;
 
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.howl.api.HowlStorageId;
-import io.quartic.howl.api.HowlStorageIdImpl;
 import io.quartic.howl.storage.InputStreamWithContentType;
 import io.quartic.howl.storage.StorageBackend;
 import org.apache.commons.io.IOUtils;
@@ -29,7 +28,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 @Path("/{namespace}")
 public class HowlResource {
     private final StorageBackend storageBackend;
-    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = randomGenerator(HowlStorageIdImpl::of);
+    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = randomGenerator(HowlStorageId::new);
 
     public HowlResource(StorageBackend storageBackend) {
         this.storageBackend = storageBackend;
@@ -41,7 +40,7 @@ public class HowlResource {
     public HowlStorageId uploadFile(@PathParam("namespace") String namespace,
                                     @Context HttpServletRequest request) throws IOException {
         HowlStorageId howlStorageId = howlStorageIdGenerator.get();
-        storageBackend.put(request.getContentType(), namespace, howlStorageId.uid(), request.getInputStream());
+        storageBackend.put(request.getContentType(), namespace, howlStorageId.getUid(), request.getInputStream());
         return howlStorageId;
     }
 

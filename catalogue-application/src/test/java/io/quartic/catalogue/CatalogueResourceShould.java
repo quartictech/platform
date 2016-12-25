@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetIdImpl;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
 import org.junit.Test;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
     private final Clock clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-    private final CatalogueResource resource = new CatalogueResource(sequenceGenerator(DatasetIdImpl::of), clock, objectMapper());
+    private final CatalogueResource resource = new CatalogueResource(sequenceGenerator(DatasetId::new), clock, objectMapper());
 
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
