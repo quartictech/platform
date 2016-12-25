@@ -6,13 +6,13 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.client.ClientBuilder;
+import io.quartic.common.client.ClientUtilsKt;
 import io.quartic.common.healthcheck.PingPongHealthCheck;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.howl.api.HowlClient;
 import io.quartic.howl.api.HowlService;
 
-import static io.quartic.common.client.Utils.userAgentFor;
+import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 
 public class ManagementApplication extends ApplicationBase<ManagementConfiguration> {
     public static void main(String[] args) throws Exception {
@@ -33,7 +33,7 @@ public class ManagementApplication extends ApplicationBase<ManagementConfigurati
 
         environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueUrl()));
 
-        CatalogueService catalogueService = ClientBuilder.build(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
+        CatalogueService catalogueService = ClientUtilsKt.client(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(new ManagementResource(catalogueService, howlService));
     }

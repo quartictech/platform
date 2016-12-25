@@ -7,7 +7,6 @@ import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
 import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
-import io.quartic.common.client.ClientBuilder;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
+import static io.quartic.common.client.ClientUtilsKt.client;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -26,7 +26,7 @@ public class CatalogueApplicationShould {
 
     @Test
     public void retrieve_registered_datasets() throws Exception {
-        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
+        final CatalogueService catalogue = client(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
 
         final DatasetConfig config = DatasetConfigImpl.of(
                 DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty(), Optional.empty()),

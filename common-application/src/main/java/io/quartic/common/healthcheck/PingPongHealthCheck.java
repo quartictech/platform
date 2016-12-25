@@ -1,14 +1,15 @@
 package io.quartic.common.healthcheck;
 
 import com.codahale.metrics.health.HealthCheck;
-import io.quartic.common.client.ClientBuilder;
 import io.quartic.common.pingpong.PingPongService;
+
+import static io.quartic.common.client.ClientUtilsKt.client;
 
 public class PingPongHealthCheck extends HealthCheck {
     private final PingPongService pingPong;
 
     public PingPongHealthCheck(Class<?> owner, String url) {
-        this.pingPong = ClientBuilder.build(PingPongService.class, owner, url);
+        this.pingPong = client(PingPongService.class, owner, url);
     }
 
     @Override

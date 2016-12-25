@@ -2,7 +2,7 @@ package io.quartic.common.websocket
 
 import com.google.common.collect.Lists.newArrayList
 import com.google.common.net.HttpHeaders.USER_AGENT
-import io.quartic.common.client.Utils.userAgentFor
+import io.quartic.common.client.userAgentFor
 import javax.websocket.ClientEndpointConfig
 import javax.websocket.Endpoint
 import javax.websocket.server.ServerEndpointConfig

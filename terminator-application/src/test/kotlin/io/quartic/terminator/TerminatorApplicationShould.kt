@@ -4,7 +4,7 @@ import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.DropwizardTestSupport
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.quartic.catalogue.api.*
-import io.quartic.common.client.ClientBuilder
+import io.quartic.common.client.client
 import io.quartic.common.geojson.Feature
 import io.quartic.common.geojson.FeatureCollection
 import io.quartic.common.geojson.Point
@@ -50,7 +50,7 @@ class TerminatorApplicationShould {
 
     @Test
     fun forward_data_from_endpoint_to_websocket() {
-        val terminator = ClientBuilder.build(TerminatorService::class.java, javaClass, "http://localhost:" + app.localPort + "/api")
+        val terminator = client<TerminatorService>(javaClass, "http://localhost:" + app.localPort + "/api")
 
         val collector = CollectingEndpoint.create<FeatureCollectionWithTerminationId>()
         ContainerProvider.getWebSocketContainer().connectToServer(collector, URI("ws://localhost:" + app.localPort + "/ws"))
