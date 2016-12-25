@@ -85,7 +85,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     @Override
-    public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(WeylConfiguration configuration, Environment environment) {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(

@@ -18,7 +18,7 @@ public class HowlApplication extends ApplicationBase<HowlConfiguration> {
     }
 
     @Override
-    public void runApplication(HowlConfiguration configuration, Environment environment) throws Exception {
+    public void runApplication(HowlConfiguration configuration, Environment environment) {
         StorageBackend storageBackend = new DiskStorageBackend(Paths.get(configuration.getDataDir()));
         environment.jersey().register(new HowlResource(storageBackend));
     }
