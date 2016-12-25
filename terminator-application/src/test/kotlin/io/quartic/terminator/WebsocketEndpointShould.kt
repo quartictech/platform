@@ -26,7 +26,7 @@ class WebsocketEndpointShould {
 
     @Test
     fun send_messages_for_emitted_feature_collections() {
-        val session = createSession("sessionA")
+        val session = createSession()
 
         val observable = just(fcwti)
 
@@ -38,8 +38,8 @@ class WebsocketEndpointShould {
 
     @Test
     fun send_messages_to_multiple_subscribers() {
-        val sessionA = createSession("sessionA")
-        val sessionB = createSession("sessionB")
+        val sessionA = createSession()
+        val sessionB = createSession()
 
         val observable = just(fcwti)
 
@@ -53,7 +53,7 @@ class WebsocketEndpointShould {
 
     @Test
     fun unsubscribe_on_close() {
-        val session = createSession("sessionA")
+        val session = createSession()
 
         val interceptor = Interceptor<FeatureCollectionWithTerminationId>()
 
@@ -64,8 +64,7 @@ class WebsocketEndpointShould {
         assertThat(interceptor.unsubscribed, equalTo(true))
     }
 
-    private fun createSession(sessionId: String): Session = mock {
-        on { id } doReturn sessionId
+    private fun createSession(): Session = mock {
         on { userProperties } doReturn newHashMap()
         on { asyncRemote } doReturn mock<RemoteEndpoint.Async>()
     }
