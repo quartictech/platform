@@ -48,7 +48,7 @@ public class TerminatorSourceFactoryShould {
         final FeatureCollection collection = featureCollection(geojsonFeature("a", point()));
         final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 new FeatureCollectionWithTerminationId(locator.id(), collection)
         ));
         when(converter.toModel(collection)).thenReturn(modelFeatures);
@@ -67,7 +67,7 @@ public class TerminatorSourceFactoryShould {
         final TerminatorDatasetLocator locatorA = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
         final TerminatorDatasetLocator locatorB = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("456"));
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 new FeatureCollectionWithTerminationId(locatorA.id(), collectionA),
                 new FeatureCollectionWithTerminationId(locatorB.id(), collectionB)
         ));

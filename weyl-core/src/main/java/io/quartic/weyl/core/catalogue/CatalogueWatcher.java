@@ -36,7 +36,7 @@ public abstract class CatalogueWatcher {
 
     @Value.Lazy
     public Observable<CatalogueEvent> events() {
-        return listener().observable()
+        return listener().getObservable()
                 .doOnNext((x) -> LOG.info("Received catalogue update"))
                 .compose(pairWithPrevious(Collections.<DatasetId, DatasetConfig>emptyMap()))
                 .concatMap(this::extractEvents);

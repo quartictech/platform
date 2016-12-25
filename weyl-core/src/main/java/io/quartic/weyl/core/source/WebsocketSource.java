@@ -33,7 +33,7 @@ public abstract class WebsocketSource implements Source {
     @Override
     public Observable<LayerUpdate> observable() {
         return listenerFactory().create(LiveEvent.class)
-                .observable()
+                .getObservable()
                 .doOnNext(s -> messageRateMeter().mark())
                 .map(event -> LayerUpdateImpl.of(converter().toModel(event.featureCollection())));
     }

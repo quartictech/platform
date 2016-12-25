@@ -40,7 +40,7 @@ public class CatalogueWatcherShould {
         final DatasetId id = mock(DatasetId.class);
         final DatasetConfig config = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(map(entry(id, config))));
+        when(listener.getObservable()).thenReturn(just(map(entry(id, config))));
 
         assertThat(all(watcher.events()), contains(CatalogueEventImpl.of(CREATE, id, config)));
     }
@@ -50,7 +50,7 @@ public class CatalogueWatcherShould {
         final DatasetId id = mock(DatasetId.class);
         final DatasetConfig config = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 map(entry(id, config)),
                 map()   // Gone!
         ));
@@ -66,7 +66,7 @@ public class CatalogueWatcherShould {
         final DatasetId id = mock(DatasetId.class);
         final DatasetConfig config = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 map(entry(id, config)),
                 map(entry(id, config))  // Again
         ));
@@ -81,7 +81,7 @@ public class CatalogueWatcherShould {
         final DatasetConfig configA = mock(DatasetConfig.class);
         final DatasetConfig configB = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 map(entry(idA, configA)),
                 map(entry(idA, configA), entry(idB, configB)),
                 map(entry(idB, configB))

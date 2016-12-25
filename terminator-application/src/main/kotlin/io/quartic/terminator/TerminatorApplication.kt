@@ -19,8 +19,8 @@ class TerminatorApplication : ApplicationBase<TerminatorConfiguration>() {
     }
 
     public override fun runApplication(configuration: TerminatorConfiguration, environment: Environment) {
-        val catalogueWatcher = CatalogueWatcher(WebsocketListener.Factory.of(
-                configuration.catalogueWatchUrl,
+        val catalogueWatcher = CatalogueWatcher(WebsocketListener.Factory(
+                configuration.catalogueWatchUrl!!,
                 WebsocketClientSessionFactory(javaClass)
         ))
         val terminator = TerminatorResource(catalogueWatcher)

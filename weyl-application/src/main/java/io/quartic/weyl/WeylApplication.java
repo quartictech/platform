@@ -95,7 +95,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
-                WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory)
+                new WebsocketListener.Factory(configuration.getCatalogueWatchUrl(), websocketFactory)
         );
 
         final SourceManager sourceManager = SourceManagerImpl.builder()
@@ -180,7 +180,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WebsocketClientSessionFactory websocketFactory
     ) {
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
-                .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
+                .listenerFactory(new WebsocketListener.Factory(configuration.getTerminatorUrl(), websocketFactory))
                 .metrics(environment.metrics())
                 .build();
 
@@ -197,7 +197,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
-                        .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
+                        .listenerFactory(new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(featureConverter())
                         .metrics(environment.metrics())
                         .build(),

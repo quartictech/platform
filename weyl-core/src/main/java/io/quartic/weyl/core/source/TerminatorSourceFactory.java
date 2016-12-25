@@ -32,7 +32,7 @@ public abstract class TerminatorSourceFactory {
     @Value.Derived
     protected Observable<FeatureCollectionWithTerminationId> collections() {
         return listenerFactory().create(FeatureCollectionWithTerminationId.class)
-                .observable()
+                .getObservable()
                 .doOnNext(s -> messageRateMeter().mark());
     }
 

@@ -37,7 +37,7 @@ class CatalogueWatcherShould {
         @Suppress("USELESS_CAST")
         val terminationId = TerminationIdImpl.of("456") as TerminationId
         val datasets = datasetsWithLocator(TerminatorDatasetLocatorImpl.of(terminationId))
-        whenever(listener.observable()).thenReturn(just(datasets))
+        whenever(listener.observable).thenReturn(just(datasets))
 
         proxy.start()
 
@@ -47,7 +47,7 @@ class CatalogueWatcherShould {
     @Test
     fun ignore_incorrect_types() {
         val datasets = datasetsWithLocator(PostgresDatasetLocatorImpl.of("a", "b", "c", "d"))
-        whenever(listener.observable()).thenReturn(just(datasets))
+        whenever(listener.observable).thenReturn(just(datasets))
 
         proxy.start()
 

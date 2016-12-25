@@ -28,7 +28,7 @@ class CatalogueWatcher(private val listenerFactory: WebsocketListener.Factory) :
     }
 
     fun start() {
-        subscription = listener.observable().subscribe({ this.update(it) })
+        subscription = listener.observable.subscribe({ this.update(it) })
     }
 
     override fun close() {

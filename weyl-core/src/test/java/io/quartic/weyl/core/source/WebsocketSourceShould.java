@@ -43,7 +43,7 @@ public class WebsocketSourceShould {
         final Collection<NakedFeature> modelFeatures = mock(Collection.class);
 
         when(listenerFactory.create(LiveEvent.class)).thenReturn(listener);
-        when(listener.observable()).thenReturn(just(LIVE_EVENT));
+        when(listener.getObservable()).thenReturn(just(LIVE_EVENT));
         when(converter.toModel(any())).thenReturn(modelFeatures);
 
         final WebsocketSource source = ImmutableWebsocketSource.builder()
