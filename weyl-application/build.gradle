@@ -11,6 +11,7 @@ service {
     simpleName = "weyl"
     mainClassName = "io.quartic.weyl.WeylApplication"
     memory = System.env.WEYL_MEMORY ?: "8g"
+    frontendDependency = project(":weyl-frontend")
 }
 
 dependencies {
@@ -19,7 +20,6 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":weyl-core")
-    runtime project(":weyl-frontend")
 
     compile "org.glassfish.tyrus:tyrus-container-grizzly-client:1.13"
     compile "io.dropwizard:dropwizard-jdbi:${versions.dropwizard}"
