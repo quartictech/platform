@@ -23,16 +23,6 @@ public class ServicePlugin implements Plugin<Project> {
                 attributes("Implementation-Version": version)
             }
         }
-
-        // This is a massive hack to avoid slow frontend builds when in dev
-        // TODO: inspecting the specified task names isn't necessarily accurate (doesn't account for task deps)
-        project.afterEvaluate {
-            if (service.frontendDependency && project.gradle.startParameter.taskNames.any { name -> name.contains("docker") }) {
-                project.dependencies {
-                    runtime service.frontendDependency
-                }
-            }
-        }
     }
 
     private def configureApplicationPlugin(Project project, ServiceExtension service) {

@@ -1,26 +1,51 @@
-## Running the stack
+## Running the stack locally
 
-1. Configure the back-end:
+1. Start the back-end:
 
-  - Copy `/weyl-application/weyl.yml.example` to `/weyl-application/weyl.yml`.
-  - Modify `applicationContextPath` as required.
+   ```
+   SKIP_FRONTEND= ./gradlew run --parallel
+   ```
+        
+2. Start the front-end:
 
-2. Start the back-end:
+    ```
+    ./gradlew npmStart
+    ```
 
-        ./gradlew run --parallel
+3. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
 
-3. Start the front-end:
+## Variations
 
-        cd weyl-frontend
-        npm start
+To run a subset of services (example):
 
-4. Run data imports (can we found in the `dilectic` repo).
+```
+SKIP_FRONTEND= ./gradlew :catalogue-app:run :weyl-app:run --parallel
+```
+    
+To run a service with reduced memory (example):
+
+```
+SKIP_FRONTEND= WEYL_MEMORY=4g ./gradlew run --parallel
+```
+
+## Building Docker images
+
+```
+./gradlew docker
+```
+
+Note that this will build the images with a registry name of `null` and a tag of `unknown`.  CircleCI overrides the
+`QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
+
 
 ## Services
- - Weyl: 8080 / 8081
- - Catalogue: 8090 / 8091
- - Management: 8100 / 8101
- - Terminator: 8110 / 8111
- - Howl: 8120 / 8121
+
+Service    | Port (app/admin)
+-----------|-----------------
+Weyl       | 8080 / 8091
+Catalogue  | 8090 / 8091
+Management | 8100 / 8101
+Terminator | 8110 / 8111
+Howl       | 8120 / 8121
 
 
