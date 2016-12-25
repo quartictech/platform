@@ -6,10 +6,7 @@ plugins {
 dependencies {
     compile project(":common-core")
 
-    compile libraries.rxjava
     compile libraries.junit
-    compile libraries.guava
-    compile libraries.websocket
     compile libraries.tyrus.server
     compile libraries.tyrus.containerServer
 }

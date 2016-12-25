@@ -35,11 +35,11 @@ class TerminatorApplicationShould {
     // Use TestSupport rather than Rule so we can control the startup order wrt adding the WebsocketServerRule
     val app = DropwizardTestSupport(TerminatorApplication::class.java, resourceFilePath("terminator.yml"),
             Optional.empty<String>(),
-            config("catalogueWatchUrl", { catalogue.uri() }))
+            config("catalogueWatchUrl", { catalogue.uri }))
 
     @Before
     fun before() {
-        catalogue.setMessages(objectMapper().writeValueAsString(datasets()))
+        catalogue.messages = listOf(objectMapper().writeValueAsString(datasets()))
         app.before()
     }
 

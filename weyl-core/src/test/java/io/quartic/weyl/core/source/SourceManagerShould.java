@@ -61,7 +61,7 @@ public class SourceManagerShould {
     private final PublishSubject<CatalogueEvent> catalogueEvents = PublishSubject.create();
     private final PublishSubject<LayerUpdate> layerUpdatesA = PublishSubject.create();
     private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
-    private final Interceptor<LayerUpdate> interceptor = Interceptor.create();
+    private final Interceptor<LayerUpdate> interceptor = new Interceptor<>();
 
     private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceOf(layerUpdatesA.compose(interceptor), true),
@@ -135,7 +135,7 @@ public class SourceManagerShould {
         catalogueEvents.onNext(event(CREATE, "123", "foo", new LocatorA()));
         catalogueEvents.onNext(event(DELETE, "123", "foo", new LocatorA()));
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     @Test

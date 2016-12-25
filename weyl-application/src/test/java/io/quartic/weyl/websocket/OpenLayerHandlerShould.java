@@ -58,17 +58,17 @@ public class OpenLayerHandlerShould {
     @Test
     public void subscribe_to_and_unsubscribe_from_layer_based_on_status_message() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Interceptor<Snapshot> interceptor = Interceptor.create();
+        final Interceptor<Snapshot> interceptor = new Interceptor<>();
 
         nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
 
-        assertThat(interceptor.subscribed(), equalTo(true));
-        assertThat(interceptor.unsubscribed(), equalTo(false));
+        assertThat(interceptor.getSubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(false));
 
         nextStatus(status());
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     @Test
@@ -144,13 +144,13 @@ public class OpenLayerHandlerShould {
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Interceptor<Snapshot> interceptor = Interceptor.create();
+        final Interceptor<Snapshot> interceptor = new Interceptor<>();
 
         nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
         subscription.unsubscribe();
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     private void completeInputsAndAwait() {

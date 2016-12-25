@@ -54,13 +54,13 @@ class WebsocketEndpointShould {
     fun unsubscribe_on_close() {
         val session = createSession("sessionA")
 
-        val interceptor = Interceptor.create<FeatureCollectionWithTerminationId>()
+        val interceptor = Interceptor<FeatureCollectionWithTerminationId>()
 
         val endpoint = WebsocketEndpoint(just(fcwti).compose(interceptor))
         endpoint.onOpen(session, mock())
         endpoint.onClose(session, mock())
 
-        assertThat(interceptor.unsubscribed(), equalTo(true))
+        assertThat(interceptor.unsubscribed, equalTo(true))
     }
 
     private fun createSession(sessionId: String): Session = mock {

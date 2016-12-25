@@ -82,15 +82,15 @@ public class WebsocketEndpointShould {
 
     @Test
     public void remove_listener_and_close_handlers_on_close() throws Exception {
-        final Interceptor<SocketMessage> handlerMessageInterceptor = Interceptor.create();
-        final Interceptor<SocketMessage> messageInterceptor = Interceptor.create();
+        final Interceptor<SocketMessage> handlerMessageInterceptor = new Interceptor<>();
+        final Interceptor<SocketMessage> messageInterceptor = new Interceptor<>();
         when(handler.call(any())).thenReturn(Observable.<SocketMessage>never().compose(handlerMessageInterceptor));
 
         final WebsocketEndpoint endpoint = createAndOpenEndpoint(Observable.<SocketMessage>never().compose(messageInterceptor));
         endpoint.onClose(session, mock(CloseReason.class));
 
-        assertThat(messageInterceptor.unsubscribed(), equalTo(true));
-        assertThat(handlerMessageInterceptor.unsubscribed(), equalTo(true));
+        assertThat(messageInterceptor.getUnsubscribed(), equalTo(true));
+        assertThat(handlerMessageInterceptor.getUnsubscribed(), equalTo(true));
     }
 
     private ClientStatusMessage clientStatusMessage() {

@@ -156,7 +156,7 @@ class RxUtilsShould {
         @Test
         fun share_input() {
             val input = PublishSubject.create<Int>()
-            val interceptor = Interceptor.create<Int>()
+            val interceptor = Interceptor<Int>()
 
             input
                     .compose(interceptor)
@@ -171,12 +171,12 @@ class RxUtilsShould {
             input.onNext(3)
             input.onCompleted()
 
-            assertThat(interceptor.subscribeCount(), equalTo(1))
+            assertThat(interceptor.subscribeCount, equalTo(1))
         }
 
         @Test
         fun unsubscribe_from_upstream_when_downstream_unsubscribes() {
-            val interceptor = Interceptor.create<Int>()
+            val interceptor = Interceptor<Int>()
 
             Observable.never<Int>()
                     .compose(interceptor)
@@ -187,7 +187,7 @@ class RxUtilsShould {
                     .subscribe()
                     .unsubscribe()
 
-            assertThat(interceptor.unsubscribed(), equalTo(true))
+            assertThat(interceptor.unsubscribed, equalTo(true))
         }
     }
 }

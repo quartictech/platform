@@ -11,6 +11,7 @@ import io.quartic.weyl.core.model.DynamicSchemaImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
+import kotlin.Pair;
 import org.junit.Test;
 
 import java.util.List;
@@ -19,8 +20,8 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.common.test.CollectionUtils.entry;
-import static io.quartic.common.test.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtilsKt.entry;
+import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.MAX_CATEGORIES;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
@@ -173,7 +174,7 @@ public class AttributeSchemaInferrerShould {
     }
 
     @SafeVarargs
-    private final DynamicSchema schema(Map.Entry<AttributeName, Attribute>... entries) {
+    private final DynamicSchema schema(Pair<AttributeName, Attribute>... entries) {
         return DynamicSchemaImpl.of(map(entries));
     }
 

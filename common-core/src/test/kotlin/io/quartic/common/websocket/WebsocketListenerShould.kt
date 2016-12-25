@@ -16,12 +16,12 @@ class WebsocketListenerShould {
     val server = WebsocketServerRule()
 
     val listener by lazy {
-        WebsocketListener.Factory(server.uri(), WebsocketClientSessionFactory(javaClass)).create(TestThing::class.java)
+        WebsocketListener.Factory(server.uri, WebsocketClientSessionFactory(javaClass)).create(TestThing::class.java)
     }
 
     @Test
     fun emit_items_from_socket() {
-        server.setMessages(encode(TestThing("foo")), encode(TestThing("bar")))
+        server.messages = listOf(encode(TestThing("foo")), encode(TestThing("bar")))
 
         val subscriber = TestSubscriber.create<TestThing>()
         listener.observable.subscribe(subscriber)
@@ -32,7 +32,7 @@ class WebsocketListenerShould {
 
     @Test
     fun skip_undecodable_items() {
-        server.setMessages("bad", encode(TestThing("bar")))
+        server.messages = listOf("bad", encode(TestThing("bar")))
 
         val subscriber = TestSubscriber.create<TestThing>()
         listener.observable.subscribe(subscriber)
@@ -48,12 +48,12 @@ class WebsocketListenerShould {
         listener.observable.subscribe(subA)
         listener.observable.subscribe(subB)
 
-        assertThat(server.numConnections(), equalTo(1))
+        assertThat(server.numConnections, equalTo(1))
     }
 
     @Test
     fun not_connect_to_websocket_if_no_subscribers() {
-        assertThat(server.numConnections(), equalTo(0))
+        assertThat(server.numConnections, equalTo(0))
     }
 
     data class TestThing(val name: String)
