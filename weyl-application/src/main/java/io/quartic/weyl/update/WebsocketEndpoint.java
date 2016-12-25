@@ -4,7 +4,7 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.quartic.common.server.ResourceManagingEndpoint;
+import io.quartic.common.websocket.ResourceManagingEndpoint;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.PingMessage;
@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import static io.quartic.common.rx.RxUtilsKt.combine;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
-import static io.quartic.common.uid.UidUtils.stringify;
 import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Emitter.BackpressureMode.BUFFER;
 import static rx.Observable.fromEmitter;
@@ -66,7 +65,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
                         if (msg instanceof ClientStatusMessage) {
                             ClientStatusMessage csm = (ClientStatusMessage)msg;
                             LOG.info("[{}] Subscribed to layers {} + entities {}",
-                                    session.getId(), stringify(csm.openLayerIds()), stringify(csm.selection().entityIds()));
+                                    session.getId(), csm.openLayerIds(), csm.selection().entityIds());
                             emitter.onNext(csm);
                         } else if (msg instanceof PingMessage) {
                             LOG.info("[{}] Received ping", session.getId());

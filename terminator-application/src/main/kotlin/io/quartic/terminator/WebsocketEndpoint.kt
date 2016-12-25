@@ -6,7 +6,7 @@ import com.codahale.metrics.annotation.Timed
 import com.fasterxml.jackson.core.JsonProcessingException
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.objectMapper
-import io.quartic.common.server.ResourceManagingEndpoint
+import io.quartic.common.websocket.ResourceManagingEndpoint
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import rx.Observable
 import rx.Subscription
@@ -26,5 +26,5 @@ class WebsocketEndpoint(private val observable: Observable<FeatureCollectionWith
         }
     }
 
-    override fun releaseResource(subscription: Subscription) = subscription.unsubscribe()
+    override fun releaseResource(resource: Subscription) = resource.unsubscribe()
 }

@@ -8,7 +8,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.client.WebsocketClientSessionFactory
 import io.quartic.common.client.WebsocketListener
 import io.quartic.common.pingpong.PingPongResource
-import io.quartic.common.server.WebsocketServerUtils.createEndpointConfig
+import io.quartic.common.websocket.createEndpointConfig
 import javax.websocket.server.ServerEndpointConfig
 
 class TerminatorApplication : ApplicationBase<TerminatorConfiguration>() {

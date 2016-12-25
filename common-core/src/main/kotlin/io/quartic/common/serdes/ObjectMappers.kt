@@ -12,6 +12,7 @@ val OBJECT_MAPPER: ObjectMapper = configureObjectMapper(ObjectMapper())
 
 fun objectMapper() = OBJECT_MAPPER
 
+// TODO: consolidate with Dropwizard mapper (in particular AfterburnerModule)
 fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
         .registerModule(Jdk8Module())
         .registerModule(JavaTimeModule())
@@ -24,7 +25,6 @@ fun encode(obj: Any): String {
     } catch (e: JsonProcessingException) {
         throw RuntimeException("Could not encode", e)
     }
-
 }
 
 fun <T> decode(src: String, type: Class<T>): T {

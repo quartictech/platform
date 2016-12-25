@@ -12,10 +12,9 @@ import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 
 import javax.websocket.server.ServerEndpointConfig;
-
 import java.time.Clock;
 
-import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
+import static io.quartic.common.websocket.WebsocketUtilsKt.createEndpointConfig;
 
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);

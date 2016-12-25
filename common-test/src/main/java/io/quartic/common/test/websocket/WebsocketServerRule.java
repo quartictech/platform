@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
+import static io.quartic.common.websocket.WebsocketUtilsKt.createEndpointConfig;
 import static java.util.Arrays.asList;
 import static org.glassfish.tyrus.spi.ServerContainerFactory.createServerContainer;
 

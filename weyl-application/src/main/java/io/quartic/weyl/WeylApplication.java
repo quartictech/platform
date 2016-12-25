@@ -70,7 +70,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
-import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
+import static io.quartic.common.websocket.WebsocketUtilsKt.createEndpointConfig;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
