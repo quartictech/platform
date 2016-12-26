@@ -48,6 +48,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
                 entity.getString("name"),
                 entity.getString("description"),
                 entity.getString("attribution"),
+                Optional.empty(),
                 Optional.ofNullable(entity.getString("icon")).map(IconImpl::of)
         );
 

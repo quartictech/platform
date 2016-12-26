@@ -43,7 +43,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.topDrawer}>
           <Toolbar
             layerList={this.props.layerList}
-            onSearch={this.props.onSearch}
             onSelectLayer={this.props.onSelectLayer}
             ui={this.props.ui}
             onUiToggle={this.props.onUiToggle}
@@ -112,7 +111,6 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
 }
 
 const mapDispatchToProps = {
-  onSearch: actions.search,
   onSelectLayer: actions.layerCreate,
   layerToggleVisible: actions.layerToggleVisible,
   layerClose: actions.layerClose,

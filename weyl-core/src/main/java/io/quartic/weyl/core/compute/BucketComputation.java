@@ -23,6 +23,7 @@ import org.immutables.value.Value;
 import org.slf4j.Logger;
 import rx.Observable;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,6 +47,11 @@ public abstract class BucketComputation implements LayerPopulator {
 
     protected abstract LayerId layerId();
     protected abstract BucketSpec bucketSpec();
+
+    @Value.Default
+    protected Clock clock() {
+        return Clock.systemUTC();
+    }
 
     @Value.Default
     protected SpatialJoiner joiner() {
@@ -72,7 +78,8 @@ public abstract class BucketComputation implements LayerPopulator {
                 LayerMetadataImpl.of(
                         String.format("%s (bucketed)", featureName),
                         String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().aggregation()),
-                        Optional.empty(),
+                        String.format("%s / %s", featureLayer.spec().metadata().attribution(), bucketLayer.spec().metadata().attribution()),
+                        clock().instant(),
                         Optional.empty()
                 ),
                 IDENTITY_VIEW,

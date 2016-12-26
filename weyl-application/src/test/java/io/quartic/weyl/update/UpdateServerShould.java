@@ -2,8 +2,8 @@ package io.quartic.weyl.update;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.common.test.rx.Interceptor;
-import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.geofence.GeofenceType;
+import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
@@ -12,17 +12,22 @@ import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
 import io.quartic.weyl.websocket.message.SelectionStatusImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler.Whole;
 import javax.websocket.Session;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappers.encode;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -40,6 +45,12 @@ public class UpdateServerShould {
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
 
+    @Before
+    public void before() throws Exception {
+        final Map<String, Object> map = newHashMap();
+        when(session.getUserProperties()).thenReturn(map);
+    }
+
     @Test
     public void compose_received_messages_via_handlers() throws Exception {
         final ClientStatusMessage msg = clientStatusMessage();
@@ -52,8 +63,8 @@ public class UpdateServerShould {
             return just(response);
         });
 
-        final UpdateServer server = createAndOpenServer();
-        server.onMessage(encode(msg));
+        createAndOpenServer();
+        captureMessageHandler().onMessage(encode(msg));
 
         subscriber.awaitValueCount(1, 100, MILLISECONDS);
         assertThat(subscriber.getOnNextEvents().get(0), equalTo(msg));
@@ -111,4 +122,9 @@ public class UpdateServerShould {
         return server;
     }
 
+    private Whole<String> captureMessageHandler() throws Exception {
+        @SuppressWarnings("unchecked") ArgumentCaptor<Whole<String>> captor = ArgumentCaptor.forClass(Whole.class);
+        verify(session).addMessageHandler(captor.capture());
+        return captor.getValue();
+    }
 }

@@ -70,6 +70,7 @@ import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.rx.RxUtils.likeBehavior;
+import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
@@ -119,6 +120,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
+        websocketBundle.addEndpoint(createEndpointConfig("/ws", createUpdateServer(snapshotSequences, alertResource)));
+    }
+
+    private UpdateServer createUpdateServer(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {
         final Collection<ClientStatusMessageHandler> handlers = newArrayList(
                 createSelectionHandler(snapshotSequences),
                 createOpenLayerHandler(snapshotSequences),
@@ -129,23 +134,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .compose(new LayerListUpdateGenerator())
                 .compose(likeBehavior());
 
-        websocketBundle.addEndpoint(ServerEndpointConfig.Builder
-                .create(UpdateServer.class, "/ws")
-                .configurator(new ServerEndpointConfig.Configurator() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                        return (T) new UpdateServer(
-                                merge(
-                                        alertResource.alerts().map(AlertMessageImpl::of),
-                                        layerListUpdates
-                                ),
-                                handlers
-                        );
-                    }
-                })
-                .build()
+        final Observable<SocketMessage> messages = merge(
+                alertResource.alerts().map(AlertMessageImpl::of),
+                layerListUpdates
         );
+
+        return new UpdateServer(messages, handlers);
     }
 
     private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {

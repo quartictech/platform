@@ -66,6 +66,7 @@ public class GoogleDatastoreBackendShould {
                 name,
                 "description",
                 "attribution",
+                Optional.empty(),
                 Optional.empty());
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
         DatasetLocator locator = CloudGeoJsonDatasetLocatorImpl.of("WAT");

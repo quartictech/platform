@@ -24,7 +24,7 @@ public class CatalogueApplicationShould {
         final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
 
         final DatasetConfig config = DatasetConfigImpl.of(
-                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty()),
+                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty(), Optional.empty()),
                 PostgresDatasetLocatorImpl.of("a", "b", "c", "d"),
                 emptyMap()
         );
@@ -32,6 +32,11 @@ public class CatalogueApplicationShould {
         DatasetId did = catalogue.registerDataset(config);
         final Map<DatasetId, DatasetConfig> datasets = catalogue.getDatasets();
 
-        assertThat(datasets.get(did), equalTo(config));
+        assertThat(withTimestampRemoved(datasets.get(did)), equalTo(config));
+    }
+
+    private DatasetConfig withTimestampRemoved(DatasetConfig actual) {
+        return DatasetConfigImpl.copyOf(actual)
+                .withMetadata(DatasetMetadataImpl.copyOf(actual.metadata()).withRegistered(Optional.empty()));
     }
 }

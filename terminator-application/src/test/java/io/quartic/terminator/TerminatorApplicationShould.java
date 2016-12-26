@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import javax.websocket.ContainerProvider;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -77,7 +78,13 @@ public class TerminatorApplicationShould {
         return ImmutableMap.of(
                 DatasetId.fromString("xyz"),
                 DatasetConfigImpl.of(
-                        DatasetMetadataImpl.of("Foo", "Bar", "Baz", Optional.empty()),
+                        DatasetMetadataImpl.of(
+                                "Foo",
+                                "Bar",
+                                "Baz",
+                                Optional.of(Instant.now()),
+                                Optional.empty()
+                        ),
                         TerminatorDatasetLocatorImpl.of(TERMINATION_ID),
                         emptyMap()
                 )
