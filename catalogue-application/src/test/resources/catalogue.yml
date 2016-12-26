@@ -1,4 +1,5 @@
-backend: IN_MEMORY
+backend:
+  type: in_memory
 
 server:
   applicationContextPath: /

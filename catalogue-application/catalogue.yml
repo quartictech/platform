@@ -1,4 +1,6 @@
-backend: GOOGLE_DATASTORE
+backend:
+  type: google_datastore
+  projectId: quartictech
 server:
   applicationContextPath: /
   applicationConnectors:
