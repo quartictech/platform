@@ -1,5 +1,6 @@
 package io.quartic.catalogue;
 
+import com.codahale.metrics.health.HealthCheck;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.quartic.catalogue.api.DatasetConfig;
@@ -34,5 +35,10 @@ public class InMemoryStorageBackend implements StorageBackend {
     @Override
     public Map<DatasetId, DatasetConfig> getAll() throws IOException {
         return ImmutableMap.copyOf(datasets);
+    }
+
+    @Override
+    public HealthCheck.Result healthCheck() {
+        return HealthCheck.Result.healthy(); // can't really be any other way
     }
 }

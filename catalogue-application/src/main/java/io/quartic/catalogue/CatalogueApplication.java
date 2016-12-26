@@ -36,7 +36,9 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final CatalogueResource catalogue = new CatalogueResource(configuration.getBackend(), didGenerator, Clock.systemUTC(), environment.getObjectMapper());
+        StorageBackend storageBackend = configuration.getBackend();
+        final CatalogueResource catalogue = new CatalogueResource(storageBackend, didGenerator, Clock.systemUTC(), environment.getObjectMapper());
+        environment.healthChecks().register("storageBackend", new StorageBackendHealthCheck(storageBackend));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(catalogue);

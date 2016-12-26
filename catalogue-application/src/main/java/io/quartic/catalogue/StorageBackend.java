@@ -1,5 +1,6 @@
 package io.quartic.catalogue;
 
+import com.codahale.metrics.health.HealthCheck;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 
@@ -12,4 +13,5 @@ public interface StorageBackend {
     void remove(DatasetId id) throws IOException;
     boolean containsKey(DatasetId id) throws IOException;
     Map<DatasetId, DatasetConfig> getAll() throws IOException;
+    HealthCheck.Result healthCheck();
 }

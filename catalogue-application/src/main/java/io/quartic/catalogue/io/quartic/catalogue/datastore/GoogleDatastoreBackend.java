@@ -1,5 +1,6 @@
 package io.quartic.catalogue.io.quartic.catalogue.datastore;
 
+import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.api.client.util.Maps;
@@ -15,6 +16,15 @@ import java.util.Optional;
 
 import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
+/**
+ * GoogleDatastoreBackend
+ *
+ * Note that according to https://cloud.google.com/datastore/docs/concepts/structuring_for_strong_consistency
+ * strong consistency requires structuring of your data within Google Datastore. In particular only ancestor queries
+ * are guaranteed to be strongly consistent. Since we don't want to have to worry about inconsistent state here, we
+ * put all of our dataset entities under an ancestor catalogue entity. This should give us strong consistency according
+ * to the docs.
+ */
 public class GoogleDatastoreBackend implements StorageBackend {
     private static final String ANCESTOR = "ancestor";
     private static final String KIND = "dataset";
@@ -128,5 +138,15 @@ public class GoogleDatastoreBackend implements StorageBackend {
         }
 
         return datasets;
+    }
+
+    @Override
+    public HealthCheck.Result healthCheck() {
+        if(datastore.get(ancestorKey) != null) {
+            return HealthCheck.Result.healthy();
+        }
+        else {
+            return HealthCheck.Result.unhealthy("can't find ancestor key");
+        }
     }
 }
