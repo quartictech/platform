@@ -6,6 +6,7 @@ machine:
 
 dependencies:
   cache_directories:
+    - .gradle
     - weyl-frontend/.gradle/nodejs
     - management-frontend/.gradle/nodejs
     - weyl-frontend/node_modules

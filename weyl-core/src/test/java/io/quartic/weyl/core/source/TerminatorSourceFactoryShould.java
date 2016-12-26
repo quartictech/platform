@@ -15,7 +15,6 @@ import io.quartic.geojson.Geometry;
 import io.quartic.geojson.Point;
 import io.quartic.geojson.PointImpl;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
-import io.quartic.terminator.api.FeatureCollectionWithTerminationIdImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -54,7 +53,7 @@ public class TerminatorSourceFactoryShould {
         final TerminatorDatasetLocator locator = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("123"));
 
         when(listener.observable()).thenReturn(just(
-                FeatureCollectionWithTerminationIdImpl.of(locator.id(), collection)
+                new FeatureCollectionWithTerminationId(locator.id(), collection)
         ));
         when(converter.toModel(collection)).thenReturn(modelFeatures);
 
@@ -73,8 +72,8 @@ public class TerminatorSourceFactoryShould {
         final TerminatorDatasetLocator locatorB = TerminatorDatasetLocatorImpl.of(TerminationIdImpl.of("456"));
 
         when(listener.observable()).thenReturn(just(
-                FeatureCollectionWithTerminationIdImpl.of(locatorA.id(), collectionA),
-                FeatureCollectionWithTerminationIdImpl.of(locatorB.id(), collectionB)
+                new FeatureCollectionWithTerminationId(locatorA.id(), collectionA),
+                new FeatureCollectionWithTerminationId(locatorB.id(), collectionB)
         ));
         when(converter.toModel(collectionA)).thenReturn(modelFeaturesA);
         when(converter.toModel(collectionB)).thenReturn(modelFeaturesB);

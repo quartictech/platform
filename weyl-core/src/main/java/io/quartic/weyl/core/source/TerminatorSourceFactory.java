@@ -41,8 +41,8 @@ public abstract class TerminatorSourceFactory {
             @Override
             public Observable<LayerUpdate> observable() {
                 return collections()
-                        .filter(fcwi -> fcwi.terminationId().equals(locator.id()))  // TODO: this scales linearly with the number of datasets, which isn't great
-                        .map(fcwdi -> LayerUpdateImpl.of(converter.toModel(fcwdi.featureCollection())));
+                        .filter(fcwi -> fcwi.getTerminationId().equals(locator.id()))  // TODO: this scales linearly with the number of datasets, which isn't great
+                        .map(fcwdi -> LayerUpdateImpl.of(converter.toModel(fcwdi.getFeatureCollection())));
             }
 
             @Override
