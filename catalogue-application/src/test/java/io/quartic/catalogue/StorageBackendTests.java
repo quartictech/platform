@@ -50,7 +50,7 @@ public abstract class StorageBackendTests {
         assertThat(getBackend().containsKey(DatasetId.fromString("A")), equalTo(true));
     }
 
-    private DatasetConfig dataset(String name) {
+    protected DatasetConfig dataset(String name) {
         DatasetMetadata metadata = DatasetMetadataImpl.of(
                 name,
                 "description",

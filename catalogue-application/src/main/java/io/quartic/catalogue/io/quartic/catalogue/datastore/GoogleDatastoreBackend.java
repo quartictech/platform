@@ -46,11 +46,12 @@ public class GoogleDatastoreBackend implements StorageBackend {
         datastore.put(Entity.newBuilder().setKey(ancestorKey).build());
     }
 
-    public static GoogleDatastoreBackend remote(String projectId) {
+    public static GoogleDatastoreBackend remote(String projectId, String namespace) {
         Datastore datastore = DatastoreOptions.newBuilder()
+                .setNamespace(namespace)
                 .setProjectId(projectId)
-               .build()
-               .getService();
+                .build()
+                .getService();
 
         return new GoogleDatastoreBackend(datastore, projectId);
     }

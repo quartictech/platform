@@ -11,12 +11,20 @@ public class GoogleDatastoreBackendConfig implements StorageBackendConfig {
     @NotNull
     private String projectId;
 
+    @Valid
+    @NotNull
+    private String namespace;
+
     public void setProjectId(String projectId) {
         this.projectId = projectId;
     }
 
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
     @Override
     public StorageBackend build() {
-        return GoogleDatastoreBackend.remote(projectId);
+        return GoogleDatastoreBackend.remote(projectId, namespace);
     }
 }
