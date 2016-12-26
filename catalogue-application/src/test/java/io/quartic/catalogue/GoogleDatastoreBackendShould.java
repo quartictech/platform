@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -66,8 +67,8 @@ public class GoogleDatastoreBackendShould {
                 name,
                 "description",
                 "attribution",
-                Optional.empty(),
-                Optional.empty());
+                Optional.of(Instant.now()),
+                Optional.of(IconImpl.of("icon")));
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
         DatasetLocator locator = CloudGeoJsonDatasetLocatorImpl.of("WAT");
         return DatasetConfigImpl.of(

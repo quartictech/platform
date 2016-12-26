@@ -8,6 +8,8 @@ import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.api.*;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -48,7 +50,8 @@ public class GoogleDatastoreBackend implements StorageBackend {
                 entity.getString("name"),
                 entity.getString("description"),
                 entity.getString("attribution"),
-                Optional.empty(),
+                Optional.ofNullable(entity.getDateTime("registered"))
+                        .map(dt -> Instant.ofEpochMilli(dt.getTimestampMillis())),
                 Optional.ofNullable(entity.getString("icon")).map(IconImpl::of)
         );
 
@@ -67,6 +70,13 @@ public class GoogleDatastoreBackend implements StorageBackend {
         entityBuilder.set("name", datasetConfig.metadata().name());
         entityBuilder.set("description", datasetConfig.metadata().description());
         entityBuilder.set("attribution", datasetConfig.metadata().attribution());
+        if (datasetConfig.metadata().registered().isPresent()) {
+            entityBuilder.set("registered",
+                    DateTime.copyFrom(new Date(datasetConfig.metadata().registered().get().toEpochMilli())));
+        }
+        else {
+            entityBuilder.setNull("registered");
+        }
         if (datasetConfig.metadata().icon().isPresent()) {
             entityBuilder.set("icon", datasetConfig.metadata().icon().map(Icon::icon).get());
         } else {
