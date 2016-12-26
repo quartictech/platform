@@ -4,6 +4,7 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.quartic.common.server.ResourceManagingEndpoint;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.PingMessage;
@@ -12,9 +13,6 @@ import org.slf4j.Logger;
 import rx.Observable;
 import rx.Subscription;
 
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler.Whole;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -30,13 +28,12 @@ import static rx.Observable.fromEmitter;
 @Metered
 @Timed
 @ExceptionMetered
-public class UpdateServer extends Endpoint {
-    private static final Logger LOG = getLogger(UpdateServer.class);
-    private static final String SUBSCRIPTION = "subscription";
+public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
+    private static final Logger LOG = getLogger(WebsocketEndpoint.class);
     private final Observable<? extends SocketMessage> messages;
     private final Collection<ClientStatusMessageHandler> handlers;
 
-    public UpdateServer(
+    public WebsocketEndpoint(
             Observable<? extends SocketMessage> messages,
             Collection<ClientStatusMessageHandler> handlers
     ) {
@@ -45,13 +42,16 @@ public class UpdateServer extends Endpoint {
     }
 
     @Override
-    public void onOpen(final Session session, EndpointConfig config) {
-        LOG.info("[{}] Open", session.getId());
-        final Subscription subscription = receivedMessages(session)
+    protected Subscription createResourceFor(Session session) {
+        return receivedMessages(session)
                 .compose(combine(handlers))
                 .mergeWith(messages)
                 .subscribe(message -> sendMessage(session, message));
-        session.getUserProperties().put(SUBSCRIPTION, subscription);
+    }
+
+    @Override
+    protected void releaseResource(Subscription subscription) {
+        subscription.unsubscribe();
     }
 
     private Observable<ClientStatusMessage> receivedMessages(Session session) {
@@ -87,12 +87,5 @@ public class UpdateServer extends Endpoint {
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }
-    }
-
-    @Override
-    public void onClose(Session session, CloseReason closeReason) {
-        LOG.info("[{}] Close", session.getId());
-        final Subscription subscription = (Subscription) session.getUserProperties().get(SUBSCRIPTION);
-        subscription.unsubscribe();
     }
 }
