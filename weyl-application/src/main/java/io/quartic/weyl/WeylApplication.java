@@ -52,7 +52,7 @@ import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
-import io.quartic.weyl.update.UpdateServer;
+import io.quartic.weyl.update.WebsocketEndpoint;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
@@ -120,10 +120,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
-        websocketBundle.addEndpoint(createEndpointConfig("/ws", createUpdateServer(snapshotSequences, alertResource)));
+        websocketBundle.addEndpoint(createEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
 
-    private UpdateServer createUpdateServer(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {
+    private WebsocketEndpoint createWebsocketEndpoint(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {
         final Collection<ClientStatusMessageHandler> handlers = newArrayList(
                 createSelectionHandler(snapshotSequences),
                 createOpenLayerHandler(snapshotSequences),
@@ -139,7 +139,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 layerListUpdates
         );
 
-        return new UpdateServer(messages, handlers);
+        return new WebsocketEndpoint(messages, handlers);
     }
 
     private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
