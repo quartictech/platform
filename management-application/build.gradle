@@ -19,7 +19,9 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":howl-api")
-    runtime project(":management-frontend")
+    if (System.env.SKIP_FRONTEND == null) {
+        compile project(":management-frontend")
+    }
 
     compile "org.apache.commons:commons-csv:1.3"
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
