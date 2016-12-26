@@ -103,7 +103,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     @Override
     public synchronized void onOpen(Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
-        updateClient(session);
+        updateClient(session, wrapException(storageBackend::getAll));
         sessions.add(session);
     }
 
@@ -114,13 +114,12 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     private void updateClients() {
-        sessions.forEach(this::updateClient);
+        sessions.forEach(session -> updateClient(session, wrapException(storageBackend::getAll)));
     }
 
-    private void updateClient(Session session) {
+    private void updateClient(Session session, Map<DatasetId, DatasetConfig> datasets) {
         try {
-            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(
-                    wrapException(storageBackend::getAll)));
+            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }
