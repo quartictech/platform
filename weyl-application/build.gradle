@@ -19,7 +19,9 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":weyl-core")
-    runtime project(":weyl-frontend")
+    if (System.env.SKIP_FRONTEND == null) {
+        compile project(":weyl-frontend")
+    }
 
     compile "org.glassfish.tyrus:tyrus-container-grizzly-client:1.13"
     compile "io.dropwizard:dropwizard-jdbi:${versions.dropwizard}"
