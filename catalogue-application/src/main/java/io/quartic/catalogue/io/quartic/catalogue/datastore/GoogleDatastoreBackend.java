@@ -110,7 +110,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
 
     @Override
     public boolean containsKey(DatasetId id) throws IOException {
-        return datastore.get(datastore.newKeyFactory().newKey(id.uid())) != null;
+        return datastore.get(keyFactory.newKey(id.uid())) != null;
     }
 
     @Override

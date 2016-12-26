@@ -50,16 +50,26 @@ public class GoogleDatastoreBackendShould {
 
     @Test
     public void fetch_all_datasets() throws IOException {
-        backend.put(DatasetId.fromString("A"), dataset("A"));
-        backend.put(DatasetId.fromString("B"), dataset("B"));
-        backend.put(DatasetId.fromString("C"), dataset("C"));
+        DatasetConfig datasetA = dataset("A");
+        DatasetConfig datasetB = dataset("B");
+        DatasetConfig datasetC = dataset("C");
+        backend.put(DatasetId.fromString("A"), datasetA);
+        backend.put(DatasetId.fromString("B"), datasetB);
+        backend.put(DatasetId.fromString("C"), datasetC);
 
         Map<DatasetId, DatasetConfig> datasets = backend.getAll();
 
         assertThat(datasets.size(), equalTo(3));
-        assertThat(datasets.get(DatasetId.fromString("A")), equalTo(dataset("A")));
-        assertThat(datasets.get(DatasetId.fromString("B")), equalTo(dataset("B")));
-        assertThat(datasets.get(DatasetId.fromString("C")), equalTo(dataset("C")));
+        assertThat(datasets.get(DatasetId.fromString("A")), equalTo(datasetA));
+        assertThat(datasets.get(DatasetId.fromString("B")), equalTo(datasetB));
+        assertThat(datasets.get(DatasetId.fromString("C")), equalTo(datasetC));
+    }
+
+    @Test
+    public void containskey() throws IOException {
+        backend.put(DatasetId.fromString("A"), dataset("A"));
+
+        assertThat(backend.containsKey(DatasetId.fromString("A")), equalTo(true));
     }
 
     private DatasetConfig dataset(String name) {
