@@ -1,20 +1,14 @@
 package io.quartic.catalogue.io.quartic.catalogue.datastore;
 
 import com.codahale.metrics.health.HealthCheck;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.api.client.util.Maps;
 import com.google.cloud.datastore.*;
 import io.quartic.catalogue.StorageBackend;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetId;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
-
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
 
 /**
  * GoogleDatastoreBackend
@@ -32,6 +26,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
     private final Datastore datastore;
     private final KeyFactory keyFactory;
     private final Key ancestorKey;
+    private final EntitySerDe entitySerDe;
 
     public GoogleDatastoreBackend(Datastore datastore, String projectId) {
         this.datastore = datastore;
@@ -43,6 +38,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
                 .setProjectId(projectId)
                 .setKind(ANCESTOR_KIND)
                 .newKey(ANCESTOR);
+        this.entitySerDe = new EntitySerDe(keyFactory);
         datastore.put(Entity.newBuilder().setKey(ancestorKey).build());
     }
 
@@ -56,62 +52,16 @@ public class GoogleDatastoreBackend implements StorageBackend {
         return new GoogleDatastoreBackend(datastore, projectId);
     }
 
-    private DatasetConfig entityToDataset(Entity entity) throws IOException {
-        DatasetMetadata metadata = DatasetMetadataImpl.of(
-                entity.getString("name"),
-                entity.getString("description"),
-                entity.getString("attribution"),
-                Optional.ofNullable(entity.getDateTime("registered"))
-                        .map(dt -> Instant.ofEpochMilli(dt.getTimestampMillis())),
-                Optional.ofNullable(entity.getString("icon")).map(IconImpl::of)
-        );
-
-        DatasetLocator locator = OBJECT_MAPPER.readValue(entity.getBlob("locator").asInputStream(),
-                DatasetLocator.class);
-
-        Map<String, Object> extensions = OBJECT_MAPPER.readValue(entity.getBlob("extensions").asInputStream(),
-                new TypeReference<Map<String, Object>>() { });
-
-        return DatasetConfigImpl.of(metadata, locator, extensions);
-    }
-
-    private Entity datasetToEntity(DatasetId datasetId, DatasetConfig datasetConfig) throws JsonProcessingException {
-        Entity.Builder entityBuilder = Entity.newBuilder(idToKey(datasetId));
-
-        entityBuilder.set("name", datasetConfig.metadata().name());
-        entityBuilder.set("description", datasetConfig.metadata().description());
-        entityBuilder.set("attribution", datasetConfig.metadata().attribution());
-        if (datasetConfig.metadata().registered().isPresent()) {
-            entityBuilder.set("registered",
-                    DateTime.copyFrom(new Date(datasetConfig.metadata().registered().get().toEpochMilli())));
-        }
-        else {
-            entityBuilder.setNull("registered");
-        }
-        if (datasetConfig.metadata().icon().isPresent()) {
-            entityBuilder.set("icon", datasetConfig.metadata().icon().map(Icon::icon).get());
-        } else {
-            entityBuilder.setNull("icon");
-        }
-
-        entityBuilder.set("locator", Blob.copyFrom(OBJECT_MAPPER.writeValueAsBytes(datasetConfig.locator())));
-        entityBuilder.set("extensions", Blob.copyFrom(OBJECT_MAPPER.writeValueAsBytes(datasetConfig.extensions())));
-        return entityBuilder.build();
-    }
-
-    private Key idToKey(DatasetId id) {
-        return keyFactory.newKey(id.uid());
-    }
 
     @Override
     public DatasetConfig get(DatasetId datasetId) throws IOException {
-        Entity entity = datastore.get(idToKey(datasetId));
-        return entityToDataset(entity);
+        Entity entity = datastore.get(keyFactory.newKey(datasetId.uid()));
+        return entitySerDe.entityToDataset(entity);
     }
 
     @Override
     public void put(DatasetId datasetId, DatasetConfig datasetConfig) throws IOException {
-        datastore.runInTransaction(readerWriter -> readerWriter.put(datasetToEntity(datasetId, datasetConfig)));
+        datastore.runInTransaction(readerWriter -> readerWriter.put(entitySerDe.datasetToEntity(datasetId, datasetConfig)));
     }
 
     @Override
@@ -135,7 +85,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
         QueryResults<Entity> results = datastore.run(query);
         while (results.hasNext()) {
             Entity entity = results.next();
-            datasets.put(DatasetId.fromString(entity.getKey().getName()), entityToDataset(entity));
+            datasets.put(DatasetId.fromString(entity.getKey().getName()), entitySerDe.entityToDataset(entity));
         }
 
         return datasets;
