@@ -28,3 +28,7 @@ deployment:
     commands:
       - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
       - ./gradlew dockerPush --parallel --info --console=plain
+
+general:
+  artifacts:
+    - build/reports/profile
