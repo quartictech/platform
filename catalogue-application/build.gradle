@@ -19,6 +19,7 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
 
+    compile "com.google.cloud:google-cloud-datastore:0.8.0-beta"
     compile libraries.dropwizardWebsockets
 
     testCompile libraries.testCommon

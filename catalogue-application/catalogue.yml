@@ -1,3 +1,7 @@
+backend:
+  type: google_datastore
+  projectId: quartictech
+  namespace: test
 server:
   applicationContextPath: /
   applicationConnectors:

@@ -6,6 +6,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetIdImpl;
+import io.quartic.catalogue.io.quartic.catalogue.datastore.GoogleDatastoreBackend;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.pingpong.PingPongResource;
 import io.quartic.common.uid.RandomUidGenerator;
@@ -35,7 +36,9 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
         environment.jersey().setUrlPattern("/api/*");
         environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
 
-        final CatalogueResource catalogue = new CatalogueResource(didGenerator, Clock.systemUTC(), environment.getObjectMapper());
+        StorageBackend storageBackend = configuration.getBackend();
+        final CatalogueResource catalogue = new CatalogueResource(storageBackend, didGenerator, Clock.systemUTC(), environment.getObjectMapper());
+        environment.healthChecks().register("storageBackend", new StorageBackendHealthCheck(storageBackend));
 
         environment.jersey().register(new PingPongResource());
         environment.jersey().register(catalogue);

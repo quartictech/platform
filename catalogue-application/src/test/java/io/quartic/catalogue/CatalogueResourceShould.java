@@ -32,7 +32,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CatalogueResourceShould {
     private final Clock clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-    private final CatalogueResource resource = new CatalogueResource(SequenceUidGenerator.of(DatasetIdImpl::of), clock, OBJECT_MAPPER);
+    private final CatalogueResource resource = new CatalogueResource(new InMemoryStorageBackend(),
+            SequenceUidGenerator.of(DatasetIdImpl::of), clock, OBJECT_MAPPER);
 
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
