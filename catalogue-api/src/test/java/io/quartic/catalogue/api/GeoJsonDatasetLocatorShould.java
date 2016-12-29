@@ -8,6 +8,6 @@ public class GeoJsonDatasetLocatorShould extends DatasetLocatorTests<GeoJsonData
 
     @Override
     protected String json() {
-        return "{\"type\": \"geojson\", \"path\": \"http://wat\"}";
+        return "{\"type\": \"geojson\", \"url\": \"http://wat\"}";
     }
 }
