@@ -25,48 +25,13 @@ class Search extends React.Component {
     );
   }
 
-  // formatLayerList() {
-  //   return _.object(_.map(this.props.layerList, item => [item.id, {
-  //     name: item.metadata.name,
-  //     description: item.metadata.description,
-  //     extra: moment.unix(item.metadata.registered).format("YYYY-MM-DD HH:mm:ss"),
-  //     category: item.live ? "Live layers" : "Static layers",
-  //   }]));
-  // }
-
   formatLayerList() {
-    return {
-      "123": {
-        name: "Foo",
-        description: "Some stuff",
-        category: "A",
-      },
-      "567": {
-        name: "Bar",
-        description: "Some other stuff",
-        category: "A",
-      },
-      "890": {
-        name: "Baz",
-        description: "Wonderful stuff",
-        category: "A",
-      },
-      "9123": {
-        name: "Foo",
-        description: "Some stuff",
-        category: "B",
-      },
-      "9567": {
-        name: "Bar",
-        description: "Some other stuff",
-        category: "B",
-      },
-      "9890": {
-        name: "Baz",
-        description: "Wonderful stuff",
-        category: "B",
-      },
-    }
+    return _.object(_.map(this.props.layerList, item => [item.id, {
+      name: item.metadata.name,
+      description: item.metadata.description,
+      extra: moment.unix(item.metadata.registered).format("YYYY-MM-DD HH:mm:ss"),
+      category: item.live ? "Live layers" : "Static layers",
+    }]));
   }
 
   onChange(layerId) {
