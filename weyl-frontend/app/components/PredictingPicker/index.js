@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Classes,
+  Colors,
   IconContents,
   InputGroup,
   Intent,
@@ -23,6 +24,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       menuVisible: false,
       shouldFilter: false,
       idxHighlighted: 0,
+      mouseCaptured: false,
     };
 
     this.onInteraction = this.onInteraction.bind(this);
@@ -54,7 +56,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
           leftIconName={this.props.leftIconName || this.props.iconName}
           placeholder={this.props.placeholder}
           value={this.state.text}
-          onKeyDown={(e) => this.onKeyDown(e.which)}
+          onKeyDown={(e) => this.onKeyDown(e)}
           onChange={(e) => this.onChangeText(e.target.value)}
           intent={(this.props.selectedKey || this.props.disabled || this.props.errorDisabled) ? Intent.NONE : Intent.DANGER}
         />
@@ -88,45 +90,67 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   // 25px is a hack - compensates for hardcoded ::before size in Blueprint CSS
   renderEntry(entry) {
     return (
-      <MenuItem
+      <div
         key={entry.key}
-        text={
-          <div style={{ marginLeft: "25px" }}>
-            <div><b>{entry.name}{(entry.idx === this.state.idxHighlighted) ? " (X)" : ""}</b></div>
-            <small className="pt-text-muted">
-              {
-                entry.extra
-                  ? (
-                  <div>
-                    <p><b>{entry.description}</b></p>
-                    <div style={{ textAlign: "right" }}>
-                      <em>{entry.extra}</em>
+        style={(entry.idx === this.state.idxHighlighted) ? { backgroundColor: Colors.BLUE3 } : {}}  // TODO: set ::before color to white
+        onMouseEnter={() => this.onMouseEnter(entry.idx)}
+        onMouseLeave={() => this.onMouseLeave(entry.idx)}
+      >
+        <MenuItem
+          key={entry.key}
+          text={
+            <div style={{ marginLeft: "25px" }}>
+              <div><b>{entry.name}</b></div>
+              <small className="pt-text-muted">
+                {
+                  entry.extra
+                    ? (
+                    <div>
+                      <p><b>{entry.description}</b></p>
+                      <div style={{ textAlign: "right" }}>
+                        <em>{entry.extra}</em>
+                      </div>
                     </div>
-                  </div>
-                  )
-                  : (
-                  <b>{entry.description}</b>
-                  )
-              }
+                    )
+                    : (
+                    <b>{entry.description}</b>
+                    )
+                }
 
-            </small>
-          </div>
-        }
-        label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
-        iconName={this.props.iconName}
-        className={classNames(Classes.MENU_ITEM)}
-        onClick={() => this.onSelectEntry(entry.key)}
-      />
+              </small>
+            </div>
+          }
+          label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
+          iconName={this.props.iconName}
+          onClick={() => this.onSelectEntry(entry.key)}
+        />
+      </div>
     );
   }
 
-  onKeyDown(key) {
-    switch (key) {
+  // We cannot prevent the Blueprint :hover behaviour, thus if the mouse is currently hovered over an entry we have
+  // to disable the up/down arrow behaviour.  This is what mouseCaptured is for.
+  onMouseEnter(idx) {
+    this.setState({ mouseCaptured: true, idxHighlighted: idx });
+  }
+
+  onMouseLeave(idx) {
+    this.setState({ mouseCaptured: false });
+  }
+
+  onKeyDown(e) {
+    switch (e.which) {
       case Keys.ARROW_DOWN:
-        this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1)});
+        if (!this.state.mouseCaptured) {
+          this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1)});
+        }
+        e.preventDefault();
         break;
       case Keys.ARROW_UP:
-        this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1)});
+        if (!this.state.mouseCaptured) {
+          this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1)});
+        }
+        e.preventDefault();
         break;
       case Keys.ENTER: {
         const entry = _.chain(this.categorisedFilteredEntries())
@@ -151,7 +175,8 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     this.setState({
       menuVisible: nextOpenState,
       shouldFilter: false,
-      idxHighlighted: 0
+      idxHighlighted: 0,
+      mouseCaptured: false,
     });
   }
 
@@ -161,6 +186,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       menuVisible: true,
       shouldFilter: true,
       idxHighlighted: 0,
+      mouseCaptured: false,
     });
     this.props.onChange(_.invert(this.entriesAsMap())[text]);
   }
