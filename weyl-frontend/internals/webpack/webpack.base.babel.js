@@ -5,6 +5,15 @@
 const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const StringReplacePlugin = require('string-replace-webpack-plugin');
+
+const strRepLoader = StringReplacePlugin.replace({
+  replacements: [
+    {
+      pattern: /#(10161a|182026|202b33|293742|30404d|394b59|5c7080|738694|8a9ba8|a7b6c2|bfccd6|ced9e0|d8e1e8|e1e8ed|ebf1f5|f5f8fa)/g,
+      replacement: (m) => `#${m.substr(5, 2)}${m.substr(1, 2)}${m.substr(3, 2)}`,
+    }
+  ]});
 
 module.exports = (options) => ({
   entry: options.entry,
@@ -31,7 +40,7 @@ module.exports = (options) => ({
       // So, no need for ExtractTextPlugin here.
       test: /\.css$/,
       include: /node_modules/,
-      loaders: ['style-loader', 'css-loader'],
+      loaders: ['style-loader', 'css-loader', strRepLoader],
     }, {
       // CSS files named appropriately get loaded into global scope (for plottable)
       test: /\.css.global$/,
@@ -78,6 +87,8 @@ module.exports = (options) => ({
     // Some BS for moment.js (see https://github.com/moment/moment/issues/2979)
     // If you ever remove this line, also remove the devDependency on empty-module
     new webpack.ContextReplacementPlugin(/\.\/locale$/, 'empty-module', false, /js$/),
+
+    new StringReplacePlugin(),
   ]),
   postcss: () => options.postcssPlugins,
   resolve: {
