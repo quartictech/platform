@@ -146,7 +146,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   onKeyDown(key) {
     switch (key) {
       case Keys.ARROW_DOWN:
-        this.setState({ idxHighlighted: Math.min(_.size(this.props.entries) - 1, this.state.idxHighlighted + 1)});
+        this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1)});
         break;
       case Keys.ARROW_UP:
         this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1)});
@@ -159,12 +159,17 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
 
   categorisedFilteredEntries() {
     var idx = 0;
+    return _.chain(this.filteredEntries())
+      .groupBy(entry => entry.category)
+      .mapObject(entries => _.map(entries, entry => ({ ...entry, idx: idx++ })))
+      .value();
+  }
+
+  filteredEntries() {
     return _.chain(this.entriesAsMap())
       .mapObject((v, k) => normalize(k, v))
       .values()
       .filter(entry => !this.state.shouldFilter || !this.state.text || entry.name.toLowerCase().includes(this.state.text.toLowerCase()))
-      .groupBy(entry => entry.category)
-      .mapObject(entries => _.map(entries, entry => ({ ...entry, idx: idx++ })))
       .value();
   }
 
