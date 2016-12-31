@@ -120,17 +120,39 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     );
   }
 
+  onKeyDown(key) {
+    switch (key) {
+      case Keys.ARROW_DOWN:
+        this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1)});
+        break;
+      case Keys.ARROW_UP:
+        this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1)});
+        break;
+      case Keys.ENTER: {
+        const entry = _.chain(this.categorisedFilteredEntries())
+          .values()
+          .flatten()
+          .find(entry => entry.idx === this.state.idxHighlighted)
+          .value();
+        if (entry) {
+          this.onSelectEntry(entry.key);
+        }
+        break;
+      }
+    }
+  }
+
+  onSelectEntry(key) {
+    this.setState({ menuVisible: false });
+    this.props.onChange(key);
+  }
+
   onInteraction(nextOpenState) {
     this.setState({
       menuVisible: nextOpenState,
       shouldFilter: false,
       idxHighlighted: 0
     });
-  }
-
-  onSelectEntry(key) {
-    this.setState({ menuVisible: false });
-    this.props.onChange(key);
   }
 
   onChangeText(text) {
@@ -141,20 +163,6 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       idxHighlighted: 0,
     });
     this.props.onChange(_.invert(this.entriesAsMap())[text]);
-  }
-
-  onKeyDown(key) {
-    switch (key) {
-      case Keys.ARROW_DOWN:
-        this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1)});
-        break;
-      case Keys.ARROW_UP:
-        this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1)});
-        break;
-      case Keys.ENTER:
-        console.log("Enter");
-        break;
-    }
   }
 
   categorisedFilteredEntries() {
