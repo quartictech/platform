@@ -134,7 +134,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     this.setState({ mouseCaptured: true, idxHighlighted: idx });
   }
 
-  onMouseLeave(idx) {
+  onMouseLeave() {
     this.setState({ mouseCaptured: false });
   }
 
@@ -142,27 +142,30 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     switch (e.which) {
       case Keys.ARROW_DOWN:
         if (!this.state.mouseCaptured) {
-          this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1)});
+          this.setState({ idxHighlighted: Math.min(_.size(this.filteredEntries()) - 1, this.state.idxHighlighted + 1) });
         }
         e.preventDefault();
         break;
       case Keys.ARROW_UP:
         if (!this.state.mouseCaptured) {
-          this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1)});
+          this.setState({ idxHighlighted: Math.max(0, this.state.idxHighlighted - 1) });
         }
         e.preventDefault();
         break;
       case Keys.ENTER: {
-        const entry = _.chain(this.categorisedFilteredEntries())
+        const highlighted = _.chain(this.categorisedFilteredEntries())
           .values()
           .flatten()
           .find(entry => entry.idx === this.state.idxHighlighted)
           .value();
-        if (entry) {
-          this.onSelectEntry(entry.key);
+        if (highlighted) {
+          this.onSelectEntry(highlighted.key);
         }
+        e.preventDefault();
         break;
       }
+      default:
+        break;
     }
   }
 
@@ -192,7 +195,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
   }
 
   categorisedFilteredEntries() {
-    var idx = 0;
+    let idx = 0;
     return _.chain(this.filteredEntries())
       .groupBy(entry => entry.category)
       .mapObject(entries => _.map(entries, entry => ({ ...entry, idx: idx++ })))
