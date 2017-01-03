@@ -3,6 +3,8 @@ plugins {
     id "idea"
 }
 
+apply from: "${rootDir}/gradle/publishing.gradle"
+
 dependencies {
     compile project(":common-core")
 

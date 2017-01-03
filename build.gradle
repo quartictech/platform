@@ -29,6 +29,7 @@ allprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    group "io.quartic"
     version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
 }
 

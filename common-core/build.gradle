@@ -3,6 +3,8 @@ plugins {
     id "idea"
 }
 
+apply from: "${rootDir}/gradle/publishing.gradle"
+
 dependencies {
     compile libraries.immutables    // Only needed until we delete SweetStyle
     compile libraries.guava

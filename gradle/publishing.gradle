@@ -1,0 +1,30 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "com.amazonaws:aws-java-sdk:1.10.58"
+    }
+}
+
+apply plugin: "maven-publish"
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            url "s3://quartictech-repo.s3.eu-west-2.amazonaws.com/maven2"
+            credentials(AwsCredentials) {
+                def defaultCredentials = new com.amazonaws.auth.DefaultAWSCredentialsProviderChain().getCredentials()
+                accessKey defaultCredentials.getAWSAccessKeyId()
+                secretKey defaultCredentials.getAWSSecretKey()
+            }
+        }
+    }
+}
