@@ -3,15 +3,15 @@ package io.quartic.weyl.core.catalogue;
 import com.fasterxml.jackson.databind.JavaType;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketListener;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Map;
 
-import static io.quartic.common.rx.RxUtils.all;
-import static io.quartic.common.test.CollectionUtils.entry;
-import static io.quartic.common.test.CollectionUtils.map;
+import static io.quartic.common.rx.RxUtilsKt.all;
+import static io.quartic.common.test.CollectionUtilsKt.entry;
+import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static org.hamcrest.Matchers.contains;
@@ -40,7 +40,7 @@ public class CatalogueWatcherShould {
         final DatasetId id = mock(DatasetId.class);
         final DatasetConfig config = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(map(entry(id, config))));
+        when(listener.getObservable()).thenReturn(just(map(entry(id, config))));
 
         assertThat(all(watcher.events()), contains(CatalogueEventImpl.of(CREATE, id, config)));
     }
@@ -50,7 +50,7 @@ public class CatalogueWatcherShould {
         final DatasetId id = mock(DatasetId.class);
         final DatasetConfig config = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 map(entry(id, config)),
                 map()   // Gone!
         ));
@@ -66,7 +66,7 @@ public class CatalogueWatcherShould {
         final DatasetId id = mock(DatasetId.class);
         final DatasetConfig config = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 map(entry(id, config)),
                 map(entry(id, config))  // Again
         ));
@@ -81,7 +81,7 @@ public class CatalogueWatcherShould {
         final DatasetConfig configA = mock(DatasetConfig.class);
         final DatasetConfig configB = mock(DatasetConfig.class);
 
-        when(listener.observable()).thenReturn(just(
+        when(listener.getObservable()).thenReturn(just(
                 map(entry(idA, configA)),
                 map(entry(idA, configA), entry(idB, configB)),
                 map(entry(idB, configB))

@@ -2,7 +2,6 @@ package io.quartic.weyl;
 
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
@@ -19,11 +18,9 @@ import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
 import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.client.WebsocketClientSessionFactory;
-import io.quartic.common.client.WebsocketListener;
-import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.common.websocket.WebsocketClientSessionFactory;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -33,7 +30,6 @@ import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerIdImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
@@ -69,13 +65,14 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.rx.RxUtils.likeBehavior;
-import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
+import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
-    private final UidGenerator<LayerId> lidGenerator = RandomUidGenerator.of(LayerIdImpl::of);   // Use a random generator to ensure MapBox tile caching doesn't break things
+    private final UidGenerator<LayerId> lidGenerator = randomGenerator(LayerId::new);   // Use a random generator to ensure MapBox tile caching doesn't break things
 
     public static void main(String[] args) throws Exception {
         new WeylApplication().run(args);
@@ -88,14 +85,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     @Override
-    public void runApplication(WeylConfiguration configuration, Environment environment) throws Exception {
-        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
-        environment.jersey().setUrlPattern("/api/*");
-
+    public void runApplication(WeylConfiguration configuration, Environment environment) {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
-                WebsocketListener.Factory.of(configuration.getCatalogueWatchUrl(), websocketFactory)
+                new WebsocketListener.Factory(configuration.getCatalogueWatchUrl(), websocketFactory)
         );
 
         final SourceManager sourceManager = SourceManagerImpl.builder()
@@ -115,12 +109,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final AlertResource alertResource = new AlertResource();
 
-        environment.jersey().register(new PingPongResource());
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
 
-        websocketBundle.addEndpoint(createEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
+        websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
 
     private WebsocketEndpoint createWebsocketEndpoint(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {
@@ -180,7 +173,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WebsocketClientSessionFactory websocketFactory
     ) {
         final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
-                .listenerFactory(WebsocketListener.Factory.of(configuration.getTerminatorUrl(), websocketFactory))
+                .listenerFactory(new WebsocketListener.Factory(configuration.getTerminatorUrl(), websocketFactory))
                 .metrics(environment.metrics())
                 .build();
 
@@ -197,7 +190,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
-                        .listenerFactory(WebsocketListener.Factory.of(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
+                        .listenerFactory(new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(featureConverter())
                         .metrics(environment.metrics())
                         .build(),

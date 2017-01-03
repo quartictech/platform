@@ -3,7 +3,7 @@ package io.quartic.weyl.core.source;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.common.geojson.FeatureCollection;
 import org.immutables.value.Value;
 
 import java.time.Instant;

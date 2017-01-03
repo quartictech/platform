@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class HistogramCalculatorShould {
 
     private Feature feature(Map<AttributeName, Object> attributes) {
         return FeatureImpl.builder()
-                .entityId(EntityIdImpl.of("def"))
+                .entityId(new EntityId("def"))
                 .geometry(mock(Geometry.class))
                 .attributes(() -> attributes)
                 .build();

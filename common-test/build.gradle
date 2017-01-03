@@ -1,16 +1,12 @@
 plugins {
-    id "java"
+    id "nebula.kotlin" version "1.0.5"
     id "idea"
-    id "org.inferred.processors" version "1.2.3"
 }
 
 dependencies {
     compile project(":common-core")
-    compile libraries.immutables
-    compile libraries.rxjava
+
     compile libraries.junit
-    compile libraries.guava
-    compile libraries.websocket
     compile libraries.tyrus.server
     compile libraries.tyrus.containerServer
 }
