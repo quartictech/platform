@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.ImmutableList;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -97,7 +97,7 @@ public class GeofenceViolationDetector {
         output.hasChanged |= state.reset;
         state.reset = false;
 
-        return StateAndOutput.of(state, output);
+        return new StateAndOutput<>(state, output);
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {

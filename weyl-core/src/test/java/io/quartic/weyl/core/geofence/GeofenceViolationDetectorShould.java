@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.geofence;
 
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
 import io.quartic.weyl.core.model.EntityId;
@@ -136,8 +136,8 @@ public class GeofenceViolationDetectorShould {
 
     private Output runDetector(Feature feature) {
         final StateAndOutput<State, Output> next = detector.next(state, newArrayList(feature));
-        state = next.state();
-        return next.output();
+        state = next.getState();
+        return next.getOutput();
     }
 
     private Geofence geofence(GeofenceType type) {

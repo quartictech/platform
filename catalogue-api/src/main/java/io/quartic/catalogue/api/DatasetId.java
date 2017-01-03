@@ -1,17 +1,14 @@
 package io.quartic.catalogue.api;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.Uid;
-import org.immutables.value.Value;
+import org.jetbrains.annotations.NotNull;
 
-@SweetStyle
-@Value.Immutable
-@JsonSerialize(as = DatasetIdImpl.class)
-@JsonDeserialize(as = DatasetIdImpl.class)
-public abstract class DatasetId extends Uid {
+public class DatasetId extends Uid {
+    public DatasetId(@NotNull String uid) {
+        super(uid);
+    }
+
     public static DatasetId fromString(String uid) {
-        return DatasetIdImpl.of(uid);
+        return new DatasetId(uid);
     }
 }

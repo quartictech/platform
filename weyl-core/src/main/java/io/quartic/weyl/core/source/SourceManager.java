@@ -6,7 +6,7 @@ import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.catalogue.CatalogueEvent;
-import io.quartic.weyl.core.model.LayerIdImpl;
+import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -70,7 +70,7 @@ public abstract class SourceManager {
 
         return LayerPopulator.withoutDependencies(
                 LayerSpecImpl.of(
-                        LayerIdImpl.of(id.uid()),
+                        new LayerId(id.getUid()),
                         datasetMetadataFrom(config.metadata()),
                         extension.viewType().getLayerView(),
                         extension.staticSchema(),

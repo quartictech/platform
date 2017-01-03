@@ -2,8 +2,18 @@ package io.quartic.catalogue.io.quartic.catalogue.datastore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.cloud.datastore.*;
-import io.quartic.catalogue.api.*;
+import com.google.cloud.datastore.Blob;
+import com.google.cloud.datastore.DateTime;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.KeyFactory;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.Icon;
+import io.quartic.catalogue.api.IconImpl;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -11,7 +21,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
 public class EntitySerDe {
     private static final String VERSION = "version";
@@ -41,10 +51,10 @@ public class EntitySerDe {
                 Optional.ofNullable(entity.getString(ICON)).map(IconImpl::of)
         );
 
-        DatasetLocator locator = OBJECT_MAPPER.readValue(entity.getBlob(LOCATOR).asInputStream(),
+        DatasetLocator locator = objectMapper().readValue(entity.getBlob(LOCATOR).asInputStream(),
                 DatasetLocator.class);
 
-        Map<String, Object> extensions = OBJECT_MAPPER.readValue(entity.getBlob(EXTENSIONS).asInputStream(),
+        Map<String, Object> extensions = objectMapper().readValue(entity.getBlob(EXTENSIONS).asInputStream(),
                 new TypeReference<Map<String, Object>>() { });
 
         return DatasetConfigImpl.of(metadata, locator, extensions);
@@ -61,7 +71,7 @@ public class EntitySerDe {
     }
 
     public Entity datasetToEntity(DatasetId datasetId, DatasetConfig datasetConfig) throws JsonProcessingException {
-        Entity.Builder entityBuilder = Entity.newBuilder(keyFactory.newKey(datasetId.uid()));
+        Entity.Builder entityBuilder = Entity.newBuilder(keyFactory.newKey(datasetId.getUid()));
 
         entityBuilder.set(VERSION, CURRENT_VERSION);
         entityBuilder.set(NAME, datasetConfig.metadata().name());
@@ -80,8 +90,8 @@ public class EntitySerDe {
             entityBuilder.setNull(ICON);
         }
 
-        entityBuilder.set(LOCATOR, Blob.copyFrom(OBJECT_MAPPER.writeValueAsBytes(datasetConfig.locator())));
-        entityBuilder.set(EXTENSIONS, Blob.copyFrom(OBJECT_MAPPER.writeValueAsBytes(datasetConfig.extensions())));
+        entityBuilder.set(LOCATOR, Blob.copyFrom(objectMapper().writeValueAsBytes(datasetConfig.locator())));
+        entityBuilder.set(EXTENSIONS, Blob.copyFrom(objectMapper().writeValueAsBytes(datasetConfig.extensions())));
         return entityBuilder.build();
     }
 }

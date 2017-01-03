@@ -18,7 +18,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import java.util.Map;
 
-import static io.quartic.common.rx.RxUtils.latest;
+import static io.quartic.common.rx.RxUtilsKt.latest;
 import static rx.Observable.error;
 
 @Path("/")

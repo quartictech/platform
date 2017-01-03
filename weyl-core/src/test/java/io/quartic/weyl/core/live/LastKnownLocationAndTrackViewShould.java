@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.model.Attributes;
-import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import org.junit.Test;
@@ -109,7 +109,7 @@ public class LastKnownLocationAndTrackViewShould {
 
     private Feature featureWithName(String name, Geometry geometry) {
         return FeatureImpl.builder()
-                .entityId(EntityIdImpl.of("foo/" + name))
+                .entityId(new EntityId("foo/" + name))
                 .geometry(geometry)
                 .attributes(ATTRIBUTES)
                 .build();

@@ -1,7 +1,7 @@
 package io.quartic.terminator
 
 import io.quartic.catalogue.api.TerminationId
-import io.quartic.geojson.FeatureCollection
+import io.quartic.common.geojson.FeatureCollection
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import io.quartic.terminator.api.TerminatorService
 import rx.Observable

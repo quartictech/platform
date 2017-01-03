@@ -1,7 +1,7 @@
 package io.quartic.weyl.request;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.LayerId;
 import org.immutables.value.Value;

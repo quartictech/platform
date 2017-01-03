@@ -55,7 +55,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
 
     @Override
     public DatasetConfig get(DatasetId datasetId) throws IOException {
-        Entity entity = datastore.get(keyFactory.newKey(datasetId.uid()));
+        Entity entity = datastore.get(keyFactory.newKey(datasetId.getUid()));
         return entitySerDe.entityToDataset(entity);
     }
 
@@ -66,12 +66,12 @@ public class GoogleDatastoreBackend implements StorageBackend {
 
     @Override
     public void remove(DatasetId id) throws IOException {
-        datastore.delete(datastore.newKeyFactory().newKey(id.uid()));
+        datastore.delete(datastore.newKeyFactory().newKey(id.getUid()));
     }
 
     @Override
     public boolean containsKey(DatasetId id) throws IOException {
-        return datastore.get(keyFactory.newKey(id.uid())) != null;
+        return datastore.get(keyFactory.newKey(id.getUid())) != null;
     }
 
     @Override

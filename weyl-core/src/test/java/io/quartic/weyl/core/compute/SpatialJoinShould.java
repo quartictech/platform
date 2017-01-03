@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.SnapshotReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
-import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
@@ -88,7 +88,7 @@ public class SpatialJoinShould {
 
     private Feature feature(NakedFeature feature, String layerId) {
         return FeatureImpl.of(
-                EntityIdImpl.of(layerId + "/" + feature.externalId().get()),
+                new EntityId(layerId + "/" + feature.externalId().get()),
                 feature.geometry(),
                 feature.attributes()
         );

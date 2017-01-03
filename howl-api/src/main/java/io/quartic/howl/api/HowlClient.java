@@ -1,6 +1,5 @@
 package io.quartic.howl.api;
 
-import io.quartic.common.serdes.ObjectMappers;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -14,6 +13,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Consumer;
+
+import static io.quartic.common.serdes.ObjectMappersKt.decode;
 
 public class HowlClient implements HowlService {
     private static class UserAgentInterceptor implements Interceptor {
@@ -88,7 +89,7 @@ public class HowlClient implements HowlService {
                 .url(url(namespace))
                 .post(requestBody(contentType, upload))
                 .build();
-        return ObjectMappers.decode(client.newCall(request).execute().body().string(), HowlStorageId.class);
+        return decode(client.newCall(request).execute().body().string(), HowlStorageId.class);
     }
 
     @Override

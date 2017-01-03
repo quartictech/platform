@@ -1,37 +1,32 @@
 package io.quartic.terminator
 
-import com.google.common.collect.Lists.newArrayList
 import com.google.common.collect.Maps.newHashMap
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import io.quartic.catalogue.api.TerminationIdImpl
-import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
+import io.quartic.catalogue.api.TerminationId
+import io.quartic.common.geojson.Feature
+import io.quartic.common.geojson.FeatureCollection
+import io.quartic.common.geojson.Point
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.rx.Interceptor
-import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollectionImpl
-import io.quartic.geojson.FeatureImpl
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 import rx.Observable.just
-import java.util.*
-import java.util.Collections.emptyMap
 import javax.websocket.RemoteEndpoint
 import javax.websocket.Session
 
 class WebsocketEndpointShould {
     private val fcwti = FeatureCollectionWithTerminationId(
-            TerminationIdImpl.of("123"),
-            FeatureCollectionImpl.of(newArrayList(
-                    FeatureImpl.of(Optional.of("456"), Optional.of(mock()), emptyMap()) as Feature
-            ))
+            TerminationId("123"),
+            FeatureCollection(listOf(Feature("456", Point(listOf(4.0, 5.0)))))
     )
 
     @Test
     fun send_messages_for_emitted_feature_collections() {
-        val session = createSession("sessionA")
+        val session = createSession()
 
         val observable = just(fcwti)
 
@@ -43,8 +38,8 @@ class WebsocketEndpointShould {
 
     @Test
     fun send_messages_to_multiple_subscribers() {
-        val sessionA = createSession("sessionA")
-        val sessionB = createSession("sessionB")
+        val sessionA = createSession()
+        val sessionB = createSession()
 
         val observable = just(fcwti)
 
@@ -58,19 +53,18 @@ class WebsocketEndpointShould {
 
     @Test
     fun unsubscribe_on_close() {
-        val session = createSession("sessionA")
+        val session = createSession()
 
-        val interceptor = Interceptor.create<FeatureCollectionWithTerminationId>()
+        val interceptor = Interceptor<FeatureCollectionWithTerminationId>()
 
         val endpoint = WebsocketEndpoint(just(fcwti).compose(interceptor))
         endpoint.onOpen(session, mock())
         endpoint.onClose(session, mock())
 
-        assertThat(interceptor.unsubscribed(), equalTo(true))
+        assertThat(interceptor.unsubscribed, equalTo(true))
     }
 
-    private fun createSession(sessionId: String): Session = mock {
-        on { id } doReturn sessionId
+    private fun createSession(): Session = mock {
         on { userProperties } doReturn newHashMap()
         on { asyncRemote } doReturn mock<RemoteEndpoint.Async>()
     }

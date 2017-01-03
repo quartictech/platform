@@ -3,8 +3,8 @@ package io.quartic.weyl.websocket;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.common.rx.StateAndOutputImpl;
-import io.quartic.geojson.FeatureCollection;
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
@@ -18,7 +18,6 @@ import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.EntityIdImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
@@ -53,8 +52,8 @@ import java.util.function.Function;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
-import static io.quartic.common.test.CollectionUtils.entry;
-import static io.quartic.common.test.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtilsKt.entry;
+import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
@@ -102,7 +101,7 @@ public class GeofenceStatusHandlerShould {
 
         // Default behaviour
         when(detector.create(any())).thenReturn(mock(State.class));
-        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), mock(Output.class)));
+        when(detector.next(any(), any())).thenReturn(new StateAndOutput<>(mock(State.class), mock(Output.class)));
     }
 
     @Test
@@ -320,7 +319,7 @@ public class GeofenceStatusHandlerShould {
                 entry(SEVERE, 3)
         ));
 
-        when(detector.next(any(), any())).thenReturn(StateAndOutputImpl.of(mock(State.class), output));
+        when(detector.next(any(), any())).thenReturn(new StateAndOutput<>(mock(State.class), output));
     }
 
     @SuppressWarnings("unchecked")
@@ -378,7 +377,7 @@ public class GeofenceStatusHandlerShould {
         return GeofenceImpl.of(
                 GeofenceType.INCLUDE,
                 io.quartic.weyl.core.model.FeatureImpl.of(
-                        EntityIdImpl.of("geofence/" + id),
+                        new EntityId("geofence/" + id),
                         geometry,
                         AttributesImpl.of(singletonMap(ALERT_LEVEL, level))
                 )
@@ -387,7 +386,7 @@ public class GeofenceStatusHandlerShould {
 
     private Feature modelFeatureOf(NakedFeature feature) {
         return io.quartic.weyl.core.model.FeatureImpl.of(
-                EntityIdImpl.of("xyz"),
+                new EntityId("xyz"),
                 feature.geometry(),
                 feature.attributes());
     }
