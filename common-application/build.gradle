@@ -1,9 +1,8 @@
 plugins {
     id "nebula.kotlin" version "1.0.5"
+    id "io.quartic.publish" version "12"
     id "idea"
 }
-
-apply from: "${rootDir}/gradle/publishing.gradle"
 
 dependencies {
     compile project(":common-core")

@@ -1,11 +1,10 @@
 plugins {
     id "java"
     id "idea"
+    id "io.quartic.service" version "12"
     id "org.inferred.processors" version "1.2.3"
     id "com.palantir.configuration-resolver" version "0.1.0"
 }
-
-apply plugin: io.quartic.gradle.ServicePlugin
 
 service {
     simpleName = "howl"
