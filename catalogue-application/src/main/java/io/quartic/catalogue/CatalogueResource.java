@@ -3,13 +3,8 @@ package io.quartic.catalogue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +15,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import java.io.IOException;
 import java.time.Clock;
 import java.util.Map;
 import java.util.Set;
@@ -27,18 +23,47 @@ import java.util.Set;
 public class CatalogueResource extends Endpoint implements CatalogueService {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueService.class);
 
-    private final Map<DatasetId, DatasetConfig> datasets = Maps.newConcurrentMap();
+    private final StorageBackend storageBackend;
     private final UidGenerator<DatasetId> didGenerator;
     private final Clock clock;
     private final ObjectMapper objectMapper;
     private final Set<Session> sessions = Sets.newHashSet();
 
-    public CatalogueResource(UidGenerator<DatasetId> didGenerator, Clock clock, ObjectMapper objectMapper) {
+    public CatalogueResource(StorageBackend storageBackend, UidGenerator<DatasetId> didGenerator, Clock clock, ObjectMapper objectMapper) {
+        this.storageBackend = storageBackend;
         this.didGenerator = didGenerator;
         this.clock = clock;
         this.objectMapper = objectMapper;
     }
 
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface ThrowingVoid {
+        void apply() throws IOException;
+    }
+
+    private <T> T wrapException(ThrowingSupplier<T> f) {
+        try {
+            return f.get();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void wrapException(ThrowingVoid f) {
+       try {
+           f.apply();
+       } catch (IOException e) {
+           throw new RuntimeException(e);
+       }
+    }
+
+    @Override
     public synchronized DatasetId registerDataset(DatasetConfig config) {
         if (config.metadata().registered().isPresent()) {
             throw new BadRequestException("'registered' field should not be present");
@@ -46,7 +71,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
 
         // TODO: basic validation
         DatasetId id = didGenerator.get();
-        datasets.put(id, withRegisteredTimestamp(config));
+        wrapException(() -> storageBackend.put(id, withRegisteredTimestamp(config)));
         updateClients();
         return id;
     }
@@ -58,25 +83,27 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
                 );
     }
 
+    @Override
     public synchronized void deleteDataset(DatasetId id) {
         throwIfDatasetNotFound(id);
-        datasets.remove(id);
+        wrapException(() -> storageBackend.remove(id));
         updateClients();
     }
 
+    @Override
     public synchronized Map<DatasetId, DatasetConfig> getDatasets() {
-        return ImmutableMap.copyOf(datasets);
+        return wrapException(() -> ImmutableMap.copyOf(storageBackend.getAll()));
     }
 
     public synchronized DatasetConfig getDataset(DatasetId id) {
         throwIfDatasetNotFound(id);
-        return datasets.get(id);
+        return wrapException(() -> storageBackend.get(id));
     }
 
     @Override
     public synchronized void onOpen(Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
-        updateClient(session);
+        updateClient(session, wrapException(storageBackend::getAll));
         sessions.add(session);
     }
 
@@ -87,10 +114,10 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     private void updateClients() {
-        sessions.forEach(this::updateClient);
+        sessions.forEach(session -> updateClient(session, wrapException(storageBackend::getAll)));
     }
 
-    private void updateClient(Session session) {
+    private void updateClient(Session session, Map<DatasetId, DatasetConfig> datasets) {
         try {
             session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
         } catch (JsonProcessingException e) {
@@ -99,8 +126,12 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     private void throwIfDatasetNotFound(DatasetId id) {
-        if (!datasets.containsKey(id)) {
-            throw new NotFoundException("No dataset " + id);
+        try {
+            if (!storageBackend.containsKey(id)) {
+                throw new NotFoundException("No dataset " + id);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

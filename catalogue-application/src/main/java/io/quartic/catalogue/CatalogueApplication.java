@@ -28,7 +28,9 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
 
     @Override
     public void runApplication(CatalogueConfiguration configuration, Environment environment) {
-        final CatalogueResource catalogue = new CatalogueResource(didGenerator, Clock.systemUTC(), environment.getObjectMapper());
+        StorageBackend storageBackend = configuration.getBackend();
+        final CatalogueResource catalogue = new CatalogueResource(storageBackend, didGenerator, Clock.systemUTC(), environment.getObjectMapper());
+        environment.healthChecks().register("storageBackend", new StorageBackendHealthCheck(storageBackend));
         environment.jersey().register(catalogue);
         websocketBundle.addEndpoint(serverEndpointConfig("/api/datasets/watch", catalogue));
     }
