@@ -5,7 +5,22 @@ const selectHome = (state) => state.get("home").toJS();
 const selectHomeImmutable = (state) => state.get("home"); // TODO: eventually everything will be immutable
 
 export const selectLayerList = createSelector(selectHome, p => p.layerList);
-export const selectLayers = createSelector(selectHomeImmutable, p => p.get("layers"));
+
+function mergeStaticAndDynamicLayer(staticLayer, dynamicLayer) {
+  if (dynamicLayer.getIn(["style", "attribute"]) == null && staticLayer.getIn(["staticSchema", "primaryAttribute"]) != null) {
+    return staticLayer.merge(dynamicLayer).setIn(["style", "attribute"], staticLayer.getIn(["staticSchema", "primaryAttribute"]));
+  }
+  return staticLayer.merge(dynamicLayer);
+}
+
+export const selectLayers = createSelector(selectHomeImmutable, p => {
+  const layerList = p.get("layerList");
+  // join with the layer list
+  return p.get("layers")
+    .filter((layer, layerId) => layerList.has(layerId))
+    .map((layer, layerId) => mergeStaticAndDynamicLayer(layerList.get(layerId), layer));
+});
+
 export const selectUi = createSelector(selectHome, p => p.ui);
 export const selectSelection = createSelector(selectHome, p => p.selection);
 export const selectGeofence = createSelector(selectHome, p => p.geofence);

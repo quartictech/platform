@@ -13,7 +13,7 @@ function computeStops(colorScale, nStops, minValue, maxValue) {
 }
 
 function colorStyle(attribute, style, attributeStats) {
-  if (attribute == null) {
+  if (attribute == null || !(attribute in attributeStats)) {
     return style.color;
   }
   return {
