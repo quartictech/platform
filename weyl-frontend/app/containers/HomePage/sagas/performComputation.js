@@ -17,13 +17,6 @@ export default function* performComputation(action) {
   });
 
   if (!results.err) {
-    const requestURL2 = `${apiRootUrl}/layer/metadata/${results.data}`;
-    const results2 = yield call(request, requestURL2, {
-      method: "GET",
-    });
-
-    if (!results2.err) {
-      yield put(actions.layerCreate(results2.data));
-    }
+    yield put(actions.layerCreate(results.data));
   }
 }

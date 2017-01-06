@@ -102,7 +102,7 @@ public abstract class BucketComputation implements LayerPopulator {
 
         final ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
-            return just(LayerUpdateImpl.of(
+            return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(
                     forkJoinPool.submit(() -> {
                         // The order here is that CONTAINS applies from left -> right and
                         // the spatial index on the right layer is the one that is queried

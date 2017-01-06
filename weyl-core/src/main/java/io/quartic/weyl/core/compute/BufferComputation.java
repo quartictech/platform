@@ -71,6 +71,6 @@ public abstract class BufferComputation implements LayerPopulator {
                 )
                 .collect(toList());
 
-        return just(LayerUpdateImpl.of(bufferedFeatures));
+        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(bufferedFeatures));
     }
 }
