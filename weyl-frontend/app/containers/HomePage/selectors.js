@@ -4,21 +4,25 @@ const _ = require("underscore");
 const selectHome = (state) => state.get("home").toJS();
 const selectHomeImmutable = (state) => state.get("home"); // TODO: eventually everything will be immutable
 
-export const selectLayerList = createSelector(selectHome, p => p.layerList);
+export const selectLayerList = createSelector(selectHome, p => p.staticLayerInfo);
 
-function mergeStaticAndDynamicLayer(staticLayer, dynamicLayer) {
-  if (dynamicLayer.getIn(["style", "attribute"]) == null && staticLayer.getIn(["staticSchema", "primaryAttribute"]) != null) {
-    return staticLayer.merge(dynamicLayer).setIn(["style", "attribute"], staticLayer.getIn(["staticSchema", "primaryAttribute"]));
+// HACK: The static info contains the primaryAttribute from the staticSchema but
+// the dynamicInfo must contain the style (and the attribute used to colour things which
+// may be overriden by the user). This function joins the two parts together accounting for this.
+function mergeStaticAndDynamicLayer(staticInfo, dynamicInfo) {
+  if (dynamicInfo.getIn(["style", "attribute"]) == null && staticInfo.getIn(["staticSchema", "primaryAttribute"]) != null) {
+    return staticInfo.merge(dynamicInfo).setIn(["style", "attribute"], staticInfo.getIn(["staticSchema", "primaryAttribute"]));
   }
-  return staticLayer.merge(dynamicLayer);
+  return staticInfo.merge(dynamicInfo);
 }
 
 export const selectLayers = createSelector(selectHomeImmutable, p => {
-  const layerList = p.get("layerList");
-  // join with the layer list
-  return p.get("layers")
-    .filter((layer, layerId) => layerList.has(layerId))
-    .map((layer, layerId) => mergeStaticAndDynamicLayer(layerList.get(layerId), layer));
+  const staticLayerInfo = p.get("staticLayerInfo");
+  // join with the layer list and filter layers for which we don't yet have 
+  // static info
+  return p.get("dynamicLayerInfo")
+    .filter((layer, layerId) => staticLayerInfo.has(layerId))
+    .map((layer, layerId) => mergeStaticAndDynamicLayer(staticLayerInfo.get(layerId), layer));
 });
 
 export const selectUi = createSelector(selectHome, p => p.ui);
