@@ -18,8 +18,7 @@ function mergeStaticAndDynamicLayer(staticInfo, dynamicInfo) {
 
 export const selectLayers = createSelector(selectHomeImmutable, p => {
   const staticLayerInfo = p.get("staticLayerInfo");
-  // join with the layer list and filter layers for which we don't yet have 
-  // static info
+  // join with the layer list and filter layers for which we don't yet have static info
   return p.get("dynamicLayerInfo")
     .filter((layer, layerId) => staticLayerInfo.has(layerId))
     .map((layer, layerId) => mergeStaticAndDynamicLayer(staticLayerInfo.get(layerId), layer));
