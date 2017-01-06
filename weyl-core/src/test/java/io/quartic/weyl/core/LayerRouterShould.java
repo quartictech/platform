@@ -40,7 +40,7 @@ public class LayerRouterShould {
 
     private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
-    private final Interceptor<LayerPopulator> interceptor = Interceptor.create();
+    private final Interceptor<LayerPopulator> interceptor = new Interceptor<>();
     private final LayerRouter router = LayerRouterImpl.builder()
             .populators(populators.compose(interceptor))
             .snapshotReducer(snapshotReducer)
@@ -56,7 +56,7 @@ public class LayerRouterShould {
 
             createLayer(spec);
 
-            assertThat(interceptor.values(), hasSize(1));
+            assertThat(interceptor.getValues(), hasSize(1));
         }
 
         @Test
@@ -64,12 +64,12 @@ public class LayerRouterShould {
             final LayerSpec spec = spec(LAYER_ID);
             mockSnapshotCreationFor(spec);
 
-            final Interceptor<LayerUpdate> interceptor = Interceptor.create();
+            final Interceptor<LayerUpdate> interceptor = new Interceptor<>();
             createLayer(spec, interceptor).onNext(mock(LayerUpdate.class));
 
             // Note no subscribers
 
-            assertThat(interceptor.values(), hasSize(1));
+            assertThat(interceptor.getValues(), hasSize(1));
         }
     }
 

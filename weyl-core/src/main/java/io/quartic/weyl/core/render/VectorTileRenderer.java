@@ -64,7 +64,7 @@ public class VectorTileRenderer {
                 getRawProperties(feature.feature()))
         ).sequential().forEach(vectorTileFeature -> {
                 featureCount.incrementAndGet();
-                encoder.addFeature(layerId.uid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
+                encoder.addFeature(layerId.getUid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
         });
         LOG.info("Encoded {} features in {}ms", featureCount.get(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
 

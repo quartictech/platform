@@ -1,17 +1,14 @@
 package io.quartic.catalogue.api;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.Uid;
-import org.immutables.value.Value;
+import org.jetbrains.annotations.NotNull;
 
-@SweetStyle
-@Value.Immutable
-@JsonSerialize(as = TerminationIdImpl.class)
-@JsonDeserialize(as = TerminationIdImpl.class)
-public abstract class TerminationId extends Uid {
+public class TerminationId extends Uid {
+    public TerminationId(@NotNull String uid) {
+        super(uid);
+    }
+
     public static TerminationId fromString(String uid) {
-        return TerminationIdImpl.of(uid);
+        return new TerminationId(uid);
     }
 }

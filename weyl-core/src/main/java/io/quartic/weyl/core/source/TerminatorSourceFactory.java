@@ -3,7 +3,7 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import io.quartic.catalogue.api.TerminatorDatasetLocator;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
@@ -32,7 +32,7 @@ public abstract class TerminatorSourceFactory {
     @Value.Derived
     protected Observable<FeatureCollectionWithTerminationId> collections() {
         return listenerFactory().create(FeatureCollectionWithTerminationId.class)
-                .observable()
+                .getObservable()
                 .doOnNext(s -> messageRateMeter().mark());
     }
 

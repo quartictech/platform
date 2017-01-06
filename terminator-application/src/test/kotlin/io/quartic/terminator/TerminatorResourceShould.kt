@@ -1,27 +1,21 @@
 package io.quartic.terminator
 
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Lists.newArrayList
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.api.TerminationId
-import io.quartic.geojson.Feature
-import io.quartic.geojson.FeatureCollectionImpl
-import io.quartic.geojson.FeatureImpl
+import io.quartic.common.geojson.Feature
+import io.quartic.common.geojson.FeatureCollection
 import io.quartic.terminator.api.FeatureCollectionWithTerminationId
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.junit.Assert.assertThat
 import org.junit.Test
 import rx.observers.TestSubscriber
-import java.util.*
-import java.util.Collections.emptyMap
 import javax.ws.rs.NotFoundException
 
 class TerminatorResourceShould {
-    private val featureCollection = FeatureCollectionImpl.of(newArrayList(
-            FeatureImpl.of(Optional.of("456"), Optional.of(mock()), emptyMap()) as Feature
-    ))
+    private val featureCollection = FeatureCollection(listOf(Feature("456", mock())))
     private val terminationId = mock<TerminationId>()
     private val catalogue = mock<CatalogueWatcher>()
     private val resource = TerminatorResource(catalogue)

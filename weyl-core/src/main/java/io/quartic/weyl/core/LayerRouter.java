@@ -1,8 +1,8 @@
 package io.quartic.weyl.core;
 
 import io.quartic.common.SweetStyle;
-import io.quartic.common.rx.RxUtils;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.RxUtilsKt;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.common.rx.RxUtils.mealy;
+import static io.quartic.common.rx.RxUtilsKt.mealy;
 import static java.util.Collections.emptySet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -103,7 +103,7 @@ public abstract class LayerRouter {
         final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(latestLayerSnapshots(state), populator);
         final Set<LayerSnapshotSequence> nextState = newHashSet(state); // Rebuilding the set each time is expensive, but we're doing this infrequently
         nextSequence.subscribe(nextState::add);
-        return StateAndOutput.of(nextState, nextSequence);
+        return new StateAndOutput<>(nextState, nextSequence);
     }
 
     private Map<LayerId, Layer> latestLayerSnapshots(Set<LayerSnapshotSequence> sequences) {
@@ -116,7 +116,7 @@ public abstract class LayerRouter {
     // Deal with completed (i.e. deleted) layers
     private Stream<Layer> latest(LayerSnapshotSequence sequence) {
         try {
-            return Stream.of(RxUtils.latest(sequence.snapshots()).absolute());
+            return Stream.of(RxUtilsKt.latest(sequence.snapshots()).absolute());
         } catch (Exception e) {
             return Stream.empty();
         }
@@ -126,7 +126,7 @@ public abstract class LayerRouter {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
-            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().uid());
+            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().getUid());
 
             return just(LayerSnapshotSequenceImpl.of(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
         } catch (Exception e) {

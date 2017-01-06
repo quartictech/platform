@@ -1,6 +1,6 @@
 package io.quartic.terminator
 
-import io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER
+import io.quartic.common.serdes.OBJECT_MAPPER
 import java.util.concurrent.TimeUnit
 import javax.websocket.Endpoint
 import javax.websocket.EndpointConfig

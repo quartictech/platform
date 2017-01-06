@@ -5,7 +5,7 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.weyl.core.feature.FeatureCollection;
-import io.quartic.weyl.core.model.EntityIdImpl;
+import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.ImmutableIndexedFeature;
@@ -95,7 +95,7 @@ public class SnapshotReducer {
 
     private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
         return features.stream().map(f -> FeatureImpl.of(
-                EntityIdImpl.of(layerId.uid() + "/" +
+                new EntityId(layerId.getUid() + "/" +
                         f.externalId().orElse(String.valueOf(missingExternalIdGenerator.incrementAndGet()))),
                 f.geometry(),
                 f.attributes()

@@ -1,10 +1,8 @@
 package io.quartic.weyl.websocket;
 
 import io.quartic.common.test.rx.Interceptor;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
-import io.quartic.geojson.PointImpl;
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.geojson.Point;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -25,14 +23,11 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Optional;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -63,17 +58,17 @@ public class OpenLayerHandlerShould {
     @Test
     public void subscribe_to_and_unsubscribe_from_layer_based_on_status_message() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Interceptor<Snapshot> interceptor = Interceptor.create();
+        final Interceptor<Snapshot> interceptor = new Interceptor<>();
 
         nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
 
-        assertThat(interceptor.subscribed(), equalTo(true));
-        assertThat(interceptor.unsubscribed(), equalTo(false));
+        assertThat(interceptor.getSubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(false));
 
         nextStatus(status());
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     @Test
@@ -149,13 +144,13 @@ public class OpenLayerHandlerShould {
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Interceptor<Snapshot> interceptor = Interceptor.create();
+        final Interceptor<Snapshot> interceptor = new Interceptor<>();
 
         nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
         subscription.unsubscribe();
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     private void completeInputsAndAwait() {
@@ -199,8 +194,6 @@ public class OpenLayerHandlerShould {
     }
 
     private FeatureCollection featureCollection() {
-        return FeatureCollectionImpl.of(newArrayList(
-                FeatureImpl.of(Optional.of("foo"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())
-        ));
+        return new FeatureCollection(newArrayList(new io.quartic.common.geojson.Feature("foo", new Point(newArrayList(1.0, 2.0)))));
     }
 }

@@ -1,11 +1,8 @@
 package io.quartic.weyl.core.feature;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
+import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
-import io.quartic.weyl.core.geojson.Utils;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.NakedFeature;
@@ -19,8 +16,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
-import static io.quartic.weyl.core.geojson.Utils.fromJts;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
+import static io.quartic.weyl.core.geojson.UtilsKt.fromJts;
+import static io.quartic.weyl.core.geojson.UtilsKt.toJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 import static java.util.stream.Collectors.toList;
@@ -43,36 +41,36 @@ public class FeatureConverter {
     }
 
     public Collection<NakedFeature> toModel(FeatureCollection featureCollection) {
-        return toModel(featureCollection.features());
+        return toModel(featureCollection.getFeatures());
     }
 
-    private Collection<NakedFeature> toModel(Collection<io.quartic.geojson.Feature> features) {
+    private Collection<NakedFeature> toModel(Collection<io.quartic.common.geojson.Feature> features) {
         return features.stream()
-                .filter(f -> f.geometry().isPresent())
+                .filter(f -> f.getGeometry() != null)
                 .map(this::toModel)
                 .collect(toList());
     }
 
-    private NakedFeature toModel(io.quartic.geojson.Feature f) {
+    private NakedFeature toModel(io.quartic.common.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
         return NakedFeatureImpl.of(
-                f.id(),
-                toModel.transform(Utils.toJts(f.geometry().get())),
-                convertToModelAttributes(f.properties())
+                Optional.ofNullable(f.getId()),
+                toModel.transform(toJts(f.getGeometry())),
+                convertToModelAttributes(f.getProperties())
         );
     }
 
     private Attributes convertToModelAttributes(Map<String, Object> rawAttributes) {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder();
-        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(OBJECT_MAPPER, k, v)));
+        rawAttributes.forEach((k, v) -> builder.put(k, convertAttributeValue(k, v)));
         return builder.build();
     }
 
-    private static Object convertAttributeValue(ObjectMapper objectMapper, String key, Object value) {
+    private static Object convertAttributeValue(String key, Object value) {
         // TODO: Move this up into generic code behind the importers
         if (value instanceof Map) {
             try {
-                return objectMapper.convertValue(value, ComplexAttribute.class);
+                return objectMapper().convertValue(value, ComplexAttribute.class);
             }
             catch (IllegalArgumentException e) {
                 LOG.warn("Couldn't convert attribute {}. Exception: {}", key, e);
@@ -82,18 +80,14 @@ public class FeatureConverter {
         return value;
     }
 
-    public io.quartic.geojson.FeatureCollection toGeojson(Collection<Feature> features) {
-        return FeatureCollectionImpl.of(
-                features.stream()
-                        .map(this::toGeojson)
-                        .collect(toList())
-        );
+    public FeatureCollection toGeojson(Collection<Feature> features) {
+        return new FeatureCollection(features.stream().map(this::toGeojson).collect(toList()));
     }
 
-    private io.quartic.geojson.Feature toGeojson(Feature f) {
-        return io.quartic.geojson.FeatureImpl.of(
-                Optional.empty(),
-                Optional.of(fromJts(fromModel.transform(f.geometry()))),
+    private io.quartic.common.geojson.Feature toGeojson(Feature f) {
+        return new io.quartic.common.geojson.Feature(
+                null,
+                fromJts(fromModel.transform(f.geometry())),
                 getRawProperties(f)
         );
     }
@@ -103,7 +97,7 @@ public class FeatureConverter {
         feature.attributes().attributes().entrySet().stream()
                 .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
                 .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_entityId", feature.entityId().uid());
+        output.put("_entityId", feature.entityId().getUid());
         return output;
     }
 }

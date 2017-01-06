@@ -6,11 +6,9 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.TerminationId;
-import io.quartic.catalogue.api.TerminationIdImpl;
 import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
-import io.quartic.common.uid.RandomUidGenerator;
+import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;
 import io.quartic.management.conversion.CsvConverter;
@@ -30,13 +28,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static java.util.Collections.emptyMap;
 
 @Path("/")
 public class ManagementResource {
     private static final String HOWL_NAMESPACE = "management";
     private final CatalogueService catalogueService;
-    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = RandomUidGenerator.of(TerminationIdImpl::of);
+    private final UidGenerator<TerminationId> terminatorEndpointIdGenerator = randomGenerator(TerminationId::new);
     private final HowlService howlService;
 
     public ManagementResource(CatalogueService catalogueService, HowlService howlService) {
@@ -92,8 +91,8 @@ public class ManagementResource {
             case GEOJSON:
                 try {
                     new GeoJsonParser(inputStream).validate();
-                } catch (IOException e) {
-                    throw new BadRequestException("exception while valiodating geojson: " + e);
+                } catch (Exception e) {
+                    throw new BadRequestException("Exception while validating geojson: " + e);
                 }
                 return fileName;
             case CSV:
@@ -104,10 +103,10 @@ public class ManagementResource {
                                 converter.convert(inputStream, outputStream);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                throw new BadRequestException("exception while converting csv to geojson: " + e);
+                                throw new BadRequestException("Exception while converting csv to geojson: " + e);
                             }
                         });
-                return storageId.uid();
+                return storageId.getUid();
             default:
                 return fileName;
         }

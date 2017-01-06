@@ -136,7 +136,7 @@ public abstract class BucketComputation implements LayerPopulator {
         final AttributesFactory.AttributesBuilder builder = attributesFactory.builder(bucket.attributes());
         builder.put(attributeName, value);
         return NakedFeatureImpl.of(
-                Optional.of(bucket.entityId().uid()),
+                Optional.of(bucket.entityId().getUid()),
                 bucket.geometry(),
                 builder.build()
         );

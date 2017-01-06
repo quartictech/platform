@@ -3,8 +3,7 @@ package io.quartic.weyl.update;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.quartic.common.SweetStyle;
-import io.quartic.common.rx.Nullable;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -25,8 +24,8 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Maps.newHashMap;
-import static io.quartic.common.rx.RxUtils.likeBehavior;
-import static io.quartic.common.rx.RxUtils.mealy;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+import static io.quartic.common.rx.RxUtilsKt.mealy;
 import static io.quartic.weyl.update.SelectionHandler.LayerEvent.Type.COMPLETE;
 import static io.quartic.weyl.update.SelectionHandler.LayerEvent.Type.NEXT;
 import static java.util.stream.Collectors.toList;
@@ -71,7 +70,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
                 break;
         }
 
-        return StateAndOutput.of(state, state.entityLookup);
+        return new StateAndOutput<>(state, state.entityLookup);
     }
 
     // This approach re-performs the selection lookup every time *any* upstream data changes.

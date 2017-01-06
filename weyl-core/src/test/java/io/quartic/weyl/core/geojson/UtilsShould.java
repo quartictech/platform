@@ -4,20 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
-import io.quartic.common.serdes.ObjectMappers;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.Geometry;
+import io.quartic.common.geojson.Feature;
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.geojson.Geometry;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
+import static io.quartic.weyl.core.geojson.UtilsKt.toJts;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class UtilsShould {
-    private final ObjectMapper OM = ObjectMappers.OBJECT_MAPPER;
+    private final ObjectMapper OM = objectMapper();
 
     @Test
     public void parse_multiline_string() throws IOException {
@@ -28,7 +29,7 @@ public class UtilsShould {
                 "      ]" +
                 "    }";
 
-        com.vividsolutions.jts.geom.Geometry geometry = Utils.toJts(OM.readValue(json, Geometry.class));
+        com.vividsolutions.jts.geom.Geometry geometry = toJts(OM.readValue(json, Geometry.class));
         assertThat(geometry.getGeometryType(), equalTo("MultiLineString"));
 
         MultiLineString multiLineString = (MultiLineString) geometry;
@@ -56,7 +57,7 @@ public class UtilsShould {
         "}";
 
          FeatureCollection featureCollection = OM.readValue(json, FeatureCollection.class);
-        assertThat(featureCollection.features().size(), equalTo(0));
+        assertThat(featureCollection.getFeatures().size(), equalTo(0));
     }
 
     @Test
@@ -72,6 +73,6 @@ public class UtilsShould {
                 "      }\n" +
                 "    }";
         Feature feature = OM.readValue(json, Feature.class);
-        assertThat(feature.properties().values(), containsInAnyOrder((String)null));
+        assertThat(feature.getProperties().values(), containsInAnyOrder((String)null));
     }
 }

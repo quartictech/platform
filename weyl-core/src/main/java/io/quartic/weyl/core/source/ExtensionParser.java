@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static java.lang.String.format;
 
 public class ExtensionParser {
@@ -22,7 +22,7 @@ public class ExtensionParser {
         final Object extension = extensions.get(EXTENSION_KEY);
         if (extension != null) {
             try {
-                return OBJECT_MAPPER.convertValue(extension, MapDatasetExtension.class);
+                return objectMapper().convertValue(extension, MapDatasetExtension.class);
             } catch (IllegalArgumentException e) {
                 LOG.warn(format("[%s] Unable to interpret extension, so using default", name), e);
             }

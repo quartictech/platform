@@ -6,11 +6,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.quartic.common.serdes.ObjectMappers;
-import io.quartic.geojson.Feature;
-import io.quartic.geojson.FeatureImpl;
-import io.quartic.geojson.Point;
-import io.quartic.geojson.PointImpl;
+import io.quartic.common.geojson.Feature;
+import io.quartic.common.geojson.Point;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -27,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static java.util.stream.Collectors.toList;
 
 public class CsvConverter implements GeoJsonConverter {
@@ -38,14 +36,14 @@ public class CsvConverter implements GeoJsonConverter {
             Double lat = Double.parseDouble(latStr);
             Double lon = Double.parseDouble(lonStr);
 
-            Point point = PointImpl.of(ImmutableList.of(lon, lat));
+            Point point = new Point(ImmutableList.of(lon, lat));
 
             Map<String, Object> properties = Maps.newHashMap();
             for (String key : columns) {
                 properties.put(key, record.get(key));
             }
 
-            return Optional.of(FeatureImpl.of(Optional.empty(), Optional.of(point), properties));
+            return Optional.of(new Feature(null, point, properties));
         }
 
         return Optional.empty();
@@ -78,7 +76,7 @@ public class CsvConverter implements GeoJsonConverter {
     public void convert(InputStream data, OutputStream outputStream) throws IOException {
         JsonFactory jsonFactory = new JsonFactory();
         JsonGenerator jsonGenerator = jsonFactory.createGenerator(outputStream);
-        jsonGenerator.setCodec(ObjectMappers.OBJECT_MAPPER);
+        jsonGenerator.setCodec(objectMapper());
         CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(data));
 
         Map<String, Integer> firstRow = csvParser.getHeaderMap();

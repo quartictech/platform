@@ -5,7 +5,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.api.*
-import io.quartic.common.client.WebsocketListener
+import io.quartic.common.websocket.WebsocketListener
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.junit.After
@@ -34,9 +34,9 @@ class CatalogueWatcherShould {
 
     @Test
     fun expose_returned_ids() {
-        val terminationId = TerminationIdImpl.of("456") as TerminationId
+        val terminationId = TerminationId("456")
         val datasets = datasetsWithLocator(TerminatorDatasetLocatorImpl.of(terminationId))
-        whenever(listener.observable()).thenReturn(just(datasets))
+        whenever(listener.observable).thenReturn(just(datasets))
 
         proxy.start()
 
@@ -46,14 +46,14 @@ class CatalogueWatcherShould {
     @Test
     fun ignore_incorrect_types() {
         val datasets = datasetsWithLocator(PostgresDatasetLocatorImpl.of("a", "b", "c", "d"))
-        whenever(listener.observable()).thenReturn(just(datasets))
+        whenever(listener.observable).thenReturn(just(datasets))
 
         proxy.start()
 
         assertThat(proxy.terminationIds, empty())
     }
 
-    private fun datasetsWithLocator(locator: DatasetLocator): Map<DatasetId, DatasetConfig> = hashMapOf(DatasetIdImpl.of("123") to DatasetConfigImpl.of(
+    private fun datasetsWithLocator(locator: DatasetLocator): Map<DatasetId, DatasetConfig> = hashMapOf(DatasetId("123") to DatasetConfigImpl.of(
             DatasetMetadataImpl.of(
                     "foo",
                     "bar",

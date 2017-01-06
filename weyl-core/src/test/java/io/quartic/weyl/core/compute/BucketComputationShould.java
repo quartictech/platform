@@ -30,9 +30,9 @@ import java.util.Optional;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
-import static io.quartic.common.rx.RxUtils.all;
-import static io.quartic.common.test.CollectionUtils.entry;
-import static io.quartic.common.test.CollectionUtils.map;
+import static io.quartic.common.rx.RxUtilsKt.all;
+import static io.quartic.common.test.CollectionUtilsKt.entry;
+import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.emptyList;
@@ -88,7 +88,7 @@ public class BucketComputationShould {
 
     @Test
     public void generate_features_with_augmented_attributes() throws Exception {
-        final FeatureImpl bucketFeature = bucketFeature();
+        final Feature bucketFeature = bucketFeature();
         final ArrayList<Tuple> tuples = newArrayList(TupleImpl.of(bucketFeature, mock(Feature.class)));
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
@@ -159,7 +159,7 @@ public class BucketComputationShould {
         );
     }
 
-    private FeatureImpl bucketFeature() {
+    private Feature bucketFeature() {
         return FeatureImpl.of(
                 EntityId.fromString("12345"),
                 mock(Geometry.class),
