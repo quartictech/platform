@@ -112,6 +112,7 @@ public class CsvConverter implements GeoJsonConverter {
                     });
             jsonGenerator.writeEndArray();
             jsonGenerator.writeEndObject();
+            jsonGenerator.flush();
         }
         else {
             throw new RuntimeException("lat & lon field can't be found in keys: " + firstRow.keySet());
