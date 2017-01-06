@@ -18,6 +18,7 @@ import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Before;
 import org.junit.Test;
+import rx.observers.TestSubscriber;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.newArrayList;
@@ -93,7 +95,7 @@ public class BucketComputationShould {
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
 
-        assertThat(getLast(evaluateUpdates().get(0).features()).attributes().attributes(),
+        assertThat(getLast(evaluateFirstUpdate().get(0).features()).attributes().attributes(),
                 equalTo(ImmutableMap.builder()
                         .putAll(bucketFeature.attributes().attributes())
                         .put(name("Foo"), 42.0)
@@ -113,18 +115,38 @@ public class BucketComputationShould {
         );
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
 
-        evaluateUpdates();
+        evaluateFirstUpdate();
 
         verify(joiner).innerJoin(bucketLayer, featureLayer, CONTAINS);
         verify(aggregation).aggregate(bucketFeature, newArrayList(groupFeatureA, groupFeatureB));
+    }
+
+    @Test
+    public void not_complete() throws Exception {
+        final Feature bucketFeature = bucketFeature();
+        final Feature groupFeatureA = mock(Feature.class);
+        final Feature groupFeatureB = mock(Feature.class);
+        final List<Tuple> tuples = newArrayList(
+                TupleImpl.of(bucketFeature, groupFeatureA),
+                TupleImpl.of(bucketFeature, groupFeatureB)
+        );
+        when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
+
+        TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
+
+        computation.updates(transform(computation.dependencies(), layerMap()::get))
+                .subscribe(subscriber);
+        TimeUnit.SECONDS.sleep(2);
+        subscriber.assertNotCompleted();
     }
 
     private LayerSpec evaluateSpec() {
         return computation.spec(transform(computation.dependencies(), layerMap()::get));
     }
 
-    private List<LayerUpdate> evaluateUpdates() {
-        return all(computation.updates(transform(computation.dependencies(), layerMap()::get)));
+    private List<LayerUpdate> evaluateFirstUpdate() {
+        return all(computation.updates(transform(computation.dependencies(), layerMap()::get))
+                .take(1));
     }
 
     private Map<LayerId, Layer> layerMap() {
