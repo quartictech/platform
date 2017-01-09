@@ -5,12 +5,9 @@ export const layerListUpdate = (layers) => ({
   layers,
 });
 
-export const layerCreate = (result) => ({
+export const layerCreate = (layerId) => ({
   type: constants.LAYER_CREATE,
-  id: result.id,
-  metadata: result.metadata,
-  staticSchema: result.staticSchema,
-  live: result.live,
+  layerId,
 });
 
 export const layerSetStyle = (layerId, key, value) => ({

@@ -5,7 +5,7 @@ import * as constants from "../constants";
 export default (state = new OrderedMap(), action) => {
   switch (action.type) {
     case constants.LAYER_CREATE:
-      return (state.has(action.id)) ? state : state.set(action.id, newLayer(action));
+      return (state.has(action.layerId)) ? state : state.set(action.layerId, newLayer(action));
     case constants.LAYER_CLOSE:
       return state.delete(action.layerId);
     case constants.LAYER_TOGGLE_VISIBLE:
@@ -61,19 +61,16 @@ const layerReducer = (state, action) => {
 };
 
 const newLayer = (action) => fromJS({
-  id: action.id,
-  metadata: action.metadata,
+  id: action.layerId,
   visible: true,
   themeIdx: 0,
-  staticSchema: action.staticSchema,
-  style: defaultLayerStyle(action.staticSchema.primaryAttribute, 0),
+  style: defaultLayerStyle(null, 0),
   stats: {
     attributeStats: {},
   },
   dynamicSchema: {
     attributes: {},
   },
-  live: action.live,
   data: {
     type: "FeatureCollection",
     features: [],

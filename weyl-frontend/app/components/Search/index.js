@@ -36,7 +36,7 @@ class Search extends React.Component {
 
   onChange(layerId) {
     if (layerId) {
-      this.props.onSelectLayer(_.find(this.props.layerList, item => item.id === layerId));
+      this.props.onSelectLayer(layerId);
     }
   }
 }

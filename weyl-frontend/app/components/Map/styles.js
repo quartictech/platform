@@ -13,7 +13,10 @@ function computeStops(colorScale, nStops, minValue, maxValue) {
 }
 
 function colorStyle(attribute, style, attributeStats) {
-  if (attribute == null) {
+  // the attribute may be missing from attributeStats as the dynamicSchema associated
+  // with the layer appears asynchronously and so may arrive later than the attribute
+  // (particularly for computed layers)
+  if (attribute == null || !(attribute in attributeStats)) {
     return style.color;
   }
   return {
