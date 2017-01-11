@@ -138,7 +138,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       };
     } else if (attributeInfo.categories) {
       return {
-        iconName: "property",
+        iconName: "th-list",
         id: attribute,
         label: <small>{attribute}</small>,
         childNodes: this.attributeCategoryNodes(
