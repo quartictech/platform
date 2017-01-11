@@ -10,11 +10,13 @@ import {
   PopoverInteractionKind,
   Position,
   Tree,
+  Tooltip,
 } from "@blueprintjs/core";
 
 import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
+import moment from "moment";
 
 import { layerThemes } from "../../themes";
 import Pane from "../Pane";
@@ -98,7 +100,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .keys()
       .sort(naturalsort)
       .map(k => {
-        const node = this.attributeNode(k, attributes[k], filter[k], applyTimeRangeFilter);
+        const node = this.attributeNode(k, attributes[k], filter[k], onValueClick, applyTimeRangeFilter);
         node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
         node.onExpand = () => this.setState({ activeAttribute: k });
         node.onCollapse = () => this.setState({ activeAttribute: null });
@@ -108,26 +110,30 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  attributeNode(attribute, attributeInfo, filter, applyTimeRangeFilter) {
-    if (attribute == "timestamp") { //if (attributeInfo.type == "TIMESTAMP") {
+  attributeNode(attribute, attributeInfo, filter, onValueClick, applyTimeRangeFilter) {
+    if (attributeInfo.type == "TIMESTAMP") {
       return {
         iconName: "time",
         id: attribute,
         label: <small>{attribute}</small>,
-        secondaryLabel: <Popover
-          content={
-            <DateRangePicker
-              startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
-              endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
-              onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
-            />}
-          position={Position.RIGHT_TOP}>
-            <Button
-              iconName="cog"
-              className={Classes.MINIMAL}
-              intent={filter && filter.timeRange != null ? Intent.PRIMARY : Intent.NONE}
-            />
-        </Popover>
+        secondaryLabel: (
+          <Tooltip content={this.timeRangeFilterTooltip(filter)}>
+          <Popover
+            content={
+              <DateRangePicker
+                startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
+                endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
+                onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
+              />}
+            position={Position.RIGHT_TOP}>
+              <Button
+                iconName="cog"
+                className={Classes.MINIMAL}
+                intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
+              />
+          </Popover>
+        </Tooltip>
+        )
       };
     }
     else if (attributeInfo.categories){
@@ -147,6 +153,15 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       id: attribute,
       label: <small>{attribute}</small>,
     }
+  }
+
+  timeRangeFilterTooltip(filter) {
+    if (filter && filter.timeRange) {
+      const startRange = filter.timeRange.startTime ? moment(filter.timeRange.startTime).format("LLLL") : "";
+      const endRange = filter.timeRange.endTime ? moment(filter.timeRange.endTime).format("LLLL") : "";
+      return `${startRange} → ${endRange}`;
+    }
+    return "No filter set";
   }
 
   attributeCategoryNodes(categories, filter, onClick) {
@@ -256,7 +271,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   filterActive(layer) {
-    return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
+    return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable || attr.timeRange);
   }
 }
 

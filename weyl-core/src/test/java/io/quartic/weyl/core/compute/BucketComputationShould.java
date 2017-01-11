@@ -177,7 +177,8 @@ public class BucketComputationShould {
                 Optional.of(name("Title")),
                 Optional.of(name("Primary")),
                 Optional.of(name("Image")),
-                newArrayList(name("BlessedA"), name("BlessedB"))
+                newArrayList(name("BlessedA"), name("BlessedB")),
+                ImmutableMap.of()
         );
     }
 

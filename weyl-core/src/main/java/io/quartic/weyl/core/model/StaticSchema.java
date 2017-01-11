@@ -18,5 +18,7 @@ public interface StaticSchema {
     Optional<AttributeName> primaryAttribute();
     Optional<AttributeName> imageAttribute();
     List<AttributeName> blessedAttributes();
-    Optional<Map<AttributeName, AttributeType>> attributeTypes();
+
+    @JsonDeserialize(keyUsing = AttributeNameKeyDeserializer.class, keyAs = AttributeNameImpl.class)
+    Map<AttributeName, AttributeType> attributeTypes();
 }

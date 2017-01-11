@@ -36,8 +36,8 @@ public class AttributeSchemaInferrer {
         return DynamicSchemaImpl.of(names.parallelStream()
                 .collect(toConcurrentMap(identity(),
                         attribute -> inferAttribute(attribute, attributes, previousInference.attributes(),
-                                staticSchema.attributeTypes().orElse(ImmutableMap.of()))
-        )));
+                                staticSchema.attributeTypes()))
+        ));
     }
 
     private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes,

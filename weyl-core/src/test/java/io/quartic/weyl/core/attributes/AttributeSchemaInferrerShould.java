@@ -1,16 +1,8 @@
 package io.quartic.weyl.core.attributes;
 
+import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.Attribute;
-import io.quartic.weyl.core.model.AttributeImpl;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeType;
-import io.quartic.weyl.core.model.DynamicSchema;
-import io.quartic.weyl.core.model.DynamicSchemaImpl;
-import io.quartic.weyl.core.model.EntityId;
-import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.*;
 import kotlin.Pair;
 import org.junit.Test;
 
@@ -77,7 +69,7 @@ public class AttributeSchemaInferrerShould {
     private void assertThatTypeInferredFromValues(AttributeType type, DynamicSchema previous, Object... values) {
         final List<Feature> features = features("a", values);
 
-        final DynamicSchema schema = inferSchema(features, previous, layer.spec().staticSchema());
+        final DynamicSchema schema = inferSchema(features, previous, staticSchema());
         assertThat(schema.attributes().entrySet(), hasSize(1));
         assertThat(schema.attributes(), hasKey(name("a")));
         assertThat(schema.attributes().get(name("a")).type(), equalTo(type));
@@ -87,7 +79,7 @@ public class AttributeSchemaInferrerShould {
     public void infer_categories() throws Exception {
         final List<Feature> features = features("a", "foo", "bar", "foo");
 
-        assertThat(inferSchema(features, schema(), layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, schema(), staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar"))))
         )));
     }
@@ -96,7 +88,7 @@ public class AttributeSchemaInferrerShould {
     public void infer_no_categories_when_no_values() throws Exception {
         final List<Feature> features = features("a", new Object[] { null });    // Synthesise a feature with a missing attribute
 
-        assertThat(inferSchema(features, schema(), layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, schema(), staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(UNKNOWN, Optional.empty()))   // Specifically looking for Optional.empty() here
         )));
     }
@@ -105,7 +97,7 @@ public class AttributeSchemaInferrerShould {
     public void infer_no_categories_when_too_many() throws Exception {
         final List<Feature> features = features("a", (Object[]) distinctValuesPlusOneRepeated(MAX_CATEGORIES + 1));
 
-        assertThat(inferSchema(features, schema(), layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, schema(), staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
@@ -117,7 +109,7 @@ public class AttributeSchemaInferrerShould {
         );
         final List<Feature> features = features("a", "foo", "baz");
 
-        assertThat(inferSchema(features, previous, layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, previous, staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "bar", "baz"))))
         )));
     }
@@ -129,7 +121,7 @@ public class AttributeSchemaInferrerShould {
         );
         final List<Feature> features = features("a", (Object[]) distinctValuesPlusOneRepeated(MAX_CATEGORIES));
 
-        assertThat(inferSchema(features, previous, layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, previous, staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
@@ -141,7 +133,7 @@ public class AttributeSchemaInferrerShould {
         );
         final List<Feature> features = features("a", "foo", "baz");
 
-        assertThat(inferSchema(features, previous, layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, previous, staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
         )));
     }
@@ -150,7 +142,7 @@ public class AttributeSchemaInferrerShould {
     public void infer_no_categories_for_non_primitive_types() throws Exception {
         final List<Feature> features = features("a", "foo", new Object(), "baz");   // Second item is not a primitive type
 
-        assertThat(inferSchema(features, schema(), layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, schema(), staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet("foo", "baz"))))
         )));
     }
@@ -162,7 +154,7 @@ public class AttributeSchemaInferrerShould {
                 feature(map(entry(name("a"), 789), entry(name("b"), null)))
         );
 
-        assertThat(inferSchema(features, schema(), layer.spec().staticSchema()), equalTo(schema(
+        assertThat(inferSchema(features, schema(), staticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(123, 789)))),
                 entry(name("b"), AttributeImpl.of(NUMERIC, Optional.of(newHashSet(456))))
         )));
@@ -170,7 +162,7 @@ public class AttributeSchemaInferrerShould {
 
     @Test
     public void return_empty_schema_if_no_features() throws Exception {
-        assertThat(inferSchema(emptyList(), schema(), layer.spec().staticSchema()), equalTo(schema()));
+        assertThat(inferSchema(emptyList(), schema(), staticSchema()), equalTo(schema()));
     }
 
     @SafeVarargs
@@ -189,6 +181,12 @@ public class AttributeSchemaInferrerShould {
                 .entityId(new EntityId("xyz"))
                 .geometry(mock(Geometry.class))
                 .attributes(() -> attributes)
+                .build();
+    }
+
+    private StaticSchema staticSchema() {
+        return StaticSchemaImpl.builder()
+                .allBlessedAttributes(ImmutableList.of())
                 .build();
     }
 
