@@ -11,6 +11,7 @@ export default (state = new OrderedMap(), action) => {
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
+    case constants.LAYER_APPLY_TIME_RANGE_FILTER:
     case constants.LAYER_UPDATE:
       return state.update(action.layerId, val => layerReducer(val, action));
     default:
@@ -49,6 +50,14 @@ const layerReducer = (state, action) => {
         });
       });
 
+    case constants.LAYER_APPLY_TIME_RANGE_FILTER:
+      return state.updateIn(["filter", action.attribute], defaultAttributeFilter(), filter => {
+        if (action.startTime != null || action.endTime != null) {
+          return filter.set("timeRange", fromJS({ startTime: action.startTime, endTime: action.endTime }));
+        }
+        return filter.set("timeRange", null);
+      });
+
     case constants.LAYER_UPDATE:
       return state
         .set("data", action.data)
@@ -81,6 +90,7 @@ const newLayer = (action) => fromJS({
 const defaultAttributeFilter = () => fromJS({
   notApplicable: false,
   categories: new Set(),
+  timeRange: null,
 });
 
 const defaultLayerStyle = (attribute, themeIdx) => ({

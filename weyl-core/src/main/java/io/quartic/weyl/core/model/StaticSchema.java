@@ -6,6 +6,7 @@ import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @SweetStyle
@@ -17,4 +18,5 @@ public interface StaticSchema {
     Optional<AttributeName> primaryAttribute();
     Optional<AttributeName> imageAttribute();
     List<AttributeName> blessedAttributes();
+    Optional<Map<AttributeName, AttributeType>> attributeTypes();
 }

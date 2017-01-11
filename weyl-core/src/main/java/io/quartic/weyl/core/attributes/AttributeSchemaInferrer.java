@@ -1,13 +1,7 @@
 package io.quartic.weyl.core.attributes;
 
-import io.quartic.weyl.core.model.Attribute;
-import io.quartic.weyl.core.model.AttributeImpl;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeType;
-import io.quartic.weyl.core.model.Attributes;
-import io.quartic.weyl.core.model.DynamicSchema;
-import io.quartic.weyl.core.model.DynamicSchemaImpl;
-import io.quartic.weyl.core.model.Feature;
+import com.google.common.collect.ImmutableMap;
+import io.quartic.weyl.core.model.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +26,7 @@ public class AttributeSchemaInferrer {
 
     public static final int MAX_CATEGORIES = 19;
 
-    public static DynamicSchema inferSchema(Collection<Feature> newFeatures, DynamicSchema previousInference) {
+    public static DynamicSchema inferSchema(Collection<Feature> newFeatures, DynamicSchema previousInference, StaticSchema staticSchema) {
         final List<Attributes> attributes = newFeatures.stream().map(Feature::attributes).collect(toList());
         if (attributes.isEmpty()) {
             return DynamicSchemaImpl.of(emptyMap());
@@ -40,14 +34,18 @@ public class AttributeSchemaInferrer {
 
         final Collection<AttributeName> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
         return DynamicSchemaImpl.of(names.parallelStream()
-                .collect(toConcurrentMap(identity(), attribute -> inferAttribute(attribute, attributes, previousInference.attributes())))
-        );
+                .collect(toConcurrentMap(identity(),
+                        attribute -> inferAttribute(attribute, attributes, previousInference.attributes(),
+                                staticSchema.attributeTypes().orElse(ImmutableMap.of()))
+        )));
     }
 
-    private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes, Map<AttributeName, Attribute> previousInference) {
+    private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes,
+                                            Map<AttributeName, Attribute> previousInference,
+                                            Map<AttributeName, AttributeType> staticTypes) {
         final Attribute previous = previousInference.get(name);
         return AttributeImpl.builder()
-                .type(inferAttributeType(name, attributes, previous))
+                .type(staticTypes.containsKey(name) ? staticTypes.get(name) : inferAttributeType(name, attributes, previous))
                 .categories(inferCategories(name, attributes, previous))
                 .build();
     }
