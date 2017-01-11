@@ -32,7 +32,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
               <DateTimePicker
                 className={Classes.ELEVATION_1}
                 value={this.state.startTime.toDate()}
-                onChange={() => this.onStartTimeChange()}
+                onChange={(dt) => this.onStartTimeChange(dt)}
               /> : null}
           </div>
           <div style={{ padding: 10 }}>
@@ -45,7 +45,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
               <DateTimePicker
                 className={Classes.ELEVATION_1}
                 value={this.state.endTime.toDate()}
-                onChange={() => this.onEndTimeChange()}
+                onChange={(dt) => this.onEndTimeChange(dt)}
               /> : null}
           </div>
         </div>

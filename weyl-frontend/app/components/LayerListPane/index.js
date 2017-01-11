@@ -128,7 +128,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
               position={Position.RIGHT_TOP}
             >
               <Button
-                iconName="cog"
+                iconName="filter"
                 className={Classes.MINIMAL}
                 intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
               />
