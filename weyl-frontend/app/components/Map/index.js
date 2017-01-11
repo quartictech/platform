@@ -337,14 +337,14 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   createCategoryFilter(spec) {
-     return ["none"].concat(
+    return ["none"].concat(
       Object.keys(spec)
         .filter(k => (spec[k].categories.length > 0 || spec[k].notApplicable))
         .map(k => {
           const catFilter = ["in", k].concat(spec[k].categories);
           return spec[k].notApplicable ? ["any", ["!has", k], catFilter] : catFilter;
         })
-    )
+    );
   }
 
   createTimeRangeFilter(spec) {
@@ -352,7 +352,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       Object.keys(spec)
         .filter(k => spec[k].timeRange != null)
         .map(k => {
-          let timeFilter = ["all"];
+          const timeFilter = ["all"];
           if (spec[k].timeRange.startTime != null) {
             timeFilter.push([">=", k, spec[k].timeRange.startTime]);
           }

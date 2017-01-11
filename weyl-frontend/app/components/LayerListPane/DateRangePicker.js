@@ -3,8 +3,6 @@ import React from "react";
 import {
   Button,
   Classes,
-  Intent,
-  Tag,
   Checkbox,
 } from "@blueprintjs/core";
 import { DateTimePicker } from "@blueprintjs/datetime";
@@ -23,37 +21,43 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
   render() {
     return (
       <div>
-      <div style={{display: "flex", flexDirection: "row"}}>
-        <div style={{ padding: 10 }}>
-          <Checkbox
-            checked={this.state.startTime != null}
-            label="Start Time"
-            onChange={this.onStartTimeToggle.bind(this)}
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <div style={{ padding: 10 }}>
+            <Checkbox
+              checked={this.state.startTime != null}
+              label="Start Time"
+              onChange={() => this.onStartTimeToggle()}
+            />
+            {this.state.startTime ?
+              <DateTimePicker
+                className={Classes.ELEVATION_1}
+                value={this.state.startTime.toDate()}
+                onChange={() => this.onStartTimeChange()}
+              /> : null}
+          </div>
+          <div style={{ padding: 10 }}>
+            <Checkbox
+              checked={this.state.endTime != null}
+              label="End Time"
+              onChange={() => this.onEndTimeToggle()}
+            />
+            {this.state.endTime ?
+              <DateTimePicker
+                className={Classes.ELEVATION_1}
+                value={this.state.endTime.toDate()}
+                onChange={() => this.onEndTimeChange()}
+              /> : null}
+          </div>
+        </div>
+        <div className="pt-dialog-footer">
+          <Button
+            className="pt-popover-dismiss"
+            style={{ margin: 5 }}
+            iconName="refresh"
+            text="Apply"
+            onClick={() => this.onClickApply()}
           />
-          {this.state.startTime ?  <DateTimePicker
-             className={Classes.ELEVATION_1}
-             value={this.state.startTime.toDate()}
-             onChange={this.onStartTimeChange.bind(this)}
-            /> : null}
         </div>
-        <div style={{ padding: 10 }}>
-          <Checkbox checked={this.state.endTime != null} label="End Time" onChange={this.onEndTimeToggle.bind(this)} />
-          {this.state.endTime ? <DateTimePicker
-             className={Classes.ELEVATION_1}
-             value={this.state.endTime.toDate()}
-             onChange={this.onEndTimeChange.bind(this)}
-          /> : null }
-        </div>
-      </div>
-      <div className="pt-dialog-footer">
-      <Button
-        className="pt-popover-dismiss"
-        style={{margin: 5}}
-        iconName="refresh"
-        text="Apply"
-        onClick={this.onClickApply.bind(this)}
-      />
-  </div>
       </div>
     );
   }
@@ -66,19 +70,17 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
   }
 
   onStartTimeToggle() {
-      if (this.state.startTime == null) {
-          this.setState({ startTime: moment() });
-      }
-      else {
-        this.setState({ startTime: null });
-      }
+    if (this.state.startTime == null) {
+      this.setState({ startTime: moment() });
+    } else {
+      this.setState({ startTime: null });
+    }
   }
 
   onEndTimeToggle() {
     if (this.state.endTime == null) {
       this.setState({ endTime: moment() });
-    }
-    else {
+    } else {
       this.setState({ endTime: null });
     }
   }

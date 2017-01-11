@@ -111,32 +111,32 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   attributeNode(attribute, attributeInfo, filter, onValueClick, applyTimeRangeFilter) {
-    if (attributeInfo.type == "TIMESTAMP") {
+    if (attributeInfo.type === "TIMESTAMP") {
       return {
         iconName: "time",
         id: attribute,
         label: <small>{attribute}</small>,
         secondaryLabel: (
           <Tooltip content={this.timeRangeFilterTooltip(filter)}>
-          <Popover
-            content={
-              <DateRangePicker
-                startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
-                endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
-                onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
-              />}
-            position={Position.RIGHT_TOP}>
+            <Popover
+              content={
+                <DateRangePicker
+                  startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
+                  endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
+                  onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
+                />}
+              position={Position.RIGHT_TOP}
+            >
               <Button
                 iconName="cog"
                 className={Classes.MINIMAL}
                 intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
               />
-          </Popover>
-        </Tooltip>
-        )
+            </Popover>
+          </Tooltip>
+        ),
       };
-    }
-    else if (attributeInfo.categories){
+    } else if (attributeInfo.categories) {
       return {
         iconName: "property",
         id: attribute,
@@ -152,7 +152,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       iconName: "property",
       id: attribute,
       label: <small>{attribute}</small>,
-    }
+    };
   }
 
   timeRangeFilterTooltip(filter) {
