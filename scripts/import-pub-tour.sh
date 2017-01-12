@@ -11,7 +11,10 @@ curl -H Content-Type:application/json -XPOST http://localhost:8090/api/datasets 
     "map": {
         "viewType": "LOCATION_AND_TRACK",
         "titleAttribute": "name",
-        "blessedAttributes": [ "name" ]
+        "blessedAttributes": [ "name" ],
+        "attributeTypes": {
+          "timestamp": "TIMESTAMP"
+        }
     },
     "locator": {
         "type": "websocket",
