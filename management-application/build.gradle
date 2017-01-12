@@ -9,7 +9,7 @@ plugins {
 service {
     simpleName = "management"
     mainClassName = "io.quartic.management.ManagementApplication"
-    memory = System.env.MANAGEMENT_MEMORY ?: "128m"
+    memory = System.env.MANAGEMENT_MEMORY ?: "64m"
 }
 
 dependencies {
