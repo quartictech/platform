@@ -5,6 +5,7 @@ import {
   Spinner,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
+import moment from "moment";
 import naturalsort from "javascript-natural-sort";
 
 import Pane from "../Pane";
@@ -93,6 +94,7 @@ const getBehavior = (layer) => {
     blessedAttributeOrder: staticSchema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
     unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (staticSchema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
+    render: (key, value) => ((staticSchema.attributeTypes[key] === "TIMESTAMP") ? moment(value).format("LL LTS") : value),
   };
 };
 
