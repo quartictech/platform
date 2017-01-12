@@ -19,7 +19,7 @@ public class HowlApplication extends ApplicationBase<HowlConfiguration> {
 
     @Override
     public void runApplication(HowlConfiguration configuration, Environment environment) {
-        StorageBackend storageBackend = new DiskStorageBackend(Paths.get(configuration.getDataDir()));
+        StorageBackend storageBackend = configuration.getStorage().build();
         environment.jersey().register(new HowlResource(storageBackend));
     }
 }

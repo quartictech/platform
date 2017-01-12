@@ -50,6 +50,17 @@ public abstract class StorageBackendTests {
         assertThat(getBackend().containsKey(DatasetId.fromString("A")), equalTo(true));
     }
 
+    @Test
+    public void remove() throws IOException {
+        DatasetId datasetId = DatasetId.fromString("foo");
+        DatasetConfig dataset = dataset("foo");
+        getBackend().put(datasetId, dataset);
+
+        getBackend().remove(datasetId);
+
+        assertThat(getBackend().getAll().size(), equalTo(0));
+    }
+
     protected DatasetConfig dataset(String name) {
         DatasetMetadata metadata = DatasetMetadataImpl.of(
                 name,

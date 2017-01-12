@@ -5,13 +5,14 @@ import {
   Spinner,
 } from "@blueprintjs/core";
 import * as _ from "underscore";
-import moment from "moment";
 import naturalsort from "javascript-natural-sort";
 
 import Pane from "../Pane";
 import NonHistograms from "./NonHistograms";
 import Histograms from "./Histograms";
 import { defaultTitle, curatedTitles } from "./behaviors";
+
+import { formatDateTime } from "../../utils/time";
 
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
@@ -94,7 +95,7 @@ const getBehavior = (layer) => {
     blessedAttributeOrder: staticSchema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
     unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (staticSchema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
-    render: (key, value) => ((staticSchema.attributeTypes[key] === "TIMESTAMP") ? moment(value).format("LL LTS") : value),
+    render: (key, value) => ((staticSchema.attributeTypes[key] === "TIMESTAMP") ? formatDateTime(value) : value),
   };
 };
 
