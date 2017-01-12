@@ -8,6 +8,7 @@ import {
 import { DateTimePicker } from "@blueprintjs/datetime";
 
 import moment from "moment";
+import { formatDateTime } from "../../utils/time";
 
 export class DateRangePicker extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
@@ -15,9 +16,21 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
     this.state = {
       startTime: props.startTime ? moment(props.startTime) : null,
       endTime: props.endTime ? moment(props.endTime) : null,
-      startTimeError: null,
-      endTimeError: null,
     };
+  }
+
+  startTimeError() {
+    if (this.props.minTime && moment(this.state.startTime) < moment(this.props.minTime)) {
+      return `start time is earlier than minimum in data: ${formatDateTime(this.props.minTime)}`;
+    }
+    return null;
+  }
+
+  endTimeError() {
+    if (this.props.maxTime && moment(this.state.endTime) > moment(this.props.maxTime)) {
+      return `end time is later than maximum in data: ${formatDateTime(this.props.maxTime)}`;
+    }
+    return null;
   }
 
   datePickerProps() {
@@ -49,8 +62,8 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
                 datePickerProps={this.datePickerProps()}
                 onChange={(dt) => this.onStartTimeChange(dt)}
               /> : null}
-              {this.state.startTimeError ?
-                <span style={{ margin: 10 }} className="pt-tag pt-intent-danger">{this.state.startTimeError}</span> : null}
+              {this.startTimeError() ?
+                <span style={{ margin: 10 }} className="pt-tag pt-intent-danger">{this.startTimeError()}</span> : null}
           </div>
           <div style={{ padding: 10, width: 300 }}>
             <Checkbox
@@ -65,8 +78,8 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
                 datePickerProps={this.datePickerProps()}
                 onChange={(dt) => this.onEndTimeChange(dt)}
               /> : null}
-              {this.state.endTimeError ?
-                <span style={{ margin: 10 }} className="pt-tag pt-intent-danger">{this.state.endTimeError}</span> : null}
+              {this.endTimeError() ?
+                <span style={{ margin: 10 }} className="pt-tag pt-intent-danger">{this.endTimeError()}</span> : null}
           </div>
         </div>
         <div className="pt-dialog-footer">
@@ -75,7 +88,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
             style={{ margin: 5 }}
             iconName="refresh"
             text="Apply"
-            disabled={this.state.startTimeError || this.state.endTimeError}
+            disabled={this.startTimeError() || this.endTimeError()}
             onClick={() => this.onClickApply()}
           />
         </div>
@@ -109,7 +122,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
     if (this.state.startTime == null) {
       this.setState({ startTime: this.getDefaultStartTime() });
     } else {
-      this.setState({ startTimeError: null, startTime: null });
+      this.setState({ startTime: null });
     }
   }
 
@@ -117,25 +130,15 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
     if (this.state.endTime == null) {
       this.setState({ endTime: this.getDefaultEndTime() });
     } else {
-      this.setState({ endTimeError: null, endTime: null });
+      this.setState({ endTime: null });
     }
   }
 
   onStartTimeChange(startTime) {
-    const start = moment(startTime);
-    let startTimeError = null;
-    if (this.props.minTime && start < moment(this.props.minTime)) {
-      startTimeError = `start time is earlier than minimum in data: ${moment(this.props.minTime).format("LL LTS")}`;
-    }
-    this.setState({ startTimeError, startTime: start });
+    this.setState({ startTime: moment(startTime) });
   }
 
   onEndTimeChange(endTime) {
-    const end = moment(endTime);
-    let endTimeError = null;
-    if (this.props.maxTime && end >= moment(this.props.maxTime)) {
-      endTimeError = `end time is later than maximum in data: ${moment(this.props.maxTime).format("LL LTS")}`;
-    }
-    this.setState({ endTimeError, endTime: end });
+    this.setState({ endTime: moment(endTime) });
   }
 }

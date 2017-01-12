@@ -16,12 +16,12 @@ import {
 import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
-import moment from "moment";
 
 import { layerThemes } from "../../themes";
 import Pane from "../Pane";
 
 import { DateRangePicker } from "./DateRangePicker";
+import { formatDateTime } from "../../utils/time";
 
 class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -160,8 +160,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
 
   timeRangeFilterTooltip(filter) {
     if (filter && filter.timeRange) {
-      const startRange = filter.timeRange.startTime ? moment(filter.timeRange.startTime).format("LL LTS") : "";
-      const endRange = filter.timeRange.endTime ? moment(filter.timeRange.endTime).format("LL LTS") : "";
+      const startRange = filter.timeRange.startTime ? formatDateTime(filter.timeRange.startTime) : "";
+      const endRange = filter.timeRange.endTime ? formatDateTime(filter.timeRange.endTime) : "";
       return `${startRange} → ${endRange}`;
     }
     return "No filter set";
