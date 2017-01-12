@@ -160,8 +160,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
 
   timeRangeFilterTooltip(filter) {
     if (filter && filter.timeRange) {
-      const startRange = filter.timeRange.startTime ? moment(filter.timeRange.startTime).format("LLLL") : "";
-      const endRange = filter.timeRange.endTime ? moment(filter.timeRange.endTime).format("LLLL") : "";
+      const startRange = filter.timeRange.startTime ? moment(filter.timeRange.startTime).format("LL LTS") : "";
+      const endRange = filter.timeRange.endTime ? moment(filter.timeRange.endTime).format("LL LTS") : "";
       return `${startRange} → ${endRange}`;
     }
     return "No filter set";

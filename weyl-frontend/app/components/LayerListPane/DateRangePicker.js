@@ -125,7 +125,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
     const start = moment(startTime);
     let startTimeError = null;
     if (this.props.minTime && start < moment(this.props.minTime)) {
-      startTimeError = `start time is earlier than minimum in data: ${moment(this.props.minTime).format("LLLL")}`;
+      startTimeError = `start time is earlier than minimum in data: ${moment(this.props.minTime).format("LL LTS")}`;
     }
     this.setState({ startTimeError, startTime: start });
   }
@@ -134,7 +134,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
     const end = moment(endTime);
     let endTimeError = null;
     if (this.props.maxTime && end >= moment(this.props.maxTime)) {
-      endTimeError = `end time is later than maximum in data: ${moment(this.props.maxTime).format("LLLL")}`;
+      endTimeError = `end time is later than maximum in data: ${moment(this.props.maxTime).format("LL LTS")}`;
     }
     this.setState({ endTimeError, endTime: end });
   }
