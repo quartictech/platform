@@ -83,6 +83,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         childNodes: this.attributeNodes(
           layer.dynamicSchema.attributes,
           layer.filter,
+          layer.stats ? layer.stats.attributeStats : {},
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
           (k, startTime, endTime) => this.props.onApplyTimeRangeFilter(layer.id, k, startTime, endTime)
         ),
@@ -95,12 +96,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 
-  attributeNodes(attributes, filter, onValueClick, applyTimeRangeFilter) {
+  attributeNodes(attributes, filter, attributeStats, onValueClick, applyTimeRangeFilter) {
     return _.chain(attributes)
       .keys()
       .sort(naturalsort)
       .map(k => {
-        const node = this.attributeNode(k, attributes[k], filter[k], onValueClick, applyTimeRangeFilter);
+        const node = this.attributeNode(k, attributes[k], attributeStats[k], filter[k], onValueClick, applyTimeRangeFilter);
         node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
         node.onExpand = () => this.setState({ activeAttribute: k });
         node.onCollapse = () => this.setState({ activeAttribute: null });
@@ -110,7 +111,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  attributeNode(attribute, attributeInfo, filter, onValueClick, applyTimeRangeFilter) {
+  attributeNode(attribute, attributeInfo, attributeStats, filter, onValueClick, applyTimeRangeFilter) {
     if (attributeInfo.type === "TIMESTAMP") {
       return {
         iconName: "time",
@@ -123,6 +124,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
                 <DateRangePicker
                   startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
                   endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
+                  minTime={attributeStats ? attributeStats.minimum : null}
+                  maxTime={attributeStats ? attributeStats.maximum : null}
                   onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
                 />}
               position={Position.RIGHT_TOP}
