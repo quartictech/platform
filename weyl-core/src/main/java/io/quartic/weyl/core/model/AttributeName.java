@@ -13,4 +13,8 @@ import org.immutables.value.Value;
 public interface AttributeName {
     @JsonValue
     String name();
+
+    static AttributeName fromString(String name) {
+        return AttributeNameImpl.of(name);
+    }
 }

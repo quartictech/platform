@@ -4,5 +4,6 @@ public enum AttributeType {
     NUMERIC,
     STRING,
     TIME_SERIES,
+    TIMESTAMP,
     UNKNOWN
 }

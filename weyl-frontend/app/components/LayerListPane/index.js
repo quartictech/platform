@@ -10,13 +10,18 @@ import {
   PopoverInteractionKind,
   Position,
   Tree,
+  Tooltip,
 } from "@blueprintjs/core";
+
 import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
+import moment from "moment";
 
 import { layerThemes } from "../../themes";
 import Pane from "../Pane";
+
+import { DateRangePicker } from "./DateRangePicker";
 
 class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -79,6 +84,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           layer.dynamicSchema.attributes,
           layer.filter,
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
+          (k, startTime, endTime) => this.props.onApplyTimeRangeFilter(layer.id, k, startTime, endTime)
         ),
       };
       node.onClick = () => toggleOnPredicate(node, this.state.activeLayerId === layer.id);
@@ -89,22 +95,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 
-  attributeNodes(attributes, filter, onValueClick) {
+  attributeNodes(attributes, filter, onValueClick, applyTimeRangeFilter) {
     return _.chain(attributes)
       .keys()
-      .filter(k => attributes[k].categories)
       .sort(naturalsort)
       .map(k => {
-        const node = {
-          iconName: "property",
-          id: k,
-          label: <small>{k}</small>,
-          childNodes: this.attributeCategoryNodes(
-            attributes[k].categories,
-            filter[k],
-            (v) => onValueClick(k, v),
-          ),
-        };
+        const node = this.attributeNode(k, attributes[k], filter[k], onValueClick, applyTimeRangeFilter);
         node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
         node.onExpand = () => this.setState({ activeAttribute: k });
         node.onCollapse = () => this.setState({ activeAttribute: null });
@@ -112,6 +108,60 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         return node;
       })
       .value();
+  }
+
+  attributeNode(attribute, attributeInfo, filter, onValueClick, applyTimeRangeFilter) {
+    if (attributeInfo.type === "TIMESTAMP") {
+      return {
+        iconName: "time",
+        id: attribute,
+        label: <small>{attribute}</small>,
+        secondaryLabel: (
+          <Tooltip content={this.timeRangeFilterTooltip(filter)}>
+            <Popover
+              content={
+                <DateRangePicker
+                  startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
+                  endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
+                  onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
+                />}
+              position={Position.RIGHT_TOP}
+            >
+              <Button
+                iconName="filter"
+                className={Classes.MINIMAL}
+                intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
+              />
+            </Popover>
+          </Tooltip>
+        ),
+      };
+    } else if (attributeInfo.categories) {
+      return {
+        iconName: "th-list",
+        id: attribute,
+        label: <small>{attribute}</small>,
+        childNodes: this.attributeCategoryNodes(
+          attributeInfo.categories,
+          filter,
+          (v) => onValueClick(attribute, v),
+        ),
+      };
+    }
+    return {
+      iconName: "property",
+      id: attribute,
+      label: <small>{attribute}</small>,
+    };
+  }
+
+  timeRangeFilterTooltip(filter) {
+    if (filter && filter.timeRange) {
+      const startRange = filter.timeRange.startTime ? moment(filter.timeRange.startTime).format("LLLL") : "";
+      const endRange = filter.timeRange.endTime ? moment(filter.timeRange.endTime).format("LLLL") : "";
+      return `${startRange} → ${endRange}`;
+    }
+    return "No filter set";
   }
 
   attributeCategoryNodes(categories, filter, onClick) {
@@ -221,7 +271,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 
   filterActive(layer) {
-    return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable);
+    return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable || attr.timeRange);
   }
 }
 
