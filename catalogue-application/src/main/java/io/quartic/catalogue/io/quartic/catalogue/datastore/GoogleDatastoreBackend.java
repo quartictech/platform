@@ -66,7 +66,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
 
     @Override
     public void remove(DatasetId id) throws IOException {
-        datastore.delete(datastore.newKeyFactory().newKey(id.getUid()));
+        datastore.delete(keyFactory.newKey(id.getUid()));
     }
 
     @Override
