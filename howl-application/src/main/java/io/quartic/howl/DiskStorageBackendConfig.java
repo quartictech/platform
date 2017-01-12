@@ -6,7 +6,7 @@ import io.quartic.howl.storage.StorageBackend;
 import java.nio.file.Paths;
 
 public class DiskStorageBackendConfig implements StorageBackendConfig {
-    private String dataDir;
+    private String dataDir = "./data";
 
     public void setDataDir(String dataDir) {
         this.dataDir = dataDir;
