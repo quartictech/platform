@@ -51,7 +51,7 @@ public abstract class StorageBackendTests {
     }
 
     @Test
-    public void delete() throws IOException {
+    public void remove() throws IOException {
         DatasetId datasetId = DatasetId.fromString("foo");
         DatasetConfig dataset = dataset("foo");
         getBackend().put(datasetId, dataset);
