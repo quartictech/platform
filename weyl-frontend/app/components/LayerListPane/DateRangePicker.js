@@ -20,14 +20,14 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
   }
 
   startTimeError() {
-    if (this.props.minTime && moment(this.state.startTime) < moment(this.props.minTime)) {
+    if (this.props.minTime && this.state.startTime != null && this.state.startTime < this.props.minTime) {
       return `start time is earlier than minimum in data: ${formatDateTime(this.props.minTime)}`;
     }
     return null;
   }
 
   endTimeError() {
-    if (this.props.maxTime && moment(this.state.endTime) > moment(this.props.maxTime)) {
+    if (this.props.maxTime && this.state.endTime != null && this.state.endTime > this.props.maxTime) {
       return `end time is later than maximum in data: ${formatDateTime(this.props.maxTime)}`;
     }
     return null;
