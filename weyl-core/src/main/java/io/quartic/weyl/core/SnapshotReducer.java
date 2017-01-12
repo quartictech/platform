@@ -64,7 +64,7 @@ public class SnapshotReducer {
         final FeatureCollection updatedFeatures = layer.features().append(features);
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
-                .withDynamicSchema(inferSchema(features, layer.dynamicSchema()));
+                .withDynamicSchema(inferSchema(features, layer.dynamicSchema(), layer.spec().staticSchema()));
 
         if (layer.spec().indexable()) {
             final Collection<IndexedFeature> indexedFeatures = indexedFeatures(updatedFeatures);

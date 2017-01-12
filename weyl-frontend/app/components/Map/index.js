@@ -333,12 +333,33 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   createValueFilter(spec) {
+    return ["all", this.createCategoryFilter(spec), this.createTimeRangeFilter(spec)];
+  }
+
+  createCategoryFilter(spec) {
     return ["none"].concat(
       Object.keys(spec)
         .filter(k => (spec[k].categories.length > 0 || spec[k].notApplicable))
         .map(k => {
           const catFilter = ["in", k].concat(spec[k].categories);
           return spec[k].notApplicable ? ["any", ["!has", k], catFilter] : catFilter;
+        })
+    );
+  }
+
+  createTimeRangeFilter(spec) {
+    return ["all"].concat(
+      Object.keys(spec)
+        .filter(k => spec[k].timeRange != null)
+        .map(k => {
+          const timeFilter = ["all"];
+          if (spec[k].timeRange.startTime != null) {
+            timeFilter.push([">=", k, spec[k].timeRange.startTime]);
+          }
+          if (spec[k].timeRange.endTime != null) {
+            timeFilter.push(["<", k, spec[k].timeRange.endTime]);
+          }
+          return timeFilter;
         })
     );
   }
