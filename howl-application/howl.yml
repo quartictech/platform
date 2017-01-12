@@ -1,6 +1,5 @@
 storage:
   type: local_disk
-  dataDir: ./data
 
 server:
   applicationContextPath: /
