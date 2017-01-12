@@ -20,6 +20,7 @@ import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
 import static io.quartic.weyl.core.model.AttributeType.STRING;
+import static io.quartic.weyl.core.model.AttributeType.TIMESTAMP;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -30,12 +31,14 @@ public class StatsCalculatorShould {
     private static final AttributeName HEIGHT = mock(AttributeName.class);
     private static final AttributeName WEIGHT = mock(AttributeName.class);
     private static final AttributeName NAME = mock(AttributeName.class);
+    private static final AttributeName TIME = mock(AttributeName.class);
 
     @Test
-    public void track_min_and_max_of_numeric_attributes() throws Exception {
+    public void track_min_and_max_of_numeric_and_timestamp_attributes() throws Exception {
         final Map<AttributeName, Attribute> attributes = map(
                 entry(HEIGHT, attribute(NUMERIC)),
-                entry(WEIGHT, attribute(NUMERIC))
+                entry(WEIGHT, attribute(NUMERIC)),
+                entry(TIME, attribute(TIMESTAMP))
         );
 
         final FeatureCollection features = EMPTY_COLLECTION.append(newArrayList(
@@ -93,7 +96,7 @@ public class StatsCalculatorShould {
     }
 
     @Test
-    public void ignore_non_numeric_attributes() throws Exception {
+    public void ignore_non_numeric_or_timestamp_attributes() throws Exception {
         final Map<AttributeName, Attribute> attributes = ImmutableMap.of(
                 NAME, attribute(STRING),
                 WEIGHT, attribute(NUMERIC)
