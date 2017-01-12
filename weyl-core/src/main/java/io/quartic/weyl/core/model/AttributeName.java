@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -14,4 +13,8 @@ import org.immutables.value.Value;
 public interface AttributeName {
     @JsonValue
     String name();
+
+    static AttributeName fromString(String name) {
+        return AttributeNameImpl.of(name);
+    }
 }

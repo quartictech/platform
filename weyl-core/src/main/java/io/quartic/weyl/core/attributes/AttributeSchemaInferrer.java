@@ -45,7 +45,7 @@ public class AttributeSchemaInferrer {
                                             Map<AttributeName, AttributeType> staticTypes) {
         final Attribute previous = previousInference.get(name);
         return AttributeImpl.builder()
-                .type(staticTypes.containsKey(name) ? staticTypes.get(name) : inferAttributeType(name, attributes, previous))
+                .type(staticTypes.getOrDefault(name, inferAttributeType(name, attributes, previous)))
                 .categories(inferCategories(name, attributes, previous))
                 .build();
     }

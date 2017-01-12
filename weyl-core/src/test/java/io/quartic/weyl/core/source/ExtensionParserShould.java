@@ -2,6 +2,7 @@ package io.quartic.weyl.core.source;
 
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
@@ -48,5 +49,17 @@ public class ExtensionParserShould {
         assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
                 equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
                         StaticSchemaImpl.builder().titleAttribute(AttributeNameImpl.of("foo")).build())));
+    }
+
+    @Test
+    public void deserialize_attribute_types() {
+        final Map<String, Object> raw = ImmutableMap.of(
+                "viewType", "LOCATION_AND_TRACK",
+                "attributeTypes", ImmutableMap.of("foo", "TIMESTAMP")
+        );
+        assertThat(parser.parse("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
+                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
+                        StaticSchemaImpl.builder()
+                                .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP).build())));
     }
 }
