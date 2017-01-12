@@ -113,7 +113,7 @@ const AttributesTable = ({ featureAttributes, behavior, order, showHeaders }) =>
                     style={{ fontWeight: "bold", wordWrap: "break-word", backgroundColor: Colors.DARK_GRAY3 }}
                     key={id}
                   >
-                    <small>{attrs[key]}</small>
+                    <small>{behavior.render(key, attrs[key])}</small>
                   </td>
                 ))
               }
