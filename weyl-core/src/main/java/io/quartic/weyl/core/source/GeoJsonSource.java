@@ -11,6 +11,7 @@ import org.immutables.value.Value;
 import rx.Observable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -46,11 +47,12 @@ public abstract class GeoJsonSource implements Source {
     }
 
     private Collection<NakedFeature> importAllFeatures() throws IOException {
-        // TODO: close the stream!
         final URLConnection conn = parseURL(url()).openConnection();
         conn.setRequestProperty(HttpHeaders.USER_AGENT, userAgent());
-        FeatureCollection featureCollection = new FeatureCollection(newArrayList(new GeoJsonParser(conn.getInputStream())));
-        return converter().toModel(featureCollection);
+        try (final InputStream inputStream = conn.getInputStream()) {
+            FeatureCollection featureCollection = new FeatureCollection(newArrayList(new GeoJsonParser(inputStream)));
+            return converter().toModel(featureCollection);
+        }
     }
 
     private URL parseURL(String url) throws MalformedURLException {
