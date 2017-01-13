@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.quartic.common.geojson.Feature;
+import io.quartic.common.geojson.GeoJsonGenerator;
 import io.quartic.common.geojson.Point;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -69,9 +70,6 @@ public class CsvConverter implements GeoJsonConverter {
 
     @Override
     public void convert(InputStream data, OutputStream outputStream) throws IOException {
-        JsonFactory jsonFactory = new JsonFactory();
-        JsonGenerator jsonGenerator = jsonFactory.createGenerator(outputStream);
-        jsonGenerator.setCodec(objectMapper());
         CSVParser csvParser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(data));
 
         Map<String, Integer> firstRow = csvParser.getHeaderMap();
@@ -86,35 +84,21 @@ public class CsvConverter implements GeoJsonConverter {
                 .filter(key -> key.toLowerCase().startsWith("lon") || key.toLowerCase().contains("longitude"))
                 .findFirst();
 
-
         if (latColumn.isPresent() && lonColumn.isPresent()) {
             String latField = latColumn.get();
             String lonField = lonColumn.get();
             Set<String> keys = Sets.newHashSet(firstRow.keySet());
             keys.removeAll(ImmutableSet.of(latField, lonField));
 
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeStringField("type", "FeatureCollection");
-            jsonGenerator.writeArrayFieldStart("features");
-
             final AtomicLong totalFeatureCount = new AtomicLong();
-            final AtomicLong convertedFeatureCount = new AtomicLong();
-            parseFeatures(csvParser, latField, lonField, keys)
-                    .forEach(optionalFeature -> {
-                        totalFeatureCount.incrementAndGet();
 
-                        if (optionalFeature.isPresent()) {
-                            try {
-                                jsonGenerator.writeObject(optionalFeature.get());
-                                convertedFeatureCount.incrementAndGet();
-                            } catch (IOException e) {
-                                throw new RuntimeException("exception while writing json: " + e);
-                            }
-                        }
-                    });
-            jsonGenerator.writeEndArray();
-            jsonGenerator.writeEndObject();
-            jsonGenerator.flush();
+            Stream<Feature> features = parseFeatures(csvParser, latField, lonField, keys)
+                    .filter(feature -> {
+                        totalFeatureCount.incrementAndGet();
+                        return feature.isPresent();
+                    })
+                    .map(Optional::get);
+            int convertedFeatureCount = new GeoJsonGenerator(outputStream).writeFeatures(features);
 
             LOG.info("{} of {} features successfully converted",
                     convertedFeatureCount,
