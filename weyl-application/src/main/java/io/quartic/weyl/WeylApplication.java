@@ -111,7 +111,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, configuration.getHowlStorageUrl()));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
@@ -167,8 +167,9 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new GeofenceStatusHandler(snapshotSequences, geofenceViolationDetector, featureConverter());
     }
 
-    private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences) {
-        HowlClient howlClient = new HowlClient("weyl", "http://localhost:8120/api");
+    private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences,
+                                                          String howlStorageUrl) {
+        HowlClient howlClient = new HowlClient("weyl", howlStorageUrl);
 
         LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences, howlClient, featureConverter());
         return new LayerExportResource(layerExporter);

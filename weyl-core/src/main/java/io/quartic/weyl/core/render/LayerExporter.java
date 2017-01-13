@@ -39,7 +39,6 @@ public class LayerExporter {
 
     private LayerExportResult fetchLayerAndExport(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
         if (! layers.containsKey(exportRequest.layerId())) {
-
             LOG.info("seeing layers: {}", layers);
             return LayerExportResult.failure("couldn't find layer to export with id " + exportRequest.layerId());
         }
