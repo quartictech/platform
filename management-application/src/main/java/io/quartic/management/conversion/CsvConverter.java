@@ -1,7 +1,5 @@
 package io.quartic.management.conversion;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -18,16 +16,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
-import static java.util.stream.Collectors.toList;
 
 public class CsvConverter implements GeoJsonConverter {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(CsvConverter.class);
