@@ -138,7 +138,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
         return TileResourceImpl.builder()
-                .snapshotSequences(snapshotSequences)
+                .layers(new LatestLayersProvider(snapshotSequences).latestLayers())
                 .build();
     }
 

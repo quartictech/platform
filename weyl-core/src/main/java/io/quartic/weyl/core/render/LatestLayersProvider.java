@@ -1,6 +1,5 @@
 package io.quartic.weyl.core.render;
 
-import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import rx.Observable;
