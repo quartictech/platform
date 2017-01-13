@@ -33,7 +33,6 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.render.LatestLayersProvider;
 import io.quartic.weyl.core.render.LayerExporter;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
@@ -138,7 +137,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
         return TileResourceImpl.builder()
-                .layers(new LatestLayersProvider(snapshotSequences).latestLayers())
+                .snapshotSequences(snapshotSequences)
                 .build();
     }
 
@@ -170,9 +169,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences) {
         HowlClient howlClient = new HowlClient("weyl", "http://localhost:8120/api");
-        LatestLayersProvider latestLayersProvider = new LatestLayersProvider(layerSnapshotSequences);
 
-        LayerExporter layerExporter = new LayerExporter(latestLayersProvider.latestLayers(), howlClient, featureConverter());
+        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences, howlClient, featureConverter());
         return new LayerExportResource(layerExporter);
     }
 

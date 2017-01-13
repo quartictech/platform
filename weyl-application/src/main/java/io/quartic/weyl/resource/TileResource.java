@@ -26,7 +26,9 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
+import static io.quartic.common.rx.RxUtilsKt.accumulateMap;
 import static io.quartic.common.rx.RxUtilsKt.latest;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static rx.Observable.error;
 
 @Path("/")
@@ -34,20 +36,26 @@ import static rx.Observable.error;
 @Value.Immutable
 public abstract class TileResource {
     private static final Logger LOG = LoggerFactory.getLogger(TileResource.class);
-    private Scheduler scheduler = Schedulers.computation();
 
-    protected abstract Observable<Map<LayerId, LayerSnapshotSequence>> layers();
+    protected abstract Observable<LayerSnapshotSequence> snapshotSequences();
 
     @Value.Default
     protected VectorTileRenderer renderer() {
         return new VectorTileRenderer();
     }
 
-//    @Value.Derived
-//    protected Subscription sequenceSubscription() {
-//        // Don't do anything smart with deleted layers
-//        return snapshotSequences().subscribe(s -> sequences.put(s.spec().id(), s.snapshots()));
-//    }
+    @Value.Derived
+    private Scheduler scheduler(){
+      return Schedulers.computation();
+    }
+
+    @Value.Derived
+    protected Observable<Map<LayerId, LayerSnapshotSequence>> layers() {
+        // Don't do anything smart with deleted layers
+        return snapshotSequences()
+                .compose(accumulateMap(snapshot -> snapshot.spec().id(), snapshot -> snapshot))
+                .compose(likeBehavior());
+    }
 
     @GET
     @Produces("application/protobuf")
@@ -60,7 +68,7 @@ public abstract class TileResource {
                          @PathParam("y") Integer y,
                          @Suspended AsyncResponse asyncResponse) {
 
-        layers().subscribeOn(scheduler)
+        layers().subscribeOn(scheduler())
                 .map(layers -> renderer().render(latest(getOrError(layers, layerId)).absolute(), z, x, y))
                 .first()
                 .subscribe(data -> {

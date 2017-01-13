@@ -15,15 +15,19 @@ import rx.Observable;
 import java.io.IOException;
 import java.util.Map;
 
+import static io.quartic.common.rx.RxUtilsKt.accumulateMap;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+
 public class LayerExporter {
     private static final Logger LOG = LoggerFactory.getLogger(LayerExporter.class);
     private final Observable<Map<LayerId, LayerSnapshotSequence>> layers;
     private final HowlClient howlClient;
     private final FeatureConverter featureConverter;
 
-    public LayerExporter(Observable<Map<LayerId, LayerSnapshotSequence>> layers, HowlClient howlClient,
+    public LayerExporter(Observable<LayerSnapshotSequence> snapshotSequences, HowlClient howlClient,
                          FeatureConverter featureConverter) {
-       this.layers = layers;
+        this.layers = snapshotSequences.compose(accumulateMap(snapshot -> snapshot.spec().id(), snapshot -> snapshot))
+                .compose(likeBehavior());
        this.howlClient = howlClient;
        this.featureConverter = featureConverter;
     }
