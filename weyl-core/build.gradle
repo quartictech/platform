@@ -10,6 +10,7 @@ dependencies {
     compile project(":common-core")
     compile project(":catalogue-api")  // TODO: this is probably wrong - should move the dataset types to common
     compile project(":terminator-api")
+    compile project(":howl-api")
 
     compile "org.postgresql:postgresql:9.4.1209"
     compile "com.vividsolutions:jts:1.13"

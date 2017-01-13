@@ -21,6 +21,7 @@ import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
 import io.quartic.common.websocket.WebsocketListener;
+import io.quartic.howl.api.HowlClient;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -32,6 +33,8 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.render.LatestLayersProvider;
+import io.quartic.weyl.core.render.LayerExporter;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
@@ -39,11 +42,7 @@ import io.quartic.weyl.core.source.SourceManager;
 import io.quartic.weyl.core.source.SourceManagerImpl;
 import io.quartic.weyl.core.source.TerminatorSourceFactory;
 import io.quartic.weyl.core.source.WebsocketSource;
-import io.quartic.weyl.resource.AlertResource;
-import io.quartic.weyl.resource.ComputeResource;
-import io.quartic.weyl.resource.ComputeResourceImpl;
-import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.resource.TileResourceImpl;
+import io.quartic.weyl.resource.*;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
@@ -113,6 +112,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
+        environment.jersey().register(createLayerExportResource(snapshotSequences));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
@@ -168,6 +168,14 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new GeofenceStatusHandler(snapshotSequences, geofenceViolationDetector, featureConverter());
     }
 
+    private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences) {
+        HowlClient howlClient = new HowlClient("weyl", "http://localhost:8120/api");
+        LatestLayersProvider latestLayersProvider = new LatestLayersProvider(layerSnapshotSequences);
+
+        LayerExporter layerExporter = new LayerExporter(latestLayersProvider.latestLayers(), howlClient, featureConverter());
+        return new LayerExportResource(layerExporter);
+    }
+
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
@@ -214,6 +222,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private FeatureConverter featureConverter() {
         return new FeatureConverter(attributesFactory());
     }
+
 
     private AttributesFactory attributesFactory() {
         return new AttributesFactory();
