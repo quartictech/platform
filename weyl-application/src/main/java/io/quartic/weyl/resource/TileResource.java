@@ -45,7 +45,7 @@ public abstract class TileResource {
     }
 
     @Value.Derived
-    private Scheduler scheduler(){
+    protected Scheduler scheduler(){
       return Schedulers.computation();
     }
 
