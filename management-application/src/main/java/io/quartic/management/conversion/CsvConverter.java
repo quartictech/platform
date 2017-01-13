@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -49,9 +50,9 @@ public class CsvConverter implements GeoJsonConverter {
         return Optional.empty();
     }
 
-    private Stream<Feature> parseFeatures(Iterable<CSVRecord> records, String latColumn,
+    private Stream<Optional<Feature>> parseFeatures(Iterable<CSVRecord> records, String latColumn,
                                               String lonColumn, Set<String> columns) {
-        List<Optional<Feature>> features = StreamSupport.stream(records.spliterator(), false)
+        return StreamSupport.stream(records.spliterator(), false)
                 .map(record -> {
                     String latStr = record.get(latColumn);
                     String lonStr = record.get(lonColumn);
@@ -61,15 +62,9 @@ public class CsvConverter implements GeoJsonConverter {
                         LOG.warn("exception converting lat: " + e);
                         return Optional.<Feature>empty();
                     }
-                })
-                .collect(toList());
+                });
 
-        LOG.info("{} of {} features successfully converted",
-                features.stream().filter(Optional::isPresent).count(),
-                features.size());
 
-        return features.stream()
-                .flatMap(o -> o.map(Stream::of).orElse(Stream.empty()));
     }
 
     @Override
@@ -102,17 +97,28 @@ public class CsvConverter implements GeoJsonConverter {
             jsonGenerator.writeStringField("type", "FeatureCollection");
             jsonGenerator.writeArrayFieldStart("features");
 
+            final AtomicLong totalFeatureCount = new AtomicLong();
+            final AtomicLong convertedFeatureCount = new AtomicLong();
             parseFeatures(csvParser, latField, lonField, keys)
-                    .forEach(feature -> {
-                        try {
-                            jsonGenerator.writeObject(feature);
-                        } catch (IOException e) {
-                            throw new RuntimeException("exception while writing json: " + e);
+                    .forEach(optionalFeature -> {
+                        totalFeatureCount.incrementAndGet();
+
+                        if (optionalFeature.isPresent()) {
+                            try {
+                                jsonGenerator.writeObject(optionalFeature.get());
+                                convertedFeatureCount.incrementAndGet();
+                            } catch (IOException e) {
+                                throw new RuntimeException("exception while writing json: " + e);
+                            }
                         }
                     });
             jsonGenerator.writeEndArray();
             jsonGenerator.writeEndObject();
             jsonGenerator.flush();
+
+            LOG.info("{} of {} features successfully converted",
+                    convertedFeatureCount,
+                    totalFeatureCount);
         }
         else {
             throw new RuntimeException("lat & lon field can't be found in keys: " + firstRow.keySet());

@@ -1,24 +1,16 @@
 package io.quartic.howl;
 
 import io.dropwizard.Configuration;
+import io.quartic.howl.storage.StorageBackend;
 
 public class HowlConfiguration extends Configuration {
-    private String bucketName;
-    private String dataDir;
+    StorageBackendConfig storageBackendConfig;
 
-    public String getBucketName() {
-        return bucketName;
+    public void setStorage(StorageBackendConfig storageBackendConfig) {
+        this.storageBackendConfig = storageBackendConfig;
     }
 
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
-    }
-
-    public String getDataDir() {
-        return dataDir;
-    }
-
-    public void setDataDir(String dataDir) {
-        this.dataDir = dataDir;
+    public StorageBackendConfig getStorage() {
+        return storageBackendConfig;
     }
 }

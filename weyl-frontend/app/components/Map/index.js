@@ -357,7 +357,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
             timeFilter.push([">=", k, spec[k].timeRange.startTime]);
           }
           if (spec[k].timeRange.endTime != null) {
-            timeFilter.push(["<", k, spec[k].timeRange.endTime]);
+            timeFilter.push(["<=", k, spec[k].timeRange.endTime]);
           }
           return timeFilter;
         })

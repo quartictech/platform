@@ -12,6 +12,8 @@ import NonHistograms from "./NonHistograms";
 import Histograms from "./Histograms";
 import { defaultTitle, curatedTitles } from "./behaviors";
 
+import { formatDateTime } from "../../utils/time";
+
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     const layers = this.props.layers;
@@ -93,6 +95,7 @@ const getBehavior = (layer) => {
     blessedAttributeOrder: staticSchema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
     unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (staticSchema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
+    render: (key, value) => ((staticSchema.attributeTypes[key] === "TIMESTAMP") ? formatDateTime(value) : value),
   };
 };
 

@@ -16,12 +16,12 @@ import {
 import classNames from "classnames";
 import naturalsort from "javascript-natural-sort";
 import * as _ from "underscore";
-import moment from "moment";
 
 import { layerThemes } from "../../themes";
 import Pane from "../Pane";
 
 import { DateRangePicker } from "./DateRangePicker";
+import { formatDateTime } from "../../utils/time";
 
 class LayerListPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -83,6 +83,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         childNodes: this.attributeNodes(
           layer.dynamicSchema.attributes,
           layer.filter,
+          layer.stats ? layer.stats.attributeStats : {},
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
           (k, startTime, endTime) => this.props.onApplyTimeRangeFilter(layer.id, k, startTime, endTime)
         ),
@@ -95,12 +96,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 
-  attributeNodes(attributes, filter, onValueClick, applyTimeRangeFilter) {
+  attributeNodes(attributes, filter, attributeStats, onValueClick, applyTimeRangeFilter) {
     return _.chain(attributes)
       .keys()
       .sort(naturalsort)
       .map(k => {
-        const node = this.attributeNode(k, attributes[k], filter[k], onValueClick, applyTimeRangeFilter);
+        const node = this.attributeNode(k, attributes[k], attributeStats[k], filter[k], onValueClick, applyTimeRangeFilter);
         node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
         node.onExpand = () => this.setState({ activeAttribute: k });
         node.onCollapse = () => this.setState({ activeAttribute: null });
@@ -110,7 +111,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  attributeNode(attribute, attributeInfo, filter, onValueClick, applyTimeRangeFilter) {
+  attributeNode(attribute, attributeInfo, attributeStats, filter, onValueClick, applyTimeRangeFilter) {
     if (attributeInfo.type === "TIMESTAMP") {
       return {
         iconName: "time",
@@ -123,6 +124,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
                 <DateRangePicker
                   startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
                   endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
+                  minTime={attributeStats ? attributeStats.minimum : null}
+                  maxTime={attributeStats ? attributeStats.maximum : null}
                   onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
                 />}
               position={Position.RIGHT_TOP}
@@ -157,8 +160,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
 
   timeRangeFilterTooltip(filter) {
     if (filter && filter.timeRange) {
-      const startRange = filter.timeRange.startTime ? moment(filter.timeRange.startTime).format("LLLL") : "";
-      const endRange = filter.timeRange.endTime ? moment(filter.timeRange.endTime).format("LLLL") : "";
+      const startRange = filter.timeRange.startTime ? formatDateTime(filter.timeRange.startTime) : "";
+      const endRange = filter.timeRange.endTime ? formatDateTime(filter.timeRange.endTime) : "";
       return `${startRange} → ${endRange}`;
     }
     return "No filter set";

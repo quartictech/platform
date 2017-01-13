@@ -65,6 +65,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
@@ -177,6 +178,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .metrics(environment.metrics())
                 .build();
 
+        final String userAgent = userAgentFor(getClass());
+
         return ImmutableMap.of(
                 PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
@@ -186,6 +189,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
+                        .userAgent(userAgent)
                         .converter(featureConverter())
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
@@ -201,6 +205,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
+                        .userAgent(userAgent)
                         .converter(featureConverter())
                         .build()
         );
