@@ -1,14 +1,12 @@
 package io.quartic.weyl.core.export;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
-import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
@@ -27,7 +25,6 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,6 +64,20 @@ public class LayerExporterShould {
         assertThat(layerWriter.getFeatures().get(0).entityId(), equalTo(features.get(0).entityId()));
     }
 
+    @Test
+    public void report_error_on_unfound_layer() {
+        LayerExporter layerExporter = layerExporter(new TestLayerWriter());
+        Layer layer = layer("layer", featureCollection(feature("foo")));
+        List<Feature> features = ImmutableList.of(feature("foo"));
+        layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
+                features))));
+        TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
+        layerExporter.export(exportRequest("layer"))
+                .subscribe(exportResult);
+
+        assertThat(exportResult.getOnNextEvents().size(), equalTo(1));
+    }
+
     @NotNull
     private LayerExportRequestImpl exportRequest(String layerId) {
         return LayerExportRequestImpl.of(LayerId.fromString(layerId));
@@ -74,8 +85,7 @@ public class LayerExporterShould {
 
     @Test
     public void write_to_catalogue() {
-        TestLayerWriter layerWriter = new TestLayerWriter();
-        LayerExporter layerExporter = layerExporter(layerWriter);
+        LayerExporter layerExporter = layerExporter(new TestLayerWriter());
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
