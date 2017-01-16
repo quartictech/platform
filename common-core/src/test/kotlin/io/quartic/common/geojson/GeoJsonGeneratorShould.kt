@@ -1,6 +1,5 @@
 package io.quartic.common.geojson
 
-import com.google.common.collect.ImmutableMap
 import io.quartic.common.serdes.objectMapper
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -19,5 +18,4 @@ class GeoJsonGeneratorShould {
         val featureCollection = objectMapper().readValue(outputStream.toByteArray(), FeatureCollection::class.java)
         assertThat(featureCollection, equalTo(FeatureCollection(listOf(feature))))
     }
-
 }
