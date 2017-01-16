@@ -31,6 +31,13 @@ export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
     };
 }
 
+export function deleteDataset(datasetId: string) {
+    return {
+      type: constants.DELETE_DATASET,
+      datasetId,
+    };
+}
+
 export function createDatasetError(error: string) {
   return {
     type: constants.CREATE_DATASET_ERROR,

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Tab, Tabs, TabList, TabPanel } from "@blueprintjs/core";
+import { Tab, Tabs, TabList, TabPanel, Button, Intent } from "@blueprintjs/core";
 
 import { IDataset } from "../../models";
 import _ = require("underscore");
@@ -8,6 +8,7 @@ import _ = require("underscore");
 interface IDatasetInfoProps {
   id: String;
   dataset: IDataset;
+  deleteClick: Function;
 };
 
 export class DatasetInfo extends React.Component<IDatasetInfoProps, {}> {
@@ -17,6 +18,13 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, {}> {
       <div className="pt-card pt-elevation-4">
         <h3>{this.props.dataset.metadata.name}</h3>
         <h5>ID: {this.props.id}</h5>
+
+        <Button
+          className="pt-large"
+          text="Delete"
+          intent={Intent.DANGER}
+          onClick={() => this.props.deleteClick(this.props.id)}
+        />
 
         <Tabs>
           <TabList>
