@@ -5,18 +5,7 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.GeoJsonDatasetLocator;
-import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
-import io.quartic.catalogue.api.PostgresDatasetLocator;
-import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
-import io.quartic.catalogue.api.TerminatorDatasetLocator;
-import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
-import io.quartic.catalogue.api.WebsocketDatasetLocator;
-import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
@@ -33,7 +22,7 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.render.LayerExporter;
+import io.quartic.weyl.core.export.LayerExporter;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
@@ -68,6 +57,7 @@ import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static rx.Observable.merge;
+import static io.quartic.common.client.ClientUtilsKt.client;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -88,7 +78,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
-                new WebsocketListener.Factory(configuration.getCatalogueWatchUrl(), websocketFactory)
+                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
         );
 
         final SourceManager sourceManager = SourceManagerImpl.builder()
@@ -108,10 +98,13 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final AlertResource alertResource = new AlertResource();
 
+        HowlClient howlClient = new HowlClient("weyl", configuration.getHowlStorageUrl());
+        CatalogueService catalogueService = client(CatalogueService.class, getClass(),
+                configuration.getCatalogue().getRestUrl());
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences, configuration.getHowlStorageUrl()));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
@@ -168,10 +161,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences,
-                                                          String howlStorageUrl) {
-        HowlClient howlClient = new HowlClient("weyl", howlStorageUrl);
-
-        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences, howlClient, featureConverter());
+                                                          HowlClient howlClient, CatalogueService catalogueService) {
+        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences, howlClient, catalogueService, featureConverter());
         return new LayerExportResource(layerExporter);
     }
 

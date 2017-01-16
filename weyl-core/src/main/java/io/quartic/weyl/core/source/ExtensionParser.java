@@ -1,5 +1,7 @@
 package io.quartic.weyl.core.source;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
@@ -30,6 +32,11 @@ public class ExtensionParser {
             LOG.info(format("[%s] No extension found, so using default", name));
         }
         return DEFAULT_EXTENSION;
+    }
+
+    public Map<String, Object> unparse(String name, MapDatasetExtension extension) {
+        return ImmutableMap.of(EXTENSION_KEY, objectMapper().convertValue(extension,
+                new TypeReference<Map<String, Object>>() { }));
     }
 
 }

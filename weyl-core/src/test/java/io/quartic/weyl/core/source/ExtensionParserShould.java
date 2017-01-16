@@ -1,13 +1,17 @@
 package io.quartic.weyl.core.source;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.model.AttributeNameImpl;
-import io.quartic.weyl.core.model.AttributeType;
-import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.weyl.core.model.*;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static io.quartic.weyl.core.source.ExtensionParser.DEFAULT_EXTENSION;
@@ -15,6 +19,7 @@ import static io.quartic.weyl.core.source.ExtensionParser.EXTENSION_KEY;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
 public class ExtensionParserShould {
     private final ExtensionParser parser = new ExtensionParser();
@@ -61,5 +66,22 @@ public class ExtensionParserShould {
                 equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
                         StaticSchemaImpl.builder()
                                 .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP).build())));
+    }
+
+    @Test
+    public void unparse_to_original() throws IOException {
+        MapDatasetExtension extension = MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
+                StaticSchemaImpl.builder()
+                        .titleAttribute(AttributeNameImpl.of("test"))
+                        .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP)
+                .build());
+        DatasetConfig datasetConfig = DatasetConfigImpl.of(
+                DatasetMetadataImpl.of("foo", "wat", "nope", Optional.empty(), Optional.empty()),
+                CloudGeoJsonDatasetLocatorImpl.of("test"),
+                parser.unparse("test", extension));
+
+        String json = objectMapper().writeValueAsString(datasetConfig);
+        DatasetConfig datasetConfigDeserialized = objectMapper().readValue(json, DatasetConfig.class);
+        assertThat(datasetConfig, equalTo(datasetConfigDeserialized));
     }
 }
