@@ -17,6 +17,7 @@ import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
+import io.quartic.weyl.core.export.HowlGeoJsonLayerWriter;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
@@ -162,7 +163,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences,
                                                           HowlClient howlClient, CatalogueService catalogueService) {
-        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences, howlClient, catalogueService, featureConverter());
+        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences,
+                new HowlGeoJsonLayerWriter(howlClient, featureConverter()), catalogueService);
         return new LayerExportResource(layerExporter);
     }
 
