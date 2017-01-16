@@ -4,7 +4,6 @@ package io.quartic.weyl.core.export;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.export.LayerExportRequestImpl;
 import org.immutables.value.Value;
 
 @SweetStyle

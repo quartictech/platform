@@ -80,6 +80,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onApplyTimeRangeFilter={this.props.onApplyTimeRangeFilter}
             onClose={() => this.props.onUiToggle("layerList")}
             visible={!noLayers && this.props.ui.panels.layerList}
+            onLayerExport={this.props.onLayerExport}
           />
         </div>
 
@@ -131,6 +132,7 @@ const mapDispatchToProps = {
   onGeofenceCommitSettings: actions.geofenceCommitSettings,
   onGeofenceSetManualGeometry: actions.geofenceSetManualGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
+  onLayerExport: actions.layerExport,
 };
 
 const mapStateToProps = createStructuredSelector({

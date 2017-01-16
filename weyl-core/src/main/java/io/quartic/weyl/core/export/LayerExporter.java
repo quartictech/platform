@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,7 +56,8 @@ public class LayerExporter {
       DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {
         return DatasetConfigImpl.of(
                 DatasetMetadataImpl.of(
-                        layer.spec().metadata().name(),
+                        String.format("%s (exported %s)", layer.spec().metadata().name(),
+                                DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now())),
                         layer.spec().metadata().description(),
                         layer.spec().metadata().attribution(),
                         Optional.empty(),

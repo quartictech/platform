@@ -65,6 +65,14 @@ export function layerComputation(computation) {
   };
 }
 
+export function layerExport(layerId) {
+  return {
+    type: constants.LAYER_EXPORT,
+    layerId,
+  };
+}
+
+
 export function toggleUi(element) {
   return {
     type: constants.UI_TOGGLE,

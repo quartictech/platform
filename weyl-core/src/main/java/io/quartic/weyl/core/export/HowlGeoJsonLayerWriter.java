@@ -30,7 +30,7 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
         });
         return LayerExportResult.success(
                 CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId)),
-                String.format("wrote %d features to cloud storage", featureCount[0]));
+                String.format("exported %d features to layer: %s", featureCount[0], layer.spec().metadata().name()));
     }
 
     @Override
