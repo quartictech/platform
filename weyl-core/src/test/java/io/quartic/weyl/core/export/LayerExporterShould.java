@@ -33,6 +33,8 @@ public class LayerExporterShould {
     private PublishSubject<LayerSnapshotSequence> layerSnapshots = PublishSubject.create();
     private CatalogueService catalogueService = mock(CatalogueService.class);
     private AttributesFactory attributesFactory = new AttributesFactory();
+    TestLayerWriter layerWriter = new TestLayerWriter();
+    LayerExporter layerExporter = layerExporter(layerWriter);
 
     private static class TestLayerWriter implements LayerWriter {
         private final List<Feature> features = Lists.newArrayList();
@@ -50,8 +52,6 @@ public class LayerExporterShould {
 
     @Test
     public void export_features() {
-        TestLayerWriter layerWriter = new TestLayerWriter();
-        LayerExporter layerExporter = layerExporter(layerWriter);
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
@@ -66,16 +66,16 @@ public class LayerExporterShould {
 
     @Test
     public void report_error_on_unfound_layer() {
-        LayerExporter layerExporter = layerExporter(new TestLayerWriter());
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
                 features))));
         TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
-        layerExporter.export(exportRequest("layer"))
+        layerExporter.export(exportRequest("noLayer"))
                 .subscribe(exportResult);
 
         assertThat(exportResult.getOnNextEvents().size(), equalTo(1));
+        assertThat(exportResult.getOnNextEvents().get(0).locator(), equalTo(Optional.empty()));
     }
 
     @NotNull
@@ -85,7 +85,6 @@ public class LayerExporterShould {
 
     @Test
     public void write_to_catalogue() {
-        LayerExporter layerExporter = layerExporter(new TestLayerWriter());
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
