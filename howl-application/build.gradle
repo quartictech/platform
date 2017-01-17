@@ -24,4 +24,8 @@ dependencies {
     testCompile libraries.dropwizardTesting
 }
 
-
+idea {
+    module {
+        excludeDirs += file("data")
+    }
+}
