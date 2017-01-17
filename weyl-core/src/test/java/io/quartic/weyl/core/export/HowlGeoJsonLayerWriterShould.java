@@ -15,6 +15,7 @@ import org.mockito.internal.verification.Only;
 import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -43,7 +44,7 @@ public class HowlGeoJsonLayerWriterShould {
 
     private Layer layer(String layerId, FeatureCollection features) {
         return LayerImpl.of(
-                mock(LayerSpec.class),
+                mock(LayerSpec.class, RETURNS_DEEP_STUBS),
                 features,
                 mock(DynamicSchema.class),
                 mock(SpatialIndex.class),
