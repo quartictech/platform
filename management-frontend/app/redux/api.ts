@@ -11,8 +11,11 @@ function checkStatus(response) {
   throw error;
 }
 
-function parseJSON(response) {
-  return response.json();
+function parseJSON(response: Response) {
+  if (response.status !== 204) {
+    return response.json();
+  }
+  return null;
 }
 
 export function fetchUtil(url, options?) {
@@ -52,5 +55,11 @@ export function createDataset(metadata: IDatasetMetadata, fileName: string, file
       fileName,
       fileType
     })
+  });
+}
+
+export function deleteDataset(id: string) {
+  return fetchUtil(`/api/dataset/${id}`, {
+    method: "DELETE",
   });
 }
