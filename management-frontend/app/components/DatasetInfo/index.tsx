@@ -19,18 +19,12 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, {}> {
         <h3>{this.props.dataset.metadata.name}</h3>
         <h5>ID: {this.props.id}</h5>
 
-        <Button
-          className="pt-large"
-          text="Delete"
-          intent={Intent.DANGER}
-          onClick={() => this.props.deleteClick(this.props.id)}
-        />
-
         <Tabs>
           <TabList>
             <Tab>Metadata</Tab>
             <Tab>Locator</Tab>
             <Tab>Raw</Tab>
+            <Tab>Admin</Tab>
           </TabList>
           <TabPanel>
             <div className="pt-callout pt-intent-primary pt-elevation-2">
@@ -46,6 +40,14 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, {}> {
             <pre className="pt-elevation-2">
               {JSON.stringify(this.props.dataset, null, "  ")}
             </pre>
+          </TabPanel>
+          <TabPanel>
+            <Button
+              className="pt-large"
+              text="Delete"
+              intent={Intent.DANGER}
+              onClick={() => this.props.deleteClick(this.props.id)}
+            />
           </TabPanel>
         </Tabs>
       </div>
