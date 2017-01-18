@@ -1,6 +1,15 @@
 import * as React from "react";
 
-import { Tab, Tabs, TabList, TabPanel, Button, Intent } from "@blueprintjs/core";
+import {
+  Tab,
+  Tabs,
+  TabList,
+  TabPanel,
+  Button,
+  Intent,
+  Dialog,
+  Classes,
+} from "@blueprintjs/core";
 
 import { IDataset } from "../../models";
 import _ = require("underscore");
@@ -11,7 +20,17 @@ interface IDatasetInfoProps {
   deleteClick: Function;
 };
 
-export class DatasetInfo extends React.Component<IDatasetInfoProps, {}> {
+interface IDatasetInfoState {
+  isDeleteDialogOpen: boolean;
+};
+
+export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfoState> {
+  constructor() {
+    super();
+    this.state = {
+      isDeleteDialogOpen: false,
+    };
+  }
 
   public render() {
     return (
@@ -45,13 +64,45 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, {}> {
             <Button
               className="pt-large"
               text="Delete"
+              iconName="trash"
               intent={Intent.DANGER}
-              onClick={() => this.props.deleteClick(this.props.id)}
+              onClick={() => this.setState({ isDeleteDialogOpen: true })}
             />
+            <Dialog
+              iconName="trash"
+              onClose={() => this.setState({ isDeleteDialogOpen: false })}
+              title={`Delete dataset: ${this.props.dataset.metadata.name}`}
+              isOpen={this.state.isDeleteDialogOpen}
+            >
+              <div className={Classes.DIALOG_BODY}>
+                Do you really want to delete this dataset?
+              </div>
+              <div className={Classes.DIALOG_FOOTER}>
+                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+                  <Button
+                    onClick={() => this.setState({ isDeleteDialogOpen: false })}
+                    iconName=""
+                  >
+                    No
+                  </Button>
+                  <Button
+                    intent={Intent.DANGER}
+                    onClick={() => this.onYes()}
+                  >
+                    Yes
+                  </Button>
+                </div>
+              </div>
+            </Dialog>
           </TabPanel>
         </Tabs>
       </div>
     );
+  }
+
+  onYes() {
+    this.setState({ isDeleteDialogOpen: false });
+    this.props.deleteClick(this.props.id);
   }
 };
 
