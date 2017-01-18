@@ -18,6 +18,7 @@ interface IProps {
   createDataset: (any) => any;
   fetchDatasets: any;
   closeNewDatasetModal: any;
+  deleteDataset: (string) => void;
 }
 
 interface IState {
@@ -31,6 +32,12 @@ class Home extends React.Component<IProps, IState> {
 
   componentDidMount() {
     this.props.fetchDatasets();
+  }
+
+  componentWillReceiveProps(props: IProps) {
+      if (! (this.state.datasetId in props.datasets)) {
+          this.setState({ datasetId: null });
+      }
   }
 
   render() {
@@ -58,6 +65,7 @@ class Home extends React.Component<IProps, IState> {
                 <DatasetInfo
                   id={this.state.datasetId}
                   dataset={this.props.datasets[this.state.datasetId]}
+                  deleteClick={this.props.deleteDataset}
                 />
               </div>
             )
@@ -76,6 +84,7 @@ export { Home };
 const mapDispatchToProps = {
   fetchDatasets: actions.fetchDatasets,
   createDataset: actions.createDataset,
+  deleteDataset: actions.deleteDataset,
   closeNewDatasetModal: () => actions.setActiveModal(null as string)
 };
 

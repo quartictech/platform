@@ -10,7 +10,8 @@ const props = {
   ui: {},
   createDataset: () => null,
   fetchDatasets: () => null,
-  closeNewDatasetModal: () => null
+  closeNewDatasetModal: () => null,
+  deleteDataset: () => null,
 };
 
 /** Spies */

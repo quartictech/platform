@@ -16,12 +16,7 @@ import io.quartic.management.conversion.GeoJsonConverter;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -48,6 +43,13 @@ public class ManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Map<DatasetId, DatasetConfig> getDatasets() {
         return catalogueService.getDatasets();
+    }
+
+    @DELETE
+    @Path("/dataset/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteDataset(@PathParam("id") DatasetId id) {
+        catalogueService.deleteDataset(id);
     }
 
     @POST
