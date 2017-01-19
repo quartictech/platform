@@ -6,7 +6,7 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.source.ExtensionParser;
+import io.quartic.weyl.core.source.ExtensionCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -67,8 +67,7 @@ public class LayerExporter {
                         layer.spec().metadata().icon()
                 ),
                 locator,
-                new ExtensionParser().unparse(layer.spec().metadata().name(),
-                        MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))
+                new ExtensionCodec().encode(MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))
         );
     }
 }

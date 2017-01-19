@@ -37,7 +37,7 @@ import java.util.function.Function;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
-import static io.quartic.weyl.core.source.ExtensionParser.EXTENSION_KEY;
+import static io.quartic.weyl.core.source.ExtensionCodec.EXTENSION_KEY;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
@@ -68,12 +68,12 @@ public class SourceManagerShould {
             LocatorB.class, config -> sourceOf(layerUpdatesB, false)
     );
 
-    private final ExtensionParser extensionParser = mock(ExtensionParser.class);
+    private final ExtensionCodec extensionCodec = mock(ExtensionCodec.class);
 
     private final SourceManager manager = SourceManagerImpl.builder()
             .catalogueEvents(catalogueEvents)
             .sourceFactories(sourceFactories)
-            .extensionParser(extensionParser)
+            .extensionParser(extensionCodec)
             .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
             .build();
 
@@ -82,7 +82,7 @@ public class SourceManagerShould {
 
     @Before
     public void before() throws Exception {
-        when(extensionParser.parse(any(), any())).thenReturn(extension());
+        when(extensionCodec.decode(any(), any())).thenReturn(extension());
         manager.layerPopulators()
                 .doOnNext(populator -> {
                     // This mechanism allows us to capture source updates in a non-blocking way
@@ -155,7 +155,7 @@ public class SourceManagerShould {
 
         collectedLayerPopulators();
 
-        verify(extensionParser).parse("foo", ImmutableMap.of(EXTENSION_KEY, "raw"));
+        verify(extensionCodec).decode("foo", ImmutableMap.of(EXTENSION_KEY, "raw"));
     }
 
     private List<LayerUpdate> collectedUpdateSequenceFor(String layerId) {

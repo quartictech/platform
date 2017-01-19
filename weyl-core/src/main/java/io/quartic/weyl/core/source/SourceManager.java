@@ -37,8 +37,8 @@ public abstract class SourceManager {
     protected abstract Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories();
     protected abstract Scheduler scheduler();
     @Value.Default
-    protected ExtensionParser extensionParser() {
-        return new ExtensionParser();
+    protected ExtensionCodec extensionCodec() {
+        return new ExtensionCodec();
     }
 
     @Value.Lazy
@@ -64,7 +64,7 @@ public abstract class SourceManager {
 
     private LayerPopulator createPopulator(DatasetId id, DatasetConfig config, Source source) {
         final String name = config.metadata().name();
-        final MapDatasetExtension extension = extensionParser().parse(name, config.extensions());
+        final MapDatasetExtension extension = extensionCodec().decode(name, config.extensions());
 
         LOG.info(format("[%s] Created layer", name));
 
