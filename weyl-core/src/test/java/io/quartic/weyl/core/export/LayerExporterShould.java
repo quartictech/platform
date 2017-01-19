@@ -100,8 +100,6 @@ public class LayerExporterShould {
                 .subscribe(exportResult);
         verify(catalogueService, only()).registerDataset(ArgumentMatchers.any());
         assertThat(exportResult.getOnNextEvents().size(), equalTo(1));
-        assertThat(exportResult.getOnNextEvents().get(0).locator(), equalTo(Optional.empty()));
-        assertThat(exportResult.getOnNextEvents().get(0).isSuccess(), equalTo(false));
     }
 
     @Test
@@ -115,6 +113,8 @@ public class LayerExporterShould {
         failingLayerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
         verify(catalogueService, times(0)).registerDataset(ArgumentMatchers.any());
+        assertThat(exportResult.getOnNextEvents().get(0).locator(), equalTo(Optional.empty()));
+        assertThat(exportResult.getOnNextEvents().get(0).isSuccess(), equalTo(false));
     }
 
     private Feature feature(String id){

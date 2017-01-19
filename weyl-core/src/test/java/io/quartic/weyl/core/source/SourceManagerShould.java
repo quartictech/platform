@@ -73,7 +73,7 @@ public class SourceManagerShould {
     private final SourceManager manager = SourceManagerImpl.builder()
             .catalogueEvents(catalogueEvents)
             .sourceFactories(sourceFactories)
-            .extensionParser(extensionCodec)
+            .extensionCodec(extensionCodec)
             .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
             .build();
 
