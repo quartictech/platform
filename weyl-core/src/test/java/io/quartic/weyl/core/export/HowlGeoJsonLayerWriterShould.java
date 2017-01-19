@@ -28,7 +28,7 @@ public class HowlGeoJsonLayerWriterShould {
     @Test
     public void write_to_howl() throws IOException {
         Layer layer = layer("foo", featureCollection(feature("wat")));
-        layerWriter.storeToHowl(layer);
+        layerWriter.write(layer);
         verify(howlClient, new Only()).uploadFile(any(), any(), any());
     }
 

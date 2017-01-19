@@ -99,7 +99,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final AlertResource alertResource = new AlertResource();
 
-        HowlClient howlClient = new HowlClient("weyl", configuration.getHowlStorageUrl());
+        HowlClient howlClient = new HowlClient(userAgentFor(getClass()), configuration.getHowlStorageUrl());
         CatalogueService catalogueService = client(CatalogueService.class, getClass(),
                 configuration.getCatalogue().getRestUrl());
         environment.jersey().register(computeResource);

@@ -7,6 +7,7 @@ import io.quartic.howl.api.HowlStorageId;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Layer;
 
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 public class HowlGeoJsonLayerWriter implements LayerWriter {
@@ -20,9 +21,9 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
     }
 
 
-    public LayerExportResult storeToHowl(Layer layer) throws IOException {
+    private LayerExportResult storeToHowl(Layer layer) throws IOException {
         final int[] featureCount = new int[1];
-        HowlStorageId howlStorageId = howlClient.uploadFile("application/json", "weyl", outputStream -> {
+        HowlStorageId howlStorageId = howlClient.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE, outputStream -> {
             GeoJsonGenerator geoJsonGenerator = new GeoJsonGenerator(outputStream);
 
             featureCount[0] = geoJsonGenerator.writeFeatures(layer.features().stream()

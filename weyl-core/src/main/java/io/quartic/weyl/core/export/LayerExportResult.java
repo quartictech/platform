@@ -21,4 +21,8 @@ public interface LayerExportResult {
     static LayerExportResult failure(String error) {
         return LayerExportResultImpl.of(Optional.empty(), error);
     }
+
+    default boolean isSuccess() {
+        return locator().isPresent();
+    }
 }

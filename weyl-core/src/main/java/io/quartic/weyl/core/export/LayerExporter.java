@@ -37,23 +37,26 @@ public class LayerExporter {
                 layers, Observable.just(layerExportRequest), this::fetchLayerAndExport);
     }
 
-    Optional<Layer> fetchLayer(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
+    private Optional<Layer> fetchLayer(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
         return Optional.ofNullable(layers.get(exportRequest.layerId()))
                 .map(snapshotSequence -> latest(snapshotSequence.snapshots()).absolute());
     }
 
-    LayerExportResult fetchLayerAndExport(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
+    private LayerExportResult fetchLayerAndExport(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
         return fetchLayer(layers, exportRequest)
                 .map(layer -> {
                     LayerExportResult exportResult = layerWriter.write(layer);
-                    exportResult.locator().ifPresent( locator ->
-                            catalogueService.registerDataset(datasetConfig(layer, locator)));
+
+                    if (exportResult.isSuccess()) {
+                        catalogueService.registerDataset(datasetConfig(layer, exportResult.locator().get()));
+                    }
+
                     return exportResult;
                 })
                 .orElse(LayerExportResult.failure("couldn't find layer for export: " + exportRequest.layerId()));
     }
 
-      DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {
+    private DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {
         return DatasetConfigImpl.of(
                 DatasetMetadataImpl.of(
                         String.format("%s (exported %s)", layer.spec().metadata().name(),
@@ -68,6 +71,4 @@ public class LayerExporter {
                         MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))
         );
     }
-
-
 }

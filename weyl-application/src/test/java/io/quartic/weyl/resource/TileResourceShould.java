@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.mockito.verification.VerificationMode;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
@@ -19,6 +20,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.equalTo;
@@ -29,7 +31,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 public class TileResourceShould {
-
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final VectorTileRenderer renderer = mock(VectorTileRenderer.class);
     private final TileResource resource = TileResourceImpl.builder()
@@ -46,10 +47,12 @@ public class TileResourceShould {
         mockRendererResult(expected);
         nextSequence(layerId).onNext(snapshot(layer));
 
-        final byte[] bytes = renderBytes(layerId);
-
-        verify(renderer).render(layer, 5, 6, 7);
-        assertThat(bytes, equalTo(expected));
+        render(layerId, asyncResponse -> {
+            ArgumentCaptor<byte[]> argumentCaptor = ArgumentCaptor.forClass(byte[].class);
+            verify(asyncResponse, timeout(5000)).resume(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue(), instanceOf(byte[].class));
+            assertThat(argumentCaptor.getValue(), equalTo(expected));
+        });
     }
 
     @Test
@@ -63,9 +66,7 @@ public class TileResourceShould {
         snapshots.onNext(snapshot(layer1));
         snapshots.onNext(snapshot(layer2));
 
-        renderBytes(layerId);
-
-        verify(renderer).render(layer2, 5, 6, 7);
+        render(layerId, asyncResponse -> verify(renderer, timeout(5000)).render(layer2, 5, 6, 7));
     }
 
     @Test
@@ -73,47 +74,27 @@ public class TileResourceShould {
         mockRendererResult(new byte[] {});
         nextSequence(layerId).onNext(snapshot(mock(Layer.class)));
 
-        final Response response = renderResponse(layerId);
-
-        assertThat(response.getStatus(), equalTo(204));
+        render(layerId, asyncResponse -> {
+            ArgumentCaptor<Response> argumentCaptor = ArgumentCaptor.forClass(Response.class);
+            verify(asyncResponse, timeout(5000)).resume(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue(), instanceOf(Response.class));
+            assertThat(argumentCaptor.getValue().getStatus(), equalTo(204));
+        });
     }
 
     @Test
     public void respond_with_4xx_when_layer_not_present() throws Exception {
-        Throwable throwable = renderThrowable(layerId);
-        assertThat(throwable, instanceOf(NotFoundException.class));
+        render(layerId, asyncResponse -> {
+            ArgumentCaptor<Throwable> argumentCaptor = ArgumentCaptor.forClass(Throwable.class);
+            verify(asyncResponse, timeout(5000)).resume(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue(), instanceOf(NotFoundException.class));
+        });
     }
 
-    private <T> T render(LayerId layerId, Class<T> responseClass) {
-        ArgumentCaptor<T> argumentCaptor = ArgumentCaptor.forClass(responseClass);
+    private void render(LayerId layerId, Consumer<AsyncResponse> verifier) {
         AsyncResponse asyncResponse = mock(AsyncResponse.class);
         resource.render(layerId, 5, 6, 7, asyncResponse);
-        verify(asyncResponse, timeout(5000)).resume(argumentCaptor.capture());
-        T response =  argumentCaptor.getValue();
-        assertThat(response, instanceOf(responseClass));
-        return response;
-    }
-
-    // NOTE: Duplication with above is necessary. AsyncResponse.resume() is overloaded and one version takes Object,
-    // another takes Throwable. To ensure the correct method is verified by Mockito, I have to explicitly specify
-    // Throwable. Trying to use generics makes everything Object at compile time and dispatches to resume(Object) instead.
-    // :-(
-     private Throwable renderThrowable(LayerId layerId) {
-        ArgumentCaptor<Throwable> argumentCaptor = ArgumentCaptor.forClass(Throwable.class);
-        AsyncResponse asyncResponse = mock(AsyncResponse.class);
-        resource.render(layerId, 5, 6, 7, asyncResponse);
-        verify(asyncResponse, timeout(5000)).resume(argumentCaptor.capture());
-        Throwable response =  argumentCaptor.getValue();
-        assertThat(response, instanceOf(Throwable.class));
-        return response;
-    }
-
-    private byte[] renderBytes(LayerId layerId) {
-        return render(layerId, byte[].class);
-    }
-
-    private Response renderResponse(LayerId layerId) {
-        return render(layerId, Response.class);
+        verifier.accept(asyncResponse);
     }
 
     private BehaviorSubject<Snapshot> nextSequence(LayerId layerId) {

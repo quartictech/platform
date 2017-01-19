@@ -14,7 +14,6 @@ import io.quartic.weyl.core.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
-import org.mockito.internal.verification.Only;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
@@ -26,15 +25,14 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class LayerExporterShould {
     private PublishSubject<LayerSnapshotSequence> layerSnapshots = PublishSubject.create();
     private CatalogueService catalogueService = mock(CatalogueService.class);
     private AttributesFactory attributesFactory = new AttributesFactory();
-    TestLayerWriter layerWriter = new TestLayerWriter();
-    LayerExporter layerExporter = layerExporter(layerWriter);
+    private TestLayerWriter layerWriter = new TestLayerWriter();
+    private LayerExporter layerExporter = layerExporter(layerWriter);
 
     private static class TestLayerWriter implements LayerWriter {
         private final List<Feature> features = Lists.newArrayList();
@@ -47,6 +45,14 @@ public class LayerExporterShould {
 
         public List<Feature> getFeatures() {
             return features;
+        }
+    }
+
+    private static class FailingLayerWriter implements LayerWriter {
+
+        @Override
+        public LayerExportResult write(Layer layer) {
+            return LayerExportResult.failure("some noob out");
         }
     }
 
@@ -92,7 +98,23 @@ public class LayerExporterShould {
         TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
-        verify(catalogueService, new Only()).registerDataset(ArgumentMatchers.any());
+        verify(catalogueService, only()).registerDataset(ArgumentMatchers.any());
+        assertThat(exportResult.getOnNextEvents().size(), equalTo(1));
+        assertThat(exportResult.getOnNextEvents().get(0).locator(), equalTo(Optional.empty()));
+        assertThat(exportResult.getOnNextEvents().get(0).isSuccess(), equalTo(false));
+    }
+
+    @Test
+    public void handle_writer_failure() {
+        Layer layer = layer("layer", featureCollection(feature("foo")));
+        List<Feature> features = ImmutableList.of(feature("foo"));
+        layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
+                features))));
+        TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
+        LayerExporter failingLayerExporter = layerExporter(new FailingLayerWriter());
+        failingLayerExporter.export(exportRequest("layer"))
+                .subscribe(exportResult);
+        verify(catalogueService, times(0)).registerDataset(ArgumentMatchers.any());
     }
 
     private Feature feature(String id){

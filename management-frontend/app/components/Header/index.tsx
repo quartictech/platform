@@ -38,7 +38,7 @@ class Header extends React.Component<IProps, void> {
           <span className="pt-navbar-divider"></span>
           <button
             onClick={this.props.newDatasetClick}
-            className="pt-button pt-minimal pt-icon-upload"
+            className="pt-button pt-minimal pt-icon-cloud-upload"
           >
             Upload Data
           </button>
