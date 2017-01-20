@@ -81,10 +81,10 @@ public class FeatureConverter {
     }
 
     public FeatureCollection toGeojson(Collection<Feature> features) {
-        return new FeatureCollection(features.stream().map(this::toGeojson).collect(toList()));
+        return new FeatureCollection(features.stream().map(this::featureToGeojson).collect(toList()));
     }
 
-    private io.quartic.common.geojson.Feature toGeojson(Feature f) {
+    public io.quartic.common.geojson.Feature featureToGeojson(Feature f) {
         return new io.quartic.common.geojson.Feature(
                 null,
                 fromJts(fromModel.transform(f.geometry())),

@@ -263,6 +263,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           <MenuItem text={`Attribution: ${layer.metadata.attribution}`} disabled />
         </MenuItem>
         <MenuDivider />
+        <MenuItem iconName="cloud-upload" text="Save to Cloud" onClick={() => this.props.onLayerExport(layer.id)} />
+        <MenuDivider />
         <MenuItem
           iconName="trash"
           text="Remove"

@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 public class WeylConfiguration extends Configuration {
     @Valid
     @NotNull
-    private String catalogueWatchUrl;
+    private CatalogueClientConfiguration catalogue;
 
     @Valid
     @NotNull
@@ -18,12 +18,12 @@ public class WeylConfiguration extends Configuration {
     @NotNull
     private String howlStorageUrl;
 
-    public String getCatalogueWatchUrl() {
-        return catalogueWatchUrl;
+    public CatalogueClientConfiguration getCatalogue() {
+        return this.catalogue;
     }
 
-    public void setCatalogueWatchUrl(String catalogueWatchUrl) {
-        this.catalogueWatchUrl = catalogueWatchUrl;
+    public void setCatalogue(CatalogueClientConfiguration catalogue) {
+        this.catalogue = catalogue;
     }
 
     public String getTerminatorUrl() {

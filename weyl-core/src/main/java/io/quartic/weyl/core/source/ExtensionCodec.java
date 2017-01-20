@@ -1,5 +1,7 @@
 package io.quartic.weyl.core.source;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
@@ -11,14 +13,14 @@ import java.util.Map;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static java.lang.String.format;
 
-public class ExtensionParser {
+public class ExtensionCodec {
     public static final String EXTENSION_KEY = "map";
     public static final MapDatasetExtension DEFAULT_EXTENSION = MapDatasetExtensionImpl.builder()
             .staticSchema(StaticSchemaImpl.builder().build())
             .build();
-    private static final Logger LOG = LoggerFactory.getLogger(ExtensionParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ExtensionCodec.class);
 
-    public MapDatasetExtension parse(String name, Map<String, Object> extensions) {
+    public MapDatasetExtension decode(String name, Map<String, Object> extensions) {
         final Object extension = extensions.get(EXTENSION_KEY);
         if (extension != null) {
             try {
@@ -30,6 +32,11 @@ public class ExtensionParser {
             LOG.info(format("[%s] No extension found, so using default", name));
         }
         return DEFAULT_EXTENSION;
+    }
+
+    public Map<String, Object> encode(MapDatasetExtension extension) {
+        return ImmutableMap.of(EXTENSION_KEY, objectMapper().convertValue(extension,
+                new TypeReference<Map<String, Object>>() { }));
     }
 
 }

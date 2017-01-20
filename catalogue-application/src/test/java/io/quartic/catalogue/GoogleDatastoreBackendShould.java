@@ -41,7 +41,7 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
     }
 
     @Test
-    public void respects_namespace_separation() throws IOException {
+    public void respect_namespace_separation() throws IOException {
         GoogleDatastoreBackend secondBackend = new GoogleDatastoreBackend(helper.getOptions()
                 .toBuilder()
                 .setNamespace("test2")

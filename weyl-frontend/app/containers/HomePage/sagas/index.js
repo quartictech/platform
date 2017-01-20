@@ -6,6 +6,7 @@ import * as constants from "../constants";
 
 import manageSocket from "./manageSocket";
 import performComputation from "./performComputation";
+import layerExport from "./layerExport";
 
 function watch(action, generator) {
   return function* () {
@@ -24,4 +25,5 @@ function prepare(generator) {
 export default [
   prepare(manageSocket),
   prepare(watch(constants.LAYER_COMPUTATION_START, performComputation)),
+  prepare(watch(constants.LAYER_EXPORT, layerExport)),
 ];

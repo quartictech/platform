@@ -5,33 +5,25 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.GeoJsonDatasetLocator;
-import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
-import io.quartic.catalogue.api.PostgresDatasetLocator;
-import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
-import io.quartic.catalogue.api.TerminatorDatasetLocator;
-import io.quartic.catalogue.api.TerminatorDatasetLocatorImpl;
-import io.quartic.catalogue.api.WebsocketDatasetLocator;
-import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
+import io.quartic.catalogue.api.*;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
 import io.quartic.common.websocket.WebsocketListener;
+import io.quartic.howl.api.HowlClient;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
+import io.quartic.weyl.core.export.HowlGeoJsonLayerWriter;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.export.LayerExporter;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
@@ -39,11 +31,7 @@ import io.quartic.weyl.core.source.SourceManager;
 import io.quartic.weyl.core.source.SourceManagerImpl;
 import io.quartic.weyl.core.source.TerminatorSourceFactory;
 import io.quartic.weyl.core.source.WebsocketSource;
-import io.quartic.weyl.resource.AlertResource;
-import io.quartic.weyl.resource.ComputeResource;
-import io.quartic.weyl.resource.ComputeResourceImpl;
-import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.resource.TileResourceImpl;
+import io.quartic.weyl.resource.*;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
@@ -70,6 +58,7 @@ import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static rx.Observable.merge;
+import static io.quartic.common.client.ClientUtilsKt.client;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -90,7 +79,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
-                new WebsocketListener.Factory(configuration.getCatalogueWatchUrl(), websocketFactory)
+                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
         );
 
         final SourceManager sourceManager = SourceManagerImpl.builder()
@@ -110,9 +99,13 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final AlertResource alertResource = new AlertResource();
 
+        HowlClient howlClient = new HowlClient(userAgentFor(getClass()), configuration.getHowlStorageUrl());
+        CatalogueService catalogueService = client(CatalogueService.class, getClass(),
+                configuration.getCatalogue().getRestUrl());
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
@@ -168,6 +161,13 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new GeofenceStatusHandler(snapshotSequences, geofenceViolationDetector, featureConverter());
     }
 
+    private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences,
+                                                          HowlClient howlClient, CatalogueService catalogueService) {
+        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences,
+                new HowlGeoJsonLayerWriter(howlClient, featureConverter()), catalogueService);
+        return new LayerExportResource(layerExporter);
+    }
+
     private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
@@ -214,6 +214,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private FeatureConverter featureConverter() {
         return new FeatureConverter(attributesFactory());
     }
+
 
     private AttributesFactory attributesFactory() {
         return new AttributesFactory();
