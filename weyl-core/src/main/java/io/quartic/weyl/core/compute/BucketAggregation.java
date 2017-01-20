@@ -14,4 +14,5 @@ import java.util.Collection;
 })
 public interface BucketAggregation {
     double aggregate(Feature bucket, Collection<Feature> features);
+    String describe();
 }

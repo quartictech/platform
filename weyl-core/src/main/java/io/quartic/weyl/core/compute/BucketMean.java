@@ -30,4 +30,9 @@ public abstract class BucketMean implements BucketAggregation {
                     .sum() / features.size();
         }
     }
+
+    @Override
+    public String describe() {
+        return String.format("mean(%s)", attribute().name());
+    }
 }

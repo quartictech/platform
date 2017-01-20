@@ -75,7 +75,7 @@ public class BucketComputationShould {
                 myLayerId,
                 LayerMetadataImpl.of(
                         "Foo (bucketed)",
-                        "Foo bucketed by Bar aggregating by " + aggregation.toString(),
+                        "Foo bucketed by Bar aggregating by " + aggregation.describe(),
                         "Alice / Bob",
                         Instant.EPOCH,
                         Optional.empty()

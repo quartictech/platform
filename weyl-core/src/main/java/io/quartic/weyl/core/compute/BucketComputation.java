@@ -77,7 +77,7 @@ public abstract class BucketComputation implements LayerPopulator {
                 layerId(),
                 LayerMetadataImpl.of(
                         String.format("%s (bucketed)", featureName),
-                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().aggregation()),
+                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().aggregation().describe()),
                         String.format("%s / %s", featureLayer.spec().metadata().attribution(), bucketLayer.spec().metadata().attribution()),
                         clock().instant(),
                         Optional.empty()

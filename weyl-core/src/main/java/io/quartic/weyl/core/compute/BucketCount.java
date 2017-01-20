@@ -17,4 +17,9 @@ public abstract class BucketCount implements BucketAggregation {
     public double aggregate(Feature bucket, Collection<Feature> features) {
         return features.size();
     }
+
+    @Override
+    public String describe() {
+        return "count";
+    }
 }
