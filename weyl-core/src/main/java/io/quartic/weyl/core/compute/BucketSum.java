@@ -26,4 +26,9 @@ public abstract class BucketSum implements BucketAggregation {
                 .mapToDouble(BucketUtils::mapToDouble)
                 .sum();
     }
+
+    @Override
+    public String describe() {
+        return String.format("sum(%s)", attribute().name());
+    }
 }
