@@ -6,6 +6,7 @@ import io.quartic.weyl.core.export.LayerExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -26,6 +27,7 @@ public class LayerExportResource {
         LOG.info("layer export request received for id: {}", layerExportRequest.layerId());
         return layerExporter.export(layerExportRequest)
                 .toBlocking()
-                .first();
+                .first()
+                .orElseThrow(() -> new NotFoundException("unable to find layer with id " + layerExportRequest.layerId()));
     }
 }

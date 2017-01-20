@@ -18,6 +18,7 @@ import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,7 @@ public class LayerExporterShould {
     private AttributesFactory attributesFactory = new AttributesFactory();
     private TestLayerWriter layerWriter = new TestLayerWriter();
     private LayerExporter layerExporter = layerExporter(layerWriter);
+    private TestSubscriber<Optional<LayerExportResult>> exportResult = TestSubscriber.create();
 
     private static class TestLayerWriter implements LayerWriter {
         private final List<Feature> features = Lists.newArrayList();
@@ -40,7 +42,7 @@ public class LayerExporterShould {
         @Override
         public LayerExportResult write(Layer layer) {
             layer.features().stream().collect(toCollection(() -> features));
-            return LayerExportResult.success(CloudGeoJsonDatasetLocatorImpl.of("test"), "ok");
+            return LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test"), "ok");
         }
 
         public List<Feature> getFeatures() {
@@ -51,8 +53,8 @@ public class LayerExporterShould {
     private static class FailingLayerWriter implements LayerWriter {
 
         @Override
-        public LayerExportResult write(Layer layer) {
-            return LayerExportResult.failure("some noob out");
+        public LayerExportResult write(Layer layer) throws IOException {
+            throw new IOException("some noob out");
         }
     }
 
@@ -62,11 +64,10 @@ public class LayerExporterShould {
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
                 features))));
-        TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
-        exportResult.assertValue(LayerExportResult.success(CloudGeoJsonDatasetLocatorImpl.of("test"), "ok"));
+        exportResult.assertValue(Optional.of(LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test"), "ok")));
         assertThat(layerWriter.getFeatures().get(0).entityId(), equalTo(features.get(0).entityId()));
     }
 
@@ -76,12 +77,9 @@ public class LayerExporterShould {
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
                 features))));
-        TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
         layerExporter.export(exportRequest("noLayer"))
                 .subscribe(exportResult);
-
-        assertThat(exportResult.getOnNextEvents().size(), equalTo(1));
-        assertThat(exportResult.getOnNextEvents().get(0).locator(), equalTo(Optional.empty()));
+        exportResult.assertValue(Optional.empty());
     }
 
     @NotNull
@@ -95,7 +93,6 @@ public class LayerExporterShould {
         List<Feature> features = ImmutableList.of(feature("foo"));
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
                 features))));
-        TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
         verify(catalogueService, only()).registerDataset(ArgumentMatchers.any());
@@ -106,15 +103,13 @@ public class LayerExporterShould {
     public void handle_writer_failure() {
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
+        LayerExporter failingLayerExporter = layerExporter(new FailingLayerWriter());
         layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
                 features))));
-        TestSubscriber<LayerExportResult> exportResult = TestSubscriber.create();
-        LayerExporter failingLayerExporter = layerExporter(new FailingLayerWriter());
         failingLayerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
         verify(catalogueService, times(0)).registerDataset(ArgumentMatchers.any());
-        assertThat(exportResult.getOnNextEvents().get(0).locator(), equalTo(Optional.empty()));
-        assertThat(exportResult.getOnNextEvents().get(0).isSuccess(), equalTo(false));
+        exportResult.assertError(RuntimeException.class);
     }
 
     private Feature feature(String id){

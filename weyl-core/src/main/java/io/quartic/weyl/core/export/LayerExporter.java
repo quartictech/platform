@@ -7,10 +7,9 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
 import io.quartic.weyl.core.source.ExtensionCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rx.Observable;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -19,7 +18,6 @@ import java.util.Optional;
 import static io.quartic.common.rx.RxUtilsKt.*;
 
 public class LayerExporter {
-    private static final Logger LOG = LoggerFactory.getLogger(LayerExporter.class);
     private final Observable<Map<LayerId, LayerSnapshotSequence>> layers;
     private final LayerWriter layerWriter;
     private final CatalogueService catalogueService;
@@ -32,7 +30,7 @@ public class LayerExporter {
         this.catalogueService = catalogueService;
     }
 
-    public Observable<LayerExportResult> export(LayerExportRequest layerExportRequest) {
+    public Observable<Optional<LayerExportResult>> export(LayerExportRequest layerExportRequest) {
         return Observable.combineLatest(
                 layers, Observable.just(layerExportRequest), this::fetchLayerAndExport);
     }
@@ -42,18 +40,19 @@ public class LayerExporter {
                 .map(snapshotSequence -> latest(snapshotSequence.snapshots()).absolute());
     }
 
-    private LayerExportResult fetchLayerAndExport(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
+    private Optional<LayerExportResult> fetchLayerAndExport(Map<LayerId, LayerSnapshotSequence> layers,
+                                                            LayerExportRequest exportRequest) {
         return fetchLayer(layers, exportRequest)
                 .map(layer -> {
-                    LayerExportResult exportResult = layerWriter.write(layer);
-
-                    if (exportResult.isSuccess()) {
-                        catalogueService.registerDataset(datasetConfig(layer, exportResult.locator().get()));
+                    try {
+                        LayerExportResult exportResult = layerWriter.write(layer);
+                        catalogueService.registerDataset(datasetConfig(layer, exportResult.locator()));
+                        return exportResult;
                     }
-
-                    return exportResult;
-                })
-                .orElse(LayerExportResult.failure("couldn't find layer for export: " + exportRequest.layerId()));
+                    catch (IOException e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                });
     }
 
     private DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {

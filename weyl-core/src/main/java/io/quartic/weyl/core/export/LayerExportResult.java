@@ -11,18 +11,6 @@ import java.util.Optional;
 @Value.Immutable
 @JsonSerialize(as=LayerExportResultImpl.class)
 public interface LayerExportResult {
-    Optional<DatasetLocator> locator();
+    DatasetLocator locator();
     String message();
-
-    static LayerExportResult success(DatasetLocator locator, String message) {
-        return LayerExportResultImpl.of(Optional.of(locator), message);
-    }
-
-    static LayerExportResult failure(String error) {
-        return LayerExportResultImpl.of(Optional.empty(), error);
-    }
-
-    default boolean isSuccess() {
-        return locator().isPresent();
-    }
 }

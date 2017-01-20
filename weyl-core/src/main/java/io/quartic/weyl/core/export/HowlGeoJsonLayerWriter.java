@@ -29,18 +29,17 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
             featureCount[0] = geoJsonGenerator.writeFeatures(layer.features().stream()
                 .map(featureConverter::featureToGeojson));
         });
-        return LayerExportResult.success(
+        return LayerExportResultImpl.of(
                 CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId)),
                 String.format("exported %d features to layer: %s", featureCount[0], layer.spec().metadata().name()));
     }
 
     @Override
-    public LayerExportResult write(Layer layer) {
+    public LayerExportResult write(Layer layer) throws IOException {
         try {
             return storeToHowl(layer);
         } catch (IOException e) {
-            e.printStackTrace();
-            return LayerExportResult.failure("exception while writing to cloud storage");
+            throw new IOException("exception while writing to cloud storage", e);
         }
     }
 }
