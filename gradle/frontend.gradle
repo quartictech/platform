@@ -28,3 +28,9 @@ jar {
 
 check.dependsOn npmLint
 
+idea {
+    module {
+        excludeDirs += file("node_modules")
+    }
+}
+

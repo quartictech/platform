@@ -33,4 +33,9 @@ allprojects {
     version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
 }
 
+idea {
+    module {
+        excludeDirs += file(".env")
+    }
+}
 
