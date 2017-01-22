@@ -24,6 +24,6 @@ function prepare(generator) {
 
 export default [
   prepare(manageSocket),
-  prepare(watch(constants.LAYER_COMPUTATION_START, performComputation)),
+  prepare(watch(constants.COMPUTATION_START, performComputation)),
   prepare(watch(constants.LAYER_EXPORT, layerExport)),
 ];

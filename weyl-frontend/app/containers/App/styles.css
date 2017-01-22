@@ -10,7 +10,7 @@ input,
 textarea,
 select {
   font-family: Roboto !important;
-  font-weight: 300;
+  font-weight: 300 !important;
 }
 
 /* This one's not !important because that seems to break icon buttons in some places */
