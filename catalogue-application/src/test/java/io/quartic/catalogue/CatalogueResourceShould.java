@@ -5,8 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
 import org.junit.Test;
 
 import javax.websocket.CloseReason;
@@ -45,6 +45,30 @@ public class CatalogueResourceShould {
         final DatasetId id = resource.registerDataset(config);
 
         assertThat(resource.getDataset(id).metadata().registered(), equalTo(Optional.of(clock.instant())));
+    }
+
+    @Test
+    public void register_dataset_with_specified_id() throws Exception {
+        final DatasetConfig config = config("X");
+        final DatasetConfig configWithTimestamp = config("X", Optional.of(clock.instant()));
+
+        final DatasetId id = new DatasetId("123");
+        resource.registerOrUpdateDataset(id, config);
+
+        assertThat(resource.getDataset(id), equalTo(configWithTimestamp));
+    }
+
+    @Test
+    public void update_dataset_with_specified_id() throws Exception {
+        final DatasetConfig config = config("X");
+        final DatasetConfig newConfig = config("Y");
+        final DatasetConfig newConfigWithTimestamp = config("Y", Optional.of(clock.instant()));
+
+        final DatasetId id = new DatasetId("123");
+        resource.registerOrUpdateDataset(id, config);
+        resource.registerOrUpdateDataset(id, newConfig);
+
+        assertThat(resource.getDataset(id), equalTo(newConfigWithTimestamp));
     }
 
     @Test
@@ -111,7 +135,7 @@ public class CatalogueResourceShould {
     private DatasetConfig config(String name, Optional<Instant> instant) {
         return DatasetConfigImpl.of(
                 DatasetMetadataImpl.of(name, "bar", "baz", instant, Optional.empty()),
-                mock(DatasetLocator.class),
+                GeoJsonDatasetLocatorImpl.of("blah"),
                 emptyMap()
         );
     }

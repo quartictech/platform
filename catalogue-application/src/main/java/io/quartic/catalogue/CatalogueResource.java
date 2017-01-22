@@ -4,7 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
 import io.quartic.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,13 +68,17 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     @Override
-    public synchronized DatasetId registerDataset(DatasetConfig config) {
+    public DatasetId registerDataset(DatasetConfig config) {
+        return registerOrUpdateDataset(didGenerator.get(), config);
+    }
+
+    @Override
+    public synchronized DatasetId registerOrUpdateDataset(DatasetId id, DatasetConfig config) {
         if (config.metadata().registered().isPresent()) {
             throw new BadRequestException("'registered' field should not be present");
         }
 
         // TODO: basic validation
-        DatasetId id = didGenerator.get();
         wrapException(() -> storageBackend.put(id, withRegisteredTimestamp(config)));
         updateClients();
         return id;
