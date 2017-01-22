@@ -58,13 +58,6 @@ export const layerUpdate = (layerId, data, stats, dynamicSchema) => ({
   dynamicSchema,
 });
 
-export function layerComputation(computation) {
-  return {
-    type: constants.LAYER_COMPUTATION_START,
-    computation,
-  };
-}
-
 export function layerExport(layerId) {
   return {
     type: constants.LAYER_EXPORT,
@@ -90,6 +83,17 @@ export function clearSelection() {
     type: constants.CLEAR_SELECTION,
   };
 }
+
+// Computation
+
+export const computationStart = (computation) => ({
+  type: constants.COMPUTATION_START,
+  computation,
+});
+
+export const computationEnd = () => ({
+  type: constants.COMPUTATION_END,
+});
 
 // Map
 

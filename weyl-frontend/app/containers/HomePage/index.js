@@ -56,7 +56,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.leftDrawer}>
           <ComputePane
             layers={this.props.layers}
-            onCompute={this.props.onCompute}
+            computation={this.props.computation}
+            onComputationStart={this.props.onComputationStart}
             onClose={() => this.props.onUiToggle("calculate")}
             visible={!noLayers && (this.props.ui.layerOp === "calculate")}
           />
@@ -116,7 +117,7 @@ const mapDispatchToProps = {
   onSelectLayer: actions.layerCreate,
   layerToggleVisible: actions.layerToggleVisible,
   layerClose: actions.layerClose,
-  onCompute: actions.layerComputation,
+  onComputationStart: actions.computationStart,
   onUiToggle: actions.toggleUi,
   onGeofencePaneToggle: actions.geofencePaneToggleVisibility,
   onSetTheme: actions.uiSetTheme,
@@ -140,6 +141,7 @@ const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
   selection: selectors.selectSelection,
+  computation: selectors.selectComputation,
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,

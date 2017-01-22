@@ -55,6 +55,7 @@ class Buffer extends React.Component { // eslint-disable-line react/prefer-state
             text="Compute"
             disabled={!this.isValid()}
             intent={Intent.PRIMARY}
+            loading={this.props.active}
             onClick={this.onComputeClick}
           />
         </div>
@@ -84,7 +85,7 @@ class Buffer extends React.Component { // eslint-disable-line react/prefer-state
   }
 
   onComputeClick() {
-    this.props.onCompute({
+    this.props.onComputationStart({
       type: "buffer",
       layerId: this.state.selectedLayer,
       bufferDistance: this.state.distance,
