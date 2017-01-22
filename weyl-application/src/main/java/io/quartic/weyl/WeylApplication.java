@@ -5,7 +5,17 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocator;
+import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.catalogue.api.WebsocketDatasetLocator;
+import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
@@ -18,20 +28,24 @@ import io.quartic.weyl.core.catalogue.CatalogueWatcher;
 import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.export.HowlGeoJsonLayerWriter;
+import io.quartic.weyl.core.export.LayerExporter;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.export.LayerExporter;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceManager;
 import io.quartic.weyl.core.source.SourceManagerImpl;
-import io.quartic.weyl.core.source.TerminatorSourceFactory;
 import io.quartic.weyl.core.source.WebsocketSource;
-import io.quartic.weyl.resource.*;
+import io.quartic.weyl.resource.AlertResource;
+import io.quartic.weyl.resource.ComputeResource;
+import io.quartic.weyl.resource.ComputeResourceImpl;
+import io.quartic.weyl.resource.LayerExportResource;
+import io.quartic.weyl.resource.TileResource;
+import io.quartic.weyl.resource.TileResourceImpl;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
@@ -53,12 +67,12 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.common.client.ClientUtilsKt.client;
 import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 import static rx.Observable.merge;
-import static io.quartic.common.client.ClientUtilsKt.client;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -173,11 +187,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Environment environment,
             WebsocketClientSessionFactory websocketFactory
     ) {
-        final TerminatorSourceFactory terminatorSourceFactory = TerminatorSourceFactory.builder()
-                .listenerFactory(new WebsocketListener.Factory(configuration.getTerminatorUrl(), websocketFactory))
-                .metrics(environment.metrics())
-                .build();
-
         final String userAgent = userAgentFor(getClass());
 
         return ImmutableMap.of(
@@ -198,10 +207,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .converter(featureConverter())
                         .metrics(environment.metrics())
                         .build(),
-                TerminatorDatasetLocatorImpl.class, config -> terminatorSourceFactory.sourceFor(
-                        (TerminatorDatasetLocator) config.locator(),
-                        featureConverter()
-                ),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
