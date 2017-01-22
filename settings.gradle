@@ -27,8 +27,8 @@ include "terminator-application"
 include "catalogue-api"
 include "catalogue-application"
 
-include "management-application"
-include "management-frontend"
+include "mgmt-application"
+include "mgmt-frontend"
 
 include "howl-api"
 include "howl-application"

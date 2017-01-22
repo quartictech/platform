@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -8,10 +8,12 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-@JsonSerialize(as = CreateLiveDatasetRequestImpl.class)
-@JsonDeserialize(as = CreateLiveDatasetRequestImpl.class)
-public interface CreateLiveDatasetRequest extends CreateDatasetRequest {
+@JsonSerialize(as = CreateStaticDatasetRequestImpl.class)
+@JsonDeserialize(as = CreateStaticDatasetRequestImpl.class)
+public interface CreateStaticDatasetRequest extends CreateDatasetRequest {
     DatasetMetadata metadata();
+    String fileName();
+    FileType fileType();
 
     @Override
     default <T> T accept(Visitor<T> visitor) {

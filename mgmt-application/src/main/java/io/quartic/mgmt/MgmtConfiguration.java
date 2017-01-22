@@ -1,8 +1,8 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 import io.dropwizard.Configuration;
 
-public class ManagementConfiguration extends Configuration {
+public class MgmtConfiguration extends Configuration {
     private String catalogueUrl;
     private String bucketName;
     private String howlUrl;
