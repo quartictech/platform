@@ -8,9 +8,9 @@ dependencies:
   cache_directories:
     - .gradle
     - weyl-frontend/.gradle/nodejs
-    - management-frontend/.gradle/nodejs
+    - mgmt-frontend/.gradle/nodejs
     - weyl-frontend/node_modules
-    - management-frontend/node_modules
+    - mgmt-frontend/node_modules
   override:
     - ./gradlew resolveConfigurations npmInstall --parallel --info --console=plain
 

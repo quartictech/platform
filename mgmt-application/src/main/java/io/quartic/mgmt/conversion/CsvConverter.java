@@ -1,4 +1,4 @@
-package io.quartic.management.conversion;
+package io.quartic.mgmt.conversion;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

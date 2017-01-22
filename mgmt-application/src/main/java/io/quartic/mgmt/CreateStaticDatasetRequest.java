@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

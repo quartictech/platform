@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 public enum FileType {
     GEOJSON,
