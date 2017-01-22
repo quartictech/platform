@@ -3,7 +3,6 @@ catalogue:
   port: 8090
   useSsl: false
 
-terminatorUrl: ws://localhost:8110/ws
 howlStorageUrl: http://localhost:8120/api
 
 server:
