@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

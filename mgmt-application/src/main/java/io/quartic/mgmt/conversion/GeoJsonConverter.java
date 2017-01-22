@@ -1,4 +1,4 @@
-package io.quartic.management.conversion;
+package io.quartic.mgmt.conversion;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
@@ -12,23 +12,23 @@ import io.quartic.howl.api.HowlService;
 import static io.quartic.common.client.ClientUtilsKt.client;
 import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 
-public class ManagementApplication extends ApplicationBase<ManagementConfiguration> {
+public class MgmtApplication extends ApplicationBase<MgmtConfiguration> {
     public static void main(String[] args) throws Exception {
-        new ManagementApplication().run(args);
+        new MgmtApplication().run(args);
     }
 
     @Override
-    public void initializeApplication(Bootstrap<ManagementConfiguration> bootstrap) {
+    public void initializeApplication(Bootstrap<MgmtConfiguration> bootstrap) {
         bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
     }
 
     @Override
-    public void runApplication(ManagementConfiguration configuration, Environment environment) {
-        HowlService howlService = new HowlClient(userAgentFor(ManagementApplication.class), configuration.getHowlUrl());
+    public void runApplication(MgmtConfiguration configuration, Environment environment) {
+        HowlService howlService = new HowlClient(userAgentFor(MgmtApplication.class), configuration.getHowlUrl());
 
         environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueUrl()));
 
         CatalogueService catalogueService = client(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
-        environment.jersey().register(new ManagementResource(catalogueService, howlService));
+        environment.jersey().register(new MgmtResource(catalogueService, howlService));
     }
 }

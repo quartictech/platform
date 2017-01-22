@@ -1,4 +1,4 @@
-package io.quartic.management;
+package io.quartic.mgmt;
 
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
@@ -8,8 +8,8 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;
-import io.quartic.management.conversion.CsvConverter;
-import io.quartic.management.conversion.GeoJsonConverter;
+import io.quartic.mgmt.conversion.CsvConverter;
+import io.quartic.mgmt.conversion.GeoJsonConverter;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,12 +30,12 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 
 @Path("/")
-public class ManagementResource {
-    private static final String HOWL_NAMESPACE = "management";
+public class MgmtResource {
+    private static final String HOWL_NAMESPACE = "mgmt";
     private final CatalogueService catalogueService;
     private final HowlService howlService;
 
-    public ManagementResource(CatalogueService catalogueService, HowlService howlService) {
+    public MgmtResource(CatalogueService catalogueService, HowlService howlService) {
         this.catalogueService = catalogueService;
         this.howlService = howlService;
     }
