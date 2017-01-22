@@ -38,13 +38,15 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
             ? (
             <Bucket
               layers={this.props.layers}
-              onCompute={this.props.onCompute}
+              active={this.props.computation.active}
+              onComputationStart={this.props.onComputationStart}
             />
             )
             : (
             <Buffer
               layers={this.props.layers}
-              onCompute={this.props.onCompute}
+              active={this.props.computation.active}
+              onComputationStart={this.props.onComputationStart}
             />
             )
           }
