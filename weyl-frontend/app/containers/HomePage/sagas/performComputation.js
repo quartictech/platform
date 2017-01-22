@@ -19,4 +19,6 @@ export default function* performComputation(action) {
   if (!results.err) {
     yield put(actions.layerCreate(results.data));
   }
+
+  yield put(actions.computationEnd());
 }
