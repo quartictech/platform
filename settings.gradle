@@ -21,9 +21,6 @@ include "common-core"
 include "common-application"
 include "common-test"
 
-include "terminator-api"
-include "terminator-application"
-
 include "catalogue-api"
 include "catalogue-application"
 

@@ -12,10 +12,6 @@ public class WeylConfiguration extends Configuration {
 
     @Valid
     @NotNull
-    private String terminatorUrl;
-
-    @Valid
-    @NotNull
     private String howlStorageUrl;
 
     public CatalogueClientConfiguration getCatalogue() {
@@ -24,14 +20,6 @@ public class WeylConfiguration extends Configuration {
 
     public void setCatalogue(CatalogueClientConfiguration catalogue) {
         this.catalogue = catalogue;
-    }
-
-    public String getTerminatorUrl() {
-        return terminatorUrl;
-    }
-
-    public void setTerminatorUrl(String terminatorUrl) {
-        this.terminatorUrl = terminatorUrl;
     }
 
     public String getHowlStorageUrl() {

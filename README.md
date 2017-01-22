@@ -45,7 +45,4 @@ Service    | Port (app/admin) | Port (frontend dev)
 Weyl       | 8080 / 8081      | 3000
 Catalogue  | 8090 / 8091      |
 Mgmt       | 8100 / 8101      | 3010
-Terminator | 8110 / 8111      |
 Howl       | 8120 / 8121      |
-
-
