@@ -17,13 +17,22 @@ public abstract class StorageBackendTests {
     public void store_and_retrieve_dataset() throws IOException {
         DatasetConfig datasetConfig = dataset("name");
 
-        getBackend().put(DatasetId.fromString("TEST"), datasetConfig);
+        getBackend().put(new DatasetId("TEST"), datasetConfig);
 
-        DatasetConfig config = getBackend().get(DatasetId.fromString("TEST"));
+        DatasetConfig config = getBackend().get(new DatasetId("TEST"));
 
         assertThat(config.metadata(), equalTo(datasetConfig.metadata()));
         assertThat(config.locator(), equalTo(datasetConfig.locator()));
         assertThat(config.extensions(), equalTo(datasetConfig.extensions()));
+    }
+    @Test
+    public void retrieve_updated_dataset() throws IOException {
+        getBackend().put(new DatasetId("TEST"), dataset("Old Name"));
+        getBackend().put(new DatasetId("TEST"), dataset("New Name"));
+
+        DatasetConfig config = getBackend().get(new DatasetId("TEST"));
+
+        assertThat(config.metadata().name(), equalTo("New Name"));
     }
 
     @Test
@@ -31,28 +40,28 @@ public abstract class StorageBackendTests {
         DatasetConfig datasetA = dataset("A");
         DatasetConfig datasetB = dataset("B");
         DatasetConfig datasetC = dataset("C");
-        getBackend().put(DatasetId.fromString("A"), datasetA);
-        getBackend().put(DatasetId.fromString("B"), datasetB);
-        getBackend().put(DatasetId.fromString("C"), datasetC);
+        getBackend().put(new DatasetId("A"), datasetA);
+        getBackend().put(new DatasetId("B"), datasetB);
+        getBackend().put(new DatasetId("C"), datasetC);
 
         Map<DatasetId, DatasetConfig> datasets = getBackend().getAll();
 
         assertThat(datasets.size(), equalTo(3));
-        assertThat(datasets.get(DatasetId.fromString("A")), equalTo(datasetA));
-        assertThat(datasets.get(DatasetId.fromString("B")), equalTo(datasetB));
-        assertThat(datasets.get(DatasetId.fromString("C")), equalTo(datasetC));
+        assertThat(datasets.get(new DatasetId("A")), equalTo(datasetA));
+        assertThat(datasets.get(new DatasetId("B")), equalTo(datasetB));
+        assertThat(datasets.get(new DatasetId("C")), equalTo(datasetC));
     }
 
     @Test
     public void containskey() throws IOException {
-        getBackend().put(DatasetId.fromString("A"), dataset("A"));
+        getBackend().put(new DatasetId("A"), dataset("A"));
 
-        assertThat(getBackend().containsKey(DatasetId.fromString("A")), equalTo(true));
+        assertThat(getBackend().containsKey(new DatasetId("A")), equalTo(true));
     }
 
     @Test
     public void remove() throws IOException {
-        DatasetId datasetId = DatasetId.fromString("foo");
+        DatasetId datasetId = new DatasetId("foo");
         DatasetConfig dataset = dataset("foo");
         getBackend().put(datasetId, dataset);
 
