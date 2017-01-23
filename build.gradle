@@ -17,7 +17,7 @@ dependencies {
     compile("com.google.cloud:google-cloud-pubsub:0.8.0") {
         exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
     }
-    compile("com.google.cloud:google-cloud-storage:0.8.0-beta") {
+    compile("com.google.cloud:google-cloud-datastore:0.8.0-beta") {
         exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
     }
 

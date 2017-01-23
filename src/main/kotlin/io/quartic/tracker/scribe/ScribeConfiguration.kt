@@ -1,11 +1,10 @@
-package io.quartic.tracker
+package io.quartic.tracker.scribe
 
 import io.dropwizard.Configuration
 
 class ScribeConfiguration : Configuration() {
     class PubSubConfiguration {
-        var emulated = false
-        var topic: String? = null
+        var subscription: String? = null
     }
 
     val pubsub = PubSubConfiguration()
