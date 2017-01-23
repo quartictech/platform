@@ -1,0 +1,25 @@
+plugins {
+    id "nebula.kotlin" version "1.0.5"
+    id "io.quartic.service" version "12"
+    id "com.palantir.configuration-resolver" version "0.1.0"
+}
+
+service {
+    simpleName = "scribe"
+    mainClassName = "io.quartic.tracker.scribe.ScribeApplication"
+    memory = System.env.SCRIBE_MEMORY ?: "64m"
+}
+
+dependencies {
+    compile project(":common")
+
+    compile "io.dropwizard.modules:dropwizard-java8:0.9.0-1"
+    compile("com.google.cloud:google-cloud-pubsub:0.8.0") {
+        exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
+    }
+    compile("com.google.cloud:google-cloud-storage:0.8.0-beta") {
+        exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
+    }
+
+    testCompile libraries.testCommon
+}
