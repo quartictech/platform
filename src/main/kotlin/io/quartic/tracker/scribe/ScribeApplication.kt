@@ -31,7 +31,7 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
                 configuration.batchSize!!
         )
 
-        val ses = environment.lifecycle().scheduledExecutorService("Yeah").build()
+        val ses = environment.lifecycle().scheduledExecutorService("executor").build()
         ses.scheduleAtFixedRate(
                 extractor,
                 configuration.extractionPeriodSeconds!! * 1000,
