@@ -12,6 +12,14 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
         val pubsub = PubSubOptions.getDefaultInstance().service
         val subscription = SubscriptionGetter(pubsub, configuration.pubsub.subscription!!).susbcription
 
+//        val writer = BatchWriter(storage, bucketName, namespace)
+//
+//        val extractor = MessageExtractor(
+//                subscription,
+//                writer.write()
+//
+//        )
+
         val ses = environment.lifecycle().scheduledExecutorService("Yeah").build()
 //        ses.scheduleAtFixedRate(MessageExtractor(subscription), 1000, 1000, TimeUnit.MILLISECONDS)
     }
