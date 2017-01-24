@@ -1,19 +1,19 @@
 package io.quartic.tracker.scribe
 
 import com.google.cloud.storage.BlobInfo
+import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
-import com.google.cloud.storage.StorageOptions
 import io.quartic.common.logging.logger
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 class BatchWriter(
+        private val storage: Storage,
         private val bucketName: String,
         private val namespace: String
 ) {
     private val LOG by logger()
-    private val storage = StorageOptions.getDefaultInstance().service
 
     fun write(messages: List<String>, timestamp: Instant, partNumber: Int): Boolean {
         val objectName = "%s/%s-%04d-%s".format(
