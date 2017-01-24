@@ -7,7 +7,15 @@ class ScribeConfiguration : Configuration() {
         var subscription: String? = null
     }
 
+    class StorageConfiguration {
+        var bucket: String? = null
+        var namespace: String? = null
+    }
+
     val pubsub = PubSubConfiguration()
+    val storage = StorageConfiguration()
+    var batchSize: Int? = null
+    var extractionPeriodSeconds: Long? = null
 }
 
 

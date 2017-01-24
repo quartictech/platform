@@ -1,5 +1,12 @@
 pubsub:
-  subscription: scribe
+  subscription: scribe.devtest.quartic.io
+
+storage:
+  bucket: devtest.quartic.io
+  namespace: tracker
+
+batchSize: 10
+extractionPeriodSeconds: 15
 
 server:
   applicationContextPath: /
