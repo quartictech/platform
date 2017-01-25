@@ -1,12 +1,13 @@
 package io.quartic.tracker.scribe
 
+import com.google.cloud.pubsub.PubSub
 import com.google.cloud.pubsub.PubSubException
-import com.google.cloud.pubsub.Subscription
 import io.quartic.common.logging.logger
 import java.time.Clock
 
 class MessageExtractor(
-        private val subscription: Subscription,
+        private val pubsub: PubSub,
+        private val subscriptionName: String,
         private val clock: Clock,
         private val writer: BatchWriter,
         private val batchSize: Int
@@ -23,9 +24,8 @@ class MessageExtractor(
             var partNumber = 0
             fun String.nicely() = "[Part #$partNumber] $this"
 
-
             do {
-                val messages = subscription.pull(batchSize).asSequence().toList()
+                val messages = pubsub.pull(subscriptionName, batchSize).asSequence().toList()
 
                 if (messages.isEmpty()) {
                     LOG.info("Pulled no messages from subscription - skipping handling".nicely())

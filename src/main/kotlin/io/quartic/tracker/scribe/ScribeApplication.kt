@@ -17,8 +17,6 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
         val pubsub = PubSubOptions.getDefaultInstance().service
         val storage = StorageOptions.getDefaultInstance().service
 
-        val subscription = SubscriptionGetter(pubsub, configuration.pubsub.subscription!!).susbcription
-
         val writer = BatchWriter(
                 storage,
                 configuration.storage.bucket!!,
@@ -26,7 +24,8 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
         )
 
         val extractor = MessageExtractor(
-                subscription,
+                pubsub,
+                configuration.pubsub.subscription!!,
                 Clock.systemUTC(),
                 writer,
                 configuration.batchSize!!

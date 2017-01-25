@@ -1,8 +1,8 @@
 package io.quartic.tracker.scribe
 
+import com.google.cloud.pubsub.PubSub
 import com.google.cloud.pubsub.PubSubException
 import com.google.cloud.pubsub.ReceivedMessage
-import com.google.cloud.pubsub.Subscription
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Test
 import java.io.IOException
@@ -12,10 +12,10 @@ import java.time.Instant
 import java.time.ZoneId
 
 class MessageExtractorShould {
-    private val subscription = mock<Subscription>()
+    private val pubsub = mock<PubSub>()
     private val clock = TickingClock(Instant.EPOCH)
     private val writer = mock<BatchWriter>()
-    private val extractor = MessageExtractor(subscription, clock, writer, BATCH_SIZE)
+    private val extractor = MessageExtractor(pubsub, "mySubscription", clock, writer, BATCH_SIZE)
 
     @Test
     fun pull_and_pass_results_to_handler() {
@@ -25,7 +25,7 @@ class MessageExtractorShould {
 
         extractor.run()
 
-        verify(subscription).pull(BATCH_SIZE)
+        verify(pubsub).pull("mySubscription", BATCH_SIZE)
         verify(writer).write(listOf("foo", "bar"), Instant.EPOCH, 0)
     }
 
@@ -85,7 +85,7 @@ class MessageExtractorShould {
 
         extractor.run()
 
-        verify(subscription, times(2)).pull(BATCH_SIZE)
+        verify(pubsub, times(2)).pull("mySubscription", BATCH_SIZE)
         verify(writer).write(any(), eq(Instant.EPOCH), eq(0))
         verify(writer).write(any(), eq(Instant.EPOCH), eq(1))   // Underlying clock is ticking, so this check guarantees we're holding the first value
     }
@@ -97,7 +97,7 @@ class MessageExtractorShould {
 
         extractor.run()
 
-        verify(subscription, times(1)).pull(BATCH_SIZE)
+        verify(pubsub, times(1)).pull("mySubscription", BATCH_SIZE)
     }
 
     @Test
@@ -107,18 +107,18 @@ class MessageExtractorShould {
 
         extractor.run()
 
-        verify(subscription, times(1)).pull(BATCH_SIZE)
+        verify(pubsub, times(1)).pull("mySubscription", BATCH_SIZE)
     }
 
     @Test
     fun not_throw_if_subscription_fails() {
-        whenever(subscription.pull(any())).thenThrow(PubSubException(IOException("Bad"), true))
+        whenever(pubsub.pull(any(), any())).thenThrow(PubSubException(IOException("Bad"), true))
 
         extractor.run()
     }
 
     private fun mockAvailableMessages(vararg messages: List<ReceivedMessage>) {
-        var stubbing = whenever(subscription.pull(any()))
+        var stubbing = whenever(pubsub.pull(any(), any()))
         messages.forEach { stubbing = stubbing.thenReturn(it.iterator()) }
     }
 
