@@ -18,7 +18,7 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
   }
 
   renderComputationSettings() {
-    switch(this.state.operation) {
+    switch (this.state.operation) {
       case "Bucket":
         return (
           <Bucket
@@ -32,16 +32,16 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
             layers={this.props.layers}
             active={this.props.computation.active}
             onComputationStart={this.props.onComputationStart}
-            />);
+          />);
       case "Spatial Predicate":
-          return (
-            <SpatialPredicate
-              layers={this.props.layers}
-              active={this.props.computation.active}
-              onComputationStart={this.props.onComputationStart}
-            />);
+        return (
+          <SpatialPredicate
+            layers={this.props.layers}
+            active={this.props.computation.active}
+            onComputationStart={this.props.onComputationStart}
+          />);
       default:
-        throw Error("unrecognised operation: " + operation);
+        throw Error(`unrecognised operation:  + ${this.state.operation}`);
     }
   }
 

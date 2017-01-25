@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Button,
-  Checkbox,
   Classes,
   Intent,
 } from "@blueprintjs/core";
@@ -64,9 +63,9 @@ class SpatialPredicate extends React.Component { // eslint-disable-line react/pr
           Operation
           <div className="pt-control-group" id="aggregation">
             <Select
-              entries={{ 
-                equals: "Equals", 
-                disjoint: "Disjoint", 
+              entries={{
+                equals: "Equals",
+                disjoint: "Disjoint",
                 touches: "Touches",
                 contains: "Contains",
                 covers: "Covers",
@@ -132,7 +131,7 @@ class SpatialPredicate extends React.Component { // eslint-disable-line react/pr
       type: "spatial_predicate",
       layerA: this.state.selectedLayerA,
       layerB: this.state.selectedLayerB,
-      predicate: this.state.selectedOperation.toUpperCase(),      
+      predicate: this.state.selectedOperation.toUpperCase(),
     };
 
     this.props.onComputationStart(computeSpec);
