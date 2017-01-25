@@ -4,6 +4,7 @@ import com.google.cloud.pubsub.PubSubOptions
 import com.google.cloud.storage.StorageOptions
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.tracker.scribe.healthcheck.PubSubSubscriptionHealthCheck
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 
@@ -38,6 +39,8 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
                 configuration.extractionPeriodSeconds!! * 1000,
                 TimeUnit.MILLISECONDS
         )
+
+        environment.healthChecks().register("subscription", PubSubSubscriptionHealthCheck(pubsub, configuration.pubsub.subscription!!))
     }
 
     companion object {
