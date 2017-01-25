@@ -4,6 +4,8 @@ import com.google.cloud.pubsub.PubSubOptions
 import com.google.cloud.storage.StorageOptions
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.tracker.scribe.healthcheck.PubSubSubscriptionHealthCheck
+import io.quartic.tracker.scribe.healthcheck.StorageBucketHealthCheck
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 
@@ -16,8 +18,6 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
         val pubsub = PubSubOptions.getDefaultInstance().service
         val storage = StorageOptions.getDefaultInstance().service
 
-        val subscription = SubscriptionGetter(pubsub, configuration.pubsub.subscription!!).susbcription
-
         val writer = BatchWriter(
                 storage,
                 configuration.storage.bucket!!,
@@ -25,7 +25,8 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
         )
 
         val extractor = MessageExtractor(
-                subscription,
+                pubsub,
+                configuration.pubsub.subscription!!,
                 Clock.systemUTC(),
                 writer,
                 configuration.batchSize!!
@@ -38,6 +39,11 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
                 configuration.extractionPeriodSeconds!! * 1000,
                 TimeUnit.MILLISECONDS
         )
+
+        with(environment.healthChecks()) {
+            register("subscription", PubSubSubscriptionHealthCheck(pubsub, configuration.pubsub.subscription!!))
+            register("bucket", StorageBucketHealthCheck(storage, configuration.storage.bucket!!))
+        }
     }
 
     companion object {
