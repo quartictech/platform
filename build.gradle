@@ -4,6 +4,8 @@ plugins {
     id "com.palantir.configuration-resolver" version "0.1.0"
 }
 
+apply from: "${rootDir}/gradle/junit5.gradle"
+
 service {
     simpleName = "scribe"
     mainClassName = "io.quartic.tracker.scribe.ScribeApplication"
