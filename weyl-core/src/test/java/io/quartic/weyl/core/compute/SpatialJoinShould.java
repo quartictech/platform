@@ -42,7 +42,7 @@ public class SpatialJoinShould {
         Layer layerA = makeLayer("1", ImmutableList.of(polyA, polyB));
         Layer layerB = makeLayer("2", ImmutableList.of(pointA, pointB));
 
-        List<Tuple> joinResults = new SpatialJoiner().innerJoin(layerA, layerB, SpatialJoiner.SpatialPredicate.CONTAINS)
+        List<Tuple> joinResults = new SpatialJoiner().innerJoin(layerA, layerB, SpatialPredicate.CONTAINS)
                 .collect(toList());
 
         assertThat(joinResults, containsInAnyOrder(

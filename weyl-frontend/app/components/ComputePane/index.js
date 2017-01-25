@@ -6,6 +6,7 @@ import Pane from "../Pane";
 import NormalPicker from "../NormalPicker";
 import Bucket from "./Bucket";
 import Buffer from "./Buffer";
+import SpatialPredicate from "./SpatialPredicate";
 
 class ComputePane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
@@ -14,6 +15,34 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
       operation: "Bucket",
     };
     this.onOperationChange = this.onOperationChange.bind(this);
+  }
+
+  renderComputationSettings() {
+    switch(this.state.operation) {
+      case "Bucket":
+        return (
+          <Bucket
+            layers={this.props.layers}
+            active={this.props.computation.active}
+            onComputationStart={this.props.onComputationStart}
+          />);
+      case "Buffer":
+        return (
+          <Buffer
+            layers={this.props.layers}
+            active={this.props.computation.active}
+            onComputationStart={this.props.onComputationStart}
+            />);
+      case "Spatial Predicate":
+          return (
+            <SpatialPredicate
+              layers={this.props.layers}
+              active={this.props.computation.active}
+              onComputationStart={this.props.onComputationStart}
+            />);
+      default:
+        throw Error("unrecognised operation: " + operation);
+    }
   }
 
   render() {
@@ -28,28 +57,12 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
             iconName="function"
             position={Position.TOP}
             selected={this.state.operation}
-            entries={["Bucket", "Buffer"]}
+            entries={["Bucket", "Buffer", "Spatial Predicate"]}
             onChange={this.onOperationChange}
           />
         }
       >
-        {
-          (this.state.operation === "Bucket")
-            ? (
-            <Bucket
-              layers={this.props.layers}
-              active={this.props.computation.active}
-              onComputationStart={this.props.onComputationStart}
-            />
-            )
-            : (
-            <Buffer
-              layers={this.props.layers}
-              active={this.props.computation.active}
-              onComputationStart={this.props.onComputationStart}
-            />
-            )
-          }
+        { this.renderComputationSettings() }
       </Pane>
     );
   }
