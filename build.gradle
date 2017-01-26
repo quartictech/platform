@@ -16,9 +16,8 @@ service {
 }
 
 dependencies {
-    compile "io.quartic.platform:common-application:923"
-    compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
-    compile "io.dropwizard.modules:dropwizard-java8:0.9.0-1"
+    compile project(":common-application")
+
     compile("com.google.cloud:google-cloud-pubsub:0.8.0") {
         exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
     }

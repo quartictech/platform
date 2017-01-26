@@ -1,5 +1,6 @@
 package io.quartic.tracker.scribe
 
+import com.codahale.metrics.MetricRegistry
 import com.google.cloud.pubsub.PubSub
 import com.google.cloud.pubsub.PubSubException
 import com.google.cloud.pubsub.ReceivedMessage
@@ -15,7 +16,7 @@ class MessageExtractorShould {
     private val pubsub = mock<PubSub>()
     private val clock = TickingClock(Instant.EPOCH)
     private val writer = mock<BatchWriter>()
-    private val extractor = MessageExtractor(pubsub, "mySubscription", clock, writer, BATCH_SIZE)
+    private val extractor = MessageExtractor(pubsub, "mySubscription", clock, writer, BATCH_SIZE, MetricRegistry())
 
     @Test
     fun pull_and_pass_results_to_handler() {

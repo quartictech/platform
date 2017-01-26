@@ -6,12 +6,13 @@ import com.google.cloud.storage.StorageException
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import java.io.IOException
 import java.time.Instant
 
 class BatchWriterShould {
     private val storage = mock<Storage>()
-    private val writer = BatchWriter(storage, "myBucket", "test")
+    private val writer = BatchWriter(storage, "myBucket", "test", mock(RETURNS_DEEP_STUBS))
 
     @Test
     fun write_messages_to_file_with_valid_name_format() {
