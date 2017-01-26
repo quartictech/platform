@@ -18,31 +18,14 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
   }
 
   renderComputationSettings() {
-    switch (this.state.operation) {
-      case "Bucket":
-        return (
-          <Bucket
-            layers={this.props.layers}
-            active={this.props.computation.active}
-            onComputationStart={this.props.onComputationStart}
-          />);
-      case "Buffer":
-        return (
-          <Buffer
-            layers={this.props.layers}
-            active={this.props.computation.active}
-            onComputationStart={this.props.onComputationStart}
-          />);
-      case "Spatial Predicate":
-        return (
-          <SpatialPredicate
-            layers={this.props.layers}
-            active={this.props.computation.active}
-            onComputationStart={this.props.onComputationStart}
-          />);
-      default:
-        throw Error(`unrecognised operation:  + ${this.state.operation}`);
-    }
+    const ComputationPanes = { Bucket, Buffer, SpatialPredicate };
+    const ComputationPane = ComputationPanes[this.state.operation];
+    return (
+      <ComputationPane
+        layers={this.props.layers}
+        active={this.props.computation.active}
+        onComputationStart={this.props.onComputationStart}
+      />);
   }
 
   render() {
@@ -57,7 +40,11 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
             iconName="function"
             position={Position.TOP}
             selected={this.state.operation}
-            entries={["Bucket", "Buffer", "Spatial Predicate"]}
+            entries={{
+              "Bucket": "Bucket",
+              "Buffer": "Buffer",
+              "SpatialPredicate": "Spatial Predicate",
+            }}
             onChange={this.onOperationChange}
           />
         }
