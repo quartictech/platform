@@ -18,7 +18,7 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
   }
 
   renderComputationSettings() {
-    const ComputationPanes = { Bucket, Buffer, SpatialPredicate };
+    const ComputationPanes = { Bucket, Buffer, "Spatial Predicate": SpatialPredicate };
     const ComputationPane = ComputationPanes[this.state.operation];
     return (
       <ComputationPane
@@ -40,11 +40,11 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
             iconName="function"
             position={Position.TOP}
             selected={this.state.operation}
-            entries={{
-              "Bucket": "Bucket",
-              "Buffer": "Buffer",
-              "SpatialPredicate": "Spatial Predicate",
-            }}
+            entries={[
+              "Bucket",
+              "Buffer",
+              "Spatial Predicate",
+            ]}
             onChange={this.onOperationChange}
           />
         }
