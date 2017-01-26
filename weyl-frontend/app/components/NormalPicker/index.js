@@ -7,7 +7,6 @@ import {
   MenuItem,
   Popover,
 } from "@blueprintjs/core";
-import * as _ from "underscore";
 
 const NormalPicker = ({
   iconName,
@@ -18,13 +17,13 @@ const NormalPicker = ({
 }) => {
   const menu = (
     <Menu>
-      {_.map(entries, (value, key) =>
+      {entries.map(entry =>
         <MenuItem
-          key={key || value}
-          text={value}
-          label={(selected === (key || value)) ? IconContents.TICK : ""}
+          key={entry}
+          text={entry}
+          label={(selected === entry) ? IconContents.TICK : ""}
           iconName={iconName}
-          onClick={() => onChange(key || value)}
+          onClick={() => onChange(entry)}
         />
       )}
     </Menu>
