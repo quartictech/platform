@@ -1,7 +1,5 @@
 package io.quartic.weyl.core.compute;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.IndexedFeature;
@@ -18,30 +16,13 @@ public class SpatialJoiner {
         Feature right();
     }
 
-    public enum SpatialPredicate {
-        CONTAINS,
-        COVERS
-    }
-
-    private static boolean applySpatialPredicate(PreparedGeometry left, Geometry right, SpatialPredicate predicate) {
-       switch (predicate) {
-           case CONTAINS:
-               return left.contains(right);
-           case COVERS:
-               return left.covers(right);
-           default:
-               throw new IllegalArgumentException("invalid predicate: " + predicate);
-       }
-    }
-
-
     @SuppressWarnings("unchecked")
     public Stream<Tuple> innerJoin(Layer leftLayer, Layer rightLayer, SpatialPredicate predicate) {
        return leftLayer.indexedFeatures().parallelStream()
                 .flatMap(left -> rightLayer.spatialIndex()
                         .query(left.feature().geometry().getEnvelopeInternal())
                         .stream()
-                        .filter(o -> applySpatialPredicate(left.preparedGeometry(), ((IndexedFeature) o).feature().geometry(), predicate))
+                        .filter(o -> predicate.test(left.preparedGeometry(), ((IndexedFeature) o).feature().geometry()))
                         .map(o -> TupleImpl.of(left.feature(), ((IndexedFeature) o).feature())));
     }
 }

@@ -35,7 +35,7 @@ import static com.google.common.collect.Lists.transform;
 import static io.quartic.common.rx.RxUtilsKt.all;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
-import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
+import static io.quartic.weyl.core.compute.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.equalTo;

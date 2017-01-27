@@ -2,11 +2,7 @@ package io.quartic.weyl.resource;
 
 import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.BucketComputationImpl;
-import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.compute.BufferComputationImpl;
-import io.quartic.weyl.core.compute.BufferSpec;
-import io.quartic.weyl.core.compute.ComputationSpec;
+import io.quartic.weyl.core.compute.*;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import org.immutables.value.Value;
@@ -46,7 +42,14 @@ public abstract class ComputeResource {
                     .layerId(layerId)
                     .bufferSpec((BufferSpec) spec)
                     .build();
-        } else {
+        } else if (spec instanceof SpatialPredicateSpec) {
+            return SpatialPredicateComputationImpl.builder()
+                    .layerId(layerId)
+                    .spatialPredicateSpec((SpatialPredicateSpec) spec)
+                    .build();
+        }
+
+        else {
             throw new RuntimeException("Invalid computation spec: " + spec);
         }
     }

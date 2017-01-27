@@ -6,6 +6,7 @@ import Pane from "../Pane";
 import NormalPicker from "../NormalPicker";
 import Bucket from "./Bucket";
 import Buffer from "./Buffer";
+import SpatialPredicate from "./SpatialPredicate";
 
 class ComputePane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor(props) {
@@ -14,6 +15,17 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
       operation: "Bucket",
     };
     this.onOperationChange = this.onOperationChange.bind(this);
+  }
+
+  renderComputationSettings() {
+    const ComputationPanes = { Bucket, Buffer, "Spatial Predicate": SpatialPredicate };
+    const ComputationPane = ComputationPanes[this.state.operation];
+    return (
+      <ComputationPane
+        layers={this.props.layers}
+        active={this.props.computation.active}
+        onComputationStart={this.props.onComputationStart}
+      />);
   }
 
   render() {
@@ -28,28 +40,16 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
             iconName="function"
             position={Position.TOP}
             selected={this.state.operation}
-            entries={["Bucket", "Buffer"]}
+            entries={[
+              "Bucket",
+              "Buffer",
+              "Spatial Predicate",
+            ]}
             onChange={this.onOperationChange}
           />
         }
       >
-        {
-          (this.state.operation === "Bucket")
-            ? (
-            <Bucket
-              layers={this.props.layers}
-              active={this.props.computation.active}
-              onComputationStart={this.props.onComputationStart}
-            />
-            )
-            : (
-            <Buffer
-              layers={this.props.layers}
-              active={this.props.computation.active}
-              onComputationStart={this.props.onComputationStart}
-            />
-            )
-          }
+        { this.renderComputationSettings() }
       </Pane>
     );
   }

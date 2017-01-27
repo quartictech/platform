@@ -32,13 +32,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.google.common.collect.Iterables.concat;
-import static io.quartic.weyl.core.compute.SpatialJoiner.SpatialPredicate.CONTAINS;
+import static io.quartic.weyl.core.compute.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
-import static rx.Observable.just;
 
 @SweetStyle
 @Value.Immutable
