@@ -4,9 +4,9 @@ import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import java.io.IOException
 

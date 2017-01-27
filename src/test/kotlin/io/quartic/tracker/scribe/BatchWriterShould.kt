@@ -4,8 +4,8 @@ import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageException
 import com.nhaarman.mockito_kotlin.*
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import org.junit.Assert.*
+import org.junit.Test
 import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import java.io.IOException
 import java.time.Instant

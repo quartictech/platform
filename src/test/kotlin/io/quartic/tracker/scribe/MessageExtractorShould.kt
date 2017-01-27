@@ -5,7 +5,7 @@ import com.google.cloud.pubsub.PubSub
 import com.google.cloud.pubsub.PubSubException
 import com.google.cloud.pubsub.ReceivedMessage
 import com.nhaarman.mockito_kotlin.*
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import java.io.IOException
 import java.time.Clock
 import java.time.Duration

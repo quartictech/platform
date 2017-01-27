@@ -4,17 +4,17 @@ import com.google.cloud.pubsub.SubscriptionInfo
 import com.google.cloud.pubsub.Topic
 import com.google.cloud.pubsub.testing.LocalPubSubHelper
 import org.joda.time.Duration
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 class PubSubSubscriptionHealthCheckShould {
     private val helper = LocalPubSubHelper.create()
     private val pubsub = helper.options.service
     private val healthcheck = PubSubSubscriptionHealthCheck(pubsub, "mySubscription")
 
-    @AfterEach
+    @After
     fun after() {
         try {
             helper.stop(Duration.millis(3000))
