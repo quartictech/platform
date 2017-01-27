@@ -5,11 +5,10 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.io.quartic.catalogue.datastore.GoogleDatastoreBackend;
 import org.joda.time.Duration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -17,23 +16,29 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public class GoogleDatastoreBackendShould extends StorageBackendTests {
-    private LocalDatastoreHelper helper;
+    private static LocalDatastoreHelper helper;
     private GoogleDatastoreBackend backend;
+
+    @BeforeClass
+    public static void setupEmulator() throws IOException, InterruptedException {
+        helper = LocalDatastoreHelper.create();
+        helper.start();
+    }
+
+    @AfterClass
+    public static void tearDownEmulator() throws InterruptedException, TimeoutException, IOException {
+        helper.stop(Duration.millis(3000));
+    }
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        helper = LocalDatastoreHelper.create();
-        helper.start();
+        helper.reset();
         backend = new GoogleDatastoreBackend(helper.getOptions()
                 .toBuilder()
                 .setNamespace("test")
                 .build().getService(), helper.getProjectId());
     }
 
-    @After
-    public void tearDown() throws InterruptedException, TimeoutException, IOException {
-        helper.stop(Duration.millis(3000));
-    }
 
     @Override
     StorageBackend getBackend() {
