@@ -39,7 +39,6 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
                 .build().getService(), helper.getProjectId());
     }
 
-
     @Override
     StorageBackend getBackend() {
         return backend;
