@@ -1,5 +1,4 @@
-import { take, fork, cancel } from "redux-saga/effects";
-import { takeLatest } from "redux-saga";
+import { take, takeLatest, fork, cancel } from "redux-saga/effects";
 
 import { LOCATION_CHANGE } from "react-router-redux";
 import * as constants from "../constants";
