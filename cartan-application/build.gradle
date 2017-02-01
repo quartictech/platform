@@ -1,0 +1,30 @@
+plugins {
+    id "java"
+    id "nebula.kotlin" version "1.0.6"
+    id "idea"
+    id "io.quartic.service" version "12"
+    id "com.palantir.configuration-resolver" version "0.1.0"
+}
+
+service {
+    simpleName = "cartan"
+    mainClassName = "io.quartic.cartan.CartanApplication"
+    memory = System.env.CARTAN_MEMORY ?: "64m"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":catalogue-api")
+
+    compile libraries.rxjava
+    compile libraries.dropwizardWebsockets
+
+    compile("com.google.cloud:google-cloud-pubsub:0.8.0") {
+        exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
+    }
+
+    testCompile project(":common-test")
+    testCompile libraries.testCommon
+    testCompile libraries.wiremock
+    testCompile libraries.dropwizardTesting
+}
