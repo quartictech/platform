@@ -100,7 +100,7 @@ public class SnapshotReducerShould {
     }
 
     private LayerUpdate updateFor(NakedFeature... features) {
-        return LayerUpdateImpl.of(asList(features));
+        return LayerUpdateImpl.of(LayerUpdate.Type.APPEND, asList(features));
     }
 
     private NakedFeature nakedFeature(Optional<String> externalId) {

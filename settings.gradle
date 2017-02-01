@@ -21,6 +21,7 @@ include "common-core"
 include "common-application"
 include "common-test"
 
+include "cartan-application"
 include "catalogue-api"
 include "catalogue-application"
 

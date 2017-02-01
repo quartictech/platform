@@ -48,6 +48,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static rx.Observable.just;
 
 public class SourceManagerShould {
 
@@ -63,7 +64,7 @@ public class SourceManagerShould {
     private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
     private final Interceptor<LayerUpdate> interceptor = new Interceptor<>();
 
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Observable<Source>>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceOf(layerUpdatesA.compose(interceptor), true),
             LocatorB.class, config -> sourceOf(layerUpdatesB, false)
     );
@@ -194,10 +195,10 @@ public class SourceManagerShould {
                 .build();
     }
 
-    private Source sourceOf(Observable<LayerUpdate> updates, boolean indexable) {
+    private Observable<Source> sourceOf(Observable<LayerUpdate> updates, boolean indexable) {
         final Source source = mock(Source.class);
         when(source.observable()).thenReturn(updates);
         when(source.indexable()).thenReturn(indexable);
-        return source;
+        return just(source);
     }
 }

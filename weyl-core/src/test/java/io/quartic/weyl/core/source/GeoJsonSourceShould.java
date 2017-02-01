@@ -69,7 +69,7 @@ public class GeoJsonSourceShould {
                 .observable().subscribe(subscriber);
 
         verify(converter).toModel(original);
-        subscriber.assertValue(LayerUpdateImpl.of(modelFeatures));
+        subscriber.assertValue(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, modelFeatures));
     }
 
     @Test

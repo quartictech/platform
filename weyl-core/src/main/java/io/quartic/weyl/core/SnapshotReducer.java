@@ -57,11 +57,24 @@ public class SnapshotReducer {
         LOG.info("[{}] Accepted {} features", prevLayer.spec().metadata().name(), update.features().size());
 
         final Collection<Feature> elaborated = elaborate(prevLayer.spec().id(), update.features());
-        return SnapshotImpl.of(next(prevLayer, elaborated), elaborated);
+
+        return SnapshotImpl.of(next(prevLayer, update, elaborated), elaborated);
     }
 
-    private Layer next(Layer layer, Collection<Feature> features) {
-        final FeatureCollection updatedFeatures = layer.features().append(features);
+    private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdate update,
+                                              Collection<Feature> newFeatures) {
+        switch (update.type()) {
+            case APPEND:
+                return prevFeatures.append(newFeatures);
+            case REPLACE:
+                return FeatureCollection.EMPTY_COLLECTION.append(newFeatures);
+            default:
+                throw new RuntimeException("unsupported operation: " + update.type());
+        }
+    }
+
+    private Layer next(Layer layer, LayerUpdate layerUpdate, Collection<Feature> features) {
+        final FeatureCollection updatedFeatures = updatedFeatures(layer.features(), layerUpdate, features);
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
                 .withDynamicSchema(inferSchema(features, layer.dynamicSchema(), layer.spec().staticSchema()));
@@ -91,7 +104,6 @@ public class SnapshotReducer {
         features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
         return stRtree;
     }
-
 
     private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
         return features.stream().map(f -> FeatureImpl.of(
