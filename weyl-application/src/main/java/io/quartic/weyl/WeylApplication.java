@@ -24,7 +24,12 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.source.*;
+import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.PostgresSource;
+import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.SourceManager;
+import io.quartic.weyl.core.source.SourceManagerImpl;
+import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.ComputeResourceImpl;
@@ -57,7 +62,6 @@ import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
-import static rx.Observable.just;
 import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {

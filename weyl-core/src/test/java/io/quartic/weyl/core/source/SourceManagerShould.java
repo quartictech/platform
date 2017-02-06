@@ -64,7 +64,7 @@ public class SourceManagerShould {
     private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
     private final Interceptor<LayerUpdate> interceptor = new Interceptor<>();
 
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Observable<Source>>> sourceFactories = ImmutableMap.of(
+    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
             LocatorA.class, config -> sourceOf(layerUpdatesA.compose(interceptor), true),
             LocatorB.class, config -> sourceOf(layerUpdatesB, false)
     );
@@ -195,10 +195,10 @@ public class SourceManagerShould {
                 .build();
     }
 
-    private Observable<Source> sourceOf(Observable<LayerUpdate> updates, boolean indexable) {
+    private Source sourceOf(Observable<LayerUpdate> updates, boolean indexable) {
         final Source source = mock(Source.class);
         when(source.observable()).thenReturn(updates);
         when(source.indexable()).thenReturn(indexable);
-        return just(source);
+        return source;
     }
 }
