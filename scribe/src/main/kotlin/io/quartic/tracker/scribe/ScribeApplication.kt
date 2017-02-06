@@ -6,7 +6,10 @@ import com.google.cloud.pubsub.PubSubOptions
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageOptions
 import io.dropwizard.setup.Environment
+import io.quartic.catalogue.CatalogueWatcher
 import io.quartic.common.application.ApplicationBase
+import io.quartic.common.websocket.WebsocketClientSessionFactory
+import io.quartic.common.websocket.WebsocketListener
 import io.quartic.tracker.scribe.healthcheck.PubSubSubscriptionHealthCheck
 import io.quartic.tracker.scribe.healthcheck.StorageBucketHealthCheck
 import java.time.Clock
@@ -24,6 +27,8 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
             register("bucket", StorageBucketHealthCheck(storage, configuration.storage.bucket!!))
         }
 
+        createCatalogue(configuration).events.subscribe(::println)
+
         val ses = environment.lifecycle().scheduledExecutorService("executor").build()
         ses.scheduleAtFixedRate(
                 createPipelineRunnable(configuration, pubsub, storage, environment.metrics()),
@@ -32,6 +37,10 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
                 TimeUnit.MILLISECONDS
         )
     }
+
+    private fun createCatalogue(configuration: ScribeConfiguration) = CatalogueWatcher(
+            WebsocketListener.Factory(configuration.catalogue.watchUrl, WebsocketClientSessionFactory(javaClass))
+    )
 
     private fun createPipelineRunnable(
             configuration: ScribeConfiguration,

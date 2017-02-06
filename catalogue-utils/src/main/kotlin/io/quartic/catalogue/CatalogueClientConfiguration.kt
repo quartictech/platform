@@ -1,9 +1,9 @@
 package io.quartic.catalogue
 
 class CatalogueClientConfiguration {
-    private var hostname: String? = null
-    private var port: Int? = null
-    private var useSsl: Boolean? = null
+    var hostname: String? = null
+    var port: Int? = null
+    var useSsl: Boolean? = null
 
     val restUrl: String
         get() = "${if (useSsl!!) "https" else "http"}://$hostname:$port/api/"

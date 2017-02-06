@@ -16,6 +16,7 @@ service {
 
 dependencies {
     compile project(":common-application")
+    compile project(":catalogue-utils")
 
     compile("com.google.cloud:google-cloud-pubsub:0.8.0") {
         exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem

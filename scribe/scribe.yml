@@ -5,6 +5,11 @@ storage:
   bucket: devtest.quartic.io
   namespace: tracker
 
+catalogue:
+  hostname: localhost
+  port: 8090
+  useSsl: false
+
 batchSize: 10
 extractionPeriodSeconds: 15
 

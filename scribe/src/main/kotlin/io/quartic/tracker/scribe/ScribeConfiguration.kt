@@ -1,6 +1,7 @@
 package io.quartic.tracker.scribe
 
 import io.dropwizard.Configuration
+import io.quartic.catalogue.CatalogueClientConfiguration
 
 class ScribeConfiguration : Configuration() {
     class PubSubConfiguration {
@@ -14,6 +15,7 @@ class ScribeConfiguration : Configuration() {
 
     val pubsub = PubSubConfiguration()
     val storage = StorageConfiguration()
+    val catalogue = CatalogueClientConfiguration()
     var batchSize: Int? = null
     var extractionPeriodSeconds: Long? = null
 }
