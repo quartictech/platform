@@ -1,5 +1,7 @@
 ## Running the stack locally
 
+**Note:** The Scribe service writes to a real cloud bucket, even when running locally.
+
 1. Start the back-end:
 
    ```
@@ -46,3 +48,4 @@ Weyl       | 8080 / 8081      | 3000
 Catalogue  | 8090 / 8091      |
 Mgmt       | 8100 / 8101      | 3010
 Howl       | 8120 / 8121      |
+Scribe     | 8130 / 8131      |

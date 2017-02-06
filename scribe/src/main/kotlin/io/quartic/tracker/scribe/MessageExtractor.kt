@@ -4,8 +4,8 @@ import com.codahale.metrics.MetricRegistry
 import com.google.cloud.pubsub.PubSub
 import com.google.cloud.pubsub.PubSubException
 import io.quartic.common.logging.logger
-import io.quartic.tracker.common.metrics.meter
-import io.quartic.tracker.common.metrics.timer
+import io.quartic.common.metrics.meter
+import io.quartic.common.metrics.timer
 import java.time.Clock
 
 class MessageExtractor(
