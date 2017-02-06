@@ -9,6 +9,7 @@ dependencies {
 
     compile project(":common-core")
     compile project(":catalogue-api")  // TODO: this is probably wrong - should move the dataset types to common
+    compile project(":catalogue-utils")
     compile project(":howl-api")
 
     compile "org.postgresql:postgresql:9.4.1209"

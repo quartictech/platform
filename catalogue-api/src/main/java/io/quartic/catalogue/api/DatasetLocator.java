@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = GeoJsonDatasetLocatorImpl.class, name = "geojson"),
         @JsonSubTypes.Type(value = WebsocketDatasetLocatorImpl.class, name = "websocket"),
         @JsonSubTypes.Type(value = CloudGeoJsonDatasetLocatorImpl.class, name = "cloud-geojson"),
+        @JsonSubTypes.Type(value = GooglePubSubDatasetLocator.class, name = "google-pubsub"),
 })
 public interface DatasetLocator {
 }

@@ -23,6 +23,7 @@ include "common-test"
 
 include "catalogue-api"
 include "catalogue-application"
+include "catalogue-utils"
 
 include "mgmt-application"
 include "mgmt-frontend"
