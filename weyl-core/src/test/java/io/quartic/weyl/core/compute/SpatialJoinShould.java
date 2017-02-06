@@ -14,6 +14,8 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
