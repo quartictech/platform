@@ -34,7 +34,7 @@ import static rx.Observable.just;
 public abstract class SourceManager {
     private static final Logger LOG = LoggerFactory.getLogger(SourceManager.class);
     protected abstract Observable<CatalogueEvent> catalogueEvents();
-    protected abstract Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Observable<Source>>> sourceFactories();
+    protected abstract Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories();
     protected abstract Scheduler scheduler();
     @Value.Default
     protected ExtensionCodec extensionCodec() {
@@ -81,14 +81,14 @@ public abstract class SourceManager {
     }
 
     private Observable<Source> createSource(DatasetId id, DatasetConfig config) {
-        final Function<DatasetConfig, Observable<Source>> func = sourceFactories().get(config.locator().getClass());
+        final Function<DatasetConfig, Source> func = sourceFactories().get(config.locator().getClass());
         if (func == null) {
             LOG.error(format("[%s] Unrecognised config type: %s", id, config.locator().getClass()));
             return empty();
         }
 
         try {
-            return func.apply(config);
+            return just(func.apply(config));
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
             return empty();

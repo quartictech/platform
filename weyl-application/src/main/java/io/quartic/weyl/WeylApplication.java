@@ -57,8 +57,8 @@ import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
-import static rx.Observable.merge;
 import static rx.Observable.just;
+import static rx.Observable.merge;
 
 public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
@@ -168,7 +168,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new LayerExportResource(layerExporter);
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Observable<Source>>> createSourceFactories(
+    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
             WeylConfiguration configuration,
             Environment environment,
             WebsocketClientSessionFactory websocketFactory
@@ -186,21 +186,19 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .url(((GeoJsonDatasetLocator) config.locator()).url())
                         .userAgent(userAgent)
                         .converter(featureConverter())
-                        .build()),
-                WebsocketDatasetLocatorImpl.class, config -> just(WebsocketSource.builder()
+                        .build(),
+                WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
                         .name(config.metadata().name())
                         .listenerFactory(new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
                         .converter(featureConverter())
                         .metrics(environment.metrics())
-                        .build()),
-                CloudGeoJsonDatasetLocatorImpl.class, config -> just(GeoJsonSource.builder()
+                        .build(),
+                CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
                         .name(config.metadata().name())
                         .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
                         .userAgent(userAgent)
                         .converter(featureConverter())
-                        .build()),
-                GooglePubsubDatasetLocatorImpl.class, config -> WebsocketSourceV2.builder()
-                    .
+                        .build()
         );
     }
 

@@ -58,7 +58,7 @@ public class WebsocketSourceShould {
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
         verify(converter).toModel(FEATURE_COLLECTION);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, modelFeatures)));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(LayerUpdate.Type.APPEND, modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

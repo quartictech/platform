@@ -9,6 +9,6 @@ import org.immutables.value.Value;
 @Value.Immutable
 @JsonSerialize(as = GooglePubsubDatasetLocatorImpl.class)
 @JsonDeserialize(as = GooglePubsubDatasetLocatorImpl.class)
-public interface GooglePubsubDatasetLocator {
+public interface GooglePubsubDatasetLocator extends DatasetLocator {
     String topic();
 }

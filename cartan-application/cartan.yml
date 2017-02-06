@@ -1,9 +1,0 @@
-catalogueWatchUrl: ws://localhost:8090/api/datasets/watch
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 8130
-  adminConnectors:
-    - type: http
-      port: 8131
