@@ -12,7 +12,7 @@ server:
   applicationContextPath: /
   applicationConnectors:
     - type: http
-      port: 8130
+      port: 8140
   adminConnectors:
     - type: http
-      port: 8131
+      port: 8141
