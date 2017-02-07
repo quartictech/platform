@@ -14,7 +14,12 @@ import java.time.Instant;
 @JsonSerialize(as = LiveEventImpl.class)
 @JsonDeserialize(as = LiveEventImpl.class)
 public interface LiveEvent {
-    LayerUpdate.Type updateType();
+    @Value.Default
+    default LayerUpdate.Type updateType() {
+        // for back-compat
+        return LayerUpdate.Type.APPEND;
+    }
+
     Instant timestamp();
     FeatureCollection featureCollection();
 }

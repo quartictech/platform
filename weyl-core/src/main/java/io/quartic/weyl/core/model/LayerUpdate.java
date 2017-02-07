@@ -17,10 +17,7 @@ public interface LayerUpdate {
         REPLACE
     }
 
-    @Value.Default
-    default Type type() {
-        return Type.APPEND;
-    }
+    Type type();
 
     // TODO: not Collections
     Collection<NakedFeature> features();

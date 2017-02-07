@@ -31,7 +31,7 @@ import static rx.Observable.just;
 
 public class WebsocketSourceShould {
     private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", point()));
-    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(Instant.now(), FEATURE_COLLECTION);
+    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(LayerUpdate.Type.APPEND, Instant.now(), FEATURE_COLLECTION);
 
     @Test
     public void import_things() throws Exception {
