@@ -2,14 +2,13 @@ package io.quartic.weyl.core.source;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import io.quartic.catalogue.CatalogueEvent;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
 import io.quartic.common.test.rx.Interceptor;
-import io.quartic.weyl.core.catalogue.CatalogueEvent;
-import io.quartic.weyl.core.catalogue.CatalogueEventImpl;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.LayerId;
@@ -34,8 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
-import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
+import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
+import static io.quartic.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
 import static io.quartic.weyl.core.source.ExtensionCodec.EXTENSION_KEY;
 import static java.util.Collections.emptyList;
@@ -168,7 +167,7 @@ public class SourceManagerShould {
     }
 
     private CatalogueEvent event(CatalogueEvent.Type type, String id, String name, DatasetLocator locator) {
-        return CatalogueEventImpl.of(type, new DatasetId(id), datasetConfig(name, locator));
+        return new CatalogueEvent(type, new DatasetId(id), datasetConfig(name, locator));
     }
 
     private DatasetConfig datasetConfig(String name, DatasetLocator source) {

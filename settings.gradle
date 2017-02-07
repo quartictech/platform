@@ -23,12 +23,15 @@ include "common-test"
 
 include "catalogue-api"
 include "catalogue-application"
+include "catalogue-utils"
 
 include "mgmt-application"
 include "mgmt-frontend"
 
 include "howl-api"
 include "howl-application"
+
+include "scribe"
 
 include "weyl-core"
 include "weyl-application"
