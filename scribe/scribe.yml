@@ -1,0 +1,23 @@
+pubsub:
+  subscription: scribe.devtest.quartic.io
+
+storage:
+  bucket: devtest.quartic.io
+  namespace: tracker
+
+catalogue:
+  hostname: localhost
+  port: 8090
+  useSsl: false
+
+batchSize: 10
+extractionPeriodSeconds: 15
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8140
+  adminConnectors:
+    - type: http
+      port: 8141

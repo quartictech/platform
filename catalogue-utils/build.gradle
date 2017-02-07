@@ -1,0 +1,10 @@
+plugins {
+    id "nebula.kotlin" version "1.0.5"
+    id "idea"
+}
+
+dependencies {
+    compile project(":catalogue-api")
+
+    testCompile project(":common-test")
+}
