@@ -35,7 +35,8 @@ public abstract class WebsocketSource implements Source {
         return listenerFactory().create(LiveEvent.class)
                 .getObservable()
                 .doOnNext(s -> messageRateMeter().mark())
-                .map(event -> LayerUpdateImpl.of(LayerUpdate.Type.APPEND, converter().toModel(event.featureCollection())));
+                .map(event -> LayerUpdateImpl.of(event.updateType(),
+                        converter().toModel(event.featureCollection())));
     }
 
     @Override
