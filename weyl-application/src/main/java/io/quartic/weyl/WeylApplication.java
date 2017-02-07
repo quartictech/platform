@@ -5,6 +5,7 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
+import io.quartic.catalogue.CatalogueWatcher;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
@@ -24,8 +25,6 @@ import io.quartic.howl.api.HowlClient;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
-import io.quartic.weyl.core.catalogue.CatalogueWatcher;
-import io.quartic.weyl.core.catalogue.CatalogueWatcherImpl;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.export.HowlGeoJsonLayerWriter;
 import io.quartic.weyl.core.export.LayerExporter;
@@ -92,12 +91,12 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     public void runApplication(WeylConfiguration configuration, Environment environment) {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
-        final CatalogueWatcher catalogueWatcher = CatalogueWatcherImpl.of(
+        final CatalogueWatcher catalogueWatcher = new CatalogueWatcher(
                 new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
         );
 
         final SourceManager sourceManager = SourceManagerImpl.builder()
-                .catalogueEvents(catalogueWatcher.events())
+                .catalogueEvents(catalogueWatcher.getEvents())
                 .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
