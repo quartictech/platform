@@ -18,7 +18,7 @@ export const mapThemes = {
   },
   mapzen: {
     label: "Open Map Tiles - OSM Bright",
-    icon: "globe",
+    icon: "send-to-map",
     mapbox: openMapTiles,
   },
   blank: {
