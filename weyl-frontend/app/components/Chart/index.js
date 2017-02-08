@@ -103,7 +103,7 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
         onClose={() => this.props.onUiToggle("chart")}
       >
         <div className={styles.plotArea}>
-          <svg id="example" style={{ height: "100%" }} />
+          <svg id="example" style={{ height: "110%" }} />
         </div>
       </Pane>
     );
