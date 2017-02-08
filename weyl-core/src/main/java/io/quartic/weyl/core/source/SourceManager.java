@@ -1,11 +1,11 @@
 package io.quartic.weyl.core.source;
 
+import io.quartic.catalogue.CatalogueEvent;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.core.catalogue.CatalogueEvent;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
@@ -23,8 +23,8 @@ import rx.observables.GroupedObservable;
 import java.util.Map;
 import java.util.function.Function;
 
-import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.CREATE;
-import static io.quartic.weyl.core.catalogue.CatalogueEvent.Type.DELETE;
+import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
+import static io.quartic.catalogue.CatalogueEvent.Type.DELETE;
 import static java.lang.String.format;
 import static rx.Observable.empty;
 import static rx.Observable.just;
@@ -44,7 +44,7 @@ public abstract class SourceManager {
     @Value.Lazy
     public Observable<LayerPopulator> layerPopulators() {
         return catalogueEvents()
-                .groupBy(CatalogueEvent::id)
+                .groupBy(CatalogueEvent::getId)
                 .flatMap(this::processEventsForId)
                 .share();
     }
@@ -53,12 +53,12 @@ public abstract class SourceManager {
         final Observable<CatalogueEvent> events = group.cache();    // Because groupBy can only have one subscriber per group
 
         return events
-                .filter(e -> e.type() == CREATE)
-                .flatMap(event -> createSource(event.id(), event.config())
+                .filter(e -> e.getType() == CREATE)
+                .flatMap(event -> createSource(event.getId(), event.getConfig())
                         .map(source -> createPopulator(
-                                event.id(),
-                                event.config(),
-                                sourceUntil(source, events.filter(e -> e.type() == DELETE))))
+                                event.getId(),
+                                event.getConfig(),
+                                sourceUntil(source, events.filter(e -> e.getType() == DELETE))))
                 );
     }
 

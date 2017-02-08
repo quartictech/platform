@@ -1,6 +1,7 @@
 package io.quartic.weyl;
 
 import io.dropwizard.Configuration;
+import io.quartic.catalogue.CatalogueClientConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
