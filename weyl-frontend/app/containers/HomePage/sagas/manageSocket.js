@@ -46,7 +46,7 @@ function* reportStatus(socket) {
 function* handleLayerUpdate(msg) {
   const layers = yield select(selectors.selectLayers);
   if (msg.layerId in layers.toJS()) {
-    yield put(actions.layerUpdate(msg.layerId, msg.featureCollection, msg.stats, msg.dynamicSchema));
+    yield put(actions.layerUpdate(msg.layerId, msg.snapshotId, msg.featureCollection, msg.stats, msg.dynamicSchema));
   } else {
     console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);
   }

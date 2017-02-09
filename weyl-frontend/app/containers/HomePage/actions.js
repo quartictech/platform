@@ -50,8 +50,9 @@ export function layerClose(layerId) {
   };
 }
 
-export const layerUpdate = (layerId, data, stats, dynamicSchema) => ({
+export const layerUpdate = (layerId, snapshotId, data, stats, dynamicSchema) => ({
   type: constants.LAYER_UPDATE,
+  snapshotId,
   layerId,
   data,
   stats,

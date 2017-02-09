@@ -27,6 +27,7 @@ import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.websocket.message.AlertMessage;
 import io.quartic.weyl.websocket.message.AlertMessageImpl;
@@ -353,11 +354,11 @@ public class GeofenceStatusHandlerShould {
     }
 
     private Snapshot snapshot(Layer layer) {
-        return SnapshotImpl.of(layer, emptyList());
+        return snapshot(layer, emptyList());
     }
 
     private Snapshot snapshot(Layer layer, List<Feature> diff) {
-        return SnapshotImpl.of(layer, diff);
+        return SnapshotImpl.of(mock(SnapshotId.class), layer, diff);
     }
 
     private Layer layer() {
