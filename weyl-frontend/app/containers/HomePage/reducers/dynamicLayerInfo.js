@@ -60,6 +60,7 @@ const layerReducer = (state, action) => {
 
     case constants.LAYER_UPDATE:
       return state
+        .set("snapshotId", action.snapshotId)
         .set("data", action.data)
         .set("stats", action.stats)
         .set("dynamicSchema", action.dynamicSchema);
@@ -71,6 +72,7 @@ const layerReducer = (state, action) => {
 
 const newLayer = (action) => fromJS({
   id: action.layerId,
+  snapshotId: 0,    // Technically, this doesn't match any SnapshotID on the backend, but that doesn't currently matter
   visible: true,
   themeIdx: 0,
   style: defaultLayerStyle(null, 0),

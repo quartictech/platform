@@ -10,11 +10,24 @@ import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.DynamicSchema;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerImpl;
+import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
+import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerStats;
+import io.quartic.weyl.core.model.SnapshotId;
+import io.quartic.weyl.core.model.SnapshotImpl;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
-import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
@@ -26,7 +39,11 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static rx.Observable.just;
 
 public class LayerExporterShould {
     private PublishSubject<LayerSnapshotSequence> layerSnapshots = PublishSubject.create();
@@ -51,7 +68,6 @@ public class LayerExporterShould {
     }
 
     private static class FailingLayerWriter implements LayerWriter {
-
         @Override
         public LayerExportResult write(Layer layer) throws IOException {
             throw new IOException("some noob out");
@@ -62,8 +78,7 @@ public class LayerExporterShould {
     public void export_features() {
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
-        layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
-                features))));
+        layerSnapshots.onNext(sequence(layer, features));
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
@@ -75,8 +90,7 @@ public class LayerExporterShould {
     public void report_error_on_unfound_layer() {
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
-        layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
-                features))));
+        layerSnapshots.onNext(sequence(layer, features));
         layerExporter.export(exportRequest("noLayer"))
                 .subscribe(exportResult);
         exportResult.assertValue(Optional.empty());
@@ -91,8 +105,7 @@ public class LayerExporterShould {
     public void write_to_catalogue() {
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
-        layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
-                features))));
+        layerSnapshots.onNext(sequence(layer, features));
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
         verify(catalogueService, only()).registerDataset(ArgumentMatchers.any());
@@ -104,12 +117,15 @@ public class LayerExporterShould {
         Layer layer = layer("layer", featureCollection(feature("foo")));
         List<Feature> features = ImmutableList.of(feature("foo"));
         LayerExporter failingLayerExporter = layerExporter(new FailingLayerWriter());
-        layerSnapshots.onNext(LayerSnapshotSequenceImpl.of(layer.spec(), Observable.just(SnapshotImpl.of(layer,
-                features))));
+        layerSnapshots.onNext(sequence(layer, features));
         failingLayerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
         verify(catalogueService, times(0)).registerDataset(ArgumentMatchers.any());
         exportResult.assertError(RuntimeException.class);
+    }
+
+    private LayerSnapshotSequence sequence(Layer layer, List<Feature> features) {
+        return LayerSnapshotSequenceImpl.of(layer.spec(), just(SnapshotImpl.of(mock(SnapshotId.class), layer, features)));
     }
 
     private Feature feature(String id){

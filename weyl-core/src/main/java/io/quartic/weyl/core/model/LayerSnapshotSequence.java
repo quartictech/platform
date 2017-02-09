@@ -12,6 +12,7 @@ public interface LayerSnapshotSequence {
     @SweetStyle
     @Value.Immutable
     interface Snapshot {
+        SnapshotId id();
         Layer absolute();
 
         /**

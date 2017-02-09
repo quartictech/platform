@@ -56,6 +56,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
         final Layer layer = snapshot.absolute();
         return LayerUpdateMessageImpl.builder()
                 .layerId(layer.spec().id())
+                .snapshotId(snapshot.id())
                 .dynamicSchema(layer.dynamicSchema())
                 .stats(layer.stats())
                 .featureCollection(featureCollection(layer))
@@ -64,7 +65,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
 
     private FeatureCollection featureCollection(Layer layer) {
         final Collection<Feature> features = layer.spec().indexable() ? EMPTY_COLLECTION : layer.features();
-        Stream<Feature> computed = layer.spec().view().compute(features);
+        final Stream<Feature> computed = layer.spec().view().compute(features);
         return featureConverter.toGeojson(computed.collect(toList()));
     }
 }

@@ -4,22 +4,17 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.render.VectorTileRenderer;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.mockito.verification.VerificationMode;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
-
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import static java.util.Collections.emptyList;
@@ -28,7 +23,11 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class TileResourceShould {
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
@@ -93,7 +92,7 @@ public class TileResourceShould {
 
     private void render(LayerId layerId, Consumer<AsyncResponse> verifier) {
         AsyncResponse asyncResponse = mock(AsyncResponse.class);
-        resource.render(layerId, 5, 6, 7, asyncResponse);
+        resource.render(layerId, mock(SnapshotId.class),5, 6, 7, asyncResponse);
         verifier.accept(asyncResponse);
     }
 
@@ -107,7 +106,7 @@ public class TileResourceShould {
     }
 
     private Snapshot snapshot(Layer layer) {
-        return SnapshotImpl.of(layer, emptyList());
+        return SnapshotImpl.of(mock(SnapshotId.class), layer, emptyList());
     }
 
     private void mockRendererResult(byte[] expected) {

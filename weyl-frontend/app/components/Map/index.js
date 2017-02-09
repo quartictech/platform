@@ -207,8 +207,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const layerIdsToAdd = _.keys(layers).filter(id => !(id in this.subLayers));
 
     layerIdsToAdd.forEach(id => {
-      const subLayerIds = this.createSourceAndSubLayers(layers[id]);
-      this.subLayers[id] = subLayerIds;
+      this.subLayers[id] = this.createSourceAndSubLayers(layers[id]);
     });
   }
 
@@ -219,6 +218,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateLayer(layer, selection) {
     if (layer.live) {
       this.map.getSource(layer.id).setData(this.getSourceDef(layer).data);
+    } else {
+      // Slightly ghetto approach as suggested here: https://github.com/mapbox/mapbox-gl-js/issues/3709#issuecomment-265346656
+      const newStyle = this.map.getStyle();
+      newStyle.sources[layer.id].tiles = [this.getTileUrl(layer)];
+      this.map.setStyle(newStyle);
     }
 
     const styleLayers = buildStyleLayers(layer);
@@ -239,7 +243,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDef(layer) {
     return (layer.live)
       ? { type: "geojson", data: layer.data }
-      : { type: "vector", tiles: [`${apiRootUrl}/${layer.id}/{z}/{x}/{y}.pbf`] };
+      : { type: "vector", tiles: [this.getTileUrl(layer)] };
+  }
+
+  getTileUrl(layer) {
+    return `${apiRootUrl}/${layer.id}/${layer.snapshotId}/{z}/{x}/{y}.pbf`;
   }
 
   createSourceAndSubLayers(layer) {
