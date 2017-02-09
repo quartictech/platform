@@ -1,4 +1,4 @@
-import { take, takem, call, fork, cancel, put, select, race } from "redux-saga/effects";
+import { take, call, fork, cancel, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsUrl } from "../../../utils.js";
 import { showToast } from "../toaster";
@@ -131,7 +131,7 @@ export default function* () {
     const socket = yield call(createSocket);
     const channel = yield call(createSocketChannel, socket);
 
-    const result = yield takem(channel);  // First result should be "open"
+    const result = yield take.maybe(channel);  // First result should be "open"
     if (result !== END) {
       yield put(actions.connectionUp());
       yield* reportStatus(socket);

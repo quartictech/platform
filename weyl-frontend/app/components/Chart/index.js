@@ -18,7 +18,7 @@ class Chart extends React.Component { // eslint-disable-line react/prefer-statel
   }
 
   createChart() {
-    const xScale = new Plottable.Scales.Time().domain([new Date(2000, 0, 1), new Date(2016, 11, 31)]);
+    const xScale = new Plottable.Scales.Time();
     const yScale = new Plottable.Scales.Linear();
     const xAxis = new Plottable.Axes.Time(xScale, "bottom").yAlignment("center");
     const yAxis = new Plottable.Axes.Numeric(yScale, "left");
