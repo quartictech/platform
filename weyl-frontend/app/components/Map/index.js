@@ -218,6 +218,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   updateLayer(layer, selection) {
     if (layer.live) {
       this.map.getSource(layer.id).setData(this.getSourceDef(layer).data);
+    } else {
+      this.map.getSource(layer.id).tiles = [this.getTileUrl(layer)];
     }
 
     const styleLayers = buildStyleLayers(layer);
@@ -238,7 +240,11 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDef(layer) {
     return (layer.live)
       ? { type: "geojson", data: layer.data }
-      : { type: "vector", tiles: [`${apiRootUrl}/${layer.id}/0/{z}/{x}/{y}.pbf`] }; // TODO: route snapshotId ("0") dynamically
+      : { type: "vector", tiles: [this.getTileUrl(layer)] };
+  }
+
+  getTileUrl(layer) {
+    return `${apiRootUrl}/${layer.id}/${layer.snapshotId}/{z}/{x}/{y}.pbf`;
   }
 
   createSourceAndSubLayers(layer) {

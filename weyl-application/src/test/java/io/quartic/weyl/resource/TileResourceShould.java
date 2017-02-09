@@ -4,6 +4,7 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.render.VectorTileRenderer;
 import org.junit.Test;
@@ -91,7 +92,7 @@ public class TileResourceShould {
 
     private void render(LayerId layerId, Consumer<AsyncResponse> verifier) {
         AsyncResponse asyncResponse = mock(AsyncResponse.class);
-        resource.render(layerId, 0,5, 6, 7, asyncResponse);
+        resource.render(layerId, mock(SnapshotId.class),5, 6, 7, asyncResponse);
         verifier.accept(asyncResponse);
     }
 
@@ -105,7 +106,7 @@ public class TileResourceShould {
     }
 
     private Snapshot snapshot(Layer layer) {
-        return SnapshotImpl.of(layer, emptyList());
+        return SnapshotImpl.of(mock(SnapshotId.class), layer, emptyList());
     }
 
     private void mockRendererResult(byte[] expected) {

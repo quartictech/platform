@@ -5,6 +5,7 @@ import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.render.VectorTileRenderer;
 import org.glassfish.jersey.server.ManagedAsync;
 import org.immutables.value.Value;
@@ -61,7 +62,7 @@ public abstract class TileResource {
     @CacheControl(maxAge = 60*60)
     @ManagedAsync
     public void render(@PathParam("layerId") LayerId layerId,
-                       @PathParam("snapshotId") Integer snapshotId, // TODO: something with snapshotId (and a type, etc.)
+                       @PathParam("snapshotId") SnapshotId snapshotId, // We don't actually use this, it's just there to invalidate the browser cache
                        @PathParam("z") Integer z,
                        @PathParam("x") Integer x,
                        @PathParam("y") Integer y,

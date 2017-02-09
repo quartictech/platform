@@ -17,6 +17,7 @@ import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.stream.Collectors.toList;
@@ -60,7 +62,7 @@ public class SpatialJoinShould {
                 true
         );
 
-        final SnapshotReducer reducer = new SnapshotReducer();
+        final SnapshotReducer reducer = new SnapshotReducer(sequenceGenerator(SnapshotId::new));
         return reducer.next(reducer.empty(spec), LayerUpdateImpl.of(features)).absolute();
     }
 

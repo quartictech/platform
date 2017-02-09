@@ -2,6 +2,7 @@ package io.quartic.weyl.core;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -16,6 +17,7 @@ import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
@@ -23,18 +25,30 @@ import org.junit.Test;
 import java.time.Instant;
 import java.util.Optional;
 
+import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class SnapshotReducerShould {
 
     private static final LayerId LAYER_ID = LayerId.fromString("666");
 
-    private final SnapshotReducer reducer = new SnapshotReducer();
+    private final UidGenerator<SnapshotId> sidGen = sequenceGenerator(SnapshotId::new);
+    private final SnapshotReducer reducer = new SnapshotReducer(sidGen);
+
+    @Test
+    public void provide_unique_ids() throws Exception {
+        final Snapshot initial = initialSnapshot();
+        final Snapshot updated = reducer.next(initial, updateFor());
+
+        assertThat(updated.id(), not(equalTo(initial.id())));
+    }
 
     @Test
     public void provide_update_features_as_diff() throws Exception {
