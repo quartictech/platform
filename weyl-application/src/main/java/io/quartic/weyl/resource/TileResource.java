@@ -1,6 +1,5 @@
 package io.quartic.weyl.resource;
 
-import com.google.common.collect.Maps;
 import io.dropwizard.jersey.caching.CacheControl;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
@@ -13,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Scheduler;
-import rx.Subscription;
 import rx.schedulers.Schedulers;
 
 import javax.ws.rs.GET;
@@ -59,15 +57,16 @@ public abstract class TileResource {
 
     @GET
     @Produces("application/protobuf")
-    @Path("/{layerId}/{z}/{x}/{y}.pbf")
+    @Path("/{layerId}/{snapshotId}/{z}/{x}/{y}.pbf")
     @CacheControl(maxAge = 60*60)
     @ManagedAsync
     public void render(@PathParam("layerId") LayerId layerId,
-                         @PathParam("z") Integer z,
-                         @PathParam("x") Integer x,
-                         @PathParam("y") Integer y,
-                         @Suspended AsyncResponse asyncResponse) {
-
+                       @PathParam("snapshotId") Integer snapshotId, // TODO: something with snapshotId (and a type, etc.)
+                       @PathParam("z") Integer z,
+                       @PathParam("x") Integer x,
+                       @PathParam("y") Integer y,
+                       @Suspended AsyncResponse asyncResponse
+    ) {
         layers().subscribeOn(scheduler())
                 .map(layers -> renderer().render(latest(getOrError(layers, layerId)).absolute(), z, x, y))
                 .first()

@@ -207,8 +207,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     const layerIdsToAdd = _.keys(layers).filter(id => !(id in this.subLayers));
 
     layerIdsToAdd.forEach(id => {
-      const subLayerIds = this.createSourceAndSubLayers(layers[id]);
-      this.subLayers[id] = subLayerIds;
+      this.subLayers[id] = this.createSourceAndSubLayers(layers[id]);
     });
   }
 
@@ -239,7 +238,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   getSourceDef(layer) {
     return (layer.live)
       ? { type: "geojson", data: layer.data }
-      : { type: "vector", tiles: [`${apiRootUrl}/${layer.id}/{z}/{x}/{y}.pbf`] };
+      : { type: "vector", tiles: [`${apiRootUrl}/${layer.id}/0/{z}/{x}/{y}.pbf`] }; // TODO: route snapshotId ("0") dynamically
   }
 
   createSourceAndSubLayers(layer) {
