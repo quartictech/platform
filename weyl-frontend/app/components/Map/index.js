@@ -219,7 +219,10 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     if (layer.live) {
       this.map.getSource(layer.id).setData(this.getSourceDef(layer).data);
     } else {
-      this.map.getSource(layer.id).tiles = [this.getTileUrl(layer)];
+      // Slightly ghetto approach as suggested here: https://github.com/mapbox/mapbox-gl-js/issues/3709#issuecomment-265346656
+      const newStyle = this.map.getStyle();
+      newStyle.sources[layer.id].tiles = [this.getTileUrl(layer)];
+      this.map.setStyle(newStyle);
     }
 
     const styleLayers = buildStyleLayers(layer);
