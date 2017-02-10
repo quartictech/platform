@@ -1,0 +1,23 @@
+plugins {
+    id "nebula.kotlin" version "1.0.5"
+    id "idea"
+    id "io.quartic.service" version "12"
+    id "com.palantir.configuration-resolver" version "0.1.0"
+}
+
+service {
+    simpleName = "rain"
+    mainClassName = "io.quartic.rain.RainApplication"
+    memory = System.env.HOWL_MEMORY ?: "64m"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":howl-api")
+    compile project(":weyl-api")
+    compile "com.liveperson:dropwizard-websockets:1.0.0-1"  // BEWARE! The highest version number in maven central is 1.2. This is actually an older version (and not compatible with DW 1.0)
+
+    testCompile libraries.testCommon
+    testCompile libraries.dropwizardTesting
+    testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25"
+}

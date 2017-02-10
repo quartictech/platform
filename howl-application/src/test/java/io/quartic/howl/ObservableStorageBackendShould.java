@@ -1,9 +1,9 @@
 package io.quartic.howl;
 
+import io.quartic.howl.api.StorageBackendChangeImpl;
 import io.quartic.howl.storage.ObservableStorageBackend;
 import io.quartic.howl.storage.StorageBackend;
-import io.quartic.howl.storage.StorageBackendChange;
-import io.quartic.howl.storage.StorageBackendChangeImpl;
+import io.quartic.howl.api.StorageBackendChange;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 

@@ -1,5 +1,7 @@
 package io.quartic.howl.storage;
 
+import io.quartic.howl.api.StorageBackendChangeImpl;
+import io.quartic.howl.api.StorageBackendChange;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 

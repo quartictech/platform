@@ -3,7 +3,7 @@ package io.quartic.howl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quartic.common.websocket.ResourceManagingEndpoint;
-import io.quartic.howl.storage.StorageBackendChange;
+import io.quartic.howl.api.StorageBackendChange;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

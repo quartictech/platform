@@ -8,6 +8,8 @@ import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
 import io.quartic.common.geojson.Point;
+import io.quartic.weyl.api.LiveEvent;
+import io.quartic.weyl.api.LiveEventImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;

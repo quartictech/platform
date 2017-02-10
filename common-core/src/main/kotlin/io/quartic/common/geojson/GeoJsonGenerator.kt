@@ -8,7 +8,7 @@ import java.io.OutputStream
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Stream
 
-class GeoJsonGenerator(val outputStream: OutputStream) {
+class GeoJsonGenerator(outputStream: OutputStream) {
     val jsonGenerator : JsonGenerator = JsonFactory().createGenerator(outputStream)
 
     init {
