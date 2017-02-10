@@ -3,7 +3,7 @@ package io.quartic.rain
 import com.fasterxml.jackson.core.JsonFactory
 import io.quartic.common.geojson.GeoJsonGenerator
 import io.quartic.common.geojson.GeoJsonParser
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.websocket.ResourceManagingEndpoint
 import io.quartic.common.websocket.WebsocketClientSessionFactory
 import io.quartic.common.websocket.WebsocketListener
@@ -60,7 +60,6 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
 
     companion object {
         private val LOG = LoggerFactory.getLogger(WebsocketEndpoint::class.java)
-        private val OBJECT_MAPPER = objectMapper()
     }
 
 }
