@@ -19,6 +19,7 @@ import javax.websocket.Session
 class WebsocketEndpoint(private val howlWatchUrl: String,
                         private val websocketClientSessionFactory: WebsocketClientSessionFactory,
                         private val howlClient: HowlClient) : ResourceManagingEndpoint<Subscription>() {
+
     override fun createResourceFor(session: Session): Subscription {
         val namespace = session.pathParameters["namespace"]
         val objectName = session.pathParameters["objectName"]
