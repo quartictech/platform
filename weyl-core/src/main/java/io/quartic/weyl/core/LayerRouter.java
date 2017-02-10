@@ -11,6 +11,7 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.SnapshotId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import rx.Observable;
@@ -26,6 +27,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.common.rx.RxUtilsKt.mealy;
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static java.util.Collections.emptySet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -59,7 +61,7 @@ public abstract class LayerRouter {
 
     @Value.Default
     protected SnapshotReducer snapshotReducer() {
-        return new SnapshotReducer();
+        return new SnapshotReducer(randomGenerator(SnapshotId::new));
     }
 
     /**

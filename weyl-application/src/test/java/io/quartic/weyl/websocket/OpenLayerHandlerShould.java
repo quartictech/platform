@@ -1,8 +1,8 @@
 package io.quartic.weyl.websocket;
 
-import io.quartic.common.test.rx.Interceptor;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Point;
+import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -11,6 +11,7 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
@@ -171,7 +172,7 @@ public class OpenLayerHandlerShould {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.spec()).thenReturn(spec);
         when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
-        return SnapshotImpl.of(layer, emptyList());
+        return SnapshotImpl.of(new SnapshotId("123"), layer, emptyList());
     }
 
     private LayerSpec spec(LayerId id, boolean live) {
@@ -190,7 +191,13 @@ public class OpenLayerHandlerShould {
     }
 
     private LayerUpdateMessageImpl message(LayerId id, Snapshot snapshot) {
-        return LayerUpdateMessageImpl.of(id, snapshot.absolute().dynamicSchema(), snapshot.absolute().stats(), featureCollection());
+        return LayerUpdateMessageImpl.of(
+                id,
+                new SnapshotId("123"),
+                snapshot.absolute().dynamicSchema(),
+                snapshot.absolute().stats(),
+                featureCollection()
+        );
     }
 
     private FeatureCollection featureCollection() {

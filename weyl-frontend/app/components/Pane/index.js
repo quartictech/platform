@@ -18,7 +18,10 @@ const Pane = ({
     style={{ overflow: "auto", display: visible ? "flex" : "none", flexDirection: "column" }}
   >
     <div className={Classes.DIALOG_HEADER}>
-      <span className={classNames(Classes.ICON_STANDARD, Classes.iconClass(iconName))}></span>
+      <span
+        className={classNames(Classes.ICON_STANDARD, Classes.iconClass(iconName))}
+        style={{ paddingRight: 10 }}
+      ></span>
       <h5>{title}</h5>
       {extraHeaderContent}
       {

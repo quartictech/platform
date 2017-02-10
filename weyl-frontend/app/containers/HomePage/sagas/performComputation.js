@@ -4,7 +4,6 @@ import request from "utils/request";
 import * as actions from "../actions";
 import { apiRootUrl } from "../../../utils.js";
 
-
 export default function* performComputation(action) {
   const requestURL = `${apiRootUrl}/compute`;
   const results = yield call(request, requestURL, {

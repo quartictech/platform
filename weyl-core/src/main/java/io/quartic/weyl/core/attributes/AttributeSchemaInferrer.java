@@ -1,7 +1,14 @@
 package io.quartic.weyl.core.attributes;
 
-import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.DynamicSchema;
+import io.quartic.weyl.core.model.DynamicSchemaImpl;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.StaticSchema;
 
 import java.util.Collection;
 import java.util.List;

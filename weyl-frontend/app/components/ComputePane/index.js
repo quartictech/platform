@@ -38,7 +38,7 @@ class ComputePane extends React.Component { // eslint-disable-line react/prefer-
         extraHeaderContent={
           <NormalPicker
             iconName="function"
-            position={Position.TOP}
+            position={Position.BOTTOM}
             selected={this.state.operation}
             entries={[
               "Bucket",

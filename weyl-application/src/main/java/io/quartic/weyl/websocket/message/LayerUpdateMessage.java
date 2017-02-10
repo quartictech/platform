@@ -7,6 +7,7 @@ import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerStats;
+import io.quartic.weyl.core.model.SnapshotId;
 import org.immutables.value.Value;
 
 @SweetStyle
@@ -15,6 +16,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = LayerUpdateMessageImpl.class)
 public interface LayerUpdateMessage extends SocketMessage {
     LayerId layerId();
+    SnapshotId snapshotId();
     DynamicSchema dynamicSchema();
     LayerStats stats();
     FeatureCollection featureCollection();

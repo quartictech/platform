@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
+import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -18,6 +19,7 @@ import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerStatsImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +38,15 @@ import static java.util.stream.Collectors.toList;
 public class SnapshotReducer {
     private static final Logger LOG = LoggerFactory.getLogger(SnapshotReducer.class);
     private final AtomicInteger missingExternalIdGenerator = new AtomicInteger();
+    private final UidGenerator<SnapshotId> sidGen;
+
+    public SnapshotReducer(UidGenerator<SnapshotId> sidGen) {
+        this.sidGen = sidGen;
+    }
 
     public Snapshot empty(LayerSpec spec) {
         return SnapshotImpl.of(
+                sidGen.get(),
                 LayerImpl.builder()
                         .spec(spec)
                         .features(EMPTY_COLLECTION)
@@ -58,7 +66,11 @@ public class SnapshotReducer {
 
         final Collection<Feature> elaborated = elaborate(prevLayer.spec().id(), update.features());
 
-        return SnapshotImpl.of(next(prevLayer, update, elaborated), elaborated);
+        return SnapshotImpl.of(
+                sidGen.get(),
+                next(prevLayer, update, elaborated),
+                elaborated
+        );
     }
 
     private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdate update,
