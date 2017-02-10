@@ -7,8 +7,8 @@ import org.immutables.value.Value;
 
 @SweetStyle
 @Value.Immutable
-@JsonSerialize(as = GooglePubsubDatasetLocatorImpl.class)
-@JsonDeserialize(as = GooglePubsubDatasetLocatorImpl.class)
-public interface GooglePubsubDatasetLocator extends DatasetLocator {
+@JsonSerialize(as = GooglePubSubDatasetLocatorImpl.class)
+@JsonDeserialize(as = GooglePubSubDatasetLocatorImpl.class)
+public interface GooglePubSubDatasetLocator extends DatasetLocator {
     String topic();
 }
