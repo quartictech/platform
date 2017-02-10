@@ -30,7 +30,7 @@ public class DiskStorageBackend implements StorageBackend {
     }
 
     private Optional<Long> getLatestVersion(String namespace, String objectName) {
-        String[] fileNames = Paths.get(namespace, objectName).toFile().list();
+        String[] fileNames = rootPath.resolve(Paths.get(namespace, objectName)).toFile().list();
 
         if (fileNames != null) {
             OptionalLong latestVersion =  Arrays.stream(fileNames)

@@ -72,7 +72,9 @@ public class HowlResourceShould {
         Response response = resources.getJerseyTest().target("/test/thing")
                 .request()
                 .get();
+
         byte[] responseEntity = response.readEntity(byte[].class);
+        verify(backend).get(eq("test"), eq("thing"), eq(null));
         assertThat(responseEntity, equalTo(data));
     }
 }
