@@ -2,6 +2,7 @@ package io.quartic.howl;
 
 import io.dropwizard.testing.junit.ResourceTestRule;
 import io.quartic.howl.api.HowlStorageId;
+import io.quartic.howl.storage.InputStreamWithContentTypeImpl;
 import io.quartic.howl.storage.StorageBackend;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
@@ -14,10 +15,12 @@ import org.mockito.stubbing.Answer;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -56,5 +59,20 @@ public class HowlResourceShould {
         assertThat(howlStorageId, notNullValue());
         verify(backend).put(eq(MediaType.TEXT_PLAIN), eq("test"), eq(howlStorageId.getUid()), any());
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data));
+    }
+
+    @Test
+    public void return_file_on_get() throws IOException {
+        byte[] data = "wat".getBytes();
+        when(backend.get(any(), any(), any())).thenAnswer(invocation -> {
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+            return Optional.of(InputStreamWithContentTypeImpl.of(MediaType.TEXT_PLAIN, byteArrayInputStream));
+        });
+
+        Response response = resources.getJerseyTest().target("/test/thing")
+                .request()
+                .get();
+        byte[] responseEntity = response.readEntity(byte[].class);
+        assertThat(responseEntity, equalTo(data));
     }
 }
