@@ -5,7 +5,9 @@ import io.quartic.howl.storage.InputStreamWithContentType;
 import io.quartic.howl.storage.StorageBackend;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
@@ -19,13 +21,14 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DiskStorageBackendShould {
-    private Path tempDir;
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
     private StorageBackend backend;
 
     @Before
     public void setUp() throws IOException {
-        tempDir = Files.createTempDirectory("howl-test");
-        backend = new DiskStorageBackend(tempDir);
+        backend = new DiskStorageBackend(folder.getRoot().toPath());
     }
 
     @Test
