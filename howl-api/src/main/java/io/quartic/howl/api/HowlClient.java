@@ -101,7 +101,12 @@ public class HowlClient implements HowlService {
                 .get()
                 .build();
 
-        return client.newCall(request).execute().body().byteStream();
+        Response response = client.newCall(request).execute();
 
+        if (response.isSuccessful()) {
+            return response.body().byteStream();
+        }
+
+        return null;
     }
 }
