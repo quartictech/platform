@@ -34,6 +34,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
+import io.quartic.weyl.core.source.ImmutableWebsocketSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceManager;
@@ -200,19 +201,20 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .userAgent(userAgent)
                         .converter(featureConverter())
                         .build(),
-                WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
-                        .name(config.metadata().name())
-                        .listenerFactory(new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
-                        .converter(featureConverter())
-                        .metrics(environment.metrics())
-                        .build(),
-                CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
-                        .name(config.metadata().name())
-                        .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                        .userAgent(userAgent)
-                        .converter(featureConverter())
-                        .build()
+                WebsocketDatasetLocatorImpl.class, config -> websocketSource(environment, config,
+                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory)),
+                CloudGeoJsonDatasetLocatorImpl.class, config -> websocketSource(environment, config,
+                        new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + ((CloudGeoJsonDatasetLocator) config.locator()).path(), websocketFactory))
         );
+    }
+
+    private ImmutableWebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory) {
+        return WebsocketSource.builder()
+                .name(config.metadata().name())
+                .listenerFactory(listenerFactory)
+                .converter(featureConverter())
+                .metrics(environment.metrics())
+                .build();
     }
 
     private FeatureConverter featureConverter() {
