@@ -24,7 +24,7 @@ class RainApplication : ApplicationBase<RainConfiguration>() {
         val websocketFactory = WebsocketClientSessionFactory(javaClass)
         val howlClient = HowlClient(userAgentFor(RainApplication::class.java), configuration.howlUrl)
         val websocketEndpoint = WebsocketEndpoint(configuration.howlWatchUrl!!, websocketFactory, howlClient)
-        websocketBundle.addEndpoint(serverEndpointConfig("/layer/{namespace}/{objectName}", websocketEndpoint))
+        websocketBundle.addEndpoint(serverEndpointConfig("/ws/{namespace}/{objectName}", websocketEndpoint))
     }
 
     companion object {

@@ -5,11 +5,13 @@ import com.fasterxml.jackson.core.JsonGenerator
 import io.quartic.common.serdes.objectMapper
 import java.io.IOException
 import java.io.OutputStream
+import java.io.Writer
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Stream
 
-class GeoJsonGenerator(outputStream: OutputStream) {
-    val jsonGenerator : JsonGenerator = JsonFactory().createGenerator(outputStream)
+class GeoJsonGenerator(val jsonGenerator: JsonGenerator) {
+    constructor(writer: Writer): this(JsonFactory().createGenerator(writer))
+    constructor(outputStream: OutputStream): this(JsonFactory().createGenerator(outputStream))
 
     init {
         jsonGenerator.codec = objectMapper()

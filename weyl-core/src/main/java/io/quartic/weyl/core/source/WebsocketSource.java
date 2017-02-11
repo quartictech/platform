@@ -25,6 +25,9 @@ public abstract class WebsocketSource implements Source {
     protected abstract MetricRegistry metrics();
     protected abstract WebsocketListener.Factory listenerFactory();
 
+    @Override
+    public abstract boolean indexable();
+
     @Value.Derived
     protected Meter messageRateMeter() {
         return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate", name()));
@@ -36,12 +39,9 @@ public abstract class WebsocketSource implements Source {
         return listenerFactory().create(LiveEvent.class)
                 .getObservable()
                 .doOnNext(s -> messageRateMeter().mark())
+                .doOnNext(s -> LOG.info("[{}] received", s.updateType()))
                 .map(event -> LayerUpdateImpl.of(event.updateType(),
                         converter().toModel(event.featureCollection())));
     }
 
-    @Override
-    public boolean indexable() {
-        return false;
-    }
 }

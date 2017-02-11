@@ -202,18 +202,21 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .converter(featureConverter())
                         .build(),
                 WebsocketDatasetLocatorImpl.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory)),
+                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory),
+                                false),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + ((CloudGeoJsonDatasetLocator) config.locator()).path(), websocketFactory))
+                        new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + ((CloudGeoJsonDatasetLocator) config.locator()).path(), websocketFactory),
+                        true)
         );
     }
 
-    private ImmutableWebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory) {
+    private ImmutableWebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
         return WebsocketSource.builder()
                 .name(config.metadata().name())
                 .listenerFactory(listenerFactory)
                 .converter(featureConverter())
                 .metrics(environment.metrics())
+                .indexable(indexable)
                 .build();
     }
 
