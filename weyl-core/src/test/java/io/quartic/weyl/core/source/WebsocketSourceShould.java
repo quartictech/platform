@@ -33,7 +33,7 @@ import static rx.Observable.just;
 
 public class WebsocketSourceShould {
     private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", point()));
-    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(Instant.now(), FEATURE_COLLECTION);
+    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(LayerUpdate.Type.APPEND, Instant.now(), FEATURE_COLLECTION);
 
     @Test
     public void import_things() throws Exception {
@@ -60,7 +60,7 @@ public class WebsocketSourceShould {
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
         verify(converter).toModel(FEATURE_COLLECTION);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(modelFeatures)));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(LayerUpdate.Type.APPEND, modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

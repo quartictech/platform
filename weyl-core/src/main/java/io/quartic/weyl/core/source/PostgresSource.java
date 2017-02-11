@@ -54,7 +54,7 @@ public abstract class PostgresSource implements Source {
     @Override
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(LayerUpdateImpl.of(importAllFeatures()));
+            sub.onNext(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, importAllFeatures()));
             // Don't complete, because downstream uses that to indicate layer completion (TODO: maybe we should concat with never())
         });
     }
