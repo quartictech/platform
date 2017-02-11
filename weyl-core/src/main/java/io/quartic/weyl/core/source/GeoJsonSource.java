@@ -3,6 +3,7 @@ package io.quartic.weyl.core.source;
 import com.google.common.net.HttpHeaders;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.GeoJsonParser;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -34,7 +35,7 @@ public abstract class GeoJsonSource implements Source {
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, importAllFeatures()));
+                sub.onNext(LayerUpdateImpl.of(LayerUpdateType.REPLACE, importAllFeatures()));
             } catch (IOException e) {
                 sub.onError(e);
             }

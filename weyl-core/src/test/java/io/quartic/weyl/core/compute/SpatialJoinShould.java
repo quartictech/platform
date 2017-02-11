@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.SnapshotReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.EntityId;
@@ -14,7 +15,6 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerSpecImpl;
-import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
@@ -64,7 +64,7 @@ public class SpatialJoinShould {
         );
 
         final SnapshotReducer reducer = new SnapshotReducer(sequenceGenerator(SnapshotId::new));
-        return reducer.next(reducer.empty(spec), LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, features)).absolute();
+        return reducer.next(reducer.empty(spec), LayerUpdateImpl.of(LayerUpdateType.REPLACE, features)).absolute();
     }
 
     private NakedFeature point(double x, double y) {

@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Point;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -69,7 +70,7 @@ public class GeoJsonSourceShould {
                 .observable().subscribe(subscriber);
 
         verify(converter).toModel(original);
-        subscriber.assertValue(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, modelFeatures));
+        subscriber.assertValue(LayerUpdateImpl.of(LayerUpdateType.REPLACE, modelFeatures));
     }
 
     @Test
