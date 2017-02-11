@@ -6,6 +6,7 @@ import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.feature.FeatureCollection;
+import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -73,23 +74,14 @@ public class SnapshotReducer {
         );
     }
 
-    private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdate update,
-                                              Collection<Feature> newFeatures) {
-        switch (update.type()) {
-            case APPEND:
-                return prevFeatures.append(newFeatures);
-            case REPLACE:
-                return FeatureCollection.EMPTY_COLLECTION.append(newFeatures);
-            default:
-                throw new RuntimeException("unsupported operation: " + update.type());
-        }
-    }
-
     private Layer next(Layer layer, LayerUpdate layerUpdate, Collection<Feature> features) {
-        final FeatureCollection updatedFeatures = updatedFeatures(layer.features(), layerUpdate, features);
+        final FeatureCollection updatedFeatures = updatedFeatures(layer.features(), layerUpdate.type(), features);
+        DynamicSchema dynamicSchema = inferSchema(features,
+                layerUpdate.type() == LayerUpdate.Type.REPLACE ? DynamicSchema.EMPTY_SCHEMA : layer.dynamicSchema(),
+                layer.spec().staticSchema());
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
-                .withDynamicSchema(inferSchema(features, layer.dynamicSchema(), layer.spec().staticSchema()));
+                .withDynamicSchema(dynamicSchema);
 
         if (layer.spec().indexable()) {
             final Collection<IndexedFeature> indexedFeatures = indexedFeatures(updatedFeatures);
@@ -99,6 +91,18 @@ public class SnapshotReducer {
                     .withStats(calculateStats(withFeatures.dynamicSchema(), updatedFeatures));
         } else {
             return withFeatures;
+        }
+    }
+
+    private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdate.Type updateType,
+                                              Collection<Feature> newFeatures) {
+        switch (updateType) {
+            case APPEND:
+                return prevFeatures.append(newFeatures);
+            case REPLACE:
+                return FeatureCollection.EMPTY_COLLECTION.append(newFeatures);
+            default:
+                throw new RuntimeException("unsupported operation: " + updateType);
         }
     }
 

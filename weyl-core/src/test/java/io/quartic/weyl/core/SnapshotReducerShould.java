@@ -1,13 +1,20 @@
 package io.quartic.weyl.core;
 
+import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.DynamicSchema;
+import io.quartic.weyl.core.model.DynamicSchemaImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerImpl;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
@@ -18,6 +25,7 @@ import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.model.SnapshotId;
+import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Test;
@@ -105,6 +113,20 @@ public class SnapshotReducerShould {
         assertThat(snapshot3.diff(), contains(feature(LAYER_ID + "/c")));
         assertThat(snapshot3.absolute().features(), containsInAnyOrder(feature(LAYER_ID + "/b"), feature(LAYER_ID + "/c")));
         assertThat(snapshot3.absolute().features(), not(contains(feature(LAYER_ID + "/a"))));
+    }
+
+    @Test
+    public void clear_dynamic_schema_on_replace() {
+        Snapshot snapshot = initialSnapshot();
+        Layer layerWithDynamicSchema = LayerImpl.copyOf(snapshot.absolute())
+                .withDynamicSchema(DynamicSchemaImpl.of(ImmutableMap.of(
+                        AttributeNameImpl.of("wat"), AttributeImpl.of(AttributeType.NUMERIC, Optional.empty())
+                )));
+        Snapshot snapshot1 = SnapshotImpl.copyOf(snapshot).withAbsolute(layerWithDynamicSchema);
+        assertThat(snapshot1.absolute().dynamicSchema(), not(equalTo(DynamicSchema.EMPTY_SCHEMA)));
+        Snapshot snapshot2 = reducer.next(snapshot1, updateFor(LayerUpdate.Type.REPLACE,
+                 nakedFeature(Optional.of("a"))));
+        assertThat(snapshot2.absolute().dynamicSchema(), equalTo(DynamicSchema.EMPTY_SCHEMA));
     }
 
 
