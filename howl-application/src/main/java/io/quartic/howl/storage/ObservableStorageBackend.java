@@ -22,12 +22,12 @@ public class ObservableStorageBackend implements StorageBackend {
 
     @Override
     public Long put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException {
-        Long newVersion =  delegate.put(contentType, namespace, objectName, inputStream);
+        Long newVersion = delegate.put(contentType, namespace, objectName, inputStream);
         changes.onNext(StorageBackendChangeImpl.of(namespace, objectName, newVersion));
         return newVersion;
     }
 
     public Observable<StorageBackendChange> changes() {
-       return changes;
+        return changes;
     }
 }
