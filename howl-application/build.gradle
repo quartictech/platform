@@ -18,7 +18,7 @@ dependencies {
     compile project(":common-application")
     compile project(":howl-api")
     compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
-    compile "com.liveperson:dropwizard-websockets:1.0.0-1"  // BEWARE! The highest version number in maven central is 1.2. This is actually an older version (and not compatible with DW 1.0)
+    compile libraries.dropwizardWebsockets
 
     testCompile libraries.testCommon
     testCompile libraries.dropwizardTesting
