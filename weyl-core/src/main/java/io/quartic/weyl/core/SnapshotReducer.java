@@ -6,6 +6,7 @@ import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.core.feature.FeatureCollection;
+import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -65,18 +66,22 @@ public class SnapshotReducer {
         LOG.info("[{}] Accepted {} features", prevLayer.spec().metadata().name(), update.features().size());
 
         final Collection<Feature> elaborated = elaborate(prevLayer.spec().id(), update.features());
+
         return SnapshotImpl.of(
                 sidGen.get(),
-                next(prevLayer, elaborated),
+                next(prevLayer, update, elaborated),
                 elaborated
         );
     }
 
-    private Layer next(Layer layer, Collection<Feature> features) {
-        final FeatureCollection updatedFeatures = layer.features().append(features);
+    private Layer next(Layer layer, LayerUpdate layerUpdate, Collection<Feature> features) {
+        final FeatureCollection updatedFeatures = updatedFeatures(layer.features(), layerUpdate.type(), features);
+        DynamicSchema dynamicSchema = inferSchema(features,
+                layerUpdate.type() == LayerUpdate.Type.REPLACE ? DynamicSchema.EMPTY_SCHEMA : layer.dynamicSchema(),
+                layer.spec().staticSchema());
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
-                .withDynamicSchema(inferSchema(features, layer.dynamicSchema(), layer.spec().staticSchema()));
+                .withDynamicSchema(dynamicSchema);
 
         if (layer.spec().indexable()) {
             final Collection<IndexedFeature> indexedFeatures = indexedFeatures(updatedFeatures);
@@ -86,6 +91,18 @@ public class SnapshotReducer {
                     .withStats(calculateStats(withFeatures.dynamicSchema(), updatedFeatures));
         } else {
             return withFeatures;
+        }
+    }
+
+    private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdate.Type updateType,
+                                              Collection<Feature> newFeatures) {
+        switch (updateType) {
+            case APPEND:
+                return prevFeatures.append(newFeatures);
+            case REPLACE:
+                return FeatureCollection.EMPTY_COLLECTION.append(newFeatures);
+            default:
+                throw new RuntimeException("unsupported operation: " + updateType);
         }
     }
 
@@ -103,7 +120,6 @@ public class SnapshotReducer {
         features.forEach(feature -> stRtree.insert(feature.preparedGeometry().getGeometry().getEnvelopeInternal(), feature));
         return stRtree;
     }
-
 
     private Collection<Feature> elaborate(LayerId layerId, Collection<NakedFeature> features) {
         return features.stream().map(f -> FeatureImpl.of(
