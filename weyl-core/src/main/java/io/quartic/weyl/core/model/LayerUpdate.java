@@ -12,6 +12,13 @@ import java.util.Collection;
 @JsonSerialize(as = LayerUpdateImpl.class)
 @JsonDeserialize(as = LayerUpdateImpl.class)
 public interface LayerUpdate {
+    enum Type {
+        APPEND,
+        REPLACE
+    }
+
+    Type type();
+
     // TODO: not Collections
     Collection<NakedFeature> features();
 }

@@ -72,6 +72,6 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
                 )
                 .collect(toList());
 
-        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(bufferedFeatures));
+        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, bufferedFeatures));
     }
 }
