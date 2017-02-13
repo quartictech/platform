@@ -21,7 +21,7 @@ public class ObservableStorageBackendShould {
 
     @Test
     public void notify_on_put() throws IOException {
-        when(storageBackend.put(any(), any(), any(), any())).thenAnswer(invocation -> 1L);
+        when(storageBackend.put(any(), any(), any(), any())).thenReturn(1L);
 
         TestSubscriber<StorageBackendChange> subscriber = TestSubscriber.create();
         observableStorageBackend.changes().subscribe(subscriber);
