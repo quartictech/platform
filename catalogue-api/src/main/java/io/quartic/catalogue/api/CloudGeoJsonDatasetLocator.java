@@ -11,4 +11,9 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = CloudGeoJsonDatasetLocatorImpl.class)
 public interface CloudGeoJsonDatasetLocator extends DatasetLocator {
     String path();
+
+    @Value.Default
+    default boolean streaming() {
+        return false;
+    }
 }
