@@ -26,9 +26,11 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
     protected Subscription createResourceFor(@NotNull Session session) {
         String namespace = session.getPathParameters().get("namespace");
         String objectName = session.getPathParameters().get("objectName");
-        LOG.info("[{}/{}] onOpen", namespace, objectName);
+        LOG.info("[{}/{}] changes websocket created", namespace, objectName);
 
-        Subscription subscription = changes.filter(change -> change.namespace().equals(namespace) &&
+        Subscription subscription = changes
+                .doOnEach(change -> LOG.info("[{}/{}] change broadcast", namespace, objectName))
+                .filter(change -> change.namespace().equals(namespace) &&
                         change.objectName().equals(objectName))
                 .subscribe(change -> {
                     try {

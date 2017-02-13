@@ -13,10 +13,13 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DiskStorageBackend implements StorageBackend {
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
     private final Path rootPath;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public DiskStorageBackend(Path rootPath) {
        this.rootPath = rootPath;
@@ -47,15 +50,21 @@ public class DiskStorageBackend implements StorageBackend {
 
     @Override
     public Optional<InputStreamWithContentType> get(String namespace, String objectName, Long version) throws IOException {
-        Optional<Path> path = getFilePath(namespace, objectName, version);
+        try {
+            lock.readLock().lock();
+            Optional<Path> path = getFilePath(namespace, objectName, version);
 
-        if (path.isPresent()) {
-            String contentType = Optional.ofNullable(Files.probeContentType(path.get())).orElse(DEFAULT_CONTENT_TYPE);
-            File file = path.get().toFile();
+            if (path.isPresent()) {
+                String contentType = Optional.ofNullable(Files.probeContentType(path.get())).orElse(DEFAULT_CONTENT_TYPE);
+                File file = path.get().toFile();
 
-            if (file.exists()) {
-                return Optional.of(InputStreamWithContentTypeImpl.of(contentType, new FileInputStream(file)));
+                if (file.exists()) {
+                    return Optional.of(InputStreamWithContentTypeImpl.of(contentType, new FileInputStream(file)));
+                }
             }
+        }
+        finally {
+            lock.readLock().unlock();
         }
 
         return Optional.empty();
@@ -66,8 +75,21 @@ public class DiskStorageBackend implements StorageBackend {
         Long version = System.currentTimeMillis();
         Path path = getFilePath(namespace, objectName, version).get();
         path.getParent().toFile().mkdirs();
-        try(FileOutputStream fileOutputStream = new FileOutputStream(path.toFile())) {
-            IOUtils.copy(inputStream, fileOutputStream);
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("howl", "partial");
+            try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile)) {
+                IOUtils.copy(inputStream, fileOutputStream);
+            }
+
+            lock.writeLock().lock();
+            Files.move(tempFile.toPath(), path);
+        }
+        finally {
+            lock.writeLock().unlock();
+            if (tempFile != null) {
+                tempFile.delete();
+            }
         }
         return version;
     }

@@ -44,21 +44,18 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
                 .doOnError { LOG.error("error: $it") }
                 .subscribe({ change ->
                     LOG.info("receiving update: {}", change)
-                    val inputStream = howlClient.downloadFile(change.namespace(), change.objectName())
-                    if (inputStream != null) {
-
-                        val stop = Stopwatch.createStarted()
-                        val parser = GeoJsonParser(inputStream)
-                        sendData(session, parser)
-                        LOG.info("took {}ms to send data", stop.elapsed(TimeUnit.MILLISECONDS))
-//                        val features: List<Feature> = StreamSupport.stream(
-//                                Spliterators.spliteratorUnknownSize(parser, Spliterator.ORDERED),
-//                                false).collect(Collectors.toList()) as List<Feature>
-//                        session.asyncRemote.sendText(OBJECT_MAPPER.writeValueAsString(
-//                                LiveEventImpl.of(LayerUpdateType.REPLACE, Instant.now(),
-//                                FeatureCollection(features)
-//                        )))
-                        LOG.info("update sent to remote")
+                    howlClient.downloadFile(change.namespace(), change.objectName()).use { inputStream ->
+                        if (inputStream != null) {
+                            val stop = Stopwatch.createStarted()
+                            val parser = GeoJsonParser(inputStream)
+                            try {
+                                sendData(session, parser)
+                            }
+                            catch (e: Exception) {
+                                LOG.error("exception while sending data to client", e)
+                            }
+                            LOG.info("took {}ms to send data", stop.elapsed(TimeUnit.MILLISECONDS))
+                        }
                     }
                 }, { error -> LOG.error("error: {}", error.message)})
     }
