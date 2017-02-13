@@ -186,33 +186,42 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Environment environment,
             WebsocketClientSessionFactory websocketFactory
     ) {
-        final String userAgent = userAgentFor(getClass());
-
         return ImmutableMap.of(
                 PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
                         .name(config.metadata().name())
                         .locator((PostgresDatasetLocator) config.locator())
                         .attributesFactory(attributesFactory())
                         .build(),
-                GeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
-                        .name(config.metadata().name())
-                        .url(((GeoJsonDatasetLocator) config.locator()).url())
-                        .userAgent(userAgent)
-                        .converter(featureConverter())
-                        .build(),
-                WebsocketDatasetLocatorImpl.class, config -> WebsocketSource.builder()
-                        .name(config.metadata().name())
-                        .listenerFactory(new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory))
-                        .converter(featureConverter())
-                        .metrics(environment.metrics())
-                        .build(),
-                CloudGeoJsonDatasetLocatorImpl.class, config -> GeoJsonSource.builder()
-                        .name(config.metadata().name())
-                        .url(configuration.getHowlStorageUrl() + ((CloudGeoJsonDatasetLocator) config.locator()).path())
-                        .userAgent(userAgent)
-                        .converter(featureConverter())
-                        .build()
+                GeoJsonDatasetLocatorImpl.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.locator()).url()),
+                WebsocketDatasetLocatorImpl.class, config -> websocketSource(environment, config,
+                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory)),
+                CloudGeoJsonDatasetLocatorImpl.class, config -> {
+                    // TODO: can remove the geojsonSource variant once we've regularised the Rain path
+                    final CloudGeoJsonDatasetLocator cgjLocator = (CloudGeoJsonDatasetLocator) config.locator();
+                    return cgjLocator.streaming()
+                            ? websocketSource(environment, config,
+                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.path(), websocketFactory))
+                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.path());
+                }
         );
+    }
+
+    private GeoJsonSource geojsonSource(DatasetConfig config, String url) {
+        return GeoJsonSource.builder()
+        .name(config.metadata().name())
+        .url(url)
+        .userAgent(userAgentFor(getClass()))
+        .converter(featureConverter())
+        .build();
+    }
+
+    private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory) {
+        return WebsocketSource.builder()
+                .name(config.metadata().name())
+                .listenerFactory(listenerFactory)
+                .converter(featureConverter())
+                .metrics(environment.metrics())
+                .build();
     }
 
     private FeatureConverter featureConverter() {

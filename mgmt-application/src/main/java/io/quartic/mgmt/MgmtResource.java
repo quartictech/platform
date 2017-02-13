@@ -66,7 +66,7 @@ public class MgmtResource {
                     String name = preprocessFile(request.fileName(), request.fileType());
                     return DatasetConfigImpl.of(
                             request.metadata(),
-                            CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name)),
+                            CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name), false),
                             emptyMap()
                     );
                 }

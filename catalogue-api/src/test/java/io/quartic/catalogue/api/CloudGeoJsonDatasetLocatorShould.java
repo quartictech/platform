@@ -3,7 +3,7 @@ package io.quartic.catalogue.api;
 public class CloudGeoJsonDatasetLocatorShould extends DatasetLocatorTests<CloudGeoJsonDatasetLocator> {
     @Override
     protected CloudGeoJsonDatasetLocator locator() {
-        return CloudGeoJsonDatasetLocatorImpl.of("http://wat");
+        return CloudGeoJsonDatasetLocatorImpl.of("http://wat", false);
     }
 
     @Override
