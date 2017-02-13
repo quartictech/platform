@@ -43,7 +43,7 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
                 .startWith(StorageBackendChangeImpl.of(namespace, objectName, null))
                 .doOnError { LOG.error("error: $it") }
                 .subscribe({ change ->
-                    LOG.info("receiving update: {}", change)
+                    LOG.info("[{}/{}] receiving update: {}", namespace, objectName, change)
                     howlClient.downloadFile(change.namespace(), change.objectName()).use { inputStream ->
                         if (inputStream != null) {
                             val stop = Stopwatch.createStarted()
@@ -52,9 +52,10 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
                                 sendData(session, parser)
                             }
                             catch (e: Exception) {
-                                LOG.error("exception while sending data to client", e)
+                                LOG.error("[{}/{}] exception while sending data to client", namespace, objectName, e)
                             }
-                            LOG.info("took {}ms to send data", stop.elapsed(TimeUnit.MILLISECONDS))
+                            LOG.info("[{}/{}] took {}ms to send data", namespace, objectName,
+                                    stop.elapsed(TimeUnit.MILLISECONDS))
                         }
                     }
                 }, { error -> LOG.error("error: {}", error.message)})
