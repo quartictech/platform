@@ -29,9 +29,9 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
         LOG.info("[{}/{}] changes websocket created", namespace, objectName);
 
         Subscription subscription = changes
-                .doOnEach(change -> LOG.info("[{}/{}] change broadcast", namespace, objectName))
                 .filter(change -> change.namespace().equals(namespace) &&
                         change.objectName().equals(objectName))
+                .doOnEach(change -> LOG.info("[{}/{}] change broadcast", namespace, objectName))
                 .subscribe(change -> {
                     try {
                         session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(change));
