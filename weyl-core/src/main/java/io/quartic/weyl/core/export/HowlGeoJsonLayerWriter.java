@@ -30,7 +30,7 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
                 .map(featureConverter::featureToGeojson));
         });
         return LayerExportResultImpl.of(
-                CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId)),
+                CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId), false),
                 String.format("exported %d features to layer: %s", featureCount[0], layer.spec().metadata().name()));
     }
 
