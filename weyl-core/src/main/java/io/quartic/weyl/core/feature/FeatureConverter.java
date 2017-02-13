@@ -41,10 +41,10 @@ public class FeatureConverter {
     }
 
     public Collection<NakedFeature> toModel(FeatureCollection featureCollection) {
-        return toModel(featureCollection.getFeatures());
+        return featuresToModel(featureCollection.getFeatures());
     }
 
-    private Collection<NakedFeature> toModel(Collection<io.quartic.common.geojson.Feature> features) {
+    public Collection<NakedFeature> featuresToModel(Collection<io.quartic.common.geojson.Feature> features) {
         return features.stream()
                 .filter(f -> f.getGeometry() != null)
                 .map(this::toModel)
