@@ -4,6 +4,7 @@ catalogue:
   useSsl: false
 
 howlStorageUrl: http://localhost:8120/api
+rainWsUrlRoot: http://localhost:8150/ws
 
 server:
   applicationContextPath: /

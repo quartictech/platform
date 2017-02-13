@@ -59,7 +59,7 @@ public class LayerExporterShould {
         @Override
         public LayerExportResult write(Layer layer) {
             layer.features().stream().collect(toCollection(() -> features));
-            return LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test"), "ok");
+            return LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test", false), "ok");
         }
 
         public List<Feature> getFeatures() {
@@ -82,7 +82,7 @@ public class LayerExporterShould {
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
-        exportResult.assertValue(Optional.of(LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test"), "ok")));
+        exportResult.assertValue(Optional.of(LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test", false), "ok")));
         assertThat(layerWriter.getFeatures().get(0).entityId(), equalTo(features.get(0).entityId()));
     }
 
