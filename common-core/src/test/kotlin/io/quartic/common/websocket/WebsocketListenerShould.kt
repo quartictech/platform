@@ -56,6 +56,21 @@ class WebsocketListenerShould {
         assertThat(server.numConnections, equalTo(0))
     }
 
+    @Test
+    fun close_socket_on_unsubscribe() {
+        listener.observable.subscribe().unsubscribe()
+
+        assertThat(server.numDisconnections, equalTo(1))
+    }
+
+    @Test
+    fun not_close_socket_if_only_one_of_two_subscribers_unsubscribes() {
+        listener.observable.subscribe()
+        listener.observable.subscribe().unsubscribe()
+
+        assertThat(server.numDisconnections, equalTo(0))
+    }
+
     data class TestThing(val name: String)
 
     companion object {
