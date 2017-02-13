@@ -54,6 +54,7 @@ public class WebsocketSourceShould {
                 .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
+                .indexable(false)
                 .build();
 
         TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
