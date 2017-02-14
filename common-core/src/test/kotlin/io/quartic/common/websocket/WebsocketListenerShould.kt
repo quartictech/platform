@@ -60,6 +60,8 @@ class WebsocketListenerShould {
     fun close_socket_on_unsubscribe() {
         listener.observable.subscribe().unsubscribe()
 
+        Thread.sleep(500)   // HACK - Deal with CircleCI weirdness
+
         assertThat(server.numDisconnections, equalTo(1))
     }
 
@@ -67,6 +69,8 @@ class WebsocketListenerShould {
     fun not_close_socket_if_only_one_of_two_subscribers_unsubscribes() {
         listener.observable.subscribe()
         listener.observable.subscribe().unsubscribe()
+
+        Thread.sleep(500)   // HACK - Deal with CircleCI weirdness
 
         assertThat(server.numDisconnections, equalTo(0))
     }
