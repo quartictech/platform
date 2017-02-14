@@ -6,6 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.LayerUpdate;
@@ -54,7 +55,7 @@ public abstract class PostgresSource implements Source {
     @Override
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, importAllFeatures()));
+            sub.onNext(LayerUpdateImpl.of(LayerUpdateType.REPLACE, importAllFeatures()));
             // Don't complete, because downstream uses that to indicate layer completion (TODO: maybe we should concat with never())
         });
     }

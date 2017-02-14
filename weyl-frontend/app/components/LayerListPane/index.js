@@ -255,7 +255,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         <MenuItem iconName="tint" text="Colour by...">
           {
             _.keys(layer.dynamicSchema.attributes)
-              .filter(k => layer.dynamicSchema.attributes[k].type === "NUMERIC")
+              .filter(k => isColourable(layer.dynamicSchema.attributes[k]))
               .sort(naturalsort)
               .map(k =>
                 <MenuItem
@@ -288,6 +288,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable || attr.timeRange);
   }
 }
+
+const isColourable = (attribute) => (attribute.type === "NUMERIC") || (attribute.categories !== null);
 
 const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
 
