@@ -32,12 +32,14 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
+import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.common.rx.RxUtilsKt.all;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.compute.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -177,7 +179,8 @@ public class BucketComputationShould {
                 Optional.of(name("Title")),
                 Optional.of(name("Primary")),
                 Optional.of(name("Image")),
-                newArrayList(name("BlessedA"), name("BlessedB")),
+                newHashSet(name("BlessedA"), name("BlessedB")),
+                emptySet(),
                 ImmutableMap.of()
         );
     }

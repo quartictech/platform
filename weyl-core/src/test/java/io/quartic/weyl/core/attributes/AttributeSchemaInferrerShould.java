@@ -1,8 +1,18 @@
 package io.quartic.weyl.core.attributes;
 
-import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.DynamicSchema;
+import io.quartic.weyl.core.model.DynamicSchemaImpl;
+import io.quartic.weyl.core.model.EntityId;
+import io.quartic.weyl.core.model.Feature;
+import io.quartic.weyl.core.model.FeatureImpl;
+import io.quartic.weyl.core.model.StaticSchema;
+import io.quartic.weyl.core.model.StaticSchemaImpl;
 import kotlin.Pair;
 import org.junit.Test;
 
@@ -16,7 +26,11 @@ import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.MAX_CATEGORIES;
 import static io.quartic.weyl.core.attributes.AttributeSchemaInferrer.inferSchema;
-import static io.quartic.weyl.core.model.AttributeType.*;
+import static io.quartic.weyl.core.model.AttributeType.NUMERIC;
+import static io.quartic.weyl.core.model.AttributeType.STRING;
+import static io.quartic.weyl.core.model.AttributeType.TIMESTAMP;
+import static io.quartic.weyl.core.model.AttributeType.TIME_SERIES;
+import static io.quartic.weyl.core.model.AttributeType.UNKNOWN;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -96,6 +110,20 @@ public class AttributeSchemaInferrerShould {
 
         assertThat(inferSchema(features, schema(), emptyStaticSchema()), equalTo(schema(
                 entry(name("a"), AttributeImpl.of(STRING, Optional.empty()))
+        )));
+    }
+
+    @Test
+    public void infer_categories_even_when_too_many_if_statically_declared_as_categorical() throws Exception {
+        final String[] allTheThings = distinctValuesPlusOneRepeated(MAX_CATEGORIES + 1);
+        final List<Feature> features = features("a", (Object[]) allTheThings);
+
+        final StaticSchema staticSchema = StaticSchemaImpl.builder()
+                .categoricalAttribute(name("a"))
+                .build();
+
+        assertThat(inferSchema(features, schema(), staticSchema), equalTo(schema(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet(allTheThings))))
         )));
     }
 
@@ -213,12 +241,10 @@ public class AttributeSchemaInferrerShould {
     }
 
     private StaticSchema emptyStaticSchema() {
-        return StaticSchemaImpl.builder()
-                .allBlessedAttributes(ImmutableList.of())
-                .build();
+        return StaticSchemaImpl.builder().build();
     }
 
-    private AttributeNameImpl name(String name) {
+    private AttributeName name(String name) {
         return AttributeNameImpl.of(name);
     }
 
