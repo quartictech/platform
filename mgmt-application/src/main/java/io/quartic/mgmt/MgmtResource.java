@@ -104,6 +104,7 @@ public class MgmtResource {
                             }
                         });
                 return storageId.getUid();
+            case RAW:
             default:
                 return fileName;
         }
