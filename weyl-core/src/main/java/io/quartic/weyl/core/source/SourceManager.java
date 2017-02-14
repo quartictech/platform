@@ -60,7 +60,7 @@ public abstract class SourceManager {
                                 sourceUntil(source, deletionEventFrom(events))))
                 );
 
-        LOG.info("[%s] Finished constructing populator", group.getKey());
+        LOG.info("[{}] Finished constructing populator", group.getKey());
         return populator;
     }
 
