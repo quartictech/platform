@@ -98,7 +98,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final SourceManager sourceManager = SourceManagerImpl.builder()
                 .catalogueEvents(catalogueWatcher.getEvents())
                 .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
-                .scheduler(Schedulers.computation())
+                .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
 
         final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
