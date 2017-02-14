@@ -51,15 +51,17 @@ public abstract class SourceManager {
 
     private Observable<LayerPopulator> processEventsForId(GroupedObservable<DatasetId, CatalogueEvent> group) {
         final Observable<CatalogueEvent> events = group.cache();    // Because groupBy can only have one subscriber per group
-
-        return events
+        final Observable<LayerPopulator> populator = events
                 .filter(e -> e.getType() == CREATE)
                 .flatMap(event -> createSource(event.getId(), event.getConfig())
                         .map(source -> createPopulator(
                                 event.getId(),
                                 event.getConfig(),
-                                sourceUntil(source, events.filter(e -> e.getType() == DELETE))))
+                                sourceUntil(source, deletionEventFrom(events))))
                 );
+
+        LOG.info("[{}] Finished constructing populator", group.getKey());
+        return populator;
     }
 
     private LayerPopulator createPopulator(DatasetId id, DatasetConfig config, Source source) {
@@ -108,6 +110,12 @@ public abstract class SourceManager {
                 return source.indexable();
             }
         };
+    }
+
+    private Observable<CatalogueEvent> deletionEventFrom(Observable<CatalogueEvent> events) {
+        return events
+                .filter(e -> e.getType() == DELETE)
+                .doOnNext(e -> LOG.info(format("[%s] Deleted layer", e.getConfig().metadata().name())));
     }
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?

@@ -12,6 +12,7 @@ import okio.BufferedSink;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static io.quartic.common.serdes.ObjectMappersKt.decode;
@@ -93,7 +94,7 @@ public class HowlClient implements HowlService {
     }
 
     @Override
-    public InputStream downloadFile(String namespace, String fileName) throws IOException {
+    public Optional<InputStream> downloadFile(String namespace, String fileName) throws IOException {
         HttpUrl url = url(namespace, fileName);
 
         Request request = new Request.Builder()
@@ -101,7 +102,12 @@ public class HowlClient implements HowlService {
                 .get()
                 .build();
 
-        return client.newCall(request).execute().body().byteStream();
+        Response response = client.newCall(request).execute();
 
+        if (response.isSuccessful()) {
+            return Optional.of(response.body().byteStream());
+        }
+
+        return Optional.empty();
     }
 }

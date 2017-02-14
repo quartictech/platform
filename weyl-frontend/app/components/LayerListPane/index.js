@@ -85,6 +85,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           layer.filter,
           layer.stats ? layer.stats.attributeStats : {},
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
+          (k) => this.props.onToggleAllValuesVisible(layer.id, k),
           (k, startTime, endTime) => this.props.onApplyTimeRangeFilter(layer.id, k, startTime, endTime)
         ),
       };
@@ -96,12 +97,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 
-  attributeNodes(attributes, filter, attributeStats, onValueClick, applyTimeRangeFilter) {
+  attributeNodes(attributes, filter, attributeStats, onValueClick, onCategoryClick, applyTimeRangeFilter) {
     return _.chain(attributes)
       .keys()
       .sort(naturalsort)
       .map(k => {
-        const node = this.attributeNode(k, attributes[k], attributeStats[k], filter[k], onValueClick, applyTimeRangeFilter);
+        const node = this.attributeNode(k, attributes[k], attributeStats[k], filter[k], onValueClick, onCategoryClick, applyTimeRangeFilter);
         node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
         node.onExpand = () => this.setState({ activeAttribute: k });
         node.onCollapse = () => this.setState({ activeAttribute: null });
@@ -111,7 +112,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  attributeNode(attribute, attributeInfo, attributeStats, filter, onValueClick, applyTimeRangeFilter) {
+  attributeNode(attribute, attributeInfo, attributeStats, filter, onValueClick, onCategoryClick, applyTimeRangeFilter) {
     if (attributeInfo.type === "TIMESTAMP") {
       return {
         iconName: "time",
@@ -144,6 +145,14 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         iconName: "th-list",
         id: attribute,
         label: <small>{attribute}</small>,
+        secondaryLabel: <Tooltip content="Invert Selection" position={Position.BOTTOM}>
+          <Button
+            iconName="swap-horizontal"
+            className={Classes.MINIMAL}
+            onClick={() => onCategoryClick(attribute)}
+            intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
+          />
+        </Tooltip>,
         childNodes: this.attributeCategoryNodes(
           attributeInfo.categories,
           filter,
@@ -246,7 +255,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
         <MenuItem iconName="tint" text="Colour by...">
           {
             _.keys(layer.dynamicSchema.attributes)
-              .filter(k => layer.dynamicSchema.attributes[k].type === "NUMERIC")
+              .filter(k => isColourable(layer.dynamicSchema.attributes[k]))
               .sort(naturalsort)
               .map(k =>
                 <MenuItem
@@ -279,6 +288,8 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     return _.some(layer.filter, attr => (_.size(attr.categories) > 0) || attr.notApplicable || attr.timeRange);
   }
 }
+
+const isColourable = (attribute) => (attribute.type === "NUMERIC") || (attribute.categories !== null);
 
 const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
 

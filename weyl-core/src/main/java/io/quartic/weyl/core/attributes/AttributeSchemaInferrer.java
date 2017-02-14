@@ -42,22 +42,34 @@ public class AttributeSchemaInferrer {
         final Collection<AttributeName> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
         return DynamicSchemaImpl.of(names.parallelStream()
                 .collect(toConcurrentMap(identity(),
-                        attribute -> inferAttribute(attribute, attributes, previousInference.attributes(),
-                                staticSchema.attributeTypes()))
+                        attribute -> inferAttribute(
+                                attribute,
+                                attributes,
+                                previousInference.attributes(),
+                                staticSchema
+                        ))
         ));
     }
 
-    private static Attribute inferAttribute(AttributeName name, Collection<Attributes> attributes,
-                                            Map<AttributeName, Attribute> previousInference,
-                                            Map<AttributeName, AttributeType> staticTypes) {
+    private static Attribute inferAttribute(
+            AttributeName name,
+            Collection<Attributes> attributes,
+            Map<AttributeName, Attribute> previousInference,
+            StaticSchema staticSchema
+    ) {
         final Attribute previous = previousInference.get(name);
         return AttributeImpl.builder()
-                .type(staticTypes.getOrDefault(name, inferAttributeType(name, attributes, previous)))
-                .categories(inferCategories(name, attributes, previous))
+                .type(staticSchema.attributeTypes().getOrDefault(name, inferAttributeType(name, attributes, previous)))
+                .categories(inferCategories(name, attributes, previous, staticSchema.categoricalAttributes().contains(name)))
                 .build();
     }
 
-    private static Optional<Set<Object>> inferCategories(AttributeName name, Collection<Attributes> attributes, Attribute previous) {
+    private static Optional<Set<Object>> inferCategories(
+            AttributeName name,
+            Collection<Attributes> attributes,
+            Attribute previous,
+            boolean forceToBeCategorical
+    ) {
         if (previous != null && !previous.categories().isPresent()) {
             return Optional.empty();    // Assume this means there were already too many
         }
@@ -69,7 +81,9 @@ public class AttributeSchemaInferrer {
                 .filter(v -> (v != null) && isPrimitive(v))
                 .collect(toCollection(() -> union));
 
-        return (values.size() > 0 && values.size() <= MAX_CATEGORIES) ? Optional.of(values) : Optional.empty();
+        return (forceToBeCategorical || (values.size() > 0 && values.size() <= MAX_CATEGORIES))
+                ? Optional.of(values)
+                : Optional.empty();
     }
 
     private static AttributeType inferAttributeType(AttributeName name, Collection<Attributes> attributes, Attribute previous) {

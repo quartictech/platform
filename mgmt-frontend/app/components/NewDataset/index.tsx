@@ -56,7 +56,10 @@ const FileTypeChooser = ({ fileType, onClick }) => (
     <FileTypeButton label="GeoJSON" fileType="geojson"
       selectedFileType={fileType} onClick={onClick} />
 
-    <FileTypeButton label="CSV" fileType="csv"
+    <FileTypeButton label="CSV (geospatial)" fileType="csv"
+      selectedFileType={fileType} onClick={onClick} />
+
+    <FileTypeButton label="RAW" fileType="raw"
       selectedFileType={fileType} onClick={onClick} />
   </div>
 );

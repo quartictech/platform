@@ -194,13 +194,14 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         .build(),
                 GeoJsonDatasetLocatorImpl.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.locator()).url()),
                 WebsocketDatasetLocatorImpl.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory)),
+                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory),
+                                false),
                 CloudGeoJsonDatasetLocatorImpl.class, config -> {
                     // TODO: can remove the geojsonSource variant once we've regularised the Rain path
                     final CloudGeoJsonDatasetLocator cgjLocator = (CloudGeoJsonDatasetLocator) config.locator();
                     return cgjLocator.streaming()
                             ? websocketSource(environment, config,
-                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.path(), websocketFactory))
+                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.path(), websocketFactory), true)
                             : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.path());
                 }
         );
@@ -215,12 +216,13 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         .build();
     }
 
-    private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory) {
+    private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
         return WebsocketSource.builder()
                 .name(config.metadata().name())
                 .listenerFactory(listenerFactory)
                 .converter(featureConverter())
                 .metrics(environment.metrics())
+                .indexable(indexable)
                 .build();
     }
 
