@@ -8,6 +8,9 @@ import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
 import io.quartic.common.geojson.Point;
+import io.quartic.weyl.api.LayerUpdateType;
+import io.quartic.weyl.api.LiveEvent;
+import io.quartic.weyl.api.LiveEventImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -31,7 +34,7 @@ import static rx.Observable.just;
 
 public class WebsocketSourceShould {
     private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", point()));
-    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(LayerUpdate.Type.APPEND, Instant.now(), FEATURE_COLLECTION);
+    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(LayerUpdateType.APPEND, Instant.now(), FEATURE_COLLECTION);
 
     @Test
     public void import_things() throws Exception {
@@ -51,6 +54,7 @@ public class WebsocketSourceShould {
                 .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
+                .indexable(false)
                 .build();
 
         TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
@@ -58,7 +62,7 @@ public class WebsocketSourceShould {
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
         verify(converter).toModel(FEATURE_COLLECTION);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(LayerUpdate.Type.APPEND, modelFeatures)));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(LayerUpdateType.APPEND, modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

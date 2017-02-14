@@ -1,10 +1,9 @@
-package io.quartic.weyl.core.source;
+package io.quartic.weyl.api;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.quartic.common.SweetStyle;
 import io.quartic.common.geojson.FeatureCollection;
-import io.quartic.weyl.core.model.LayerUpdate;
 import org.immutables.value.Value;
 
 import java.time.Instant;
@@ -15,11 +14,10 @@ import java.time.Instant;
 @JsonDeserialize(as = LiveEventImpl.class)
 public interface LiveEvent {
     @Value.Default
-    default LayerUpdate.Type updateType() {
+    default LayerUpdateType updateType() {
         // for back-compat
-        return LayerUpdate.Type.APPEND;
+        return LayerUpdateType.APPEND;
     }
-
     Instant timestamp();
     FeatureCollection featureCollection();
 }
