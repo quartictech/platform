@@ -9,7 +9,7 @@ import java.io.Writer
 import java.util.concurrent.atomic.AtomicLong
 import java.util.stream.Stream
 
-class GeoJsonGenerator(val jsonGenerator: JsonGenerator) {
+class GeoJsonGenerator(private val jsonGenerator: JsonGenerator) {
     constructor(writer: Writer): this(JsonFactory().createGenerator(writer))
     constructor(outputStream: OutputStream): this(JsonFactory().createGenerator(outputStream))
 

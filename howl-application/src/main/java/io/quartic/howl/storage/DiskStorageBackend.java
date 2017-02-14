@@ -54,6 +54,16 @@ public class DiskStorageBackend implements StorageBackend {
         return Optional.empty();
     }
 
+    private void renameFile(Path from, Path to) throws IOException {
+        try {
+            lock.writeLock().lock();
+            Files.move(from, to);
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
+    }
+
     @Override
     public Optional<InputStreamWithContentType> get(String namespace, String objectName, Long version) throws IOException {
         try {
@@ -87,11 +97,9 @@ public class DiskStorageBackend implements StorageBackend {
                 IOUtils.copy(inputStream, fileOutputStream);
             }
 
-            lock.writeLock().lock();
-            Files.move(tempFile.toPath(), getVersionPath(namespace, objectName, version).get());
+            renameFile(tempFile.toPath(), getVersionPath(namespace, objectName, version).get());
         }
         finally {
-            lock.writeLock().unlock();
             if (tempFile != null) {
                 tempFile.delete();
             }

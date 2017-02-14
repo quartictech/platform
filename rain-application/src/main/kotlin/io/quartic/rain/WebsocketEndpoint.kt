@@ -44,21 +44,22 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
                 .doOnError { LOG.error("error: $it") }
                 .subscribe({ change ->
                     LOG.info("[{}/{}] receiving update: {}", namespace, objectName, change)
-                    howlClient.downloadFile(change.namespace(), change.objectName()).use { inputStream ->
-                        if (inputStream != null) {
-                            val stop = Stopwatch.createStarted()
-                            val parser = GeoJsonParser(inputStream)
-                            try {
-                                sendData(session, parser)
+                    howlClient.downloadFile(change.namespace(), change.objectName()).map {
+                        it.use { inputStream ->
+                            if (inputStream != null) {
+                                val stop = Stopwatch.createStarted()
+                                val parser = GeoJsonParser(inputStream)
+                                try {
+                                    sendData(session, parser)
+                                } catch (e: Exception) {
+                                    LOG.error("[{}/{}] exception while sending data to client", namespace, objectName, e)
+                                }
+                                LOG.info("[{}/{}] took {}ms to send data", namespace, objectName,
+                                        stop.elapsed(TimeUnit.MILLISECONDS))
                             }
-                            catch (e: Exception) {
-                                LOG.error("[{}/{}] exception while sending data to client", namespace, objectName, e)
-                            }
-                            LOG.info("[{}/{}] took {}ms to send data", namespace, objectName,
-                                    stop.elapsed(TimeUnit.MILLISECONDS))
                         }
                     }
-                }, { error -> LOG.error("error: {}", error.message)})
+                }, { error -> LOG.error("[{}/{}] error: {}", namespace, objectName, error)})
     }
 
     fun sendData(session: Session, parser: GeoJsonParser) {
