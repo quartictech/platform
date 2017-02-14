@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
@@ -77,7 +78,7 @@ public class SnapshotReducer {
     private Layer next(Layer layer, LayerUpdate layerUpdate, Collection<Feature> features) {
         final FeatureCollection updatedFeatures = updatedFeatures(layer.features(), layerUpdate.type(), features);
         DynamicSchema dynamicSchema = inferSchema(features,
-                layerUpdate.type() == LayerUpdate.Type.REPLACE ? DynamicSchema.EMPTY_SCHEMA : layer.dynamicSchema(),
+                layerUpdate.type() == LayerUpdateType.REPLACE ? DynamicSchema.EMPTY_SCHEMA : layer.dynamicSchema(),
                 layer.spec().staticSchema());
         final LayerImpl withFeatures = LayerImpl.copyOf(layer)
                 .withFeatures(updatedFeatures)
@@ -94,7 +95,7 @@ public class SnapshotReducer {
         }
     }
 
-    private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdate.Type updateType,
+    private FeatureCollection updatedFeatures(FeatureCollection prevFeatures, LayerUpdateType updateType,
                                               Collection<Feature> newFeatures) {
         switch (updateType) {
             case APPEND:

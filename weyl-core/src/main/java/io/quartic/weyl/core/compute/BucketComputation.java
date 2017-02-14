@@ -2,6 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableList;
 import io.quartic.common.SweetStyle;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeName;
@@ -102,7 +103,7 @@ public abstract class BucketComputation implements LayerPopulator {
         final ForkJoinPool forkJoinPool = new ForkJoinPool(4);
         try {
             return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(
-                    LayerUpdate.Type.REPLACE,
+                    LayerUpdateType.REPLACE,
                     forkJoinPool.submit(() -> {
                         // The order here is that CONTAINS applies from left -> right and
                         // the spatial index on the right layer is the one that is queried

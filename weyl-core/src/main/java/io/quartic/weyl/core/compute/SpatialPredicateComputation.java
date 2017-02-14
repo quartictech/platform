@@ -2,6 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableList;
 import io.quartic.common.SweetStyle;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.*;
 import org.immutables.value.Value;
 import rx.Observable;
@@ -72,6 +73,6 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
                 )
                 .collect(toList());
 
-        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, bufferedFeatures));
+        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(LayerUpdateType.REPLACE, bufferedFeatures));
     }
 }

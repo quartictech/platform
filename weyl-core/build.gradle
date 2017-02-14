@@ -8,6 +8,7 @@ dependencies {
     processor libraries.immutables
 
     compile project(":common-core")
+    compile project(":weyl-api")
     compile project(":catalogue-api")  // TODO: this is probably wrong - should move the dataset types to common
     compile project(":catalogue-utils")
     compile project(":howl-api")

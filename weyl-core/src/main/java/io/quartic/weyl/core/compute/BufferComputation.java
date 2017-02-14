@@ -2,6 +2,7 @@ package io.quartic.weyl.core.compute;
 
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import io.quartic.common.SweetStyle;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
@@ -71,6 +72,6 @@ public abstract class BufferComputation implements LayerPopulator {
                 )
                 .collect(toList());
 
-        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(LayerUpdate.Type.REPLACE, bufferedFeatures));
+        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(LayerUpdateType.REPLACE, bufferedFeatures));
     }
 }
