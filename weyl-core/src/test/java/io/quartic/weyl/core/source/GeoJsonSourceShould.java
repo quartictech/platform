@@ -3,20 +3,27 @@ package io.quartic.weyl.core.source;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Point;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureConverter;
+import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
+import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -41,7 +48,7 @@ public class GeoJsonSourceShould {
     public WireMockRule wireMockRule = new WireMockRule(DYNAMIC_PORT);
 
     private final FeatureCollection original = new FeatureCollection(newArrayList(new Feature("abc", new Point(newArrayList(1.0, 2.0)))));
-    private final Collection<NakedFeature> modelFeatures = mock(Collection.class);
+    private final Collection<NakedFeature> modelFeatures = newArrayList(); // since the converter is a mock, this will be empty
     private final FeatureConverter converter = mock(FeatureConverter.class);
 
 
@@ -69,7 +76,7 @@ public class GeoJsonSourceShould {
                 .build()
                 .observable().subscribe(subscriber);
 
-        verify(converter).toModel(original);
+        verify(converter).featuresToModel(original.getFeatures());
         subscriber.assertValue(LayerUpdateImpl.of(LayerUpdateType.REPLACE, modelFeatures));
     }
 
