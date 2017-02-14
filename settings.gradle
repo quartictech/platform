@@ -31,8 +31,10 @@ include "mgmt-frontend"
 include "howl-api"
 include "howl-application"
 
+include "rain-application"
 include "scribe"
 
+include "weyl-api"
 include "weyl-core"
 include "weyl-application"
 include "weyl-frontend"

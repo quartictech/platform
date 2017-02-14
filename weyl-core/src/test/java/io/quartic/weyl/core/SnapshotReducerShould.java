@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.UidGenerator;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.AttributeType;
@@ -54,14 +55,14 @@ public class SnapshotReducerShould {
     @Test
     public void provide_unique_ids() throws Exception {
         final Snapshot initial = initialSnapshot();
-        final Snapshot updated = reducer.next(initial, updateFor(LayerUpdate.Type.APPEND));
+        final Snapshot updated = reducer.next(initial, updateFor(LayerUpdateType.APPEND));
 
         assertThat(updated.id(), not(equalTo(initial.id())));
     }
 
     @Test
     public void provide_update_features_as_diff() throws Exception {
-        Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdate.Type.APPEND,
+        Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.of("a"))));
 
         assertThat(updated.diff(), contains(feature(LAYER_ID + "/a")));
@@ -69,7 +70,7 @@ public class SnapshotReducerShould {
 
     @Test
     public void provide_external_id_if_not_present() throws Exception {
-        Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdate.Type.APPEND,
+        Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.empty()), nakedFeature(Optional.empty())));
 
         assertThat(updated.diff(), contains(feature(LAYER_ID + "/1"), feature(LAYER_ID + "/2")));
@@ -78,7 +79,7 @@ public class SnapshotReducerShould {
     @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
         Snapshot original = initialSnapshot();
-        Snapshot updated = reducer.next(original, updateFor(LayerUpdate.Type.APPEND,
+        Snapshot updated = reducer.next(original, updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.of("a"))));
 
         assertThat(updated.absolute().spec().staticSchema().blessedAttributes(), contains(AttributeNameImpl.of("blah")));
@@ -87,11 +88,11 @@ public class SnapshotReducerShould {
     @Test
     public void handle_basic_replace() throws Exception {
         Snapshot snapshot1 = reducer.next(initialSnapshot(),
-                updateFor(LayerUpdate.Type.APPEND,
+                updateFor(LayerUpdateType.APPEND,
                         nakedFeature(Optional.of("a"))));
 
         Snapshot snapshot2 = reducer.next(snapshot1,
-                updateFor(LayerUpdate.Type.REPLACE,
+                updateFor(LayerUpdateType.REPLACE,
                         nakedFeature(Optional.of("b"))));
         assertThat(snapshot2.diff(), contains(feature(LAYER_ID + "/b")));
         assertThat(snapshot2.absolute().features(), contains(feature(LAYER_ID + "/b")));
@@ -101,13 +102,13 @@ public class SnapshotReducerShould {
     @Test
     public void handle_replace_then_append() throws Exception {
         Snapshot snapshot1 = reducer.next(initialSnapshot(),
-                updateFor(LayerUpdate.Type.APPEND,
+                updateFor(LayerUpdateType.APPEND,
                         nakedFeature(Optional.of("a"))));
         Snapshot snapshot2 = reducer.next(snapshot1,
-                updateFor(LayerUpdate.Type.REPLACE,
+                updateFor(LayerUpdateType.REPLACE,
                         nakedFeature(Optional.of("b"))));
          Snapshot snapshot3 = reducer.next(snapshot2,
-                updateFor(LayerUpdate.Type.APPEND,
+                updateFor(LayerUpdateType.APPEND,
                         nakedFeature(Optional.of("c"))));
 
         assertThat(snapshot3.diff(), contains(feature(LAYER_ID + "/c")));
@@ -124,7 +125,7 @@ public class SnapshotReducerShould {
                 )));
         Snapshot snapshot1 = SnapshotImpl.copyOf(snapshot).withAbsolute(layerWithDynamicSchema);
         assertThat(snapshot1.absolute().dynamicSchema(), not(equalTo(DynamicSchema.EMPTY_SCHEMA)));
-        Snapshot snapshot2 = reducer.next(snapshot1, updateFor(LayerUpdate.Type.REPLACE,
+        Snapshot snapshot2 = reducer.next(snapshot1, updateFor(LayerUpdateType.REPLACE,
                  nakedFeature(Optional.of("a"))));
         assertThat(snapshot2.absolute().dynamicSchema(), equalTo(DynamicSchema.EMPTY_SCHEMA));
     }
@@ -142,7 +143,7 @@ public class SnapshotReducerShould {
 
     private void assertThatLayerIndexedFeaturesHasSize(boolean indexable, int size) {
         Snapshot original = reducer.empty(spec(LAYER_ID, indexable));
-        Snapshot updated = reducer.next(original, updateFor(LayerUpdate.Type.APPEND,
+        Snapshot updated = reducer.next(original, updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.of("a"))));
 
         assertThat(updated.absolute().indexedFeatures(), hasSize(size));
@@ -172,7 +173,7 @@ public class SnapshotReducerShould {
         return LayerMetadataImpl.of(name, description, "", Instant.now(), Optional.empty());
     }
 
-    private LayerUpdate updateFor(LayerUpdate.Type updateType, NakedFeature... features) {
+    private LayerUpdate updateFor(LayerUpdateType updateType, NakedFeature... features) {
         return LayerUpdateImpl.of(updateType, asList(features));
     }
 

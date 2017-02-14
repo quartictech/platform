@@ -17,6 +17,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -80,7 +81,8 @@ public class MgmtResource {
     }
 
     private String preprocessFile(String fileName, FileType fileType) throws IOException {
-        InputStream inputStream = howlService.downloadFile(HOWL_NAMESPACE, fileName);
+        InputStream inputStream = howlService.downloadFile(HOWL_NAMESPACE, fileName)
+                .orElseThrow(() -> new NotFoundException("file not found: " + fileName));
 
         switch (fileType) {
             case GEOJSON:

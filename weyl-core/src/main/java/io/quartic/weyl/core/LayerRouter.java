@@ -141,7 +141,7 @@ public abstract class LayerRouter {
         final Snapshot empty = snapshotReducer().empty(spec);   // If this fails, then layer creation fails
         return updates -> updates
                 .scan(empty, (s, u) -> snapshotReducer().next(s, u))
-                .doOnError(e -> LOG.error("Upstream error", e))
+                .doOnError(e -> LOG.error("[{}] Upstream error", spec.metadata().name(), e))
                 .onErrorResumeNext(empty())                     // On error, emit a final empty snapshot
                 .concatWith(just(empty))                        // On completion, emit a final empty snapshot
                 .compose(this::toSnapshotSubscriptionBehaviour);
