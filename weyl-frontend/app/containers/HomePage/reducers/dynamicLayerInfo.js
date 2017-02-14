@@ -11,6 +11,7 @@ export default (state = new OrderedMap(), action) => {
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
+    case constants.LAYER_TOGGLE_ALL_VALUES_VISIBLE:
     case constants.LAYER_APPLY_TIME_RANGE_FILTER:
     case constants.LAYER_UPDATE:
       return state.update(action.layerId, val => layerReducer(val, action));
@@ -50,6 +51,12 @@ const layerReducer = (state, action) => {
         });
       });
 
+    case constants.LAYER_TOGGLE_ALL_VALUES_VISIBLE:
+      return state.updateIn(["filter", action.attribute], defaultAttributeFilter(), filter =>
+        filter.update("notApplicable", x => !x)
+          .update("categories", set => new Set(state.getIn(["dynamicSchema", "attributes", action.attribute, "categories"])).subtract(set))
+    );
+
     case constants.LAYER_APPLY_TIME_RANGE_FILTER:
       return state.updateIn(["filter", action.attribute], defaultAttributeFilter(), filter => {
         if (action.startTime != null || action.endTime != null) {
@@ -62,8 +69,8 @@ const layerReducer = (state, action) => {
       return state
         .set("snapshotId", action.snapshotId)
         .set("data", action.data)
-        .set("stats", action.stats)
-        .set("dynamicSchema", action.dynamicSchema);
+        .set("stats", fromJS(action.stats))
+        .set("dynamicSchema", fromJS(action.dynamicSchema));
 
     default:
       return state;

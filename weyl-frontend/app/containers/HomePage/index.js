@@ -78,6 +78,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
+            onToggleAllValuesVisible={this.props.onToggleAllValuesVisible}
             onApplyTimeRangeFilter={this.props.onApplyTimeRangeFilter}
             onClose={() => this.props.onUiToggle("layerList")}
             visible={!noLayers && this.props.ui.panels.layerList}
@@ -124,6 +125,7 @@ const mapDispatchToProps = {
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
+  onToggleAllValuesVisible: actions.layerToggleAllValuesVisible,
   onApplyTimeRangeFilter: actions.layerApplyTimeRangeFilter,
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,
