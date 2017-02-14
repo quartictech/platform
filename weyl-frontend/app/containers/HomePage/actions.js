@@ -26,6 +26,14 @@ export function layerToggleValueVisible(layerId, attribute, value) {
   };
 }
 
+export function layerToggleAllValuesVisible(layerId, attribute) {
+  return {
+    type: constants.LAYER_TOGGLE_ALL_VALUES_VISIBLE,
+    layerId,
+    attribute,
+  };
+}
+
 export function layerApplyTimeRangeFilter(layerId, attribute, startTime, endTime) {
   return {
     type: constants.LAYER_APPLY_TIME_RANGE_FILTER,
