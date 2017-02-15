@@ -4,20 +4,25 @@ import io.quartic.common.logging.logger
 import org.glassfish.tyrus.client.ClientManager
 import org.glassfish.tyrus.client.ClientManager.ReconnectHandler
 import org.glassfish.tyrus.client.ClientProperties.RECONNECT_HANDLER
+import org.glassfish.tyrus.core.TyrusSession
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
 import javax.websocket.CloseReason
 import javax.websocket.DeploymentException
 import javax.websocket.Endpoint
+import javax.websocket.Session
 
 class WebsocketClientSessionFactory(val owner: Class<*>) {
     private val LOG by logger()
 
     // TODO: remove exception signature once everything converted to Kotlin
     @Throws(URISyntaxException::class, IOException::class, DeploymentException::class)
-    fun create(endpoint: Endpoint, url: String) =
-            clientManager(url).connectToServer(endpoint, clientEndpointConfig(owner), URI(url))
+    fun create(endpoint: Endpoint, url: String): Session {
+        val session = clientManager(url).connectToServer(endpoint, clientEndpointConfig(owner), URI(url)) as TyrusSession
+        session.heartbeatInterval = 30000
+        return session
+    }
 
     private fun clientManager(url: String): ClientManager {
         val clientManager = ClientManager.createClient()
