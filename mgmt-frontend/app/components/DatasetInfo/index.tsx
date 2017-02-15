@@ -117,7 +117,7 @@ const PropertiesTable = (props: IPropertiesTableProps) => (
         _.map(props.props, (value, key) => (
           <tr key={key}>
             <td style={{ fontWeight: "bold" }}>{toUpperCase(key)}</td>
-            <td>{value}</td>
+            <td>{value && value.toString()}</td>
           </tr>
         ))
       }
