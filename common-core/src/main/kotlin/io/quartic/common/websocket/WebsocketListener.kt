@@ -35,7 +35,8 @@ class WebsocketListener<T>(
 
     private val emitter: Observable<String>
         get() {
-            return fromEmitter({ sub ->
+            var session: Session? = null
+            val raw = fromEmitter<String>({ sub ->
                 val endpoint = object : Endpoint() {
                     override fun onOpen(session: Session, config: EndpointConfig) {
                         session.addMessageHandler(Whole<String> { sub.onNext(it) })
@@ -43,11 +44,12 @@ class WebsocketListener<T>(
                 }
 
                 try {
-                    websocketFactory.create(endpoint, url)
+                    session = websocketFactory.create(endpoint, url)
                 } catch (e: Exception) {
                     sub.onError(e)
                 }
             }, BackpressureMode.BUFFER)
+            return raw.doOnUnsubscribe { session?.close() }
         }
 
 
