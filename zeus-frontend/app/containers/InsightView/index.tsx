@@ -17,6 +17,7 @@ interface IProps {
   fetchDatasets: any;
   closeNewDatasetModal: any;
   deleteDataset: (string) => void;
+  params: { [id: string]: any };
 }
 
 interface IState {
@@ -42,7 +43,9 @@ class InsightView extends React.Component<IProps, IState> {
     return (
       <div className={s.container}>
           <div className={classNames(s.main, "pt-card", "pt-elevation-2")}>
-            <h2>Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
+            <h2>{this.props.params["insightId"]} Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
+            <hr/>
+            Hello
           </div>
       </div>
     );
