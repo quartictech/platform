@@ -1,0 +1,15 @@
+
+.container {
+  display: flex;
+}
+
+.main {
+  width: 50%;
+  padding: 10px;
+}
+
+.right {
+  width: 50%;
+  padding: 10px;
+  align-self: flex-start;
+}

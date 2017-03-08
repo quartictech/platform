@@ -9,6 +9,10 @@ import { getRoutes } from "./routes";
 
 import "@blueprintjs/core/dist/blueprint.css";
 import "plottable/plottable.css";
+import "@blueprintjs/table/dist/table.css";
+
+import { FocusStyleManager } from "@blueprintjs/core";
+FocusStyleManager.onlyShowFocusOnTabs();      // To avoid annoying blue outlines
 
 // TODO: fix type!
 const store: Redux.Store<any> = configureStore();
