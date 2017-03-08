@@ -9,6 +9,8 @@ import * as actions from "../../redux/actions";
 import * as classNames from "classnames";
 const s = require("./style.css");
 
+import { TimeChart } from "../../components";
+
 
 interface IProps {
   datasets: { [id: string]: IDataset };
@@ -42,11 +44,20 @@ class InsightView extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
-          <div className={classNames(s.main, "pt-card", "pt-elevation-2")}>
+        <div>
             <h2>{this.props.params["insightId"]} Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
-            <hr/>
-            Hello
+            </div>
+
+          <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
+            <h5>Bolier-X192</h5>
+            <TimeChart />
           </div>
+
+          <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
+            <h5>Bolier-X184</h5>
+            <TimeChart />
+          </div>
+
       </div>
     );
   }

@@ -2,11 +2,13 @@
 .container {
   display: flex;
   background-color: #f5f8fa;
+  flex-direction: column;
   padding: 10px;
 }
 
-.main {
+.card {
   flex: 1;
+  margin-bottom: 20px;
 }
 
 .right {

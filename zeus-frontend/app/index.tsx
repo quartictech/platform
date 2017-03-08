@@ -8,6 +8,7 @@ import { configureStore } from "./redux/store";
 import { getRoutes } from "./routes";
 
 import "@blueprintjs/core/dist/blueprint.css";
+import "plottable/plottable.css";
 
 // TODO: fix type!
 const store: Redux.Store<any> = configureStore();
