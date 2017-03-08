@@ -31,17 +31,10 @@ class Header extends React.Component<IProps, void> {
           </Link>
           <input
             className="pt-input"
-            placeholder="Search datasets..."
+            placeholder="Search knowledge base..."
             type="text"
             onChange={this.onSearch.bind(this)}
           />
-          <span className="pt-navbar-divider"></span>
-          <button
-            onClick={this.props.newDatasetClick}
-            className="pt-button pt-minimal pt-icon-cloud-upload"
-          >
-            Upload Data
-          </button>
         </div>
         <div className="pt-navbar-group pt-align-right">
           <span className="pt-navbar-divider"></span>
