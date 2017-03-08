@@ -9,7 +9,6 @@ import * as actions from "../../redux/actions";
 import * as classNames from "classnames";
 const s = require("./style.css");
 
-import { Link } from "react-router";
 
 interface IProps {
   datasets: { [id: string]: IDataset };
@@ -24,27 +23,7 @@ interface IState {
   datasetId: string;
 };
 
-const Insight = ({ insightId }) => (
-  <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
-    <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
-     <h5>Repeated failures in asset class <a href="#">Boiler-5000</a></h5>
-     <p>
-       52% of assets in this class have experienced failures subsequent to recent maintenance interventions.
-       </p>
-
-       <p>
-         That is noob.
-         </p>
-    </div>
-    <div>
-      <Link className="pt-button pt-intent-primary" to={`/insights/${insightId}`}>
-      See detail
-      </Link>
-    </div>
-  </div>
-);
-
-class Insights extends React.Component<IProps, IState> {
+class InsightView extends React.Component<IProps, IState> {
   public state : IState = {
     datasetId: null,
   };
@@ -62,11 +41,9 @@ class Insights extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
-        <div className={s.main}>
-          <Insight insightId="0" />
-          <Insight insightId="1" />
-          <Insight insightId="2" />
-        </div>
+          <div className={classNames(s.main, "pt-card", "pt-elevation-2")}>
+            <h2>Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
+          </div>
       </div>
     );
   }
@@ -87,4 +64,4 @@ const mapStateToProps = createStructuredSelector({
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Insights);
+)(InsightView);
