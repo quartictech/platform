@@ -1,7 +1,7 @@
 {
-  "name": "mgmt-frontend",
+  "name": "zeus-frontend",
   "version": "1.0.1",
-  "description": "Quartic Management Frontend",
+  "description": "Quartic Zeus",
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=development node server.js",
@@ -81,7 +81,8 @@
     "webpack-hot-middleware": "2.10.0"
   },
   "dependencies": {
-    "@blueprintjs/core": "1.7.0",
+    "@blueprintjs/core": "1.11.1",
+    "@blueprintjs/table": "1.8.1",
     "@types/redux-immutable": "3.0.31",
     "@types/redux-saga": "0.9.30",
     "@types/reselect": "2.0.27",
