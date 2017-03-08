@@ -25,7 +25,7 @@ interface IState {
   datasetId: string;
 };
 
-class Home extends React.Component<IProps, IState> {
+class Insights extends React.Component<IProps, IState> {
   public state : IState = {
     datasetId: null,
   };
@@ -43,6 +43,7 @@ class Home extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
+        <h1>Insights</h1>
         <NewDataset
           visible={this.props.ui.activeModal === "newDataset"}
           createDataset={this.props.createDataset}
@@ -79,8 +80,6 @@ class Home extends React.Component<IProps, IState> {
   }
 }
 
-export { Home };
-
 const mapDispatchToProps = {
   fetchDatasets: actions.fetchDatasets,
   createDataset: actions.createDataset,
@@ -96,4 +95,4 @@ const mapStateToProps = createStructuredSelector({
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Home);
+)(Insights);

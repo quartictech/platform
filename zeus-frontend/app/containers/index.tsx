@@ -1,5 +1,5 @@
 import App from "./App";
-import Home from "./Home";
+import Insights from "./Insights";
 import AssetView from "./AssetView";
 
-export { App, Home, AssetView };
+export { App, Insights, AssetView };
