@@ -1,0 +1,21 @@
+.gradle
+out
+*.iml
+*.ipr
+*.iws
+build/
+generated_src
+generated_testSrc
+
+
+# Cruft
+.DS_Store
+npm-debug.log
+.idea
+*.gc
+.env
+_detritus
+.vscode
+
+# Config files
+weyl-frontend/weylConfig.js
