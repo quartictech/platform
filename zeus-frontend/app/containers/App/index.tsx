@@ -23,7 +23,7 @@ export class App extends React.Component<IProps, void> {
   render() {
     const { children } = this.props;
     return (
-      <div className="pt-dark">
+      <div>
       <section className={s.App}>
         <Header
           newDatasetClick={this.props.showNewDatasetModal}
