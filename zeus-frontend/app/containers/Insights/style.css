@@ -1,6 +1,7 @@
 
 .container {
   display: flex;
+  background-color: #f5f8fa;
 }
 
 .main {

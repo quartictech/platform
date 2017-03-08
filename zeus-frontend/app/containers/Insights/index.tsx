@@ -8,9 +8,7 @@ import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-import { DatasetList } from "../../components/DatasetList";
 import { DatasetInfo } from "../../components/DatasetInfo";
-import { NewDataset } from "../../components/NewDataset";
 
 interface IProps {
   datasets: { [id: string]: IDataset };
@@ -24,6 +22,13 @@ interface IProps {
 interface IState {
   datasetId: string;
 };
+
+const Insight = (props) => (
+  <div className="pt-card pt-elevation-2 pt-interactive">
+    We have discovered a fabulous insight!
+    {props.wat}
+  </div>
+);
 
 class Insights extends React.Component<IProps, IState> {
   public state : IState = {
@@ -43,19 +48,8 @@ class Insights extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
-        <h1>Insights</h1>
-        <NewDataset
-          visible={this.props.ui.activeModal === "newDataset"}
-          createDataset={this.props.createDataset}
-          closeNewDatasetClick={this.props.closeNewDatasetModal}
-        />
         <div className={s.main}>
-          <DatasetList
-            searchString={this.props.ui.searchString}
-            datasets={this.props.datasets}
-            selectedId={this.state.datasetId}
-            onSelect={this.selectDataset}
-          />
+          <Insight/>
         </div>
 
         {
@@ -73,10 +67,6 @@ class Insights extends React.Component<IProps, IState> {
         }
       </div>
     );
-  }
-
-  private selectDataset = (id: string) => {
-    this.setState({datasetId: id});
   }
 }
 
