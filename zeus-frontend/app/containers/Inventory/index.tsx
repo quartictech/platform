@@ -20,24 +20,33 @@ interface IProps {
   deleteDataset: (string) => void;
 }
 
+interface IModel {
+  name: string,
+  manufacturer: string,
+  snGen: () => string
+};
+
+interface IAsset {
+  id: string;
+  clazz: string;
+  model: string;
+  serial: string;
+  manufacturer: string;
+  purchaseDate: Date;
+  lastInspectionDate: Date;
+  lastInspectionSignoff: string;
+  retirementDate: Date;
+  location: string;
+};
+
 interface IState {
-  datasetId: string;
+  assets: IAsset[];
 };
 
 class Inventory extends React.Component<IProps, IState> {
   public state : IState = {
-    datasetId: null,
+    assets: this.generateAssets(),
   };
-
-  componentDidMount() {
-    this.props.fetchDatasets();
-  }
-
-  componentWillReceiveProps(props: IProps) {
-      if (! (this.state.datasetId in props.datasets)) {
-          this.setState({ datasetId: null });
-      }
-  }
 
   render() {
     return (
@@ -47,20 +56,16 @@ class Inventory extends React.Component<IProps, IState> {
             isRowResizable={true}
             numRows={50}
           >
-            {
-              [
-                ["Asset ID", "Hello"],
-                ["Asset class", "Goodbye"],
-                ["Model #", "WTF"],
-                ["Serial #", "WTF"],
-                ["Manufacturer code", "WTF"],
-                ["Location", "(0.15, 3.27)"],
-                ["Purchase date", "WTF"],
-                ["Last inspection date", "WTF"],
-                ["Last inspection signoff", "WTF"],
-                ["Projected retirement date", "WTF"],
-              ].map((arr) => <Column name={arr[0]} renderCell={this.renderCell(arr[1])} />)
-            }
+            <Column name="Asset #" renderCell={this.renderCell(x => x.id)} />
+            <Column name="Asset class" renderCell={this.renderCell(x => x.clazz)} />
+            <Column name="Model #" renderCell={this.renderCell(x => x.model)} />
+            <Column name="Serial #" renderCell={this.renderCell(x => x.serial)} />
+            <Column name="Manufacturer code" renderCell={this.renderCell(x => x.manufacturer)} />
+            <Column name="Location" renderCell={this.renderCell(x => x.location)} />
+            <Column name="Purchase date" renderCell={this.renderCell(x => this.dateToString(x.purchaseDate))} />
+            <Column name="Last inspection date" renderCell={this.renderCell(x => this.dateToString(x.lastInspectionDate))} />
+            <Column name="Last inspection signoff" renderCell={this.renderCell(x => x.lastInspectionSignoff)} />
+            <Column name="Projected retirement date" renderCell={this.renderCell(x => this.dateToString(x.retirementDate))} />
           </Table>
         </div>
 
@@ -75,7 +80,45 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  private renderCell = (prefix: string) => (row: number) => <Cell>{`${prefix} ${row}`}</Cell>;
+  private renderCell = (func: (IAsset) => string) => (row: number) => <Cell>{func(this.state.assets[row])}</Cell>
+
+  private dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + (date.getDay() + 1);
+
+  private generateAssets() {
+    const models: IModel[] = [
+      { name: "S-5000C", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
+      { name: "S-5000B", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
+      { name: "QQ-19", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
+      { name: "QQ-23", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
+    ];
+
+    var assets = new Array<IAsset>();
+    for (var i = 0; i < 50; i++) {
+      const model = models[Math.floor(Math.random() * models.length)]; 
+
+      assets.push({
+        id: "AB" + (Math.floor(Math.random() * 90000) + 10000),
+        clazz: "Boiler",
+        model: model.name,
+        serial: model.snGen(),
+        manufacturer: model.manufacturer,
+        purchaseDate: this.randomDate(new Date(2003, 0, 1), new Date(2013, 0, 1)),
+        lastInspectionDate: this.randomDate(new Date(2016, 0, 1), new Date(2017, 0, 1)),
+        lastInspectionSignoff: ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"][Math.floor(Math.random() * 6)],
+        retirementDate: this.randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
+        location: this.randomLocation()
+      });
+    }
+    return assets;
+  }
+
+  private randomLocation() {
+    return (Math.random() * (58.64 - 50.83) + 50.83).toFixed(3) + ", " + (Math.random() * (1.32 - -5.37) + -5.37).toFixed(3)
+  }
+
+  private randomDate(start: Date, end: Date) {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  }
 }
 
 export { Inventory };
