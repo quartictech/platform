@@ -29,7 +29,7 @@ export class App extends React.Component<IProps, void> {
           newDatasetClick={this.props.showNewDatasetModal}
           searchBoxChange={this.props.searchDatasets}
         />
-          {children}
+        {children}
       </section>
       </div>
     );

@@ -9,6 +9,8 @@ import * as actions from "../../redux/actions";
 import * as classNames from "classnames";
 const s = require("./style.css");
 
+import { Link } from "react-router";
+
 import { TimeChart } from "../../components";
 
 
@@ -49,7 +51,7 @@ class InsightView extends React.Component<IProps, IState> {
             </div>
 
           <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-            <h5>Bolier-X192</h5>
+            <h5><Link to={`/assets/X-192`}>Boiler-X192</Link></h5>
             <TimeChart />
           </div>
 
