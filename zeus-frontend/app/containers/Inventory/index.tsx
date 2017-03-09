@@ -20,6 +20,7 @@ import { createStructuredSelector } from "reselect";
 // import * as classNames from "classnames";
 import * as selectors from "../../redux/selectors";
 // import * as actions from "../../redux/actions";
+import * as _ from "underscore";
 const s = require("./style.css");
 
 interface IProps {
@@ -62,6 +63,8 @@ class Inventory extends React.Component<IProps, IState> {
   };
 
   render() {
+
+    console.log("Selected rows", this.state.selectedRows);
     return (
       <div className={s.container}>
         <div className={s.main}>
@@ -113,7 +116,7 @@ class Inventory extends React.Component<IProps, IState> {
                 name={col.name}
                 renderCell={(row: number) => <Cell>{col.displayValue(this.state.filteredAssets[row])}</Cell>}
               />)
-            }            
+            }
           </Table>
         </div>
 
@@ -160,7 +163,7 @@ const formatDateComponent = (x: number) => ((x < 10) ? "0" : "") + x;
 
 const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
 
-const calculateSelectedRows = (regions: IRegion[]) => regions.map(r => r.rows[0]);   // Expecting only one row per region
+const calculateSelectedRows = (regions: IRegion[]) => _.uniq(_.flatten(_.map(regions, r => _.range(r.rows[0], r.rows[1]))));
 
 const mapDispatchToProps = {
 };
