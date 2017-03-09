@@ -37,7 +37,7 @@ interface IAsset {
 };
 
 interface IState {
-  assets: IAsset[];
+  filteredAssets: IAsset[];
   filterColumn: number;
   filterValue: string;
 };
@@ -69,11 +69,13 @@ const COLUMNS: IColumn[] = [
   { name: "Projected retirement date", displayValue: x => dateToString(x.retirementDate) },
 ];
 
+const ASSETS: IAsset[] = generateAssets();  // TODO: move into Redux store or something
+
 const dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + (date.getDay() + 1);
 
 class Inventory extends React.Component<IProps, IState> {
   public state : IState = {
-    assets: this.generateAssets(),
+    filteredAssets: this.filterAssets(-1, ""),  // We materialise rather than using a view due to the inefficient way that Blueprint Table works
     filterColumn: -1,
     filterValue: ""
   };
@@ -85,7 +87,10 @@ class Inventory extends React.Component<IProps, IState> {
 
           <div className="pt-control-group">
             <div className="pt-select">
-              <select value={this.state.filterColumn} onChange={e => this.setState({ filterColumn: +e.target.value })}>
+              <select value={this.state.filterColumn} onChange={e => this.setState({
+                  filterColumn: +e.target.value,
+                  filteredAssets: this.filterAssets(+e.target.value, this.state.filterValue),
+                })}>
                 <option value="-1">Filter...</option>
                 { COLUMNS.map((col, idx) => <option value={`${idx}`}>{col.name}</option>) }
               </select>
@@ -97,28 +102,31 @@ class Inventory extends React.Component<IProps, IState> {
               placeholder="Value"
               disabled={this.state.filterColumn === -1}
               value={this.state.filterValue}
-              onChange={e => this.setState({ filterValue: e.target.value })}
+              onChange={e => this.setState({
+                filterValue: e.target.value,
+                filteredAssets: this.filterAssets(this.state.filterColumn, e.target.value),
+              })}
             />
 
-            <Button
+            {/*<Button
               intent={Intent.PRIMARY}
               text="Apply"
               disabled={this.state.filterColumn === -1 || this.state.filterValue === ""}
-            />
+              onClick={() => this.setState({ filteredAssets: this.filterAssets(this.state.filterColumn, this.state.filterValue) })}
+            />*/}
           </div>
 
           <Table
             isRowResizable={true}
-            numRows={50}
+            numRows={this.state.filteredAssets.length}
           >
             {
-              COLUMNS.map(col => <Column name={col.name} renderCell={(row: number) => <Cell>{col.displayValue(this.state.assets[row])}</Cell>} />)
+              COLUMNS.map(col => <Column name={col.name} renderCell={(row: number) => <Cell>{col.displayValue(this.state.filteredAssets[row])}</Cell>} />)
             }            
           </Table>
         </div>
 
         <div className={s.right}>
-
           <div className="pt-button-group pt-align left pt-vertical">
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="annotation" text="Add note" />
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="globe" text="View on map" />
@@ -128,36 +136,46 @@ class Inventory extends React.Component<IProps, IState> {
       </div>
     );
   }
-
-  private generateAssets() {
-    var assets = new Array<IAsset>();
-    for (var i = 0; i < 50; i++) {
-      const model = MODELS[Math.floor(Math.random() * MODELS.length)]; 
-
-      assets.push({
-        id: "AB" + (Math.floor(Math.random() * 90000) + 10000),
-        clazz: "Boiler",
-        model: model.name,
-        serial: model.snGen(),
-        manufacturer: model.manufacturer,
-        purchaseDate: this.randomDate(new Date(2003, 0, 1), new Date(2013, 0, 1)),
-        lastInspectionDate: this.randomDate(new Date(2016, 0, 1), new Date(2017, 0, 1)),
-        lastInspectionSignoff: ENGINEERS[Math.floor(Math.random() * 6)],
-        retirementDate: this.randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
-        location: this.randomLocation()
-      });
+  
+  private filterAssets(filterColumn: number, filterValue: string) {
+    if (filterColumn === -1 || filterValue === "") {
+      return ASSETS;
     }
-    return assets;
-  }
 
-  private randomLocation() {
-    return (Math.random() * (58.64 - 50.83) + 50.83).toFixed(3) + ", " + (Math.random() * (1.32 - -5.37) + -5.37).toFixed(3)
-  }
-
-  private randomDate(start: Date, end: Date) {
-    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    const lowerCaseFilterValue = filterValue.toLocaleLowerCase();
+    return ASSETS.filter(asset => COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1);
   }
 }
+
+function generateAssets() {
+  var assets = new Array<IAsset>();
+  for (var i = 0; i < 50; i++) {
+    const model = MODELS[Math.floor(Math.random() * MODELS.length)]; 
+
+    assets.push({
+      id: "AB" + (Math.floor(Math.random() * 90000) + 10000),
+      clazz: "Boiler",
+      model: model.name,
+      serial: model.snGen(),
+      manufacturer: model.manufacturer,
+      purchaseDate: randomDate(new Date(2003, 0, 1), new Date(2013, 0, 1)),
+      lastInspectionDate: randomDate(new Date(2016, 0, 1), new Date(2017, 0, 1)),
+      lastInspectionSignoff: ENGINEERS[Math.floor(Math.random() * 6)],
+      retirementDate: randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
+      location: randomLocation()
+    });
+  }
+  return assets;
+}
+
+function randomLocation() {
+  return (Math.random() * (58.64 - 50.83) + 50.83).toFixed(3) + ", " + (Math.random() * (1.32 - -5.37) + -5.37).toFixed(3)
+}
+
+function randomDate(start: Date, end: Date) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
 
 export default Inventory;
 
