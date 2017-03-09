@@ -163,7 +163,7 @@ const formatDateComponent = (x: number) => ((x < 10) ? "0" : "") + x;
 
 const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
 
-const calculateSelectedRows = (regions: IRegion[]) => _.uniq(_.flatten(_.map(regions, r => _.range(r.rows[0], r.rows[1]))));
+const calculateSelectedRows = (regions: IRegion[]) => _.uniq(_.flatten(_.map(regions, r => _.range(r.rows[0], r.rows[1] + 1))));
 
 const mapDispatchToProps = {
 };
