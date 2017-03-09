@@ -1,6 +1,6 @@
 import * as React from "react";
 // import { connect } from "react-redux";
-import { Button, Classes, Intent } from "@blueprintjs/core";
+import { Button, Classes, Intent, Switch } from "@blueprintjs/core";
 import { Cell, Column, Table } from "@blueprintjs/table";
 
 // import { createStructuredSelector } from "reselect";
@@ -40,6 +40,7 @@ interface IState {
   filteredAssets: IAsset[];
   filterColumn: number;
   filterValue: string;
+  filterInvert: boolean;
 };
 
 interface IColumn {
@@ -75,9 +76,10 @@ const dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth()
 
 class Inventory extends React.Component<IProps, IState> {
   public state : IState = {
-    filteredAssets: this.filterAssets(-1, ""),  // We materialise rather than using a view due to the inefficient way that Blueprint Table works
+    filteredAssets: this.filterAssets(-1, "", false),  // We materialise rather than using a view due to the inefficient way that Blueprint Table works
     filterColumn: -1,
-    filterValue: ""
+    filterValue: "",
+    filterInvert: false,
   };
 
   render() {
@@ -89,7 +91,7 @@ class Inventory extends React.Component<IProps, IState> {
             <div className="pt-select">
               <select value={this.state.filterColumn} onChange={e => this.setState({
                   filterColumn: +e.target.value,
-                  filteredAssets: this.filterAssets(+e.target.value, this.state.filterValue),
+                  filteredAssets: this.filterAssets(+e.target.value, this.state.filterValue, this.state.filterInvert),
                 })}>
                 <option value="-1">Filter...</option>
                 { COLUMNS.map((col, idx) => <option value={`${idx}`}>{col.name}</option>) }
@@ -104,7 +106,17 @@ class Inventory extends React.Component<IProps, IState> {
               value={this.state.filterValue}
               onChange={e => this.setState({
                 filterValue: e.target.value,
-                filteredAssets: this.filterAssets(this.state.filterColumn, e.target.value),
+                filteredAssets: this.filterAssets(this.state.filterColumn, e.target.value, this.state.filterInvert),
+              })}
+            />
+
+            <Switch
+              label="Invert"
+              disabled={this.state.filterColumn === -1}
+              checked={this.state.filterInvert}
+              onChange={() => this.setState({
+                filterInvert: !this.state.filterInvert,
+                filteredAssets: this.filterAssets(this.state.filterColumn, this.state.filterValue, !this.state.filterInvert),
               })}
             />
 
@@ -137,13 +149,13 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
   
-  private filterAssets(filterColumn: number, filterValue: string) {
+  private filterAssets(filterColumn: number, filterValue: string, filterInvert: boolean) {
     if (filterColumn === -1 || filterValue === "") {
       return ASSETS;
     }
 
     const lowerCaseFilterValue = filterValue.toLocaleLowerCase();
-    return ASSETS.filter(asset => COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1);
+    return ASSETS.filter(asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert);
   }
 }
 
