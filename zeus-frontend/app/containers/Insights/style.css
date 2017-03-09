@@ -2,10 +2,11 @@
 .container {
   display: flex;
   background-color: #f5f8fa;
+  flex-direction: row;
 }
 
 .main {
-  width: 50%;
+  flex: 0.6;
 }
 
 .right {
@@ -19,6 +20,6 @@
 }
 
 .menu {
-  width: 20%;
+  flex: 0.2;
   padding: 20px;
 }

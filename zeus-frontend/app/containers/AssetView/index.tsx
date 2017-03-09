@@ -22,8 +22,10 @@ class AssetView extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
-        Asset view
-             </div>
+        <h1>Boiler-5000</h1>
+
+        <p>is raging</p>
+      </div>
     );
   }
 }

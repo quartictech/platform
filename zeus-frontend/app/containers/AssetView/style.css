@@ -1,7 +1,6 @@
 
 .container {
-  display: flex;
-  background-color: #293742;
+  padding: 20px;
 }
 
 .main {

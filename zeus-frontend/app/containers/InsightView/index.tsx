@@ -10,7 +10,7 @@ const s = require("./style.css");
 import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
-
+import { Classes } from "@blueprintjs/core";
 
 interface IProps {
   ui: any;
@@ -31,16 +31,25 @@ class InsightView extends React.Component<IProps, IState> {
   render() {
     return (
       <div className={s.container}>
-        <div>
+        <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
             <h2>{this.props.params["insightId"]} Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
-            </div>
 
-          <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
+            <label className="pt-label pt-inline">
+        Time Series
+        <div className={Classes.SELECT}>
+            <select> 
+               <option key={0} value={"temperature"}>Temperature</option>)}
+            </select>
+        </div>
+</label>
+        </div>
+
+          <div className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
             <h5><Link to={`/assets/X-192`}>Boiler-X192</Link></h5>
             <TimeChart />
           </div>
 
-          <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
+          <div className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
             <h5>Bolier-X184</h5>
             <TimeChart />
           </div>

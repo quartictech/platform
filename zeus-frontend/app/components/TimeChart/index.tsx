@@ -33,13 +33,19 @@ export class TimeChart  extends React.Component<any, any> {
     let pzi = new Plottable.Interactions.PanZoom();
     pzi.addXScale(xScale);
     pzi.attachTo(plot);
+    window.addEventListener("resize", function() {
+      plot.redraw();
+    });
 
     //const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
     //const group = new Plottable.Components.Group([yAxis, plot]);
-    return new Plottable.Components.Table([
+    this.state = {
+      chart: new Plottable.Components.Table([
       [chart],
       [xAxis],
-    ]);
+    ]),
+    plot: plot
+    };
   }
 
   render() {
@@ -52,8 +58,8 @@ export class TimeChart  extends React.Component<any, any> {
   }
 
   componentDidMount() {
-    console.log("componentDidMount");
-    this.state = { chart: this.createChart() };
+    this.createChart();
     this.state.chart.renderTo(this.refs["svg"]);
+    this.state.plot.redraw();
   }
 }

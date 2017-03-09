@@ -11,6 +11,12 @@
   margin-bottom: 20px;
 }
 
+.subCard {
+  margin-left: 50px;
+  flex: 1;
+  margin-bottom: 20px;
+}
+
 .right {
   width: 50%;
   padding: 10px;
