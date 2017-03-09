@@ -4,12 +4,12 @@
 }
 
 .main {
-  width: 50%;
+  width: 75%;
   padding: 10px;
 }
 
 .right {
-  width: 50%;
+  width: 25%;
   padding: 10px;
   align-self: flex-start;
 }

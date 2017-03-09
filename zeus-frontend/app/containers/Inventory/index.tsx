@@ -1,18 +1,15 @@
 import * as React from "react";
-import { connect } from "react-redux";
+// import { connect } from "react-redux";
 import { Button, Classes, Intent } from "@blueprintjs/core";
 import { Cell, Column, Table } from "@blueprintjs/table";
 
-import { IDataset } from "../../models";
-
-import { createStructuredSelector } from "reselect";
+// import { createStructuredSelector } from "reselect";
 // import * as classNames from "classnames";
-import * as selectors from "../../redux/selectors";
-import * as actions from "../../redux/actions";
+// import * as selectors from "../../redux/selectors";
+// import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
 interface IProps {
-  datasets: { [id: string]: IDataset };
   ui: any;
   createDataset: (any) => any;
   fetchDatasets: any;
@@ -41,38 +38,90 @@ interface IAsset {
 
 interface IState {
   assets: IAsset[];
+  filterColumn: number;
+  filterValue: string;
 };
+
+interface IColumn {
+  name: string;
+  displayValue: (IAsset) => string;
+};
+
+const ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"];
+
+const MODELS: IModel[] = [
+  { name: "S-5000C", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
+  { name: "S-5000B", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
+  { name: "QQ-19", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
+  { name: "QQ-23", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
+];
+
+const COLUMNS: IColumn[] = [
+  { name: "Asset #", displayValue: x => x.id },
+  { name: "Asset class", displayValue: x => x.clazz },
+  { name: "Model #", displayValue: x => x.model },
+  { name: "Serial #", displayValue: x => x.serial },
+  { name: "Manufacturer code", displayValue: x => x.manufacturer },
+  { name: "Location", displayValue: x => x.location },
+  { name: "Purchase date", displayValue: x => dateToString(x.purchaseDate) },
+  { name: "Last inspection date", displayValue: x => dateToString(x.lastInspectionDate) },
+  { name: "Last inspection signoff", displayValue: x => x.lastInspectionSignoff },
+  { name: "Projected retirement date", displayValue: x => dateToString(x.retirementDate) },
+];
+
+const dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + (date.getDay() + 1);
 
 class Inventory extends React.Component<IProps, IState> {
   public state : IState = {
     assets: this.generateAssets(),
+    filterColumn: -1,
+    filterValue: ""
   };
 
   render() {
     return (
       <div className={s.container}>
         <div className={s.main}>
+
+          <div className="pt-control-group">
+            <div className="pt-select">
+              <select value={this.state.filterColumn} onChange={e => this.setState({ filterColumn: +e.target.value })}>
+                <option value="-1">Filter...</option>
+                { COLUMNS.map((col, idx) => <option value={`${idx}`}>{col.name}</option>) }
+              </select>
+            </div>
+
+            <input
+              type="text"
+              className="pt-input"
+              placeholder="Value"
+              disabled={this.state.filterColumn === -1}
+              value={this.state.filterValue}
+              onChange={e => this.setState({ filterValue: e.target.value })}
+            />
+
+            <Button
+              intent={Intent.PRIMARY}
+              text="Apply"
+              disabled={this.state.filterColumn === -1 || this.state.filterValue === ""}
+            />
+          </div>
+
           <Table
             isRowResizable={true}
             numRows={50}
           >
-            <Column name="Asset #" renderCell={this.renderCell(x => x.id)} />
-            <Column name="Asset class" renderCell={this.renderCell(x => x.clazz)} />
-            <Column name="Model #" renderCell={this.renderCell(x => x.model)} />
-            <Column name="Serial #" renderCell={this.renderCell(x => x.serial)} />
-            <Column name="Manufacturer code" renderCell={this.renderCell(x => x.manufacturer)} />
-            <Column name="Location" renderCell={this.renderCell(x => x.location)} />
-            <Column name="Purchase date" renderCell={this.renderCell(x => this.dateToString(x.purchaseDate))} />
-            <Column name="Last inspection date" renderCell={this.renderCell(x => this.dateToString(x.lastInspectionDate))} />
-            <Column name="Last inspection signoff" renderCell={this.renderCell(x => x.lastInspectionSignoff)} />
-            <Column name="Projected retirement date" renderCell={this.renderCell(x => this.dateToString(x.retirementDate))} />
+            {
+              COLUMNS.map(col => <Column name={col.name} renderCell={(row: number) => <Cell>{col.displayValue(this.state.assets[row])}</Cell>} />)
+            }            
           </Table>
         </div>
 
         <div className={s.right}>
-          <div className="pt-button-group pt-vertical">
+
+          <div className="pt-button-group pt-align left pt-vertical">
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="annotation" text="Add note" />
-            <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="refresh" text="Add note" />
+            <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="globe" text="View on map" />
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="refresh" text="Add note" />
           </div>
         </div>
@@ -80,21 +129,10 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  private renderCell = (func: (IAsset) => string) => (row: number) => <Cell>{func(this.state.assets[row])}</Cell>
-
-  private dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + (date.getDay() + 1);
-
   private generateAssets() {
-    const models: IModel[] = [
-      { name: "S-5000C", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
-      { name: "S-5000B", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
-      { name: "QQ-19", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
-      { name: "QQ-23", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
-    ];
-
     var assets = new Array<IAsset>();
     for (var i = 0; i < 50; i++) {
-      const model = models[Math.floor(Math.random() * models.length)]; 
+      const model = MODELS[Math.floor(Math.random() * MODELS.length)]; 
 
       assets.push({
         id: "AB" + (Math.floor(Math.random() * 90000) + 10000),
@@ -104,7 +142,7 @@ class Inventory extends React.Component<IProps, IState> {
         manufacturer: model.manufacturer,
         purchaseDate: this.randomDate(new Date(2003, 0, 1), new Date(2013, 0, 1)),
         lastInspectionDate: this.randomDate(new Date(2016, 0, 1), new Date(2017, 0, 1)),
-        lastInspectionSignoff: ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"][Math.floor(Math.random() * 6)],
+        lastInspectionSignoff: ENGINEERS[Math.floor(Math.random() * 6)],
         retirementDate: this.randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
         location: this.randomLocation()
       });
@@ -121,21 +159,21 @@ class Inventory extends React.Component<IProps, IState> {
   }
 }
 
-export { Inventory };
+export default Inventory;
 
-const mapDispatchToProps = {
-  fetchDatasets: actions.fetchDatasets,
-  createDataset: actions.createDataset,
-  deleteDataset: actions.deleteDataset,
-  closeNewDatasetModal: () => actions.setActiveModal(null as string)
-};
+// const mapDispatchToProps = {
+//   fetchDatasets: actions.fetchDatasets,
+//   createDataset: actions.createDataset,
+//   deleteDataset: actions.deleteDataset,
+//   closeNewDatasetModal: () => actions.setActiveModal(null as string)
+// };
 
-const mapStateToProps = createStructuredSelector({
-  datasets: selectors.selectDatasets,
-  ui: selectors.selectUi
-});
+// const mapStateToProps = createStructuredSelector({
+//   datasets: selectors.selectDatasets,
+//   ui: selectors.selectUi
+// });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Inventory);
+// export default connect(
+//   mapStateToProps,
+//   mapDispatchToProps
+// )(Inventory);
