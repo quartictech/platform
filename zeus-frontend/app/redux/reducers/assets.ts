@@ -36,7 +36,10 @@ function generateAssets() {
       lastInspectionSignoff: ENGINEERS[Math.floor(Math.random() * 6)],
       retirementDate: randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
       location: randomLocation(),
-      notes: [],
+      notes: [
+          { created: new Date(2017, 0, 1), text: "What is going on?  I am drowning." },
+          { created: new Date(2017, 1, 1), text: "I am now dead.  In case you care." },
+      ],
     });
   }
   return assets;

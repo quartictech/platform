@@ -1,7 +1,19 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Button, Classes, Intent, Switch } from "@blueprintjs/core";
-import { Cell, Column, IRegion, SelectionModes, Table } from "@blueprintjs/table";
+import {
+  Button,
+  Classes,
+  Intent,
+  Switch,
+} from "@blueprintjs/core";
+import {
+  Cell,
+  Column,
+  IRegion,
+  Regions,
+  SelectionModes,
+  Table,
+} from "@blueprintjs/table";
 
 import { IAsset } from "../../models";
 import { createStructuredSelector } from "reselect";
@@ -11,7 +23,6 @@ import * as selectors from "../../redux/selectors";
 const s = require("./style.css");
 
 interface IProps {
-  ui: any;
   assets: IAsset[];
 }
 
@@ -20,6 +31,7 @@ interface IState {
   filterColumn: number;
   filterValue: string;
   filterInvert: boolean;
+  selectedRows: number[];
 };
 
 interface IColumn {
@@ -40,14 +52,13 @@ const COLUMNS: IColumn[] = [
   { name: "Projected retirement date", displayValue: x => dateToString(x.retirementDate) },
 ];
 
-const dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + (date.getDay() + 1);
-
 class Inventory extends React.Component<IProps, IState> {
   public state : IState = {
     filteredAssets: this.filterAssets(-1, "", false),  // We materialise rather than using a view due to the inefficient way that Blueprint Table works
     filterColumn: -1,
     filterValue: "",
     filterInvert: false,
+    selectedRows: [],
   };
 
   render() {
@@ -92,8 +103,9 @@ class Inventory extends React.Component<IProps, IState> {
           <Table
             isRowResizable={true}
             numRows={this.state.filteredAssets.length}
-            selectionModes={SelectionModes.ROWS_ONLY}
-            onSelection={regions => console.log("Selected:", calculateExtractedRows(regions))}
+            selectionModes={SelectionModes.ROWS_AND_CELLS}
+            onSelection={regions => this.setState({ selectedRows: calculateSelectedRows(regions) })}
+            selectedRegionTransform={cellToRow}
           >
             {
               COLUMNS.map(col => <Column
@@ -106,11 +118,28 @@ class Inventory extends React.Component<IProps, IState> {
         </div>
 
         <div className={s.right}>
-          <div className="pt-button-group pt-align left pt-vertical">
+          <h4>Actions</h4>
+
+          <div className="pt-button-group pt-align-left">
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="annotation" text="Add note" />
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="globe" text="View on map" />
-            <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="refresh" text="Add note" />
           </div>
+
+          <h4>Notes</h4>
+
+          {
+            (this.state.selectedRows.length === 1)
+              ? (
+                this.state.filteredAssets[this.state.selectedRows[0]].notes.map(note =>
+                  <div className="pt-card pt-elevation-2">
+                    <h5>{dateToString(note.created)}</h5>
+                    <p>{note.text}</p>
+                  </div>
+                )
+              )
+              : null
+          }
+
         </div>
       </div>
     );
@@ -126,14 +155,18 @@ class Inventory extends React.Component<IProps, IState> {
   }
 }
 
-const calculateExtractedRows = (regions: IRegion[]) => regions.map(r => r.rows[0]);   // Expecting only one row per region
+const dateToString = (date: Date) => date.getFullYear() + "/" + formatDateComponent(date.getMonth() + 1) + "/" + formatDateComponent(date.getDay() + 1);
+const formatDateComponent = (x: number) => ((x < 10) ? "0" : "") + x;
+
+const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
+
+const calculateSelectedRows = (regions: IRegion[]) => regions.map(r => r.rows[0]);   // Expecting only one row per region
 
 const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
   assets: selectors.selectAssets,
-  ui: selectors.selectUi
 });
 
 export default connect(
