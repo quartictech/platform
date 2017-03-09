@@ -1,21 +1,18 @@
 import * as React from "react";
-// import { connect } from "react-redux";
+import { connect } from "react-redux";
 import { Button, Classes, Intent, Switch } from "@blueprintjs/core";
 import { Cell, Column, IRegion, SelectionModes, Table } from "@blueprintjs/table";
 
-import { IAsset, IAssetModel } from "../../models";
-// import { createStructuredSelector } from "reselect";
+import { IAsset } from "../../models";
+import { createStructuredSelector } from "reselect";
 // import * as classNames from "classnames";
-// import * as selectors from "../../redux/selectors";
+import * as selectors from "../../redux/selectors";
 // import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
 interface IProps {
   ui: any;
-  createDataset: (any) => any;
-  fetchDatasets: any;
-  closeNewDatasetModal: any;
-  deleteDataset: (string) => void;
+  assets: IAsset[];
 }
 
 interface IState {
@@ -30,29 +27,18 @@ interface IColumn {
   displayValue: (IAsset) => string;
 };
 
-const ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"];
-
-const MODELS: IAssetModel[] = [
-  { name: "S-5000C", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
-  { name: "S-5000B", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
-  { name: "QQ-19", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
-  { name: "QQ-23", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
-];
-
 const COLUMNS: IColumn[] = [
   { name: "Asset #", displayValue: x => x.id },
   { name: "Asset class", displayValue: x => x.clazz },
-  { name: "Model #", displayValue: x => x.model },
+  { name: "Model #", displayValue: x => x.model.name },
   { name: "Serial #", displayValue: x => x.serial },
-  { name: "Manufacturer code", displayValue: x => x.manufacturer },
+  { name: "Manufacturer code", displayValue: x => x.model.manufacturer },
   { name: "Location", displayValue: x => x.location },
   { name: "Purchase date", displayValue: x => dateToString(x.purchaseDate) },
   { name: "Last inspection date", displayValue: x => dateToString(x.lastInspectionDate) },
   { name: "Last inspection signoff", displayValue: x => x.lastInspectionSignoff },
   { name: "Projected retirement date", displayValue: x => dateToString(x.retirementDate) },
 ];
-
-const ASSETS: IAsset[] = generateAssets();  // TODO: move into Redux store or something
 
 const dateToString = (date: Date) => date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + (date.getDay() + 1);
 
@@ -76,7 +62,7 @@ class Inventory extends React.Component<IProps, IState> {
                   filteredAssets: this.filterAssets(+e.target.value, this.state.filterValue, this.state.filterInvert),
                 })}>
                 <option value="-1">Filter...</option>
-                { COLUMNS.map((col, idx) => <option value={`${idx}`}>{col.name}</option>) }
+                { COLUMNS.map((col, idx) => <option key={col.name} value={`${idx}`}>{col.name}</option>) }
               </select>
             </div>
 
@@ -110,7 +96,11 @@ class Inventory extends React.Component<IProps, IState> {
             onSelection={regions => console.log("Selected:", calculateExtractedRows(regions))}
           >
             {
-              COLUMNS.map(col => <Column name={col.name} renderCell={(row: number) => <Cell>{col.displayValue(this.state.filteredAssets[row])}</Cell>} />)
+              COLUMNS.map(col => <Column
+                key={col.name}
+                name={col.name}
+                renderCell={(row: number) => <Cell>{col.displayValue(this.state.filteredAssets[row])}</Cell>}
+              />)
             }            
           </Table>
         </div>
@@ -128,61 +118,25 @@ class Inventory extends React.Component<IProps, IState> {
   
   private filterAssets(filterColumn: number, filterValue: string, filterInvert: boolean) {
     if (filterColumn === -1 || filterValue === "") {
-      return ASSETS;
+      return this.props.assets;
     }
 
     const lowerCaseFilterValue = filterValue.toLocaleLowerCase();
-    return ASSETS.filter(asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert);
+    return this.props.assets.filter(asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert);
   }
 }
 
 const calculateExtractedRows = (regions: IRegion[]) => regions.map(r => r.rows[0]);   // Expecting only one row per region
 
-function generateAssets() {
-  var assets = new Array<IAsset>();
-  for (var i = 0; i < 50; i++) {
-    const model = MODELS[Math.floor(Math.random() * MODELS.length)]; 
+const mapDispatchToProps = {
+};
 
-    assets.push({
-      id: "AB" + (Math.floor(Math.random() * 90000) + 10000),
-      clazz: "Boiler",
-      model: model.name,
-      serial: model.snGen(),
-      manufacturer: model.manufacturer,
-      purchaseDate: randomDate(new Date(2003, 0, 1), new Date(2013, 0, 1)),
-      lastInspectionDate: randomDate(new Date(2016, 0, 1), new Date(2017, 0, 1)),
-      lastInspectionSignoff: ENGINEERS[Math.floor(Math.random() * 6)],
-      retirementDate: randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
-      location: randomLocation()
-    });
-  }
-  return assets;
-}
+const mapStateToProps = createStructuredSelector({
+  assets: selectors.selectAssets,
+  ui: selectors.selectUi
+});
 
-function randomLocation() {
-  return (Math.random() * (58.64 - 50.83) + 50.83).toFixed(3) + ", " + (Math.random() * (1.32 - -5.37) + -5.37).toFixed(3)
-}
-
-function randomDate(start: Date, end: Date) {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
-
-
-export default Inventory;
-
-// const mapDispatchToProps = {
-//   fetchDatasets: actions.fetchDatasets,
-//   createDataset: actions.createDataset,
-//   deleteDataset: actions.deleteDataset,
-//   closeNewDatasetModal: () => actions.setActiveModal(null as string)
-// };
-
-// const mapStateToProps = createStructuredSelector({
-//   datasets: selectors.selectDatasets,
-//   ui: selectors.selectUi
-// });
-
-// export default connect(
-//   mapStateToProps,
-//   mapDispatchToProps
-// )(Inventory);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Inventory);

@@ -1,4 +1,9 @@
 
+export interface INote {
+  created: Date;
+  text: string;
+}
+
 export interface IAssetModel {
   name: string,
   manufacturer: string,
@@ -8,14 +13,14 @@ export interface IAssetModel {
 export interface IAsset {
   id: string;
   clazz: string;
-  model: string;
+  model: IAssetModel;
   serial: string;
-  manufacturer: string;
   purchaseDate: Date;
   lastInspectionDate: Date;
   lastInspectionSignoff: string;
   retirementDate: Date;
   location: string;
+  notes: INote[];
 };
 
 // TODO: remove this

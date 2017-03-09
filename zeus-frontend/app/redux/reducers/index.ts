@@ -1,5 +1,6 @@
 import { LOCATION_CHANGE } from "react-router-redux";
 import { uiReducer } from "./ui";
+import { assetsReducer } from "./assets";
 import { combineReducers } from "redux-immutable";
 import { fromJS } from "immutable";
 
@@ -26,6 +27,7 @@ function routeReducer(state = routeInitialState, action) {
 // TODO: Fix type!
 const rootReducer: Redux.Reducer<any> = combineReducers({
   route: routeReducer,
+  assets: assetsReducer,
   ui: uiReducer,
 });
 

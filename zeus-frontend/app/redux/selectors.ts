@@ -15,4 +15,5 @@ export const selectLocationState = () => {
   };
 };
 
+export const selectAssets = (state) => state.get("assets").toJS();
 export const selectUi = (state) => state.get("ui").toJS();
