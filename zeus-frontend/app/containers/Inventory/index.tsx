@@ -1,8 +1,9 @@
 import * as React from "react";
 // import { connect } from "react-redux";
 import { Button, Classes, Intent, Switch } from "@blueprintjs/core";
-import { Cell, Column, Table } from "@blueprintjs/table";
+import { Cell, Column, IRegion, SelectionModes, Table } from "@blueprintjs/table";
 
+import { IAsset, IAssetModel } from "../../models";
 // import { createStructuredSelector } from "reselect";
 // import * as classNames from "classnames";
 // import * as selectors from "../../redux/selectors";
@@ -16,25 +17,6 @@ interface IProps {
   closeNewDatasetModal: any;
   deleteDataset: (string) => void;
 }
-
-interface IModel {
-  name: string,
-  manufacturer: string,
-  snGen: () => string
-};
-
-interface IAsset {
-  id: string;
-  clazz: string;
-  model: string;
-  serial: string;
-  manufacturer: string;
-  purchaseDate: Date;
-  lastInspectionDate: Date;
-  lastInspectionSignoff: string;
-  retirementDate: Date;
-  location: string;
-};
 
 interface IState {
   filteredAssets: IAsset[];
@@ -50,7 +32,7 @@ interface IColumn {
 
 const ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"];
 
-const MODELS: IModel[] = [
+const MODELS: IAssetModel[] = [
   { name: "S-5000C", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
   { name: "S-5000B", snGen: () => Math.random().toString(36).slice(2, 10), manufacturer: "SIEM" },
   { name: "QQ-19", snGen: () => Math.random().toString(10).slice(2, 12), manufacturer: "GE" },
@@ -119,18 +101,13 @@ class Inventory extends React.Component<IProps, IState> {
                 filteredAssets: this.filterAssets(this.state.filterColumn, this.state.filterValue, !this.state.filterInvert),
               })}
             />
-
-            {/*<Button
-              intent={Intent.PRIMARY}
-              text="Apply"
-              disabled={this.state.filterColumn === -1 || this.state.filterValue === ""}
-              onClick={() => this.setState({ filteredAssets: this.filterAssets(this.state.filterColumn, this.state.filterValue) })}
-            />*/}
           </div>
 
           <Table
             isRowResizable={true}
             numRows={this.state.filteredAssets.length}
+            selectionModes={SelectionModes.ROWS_ONLY}
+            onSelection={regions => console.log("Selected:", calculateExtractedRows(regions))}
           >
             {
               COLUMNS.map(col => <Column name={col.name} renderCell={(row: number) => <Cell>{col.displayValue(this.state.filteredAssets[row])}</Cell>} />)
@@ -158,6 +135,8 @@ class Inventory extends React.Component<IProps, IState> {
     return ASSETS.filter(asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert);
   }
 }
+
+const calculateExtractedRows = (regions: IRegion[]) => regions.map(r => r.rows[0]);   // Expecting only one row per region
 
 function generateAssets() {
   var assets = new Array<IAsset>();

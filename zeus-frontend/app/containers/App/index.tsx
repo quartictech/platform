@@ -27,7 +27,7 @@ export class App extends React.Component<IProps, void> {
       <section className={s.App}>
         <Header
           newDatasetClick={this.props.showNewDatasetModal}
-          searchBoxChange={this.props.searchDatasets}
+          searchBoxChange={() => {}}
         />
         {children}
       </section>
@@ -38,7 +38,6 @@ export class App extends React.Component<IProps, void> {
 
 const mapDispatchToProps = {
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),
-  searchDatasets: (s) => actions.searchDatasets(s),
 };
 
 const mapStateToProps = createStructuredSelector({
