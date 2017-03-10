@@ -13,7 +13,12 @@ import { Link } from "react-router";
 interface IProps {
   ui: any;
   insights:IInsight[];
-  closeNewDatasetModal: any;
+  location?: {
+    query?: {
+      insightType: string
+    }
+  };
+
 }
 
 interface IState {
@@ -44,8 +49,9 @@ class Insights extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div>
-          { this.props.insights.map(insight => (<Insight key={insight.id} insight={insight}/>))}
+      <div className={s.container}>
+          { this.props.insights.filter (i => (!this.props.location.query.insightType ||
+            i.insightType === this.props.location.query.insightType)).map(insight => (<Insight key={insight.id} insight={insight}/>))}
       </div>
     );
   }

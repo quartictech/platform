@@ -4,6 +4,7 @@ import {
   IAssetModel,
   IInsight,
   IAssetInsight,
+  ISmartOpsInsight,
 } from "../../models";
 
 const ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"];
@@ -56,6 +57,7 @@ export const ASSETS: { [id: string]: IAsset } = generateAssets();
 export const INSIGHTS: IInsight[] = [
   <IAssetInsight> {
     id: "I-101",
+    insightType: "cluster",
     title: "Repeated failures in asset class",
     body: `<p>
        52% of assets in this class have experienced failures subsequent to recent maintenance interventions.
@@ -66,8 +68,20 @@ export const INSIGHTS: IInsight[] = [
          </p>`,
     assetClass: "wat",
     assetIds: [_.first(_.values(ASSETS)).id]
+  },
+<ISmartOpsInsight> {
+    id: "I-102",
+    insightType: "smartops",
+    title: "Jobs taking longer than time estimate",
+    body: `<p>
+        Some jobs are currently taking longer than estimated.
+       </p>
+
+       <p>
+         That is noob.
+         </p>`,
   }
-]
+];
 
 
 

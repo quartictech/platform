@@ -11,11 +11,14 @@ import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
 import { Classes } from "@blueprintjs/core";
+import { IInsight } from "../../models";
 
 interface IProps {
   ui: any;
-  closeNewDatasetModal: any;
-  params: { [id: string]: any };
+  insights: [IInsight];
+  params: { 
+    insightId: string;
+  }
 }
 
 interface IState {
@@ -29,10 +32,11 @@ class InsightView extends React.Component<IProps, IState> {
 
 
   render() {
+    const insight = this.props.insights.filter(i => i.id == this.props.params.insightId)[0];
     return (
       <div className={s.container}>
         <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-            <h2>Insight #{this.props.params["insightId"]}: Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
+            <h2>Insight #{this.props.params.insightId}: {insight.title}</h2>
 
             <label className="pt-label pt-inline">
         Time Series
@@ -65,7 +69,8 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi
+  ui: selectors.selectUi,
+  insights: selectors.selectInsights,
 });
 
 export default connect(

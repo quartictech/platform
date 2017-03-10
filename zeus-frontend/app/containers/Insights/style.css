@@ -1,13 +1,12 @@
 
 
 
-.right {
-  width: 50%;
-  padding: 10px;
-  align-self: flex-start;
+.container {
+  width: 100%;
 }
 
 .insight {
   margin-bottom: 20px;
+  width: 80%;
 }
 

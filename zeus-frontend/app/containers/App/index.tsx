@@ -22,9 +22,10 @@ const Menu = () => (
  <div className={s.menu}>
           <ul className="pt-menu pt-elevation-1">
   <li className="pt-menu-header"><h6>Insights</h6></li>
-  <li><button type="button" className="pt-menu-item pt-icon-layout-auto">Failure Predictions</button></li>
-  <li><button type="button" className="pt-menu-item pt-icon-layout-auto">Incident Clustering</button></li>
-  <li><button type="button" className="pt-menu-item pt-icon-layout-circle">Unusual Conditions</button></li>
+  <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights" }}>All</Link></li>
+  <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights", query: {insightType: "failure"}}}>Failure Predictions</Link></li>
+  <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights", query: {insightType: "cluster"}}}>Incident Clusters</Link></li>
+  <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights", query: {insightType: "smartops"}}}>SmartOps Recommendations</Link></li>
   <li className="pt-menu-header"><h6>Views</h6></li>
   <li><Link className="pt-menu-item pt-icon-history" to={`/inventory`}>Inventory</Link></li>
   <li><button type="button" className="pt-menu-item pt-icon-star">Favorites</button></li>

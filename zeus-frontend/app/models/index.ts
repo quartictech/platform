@@ -27,11 +27,16 @@ export interface IInsight {
   id: string;
   title: string;
   body: string;
+  insightType: string;
 }
 
 export interface IAssetInsight extends IInsight {
   assetIds: string[];
   assetClass: string;
+}
+
+export interface ISmartOpsInsight extends IInsight {
+
 }
 
 // TODO: remove this
