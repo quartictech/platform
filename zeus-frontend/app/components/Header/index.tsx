@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Link } from "react-router";
 
-const s = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
@@ -17,14 +16,17 @@ class Header extends React.Component<IProps, void> {
     return (
       <nav className="pt-navbar .modifier pt-dark">
         <div className="pt-navbar-group pt-align-left">
-          <Link to="/" className={s.logo}>
+          <Link to="/" style={{ height: "100%", display: "inline-block" }}>
             <img
-              className={s.logo}
+              style={{
+                height: "100%",
+                paddingTop: "10px",
+                paddingBottom: "10px",
+                marginLeft: "-5px",
+                marginRight: "10px"
+              }}
               src={logo}
               role="presentation"
-              data-content={`Version: ${(process.env.BUILD_VERSION
-                || "unknown")}`}
-              data-variation="mini"
             >
             </img>
           </Link>
