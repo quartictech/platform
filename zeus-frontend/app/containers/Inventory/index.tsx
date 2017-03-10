@@ -19,12 +19,13 @@ import { IAsset } from "../../models";
 import { createStructuredSelector } from "reselect";
 // import * as classNames from "classnames";
 import * as selectors from "../../redux/selectors";
-// import * as actions from "../../redux/actions";
+import * as actions from "../../redux/actions";
 import * as _ from "underscore";
 const s = require("./style.css");
 
 interface IProps {
-  assets: IAsset[];
+  createNote: (assetIds: string[], text: string) => void;
+  assets: { [id : string]: IAsset };
 }
 
 interface IState {
@@ -63,8 +64,6 @@ class Inventory extends React.Component<IProps, IState> {
   };
 
   render() {
-
-    console.log("Selected rows", this.state.selectedRows);
     return (
       <div className={s.container}>
         <div className={s.main}>
@@ -124,7 +123,14 @@ class Inventory extends React.Component<IProps, IState> {
           <h4>Actions</h4>
 
           <div className="pt-button-group pt-align-left">
-            <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="annotation" text="Add note" />
+            <Button
+              className={Classes.MINIMAL}
+              intent={Intent.PRIMARY}
+              iconName="annotation"
+              text="Add note"
+              disabled={!this.anyAssetsSelected()}
+              onClick={() => this.props.createNote(["abc", "def"], "Hello there")}
+            />
             <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="globe" text="View on map" />
           </div>
 
@@ -134,7 +140,7 @@ class Inventory extends React.Component<IProps, IState> {
             (this.state.selectedRows.length === 1)
               ? (
                 this.state.filteredAssets[this.state.selectedRows[0]].notes.map(note =>
-                  <div className="pt-card pt-elevation-2">
+                  <div key={note.id} className="pt-card pt-elevation-2">
                     <h5>{dateToString(note.created)}</h5>
                     <p>{note.text}</p>
                   </div>
@@ -148,14 +154,20 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
   
-  private filterAssets(filterColumn: number, filterValue: string, filterInvert: boolean) {
+  private filterAssets(filterColumn: number, filterValue: string, filterInvert: boolean): IAsset[] {
     if (filterColumn === -1 || filterValue === "") {
-      return this.props.assets;
+      return _.values(this.props.assets);
     }
 
     const lowerCaseFilterValue = filterValue.toLocaleLowerCase();
-    return this.props.assets.filter(asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert);
+
+    return _.filter(
+      _.values(this.props.assets),
+      asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert
+    );
   }
+
+  private anyAssetsSelected = () => this.state.selectedRows.length > 0;
 }
 
 const dateToString = (date: Date) => date.getFullYear() + "/" + formatDateComponent(date.getMonth() + 1) + "/" + formatDateComponent(date.getDay() + 1);
@@ -166,6 +178,7 @@ const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
 const calculateSelectedRows = (regions: IRegion[]) => _.uniq(_.flatten(_.map(regions, r => _.range(r.rows[0], r.rows[1] + 1))));
 
 const mapDispatchToProps = {
+  createNote: actions.createNote,
 };
 
 const mapStateToProps = createStructuredSelector({

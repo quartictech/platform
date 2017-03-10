@@ -12,8 +12,6 @@ export function uiReducer(state: Map<string, any> = initialState,
   switch (action.type) {
     case constants.UI_SET_ACTIVE_MODAL:
       return state.set("activeModal", action.activeModal);
-    case constants.SEARCH_DATASETS:
-      return state.set("searchString", action.search);
     default:
       return state;
   }

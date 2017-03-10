@@ -6,3 +6,9 @@ export function setActiveModal(activeModal) {
     activeModal
   };
 }
+
+export const createNote = (assetIds: string[], text: string) => ({
+  type: constants.CREATE_NOTE,
+  assetIds,
+  text,
+});

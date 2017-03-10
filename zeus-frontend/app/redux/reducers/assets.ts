@@ -1,15 +1,18 @@
-// import * as constants from "../constants";
 import { Map, fromJS } from "immutable";
 
+import * as constants from "../constants";
 import { ASSETS } from "./data";
 
-const initialState = fromJS(ASSETS);
-
 export function assetsReducer(
-    state: Map<string, any> = initialState,
-    // action: any
+    state: Map<string, any> = fromJS(ASSETS),
+    action: any
 ) {
-    // TODO
-    return state;
+    switch (action.type) {
+        case constants.CREATE_NOTE:
+            console.log("CREATE_NOTE", action);
+            return state;
+        default:
+            return state;
+    }
 }
 
