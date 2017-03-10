@@ -2,7 +2,7 @@ import "whatwg-fetch";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { Router, hashHistory } from "react-router";
+import { Router, browserHistory } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
 import { configureStore } from "./redux/store";
 import { getRoutes } from "./routes";
@@ -18,7 +18,7 @@ FocusStyleManager.onlyShowFocusOnTabs();      // To avoid annoying blue outlines
 const store: Redux.Store<any> = configureStore();
 
 import { selectLocationState } from "./redux/selectors";
-const history = syncHistoryWithStore(hashHistory, store,
+const history = syncHistoryWithStore(browserHistory, store,
   {
     selectLocationState: selectLocationState(),
   });
