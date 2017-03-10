@@ -38,12 +38,13 @@ export interface IInsight {
 }
 
 export interface IAssetInsight extends IInsight {
+  insightType: "cluster";
   assetIds: string[];
   assetClass: string;
 }
 
 export interface ISmartOpsInsight extends IInsight {
-
+  insightType: "smartops";
 }
 
 // TODO: remove this

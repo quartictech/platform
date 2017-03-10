@@ -63,6 +63,9 @@ export const INSIGHTS: IInsight[] = [
        52% of assets in this class have experienced failures subsequent to recent maintenance interventions.
        </p>
 
+       <div class="pt-tag">Boiler-5000</div>
+       <br><br>
+
        <p>
          That is noob.
          </p>`,
