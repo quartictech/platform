@@ -30,7 +30,7 @@ export interface IInsight {
 }
 
 export interface IAssetInsight extends IInsight {
-  assetIds: number[];
+  assetIds: string[];
   assetClass: string;
 }
 
