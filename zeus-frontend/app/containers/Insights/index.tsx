@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
+import { IInsight } from "../../models";
 import * as classNames from "classnames";
 const s = require("./style.css");
 
@@ -11,6 +12,7 @@ import { Link } from "react-router";
 
 interface IProps {
   ui: any;
+  insights:IInsight[];
   closeNewDatasetModal: any;
 }
 
@@ -18,34 +20,22 @@ interface IState {
   datasetId: string;
 };
 
-const Insight = ({ insightId }) => (
+const Insight = ({ insight }) => (
   <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
     <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
-     <h5>Repeated failures in asset class <a href="#">Boiler-5000</a></h5>
-     <p>
-       52% of assets in this class have experienced failures subsequent to recent maintenance interventions.
-       </p>
-
-       <p>
-         That is noob.
-         </p>
-    </div>
+     <h5>{ insight.title }</h5>
+         <div dangerouslySetInnerHTML={{__html: insight.body}}>
+           </div>
+           </div>
     <div>
-      <Link className="pt-button pt-intent-primary" to={`/insights/${insightId}`}>
+      <Link className="pt-button pt-intent-primary" to={`/insights/${insight.id}`}>
       See detail
       </Link>
     </div>
   </div>
 );
 
-class Insights extends React.Component<IProps, IState> {
-  public state : IState = {
-    datasetId: null,
-  };
-
-  render() {
-    return (
-      <div className={s.container}>
+const Menu = () => (
  <div className={s.menu}>
           <ul className="pt-menu pt-elevation-1">
   <li className="pt-menu-header"><h6>Insights</h6></li>
@@ -58,11 +48,19 @@ class Insights extends React.Component<IProps, IState> {
   <li><button type="button" className="pt-menu-item pt-icon-envelope">Messages</button></li>
 </ul>
 </div>
+);
 
+class Insights extends React.Component<IProps, IState> {
+  public state : IState = {
+    datasetId: null,
+  };
+
+  render() {
+    return (
+      <div className={s.container}>
+        <Menu />
         <div className={s.main}>
-          <Insight insightId="0" />
-          <Insight insightId="1" />
-          <Insight insightId="2" />
+          { this.props.insights.map(insight => (<Insight insight={insight}/>))}
         </div>
       </div>
     );
@@ -74,7 +72,8 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi
+  ui: selectors.selectUi,
+  insights: selectors.selectInsights,
 });
 
 export default connect(

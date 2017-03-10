@@ -23,6 +23,17 @@ export interface IAsset {
   notes: INote[];
 };
 
+export interface IInsight {
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface IAssetInsight extends IInsight {
+  assetIds: number[];
+  assetClass: string;
+}
+
 // TODO: remove this
 export interface UiAction {
   type: string;

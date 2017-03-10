@@ -32,13 +32,14 @@ class InsightView extends React.Component<IProps, IState> {
     return (
       <div className={s.container}>
         <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-            <h2>{this.props.params["insightId"]} Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
+            <h2>Insight #{this.props.params["insightId"]}: Repeated failures in asset class: <a href="#">Boiler-5000</a></h2>
 
             <label className="pt-label pt-inline">
         Time Series
         <div className={Classes.SELECT}>
             <select> 
-               <option key={0} value={"temperature"}>Temperature</option>)}
+               <option key={0} value="temperature">Temperature</option>
+               <option key={1} value="pressure">Pressure</option>
             </select>
         </div>
 </label>
