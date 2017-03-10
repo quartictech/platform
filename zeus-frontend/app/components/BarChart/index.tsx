@@ -5,14 +5,14 @@ const s = require("./style.css");
 
 import { IBar } from "../../models";
 
-
+import SizeMe from "react-sizeme";
 
 interface IProps {
   data: IBar[];
   xLabel: string;
 };
 
-export class BarChart  extends React.Component<IProps, any> {
+class RealBarChart  extends React.Component<IProps, any> {
   createChart() {
     const xScale = new Plottable.Scales.Linear();
     const yScale = new Plottable.Scales.Category();
@@ -58,3 +58,5 @@ export class BarChart  extends React.Component<IProps, any> {
     this.state.plot.redraw();
   }
 }
+
+export const BarChart = SizeMe()(RealBarChart);

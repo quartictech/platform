@@ -3,7 +3,9 @@ import * as React from "react";
 import * as Plottable from "plottable";
 const s = require("./style.css");
 
-export class TimeChart  extends React.Component<any, any> {
+import SizeMe from "react-sizeme";
+
+class RealTimeChart  extends React.Component<any, any> {
   maintenance = [{ x: new Date(2017, 1, 1) }, { x: new Date(2017, 2, 3) }];
   failures = [{ x: new Date(2017, 4, 1) }];
 
@@ -51,8 +53,8 @@ export class TimeChart  extends React.Component<any, any> {
   render() {
     return (
       <div style={{padding: "10px", width: "99%"}}>
-    <svg className={s.chart} style={{width: "100%"}} ref="svg">
-    </svg>
+    <div className={s.chart} style={{width: "100%", height: 100}} ref="svg">
+    </div>
     </div>
     );
   }
@@ -63,3 +65,5 @@ export class TimeChart  extends React.Component<any, any> {
     this.state.plot.redraw();
   }
 }
+
+export const TimeChart = SizeMe()(RealTimeChart);
