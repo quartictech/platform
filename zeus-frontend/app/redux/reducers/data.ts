@@ -85,6 +85,7 @@ export const INSIGHTS: IInsight[] = [
       {name: "Bin emptying", value: 150},
       {name: "Pothole maintenance", value: 120},
       ],
+    barChartXLabel: "Time taken / estimate (%)",
       
   }
 ];

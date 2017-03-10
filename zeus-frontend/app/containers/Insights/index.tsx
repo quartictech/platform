@@ -35,7 +35,7 @@ const Insight = ({ insight }) => (
            </div>
     <div>
       { insight.barChart ? (<div>
-        <BarChart data={insight.barChart}/>
+        <BarChart data={insight.barChart} xLabel={insight.barChartXLabel} />
       </div>) : null}
       <Link className="pt-button pt-intent-primary" to={`/insights/${insight.id}`}>
       See detail

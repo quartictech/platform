@@ -34,6 +34,7 @@ export interface IInsight {
   body: string;
   insightType: string;
   barChart: IBar[];
+  barChartXLabel: string;
 }
 
 export interface IAssetInsight extends IInsight {

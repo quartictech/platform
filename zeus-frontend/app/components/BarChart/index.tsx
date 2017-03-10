@@ -3,13 +3,13 @@ import * as React from "react";
 import * as Plottable from "plottable";
 const s = require("./style.css");
 
-interface IBar {
-  name: string;
-  value: number;
-};
+import { IBar } from "../../models";
+
+
 
 interface IProps {
   data: IBar[];
+  xLabel: string;
 };
 
 export class BarChart  extends React.Component<IProps, any> {
@@ -18,6 +18,8 @@ export class BarChart  extends React.Component<IProps, any> {
     const yScale = new Plottable.Scales.Category();
     const xAxis = new Plottable.Axes.Numeric(xScale, "bottom");
     const yAxis = new Plottable.Axes.Category(yScale, "left");
+
+    const xLabel = new Plottable.Components.AxisLabel(this.props.xLabel, 0);
 
 
     const plot = new Plottable.Plots.Bar("horizontal")
@@ -35,6 +37,7 @@ export class BarChart  extends React.Component<IProps, any> {
       chart: new Plottable.Components.Table([
       [yAxis, chart],
       [null, xAxis],
+      [null, xLabel]
     ]),
     plot: plot
     };
