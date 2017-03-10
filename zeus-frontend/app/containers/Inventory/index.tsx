@@ -63,10 +63,9 @@ class Inventory extends React.Component<IProps, IState> {
   };
 
   render() {
-
     console.log("Selected rows", this.state.selectedRows);
     return (
-      <div className={s.container}>
+        <div className={s.container}>
         <div className={s.main}>
 
           <div className="pt-control-group">
@@ -144,7 +143,7 @@ class Inventory extends React.Component<IProps, IState> {
           }
 
         </div>
-      </div>
+        </div>
     );
   }
   

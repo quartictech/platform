@@ -5,7 +5,6 @@ const s = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
-  newDatasetClick: any;
   searchBoxChange: any;
 }
 

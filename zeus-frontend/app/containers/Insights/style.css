@@ -1,13 +1,5 @@
 
-.container {
-  display: flex;
-  background-color: #f5f8fa;
-  flex-direction: row;
-}
 
-.main {
-  flex: 0.6;
-}
 
 .right {
   width: 50%;
@@ -16,10 +8,6 @@
 }
 
 .insight {
-  margin: 20px;
+  margin-bottom: 20px;
 }
 
-.menu {
-  flex: 0.2;
-  padding: 20px;
-}

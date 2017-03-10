@@ -18,3 +18,23 @@
 .Content {
   min-height: 84vh;
 }
+
+.container {
+  display: flex;
+  background-color: #f5f8fa;
+  flex-direction: row;
+  width: 100%;
+}
+
+.main {
+  width: 80%;
+  display: flex;
+  padding: 20px;
+}
+
+.menu {
+  width: 20%;
+  flex: 0.2;
+  padding: 20px;
+}
+

@@ -35,20 +35,7 @@ const Insight = ({ insight }) => (
   </div>
 );
 
-const Menu = () => (
- <div className={s.menu}>
-          <ul className="pt-menu pt-elevation-1">
-  <li className="pt-menu-header"><h6>Insights</h6></li>
-  <li><button type="button" className="pt-menu-item pt-icon-layout-auto">Failure Predictions</button></li>
-  <li><button type="button" className="pt-menu-item pt-icon-layout-auto">Incident Clustering</button></li>
-  <li><button type="button" className="pt-menu-item pt-icon-layout-circle">Unusual Conditions</button></li>
-  <li className="pt-menu-header"><h6>Views</h6></li>
-  <li><button type="button" className="pt-menu-item pt-icon-history">History</button></li>
-  <li><button type="button" className="pt-menu-item pt-icon-star">Favorites</button></li>
-  <li><button type="button" className="pt-menu-item pt-icon-envelope">Messages</button></li>
-</ul>
-</div>
-);
+
 
 class Insights extends React.Component<IProps, IState> {
   public state : IState = {
@@ -57,11 +44,8 @@ class Insights extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div className={s.container}>
-        <Menu />
-        <div className={s.main}>
-          { this.props.insights.map(insight => (<Insight insight={insight}/>))}
-        </div>
+      <div>
+          { this.props.insights.map(insight => (<Insight key={insight.id} insight={insight}/>))}
       </div>
     );
   }
