@@ -46,8 +46,8 @@ export class BarChart  extends React.Component<IProps, any> {
   render() {
     return (
       <div style={{padding: "10px", width: "99%"}}>
-    <svg className={s.chart} style={{width: "100%"}} ref="svg">
-    </svg>
+    <div className={s.chart} style={{width: "100%", height: "200px"}} ref="svg">
+    </div>
     </div>
     );
   }
