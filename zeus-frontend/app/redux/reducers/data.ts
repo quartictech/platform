@@ -60,17 +60,18 @@ export const INSIGHTS: IInsight[] = [
     insightType: "cluster",
     title: "Repeated failures in asset class",
     body: `<p>
-       52% of assets in this class have experienced failures subsequent to recent maintenance interventions.
+       52% of assets in this class have experienced failures within 4 weeks of maintenance intervention.
        </p>
 
-       <div class="pt-tag">Boiler-5000</div>
-       <br><br>
-
-       <p>
-         That is noob.
-         </p>`,
+       <div class="pt-tag">Boiler-5000</div>`,
     assetClass: "wat",
-    assetIds: [_.first(_.values(ASSETS)).id]
+    assetIds: [_.first(_.values(ASSETS)).id],
+    barChart: [
+      {name: "0 -5 years", value: 5},
+      {name: "5-10 years", value: 5},
+      {name: "> 10 years", value: 20},
+    ],
+    barChartXLabel: "# Failures"
   },
 <ISmartOpsInsight> {
     id: "I-102",
@@ -78,11 +79,8 @@ export const INSIGHTS: IInsight[] = [
     title: "Jobs taking longer than time estimate",
     body: `<p>
         Some jobs are currently taking longer than estimated.
-       </p>
+       </p>`,
 
-       <p>
-         That is noob.
-         </p>`,
     barChart: [
       {name: "Grass verge maintenance", value: 110},
       {name: "Bin emptying", value: 150},
