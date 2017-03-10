@@ -80,6 +80,12 @@ export const INSIGHTS: IInsight[] = [
        <p>
          That is noob.
          </p>`,
+    barChart: [
+      {name: "Grass verge maintenance", value: 110},
+      {name: "Bin emptying", value: 150},
+      {name: "Pothole maintenance", value: 120},
+      ],
+      
   }
 ];
 

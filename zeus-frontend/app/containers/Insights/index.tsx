@@ -7,6 +7,7 @@ import * as actions from "../../redux/actions";
 import { IInsight } from "../../models";
 import * as classNames from "classnames";
 const s = require("./style.css");
+import { BarChart } from "../../components/BarChart";
 
 import { Link } from "react-router";
 
@@ -33,6 +34,9 @@ const Insight = ({ insight }) => (
            </div>
            </div>
     <div>
+      { insight.barChart ? (<div>
+        <BarChart data={insight.barChart}/>
+      </div>) : null}
       <Link className="pt-button pt-intent-primary" to={`/insights/${insight.id}`}>
       See detail
       </Link>

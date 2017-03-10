@@ -23,11 +23,17 @@ export interface IAsset {
   notes: INote[];
 };
 
+export interface IBar {
+  name: string;
+  value: number;
+};
+
 export interface IInsight {
   id: string;
   title: string;
   body: string;
   insightType: string;
+  barChart: IBar[];
 }
 
 export interface IAssetInsight extends IInsight {
