@@ -10,5 +10,6 @@ export function setActiveModal(activeModal) {
 export const createNote = (assetIds: string[], text: string) => ({
   type: constants.CREATE_NOTE,
   assetIds,
+  created: new Date(Date.now()),
   text,
 });
