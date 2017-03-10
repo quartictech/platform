@@ -53,7 +53,7 @@ class RealTimeChart  extends React.Component<any, any> {
   render() {
     return (
       <div style={{padding: "10px", width: "99%"}}>
-    <div className={s.chart} style={{width: "100%", height: 100}} ref="svg">
+    <div className={s.chart} style={{width: "100%", height: 150}} ref="svg">
     </div>
     </div>
     );
