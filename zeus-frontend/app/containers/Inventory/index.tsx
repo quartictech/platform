@@ -2,7 +2,6 @@ import * as React from "react";
 import { connect } from "react-redux";
 import {
   Button,
-  Classes,
   Intent,
   Switch,
 } from "@blueprintjs/core";
@@ -17,9 +16,9 @@ import {
 
 import { IAsset } from "../../models";
 import { createStructuredSelector } from "reselect";
-// import * as classNames from "classnames";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
+import * as $ from "jquery";
 import * as _ from "underscore";
 const s = require("./style.css");
 
@@ -33,7 +32,7 @@ interface IState {
   filterColumn: number;
   filterValue: string;
   filterInvert: boolean;
-  selectedRows: number[];
+  selectedAssets: IAsset[];
 };
 
 interface IColumn {
@@ -55,12 +54,27 @@ const COLUMNS: IColumn[] = [
 ];
 
 class Inventory extends React.Component<IProps, IState> {
+  private filterAssets = (filterColumn: number, filterValue: string, filterInvert: boolean) => {
+    if (filterColumn === -1 || filterValue === "") {
+      return _.values(this.props.assets);
+    }
+
+    const lowerCaseFilterValue = filterValue.toLocaleLowerCase();
+
+    return _.filter(
+      _.values(this.props.assets),
+      asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert
+    );
+  }
+
+  private anyAssetsSelected = () => this.state.selectedAssets.length > 0;
+
   public state : IState = {
     filteredAssets: this.filterAssets(-1, "", false),  // We materialise rather than using a view due to the inefficient way that Blueprint Table works
     filterColumn: -1,
     filterValue: "",
     filterInvert: false,
-    selectedRows: [],
+    selectedAssets: [],
   };
 
   render() {
@@ -106,7 +120,7 @@ class Inventory extends React.Component<IProps, IState> {
             isRowResizable={true}
             numRows={this.state.filteredAssets.length}
             selectionModes={SelectionModes.ROWS_AND_CELLS}
-            onSelection={regions => this.setState({ selectedRows: calculateSelectedRows(regions) })}
+            onSelection={regions => this.setState({ selectedAssets: this.calculateSelectedAssets(regions) })}
             selectedRegionTransform={cellToRow}
           >
             {
@@ -120,26 +134,12 @@ class Inventory extends React.Component<IProps, IState> {
         </div>
 
         <div className={s.right}>
-          <h4>Actions</h4>
-
-          <div className="pt-button-group pt-align-left">
-            <Button
-              className={Classes.MINIMAL}
-              intent={Intent.PRIMARY}
-              iconName="annotation"
-              text="Add note"
-              disabled={!this.anyAssetsSelected()}
-              onClick={() => this.props.createNote(["abc", "def"], "Hello there")}
-            />
-            <Button className={Classes.MINIMAL} intent={Intent.PRIMARY} iconName="globe" text="View on map" />
-          </div>
-
           <h4>Notes</h4>
 
           {
-            (this.state.selectedRows.length === 1)
+            (this.state.selectedAssets.length === 1)
               ? (
-                this.state.filteredAssets[this.state.selectedRows[0]].notes.map(note =>
+                this.state.selectedAssets[0].notes.map(note =>
                   <div key={note.id} className="pt-card pt-elevation-2">
                     <h5>{dateToString(note.created)}</h5>
                     <p>{note.text}</p>
@@ -149,25 +149,37 @@ class Inventory extends React.Component<IProps, IState> {
               : null
           }
 
+          {
+            this.anyAssetsSelected()
+              ? (
+                <div className="pt-card pt-elevation-2">
+                  <h5>New note</h5>
+                  <textarea id="note" className="pt-input pt-intent-primary" dir="auto" style={{ width: "100%" }}></textarea>
+                  <div style={{ textAlign: "right" }}>
+                    <Button
+                      intent={Intent.PRIMARY}
+                      iconName="upload"
+                      text="Submit"
+                      onClick={() => this.props.createNote(_.map(this.state.selectedAssets, a => a.id), $("textarea#note").val())}
+                    />
+                  </div>
+                </div>
+              )
+              : null
+          }
+
         </div>
         </div>
     );
   }
-  
-  private filterAssets(filterColumn: number, filterValue: string, filterInvert: boolean): IAsset[] {
-    if (filterColumn === -1 || filterValue === "") {
-      return _.values(this.props.assets);
-    }
 
-    const lowerCaseFilterValue = filterValue.toLocaleLowerCase();
-
-    return _.filter(
-      _.values(this.props.assets),
-      asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(lowerCaseFilterValue) !== -1) !== filterInvert
-    );
-  }
-
-  private anyAssetsSelected = () => this.state.selectedRows.length > 0;
+  private calculateSelectedAssets = (regions: IRegion[]) => 
+    _.chain(regions)
+      .map(r => _.range(r.rows[0], r.rows[1] + 1))
+      .flatten()
+      .uniq()
+      .map(i => this.state.filteredAssets[i])
+      .value();
 }
 
 const dateToString = (date: Date) => date.getFullYear() + "/" + formatDateComponent(date.getMonth() + 1) + "/" + formatDateComponent(date.getDay() + 1);
@@ -175,7 +187,6 @@ const formatDateComponent = (x: number) => ((x < 10) ? "0" : "") + x;
 
 const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
 
-const calculateSelectedRows = (regions: IRegion[]) => _.uniq(_.flatten(_.map(regions, r => _.range(r.rows[0], r.rows[1] + 1))));
 
 const mapDispatchToProps = {
   createNote: actions.createNote,

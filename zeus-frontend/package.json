@@ -89,6 +89,7 @@
     "@types/underscore": "1.7.33",
     "classnames": "2.2.5",
     "immutable": "3.8.1",
+    "jquery": "3.1.1",
     "plottable": "^3.0.0-beta.2",
     "react": "15.4.2",
     "react-addons-css-transition-group": "15.4.0",
