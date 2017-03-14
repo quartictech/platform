@@ -86,15 +86,14 @@ export const INSIGHTS: IInsight[] = [
     id: "I-103",
     insightType: "failure",
     title: "Asset likely to experience failure soon",
-    body: ""
+    body: "",
+    assetIds: [_.last(_.values(ASSETS)).id]
   },
 <ISmartOpsInsight> {
     id: "I-102",
     insightType: "smartops",
     title: "Jobs taking longer than time estimate",
-    body: `<p>
-        Some jobs are currently taking longer than estimated.
-       </p>`,
+    body: "Some jobs are currently taking longer than estimated.</p>",
 
     barChart: [
       {name: "Grass verge maintenance", value: 110},

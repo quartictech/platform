@@ -40,18 +40,14 @@ export interface IInsight {
   body: string;
   insightType: string;
   barChart: IBar[];
+  assetIds: string[];
   barChartXLabel: string;
   subInsights: ISubInsight[];
 }
 
 export interface IIncidentClusterInsight extends IInsight {
   insightType: "cluster";
-  assetIds: string[];
   assetClass: string;
-}
-
-export interface IIncidentClusterInsightJoined extends IIncidentClusterInsight {
-  assets: IAsset[];
 }
 
 export interface ISmartOpsInsight extends IInsight {
