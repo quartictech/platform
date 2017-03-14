@@ -83,9 +83,9 @@ class InsightView extends React.Component<IProps, IState> {
         <div className="pt-card pt-elevation-2">
           <h2>Actions</h2>
           <p>
-          4 / 10 of similar assets have not yet failed. <b>Consider scheduling proactive maintenace.</b>
+          4 / 10 of similar assets have not yet failed. <b>Consider scheduling proactive maintenance.</b>
           </p>
-          <Link className="pt-button pt-intent-primary" to={`/inventory`}>View</Link>
+          <Link className="pt-button pt-intent-primary"  to={{ pathname: "/inventory", query: {clazz: "Boiler"}}}>View</Link>
         </div>
       </div>
     </div>

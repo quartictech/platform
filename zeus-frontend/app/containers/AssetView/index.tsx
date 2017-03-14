@@ -4,27 +4,23 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
+import { IAsset } from "../../models";
 const s = require("./style.css");
 
 interface IProps {
   ui: any;
+  assets: {[id:string]: IAsset};
+  params: {
+    assetId: string;
+  };
 }
 
-interface IState {
-  datasetId: string;
-};
-
-class AssetView extends React.Component<IProps, IState> {
-  public state : IState = {
-    datasetId: null,
-  };
-
+class AssetView extends React.Component<IProps, void> {
   render() {
+    const asset = this.props.assets[this.props.params.assetId];
     return (
       <div className={s.container}>
-        <h1>Boiler-X192</h1>
-
-        <p>is raging</p>
+        <h1>{asset.clazz}-{asset.model.manufacturer}-{asset.model.name}-{asset.serial}</h1>
       </div>
     );
   }
@@ -37,7 +33,8 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi
+  ui: selectors.selectUi,
+  assets: selectors.selectAssets,
 });
 
 export default connect(
