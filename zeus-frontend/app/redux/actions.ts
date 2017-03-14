@@ -9,6 +9,7 @@ export function setActiveModal(activeModal) {
 
 export const createNote = (assetIds: string[], text: string) => ({
   type: constants.CREATE_NOTE,
+  id: Math.floor(Math.random() * 100000),
   assetIds,
   created: new Date(Date.now()),
   text,

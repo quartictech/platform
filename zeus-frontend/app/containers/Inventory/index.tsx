@@ -136,23 +136,19 @@ class Inventory extends React.Component<IProps, IState> {
             <h4>Notes</h4>
 
             {
-              (selectedAssets.length === 1)
-                ? (
-                  selectedAssets[0].notes.map(note =>
-                    <div
-                      key={note.id}
-                      className="pt-callout pt-elevation-2 pt-intent-warning"
-                      style={{ marginBottom: "10px" }}
-                    >
-                      <h5>{dateToString(note.created)}</h5>
-                      <p>{note.text}</p>
-                      <p style={{ textAlign: "right" }}>
-                        <Tag intent={Intent.WARNING}>Serious</Tag>
-                      </p>
-                    </div>
-                  )
-                )
-                : null
+              this.uniqueNotes(selectedAssets).map(note =>
+                <div
+                  key={note.id}
+                  className="pt-callout pt-elevation-2 pt-intent-warning"
+                  style={{ marginBottom: "10px" }}
+                >
+                  <h5>{dateToString(note.created)}</h5>
+                  <p>{note.text}</p>
+                  <p style={{ textAlign: "right" }}>
+                    <Tag intent={Intent.WARNING}>Serious</Tag>
+                  </p>
+                </div>
+              )
             }
 
             {
@@ -308,6 +304,14 @@ class Inventory extends React.Component<IProps, IState> {
         );
     }
   }
+
+  private uniqueNotes = (assets: IAsset[]) =>
+    _.chain(assets)
+      .map(a => a.notes)
+      .flatten()
+      .uniq(a => a.id)
+      .sortBy(a => a.created)
+      .value();
 
   private calculateSelectedRows = (regions: IRegion[]) => 
     _.chain(regions)
