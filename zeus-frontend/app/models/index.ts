@@ -47,6 +47,10 @@ export interface ISmartOpsInsight extends IInsight {
   insightType: "smartops";
 }
 
+export interface IFailureInsight extends IInsight {
+  insightType: "failure";
+}
+
 // TODO: remove this
 export interface UiAction {
   type: string;

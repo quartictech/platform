@@ -2,8 +2,24 @@
 .container {
   display: flex;
   background-color: #f5f8fa;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
+}
+
+.main {
+  display: flex;
+  background-color: #f5f8fa;
+  flex-direction: column;
+  margin-right: 10px;
+  width: 75%;
+}
+
+.right {
+  display: flex;
+  background-color: #f5f8fa;
+  flex-direction: column;
+  width: 25%;
+  padding-left: 20px;
 }
 
 .card {
@@ -17,4 +33,17 @@
   flex: 1;
   margin-bottom: 20px;
   padding-bottom: 0px;
+}
+
+.subInsight {
+  margin: 5px;
+}
+
+.subInsightContainer {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.plotControls {
+
 }

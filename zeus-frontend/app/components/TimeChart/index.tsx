@@ -24,7 +24,7 @@ function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
 }
 
 class RealTimeChart  extends React.Component<any, any> {
-  maintenance = [{ x: new Date(2017, 0, 1) }, { x: new Date(2017, 1, 3) }];
+  maintenance = [{ x: new Date(2016, 9, 10) }, { x: new Date(2017, 1, 3) }];
   failures = [{ x: new Date(2017, 2, 2) }];
   timeSeries: ITimeSeriesPoint[] = generateTimeSeries(new Date(2016, 1, 1), Date.now());
 

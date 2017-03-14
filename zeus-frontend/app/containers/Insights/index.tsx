@@ -8,6 +8,7 @@ import { IInsight } from "../../models";
 import * as classNames from "classnames";
 const s = require("./style.css");
 import { BarChart } from "../../components/BarChart";
+import { TimeChart } from "../../components/TimeChart";
 
 import { Link } from "react-router";
 
@@ -34,6 +35,7 @@ const Insight = ({ insight }) => (
            </div>
            </div>
     <div>
+      { insight.insightType === "failure"? <div><TimeChart /></div>: null }
       { insight.barChart ? (<div>
         <BarChart data={insight.barChart} xLabel={insight.barChartXLabel} />
       </div>) : null}

@@ -5,6 +5,7 @@ import {
   IInsight,
   IAssetInsight,
   ISmartOpsInsight,
+  IFailureInsight
 } from "../../models";
 
 const ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"];
@@ -55,6 +56,13 @@ function randomDate(start: Date, end: Date) {
 export const ASSETS: { [id: string]: IAsset } = generateAssets();
 
 export const INSIGHTS: IInsight[] = [
+<IFailureInsight> {
+    id: "I-103",
+    insightType: "failure",
+    title: "Asset likely to experience failure soon",
+    body: ""
+  },
+
   <IAssetInsight> {
     id: "I-101",
     insightType: "cluster",
@@ -87,9 +95,8 @@ export const INSIGHTS: IInsight[] = [
       {name: "Pothole maintenance", value: 120},
       ],
     barChartXLabel: "Time taken / estimate (%)",
-      
-  }
-];
+  },
+  ];
 
 
 
