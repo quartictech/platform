@@ -26,6 +26,9 @@ const s = require("./style.css");
 interface IProps {
   createNote: (assetIds: string[], text: string) => void;
   assets: { [id : string]: IAsset };
+  location?: {
+    query?: { [key : string]: string };
+  };
 }
 
 const enum DialogMode {
@@ -73,14 +76,23 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  state : IState = {
-    filterColumn: -1,
-    filterValue: "",
-    filterInvert: false,
-    selectedRows: [],
-    dialogMode: DialogMode.None,
-    noteText: "",
-  };
+  state : IState = this.someNoobFunction();
+
+  someNoobFunction(): IState {
+    const firstKey = _.first(_.keys(this.props.location.query));
+    const firstValue = this.props.location.query[firstKey];
+
+    const columnIndex = _.findIndex(COLUMNS, c => c.name.toLocaleLowerCase() === firstKey.toLocaleLowerCase());
+
+    return {
+      filterColumn: columnIndex,
+      filterValue: columnIndex ? firstValue : "",
+      filterInvert: false,
+      selectedRows: [],
+      dialogMode: DialogMode.None,
+      noteText: "",
+    };
+  }
 
   render() {
     const filteredAssets = this.filterAssets(this.props.assets, this.state.filterColumn, this.state.filterValue, this.state.filterInvert );
