@@ -8,8 +8,8 @@ import { configureStore } from "./redux/store";
 import { getRoutes } from "./routes";
 
 import "@blueprintjs/core/dist/blueprint.css";
-import "plottable/plottable.css";
 import "@blueprintjs/table/dist/table.css";
+import "plottable/plottable.css";
 
 import { FocusStyleManager } from "@blueprintjs/core";
 FocusStyleManager.onlyShowFocusOnTabs();      // To avoid annoying blue outlines

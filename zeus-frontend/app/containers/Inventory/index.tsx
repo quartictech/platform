@@ -4,6 +4,7 @@ import {
   Button,
   Intent,
   Switch,
+  Tag,
 } from "@blueprintjs/core";
 import {
   Cell,
@@ -18,6 +19,7 @@ import { IAsset } from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
+import { toaster } from "../../containers/App/toaster";
 import * as _ from "underscore";
 const s = require("./style.css");
 
@@ -26,11 +28,18 @@ interface IProps {
   assets: { [id : string]: IAsset };
 }
 
+const enum DialogMode {
+   None,
+   AddNote,
+   ScheduleMaintenance,
+};
+
 interface IState {
   filterColumn: number;
   filterValue: string;
   filterInvert: boolean;
   selectedRows: number[];
+  dialogMode: DialogMode;
   noteText: string;
 };
 
@@ -64,13 +73,12 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  private anyAssetsSelected = () => this.state.selectedRows.length > 0;
-
-  public state : IState = {
+  state : IState = {
     filterColumn: -1,
     filterValue: "",
     filterInvert: false,
     selectedRows: [],
+    dialogMode: DialogMode.None,
     noteText: "",
   };
 
@@ -131,9 +139,16 @@ class Inventory extends React.Component<IProps, IState> {
               (selectedAssets.length === 1)
                 ? (
                   selectedAssets[0].notes.map(note =>
-                    <div key={note.id} className="pt-card pt-elevation-2">
+                    <div
+                      key={note.id}
+                      className="pt-callout pt-elevation-2 pt-intent-warning"
+                      style={{ marginBottom: "10px" }}
+                    >
                       <h5>{dateToString(note.created)}</h5>
                       <p>{note.text}</p>
+                      <p style={{ textAlign: "right" }}>
+                        <Tag intent={Intent.WARNING}>Serious</Tag>
+                      </p>
                     </div>
                   )
                 )
@@ -141,38 +156,157 @@ class Inventory extends React.Component<IProps, IState> {
             }
 
             {
-              this.anyAssetsSelected()
-                ? (
-                  <div className="pt-card pt-elevation-2">
-                    <h5>New note</h5>
-                    <textarea
-                      id="note"
-                      className="pt-input pt-intent-primary"
-                      dir="auto"
-                      style={{ width: "100%" }}
-                      value={this.state.noteText}
-                      onChange={(e) => this.setState({ noteText: e.target.value })}
-                    />
-                    <div style={{ textAlign: "right" }}>
-                      <Button
-                        intent={Intent.PRIMARY}
-                        iconName="upload"
-                        text="Submit"
-                        disabled={this.state.noteText.trim().length === 0}
-                        onClick={() => {
-                          this.props.createNote(_.map(selectedAssets, a => a.id), this.state.noteText.trim());
-                          this.setState({ noteText: "" });
-                        }}
-                      />
-                    </div>
-                  </div>
-                )
-                : null
+              this.renderDialog(selectedAssets)
             }
 
           </div>
         </div>
     );
+  }
+
+  private renderDialog(selectedAssets: IAsset[]) {
+    if (selectedAssets.length === 0) {
+      return null;
+    }
+
+    switch (this.state.dialogMode) {
+      case DialogMode.None:
+        return (
+          <div className="pt-button-group pt-vertical pt-align-left">
+            <Button
+              iconName="annotation"
+              text="Add note"
+              onClick={() => this.setState({
+                dialogMode: DialogMode.AddNote,
+                noteText: "",
+              })}
+            />
+            <Button
+              iconName="calendar"
+              text="Schedule maintenance"
+              onClick={() => this.setState({
+                dialogMode: DialogMode.ScheduleMaintenance,
+                noteText: "",
+              })}
+            />
+          </div>
+        );
+
+      case DialogMode.AddNote:
+        return (
+          <div className="pt-callout pt-elevation-2">
+            <h5>New note</h5>
+            <textarea
+              id="note"
+              className="pt-input pt-intent-primary"
+              dir="auto"
+              rows={4}
+              style={{ width: "100%" }}
+              value={this.state.noteText}
+              onChange={(e) => this.setState({ noteText: e.target.value })}
+            />
+
+            <div style={{ textAlign: "right", paddingTop: "10px" }}>
+              <Button
+                iconName="undo"
+                text="Cancel"
+                onClick={() => this.setState({ dialogMode: DialogMode.None })}
+              />
+              <Button
+                intent={Intent.PRIMARY}
+                iconName="upload"
+                text="Submit"
+                disabled={this.state.noteText.trim().length === 0}
+                onClick={() => {
+                  this.props.createNote(_.map(selectedAssets, a => a.id), this.state.noteText.trim());
+                  this.setState({ dialogMode: DialogMode.None });
+                }}
+              />
+            </div>
+          </div>
+        );
+
+      case DialogMode.ScheduleMaintenance:
+        return (
+          <div className="pt-callout pt-elevation-2">
+            <h5>Schedule maintenance</h5>
+
+            <label className="pt-label">
+              Type
+              <div className="pt-select">
+                <select>
+                  <option value="1">Inspect</option>
+                  <option value="2">Repair</option>
+                  <option value="3">Replace</option>
+                  <option value="4">Provision</option>
+                  <option value="5">Calibrate</option>
+                </select>
+              </div>
+            </label>
+
+            <label className="pt-label">
+              Priority
+              <div className="pt-select">
+                <select>
+                  <option value="1">Low</option>
+                  <option value="2">Medium</option>
+                  <option value="3">High</option>
+                </select>
+              </div>
+            </label>
+
+            <label className="pt-label">
+              Deadline
+              <div className="pt-select">
+                <select>
+                  <option value="1">1 day</option>
+                  <option value="2">2 days</option>
+                  <option value="3">3 days</option>
+                  <option value="4">1 week</option>
+                  <option value="5">2 weeks</option>
+                  <option value="6">1 month</option>
+                </select>
+              </div>
+            </label>
+
+            <label>Additional notes</label>
+            <textarea
+              id="note"
+              className="pt-input pt-intent-primary"
+              dir="auto"
+              rows={4}
+              style={{ width: "100%" }}
+              value={this.state.noteText}
+              onChange={(e) => this.setState({ noteText: e.target.value })}
+            />
+
+            <div style={{ textAlign: "right", paddingTop: "10px" }}>
+              <Button
+                iconName="undo"
+                text="Cancel"
+                onClick={() => this.setState({ dialogMode: DialogMode.None })}
+              />
+              <Button
+                intent={Intent.PRIMARY}
+                iconName="upload"
+                text="Submit"
+                disabled={this.state.noteText.trim().length === 0}
+                onClick={() => {
+                  // TODO: store the form info somewhere!
+                  toaster.show({
+                    iconName: "calendar",
+                    intent: Intent.SUCCESS,
+                    message: `Maintenance successfully scheduled in work order system (${
+                      selectedAssets.map(a => a.id).join(", ")
+                    })`,
+                  });
+                  this.setState({ dialogMode: DialogMode.None });
+                }}
+              />
+            </div>
+          </div>
+        );
+    }
   }
 
   private calculateSelectedRows = (regions: IRegion[]) => 
