@@ -10,11 +10,12 @@ import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
 import { Classes } from "@blueprintjs/core";
-import { IInsight } from "../../models";
+import { IInsight, IIncidentClusterInsight, IAsset } from "../../models";
 
 interface IProps {
   ui: any;
   insights: [IInsight];
+  assets: {[id:string]: IAsset};
   params: { 
     insightId: string;
   }
@@ -24,6 +25,13 @@ interface IState {
   datasetId: string;
 };
 
+const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
+  if (insight.insightType == "cluster") {
+    return (insight as IIncidentClusterInsight).assetIds.map(assetId => assets[assetId]);
+  }
+  return [];
+}
+
 class InsightView extends React.Component<IProps, IState> {
   public state : IState = {
     datasetId: null,
@@ -31,17 +39,20 @@ class InsightView extends React.Component<IProps, IState> {
 
   render() {
     const insight = this.props.insights.filter(i => i.id == this.props.params.insightId)[0];
+    const assets = joinAssets(insight, this.props.assets);
     return (
 <div className={s.container}>
   <div className={s.main}>
     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
       <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
 
+      <p>{insight.body}</p>
+
       <div className={s.subInsightContainer}>
-        { insight.subInsights.map(sub => 
+        { insight.subInsights ? insight.subInsights.map(sub => 
         <div className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
           {sub.text}
-        </div>) }
+        </div>) : null }
       </div>
 
         <div className={s.plotControls}>
@@ -57,26 +68,24 @@ class InsightView extends React.Component<IProps, IState> {
          </div>
         </div>
 
-        <div className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
-          <h5>
-            <Link to={`/assets/X-192`}>Boiler-X192</Link>
-          </h5>
-          <TimeChart />
-        </div>
+        { assets.map(asset => (
+    <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
+            <h5>
+              <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
+            </h5>
+            <TimeChart events={asset.events}/>
+          </div>
 
-        <div className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
-          <h5>Bolier-X184</h5>
-          <TimeChart />
-        </div>
+        ))}
       </div>
 
       <div className={s.right}>
         <div className="pt-card pt-elevation-2">
           <h2>Actions</h2>
           <p>
-          11 / 50 of similar assets have not yet failed. <b>Consider scheduling proactive maintenace.</b>
+          4 / 10 of similar assets have not yet failed. <b>Consider scheduling proactive maintenace.</b>
           </p>
-          <button className="pt-button pt-intent-primary">View</button>
+          <Link className="pt-button pt-intent-primary" to={`/inventory`}>View</Link>
         </div>
       </div>
     </div>
@@ -90,6 +99,7 @@ const mapDispatchToProps = {
 const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi,
   insights: selectors.selectInsights,
+  assets: selectors.selectAssets,
 });
 
 export default connect(

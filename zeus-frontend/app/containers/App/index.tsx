@@ -28,7 +28,6 @@ const Menu = () => (
   <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights", query: {insightType: "smartops"}}}>SmartOps Recommendations</Link></li>
   <li className="pt-menu-header"><h6>Views</h6></li>
   <li><Link className="pt-menu-item pt-icon-history" to={`/inventory`}>Inventory</Link></li>
-  <li><button type="button" className="pt-menu-item pt-icon-star">Favorites</button></li>
   <li><button type="button" className="pt-menu-item pt-icon-envelope">Messages</button></li>
 </ul>
 </div>

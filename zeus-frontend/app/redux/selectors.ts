@@ -1,3 +1,4 @@
+
 // selectLocationState expects a plain JS object for the routing state
 export const selectLocationState = () => {
   let prevRoutingState;

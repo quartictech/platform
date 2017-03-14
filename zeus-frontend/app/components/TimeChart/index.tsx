@@ -3,11 +3,13 @@ import * as React from "react";
 import * as Plottable from "plottable";
 const s = require("./style.css");
 
+import { IMaintenanceEvent, ITimeSeriesPoint } from "../../models";
+
 import SizeMe from "react-sizeme";
 
-interface ITimeSeriesPoint {
-  x: Date;
-  y: number;
+interface ITimeChartProps {
+  events: IMaintenanceEvent[];
+  timeSeries: ITimeSeriesPoint[];
 }
 
 function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
@@ -23,9 +25,7 @@ function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
   return data;
 }
 
-class RealTimeChart  extends React.Component<any, any> {
-  maintenance = [{ x: new Date(2016, 9, 10) }, { x: new Date(2017, 1, 3) }];
-  failures = [{ x: new Date(2017, 2, 2) }];
+class RealTimeChart  extends React.Component<ITimeChartProps, any> {
   timeSeries: ITimeSeriesPoint[] = generateTimeSeries(new Date(2016, 1, 1), Date.now());
 
   constructor() {
@@ -39,18 +39,20 @@ class RealTimeChart  extends React.Component<any, any> {
     const xAxis = new Plottable.Axes.Time(xScale, "bottom");
     var colorScale = new Plottable.Scales.Color();
     colorScale.domain(["maintenance", "failure"])
-    colorScale.range(['#1F77B4', '#FF7F0E']);
+    colorScale.range(['#1F77B4', '#db1e7b']);
     const gridLines = new Plottable.Components.Gridlines(xScale, null);
 
     const yScaleTimeSeries = new Plottable.Scales.Linear();
 
+    const maintenance = this.props.events.filter(event => event.type == "maintenance")
+    const failures = this.props.events.filter(event => event.type === "failure")
     const plot = new Plottable.Plots.Segment()
-      .addDataset(new Plottable.Dataset(this.maintenance).metadata("maintenance"))
-      .addDataset(new Plottable.Dataset(this.failures).metadata("failure"))
+      .addDataset(new Plottable.Dataset(maintenance).metadata("maintenance"))
+      .addDataset(new Plottable.Dataset(failures).metadata("failure"))
        .attr("stroke", function(_d, _i, dataset) { return dataset.metadata(); }, colorScale)
-       .x(function(d) { return d.x; }, xScale)
+       .x(function(d) { return d.date; }, xScale)
        .y(function(_) { return 0; }, yScale)
-       .x2(d => d.x)
+       .x2(d => d.date)
        .y2( _ => 1);
 
     const timeSeriesPlot = new Plottable.Plots.Line()

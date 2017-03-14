@@ -40,6 +40,11 @@ function generateAssets() {
           { id: "123", created: new Date(2017, 0, 1), text: "What is going on?  I am drowning." },
           { id: "456", created: new Date(2017, 1, 1), text: "I am now dead.  In case you care." },
       ],
+      events: [
+        { type: "maintenance", date: new Date(2016, 9, 10) }, 
+        { type: "maintenance", date: new Date(2017, 1, 3) },
+        { type: "failure", date: new Date(2017, 2, 2) }
+      ]
     };
   }
   return assets;
@@ -56,34 +61,32 @@ function randomDate(start: Date, end: Date) {
 export const ASSETS: { [id: string]: IAsset } = generateAssets();
 
 export const INSIGHTS: IInsight[] = [
-<IFailureInsight> {
-    id: "I-103",
-    insightType: "failure",
-    title: "Asset likely to experience failure soon",
-    body: ""
-  },
+
 
   <IIncidentClusterInsight> {
     id: "I-101",
     insightType: "cluster",
-    title: "Repeated failures in asset class",
-    body: `<p>
-       52% of assets in this class have experienced failures within 4 weeks of maintenance intervention.
-       </p>
-
-       <div class="pt-tag">Boiler-5000</div>`,
+    title: "Similar failures occurring in asset class",
+    body: "60% of assets in this class have experienced failures within 4 weeks of maintenance intervention",
     subInsights: [
       {icon: "pt-icon-info-sign", text:"Statistically significant increase in failure rate following maintenance work"},
       {icon: "pt-icon-info-sign", text:"Baseline voltage of circuit diagnostic increased following maintenance activity"},
     ],
     assetClass: "train-sensor-x100",
-    assetIds: [_.first(_.values(ASSETS)).id],
+    assetIds: _.values(ASSETS).slice(0, 6).map(asset => asset.id),
     barChart: [
       {name: "0 -5 years", value: 5},
       {name: "5-10 years", value: 5},
       {name: "> 10 years", value: 20},
     ],
     barChartXLabel: "# Failures"
+  },
+
+<IFailureInsight> {
+    id: "I-103",
+    insightType: "failure",
+    title: "Asset likely to experience failure soon",
+    body: ""
   },
 <ISmartOpsInsight> {
     id: "I-102",

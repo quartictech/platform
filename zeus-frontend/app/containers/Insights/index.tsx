@@ -20,19 +20,18 @@ interface IProps {
       insightType: string
     }
   };
-
 }
 
 interface IState {
-  datasetId: string;
 };
 
 const Insight = ({ insight }) => (
   <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
     <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
      <h5>{ insight.title }</h5>
-         <div dangerouslySetInnerHTML={{__html: insight.body}}>
-           </div>
+           <p>
+           { insight.body }
+           </p>
            </div>
     <div>
       { insight.insightType === "failure"? <div><TimeChart /></div>: null }
@@ -46,18 +45,16 @@ const Insight = ({ insight }) => (
   </div>
 );
 
-
-
 class Insights extends React.Component<IProps, IState> {
   public state : IState = {
-    datasetId: null,
   };
 
   render() {
     return (
       <div className={s.container}>
           { this.props.insights.filter (i => (!this.props.location.query.insightType ||
-            i.insightType === this.props.location.query.insightType)).map(insight => (<Insight key={insight.id} insight={insight}/>))}
+            i.insightType === this.props.location.query.insightType))
+            .map(insight => (<Insight key={insight.id} insight={insight} />))}
       </div>
     );
   }

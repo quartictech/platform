@@ -21,6 +21,7 @@ export interface IAsset {
   retirementDate: Date;
   location: string;
   notes: INote[];
+  events: IMaintenanceEvent[];
 };
 
 export interface IBar {
@@ -49,6 +50,10 @@ export interface IIncidentClusterInsight extends IInsight {
   assetClass: string;
 }
 
+export interface IIncidentClusterInsightJoined extends IIncidentClusterInsight {
+  assets: IAsset[];
+}
+
 export interface ISmartOpsInsight extends IInsight {
   insightType: "smartops";
 }
@@ -63,3 +68,15 @@ export interface UiAction {
   activeModal?: string;
   search?: string;
 }
+
+export interface ITimeSeriesPoint {
+  x: Date;
+  y: number;
+}
+
+export interface IMaintenanceEvent {
+  type: string;
+  date: Date;
+}
+
+
