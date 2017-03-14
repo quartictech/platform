@@ -76,10 +76,10 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  state : IState = this.someNoobFunction();
+  state : IState = this.initialState();
 
-  someNoobFunction(): IState {
-    const firstKey = _.first(_.keys(this.props.location.query));
+  initialState(): IState {
+    const firstKey = _.first(_.keys(this.props.location.query)) || "";
     const firstValue = this.props.location.query[firstKey];
 
     const columnIndex = _.findIndex(COLUMNS, c => c.name.toLocaleLowerCase() === firstKey.toLocaleLowerCase());
