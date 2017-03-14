@@ -37,8 +37,7 @@ function generateAssets() {
       retirementDate: randomDate(new Date(2018, 0, 1), new Date(2020, 0, 1)),
       location: randomLocation(),
       notes: [
-          { id: "123", created: new Date(2017, 0, 1), text: "What is going on?  I am drowning." },
-          { id: "456", created: new Date(2017, 1, 1), text: "I am now dead.  In case you care." },
+          { id: "123", created: new Date(2017, 0, 1), text: "Please check that boiler asset # sticker matches expected before performing maintenance." },
       ],
       events: [
         { type: "maintenance", date: new Date(2016, 9, 10) }, 
