@@ -92,7 +92,7 @@ export const INSIGHTS: IInsight[] = [
     id: "I-102",
     insightType: "smartops",
     title: "Jobs taking longer than time estimate",
-    body: "Some jobs are currently taking longer than estimated.</p>",
+    body: "Some jobs are currently taking longer than estimated.",
 
     barChart: [
       {name: "Grass verge maintenance", value: 110},
