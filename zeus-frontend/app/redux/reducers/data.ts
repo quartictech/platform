@@ -71,7 +71,7 @@ export const INSIGHTS: IInsight[] = [
       {icon: "pt-icon-info-sign", text:"Statistically significant increase in failure rate following maintenance work"},
       {icon: "pt-icon-info-sign", text:"Baseline voltage of circuit diagnostic increased following maintenance activity"},
     ],
-    assetClass: "train-sensor-x100",
+    assetClass: "Boiler",
     assetIds: _.values(ASSETS).slice(0, 6).map(asset => asset.id),
     barChart: [
       {name: "0 -5 years", value: 5},

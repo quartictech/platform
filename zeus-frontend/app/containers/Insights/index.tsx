@@ -31,6 +31,7 @@ const Insight = ({ insight, assets }) => (
   <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
     <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
      <h5>{ insight.title }</h5>
+        { insight.assetClass ? <div className="pt-tag" style={{float:"right"}}>{insight.assetClass}</div> : null}
            <p>
            { insight.body }
            </p>
