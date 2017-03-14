@@ -43,7 +43,7 @@ function generateAssets() {
       events: [
         { type: "maintenance", date: new Date(2016, 9, 10) }, 
         { type: "maintenance", date: new Date(2017, 1, 3) },
-        { type: "failure", date: new Date(2017, 2, 2) }
+        { type: "failure", date: new Date(2017, 1, 28) }
       ]
     };
   }
