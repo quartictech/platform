@@ -38,12 +38,10 @@ class InsightView extends React.Component<IProps, IState> {
       <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
 
       <div className={s.subInsightContainer}>
-        <div className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", "pt-icon-info-sign")}>
-          This machinery is dangerously noob.
-        </div>
-        <div className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", "pt-icon-info-sign")}>
-          This machinery is dangerously noob.
-        </div>
+        { insight.subInsights.map(sub => 
+        <div className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
+          {sub.text}
+        </div>) }
       </div>
 
         <div className={s.plotControls}>
@@ -76,7 +74,7 @@ class InsightView extends React.Component<IProps, IState> {
         <div className="pt-card pt-elevation-2">
           <h2>Actions</h2>
           <p>
-          11 / 50 of similar assets have not yet failed.
+          11 / 50 of similar assets have not yet failed. <b>Consider scheduling proactive maintenace.</b>
           </p>
           <button className="pt-button pt-intent-primary">View</button>
         </div>

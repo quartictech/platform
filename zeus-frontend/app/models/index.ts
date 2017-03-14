@@ -28,6 +28,11 @@ export interface IBar {
   value: number;
 };
 
+export interface ISubInsight {
+  icon: string;
+  text: string;
+}
+
 export interface IInsight {
   id: string;
   title: string;
@@ -35,9 +40,10 @@ export interface IInsight {
   insightType: string;
   barChart: IBar[];
   barChartXLabel: string;
+  subInsights: ISubInsight[];
 }
 
-export interface IAssetInsight extends IInsight {
+export interface IIncidentClusterInsight extends IInsight {
   insightType: "cluster";
   assetIds: string[];
   assetClass: string;

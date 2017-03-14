@@ -3,7 +3,7 @@ import {
   IAsset,
   IAssetModel,
   IInsight,
-  IAssetInsight,
+  IIncidentClusterInsight,
   ISmartOpsInsight,
   IFailureInsight
 } from "../../models";
@@ -63,7 +63,7 @@ export const INSIGHTS: IInsight[] = [
     body: ""
   },
 
-  <IAssetInsight> {
+  <IIncidentClusterInsight> {
     id: "I-101",
     insightType: "cluster",
     title: "Repeated failures in asset class",
@@ -72,7 +72,11 @@ export const INSIGHTS: IInsight[] = [
        </p>
 
        <div class="pt-tag">Boiler-5000</div>`,
-    assetClass: "wat",
+    subInsights: [
+      {icon: "pt-icon-info-sign", text:"Statistically significant increase in failure rate following maintenance work"},
+      {icon: "pt-icon-info-sign", text:"Baseline voltage of circuit diagnostic increased following maintenance activity"},
+    ],
+    assetClass: "train-sensor-x100",
     assetIds: [_.first(_.values(ASSETS)).id],
     barChart: [
       {name: "0 -5 years", value: 5},
