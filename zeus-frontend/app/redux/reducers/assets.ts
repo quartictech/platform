@@ -11,7 +11,7 @@ export function assetsReducer(
     switch (action.type) {
         case constants.CREATE_NOTE: {
             const note = <INote> {
-                id: "789",  // TODO: need unique ID (should be chosen in the action, not in the pure reducer)
+                id: action.id,
                 created: action.created,
                 text: action.text,
             };
