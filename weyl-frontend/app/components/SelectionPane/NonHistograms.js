@@ -85,6 +85,12 @@ const Image = ({ url }) => {
   );
 };
 
+const urlMatch = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+const AttributeValue = ({ value }) => (<small>
+  {typeof value === 'string' && value.match(urlMatch) ? <a href={value}>Link</a>: value}
+  </small>
+);
+
 const AttributesTable = ({ featureAttributes, behavior, order, showHeaders }) => (
   <div style={{ maxHeight: "30em", overflow: "auto" }}>
     <table className="pt-table pt-interactive pt-elevation-0" style={{ width: "100%", tableLayout: "fixed" }}>
@@ -113,7 +119,7 @@ const AttributesTable = ({ featureAttributes, behavior, order, showHeaders }) =>
                     style={{ fontWeight: "bold", wordWrap: "break-word", backgroundColor: Colors.DARK_GRAY3 }}
                     key={id}
                   >
-                    <small>{behavior.render(key, attrs[key])}</small>
+                    <AttributeValue value={behavior.render(key, attrs[key])}/>
                   </td>
                 ))
               }
