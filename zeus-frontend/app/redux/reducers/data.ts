@@ -3,9 +3,6 @@ import {
   IAsset,
   IAssetModel,
   IInsight,
-  IIncidentClusterInsight,
-  ISmartOpsInsight,
-  IFailureInsight
 } from "../../models";
 
 const ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"];
@@ -60,9 +57,7 @@ function randomDate(start: Date, end: Date) {
 export const ASSETS: { [id: string]: IAsset } = generateAssets();
 
 export const INSIGHTS: IInsight[] = [
-
-
-  <IIncidentClusterInsight> {
+   {
     id: "I-101",
     insightType: "cluster",
     title: "Similar failures occurring in asset class",
@@ -73,33 +68,37 @@ export const INSIGHTS: IInsight[] = [
     ],
     assetClass: "Boiler",
     assetIds: _.values(ASSETS).slice(0, 6).map(asset => asset.id),
-    barChart: [
-      {name: "0 -5 years", value: 5},
-      {name: "5-10 years", value: 5},
-      {name: "> 10 years", value: 20},
-    ],
-    barChartXLabel: "# Failures"
+    barChart: {
+      data: [
+        { name: "0 -5 years", value: 5 },
+        { name: "5-10 years", value: 5 },
+        { name: "> 10 years", value: 20 },
+      ],
+      xLabel: "# Failures"
+    }
   },
-
-<IFailureInsight> {
+ {
     id: "I-103",
     insightType: "failure",
     title: "Asset likely to experience failure soon",
     body: "",
-    assetIds: [_.last(_.values(ASSETS)).id]
+    assetIds: [_.last(_.values(ASSETS)).id],
+    subInsights: [],
   },
-<ISmartOpsInsight> {
+ {
     id: "I-102",
     insightType: "smartops",
     title: "Jobs taking longer than time estimate",
     body: "Some jobs are currently taking longer than estimated.",
-
-    barChart: [
-      {name: "Grass verge maintenance", value: 110},
-      {name: "Bin emptying", value: 150},
-      {name: "Pothole maintenance", value: 120},
+    barChart: {
+      data: [
+        { name: "Grass verge maintenance", value: 110 },
+        { name: "Bin emptying", value: 150 },
+        { name: "Pothole maintenance", value: 120 },
       ],
-    barChartXLabel: "Time taken / estimate (%)",
+      xLabel: "Time taken / estimate (%)",
+    },
+    subInsights: [],
   },
   ];
 

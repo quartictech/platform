@@ -10,7 +10,7 @@ import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
 import { Classes } from "@blueprintjs/core";
-import { IInsight, IIncidentClusterInsight, IAsset } from "../../models";
+import { IInsight,  IAsset } from "../../models";
 
 interface IProps {
   ui: any;
@@ -27,7 +27,7 @@ interface IState {
 
 const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
   if (insight.insightType == "cluster") {
-    return (insight as IIncidentClusterInsight).assetIds.map(assetId => assets[assetId]);
+    return insight.assetIds.map(assetId => assets[assetId]);
   }
   return [];
 }
@@ -49,8 +49,8 @@ class InsightView extends React.Component<IProps, IState> {
       <p>{insight.body}</p>
 
       <div className={s.subInsightContainer}>
-        { insight.subInsights ? insight.subInsights.map(sub => 
-        <div className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
+        { insight.subInsights ? insight.subInsights.map((sub, idx) => 
+        <div key={idx} className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
           {sub.text}
         </div>) : null }
       </div>
@@ -83,8 +83,9 @@ class InsightView extends React.Component<IProps, IState> {
         <div className="pt-card pt-elevation-2">
           <h2>Actions</h2>
           <p>
-          4 / 10 of similar assets have not yet failed. <b>Consider scheduling proactive maintenance.</b>
+          4 / 10 of similar assets have not yet failed. 
           </p>
+          <p><b>Consider scheduling proactive maintenance.</b></p>
           <Link className="pt-button pt-intent-primary"  to={{ pathname: "/inventory", query: {clazz: "Boiler"}}}>View</Link>
         </div>
       </div>

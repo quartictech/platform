@@ -39,23 +39,13 @@ export interface IInsight {
   title: string;
   body: string;
   insightType: string;
-  barChart: IBar[];
-  assetIds: string[];
-  barChartXLabel: string;
+  barChart?: {
+    data: IBar[];
+    xLabel: string;
+  },
+  assetIds?: string[];
   subInsights: ISubInsight[];
-}
-
-export interface IIncidentClusterInsight extends IInsight {
-  insightType: "cluster";
-  assetClass: string;
-}
-
-export interface ISmartOpsInsight extends IInsight {
-  insightType: "smartops";
-}
-
-export interface IFailureInsight extends IInsight {
-  insightType: "failure";
+  assetClass?: string;
 }
 
 // TODO: remove this
