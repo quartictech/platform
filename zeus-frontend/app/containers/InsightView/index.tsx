@@ -10,7 +10,7 @@ import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
 import { InsightSummary } from "../../components";
-import { Classes } from "@blueprintjs/core";
+// import { Classes } from "@blueprintjs/core";
 import { IInsight,  IAsset } from "../../models";
 
 import { Map } from "../../components";
@@ -51,10 +51,9 @@ class InsightView extends React.Component<IProps, IState> {
           {sub.text}
         </div>) : null }
       </div>
-      <Map height={100} locations={assets.map((asset) => asset.location)} />
 
       <InsightSummary insight={insight} assets={this.props.assets}/>
-        <div className={s.plotControls}>
+        {/*<div className={s.plotControls}>
         <label className="pt-label pt-inline" style={{marginBottom: 0}}>
               Time Series
               <div className={Classes.SELECT}>
@@ -64,8 +63,12 @@ class InsightView extends React.Component<IProps, IState> {
                   </select>
               </div>
          </label>
-         </div>
+         </div>*/}
         </div>
+
+     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
+      <Map height={100} locations={assets.map((asset) => asset.location)} />
+      </div>
 
         { assets.map(asset => (
     <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>

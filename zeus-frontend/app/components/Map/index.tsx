@@ -42,20 +42,21 @@ class RealMap  extends React.Component<IMapProps, any> {
     super();
   }
 
-
-
   componentDidMount() {
-    const centerLon = this.props.locations.map(l => l.lon).reduce((a, b) => a + b, 0)  / this.props.locations.length;
-    const centerLat = this.props.locations.map(l => l.lat).reduce((a, b) => a + b, 0)  / this.props.locations.length;
+    const lons = this.props.locations.map(l => l.lon);
+    const lats = this.props.locations.map(l => l.lat);
     this.map = new mapboxgl.Map({
       container: "map-inner",
       style: "mapbox://styles/mapbox/bright-v9",
       zoom: 9.7,
-      center: [centerLon, centerLat],
+      center: [lons[0], lats[0]],
     });
     this.map.on('load', () => {
       this.map.addLayer(circleLayer("points", this.props.locations, 8, "#ffffff"));
       this.map.addLayer(circleLayer("points2", this.props.locations, 6, "#e7298a"));
+      this.map.fitBounds([[Math.min.apply(null, lons), Math.min.apply(null, lats)], 
+      [Math.max.apply(null, lons), Math.max.apply(null, lats)]
+      ], { duration: 0, padding: 10 });
     });
   }
 
