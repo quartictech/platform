@@ -45,13 +45,13 @@ class InsightView extends React.Component<IProps, IState> {
   <div className={s.main}>
     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
       <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
-      <Map height={200} locations={assets.map((asset) => asset.location)} />
       <div className={s.subInsightContainer}>
         { insight.subInsights ? insight.subInsights.map((sub, idx) => 
         <div key={idx} className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
           {sub.text}
         </div>) : null }
       </div>
+      <Map height={100} locations={assets.map((asset) => asset.location)} />
 
       <InsightSummary insight={insight} assets={this.props.assets}/>
         <div className={s.plotControls}>
