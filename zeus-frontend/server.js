@@ -24,11 +24,11 @@ app.get('*', function (req, res) {
 	res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-app.listen(3010, 'localhost', function (err) {
+app.listen(3020, 'localhost', function (err) {
 	if (err) {
 		console.log(err);
 		return;
 	}
 
-	console.log('Listening at http://localhost:3010');
+	console.log('Listening at http://localhost:3020');
 });
