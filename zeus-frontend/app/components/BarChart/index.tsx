@@ -10,6 +10,7 @@ import SizeMe from "react-sizeme";
 interface IProps {
   data: IBar[];
   xLabel: string;
+  yLabel: string;
 };
 
 class RealBarChart  extends React.Component<IProps, any> {
@@ -20,6 +21,7 @@ class RealBarChart  extends React.Component<IProps, any> {
     const yAxis = new Plottable.Axes.Category(yScale, "left");
 
     const xLabel = new Plottable.Components.AxisLabel(this.props.xLabel, 0);
+    const yLabel = new Plottable.Components.AxisLabel(this.props.yLabel, 270);
 
 
     const plot = new Plottable.Plots.Bar("horizontal")
@@ -35,9 +37,9 @@ class RealBarChart  extends React.Component<IProps, any> {
     //const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
-      [yAxis, chart],
-      [null, xAxis],
-      [null, xLabel]
+      [yLabel, yAxis, chart],
+      [null, null, xAxis],
+      [null, null, xLabel]
     ]),
     plot: plot
     };

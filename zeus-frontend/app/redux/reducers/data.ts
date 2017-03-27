@@ -74,7 +74,8 @@ export const INSIGHTS: IInsight[] = [
         { name: "5-10 years", value: 5 },
         { name: "> 10 years", value: 20 },
       ],
-      xLabel: "# Failures"
+      xLabel: "# Failures",
+      yLabel: "Asset age"
     }
   },
  {
@@ -97,6 +98,7 @@ export const INSIGHTS: IInsight[] = [
         { name: "Pothole maintenance", value: 120 },
       ],
       xLabel: "Time taken / estimate (%)",
+      yLabel: "Job Type"
     },
     subInsights: [],
   },
