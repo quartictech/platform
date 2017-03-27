@@ -83,11 +83,12 @@ export const INSIGHTS: IInsight[] = [
  {
     id: "I-103",
     insightType: "failure",
-    title: "Asset likely to experience failure soon",
+    title: "Asset failure predicted",
     assetIds: [_.last(_.values(ASSETS)).id],
     assetClass: "Signal",
     subInsights: [
-      {icon: "pt-icon-info-sign", text: "An increase has been detected in the diagnostic voltage circuit"}
+      {icon: "pt-icon-info-sign", text: "An increase has been detected in the diagnostic voltage circuit"},
+      {icon: "pt-icon-info-sign", text: "In 35% of previous occurences, this led to a failure within 2 weeks"}
     ],
   },
  {
