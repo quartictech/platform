@@ -42,6 +42,7 @@ export interface IInsight {
   barChart?: {
     data: IBar[];
     xLabel: string;
+    yLabel: string;
   },
   assetIds?: string[];
   subInsights: ISubInsight[];

@@ -39,7 +39,7 @@ const Insight = ({ insight, assets }) => (
     <div>
       { insight.insightType === "failure"? <div><TimeChart events={assets[_.first(insight.assetIds) as string].events} /></div>: null }
       { insight.barChart ? (<div>
-        <BarChart data={insight.barChart.data} xLabel={insight.barChart.xLabel} />
+        <BarChart data={insight.barChart.data} xLabel={insight.barChart.xLabel} yLabel={insight.barChart.yLabel} />
       </div>) : null}
       <Link className="pt-button pt-intent-primary" to={`/insights/${insight.id}`}>
       See detail
