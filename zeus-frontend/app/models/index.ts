@@ -10,6 +10,11 @@ export interface IAssetModel {
   snGen: () => string
 };
 
+export interface ILatLon {
+  lat: number;
+  lon: number;
+};
+
 export interface IAsset {
   id: string;
   clazz: string;
@@ -19,7 +24,7 @@ export interface IAsset {
   lastInspectionDate: Date;
   lastInspectionSignoff: string;
   retirementDate: Date;
-  location: string;
+  location: ILatLon;
   notes: INote[];
   events: IMaintenanceEvent[];
 };
@@ -37,7 +42,6 @@ export interface ISubInsight {
 export interface IInsight {
   id: string;
   title: string;
-  body: string;
   insightType: string;
   barChart?: {
     data: IBar[];

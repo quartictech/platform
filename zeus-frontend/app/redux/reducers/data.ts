@@ -25,7 +25,7 @@ function generateAssets() {
 
     assets[id] = {
       id,
-      clazz: "Boiler",
+      clazz: "Signal",
       model: model,
       serial: model.snGen(),
       purchaseDate: randomDate(new Date(2003, 0, 1), new Date(2013, 0, 1)),
@@ -47,7 +47,10 @@ function generateAssets() {
 }
 
 function randomLocation() {
-  return (Math.random() * (58.64 - 50.83) + 50.83).toFixed(3) + ", " + (Math.random() * (1.32 - -5.37) + -5.37).toFixed(3)
+  return {
+    lat: Math.random() * (58.64 - 50.83) + 50.83, 
+    lon: Math.random() * (1.32 - -5.37) + -5.37,
+  };
 }
 
 function randomDate(start: Date, end: Date) {
@@ -61,12 +64,11 @@ export const INSIGHTS: IInsight[] = [
     id: "I-101",
     insightType: "cluster",
     title: "Similar failures occurring in asset class",
-    body: "60% of assets in this class have experienced failures within 4 weeks of maintenance intervention",
     subInsights: [
       {icon: "pt-icon-info-sign", text:"Statistically significant increase in failure rate following maintenance work"},
       {icon: "pt-icon-info-sign", text:"Baseline voltage of circuit diagnostic increased following maintenance activity"},
     ],
-    assetClass: "Boiler",
+    assetClass: "Signal",
     assetIds: _.values(ASSETS).slice(0, 6).map(asset => asset.id),
     barChart: {
       data: [
@@ -82,15 +84,16 @@ export const INSIGHTS: IInsight[] = [
     id: "I-103",
     insightType: "failure",
     title: "Asset likely to experience failure soon",
-    body: "",
     assetIds: [_.last(_.values(ASSETS)).id],
-    subInsights: [],
+    assetClass: "Signal",
+    subInsights: [
+      {icon: "pt-icon-info-sign", text: "An increase has been detected in the diagnostic voltage circuit"}
+    ],
   },
  {
     id: "I-102",
     insightType: "smartops",
     title: "Jobs taking longer than time estimate",
-    body: "Some jobs are currently taking longer than estimated.",
     barChart: {
       data: [
         { name: "Grass verge maintenance", value: 110 },
@@ -100,7 +103,9 @@ export const INSIGHTS: IInsight[] = [
       xLabel: "Time taken / estimate (%)",
       yLabel: "Job Type"
     },
-    subInsights: [],
+    subInsights: [
+      {icon: "pt-icon-info-sign", text: "Some jobs are currently taking longer than estimated."},
+    ],
   },
   ];
 

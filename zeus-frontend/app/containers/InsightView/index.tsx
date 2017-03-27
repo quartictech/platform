@@ -9,8 +9,11 @@ const s = require("./style.css");
 import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
+import { InsightSummary } from "../../components";
 import { Classes } from "@blueprintjs/core";
 import { IInsight,  IAsset } from "../../models";
+
+import { Map } from "../../components";
 
 interface IProps {
   ui: any;
@@ -26,10 +29,7 @@ interface IState {
 };
 
 const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
-  if (insight.insightType == "cluster") {
     return insight.assetIds.map(assetId => assets[assetId]);
-  }
-  return [];
 }
 
 class InsightView extends React.Component<IProps, IState> {
@@ -45,9 +45,7 @@ class InsightView extends React.Component<IProps, IState> {
   <div className={s.main}>
     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
       <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
-
-      <p>{insight.body}</p>
-
+      <Map height={200} locations={assets.map((asset) => asset.location)} />
       <div className={s.subInsightContainer}>
         { insight.subInsights ? insight.subInsights.map((sub, idx) => 
         <div key={idx} className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
@@ -55,6 +53,7 @@ class InsightView extends React.Component<IProps, IState> {
         </div>) : null }
       </div>
 
+      <InsightSummary insight={insight} assets={this.props.assets}/>
         <div className={s.plotControls}>
         <label className="pt-label pt-inline" style={{marginBottom: 0}}>
               Time Series
