@@ -54,9 +54,9 @@ class RealMap  extends React.Component<IMapProps, any> {
     });
     this.map.on('load', () => {
       this.map.addLayer(circleLayer("points", this.props.locations, 8, "#ffffff"));
-      this.map.addLayer(circleLayer("points2_0", this.props.locations.filter( (_, idx) => this.props.colors[idx] == 0), 6, "#e7298a"));
-      this.map.addLayer(circleLayer("points2_1", this.props.locations.filter( (_, idx) => this.props.colors[idx] == 1), 6, "#00671f"));
-      this.map.fitBounds([[Math.min.apply(null, lons), Math.min.apply(null, lats)], 
+      this.map.addLayer(circleLayer("points2_0", this.props.locations.filter( (_, idx) => this.props.colors[idx] == 0), 6, "#db3737"));
+      this.map.addLayer(circleLayer("points2_1", this.props.locations.filter( (_, idx) => this.props.colors[idx] == 1), 6, "#0f9960"));
+      this.map.fitBounds([[Math.min.apply(null, lons), Math.min.apply(null, lats)],  
       [Math.max.apply(null, lons), Math.max.apply(null, lats)]
       ], { duration: 0, padding: 10 });
     });
