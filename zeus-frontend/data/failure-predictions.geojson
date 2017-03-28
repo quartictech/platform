@@ -6,12 +6,13 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     7.579099237918854,
-     47.54740387022264
+     8.48267584434,
+     47.0095269184
     ]
    },
    "properties": {
-    "id": "AB26922"
+    "id": "AB12139",
+    "View in Inbox": "http://localhost:3020/insights/104"
    }
   },
   {
@@ -19,12 +20,13 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     6.230599880218506,
-     46.19720690845916
+     6.54763247199,
+     46.5324251937
     ]
    },
    "properties": {
-    "id": "AB79855"
+    "id": "AB74076",
+    "View in Inbox": "http://localhost:3020/insights/104"
    }
   },
   {
@@ -32,12 +34,13 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     7.579099237918854,
-     47.54740387022264
+     9.42736966071,
+     47.2842513399
     ]
    },
    "properties": {
-    "id": "AB25033"
+    "id": "AB21742",
+    "View in Inbox": "http://localhost:3020/insights/104"
    }
   },
   {
@@ -45,12 +48,13 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     6.965602934360504,
-     47.22461771114213
+     6.52130305769,
+     46.521062327
     ]
    },
    "properties": {
-    "id": "AB91649"
+    "id": "AB40213",
+    "View in Inbox": "http://localhost:3020/insights/104"
    }
   }
  ]

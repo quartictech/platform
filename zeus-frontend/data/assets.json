@@ -1,19 +1,19 @@
 {
- "AB39735": {
-  "id": "AB39735",
+ "AB31800": {
+  "id": "AB31800",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "9657170838",
-  "purchaseDate": 1065608728000,
-  "lastInspectionDate": 1462267104000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1566722630000,
+  "serial": "3475939389",
+  "purchaseDate": 1096516682000,
+  "lastInspectionDate": 1481881631000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1514883135000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 8.45235436455,
+   "lat": 47.1508603963
   },
   "notes": [
    {
@@ -37,21 +37,97 @@
    }
   ]
  },
- "AB23811": {
-  "id": "AB23811",
+ "AB86552": {
+  "id": "AB86552",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "1746542703",
+  "purchaseDate": 1266057890000,
+  "lastInspectionDate": 1476935404000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1525535648000,
+  "location": {
+   "lon": 7.45729952313,
+   "lat": 46.9913341647
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB87581": {
+  "id": "AB87581",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "54748797",
-  "purchaseDate": 1185307068000,
-  "lastInspectionDate": 1453042896000,
+  "serial": "38848148",
+  "purchaseDate": 1122465332000,
+  "lastInspectionDate": 1453152699000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1545172633000,
+  "location": {
+   "lon": 6.89861502832,
+   "lat": 46.5261546629
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB82508": {
+  "id": "AB82508",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "11495284",
+  "purchaseDate": 1328179085000,
+  "lastInspectionDate": 1453022994000,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1528500980000,
+  "retirementDate": 1545033081000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 8.98777381642,
+   "lat": 46.1506159422
   },
   "notes": [
    {
@@ -75,287 +151,21 @@
    }
   ]
  },
- "AB47277": {
-  "id": "AB47277",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "1067398490",
-  "purchaseDate": 1273997905000,
-  "lastInspectionDate": 1477696023000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1530276406000,
-  "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB80317": {
-  "id": "AB80317",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "2707260003",
-  "purchaseDate": 1153164965000,
-  "lastInspectionDate": 1462251844000,
-  "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1574942757000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB13751": {
-  "id": "AB13751",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "35067464",
-  "purchaseDate": 1214044243000,
-  "lastInspectionDate": 1473113411000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1535045553000,
-  "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB97216": {
-  "id": "AB97216",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "33139126",
-  "purchaseDate": 1278084544000,
-  "lastInspectionDate": 1463309951000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1577040326000,
-  "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB69216": {
-  "id": "AB69216",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "48776988",
-  "purchaseDate": 1195526647000,
-  "lastInspectionDate": 1452609971000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1520531767000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB31891": {
-  "id": "AB31891",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "5736971118",
-  "purchaseDate": 1186014565000,
-  "lastInspectionDate": 1468005767000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1564658554000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB22454": {
-  "id": "AB22454",
+ "AB12139": {
+  "id": "AB12139",
   "clazz": "Signal",
   "model": {
    "name": "S-5000C",
    "manufacturer": "SIEM"
   },
-  "serial": "76860395",
-  "purchaseDate": 1052999568000,
-  "lastInspectionDate": 1460490378000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1515734845000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB57365": {
-  "id": "AB57365",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "0859049574",
-  "purchaseDate": 1232597790000,
-  "lastInspectionDate": 1459517916000,
+  "serial": "61181378",
+  "purchaseDate": 1301763927000,
+  "lastInspectionDate": 1474400195000,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1545052274000,
+  "retirementDate": 1549700874000,
   "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
+   "lon": 8.48267584434,
+   "lat": 47.0095269184
   },
   "notes": [
    {
@@ -379,21 +189,21 @@
    }
   ]
  },
- "AB51635": {
-  "id": "AB51635",
+ "AB44576": {
+  "id": "AB44576",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "8478062320",
-  "purchaseDate": 1215761417000,
-  "lastInspectionDate": 1477525190000,
+  "serial": "1631636331",
+  "purchaseDate": 1293655908000,
+  "lastInspectionDate": 1461817514000,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1539052852000,
+  "retirementDate": 1544471512000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 10.2862508214,
+   "lat": 46.7937113539
   },
   "notes": [
    {
@@ -417,59 +227,21 @@
    }
   ]
  },
- "AB25033": {
-  "id": "AB25033",
+ "AB83923": {
+  "id": "AB83923",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "1533509780",
-  "purchaseDate": 1178760414000,
-  "lastInspectionDate": 1453479226000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1563958092000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB91649": {
-  "id": "AB91649",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "2781072686",
-  "purchaseDate": 1124958775000,
-  "lastInspectionDate": 1480894030000,
+  "serial": "3796247733",
+  "purchaseDate": 1279891277000,
+  "lastInspectionDate": 1473567281000,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1534522047000,
+  "retirementDate": 1548804068000,
   "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
+   "lon": 6.52971304077,
+   "lat": 46.5253063831
   },
   "notes": [
    {
@@ -493,21 +265,135 @@
    }
   ]
  },
- "AB36683": {
-  "id": "AB36683",
+ "AB46685": {
+  "id": "AB46685",
   "clazz": "Signal",
   "model": {
-   "name": "QQ-23",
+   "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "9190794563",
-  "purchaseDate": 1177553862000,
-  "lastInspectionDate": 1454098178000,
+  "serial": "6566131331",
+  "purchaseDate": 1353310086000,
+  "lastInspectionDate": 1453591347000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1518060849000,
+  "location": {
+   "lon": 7.73136114679,
+   "lat": 47.4844570932
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB56156": {
+  "id": "AB56156",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "14398237",
+  "purchaseDate": 1164207272000,
+  "lastInspectionDate": 1467075701000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1534141904000,
+  "location": {
+   "lon": 8.72583401905,
+   "lat": 47.5031261884
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB20477": {
+  "id": "AB20477",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "93961416",
+  "purchaseDate": 1179311283000,
+  "lastInspectionDate": 1455834492000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1554114332000,
+  "location": {
+   "lon": 8.72583401905,
+   "lat": 47.5031261884
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB21040": {
+  "id": "AB21040",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "4763520992",
+  "purchaseDate": 1334850532000,
+  "lastInspectionDate": 1453110692000,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1567550466000,
+  "retirementDate": 1540393461000,
   "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
+   "lon": 8.54903604549,
+   "lat": 47.4157691582
   },
   "notes": [
    {
@@ -531,21 +417,477 @@
    }
   ]
  },
- "AB85592": {
-  "id": "AB85592",
+ "AB21742": {
+  "id": "AB21742",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "6828723797",
-  "purchaseDate": 1121784831000,
-  "lastInspectionDate": 1466251912000,
+  "serial": "9969026679",
+  "purchaseDate": 1299767314000,
+  "lastInspectionDate": 1453183194000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1539982822000,
+  "location": {
+   "lon": 9.42736966071,
+   "lat": 47.2842513399
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB34944": {
+  "id": "AB34944",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "2605153457",
+  "purchaseDate": 1346158726000,
+  "lastInspectionDate": 1457948982000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1516787576000,
+  "location": {
+   "lon": 7.14349725671,
+   "lat": 46.0279333248
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB36428": {
+  "id": "AB36428",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "5637441327",
+  "purchaseDate": 1356160174000,
+  "lastInspectionDate": 1459831159000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1529250507000,
+  "location": {
+   "lon": 6.53400072449,
+   "lat": 46.5249773373
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB73766": {
+  "id": "AB73766",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "81899107",
+  "purchaseDate": 1258428901000,
+  "lastInspectionDate": 1461565326000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1535148017000,
+  "location": {
+   "lon": 7.07340358692,
+   "lat": 46.3219301904
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB32764": {
+  "id": "AB32764",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "28629557",
+  "purchaseDate": 1044113488000,
+  "lastInspectionDate": 1456964215000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1572925103000,
+  "location": {
+   "lon": 7.70992661466,
+   "lat": 46.9968765075
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB26468": {
+  "id": "AB26468",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "14190218",
+  "purchaseDate": 1291226611000,
+  "lastInspectionDate": 1467151156000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1518288996000,
+  "location": {
+   "lon": 7.79174670714,
+   "lat": 47.0432810696
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB12044": {
+  "id": "AB12044",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "84809583",
+  "purchaseDate": 1100012221000,
+  "lastInspectionDate": 1471782288000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1542959310000,
+  "location": {
+   "lon": 8.27783859234,
+   "lat": 46.9550422334
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB76472": {
+  "id": "AB76472",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "60281144",
+  "purchaseDate": 1265160987000,
+  "lastInspectionDate": 1471238045000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1539249454000,
+  "location": {
+   "lon": 8.81860531824,
+   "lat": 47.6611473479
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB74322": {
+  "id": "AB74322",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "14993741",
+  "purchaseDate": 1345288506000,
+  "lastInspectionDate": 1476545316000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1541114739000,
+  "location": {
+   "lon": 9.55403550297,
+   "lat": 46.9674418902
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB13534": {
+  "id": "AB13534",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "4691410011",
+  "purchaseDate": 1088064211000,
+  "lastInspectionDate": 1458467425000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1548980011000,
+  "location": {
+   "lon": 8.55895784752,
+   "lat": 47.4265462288
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB84018": {
+  "id": "AB84018",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "13684024",
+  "purchaseDate": 1211276393000,
+  "lastInspectionDate": 1464177720000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1529252421000,
+  "location": {
+   "lon": 8.45235436455,
+   "lat": 47.1508603963
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB43898": {
+  "id": "AB43898",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "8367409196",
+  "purchaseDate": 1105209797000,
+  "lastInspectionDate": 1474371750000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1563911639000,
+  "location": {
+   "lon": 6.53400072449,
+   "lat": 46.5249773373
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB76015": {
+  "id": "AB76015",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "61552716",
+  "purchaseDate": 1201343621000,
+  "lastInspectionDate": 1466781137000,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1538157361000,
+  "retirementDate": 1539714171000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 8.99127115498,
+   "lat": 46.1667610876
   },
   "notes": [
    {
@@ -569,21 +911,21 @@
    }
   ]
  },
- "AB14999": {
-  "id": "AB14999",
+ "AB11992": {
+  "id": "AB11992",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "6319758841",
-  "purchaseDate": 1191934522000,
-  "lastInspectionDate": 1462969025000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1517570339000,
+  "serial": "9967213386",
+  "purchaseDate": 1094551658000,
+  "lastInspectionDate": 1471978614000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1558847838000,
   "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
+   "lon": 7.43913028915,
+   "lat": 46.9488310905
   },
   "notes": [
    {
@@ -607,59 +949,21 @@
    }
   ]
  },
- "AB58562": {
-  "id": "AB58562",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "51574116",
-  "purchaseDate": 1225202170000,
-  "lastInspectionDate": 1457535908000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1566067661000,
-  "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB36620": {
-  "id": "AB36620",
+ "AB76069": {
+  "id": "AB76069",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "79493067",
-  "purchaseDate": 1045006715000,
-  "lastInspectionDate": 1471777679000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1544776408000,
+  "serial": "91823810",
+  "purchaseDate": 1195511811000,
+  "lastInspectionDate": 1475121531000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1554474541000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 8.46476870735,
+   "lat": 47.4569447001
   },
   "notes": [
    {
@@ -683,97 +987,21 @@
    }
   ]
  },
- "AB59079": {
-  "id": "AB59079",
+ "AB70184": {
+  "id": "AB70184",
   "clazz": "Signal",
   "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
+   "name": "QQ-19",
+   "manufacturer": "GE"
   },
-  "serial": "18962276",
-  "purchaseDate": 1227000937000,
-  "lastInspectionDate": 1478402539000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1561735223000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB62704": {
-  "id": "AB62704",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "37387421",
-  "purchaseDate": 1285944293000,
-  "lastInspectionDate": 1463959351000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1543085004000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB87571": {
-  "id": "AB87571",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "54046681",
-  "purchaseDate": 1223712075000,
-  "lastInspectionDate": 1469020615000,
+  "serial": "9071114002",
+  "purchaseDate": 1118103544000,
+  "lastInspectionDate": 1468169845000,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1543037384000,
+  "retirementDate": 1532252436000,
   "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
+   "lon": 7.46595357541,
+   "lat": 46.9805891207
   },
   "notes": [
    {
@@ -797,173 +1025,21 @@
    }
   ]
  },
- "AB26922": {
-  "id": "AB26922",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "46322468",
-  "purchaseDate": 1123424049000,
-  "lastInspectionDate": 1475065921000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1535192308000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB82647": {
-  "id": "AB82647",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "88108715",
-  "purchaseDate": 1046474512000,
-  "lastInspectionDate": 1455952945000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1532548736000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB40238": {
-  "id": "AB40238",
+ "AB13542": {
+  "id": "AB13542",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "9938982972",
-  "purchaseDate": 1261486699000,
-  "lastInspectionDate": 1470796267000,
-  "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1515635231000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB84234": {
-  "id": "AB84234",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "1565919914",
-  "purchaseDate": 1231910532000,
-  "lastInspectionDate": 1473444204000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1536265591000,
-  "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB97691": {
-  "id": "AB97691",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "56931098",
-  "purchaseDate": 1242339002000,
-  "lastInspectionDate": 1463030215000,
+  "serial": "9679496869",
+  "purchaseDate": 1131746427000,
+  "lastInspectionDate": 1477976814000,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1530072737000,
+  "retirementDate": 1552952277000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 9.36869974487,
+   "lat": 47.4220720632
   },
   "notes": [
    {
@@ -987,135 +1063,21 @@
    }
   ]
  },
- "AB78314": {
-  "id": "AB78314",
+ "AB50395": {
+  "id": "AB50395",
   "clazz": "Signal",
   "model": {
    "name": "S-5000C",
    "manufacturer": "SIEM"
   },
-  "serial": "15994973",
-  "purchaseDate": 1275756248000,
-  "lastInspectionDate": 1475682113000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1526349213000,
-  "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB85721": {
-  "id": "AB85721",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "80867070",
-  "purchaseDate": 1125782711000,
-  "lastInspectionDate": 1475936116000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1529767715000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB90071": {
-  "id": "AB90071",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "20206526",
-  "purchaseDate": 1125536240000,
-  "lastInspectionDate": 1467288654000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1554706397000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB71030": {
-  "id": "AB71030",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "34625825",
-  "purchaseDate": 1218325291000,
-  "lastInspectionDate": 1477915924000,
+  "serial": "95969162",
+  "purchaseDate": 1185914091000,
+  "lastInspectionDate": 1470640698000,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1522514417000,
+  "retirementDate": 1536116681000,
   "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
+   "lon": 8.33762526246,
+   "lat": 47.4380606031
   },
   "notes": [
    {
@@ -1139,21 +1101,21 @@
    }
   ]
  },
- "AB54797": {
-  "id": "AB54797",
+ "AB57823": {
+  "id": "AB57823",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "51998330",
-  "purchaseDate": 1207844721000,
-  "lastInspectionDate": 1463510639000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1535399029000,
+  "serial": "16635354",
+  "purchaseDate": 1197502818000,
+  "lastInspectionDate": 1479482017000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1540155959000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 7.5795617912,
+   "lat": 47.5461848011
   },
   "notes": [
    {
@@ -1177,21 +1139,21 @@
    }
   ]
  },
- "AB16486": {
-  "id": "AB16486",
+ "AB54044": {
+  "id": "AB54044",
   "clazz": "Signal",
   "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
   },
-  "serial": "7239377834",
-  "purchaseDate": 1174014600000,
-  "lastInspectionDate": 1453586302000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1536306040000,
+  "serial": "43945073",
+  "purchaseDate": 1126218086000,
+  "lastInspectionDate": 1457142532000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1567587973000,
   "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
+   "lon": 7.6069138394,
+   "lat": 47.5673021028
   },
   "notes": [
    {
@@ -1215,211 +1177,21 @@
    }
   ]
  },
- "AB16178": {
-  "id": "AB16178",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "0723822542",
-  "purchaseDate": 1121898092000,
-  "lastInspectionDate": 1462145845000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1519133886000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB24807": {
-  "id": "AB24807",
+ "AB86715": {
+  "id": "AB86715",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "2675417328",
-  "purchaseDate": 1245474499000,
-  "lastInspectionDate": 1459897867000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1527826922000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB79855": {
-  "id": "AB79855",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "28810731",
-  "purchaseDate": 1272412567000,
-  "lastInspectionDate": 1455870246000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1540568959000,
-  "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB70560": {
-  "id": "AB70560",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "70560773",
-  "purchaseDate": 1284981444000,
-  "lastInspectionDate": 1454875126000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1551194140000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB44213": {
-  "id": "AB44213",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "23010309",
-  "purchaseDate": 1211148323000,
-  "lastInspectionDate": 1468929643000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1556623949000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB92425": {
-  "id": "AB92425",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "4624629503",
-  "purchaseDate": 1049668177000,
-  "lastInspectionDate": 1452971839000,
+  "serial": "6079199018",
+  "purchaseDate": 1242595556000,
+  "lastInspectionDate": 1478248434000,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1527987453000,
+  "retirementDate": 1527439552000,
   "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
+   "lon": 6.12692295566,
+   "lat": 46.1753757066
   },
   "notes": [
    {
@@ -1443,21 +1215,59 @@
    }
   ]
  },
- "AB76816": {
-  "id": "AB76816",
+ "AB82000": {
+  "id": "AB82000",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "54352664",
-  "purchaseDate": 1092757431000,
-  "lastInspectionDate": 1470526477000,
+  "serial": "37393431",
+  "purchaseDate": 1193659616000,
+  "lastInspectionDate": 1452099853000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1538760004000,
+  "location": {
+   "lon": 6.55603215136,
+   "lat": 46.5390223203
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB74474": {
+  "id": "AB74474",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "82038037",
+  "purchaseDate": 1135966562000,
+  "lastInspectionDate": 1465101484000,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1556158507000,
+  "retirementDate": 1535254430000,
   "location": {
-   "lon": 6.230599880218506,
-   "lat": 46.19720690845916
+   "lon": 8.85005743773,
+   "lat": 47.2615131849
   },
   "notes": [
    {
@@ -1481,363 +1291,21 @@
    }
   ]
  },
- "AB55265": {
-  "id": "AB55265",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "37031933",
-  "purchaseDate": 1180568779000,
-  "lastInspectionDate": 1461615612000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1545662887000,
-  "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB53260": {
-  "id": "AB53260",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "37568067",
-  "purchaseDate": 1303854734000,
-  "lastInspectionDate": 1475385273000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1558801898000,
-  "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB28789": {
-  "id": "AB28789",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "14322755",
-  "purchaseDate": 1307084961000,
-  "lastInspectionDate": 1457629495000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1575380889000,
-  "location": {
-   "lon": 7.668290734291077,
-   "lat": 46.69116074509384
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB67006": {
-  "id": "AB67006",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "64146577",
-  "purchaseDate": 1298062564000,
-  "lastInspectionDate": 1470184551000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1557154415000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB59910": {
-  "id": "AB59910",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "29080252",
-  "purchaseDate": 1139673662000,
-  "lastInspectionDate": 1458704763000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1564205567000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB42138": {
-  "id": "AB42138",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "06645737",
-  "purchaseDate": 1183463720000,
-  "lastInspectionDate": 1462919437000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1574102651000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB96591": {
-  "id": "AB96591",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "6269999435",
-  "purchaseDate": 1199232635000,
-  "lastInspectionDate": 1474797240000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1518007639000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB98318": {
-  "id": "AB98318",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "7574527503",
-  "purchaseDate": 1286206540000,
-  "lastInspectionDate": 1475070678000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1575164777000,
-  "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB63445": {
-  "id": "AB63445",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "60975399",
-  "purchaseDate": 1232205252000,
-  "lastInspectionDate": 1460415929000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1543829232000,
-  "location": {
-   "lon": 7.579099237918854,
-   "lat": 47.54740387022264
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB35485": {
-  "id": "AB35485",
+ "AB49738": {
+  "id": "AB49738",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "3177056620",
-  "purchaseDate": 1356125778000,
-  "lastInspectionDate": 1463317337000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1527853020000,
+  "serial": "0230640591",
+  "purchaseDate": 1232092981000,
+  "lastInspectionDate": 1452223897000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1544358978000,
   "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
+   "lon": 8.91671546799,
+   "lat": 46.3800677037
   },
   "notes": [
    {
@@ -1861,21 +1329,553 @@
    }
   ]
  },
- "AB43987": {
-  "id": "AB43987",
+ "AB40213": {
+  "id": "AB40213",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "99945409",
-  "purchaseDate": 1049865815000,
-  "lastInspectionDate": 1482253801000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1538085389000,
+  "serial": "23015136",
+  "purchaseDate": 1111687048000,
+  "lastInspectionDate": 1480689220000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1554204604000,
   "location": {
-   "lon": 6.965602934360504,
-   "lat": 47.22461771114213
+   "lon": 6.52130305769,
+   "lat": 46.521062327
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB15607": {
+  "id": "AB15607",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "4565477026",
+  "purchaseDate": 1261512191000,
+  "lastInspectionDate": 1476270092000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1558347091000,
+  "location": {
+   "lon": 8.56137888424,
+   "lat": 47.3501260097
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB65116": {
+  "id": "AB65116",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "74903322",
+  "purchaseDate": 1063715823000,
+  "lastInspectionDate": 1468773017000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1571348289000,
+  "location": {
+   "lon": 10.0860314095,
+   "lat": 46.7584769501
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB22141": {
+  "id": "AB22141",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "17635730",
+  "purchaseDate": 1173151905000,
+  "lastInspectionDate": 1452069511000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1517233522000,
+  "location": {
+   "lon": 6.96369048122,
+   "lat": 46.3168528715
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB48381": {
+  "id": "AB48381",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "91680556",
+  "purchaseDate": 1156807586000,
+  "lastInspectionDate": 1457871766000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1527672991000,
+  "location": {
+   "lon": 6.57209301949,
+   "lat": 46.540783403
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB91503": {
+  "id": "AB91503",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "3065231414",
+  "purchaseDate": 1250566033000,
+  "lastInspectionDate": 1459335668000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1552864837000,
+  "location": {
+   "lon": 8.65217444814,
+   "lat": 47.4404168284
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB97192": {
+  "id": "AB97192",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "24041317",
+  "purchaseDate": 1166647054000,
+  "lastInspectionDate": 1456138387000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1538036913000,
+  "location": {
+   "lon": 7.15772047531,
+   "lat": 47.3130942818
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB80846": {
+  "id": "AB80846",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "65293377",
+  "purchaseDate": 1301187167000,
+  "lastInspectionDate": 1453949656000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1562509744000,
+  "location": {
+   "lon": 6.54508276306,
+   "lat": 46.5308315876
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB70390": {
+  "id": "AB70390",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "2553370784",
+  "purchaseDate": 1146616401000,
+  "lastInspectionDate": 1478575951000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1519782059000,
+  "location": {
+   "lon": 9.55403550297,
+   "lat": 46.9674418902
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB76435": {
+  "id": "AB76435",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "1164483527",
+  "purchaseDate": 1297926221000,
+  "lastInspectionDate": 1479356469000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1526474658000,
+  "location": {
+   "lon": 9.39343660105,
+   "lat": 47.4345441272
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB89223": {
+  "id": "AB89223",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "45327758",
+  "purchaseDate": 1202003052000,
+  "lastInspectionDate": 1468545447000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1572213765000,
+  "location": {
+   "lon": 6.93570544678,
+   "lat": 46.9967222629
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB11585": {
+  "id": "AB11585",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "4978297100",
+  "purchaseDate": 1262053665000,
+  "lastInspectionDate": 1458506004000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1529356288000,
+  "location": {
+   "lon": 8.92540289443,
+   "lat": 46.3725887716
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB25924": {
+  "id": "AB25924",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "04770140",
+  "purchaseDate": 1347924032000,
+  "lastInspectionDate": 1456275515000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1537140919000,
+  "location": {
+   "lon": 6.11552454052,
+   "lat": 46.2087521864
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB74076": {
+  "id": "AB74076",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "92639626",
+  "purchaseDate": 1163514832000,
+  "lastInspectionDate": 1475480313000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1536969827000,
+  "location": {
+   "lon": 6.54763247199,
+   "lat": 46.5324251937
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that boiler asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB89161": {
+  "id": "AB89161",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "8792906438",
+  "purchaseDate": 1046342254000,
+  "lastInspectionDate": 1454686249000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1564268656000,
+  "location": {
+   "lon": 6.54397586467,
+   "lat": 46.5297918765
   },
   "notes": [
    {
