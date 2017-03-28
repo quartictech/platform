@@ -102,7 +102,7 @@ def generate_insights(assets):
     insights.append({
       "id": str(100 + i),
       "insightType": "cluster",
-      "title": "Similar failures occurring in asset class",
+      "title": "Similar failures detected in asset class",
       "subInsights": [
       {"icon": "pt-icon-info-sign", "text":"Statistically significant increase in failure rate following maintenance work"},
       {"icon": "pt-icon-info-sign", "text":"Baseline voltage of circuit diagnostic increased following maintenance activity"}
@@ -149,8 +149,9 @@ def make_feature(insight, asset):
           "id": asset["id"],
           "View in Inbox": "http://localhost:3020/insights/{0}".format(insight["id"]),
           "Asset Class": asset["clazz"],
-          "Model": asset["model"],
-          "Serial": asset["serial"]
+          "Model": asset["model"]["name"],
+          "Manufacturer": asset["model"]["manufacturer"],
+          "Serial No.": asset["serial"]
         }
   } 
 

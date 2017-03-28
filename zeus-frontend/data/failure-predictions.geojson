@@ -6,19 +6,17 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     7.89119715331,
-     46.6882087808
+     8.67438161458,
+     46.7665420533
     ]
    },
    "properties": {
-    "id": "AB28564",
-    "View in Inbox": "http://localhost:3020/insights/101",
+    "id": "AB65062",
+    "View in Inbox": "http://localhost:3020/insights/109",
     "Asset Class": "Signal",
-    "Model": {
-     "name": "S-5000C",
-     "manufacturer": "SIEM"
-    },
-    "Serial": "12333872"
+    "Model": "QQ-19",
+    "Manufacturer": "GE",
+    "Serial No.": "0548106434"
    }
   },
   {
@@ -26,19 +24,17 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     8.81534446003,
-     47.6605676213
+     7.15772047531,
+     47.3130942818
     ]
    },
    "properties": {
-    "id": "AB35815",
-    "View in Inbox": "http://localhost:3020/insights/101",
+    "id": "AB29632",
+    "View in Inbox": "http://localhost:3020/insights/109",
     "Asset Class": "Signal",
-    "Model": {
-     "name": "S-5000B",
-     "manufacturer": "SIEM"
-    },
-    "Serial": "20709865"
+    "Model": "S-5000C",
+    "Manufacturer": "SIEM",
+    "Serial No.": "87290643"
    }
   },
   {
@@ -46,19 +42,17 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     8.81673454623,
-     47.2248889702
+     6.96369048122,
+     46.3168528715
     ]
    },
    "properties": {
-    "id": "AB66271",
-    "View in Inbox": "http://localhost:3020/insights/101",
+    "id": "AB74476",
+    "View in Inbox": "http://localhost:3020/insights/109",
     "Asset Class": "Signal",
-    "Model": {
-     "name": "QQ-23",
-     "manufacturer": "GE"
-    },
-    "Serial": "2390425937"
+    "Model": "S-5000B",
+    "Manufacturer": "SIEM",
+    "Serial No.": "88377436"
    }
   },
   {
@@ -66,19 +60,17 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     9.42736966071,
-     47.2842513399
+     8.54903604549,
+     47.4157691582
     ]
    },
    "properties": {
-    "id": "AB70873",
-    "View in Inbox": "http://localhost:3020/insights/101",
+    "id": "AB10711",
+    "View in Inbox": "http://localhost:3020/insights/109",
     "Asset Class": "Signal",
-    "Model": {
-     "name": "S-5000C",
-     "manufacturer": "SIEM"
-    },
-    "Serial": "59848656"
+    "Model": "QQ-19",
+    "Manufacturer": "GE",
+    "Serial No.": "5631176654"
    }
   }
  ]

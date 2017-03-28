@@ -1,135 +1,10 @@
 [
  {
-  "id": "113",
-  "insightType": "failure",
-  "title": "Asset failure predicted",
-  "assetIds": [
-   "AB70873"
-  ],
-  "unfailedAssetIds": [],
-  "assetClass": "Signal",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "An increase has been detected in the diagnostic voltage circuit"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
-   }
-  ],
-  "events": []
- },
- {
-  "id": "101",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB70873",
-   "AB99783",
-   "AB45398",
-   "AB35815",
-   "AB28564",
-   "AB89543",
-   "AB28462",
-   "AB11514",
-   "AB66271",
-   "AB54428"
-  ],
-  "unfailedAssetIds": [
-   "AB28564",
-   "AB35815",
-   "AB66271",
-   "AB70873"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 5
-    },
-    {
-     "name": "5-10 years",
-     "value": 1
-    },
-    {
-     "name": "> 10 years",
-     "value": 2
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "103",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB70873",
-   "AB28462",
-   "AB35815",
-   "AB66271",
-   "AB28564",
-   "AB45398",
-   "AB89543",
-   "AB11514",
-   "AB99783",
-   "AB54428"
-  ],
-  "unfailedAssetIds": [
-   "AB35815",
-   "AB66271",
-   "AB99783",
-   "AB28462"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 5
-    },
-    {
-     "name": "5-10 years",
-     "value": 1
-    },
-    {
-     "name": "> 10 years",
-     "value": 3
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
   "id": "111",
   "insightType": "failure",
   "title": "Asset failure predicted",
   "assetIds": [
-   "AB28462"
+   "AB71230"
   ],
   "unfailedAssetIds": [],
   "assetClass": "Signal",
@@ -148,7 +23,7 @@
  {
   "id": "109",
   "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
+  "title": "Similar failures detected in asset class",
   "subInsights": [
    {
     "icon": "pt-icon-info-sign",
@@ -161,32 +36,32 @@
   ],
   "assetClass": "Signal",
   "assetIds": [
-   "AB35815",
-   "AB11514",
-   "AB45398",
-   "AB66271",
-   "AB99783",
-   "AB70873",
-   "AB89543",
-   "AB28462",
-   "AB54428",
-   "AB28564"
+   "AB74476",
+   "AB29632",
+   "AB13751",
+   "AB73765",
+   "AB71230",
+   "AB57393",
+   "AB65062",
+   "AB42238",
+   "AB63793",
+   "AB10711"
   ],
   "unfailedAssetIds": [
-   "AB11514",
-   "AB70873",
-   "AB45398",
-   "AB54428"
+   "AB65062",
+   "AB29632",
+   "AB74476",
+   "AB10711"
   ],
   "barChart": {
    "data": [
     {
      "name": "0 -5 years",
-     "value": 1
+     "value": 7
     },
     {
      "name": "5-10 years",
-     "value": 6
+     "value": 1
     },
     {
      "name": "> 10 years",
@@ -198,32 +73,63 @@
   }
  },
  {
-  "id": "119",
-  "insightType": "failure",
-  "title": "Asset failure predicted",
-  "assetIds": [
-   "AB11514"
-  ],
-  "unfailedAssetIds": [],
-  "assetClass": "Signal",
+  "id": "108",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
   "subInsights": [
    {
     "icon": "pt-icon-info-sign",
-    "text": "An increase has been detected in the diagnostic voltage circuit"
+    "text": "Statistically significant increase in failure rate following maintenance work"
    },
    {
     "icon": "pt-icon-info-sign",
-    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
    }
   ],
-  "events": []
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB73765",
+   "AB10711",
+   "AB63793",
+   "AB71230",
+   "AB57393",
+   "AB42238",
+   "AB29632",
+   "AB13751",
+   "AB74476",
+   "AB65062"
+  ],
+  "unfailedAssetIds": [
+   "AB63793",
+   "AB71230",
+   "AB74476",
+   "AB29632"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 3
+    },
+    {
+     "name": "5-10 years",
+     "value": 3
+    },
+    {
+     "name": "> 10 years",
+     "value": 3
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
  },
  {
-  "id": "115",
+  "id": "116",
   "insightType": "failure",
   "title": "Asset failure predicted",
   "assetIds": [
-   "AB35815"
+   "AB71230"
   ],
   "unfailedAssetIds": [],
   "assetClass": "Signal",
@@ -244,7 +150,497 @@
   "insightType": "failure",
   "title": "Asset failure predicted",
   "assetIds": [
-   "AB70873"
+   "AB73765"
+  ],
+  "unfailedAssetIds": [],
+  "assetClass": "Signal",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "An increase has been detected in the diagnostic voltage circuit"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+   }
+  ],
+  "events": []
+ },
+ {
+  "id": "114",
+  "insightType": "failure",
+  "title": "Asset failure predicted",
+  "assetIds": [
+   "AB74476"
+  ],
+  "unfailedAssetIds": [],
+  "assetClass": "Signal",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "An increase has been detected in the diagnostic voltage circuit"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+   }
+  ],
+  "events": []
+ },
+ {
+  "id": "101",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB73765",
+   "AB57393",
+   "AB10711",
+   "AB29632",
+   "AB71230",
+   "AB13751",
+   "AB42238",
+   "AB74476",
+   "AB63793",
+   "AB65062"
+  ],
+  "unfailedAssetIds": [
+   "AB57393",
+   "AB29632",
+   "AB63793",
+   "AB73765"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 3
+    },
+    {
+     "name": "5-10 years",
+     "value": 3
+    },
+    {
+     "name": "> 10 years",
+     "value": 3
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "105",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB29632",
+   "AB13751",
+   "AB42238",
+   "AB65062",
+   "AB71230",
+   "AB74476",
+   "AB57393",
+   "AB73765",
+   "AB63793",
+   "AB10711"
+  ],
+  "unfailedAssetIds": [
+   "AB42238",
+   "AB63793",
+   "AB10711",
+   "AB29632"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 4
+    },
+    {
+     "name": "5-10 years",
+     "value": 1
+    },
+    {
+     "name": "> 10 years",
+     "value": 0
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "110",
+  "insightType": "failure",
+  "title": "Asset failure predicted",
+  "assetIds": [
+   "AB63793"
+  ],
+  "unfailedAssetIds": [],
+  "assetClass": "Signal",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "An increase has been detected in the diagnostic voltage circuit"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+   }
+  ],
+  "events": []
+ },
+ {
+  "id": "107",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB13751",
+   "AB74476",
+   "AB71230",
+   "AB42238",
+   "AB65062",
+   "AB10711",
+   "AB63793",
+   "AB73765",
+   "AB57393",
+   "AB29632"
+  ],
+  "unfailedAssetIds": [
+   "AB42238",
+   "AB73765",
+   "AB10711",
+   "AB71230"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 1
+    },
+    {
+     "name": "5-10 years",
+     "value": 2
+    },
+    {
+     "name": "> 10 years",
+     "value": 1
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "118",
+  "insightType": "failure",
+  "title": "Asset failure predicted",
+  "assetIds": [
+   "AB10711"
+  ],
+  "unfailedAssetIds": [],
+  "assetClass": "Signal",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "An increase has been detected in the diagnostic voltage circuit"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+   }
+  ],
+  "events": []
+ },
+ {
+  "id": "113",
+  "insightType": "failure",
+  "title": "Asset failure predicted",
+  "assetIds": [
+   "AB10711"
+  ],
+  "unfailedAssetIds": [],
+  "assetClass": "Signal",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "An increase has been detected in the diagnostic voltage circuit"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+   }
+  ],
+  "events": []
+ },
+ {
+  "id": "103",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB63793",
+   "AB29632",
+   "AB65062",
+   "AB74476",
+   "AB73765",
+   "AB10711",
+   "AB42238",
+   "AB13751",
+   "AB57393",
+   "AB71230"
+  ],
+  "unfailedAssetIds": [
+   "AB73765",
+   "AB13751",
+   "AB10711",
+   "AB74476"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 1
+    },
+    {
+     "name": "5-10 years",
+     "value": 3
+    },
+    {
+     "name": "> 10 years",
+     "value": 5
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "100",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB63793",
+   "AB73765",
+   "AB65062",
+   "AB71230",
+   "AB42238",
+   "AB10711",
+   "AB13751",
+   "AB57393",
+   "AB29632",
+   "AB74476"
+  ],
+  "unfailedAssetIds": [
+   "AB71230",
+   "AB63793",
+   "AB42238",
+   "AB65062"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 1
+    },
+    {
+     "name": "5-10 years",
+     "value": 0
+    },
+    {
+     "name": "> 10 years",
+     "value": 2
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "102",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB71230",
+   "AB10711",
+   "AB63793",
+   "AB13751",
+   "AB74476",
+   "AB65062",
+   "AB42238",
+   "AB73765",
+   "AB29632",
+   "AB57393"
+  ],
+  "unfailedAssetIds": [
+   "AB10711",
+   "AB65062",
+   "AB42238",
+   "AB74476"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 3
+    },
+    {
+     "name": "5-10 years",
+     "value": 1
+    },
+    {
+     "name": "> 10 years",
+     "value": 4
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "106",
+  "insightType": "cluster",
+  "title": "Similar failures detected in asset class",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Statistically significant increase in failure rate following maintenance work"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
+   }
+  ],
+  "assetClass": "Signal",
+  "assetIds": [
+   "AB29632",
+   "AB63793",
+   "AB57393",
+   "AB13751",
+   "AB74476",
+   "AB42238",
+   "AB65062",
+   "AB73765",
+   "AB10711",
+   "AB71230"
+  ],
+  "unfailedAssetIds": [
+   "AB13751",
+   "AB42238",
+   "AB73765",
+   "AB57393"
+  ],
+  "barChart": {
+   "data": [
+    {
+     "name": "0 -5 years",
+     "value": 1
+    },
+    {
+     "name": "5-10 years",
+     "value": 7
+    },
+    {
+     "name": "> 10 years",
+     "value": 1
+    }
+   ],
+   "xLabel": "# Failures",
+   "yLabel": "Asset age"
+  }
+ },
+ {
+  "id": "119",
+  "insightType": "failure",
+  "title": "Asset failure predicted",
+  "assetIds": [
+   "AB73765"
+  ],
+  "unfailedAssetIds": [],
+  "assetClass": "Signal",
+  "subInsights": [
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "An increase has been detected in the diagnostic voltage circuit"
+   },
+   {
+    "icon": "pt-icon-info-sign",
+    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
+   }
+  ],
+  "events": []
+ },
+ {
+  "id": "117",
+  "insightType": "failure",
+  "title": "Asset failure predicted",
+  "assetIds": [
+   "AB63793"
   ],
   "unfailedAssetIds": [],
   "assetClass": "Signal",
@@ -263,7 +659,7 @@
  {
   "id": "104",
   "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
+  "title": "Similar failures detected in asset class",
   "subInsights": [
    {
     "icon": "pt-icon-info-sign",
@@ -276,132 +672,28 @@
   ],
   "assetClass": "Signal",
   "assetIds": [
-   "AB66271",
-   "AB45398",
-   "AB54428",
-   "AB28462",
-   "AB70873",
-   "AB35815",
-   "AB28564",
-   "AB89543",
-   "AB99783",
-   "AB11514"
+   "AB10711",
+   "AB63793",
+   "AB57393",
+   "AB73765",
+   "AB42238",
+   "AB29632",
+   "AB74476",
+   "AB65062",
+   "AB71230",
+   "AB13751"
   ],
   "unfailedAssetIds": [
-   "AB28564",
-   "AB70873",
-   "AB28462",
-   "AB99783"
+   "AB57393",
+   "AB74476",
+   "AB71230",
+   "AB29632"
   ],
   "barChart": {
    "data": [
     {
      "name": "0 -5 years",
-     "value": 3
-    },
-    {
-     "name": "5-10 years",
-     "value": 3
-    },
-    {
-     "name": "> 10 years",
      "value": 0
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "106",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB66271",
-   "AB35815",
-   "AB11514",
-   "AB28564",
-   "AB89543",
-   "AB45398",
-   "AB28462",
-   "AB70873",
-   "AB99783",
-   "AB54428"
-  ],
-  "unfailedAssetIds": [
-   "AB45398",
-   "AB66271",
-   "AB28462",
-   "AB89543"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 5
-    },
-    {
-     "name": "5-10 years",
-     "value": 0
-    },
-    {
-     "name": "> 10 years",
-     "value": 1
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "100",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB54428",
-   "AB89543",
-   "AB99783",
-   "AB66271",
-   "AB28462",
-   "AB35815",
-   "AB45398",
-   "AB11514",
-   "AB28564",
-   "AB70873"
-  ],
-  "unfailedAssetIds": [
-   "AB70873",
-   "AB89543",
-   "AB66271",
-   "AB28462"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 1
     },
     {
      "name": "5-10 years",
@@ -417,303 +709,11 @@
   }
  },
  {
-  "id": "105",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB35815",
-   "AB45398",
-   "AB99783",
-   "AB89543",
-   "AB70873",
-   "AB11514",
-   "AB28564",
-   "AB54428",
-   "AB28462",
-   "AB66271"
-  ],
-  "unfailedAssetIds": [
-   "AB45398",
-   "AB70873",
-   "AB35815",
-   "AB89543"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 4
-    },
-    {
-     "name": "5-10 years",
-     "value": 0
-    },
-    {
-     "name": "> 10 years",
-     "value": 2
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "117",
+  "id": "115",
   "insightType": "failure",
   "title": "Asset failure predicted",
   "assetIds": [
-   "AB35815"
-  ],
-  "unfailedAssetIds": [],
-  "assetClass": "Signal",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "An increase has been detected in the diagnostic voltage circuit"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
-   }
-  ],
-  "events": []
- },
- {
-  "id": "102",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB35815",
-   "AB28564",
-   "AB70873",
-   "AB11514",
-   "AB99783",
-   "AB54428",
-   "AB89543",
-   "AB66271",
-   "AB28462",
-   "AB45398"
-  ],
-  "unfailedAssetIds": [
-   "AB45398",
-   "AB35815",
-   "AB66271",
-   "AB54428"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 7
-    },
-    {
-     "name": "5-10 years",
-     "value": 0
-    },
-    {
-     "name": "> 10 years",
-     "value": 1
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "107",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB54428",
-   "AB28564",
-   "AB28462",
-   "AB70873",
-   "AB35815",
-   "AB66271",
-   "AB45398",
-   "AB11514",
-   "AB99783",
-   "AB89543"
-  ],
-  "unfailedAssetIds": [
-   "AB66271",
-   "AB99783",
-   "AB28462",
-   "AB54428"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 6
-    },
-    {
-     "name": "5-10 years",
-     "value": 1
-    },
-    {
-     "name": "> 10 years",
-     "value": 2
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "110",
-  "insightType": "failure",
-  "title": "Asset failure predicted",
-  "assetIds": [
-   "AB66271"
-  ],
-  "unfailedAssetIds": [],
-  "assetClass": "Signal",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "An increase has been detected in the diagnostic voltage circuit"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
-   }
-  ],
-  "events": []
- },
- {
-  "id": "116",
-  "insightType": "failure",
-  "title": "Asset failure predicted",
-  "assetIds": [
-   "AB35815"
-  ],
-  "unfailedAssetIds": [],
-  "assetClass": "Signal",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "An increase has been detected in the diagnostic voltage circuit"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
-   }
-  ],
-  "events": []
- },
- {
-  "id": "108",
-  "insightType": "cluster",
-  "title": "Similar failures occurring in asset class",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Statistically significant increase in failure rate following maintenance work"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "Baseline voltage of circuit diagnostic increased following maintenance activity"
-   }
-  ],
-  "assetClass": "Signal",
-  "assetIds": [
-   "AB54428",
-   "AB11514",
-   "AB70873",
-   "AB28462",
-   "AB35815",
-   "AB89543",
-   "AB99783",
-   "AB45398",
-   "AB28564",
-   "AB66271"
-  ],
-  "unfailedAssetIds": [
-   "AB28564",
-   "AB66271",
-   "AB35815",
-   "AB70873"
-  ],
-  "barChart": {
-   "data": [
-    {
-     "name": "0 -5 years",
-     "value": 6
-    },
-    {
-     "name": "5-10 years",
-     "value": 3
-    },
-    {
-     "name": "> 10 years",
-     "value": 0
-    }
-   ],
-   "xLabel": "# Failures",
-   "yLabel": "Asset age"
-  }
- },
- {
-  "id": "114",
-  "insightType": "failure",
-  "title": "Asset failure predicted",
-  "assetIds": [
-   "AB54428"
-  ],
-  "unfailedAssetIds": [],
-  "assetClass": "Signal",
-  "subInsights": [
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "An increase has been detected in the diagnostic voltage circuit"
-   },
-   {
-    "icon": "pt-icon-info-sign",
-    "text": "In 35% of previous occurences, this led to a failure within 2 weeks"
-   }
-  ],
-  "events": []
- },
- {
-  "id": "118",
-  "insightType": "failure",
-  "title": "Asset failure predicted",
-  "assetIds": [
-   "AB54428"
+   "AB29632"
   ],
   "unfailedAssetIds": [],
   "assetClass": "Signal",
