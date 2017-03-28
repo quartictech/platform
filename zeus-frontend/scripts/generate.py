@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+import random
+import json
+from datetime import timedelta, datetime, date
+
+def default(obj):
+    """Default JSON serializer."""
+    import calendar, datetime
+
+    if isinstance(obj, datetime.datetime):
+        if obj.utcoffset() is not None:
+            obj = obj - obj.utcoffset()
+        millis = int(
+            calendar.timegm(obj.timetuple()) * 1000 +
+            obj.microsecond / 1000
+        )
+        return millis
+    raise TypeError('Not sure how to serialize %s' % (obj,))
+
+def digit_to_char(digit):
+    if digit < 10:
+        return str(digit)
+    return chr(ord('a') + digit - 10)
+
+def str_base(number,base):
+    if number < 0:
+        return '-' + str_base(-number, base)
+    (d, m) = divmod(number, base)
+    if d > 0:
+        return str_base(d, base) + digit_to_char(m)
+    return digit_to_char(m)
+
+def random_date(start, end):
+    """
+    This function will return a random datetime between two datetime 
+    objects.
+    """
+    delta = end - start
+    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+    random_second = random.randrange(int_delta)
+    return start + timedelta(seconds=random_second)
+
+SN_GEN_SIEM = lambda: str_base(random.random(), 36)[2:10]
+SN_GEN_GE = lambda: str_base(random.random(), 10)[2:12]
+
+ENGINEERS = ["J Nole", "A McFadden", "G Kemp", "B Wilson", "B Gee", "P Graham"]
+MODELS = [
+  { "name": "S-5000C",  "manufacturer": "SIEM" },
+  { "name": "S-5000B",  "manufacturer": "SIEM" },
+  { "name": "QQ-19",  "manufacturer": "GE" },
+  { "name": "QQ-23", "manufacturer": "GE" },
+]
+SERIAL_NO_GEN = {
+  "SIEM": SN_GEN_SIEM,
+  "GE": SN_GEN_GE
+}
+
+LOCATIONS = [
+  (7.668290734291077, 46.69116074509384),
+  (7.579099237918854, 47.54740387022264),
+  (6.965602934360504, 47.22461771114213),
+  (6.230599880218506, 46.19720690845916)
+]
+
+
+def generate_assets():
+  assets = {}
+  for i in range(50):
+    model = random.choice(MODELS)
+    location = random.choice(LOCATIONS)
+    id = "AB" + str(random.randrange(90000) + 10000)
+    assets[id] = {
+      "id": id,
+      "clazz": "Signal",
+      "model": model,
+      "serial": SERIAL_NO_GEN[model["manufacturer"]](),
+      "purchaseDate": random_date(datetime(2003, 1, 1), datetime(2013, 1, 1)),
+      "lastInspectionDate": random_date(datetime(2016, 1, 1), datetime(2017, 1, 1)),
+      "lastInspectionSignoff": random.choice(ENGINEERS),
+      "retirementDate": random_date(datetime(2018, 1, 1), datetime(2020, 1, 1)),
+      "location": {
+        "lon": location[0],
+        "lat": location[1]
+      },
+      "notes": [
+           { 
+             "id": "123", 
+             "created": datetime(2017, 1, 1), 
+             "text": "Please check that boiler asset # sticker matches expected before performing maintenance." 
+          }
+       ],
+       "events": [
+         { "type": "maintenance", "date": datetime(2016, 9, 10) }, 
+         { "type": "maintenance", "date": datetime(2017, 1, 3) },
+         { "type": "failure", "date": datetime(2017, 1, 28) }
+       ]
+    }
+  return assets
+
+def make_feature(asset):
+  return {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [asset["location"]["lon"], asset["location"]["lat"]]
+        },
+        "properties": {
+          "id": asset["id"]
+        }
+  } 
+
+if __name__ == "__main__":
+  assets = generate_assets()
+  json.dump(assets, open("data/assets.json", "w"), default=default, indent=1)
+
+  insight_asset_ids = random.sample(list(assets), 4)
+  geojson = {
+    "type": "FeatureCollection",
+    "features": [make_feature(assets[asset_id]) for asset_id in insight_asset_ids]
+  }
+  json.dump(geojson, open("data/failure-predictions.geojson", "w"), indent=1)
