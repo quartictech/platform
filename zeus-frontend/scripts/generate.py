@@ -87,7 +87,7 @@ def generate_assets(asset_coords):
            { 
              "id": "123", 
              "created": datetime(2017, 1, 1), 
-             "text": "Please check that boiler asset # sticker matches expected before performing maintenance." 
+             "text": "Please check that control circuit asset # sticker matches expected before performing maintenance." 
           }
        ],
        "events": [

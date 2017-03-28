@@ -6,59 +6,19 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     8.1842466185,
-     46.7273343117
+     7.58631904846,
+     47.5699507017
     ]
    },
    "properties": {
-    "id": "AB89879",
-    "View in Inbox": "http://localhost:3020/insights/108",
-    "Asset Class": "Signal",
-    "Model": {
-     "name": "S-5000B",
-     "manufacturer": "SIEM"
-    },
-    "Serial": "27758463"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     7.6487594329,
-     46.577700751
-    ]
-   },
-   "properties": {
-    "id": "AB19722",
-    "View in Inbox": "http://localhost:3020/insights/108",
-    "Asset Class": "Signal",
-    "Model": {
-     "name": "QQ-23",
-     "manufacturer": "GE"
-    },
-    "Serial": "2922919665"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     7.67046440797,
-     46.6896916069
-    ]
-   },
-   "properties": {
-    "id": "AB20651",
-    "View in Inbox": "http://localhost:3020/insights/108",
+    "id": "AB26083",
+    "View in Inbox": "http://localhost:3020/insights/105",
     "Asset Class": "Signal",
     "Model": {
      "name": "QQ-19",
      "manufacturer": "GE"
     },
-    "Serial": "9241124450"
+    "Serial": "9585389641"
    }
   },
   {
@@ -66,19 +26,59 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     8.48435847027,
-     47.0553903421
+     8.99127115498,
+     46.1667610876
     ]
    },
    "properties": {
-    "id": "AB50496",
-    "View in Inbox": "http://localhost:3020/insights/108",
+    "id": "AB32062",
+    "View in Inbox": "http://localhost:3020/insights/105",
     "Asset Class": "Signal",
     "Model": {
      "name": "S-5000B",
      "manufacturer": "SIEM"
     },
-    "Serial": "08823265"
+    "Serial": "44465469"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     7.02336661304,
+     47.038566868
+    ]
+   },
+   "properties": {
+    "id": "AB59936",
+    "View in Inbox": "http://localhost:3020/insights/105",
+    "Asset Class": "Signal",
+    "Model": {
+     "name": "QQ-19",
+     "manufacturer": "GE"
+    },
+    "Serial": "1845268451"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     8.61926490466,
+     47.4202031861
+    ]
+   },
+   "properties": {
+    "id": "AB18112",
+    "View in Inbox": "http://localhost:3020/insights/105",
+    "Asset Class": "Signal",
+    "Model": {
+     "name": "S-5000C",
+     "manufacturer": "SIEM"
+    },
+    "Serial": "50373122"
    }
   }
  ]
