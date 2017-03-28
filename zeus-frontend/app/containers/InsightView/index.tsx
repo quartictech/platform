@@ -75,7 +75,7 @@ class InsightView extends React.Component<IProps, IState> {
             <h5>
               <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
             </h5>
-            <TimeChart events={asset.events}/>
+            <TimeChart yLabel="Voltage" events={asset.events}/>
           </div>
 
         ))}

@@ -151,7 +151,10 @@ def make_feature(insight, asset):
         },
         "properties": {
           "id": asset["id"],
-          "View in Inbox": "http://localhost:3020/insights/{0}".format(insight["id"])
+          "View in Inbox": "http://localhost:3020/insights/{0}".format(insight["id"]),
+          "Asset Class": asset["clazz"],
+          "Model": asset["model"],
+          "Serial": asset["serial"]
         }
   } 
 
@@ -169,7 +172,8 @@ if __name__ == "__main__":
   insights = generate_insights(assets)
   json.dump(insights, open("data/insights.json", "w"), default=default, indent=1)
 
-  insight_asset_ids = random.sample(insights[0]["assetIds"], 4)
+  cluster_insight = [insight for insight in insights if insight["insightType"] == "cluster"][0]
+  insight_asset_ids = random.sample(cluster_insight["assetIds"], 4)
   geojson = {
     "type": "FeatureCollection",
     "features": [make_feature(insights[0], assets[asset_id]) for asset_id in insight_asset_ids]

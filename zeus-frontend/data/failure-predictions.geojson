@@ -6,13 +6,19 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     8.48267584434,
-     47.0095269184
+     8.1842466185,
+     46.7273343117
     ]
    },
    "properties": {
-    "id": "AB12139",
-    "View in Inbox": "http://localhost:3020/insights/104"
+    "id": "AB89879",
+    "View in Inbox": "http://localhost:3020/insights/108",
+    "Asset Class": "Signal",
+    "Model": {
+     "name": "S-5000B",
+     "manufacturer": "SIEM"
+    },
+    "Serial": "27758463"
    }
   },
   {
@@ -20,13 +26,19 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     6.54763247199,
-     46.5324251937
+     7.6487594329,
+     46.577700751
     ]
    },
    "properties": {
-    "id": "AB74076",
-    "View in Inbox": "http://localhost:3020/insights/104"
+    "id": "AB19722",
+    "View in Inbox": "http://localhost:3020/insights/108",
+    "Asset Class": "Signal",
+    "Model": {
+     "name": "QQ-23",
+     "manufacturer": "GE"
+    },
+    "Serial": "2922919665"
    }
   },
   {
@@ -34,13 +46,19 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     9.42736966071,
-     47.2842513399
+     7.67046440797,
+     46.6896916069
     ]
    },
    "properties": {
-    "id": "AB21742",
-    "View in Inbox": "http://localhost:3020/insights/104"
+    "id": "AB20651",
+    "View in Inbox": "http://localhost:3020/insights/108",
+    "Asset Class": "Signal",
+    "Model": {
+     "name": "QQ-19",
+     "manufacturer": "GE"
+    },
+    "Serial": "9241124450"
    }
   },
   {
@@ -48,13 +66,19 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
-     6.52130305769,
-     46.521062327
+     8.48435847027,
+     47.0553903421
     ]
    },
    "properties": {
-    "id": "AB40213",
-    "View in Inbox": "http://localhost:3020/insights/104"
+    "id": "AB50496",
+    "View in Inbox": "http://localhost:3020/insights/108",
+    "Asset Class": "Signal",
+    "Model": {
+     "name": "S-5000B",
+     "manufacturer": "SIEM"
+    },
+    "Serial": "08823265"
    }
   }
  ]

@@ -10,6 +10,7 @@ import SizeMe from "react-sizeme";
 interface ITimeChartProps {
   events: IMaintenanceEvent[];
   timeSeries: ITimeSeriesPoint[];
+  yLabel: string;
 }
 
 function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
@@ -41,6 +42,8 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
     colorScale.domain(["maintenance", "failure"])
     colorScale.range(['#1F77B4', '#db1e7b']);
     const gridLines = new Plottable.Components.Gridlines(xScale, null);
+
+    const yLabel = new Plottable.Components.AxisLabel(this.props.yLabel, 270);
 
     const yScaleTimeSeries = new Plottable.Scales.Linear();
 
@@ -74,8 +77,8 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
     //const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
-      [chart],
-      [xAxis],
+      [yLabel, chart],
+      [null, xAxis],
     ]),
     plot: plot
     };
