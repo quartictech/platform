@@ -87,7 +87,7 @@ const Image = ({ url }) => {
 
 const urlMatch = /https?:.*?/gi;
 const AttributeValue = ({ value }) => (<small>
-  {typeof value === "string" && value.match(urlMatch) ? <a href={value}>Link</a> : value}
+  {typeof value === "string" && value.match(urlMatch) ? <a href={value} target="_blank">Link</a> : value}
 </small>
 );
 
