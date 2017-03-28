@@ -32,6 +32,20 @@ const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
     return insight.assetIds.map(assetId => assets[assetId]);
 }
 
+const Asset = ({ insight, asset }) => {
+  const failed = insight.unfailedAssetIds.indexOf(asset.id) == -1;
+    // HACK: I'm filtering out failures here because the data is all fake
+    return (
+    <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
+            <h5>
+              <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
+            </h5>
+              { failed ? <span className="pt-tag pt-intent-danger" style={{float: "right"}}>Failed</span> :
+          <span className="pt-tag pt-intent-success" style={{ float: "right" }}>No failure</span> }
+            <TimeChart yLabel="Voltage" events={failed? asset.events : asset.events.filter(ev => ev.type != "failure")}/>
+          </div>);
+}
+
 class InsightView extends React.Component<IProps, IState> {
   public state : IState = {
     datasetId: null,
@@ -70,15 +84,7 @@ class InsightView extends React.Component<IProps, IState> {
       <Map height={100} locations={assets.map((asset) => asset.location)} colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)} />
       </div>
 
-        { assets.map(asset => (
-    <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
-            <h5>
-              <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
-            </h5>
-            <TimeChart yLabel="Voltage" events={asset.events}/>
-          </div>
-
-        ))}
+        { assets.map(asset => <Asset key={asset.id} asset={asset} insight={insight} /> )}
       </div>
 
       <div className={s.right}>
