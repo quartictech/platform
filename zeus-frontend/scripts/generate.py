@@ -56,14 +56,6 @@ SERIAL_NO_GEN = {
   "GE": SN_GEN_GE
 }
 
-LOCATIONS = [
-  (7.668290734291077, 46.69116074509384),
-  (7.579099237918854, 47.54740387022264),
-  (6.965602934360504, 47.22461771114213),
-  (6.230599880218506, 46.19720690845916)
-]
-
-
 def generate_assets(asset_coords):
   assets = {}
   for i in range(50):
@@ -102,6 +94,8 @@ def generate_insights(assets):
   insights = []
   for i in range(10):
     number_assets = 10
+    assets = random.sample(list(assets), number_assets)
+    unfailed_assets = random.sample(assets, 4)
     zero_to_five = random.randrange(number_assets - 2)
     five_to_ten = random.randrange(number_assets - zero_to_five)
     greater_than_ten = random.randrange(number_assets - five_to_ten - zero_to_five)
@@ -114,7 +108,8 @@ def generate_insights(assets):
       {"icon": "pt-icon-info-sign", "text":"Baseline voltage of circuit diagnostic increased following maintenance activity"}
     ],
     "assetClass": "Signal",
-    "assetIds": random.sample(list(assets), 10),
+    "assetIds": assets,
+    "unfailedAssetIds": unfailed_assets,
     "barChart": {
       "data": [
         { "name": "0 -5 years", "value": zero_to_five },
@@ -131,6 +126,7 @@ def generate_insights(assets):
      "insightType": "failure",
      "title": "Asset failure predicted",
      "assetIds": random.sample(list(assets), 1),
+     "unfailedAssetIds": [],
      "assetClass": "Signal",
      "subInsights": [
        {"icon": "pt-icon-info-sign", "text": "An increase has been detected in the diagnostic voltage circuit"},
@@ -173,9 +169,9 @@ if __name__ == "__main__":
   json.dump(insights, open("data/insights.json", "w"), default=default, indent=1)
 
   cluster_insight = [insight for insight in insights if insight["insightType"] == "cluster"][0]
-  insight_asset_ids = random.sample(cluster_insight["assetIds"], 4)
+  insight_asset_ids = cluster_insight["unfailedAssetIds"]
   geojson = {
     "type": "FeatureCollection",
-    "features": [make_feature(insights[0], assets[asset_id]) for asset_id in insight_asset_ids]
+    "features": [make_feature(cluster_insight, assets[asset_id]) for asset_id in insight_asset_ids]
   }
   json.dump(geojson, open("data/failure-predictions.geojson", "w"), indent=1)

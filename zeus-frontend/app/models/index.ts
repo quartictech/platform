@@ -49,6 +49,7 @@ export interface IInsight {
     yLabel: string;
   },
   assetIds?: string[];
+  unfailedAssetIds?: string[];
   subInsights: ISubInsight[];
   assetClass?: string;
 }

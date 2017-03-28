@@ -1,399 +1,19 @@
 {
- "AB47854": {
-  "id": "AB47854",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "17417053",
-  "purchaseDate": 1077009368000,
-  "lastInspectionDate": 1475093356000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1571431008000,
-  "location": {
-   "lon": 9.17701327824,
-   "lat": 47.6580915408
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB15803": {
-  "id": "AB15803",
+ "AB13987": {
+  "id": "AB13987",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "7970240579",
-  "purchaseDate": 1135061921000,
-  "lastInspectionDate": 1461233668000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1527325168000,
-  "location": {
-   "lon": 9.18197209445,
-   "lat": 47.6491685328
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB61951": {
-  "id": "AB61951",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "96893735",
-  "purchaseDate": 1210146965000,
-  "lastInspectionDate": 1477960017000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1524802435000,
-  "location": {
-   "lon": 8.25344716917,
-   "lat": 47.4917562823
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB77102": {
-  "id": "AB77102",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "60153033",
-  "purchaseDate": 1050581811000,
-  "lastInspectionDate": 1451797847000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1524575456000,
-  "location": {
-   "lon": 8.56137888424,
-   "lat": 47.3501260097
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB26083": {
-  "id": "AB26083",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "9585389641",
-  "purchaseDate": 1298567767000,
-  "lastInspectionDate": 1469261199000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1552806913000,
-  "location": {
-   "lon": 7.58631904846,
-   "lat": 47.5699507017
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB84841": {
-  "id": "AB84841",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "46342824",
-  "purchaseDate": 1146638016000,
-  "lastInspectionDate": 1473314499000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1527078498000,
-  "location": {
-   "lon": 8.81860531824,
-   "lat": 47.6611473479
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB59936": {
-  "id": "AB59936",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "1845268451",
-  "purchaseDate": 1179345714000,
-  "lastInspectionDate": 1458401476000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1559354021000,
-  "location": {
-   "lon": 7.02336661304,
-   "lat": 47.038566868
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB40409": {
-  "id": "AB40409",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "8414196013",
-  "purchaseDate": 1294621407000,
-  "lastInspectionDate": 1478207861000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1537131175000,
-  "location": {
-   "lon": 8.03894067224,
-   "lat": 46.7548453819
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB80916": {
-  "id": "AB80916",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "93845125",
-  "purchaseDate": 1070443976000,
-  "lastInspectionDate": 1480427763000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1530868670000,
-  "location": {
-   "lon": 8.51615882114,
-   "lat": 47.3844230929
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB55198": {
-  "id": "AB55198",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "46204669",
-  "purchaseDate": 1054505743000,
-  "lastInspectionDate": 1466673290000,
-  "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1569032058000,
-  "location": {
-   "lon": 6.94535562946,
-   "lat": 47.0004833755
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB99743": {
-  "id": "AB99743",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "6199463829",
-  "purchaseDate": 1251281163000,
-  "lastInspectionDate": 1474941426000,
+  "serial": "5626538218",
+  "purchaseDate": 1071714247000,
+  "lastInspectionDate": 1482778134000,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1540678874000,
+  "retirementDate": 1551320261000,
   "location": {
-   "lon": 7.38103954599,
-   "lat": 47.2806683566
+   "lon": 6.5393179794,
+   "lat": 46.528062001
   },
   "notes": [
    {
@@ -417,173 +37,21 @@
    }
   ]
  },
- "AB54177": {
-  "id": "AB54177",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "63660832",
-  "purchaseDate": 1194889137000,
-  "lastInspectionDate": 1481098366000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1526211214000,
-  "location": {
-   "lon": 6.73658141512,
-   "lat": 46.9998834937
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB30240": {
-  "id": "AB30240",
+ "AB28462": {
+  "id": "AB28462",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "2566563668",
-  "purchaseDate": 1123277956000,
-  "lastInspectionDate": 1476325214000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1524323604000,
-  "location": {
-   "lon": 9.84508139526,
-   "lat": 46.4978240248
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB32062": {
-  "id": "AB32062",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "44465469",
-  "purchaseDate": 1196267404000,
-  "lastInspectionDate": 1455778234000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1539275623000,
-  "location": {
-   "lon": 8.99127115498,
-   "lat": 46.1667610876
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB77135": {
-  "id": "AB77135",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "0171141726",
-  "purchaseDate": 1071285212000,
-  "lastInspectionDate": 1460956187000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1524350863000,
-  "location": {
-   "lon": 7.8967441544,
-   "lat": 46.56381017
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB18832": {
-  "id": "AB18832",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "09347661",
-  "purchaseDate": 1159337541000,
-  "lastInspectionDate": 1482849776000,
+  "serial": "1191785680",
+  "purchaseDate": 1167529470000,
+  "lastInspectionDate": 1466203489000,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1569638947000,
+  "retirementDate": 1560621216000,
   "location": {
-   "lon": 8.72270476153,
-   "lat": 47.156379745
+   "lon": 7.6069138394,
+   "lat": 47.5673021028
   },
   "notes": [
    {
@@ -607,59 +75,21 @@
    }
   ]
  },
- "AB89687": {
-  "id": "AB89687",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "3986863350",
-  "purchaseDate": 1115229925000,
-  "lastInspectionDate": 1470649006000,
-  "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1565755909000,
-  "location": {
-   "lon": 8.48572333694,
-   "lat": 47.4245992354
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB14690": {
-  "id": "AB14690",
+ "AB20791": {
+  "id": "AB20791",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "57827970",
-  "purchaseDate": 1235883096000,
-  "lastInspectionDate": 1480037658000,
+  "serial": "25089574",
+  "purchaseDate": 1197223295000,
+  "lastInspectionDate": 1461028112000,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1557639477000,
+  "retirementDate": 1523856442000,
   "location": {
-   "lon": 6.45900513361,
-   "lat": 46.8991615358
+   "lon": 8.55534114103,
+   "lat": 47.0486694866
   },
   "notes": [
    {
@@ -683,97 +113,21 @@
    }
   ]
  },
- "AB39000": {
-  "id": "AB39000",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "0967857192",
-  "purchaseDate": 1128939553000,
-  "lastInspectionDate": 1470141401000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1516635808000,
-  "location": {
-   "lon": 8.39635292239,
-   "lat": 47.4136570202
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB70731": {
-  "id": "AB70731",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "5818386169",
-  "purchaseDate": 1281266333000,
-  "lastInspectionDate": 1456582122000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1570529348000,
-  "location": {
-   "lon": 8.13977511499,
-   "lat": 47.4066216306
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB81218": {
-  "id": "AB81218",
+ "AB24712": {
+  "id": "AB24712",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "1337918891",
-  "purchaseDate": 1066531966000,
-  "lastInspectionDate": 1466623630000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1522848849000,
+  "serial": "0347212457",
+  "purchaseDate": 1312173797000,
+  "lastInspectionDate": 1459404700000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1521557734000,
   "location": {
-   "lon": 7.25923863809,
-   "lat": 47.1366544136
+   "lon": 9.16907010707,
+   "lat": 47.6525572447
   },
   "notes": [
    {
@@ -797,21 +151,21 @@
    }
   ]
  },
- "AB45316": {
-  "id": "AB45316",
+ "AB99783": {
+  "id": "AB99783",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "2822747876",
-  "purchaseDate": 1148232886000,
-  "lastInspectionDate": 1457539352000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1551242004000,
+  "serial": "3235532366",
+  "purchaseDate": 1102464833000,
+  "lastInspectionDate": 1483097725000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1562061777000,
   "location": {
-   "lon": 8.53619520986,
-   "lat": 47.5239499989
+   "lon": 8.46254999246,
+   "lat": 47.398833103
   },
   "notes": [
    {
@@ -835,21 +189,21 @@
    }
   ]
  },
- "AB15341": {
-  "id": "AB15341",
+ "AB49637": {
+  "id": "AB49637",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "0353629563",
-  "purchaseDate": 1080795830000,
-  "lastInspectionDate": 1474744773000,
+  "serial": "9530908928",
+  "purchaseDate": 1306925628000,
+  "lastInspectionDate": 1468901546000,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1529474178000,
+  "retirementDate": 1518721183000,
   "location": {
-   "lon": 7.64788758416,
-   "lat": 47.5335859603
+   "lon": 7.89119715331,
+   "lat": 46.6882087808
   },
   "notes": [
    {
@@ -873,284 +227,18 @@
    }
   ]
  },
- "AB88421": {
-  "id": "AB88421",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "1849216159",
-  "purchaseDate": 1223804799000,
-  "lastInspectionDate": 1469793267000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1540033781000,
-  "location": {
-   "lon": 8.52347405077,
-   "lat": 47.3714781781
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB47521": {
-  "id": "AB47521",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "0145325715",
-  "purchaseDate": 1074725954000,
-  "lastInspectionDate": 1467134206000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1533135912000,
-  "location": {
-   "lon": 7.15772047531,
-   "lat": 47.3130942818
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB61342": {
-  "id": "AB61342",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-19",
-   "manufacturer": "GE"
-  },
-  "serial": "8250099911",
-  "purchaseDate": 1308960264000,
-  "lastInspectionDate": 1482820900000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1558066435000,
-  "location": {
-   "lon": 6.52102191013,
-   "lat": 46.5236073413
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB11229": {
-  "id": "AB11229",
+ "AB43062": {
+  "id": "AB43062",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "06725661",
-  "purchaseDate": 1103889829000,
-  "lastInspectionDate": 1471028566000,
-  "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1529361824000,
-  "location": {
-   "lon": 8.81534446003,
-   "lat": 47.6605676213
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB83408": {
-  "id": "AB83408",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "4772331197",
-  "purchaseDate": 1090247622000,
-  "lastInspectionDate": 1475718467000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1554838822000,
-  "location": {
-   "lon": 7.67046440797,
-   "lat": 46.6896916069
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB39243": {
-  "id": "AB39243",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "40676749",
-  "purchaseDate": 1288891641000,
-  "lastInspectionDate": 1462760835000,
-  "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1559584392000,
-  "location": {
-   "lon": 8.51711472909,
-   "lat": 47.3851987963
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB68319": {
-  "id": "AB68319",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "44527494",
-  "purchaseDate": 1321102252000,
-  "lastInspectionDate": 1452730561000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1546433829000,
-  "location": {
-   "lon": 8.52200529665,
-   "lat": 47.3626123186
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB60497": {
-  "id": "AB60497",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "07484382",
-  "purchaseDate": 1319607193000,
-  "lastInspectionDate": 1476752594000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1533745367000,
+  "serial": "43620908",
+  "purchaseDate": 1260472636000,
+  "lastInspectionDate": 1465890698000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1542454567000,
   "location": {
    "lon": 8.18662097789,
    "lat": 46.7268202013
@@ -1177,18 +265,360 @@
    }
   ]
  },
- "AB56144": {
-  "id": "AB56144",
+ "AB30723": {
+  "id": "AB30723",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "0668536136",
+  "purchaseDate": 1273243075000,
+  "lastInspectionDate": 1476658186000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1520230867000,
+  "location": {
+   "lon": 9.40456021704,
+   "lat": 46.8227305897
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB86176": {
+  "id": "AB86176",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "1622573355",
+  "purchaseDate": 1082717924000,
+  "lastInspectionDate": 1461864209000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1577129908000,
+  "location": {
+   "lon": 7.62122391289,
+   "lat": 46.7601324884
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB57458": {
+  "id": "AB57458",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "9025108287",
+  "purchaseDate": 1083302602000,
+  "lastInspectionDate": 1480101355000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1530445193000,
+  "location": {
+   "lon": 8.49239638508,
+   "lat": 47.3906997163
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB41280": {
+  "id": "AB41280",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "06388686",
+  "purchaseDate": 1270172054000,
+  "lastInspectionDate": 1453979168000,
+  "lastInspectionSignoff": "J Nole",
+  "retirementDate": 1527944639000,
+  "location": {
+   "lon": 6.57209301949,
+   "lat": 46.540783403
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB32116": {
+  "id": "AB32116",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "01364141",
-  "purchaseDate": 1232037943000,
-  "lastInspectionDate": 1477558699000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1530489458000,
+  "serial": "83453296",
+  "purchaseDate": 1324277035000,
+  "lastInspectionDate": 1474712441000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1569260538000,
+  "location": {
+   "lon": 8.81860531824,
+   "lat": 47.6611473479
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB74736": {
+  "id": "AB74736",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "21688694",
+  "purchaseDate": 1291150697000,
+  "lastInspectionDate": 1477522074000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1517075780000,
+  "location": {
+   "lon": 7.74868161905,
+   "lat": 46.023947298
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB87593": {
+  "id": "AB87593",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "2185214312",
+  "purchaseDate": 1226259672000,
+  "lastInspectionDate": 1457387945000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1543165015000,
+  "location": {
+   "lon": 6.82603251868,
+   "lat": 47.0977997495
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB50293": {
+  "id": "AB50293",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "51129094",
+  "purchaseDate": 1182459431000,
+  "lastInspectionDate": 1471343351000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1565555931000,
+  "location": {
+   "lon": 7.62122391289,
+   "lat": 46.7601324884
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB45398": {
+  "id": "AB45398",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "78332341",
+  "purchaseDate": 1144907306000,
+  "lastInspectionDate": 1471162866000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1547460755000,
+  "location": {
+   "lon": 7.86727920161,
+   "lat": 46.6903714673
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB91924": {
+  "id": "AB91924",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "2948287256",
+  "purchaseDate": 1084596454000,
+  "lastInspectionDate": 1467175346000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1561718755000,
   "location": {
    "lon": 8.52887806832,
    "lat": 47.3812620016
@@ -1215,21 +645,21 @@
    }
   ]
  },
- "AB43868": {
-  "id": "AB43868",
+ "AB54428": {
+  "id": "AB54428",
   "clazz": "Signal",
   "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
+   "name": "QQ-23",
+   "manufacturer": "GE"
   },
-  "serial": "82150440",
-  "purchaseDate": 1133098926000,
-  "lastInspectionDate": 1481376031000,
-  "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1565969601000,
+  "serial": "9544737892",
+  "purchaseDate": 1099868193000,
+  "lastInspectionDate": 1466367026000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1539005200000,
   "location": {
-   "lon": 8.93265306041,
-   "lat": 46.0178325135
+   "lon": 8.52004561904,
+   "lat": 47.3788630635
   },
   "notes": [
    {
@@ -1253,363 +683,59 @@
    }
   ]
  },
- "AB67448": {
-  "id": "AB67448",
+ "AB55418": {
+  "id": "AB55418",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "38254964",
+  "purchaseDate": 1108988621000,
+  "lastInspectionDate": 1480551516000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1571500762000,
+  "location": {
+   "lon": 6.12086414119,
+   "lat": 46.201824831
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB89543": {
+  "id": "AB89543",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "2477214989",
-  "purchaseDate": 1327801327000,
-  "lastInspectionDate": 1458341545000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1531160015000,
-  "location": {
-   "lon": 9.68190662225,
-   "lat": 46.6752104099
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB19473": {
-  "id": "AB19473",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "60750580",
-  "purchaseDate": 1296088129000,
-  "lastInspectionDate": 1478155140000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1554185976000,
-  "location": {
-   "lon": 6.70358274574,
-   "lat": 46.6929227012
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB18112": {
-  "id": "AB18112",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "50373122",
-  "purchaseDate": 1338651749000,
-  "lastInspectionDate": 1453277593000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1515025075000,
-  "location": {
-   "lon": 8.61926490466,
-   "lat": 47.4202031861
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB77794": {
-  "id": "AB77794",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "8665993221",
-  "purchaseDate": 1318278064000,
-  "lastInspectionDate": 1461946615000,
-  "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1545641481000,
-  "location": {
-   "lon": 8.49507407859,
-   "lat": 47.3905691788
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB70657": {
-  "id": "AB70657",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "68429302",
-  "purchaseDate": 1219657616000,
-  "lastInspectionDate": 1463487695000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1572871334000,
-  "location": {
-   "lon": 9.55403550297,
-   "lat": 46.9674418902
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB82222": {
-  "id": "AB82222",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "89241198",
-  "purchaseDate": 1269988791000,
-  "lastInspectionDate": 1471237068000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1543504389000,
-  "location": {
-   "lon": 8.28683824161,
-   "lat": 47.0566015594
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB24210": {
-  "id": "AB24210",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
-  },
-  "serial": "49062394",
-  "purchaseDate": 1097617191000,
-  "lastInspectionDate": 1452673120000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1532843731000,
-  "location": {
-   "lon": 7.0548386971,
-   "lat": 46.6179868661
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB63265": {
-  "id": "AB63265",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "51851868",
-  "purchaseDate": 1075898440000,
-  "lastInspectionDate": 1459917909000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1559744555000,
-  "location": {
-   "lon": 8.62620914175,
-   "lat": 47.4385719574
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB59699": {
-  "id": "AB59699",
-  "clazz": "Signal",
-  "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
-  },
-  "serial": "83530471",
-  "purchaseDate": 1111843429000,
-  "lastInspectionDate": 1472346229000,
-  "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1571124523000,
-  "location": {
-   "lon": 6.71695704816,
-   "lat": 47.0502280568
-  },
-  "notes": [
-   {
-    "id": "123",
-    "created": 1483228800000,
-    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
-   }
-  ],
-  "events": [
-   {
-    "type": "maintenance",
-    "date": 1473465600000
-   },
-   {
-    "type": "maintenance",
-    "date": 1483401600000
-   },
-   {
-    "type": "failure",
-    "date": 1485561600000
-   }
-  ]
- },
- "AB38718": {
-  "id": "AB38718",
-  "clazz": "Signal",
-  "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
-  },
-  "serial": "9574796536",
-  "purchaseDate": 1112292021000,
-  "lastInspectionDate": 1478663370000,
+  "serial": "3637552152",
+  "purchaseDate": 1054216991000,
+  "lastInspectionDate": 1467329790000,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1577726041000,
+  "retirementDate": 1533472277000,
   "location": {
-   "lon": 6.55557556715,
-   "lat": 46.5448716267
+   "lon": 9.25066179644,
+   "lat": 47.4111948901
   },
   "notes": [
    {
@@ -1633,21 +759,21 @@
    }
   ]
  },
- "AB61434": {
-  "id": "AB61434",
+ "AB79978": {
+  "id": "AB79978",
   "clazz": "Signal",
   "model": {
-   "name": "QQ-23",
-   "manufacturer": "GE"
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
   },
-  "serial": "2225167969",
-  "purchaseDate": 1088178578000,
-  "lastInspectionDate": 1466842231000,
-  "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1517511993000,
+  "serial": "64333899",
+  "purchaseDate": 1284836829000,
+  "lastInspectionDate": 1462892600000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1554693712000,
   "location": {
-   "lon": 7.02949012234,
-   "lat": 47.0306302779
+   "lon": 7.90799888446,
+   "lat": 46.5983529266
   },
   "notes": [
    {
@@ -1671,18 +797,588 @@
    }
   ]
  },
- "AB11132": {
-  "id": "AB11132",
+ "AB35815": {
+  "id": "AB35815",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "20709865",
+  "purchaseDate": 1138454834000,
+  "lastInspectionDate": 1478478323000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1557918820000,
+  "location": {
+   "lon": 8.81534446003,
+   "lat": 47.6605676213
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB12388": {
+  "id": "AB12388",
   "clazz": "Signal",
   "model": {
    "name": "QQ-19",
    "manufacturer": "GE"
   },
-  "serial": "6084704998",
-  "purchaseDate": 1261880191000,
-  "lastInspectionDate": 1474611027000,
+  "serial": "8704783742",
+  "purchaseDate": 1235711085000,
+  "lastInspectionDate": 1467237810000,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1549498044000,
+  "retirementDate": 1559061983000,
+  "location": {
+   "lon": 6.84373026465,
+   "lat": 46.5461782321
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB35366": {
+  "id": "AB35366",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "2104891372",
+  "purchaseDate": 1225703011000,
+  "lastInspectionDate": 1481922783000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1558417159000,
+  "location": {
+   "lon": 8.00694539405,
+   "lat": 46.3245692616
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB54920": {
+  "id": "AB54920",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "78349963",
+  "purchaseDate": 1224720562000,
+  "lastInspectionDate": 1454334519000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1573596453000,
+  "location": {
+   "lon": 8.55534114103,
+   "lat": 47.0486694866
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB30293": {
+  "id": "AB30293",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "92197989",
+  "purchaseDate": 1078798196000,
+  "lastInspectionDate": 1465131192000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1516754724000,
+  "location": {
+   "lon": 7.6069138394,
+   "lat": 47.5673021028
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB26181": {
+  "id": "AB26181",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "67621827",
+  "purchaseDate": 1208683713000,
+  "lastInspectionDate": 1452151490000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1530746482000,
+  "location": {
+   "lon": 6.94994214966,
+   "lat": 46.0534800001
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB97390": {
+  "id": "AB97390",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "90643294",
+  "purchaseDate": 1041383645000,
+  "lastInspectionDate": 1459101180000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1520874877000,
+  "location": {
+   "lon": 7.65781282276,
+   "lat": 46.5133928059
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB75461": {
+  "id": "AB75461",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "3564596004",
+  "purchaseDate": 1213567083000,
+  "lastInspectionDate": 1452564353000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1575531667000,
+  "location": {
+   "lon": 6.55505565988,
+   "lat": 46.8886980388
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB64155": {
+  "id": "AB64155",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "22018044",
+  "purchaseDate": 1301285096000,
+  "lastInspectionDate": 1478270463000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1549743424000,
+  "location": {
+   "lon": 7.24900742207,
+   "lat": 47.130644872
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB41281": {
+  "id": "AB41281",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "5494438178",
+  "purchaseDate": 1221293833000,
+  "lastInspectionDate": 1472803091000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1554135110000,
+  "location": {
+   "lon": 7.38103954599,
+   "lat": 47.2806683566
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB26514": {
+  "id": "AB26514",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "3866596840",
+  "purchaseDate": 1139731412000,
+  "lastInspectionDate": 1471380000000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1520077871000,
+  "location": {
+   "lon": 7.90769403668,
+   "lat": 47.3519328094
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB28787": {
+  "id": "AB28787",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "71238288",
+  "purchaseDate": 1278540001000,
+  "lastInspectionDate": 1471874352000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1544073287000,
+  "location": {
+   "lon": 7.79174670714,
+   "lat": 47.0432810696
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB70873": {
+  "id": "AB70873",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "59848656",
+  "purchaseDate": 1189122797000,
+  "lastInspectionDate": 1481083867000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1527871380000,
+  "location": {
+   "lon": 9.42736966071,
+   "lat": 47.2842513399
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB84527": {
+  "id": "AB84527",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "15401244",
+  "purchaseDate": 1241924194000,
+  "lastInspectionDate": 1460455521000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1570210222000,
+  "location": {
+   "lon": 8.31017294271,
+   "lat": 46.9826183595
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB28564": {
+  "id": "AB28564",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "12333872",
+  "purchaseDate": 1187500941000,
+  "lastInspectionDate": 1454541495000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1521588647000,
+  "location": {
+   "lon": 7.89119715331,
+   "lat": 46.6882087808
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB49866": {
+  "id": "AB49866",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "44014347",
+  "purchaseDate": 1273299985000,
+  "lastInspectionDate": 1477706463000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1564281252000,
   "location": {
    "lon": 8.53122045976,
    "lat": 47.3707456576
@@ -1709,21 +1405,21 @@
    }
   ]
  },
- "AB24523": {
-  "id": "AB24523",
+ "AB14265": {
+  "id": "AB14265",
   "clazz": "Signal",
   "model": {
-   "name": "S-5000C",
-   "manufacturer": "SIEM"
+   "name": "QQ-19",
+   "manufacturer": "GE"
   },
-  "serial": "35434479",
-  "purchaseDate": 1302859103000,
-  "lastInspectionDate": 1479132835000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1534089208000,
+  "serial": "4453776938",
+  "purchaseDate": 1279747960000,
+  "lastInspectionDate": 1457424271000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1566902276000,
   "location": {
-   "lon": 8.49507407859,
-   "lat": 47.3905691788
+   "lon": 9.18368412584,
+   "lat": 47.5388073359
   },
   "notes": [
    {
@@ -1747,21 +1443,21 @@
    }
   ]
  },
- "AB35941": {
-  "id": "AB35941",
+ "AB82595": {
+  "id": "AB82595",
   "clazz": "Signal",
   "model": {
-   "name": "S-5000B",
-   "manufacturer": "SIEM"
+   "name": "QQ-19",
+   "manufacturer": "GE"
   },
-  "serial": "99420227",
-  "purchaseDate": 1248142145000,
-  "lastInspectionDate": 1475127356000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1542032653000,
+  "serial": "7542570743",
+  "purchaseDate": 1215224913000,
+  "lastInspectionDate": 1463172304000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1545609523000,
   "location": {
-   "lon": 8.77069137407,
-   "lat": 46.6605910099
+   "lon": 8.70969365658,
+   "lat": 47.2878655898
   },
   "notes": [
    {
@@ -1785,21 +1481,21 @@
    }
   ]
  },
- "AB38513": {
-  "id": "AB38513",
+ "AB10883": {
+  "id": "AB10883",
   "clazz": "Signal",
   "model": {
    "name": "QQ-23",
    "manufacturer": "GE"
   },
-  "serial": "9149885928",
-  "purchaseDate": 1168073434000,
-  "lastInspectionDate": 1465376755000,
-  "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1515996949000,
+  "serial": "2291870466",
+  "purchaseDate": 1145860785000,
+  "lastInspectionDate": 1454355424000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1535832179000,
   "location": {
-   "lon": 7.56226132599,
-   "lat": 46.9299677977
+   "lon": 7.812020759,
+   "lat": 47.4627505205
   },
   "notes": [
    {
@@ -1823,21 +1519,21 @@
    }
   ]
  },
- "AB98290": {
-  "id": "AB98290",
+ "AB43198": {
+  "id": "AB43198",
   "clazz": "Signal",
   "model": {
-   "name": "S-5000B",
+   "name": "S-5000C",
    "manufacturer": "SIEM"
   },
-  "serial": "11121472",
-  "purchaseDate": 1134652585000,
-  "lastInspectionDate": 1471005546000,
+  "serial": "88467337",
+  "purchaseDate": 1300033341000,
+  "lastInspectionDate": 1474010204000,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1560074432000,
+  "retirementDate": 1545957971000,
   "location": {
-   "lon": 8.67228766356,
-   "lat": 46.5272760507
+   "lon": 7.07913438842,
+   "lat": 46.1058290128
   },
   "notes": [
    {
@@ -1861,21 +1557,325 @@
    }
   ]
  },
- "AB83338": {
-  "id": "AB83338",
+ "AB31750": {
+  "id": "AB31750",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "70516437",
+  "purchaseDate": 1353849729000,
+  "lastInspectionDate": 1463418797000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1537725310000,
+  "location": {
+   "lon": 8.02330497794,
+   "lat": 46.6228279355
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB71174": {
+  "id": "AB71174",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-19",
+   "manufacturer": "GE"
+  },
+  "serial": "0861993264",
+  "purchaseDate": 1231693006000,
+  "lastInspectionDate": 1468058311000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1562621606000,
+  "location": {
+   "lon": 7.90769403668,
+   "lat": 47.3519328094
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB50687": {
+  "id": "AB50687",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "2492989875",
+  "purchaseDate": 1305403771000,
+  "lastInspectionDate": 1465510232000,
+  "lastInspectionSignoff": "A McFadden",
+  "retirementDate": 1550526293000,
+  "location": {
+   "lon": 6.50003482875,
+   "lat": 46.8197100413
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB66271": {
+  "id": "AB66271",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "2390425937",
+  "purchaseDate": 1247959370000,
+  "lastInspectionDate": 1453616182000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1569794025000,
+  "location": {
+   "lon": 8.81673454623,
+   "lat": 47.2248889702
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB12289": {
+  "id": "AB12289",
+  "clazz": "Signal",
+  "model": {
+   "name": "QQ-23",
+   "manufacturer": "GE"
+  },
+  "serial": "1353947380",
+  "purchaseDate": 1156583504000,
+  "lastInspectionDate": 1468458604000,
+  "lastInspectionSignoff": "B Wilson",
+  "retirementDate": 1533278502000,
+  "location": {
+   "lon": 8.33710008538,
+   "lat": 47.3456909889
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB85381": {
+  "id": "AB85381",
   "clazz": "Signal",
   "model": {
    "name": "S-5000B",
    "manufacturer": "SIEM"
   },
-  "serial": "38566800",
-  "purchaseDate": 1108061601000,
-  "lastInspectionDate": 1459022260000,
+  "serial": "02670560",
+  "purchaseDate": 1257114943000,
+  "lastInspectionDate": 1476254707000,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1527514223000,
+  "retirementDate": 1515522845000,
   "location": {
-   "lon": 8.33762526246,
-   "lat": 47.4380606031
+   "lon": 8.35765548763,
+   "lat": 47.445759117
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB31473": {
+  "id": "AB31473",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000C",
+   "manufacturer": "SIEM"
+  },
+  "serial": "71817209",
+  "purchaseDate": 1083104036000,
+  "lastInspectionDate": 1481864396000,
+  "lastInspectionSignoff": "P Graham",
+  "retirementDate": 1543064121000,
+  "location": {
+   "lon": 7.61527478446,
+   "lat": 47.5568167047
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB73543": {
+  "id": "AB73543",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "15006496",
+  "purchaseDate": 1340097527000,
+  "lastInspectionDate": 1466992440000,
+  "lastInspectionSignoff": "B Gee",
+  "retirementDate": 1535941928000,
+  "location": {
+   "lon": 6.54643347855,
+   "lat": 46.6374922116
+  },
+  "notes": [
+   {
+    "id": "123",
+    "created": 1483228800000,
+    "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
+   }
+  ],
+  "events": [
+   {
+    "type": "maintenance",
+    "date": 1473465600000
+   },
+   {
+    "type": "maintenance",
+    "date": 1483401600000
+   },
+   {
+    "type": "failure",
+    "date": 1485561600000
+   }
+  ]
+ },
+ "AB11514": {
+  "id": "AB11514",
+  "clazz": "Signal",
+  "model": {
+   "name": "S-5000B",
+   "manufacturer": "SIEM"
+  },
+  "serial": "73096155",
+  "purchaseDate": 1137132929000,
+  "lastInspectionDate": 1468641952000,
+  "lastInspectionSignoff": "G Kemp",
+  "retirementDate": 1571451567000,
+  "location": {
+   "lon": 6.52102191013,
+   "lat": 46.5236073413
   },
   "notes": [
    {

@@ -67,7 +67,7 @@ class InsightView extends React.Component<IProps, IState> {
         </div>
 
      <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-      <Map height={100} locations={assets.map((asset) => asset.location)} />
+      <Map height={100} locations={assets.map((asset) => asset.location)} colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)} />
       </div>
 
         { assets.map(asset => (
