@@ -65,15 +65,18 @@ const COLUMNS: IColumn[] = [
 ];
 
 class Inventory extends React.Component<IProps, IState> {
-  private filterAssets = (assets: { [id : string]: IAsset }, filterColumn: number, filterValue: string, filterInvert: boolean) => {
-    if (filterColumn === -1 || filterValue === "") {
-      return _.values(assets);
-    }
+  private filterAssets = (assets: { [id : string]: IAsset }, _filterColumn: number, _filterValue: string, _filterInvert: boolean) => {
+    // HACK!!!
+    const MAGIC_ASSET_IDS = ["AB74476", "AB29632", "AB65062", "AB10711"];
+    return _.filter(_.values(assets), asset => MAGIC_ASSET_IDS.indexOf(asset.id) > -1);
+    // if (filterColumn === -1 || filterValue === "") {
+    //   return _.values(assets);
+    // }
 
-    return _.filter(
-      _.values(assets),
-      asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(filterValue.toLocaleLowerCase()) !== -1) !== filterInvert
-    );
+    // return _.filter(
+    //   _.values(assets),
+    //   asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(filterValue.toLocaleLowerCase()) !== -1) !== filterInvert
+    // );
   }
 
   state : IState = this.initialState();
