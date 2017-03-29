@@ -57,7 +57,7 @@
    "data": [
     {
      "name": "0 -5 years",
-     "value": 7
+     "value": 4
     },
     {
      "name": "5-10 years",
@@ -65,7 +65,7 @@
     },
     {
      "name": "> 10 years",
-     "value": 0
+     "value": 1
     }
    ],
    "xLabel": "# Failures",
