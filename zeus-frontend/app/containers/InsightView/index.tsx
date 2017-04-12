@@ -9,8 +9,11 @@ const s = require("./style.css");
 import { Link } from "react-router";
 
 import { TimeChart } from "../../components";
-import { Classes } from "@blueprintjs/core";
+import { InsightSummary } from "../../components";
+// import { Classes } from "@blueprintjs/core";
 import { IInsight,  IAsset } from "../../models";
+
+import { Map } from "../../components";
 
 interface IProps {
   ui: any;
@@ -26,10 +29,21 @@ interface IState {
 };
 
 const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
-  if (insight.insightType == "cluster") {
     return insight.assetIds.map(assetId => assets[assetId]);
-  }
-  return [];
+}
+
+const Asset = ({ insight, asset }) => {
+  const failed = insight.unfailedAssetIds.indexOf(asset.id) == -1;
+    // HACK: I'm filtering out failures here because the data is all fake
+    return (
+    <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
+            <h5>
+              <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
+            </h5>
+              { failed ? <span className="pt-tag pt-intent-danger" style={{float: "right"}}>Failed</span> :
+          <span className="pt-tag pt-intent-success" style={{ float: "right" }}>No failure</span> }
+            <TimeChart yLabel="Voltage" events={failed? asset.events : asset.events.filter(ev => ev.type != "failure")}/>
+          </div>);
 }
 
 class InsightView extends React.Component<IProps, IState> {
@@ -45,9 +59,6 @@ class InsightView extends React.Component<IProps, IState> {
   <div className={s.main}>
     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
       <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
-
-      <p>{insight.body}</p>
-
       <div className={s.subInsightContainer}>
         { insight.subInsights ? insight.subInsights.map((sub, idx) => 
         <div key={idx} className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
@@ -55,7 +66,8 @@ class InsightView extends React.Component<IProps, IState> {
         </div>) : null }
       </div>
 
-        <div className={s.plotControls}>
+      <InsightSummary insight={insight} assets={this.props.assets}/>
+        {/*<div className={s.plotControls}>
         <label className="pt-label pt-inline" style={{marginBottom: 0}}>
               Time Series
               <div className={Classes.SELECT}>
@@ -65,18 +77,14 @@ class InsightView extends React.Component<IProps, IState> {
                   </select>
               </div>
          </label>
-         </div>
+         </div>*/}
         </div>
 
-        { assets.map(asset => (
-    <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
-            <h5>
-              <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
-            </h5>
-            <TimeChart events={asset.events}/>
-          </div>
+     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
+      <Map height={100} locations={assets.map((asset) => asset.location)} colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)} />
+      </div>
 
-        ))}
+        { assets.map(asset => <Asset key={asset.id} asset={asset} insight={insight} /> )}
       </div>
 
       <div className={s.right}>
@@ -86,7 +94,7 @@ class InsightView extends React.Component<IProps, IState> {
           4 / 10 of similar assets have not yet failed. 
           </p>
           <p><b>Consider scheduling proactive maintenance.</b></p>
-          <Link className="pt-button pt-intent-primary"  to={{ pathname: "/inventory", query: {clazz: "Boiler"}}}>View</Link>
+          <Link className="pt-button pt-intent-primary"  to={{ pathname: "/inventory", query: {clazz: "Signal"}}}>View</Link>
         </div>
       </div>
     </div>

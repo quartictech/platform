@@ -5,7 +5,7 @@ var baseConfig = require('./base');
 
 var config = Object.assign({}, baseConfig, {
 	debug: true,
-	devtool: 'eval',
+	devtool: 'source-map',
 
 	entry: [
 		'webpack-hot-middleware/client?reload=true',

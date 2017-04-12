@@ -1,0 +1,11 @@
+.mapViewport { /* stylelint-ignore */
+  flex: 1;
+  background-color: #000;
+}
+
+.map {
+  flex: 1;
+  padding: 10px;
+  flex-direction: column;
+  display: flex;
+}

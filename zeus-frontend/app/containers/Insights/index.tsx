@@ -5,13 +5,13 @@ import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 import { IInsight, IAsset } from "../../models";
-import * as classNames from "classnames";
 const s = require("./style.css");
-import { BarChart } from "../../components/BarChart";
-import { TimeChart } from "../../components/TimeChart";
-import * as _ from "underscore";
+
+import * as classNames from "classnames";
 
 import { Link } from "react-router";
+
+import { InsightSummary } from "../../components";
 
 interface IProps {
   ui: any;
@@ -27,24 +27,23 @@ interface IProps {
 interface IState {
 };
 
-const Insight = ({ insight, assets }) => (
+interface IInsightProps {
+  insight: IInsight;
+  assets: {[id:string]:IAsset};
+}
+
+const Insight = (props: IInsightProps) => (
   <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
     <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
-     <h5>{ insight.title }</h5>
-        { insight.assetClass ? <div className="pt-tag" style={{float:"right"}}>{insight.assetClass}</div> : null}
-           <p>
-           { insight.body }
-           </p>
-           </div>
-    <div>
-      { insight.insightType === "failure"? <div><TimeChart events={assets[_.first(insight.assetIds) as string].events} /></div>: null }
-      { insight.barChart ? (<div>
-        <BarChart data={insight.barChart.data} xLabel={insight.barChart.xLabel} yLabel={insight.barChart.yLabel} />
-      </div>) : null}
-      <Link className="pt-button pt-intent-primary" to={`/insights/${insight.id}`}>
-      See detail
-      </Link>
+     <h5>{ props.insight.title }</h5>
+        { props.insight.assetClass ? <div className="pt-tag" style={{float:"right"}}>{props.insight.assetClass}</div> : null}
     </div>
+    <div>
+      <InsightSummary key={props.insight.id} insight={props.insight} assets={props.assets} />
+    </div>
+    <Link className="pt-button pt-intent-primary" to={`/insights/${props.insight.id}`}>
+      See detail
+    </Link>
   </div>
 );
 
