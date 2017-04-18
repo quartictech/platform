@@ -83,6 +83,6 @@ public class ExtensionCodecShould {
 
         String json = objectMapper().writeValueAsString(datasetConfig);
         DatasetConfig datasetConfigDeserialized = objectMapper().readValue(json, DatasetConfig.class);
-        assertThat(datasetConfig, equalTo(datasetConfigDeserialized));
+        assertThat(datasetConfigDeserialized, equalTo(datasetConfig));
     }
 }
