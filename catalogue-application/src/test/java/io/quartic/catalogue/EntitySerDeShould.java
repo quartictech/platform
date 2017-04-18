@@ -34,7 +34,7 @@ public class EntitySerDeShould {
                 ImmutableMap.of("foo", "bar", "wat", ImmutableMap.of("ladispute", 1337))
         );
 
-        Entity entity = entitySerDe.datasetToEntity(DatasetId.fromString("sweet"), datasetConfig);
+        Entity entity = entitySerDe.datasetToEntity(new DatasetId("sweet"), datasetConfig);
         DatasetConfig datasetConfig1 = entitySerDe.entityToDataset(entity);
 
         assertThat(datasetConfig1, equalTo(datasetConfig));
