@@ -75,7 +75,7 @@ public class ExtensionCodecShould {
                         .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP)
                 .build());
         DatasetConfig datasetConfig = DatasetConfigImpl.of(
-                DatasetMetadataImpl.of("foo", "wat", "nope", Optional.empty(), Optional.empty()),
+                DatasetMetadataImpl.of("foo", "wat", "nope", Optional.empty()),
                 CloudGeoJsonDatasetLocatorImpl.of("test", false),
                 codec.encode(extension));
 

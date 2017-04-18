@@ -170,7 +170,7 @@ public class SnapshotReducerShould {
     }
 
     private static LayerMetadata metadata(String name, String description) {
-        return LayerMetadataImpl.of(name, description, "", Instant.now(), Optional.empty());
+        return LayerMetadataImpl.of(name, description, "", Instant.now());
     }
 
     private LayerUpdate updateFor(LayerUpdateType updateType, NakedFeature... features) {

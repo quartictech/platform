@@ -1,10 +1,13 @@
 package io.quartic.catalogue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.KeyFactory;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetConfigImpl;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
 import io.quartic.catalogue.io.quartic.catalogue.datastore.EntitySerDe;
 import org.junit.Test;
 
@@ -27,8 +30,7 @@ public class EntitySerDeShould {
                         "name",
                         "description",
                         "attribution",
-                        Optional.of(Instant.now()),
-                        Optional.of(IconImpl.of("icon"))
+                        Optional.of(Instant.now())
                 ),
                 GeoJsonDatasetLocatorImpl.of("wat"),
                 ImmutableMap.of("foo", "bar", "wat", ImmutableMap.of("ladispute", 1337))

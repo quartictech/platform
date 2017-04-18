@@ -62,8 +62,7 @@ public class LayerExporter {
                                 DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now())),
                         layer.spec().metadata().description(),
                         layer.spec().metadata().attribution(),
-                        Optional.empty(),
-                        layer.spec().metadata().icon()
+                        Optional.empty()
                 ),
                 locator,
                 new ExtensionCodec().encode(MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))

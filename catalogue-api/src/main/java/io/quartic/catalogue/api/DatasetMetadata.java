@@ -17,5 +17,4 @@ public interface DatasetMetadata {
     String description();
     String attribution();
     Optional<Instant> registered();
-    Optional<Icon> icon();
 }

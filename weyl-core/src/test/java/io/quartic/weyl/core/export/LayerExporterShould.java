@@ -140,7 +140,7 @@ public class LayerExporterShould {
     private Layer layer(String layerId, FeatureCollection features) {
         return LayerImpl.of(
                 LayerSpecImpl.of(LayerId.fromString(layerId),
-                        LayerMetadataImpl.of("yeh", "no", "weird", Instant.now(), Optional.empty()),
+                        LayerMetadataImpl.of("yeh", "no", "weird", Instant.now()),
                         mock(LayerView.class),
                         StaticSchemaImpl.builder().build(), true),
                 features,

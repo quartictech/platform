@@ -134,7 +134,7 @@ public class CatalogueResourceShould {
 
     private DatasetConfig config(String name, Optional<Instant> instant) {
         return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(name, "bar", "baz", instant, Optional.empty()),
+                DatasetMetadataImpl.of(name, "bar", "baz", instant),
                 GeoJsonDatasetLocatorImpl.of("blah"),
                 emptyMap()
         );

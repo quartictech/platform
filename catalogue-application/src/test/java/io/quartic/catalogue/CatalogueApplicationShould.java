@@ -29,7 +29,7 @@ public class CatalogueApplicationShould {
         final CatalogueService catalogue = client(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
 
         final DatasetConfig config = DatasetConfigImpl.of(
-                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty(), Optional.empty()),
+                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty()),
                 PostgresDatasetLocatorImpl.of("a", "b", "c", "d"),
                 emptyMap()
         );

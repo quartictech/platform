@@ -75,8 +75,7 @@ public abstract class StorageBackendTests {
                 name,
                 "description",
                 "attribution",
-                Optional.of(Instant.now()),
-                Optional.of(IconImpl.of("icon")));
+                Optional.of(Instant.now()));
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
         DatasetLocator locator = CloudGeoJsonDatasetLocatorImpl.of("WAT", false);
         return DatasetConfigImpl.of(

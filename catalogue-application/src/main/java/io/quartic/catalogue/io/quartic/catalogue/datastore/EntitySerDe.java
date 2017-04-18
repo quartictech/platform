@@ -12,8 +12,6 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.catalogue.api.DatasetMetadataImpl;
-import io.quartic.catalogue.api.Icon;
-import io.quartic.catalogue.api.IconImpl;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -29,7 +27,6 @@ public class EntitySerDe {
     private static final String DESCRIPTION = "description";
     private static final String ATTRIBUTION = "attribution";
     private static final String REGISTERED = "registered";
-    private static final String ICON = "icon";
     private static final String LOCATOR = "locator";
     private static final String EXTENSIONS = "extensions";
     private static final Long CURRENT_VERSION = 1L;
@@ -47,8 +44,7 @@ public class EntitySerDe {
                 entity.getString(DESCRIPTION),
                 entity.getString(ATTRIBUTION),
                 Optional.ofNullable(entity.getDateTime(REGISTERED))
-                        .map(dt -> Instant.ofEpochMilli(dt.getTimestampMillis())),
-                Optional.ofNullable(entity.getString(ICON)).map(IconImpl::of)
+                        .map(dt -> Instant.ofEpochMilli(dt.getTimestampMillis()))
         );
 
         DatasetLocator locator = objectMapper().readValue(entity.getBlob(LOCATOR).asInputStream(),
@@ -61,7 +57,7 @@ public class EntitySerDe {
     }
 
     private void checkVersion(Long version) throws IOException {
-        if (! version.equals(CURRENT_VERSION)) {
+        if (!version.equals(CURRENT_VERSION)) {
             String errorMessage = String.format(
                     "version mismatch: database has %d, code has %d. time to write some migrations!",
                     version,
@@ -83,11 +79,6 @@ public class EntitySerDe {
         }
         else {
             entityBuilder.setNull(REGISTERED);
-        }
-        if (datasetConfig.metadata().icon().isPresent()) {
-            entityBuilder.set(ICON, datasetConfig.metadata().icon().map(Icon::icon).get());
-        } else {
-            entityBuilder.setNull(ICON);
         }
 
         entityBuilder.set(LOCATOR, Blob.copyFrom(objectMapper().writeValueAsBytes(datasetConfig.locator())));

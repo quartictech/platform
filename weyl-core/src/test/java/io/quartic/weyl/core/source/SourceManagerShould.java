@@ -105,7 +105,7 @@ public class SourceManagerShould {
         final LayerPopulator populator = collectedLayerPopulators().get(0);
         assertThat(populator.spec(emptyList()), equalTo(LayerSpecImpl.of(
                 new LayerId("123"),
-                LayerMetadataImpl.of("foo", "blah", "quartic", Instant.EPOCH, Optional.empty()),
+                LayerMetadataImpl.of("foo", "blah", "quartic", Instant.EPOCH),
                 LOCATION_AND_TRACK.getLayerView(),
                 staticSchema(),
                 true
@@ -172,7 +172,7 @@ public class SourceManagerShould {
 
     private DatasetConfig datasetConfig(String name, DatasetLocator source) {
         return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(name, "blah", "quartic", Optional.of(Instant.EPOCH), Optional.empty()),
+                DatasetMetadataImpl.of(name, "blah", "quartic", Optional.of(Instant.EPOCH)),
                 source,
                 ImmutableMap.of(EXTENSION_KEY, "raw")
         );
