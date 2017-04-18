@@ -6,9 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +73,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
 
     @Override
     public synchronized DatasetId registerOrUpdateDataset(DatasetId id, DatasetConfig config) {
-        if (config.metadata().registered().isPresent()) {
+        if (config.getMetadata().getRegistered() != null) {
             throw new BadRequestException("'registered' field should not be present");
         }
 
@@ -85,10 +84,16 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     private DatasetConfig withRegisteredTimestamp(DatasetConfig config) {
-        return DatasetConfigImpl.copyOf(config)
-                .withMetadata(DatasetMetadataImpl.copyOf(config.metadata())
-                        .withRegistered(clock.instant())
-                );
+        return new DatasetConfig(
+                new DatasetMetadata(
+                        config.getMetadata().getName(),
+                        config.getMetadata().getDescription(),
+                        config.getMetadata().getAttribution(),
+                        clock.instant()
+                ),
+                config.getLocator(),
+                config.getExtensions()
+        ); // TODO - use .copy() once in Kotlin
     }
 
     @Override

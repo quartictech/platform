@@ -8,15 +8,11 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.CatalogueWatcher;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.GeoJsonDatasetLocator;
-import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
-import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
-import io.quartic.catalogue.api.WebsocketDatasetLocatorImpl;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
@@ -187,29 +183,29 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WebsocketClientSessionFactory websocketFactory
     ) {
         return ImmutableMap.of(
-                PostgresDatasetLocatorImpl.class, config -> PostgresSource.builder()
-                        .name(config.metadata().name())
-                        .locator((PostgresDatasetLocator) config.locator())
+                PostgresDatasetLocator.class, config -> PostgresSource.builder()
+                        .name(config.getMetadata().getName())
+                        .locator((PostgresDatasetLocator) config.getLocator())
                         .attributesFactory(attributesFactory())
                         .build(),
-                GeoJsonDatasetLocatorImpl.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.locator()).url()),
-                WebsocketDatasetLocatorImpl.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.locator()).url(), websocketFactory),
+                GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.getLocator()).getUrl()),
+                WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
+                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
                                 false),
-                CloudGeoJsonDatasetLocatorImpl.class, config -> {
+                CloudGeoJsonDatasetLocator.class, config -> {
                     // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-                    final CloudGeoJsonDatasetLocator cgjLocator = (CloudGeoJsonDatasetLocator) config.locator();
-                    return cgjLocator.streaming()
+                    final CloudGeoJsonDatasetLocator cgjLocator = (CloudGeoJsonDatasetLocator) config.getLocator();
+                    return cgjLocator.getStreaming()
                             ? websocketSource(environment, config,
-                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.path(), websocketFactory), true)
-                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.path());
+                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.getPath(), websocketFactory), true)
+                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.getPath());
                 }
         );
     }
 
     private GeoJsonSource geojsonSource(DatasetConfig config, String url) {
         return GeoJsonSource.builder()
-        .name(config.metadata().name())
+        .name(config.getMetadata().getName())
         .url(url)
         .userAgent(userAgentFor(getClass()))
         .converter(featureConverter())
@@ -218,7 +214,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
     private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
         return WebsocketSource.builder()
-                .name(config.metadata().name())
+                .name(config.getMetadata().getName())
                 .listenerFactory(listenerFactory)
                 .converter(featureConverter())
                 .metrics(environment.metrics())

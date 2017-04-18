@@ -4,10 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.quartic.catalogue.CatalogueEvent;
 import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadataImpl;
+import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeNameImpl;
@@ -30,7 +29,6 @@ import rx.subjects.PublishSubject;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
@@ -171,8 +169,8 @@ public class SourceManagerShould {
     }
 
     private DatasetConfig datasetConfig(String name, DatasetLocator source) {
-        return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(name, "blah", "quartic", Optional.of(Instant.EPOCH)),
+        return new DatasetConfig(
+                new DatasetMetadata(name, "blah", "quartic", Instant.EPOCH),
                 source,
                 ImmutableMap.of(EXTENSION_KEY, "raw")
         );

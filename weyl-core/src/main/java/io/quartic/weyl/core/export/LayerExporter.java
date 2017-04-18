@@ -56,13 +56,13 @@ public class LayerExporter {
     }
 
     private DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {
-        return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(
+        return new DatasetConfig(
+                new DatasetMetadata(
                         String.format("%s (exported %s)", layer.spec().metadata().name(),
                                 DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now())),
                         layer.spec().metadata().description(),
                         layer.spec().metadata().attribution(),
-                        Optional.empty()
+                        null
                 ),
                 locator,
                 new ExtensionCodec().encode(MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))

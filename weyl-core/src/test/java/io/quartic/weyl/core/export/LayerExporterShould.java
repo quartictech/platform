@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
@@ -59,7 +59,7 @@ public class LayerExporterShould {
         @Override
         public LayerExportResult write(Layer layer) {
             layer.features().stream().collect(toCollection(() -> features));
-            return LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test", false), "ok");
+            return LayerExportResultImpl.of(new CloudGeoJsonDatasetLocator("test", false), "ok");
         }
 
         public List<Feature> getFeatures() {
@@ -82,7 +82,7 @@ public class LayerExporterShould {
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
-        exportResult.assertValue(Optional.of(LayerExportResultImpl.of(CloudGeoJsonDatasetLocatorImpl.of("test", false), "ok")));
+        exportResult.assertValue(Optional.of(LayerExportResultImpl.of(new CloudGeoJsonDatasetLocator("test", false), "ok")));
         assertThat(layerWriter.getFeatures().get(0).entityId(), equalTo(features.get(0).entityId()));
     }
 

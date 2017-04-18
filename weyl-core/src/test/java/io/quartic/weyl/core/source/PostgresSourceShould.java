@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.source;
 
-import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
@@ -26,7 +26,7 @@ public class PostgresSourceShould {
 
         PostgresSource importer = PostgresSource.builder()
                 .name("Budgie")
-                .locator(PostgresDatasetLocatorImpl.of("foo", "bar", "baz", "SELECT * FROM foo"))
+                .locator(new PostgresDatasetLocator("foo", "bar", "baz", "SELECT * FROM foo"))
                 .dbi(dbi)
                 .attributesFactory(mock(AttributesFactory.class))
                 .build();

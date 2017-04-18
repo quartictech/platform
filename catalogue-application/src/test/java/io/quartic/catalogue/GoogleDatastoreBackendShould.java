@@ -5,10 +5,12 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.io.quartic.catalogue.datastore.GoogleDatastoreBackend;
 import org.joda.time.Duration;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -59,7 +61,7 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
         assertThat(datasets.size(), equalTo(1));
         assertThat(datasets.size(), equalTo(1));
 
-        assertThat(datasets.get(DatasetId.fromString("A")).metadata().name(), equalTo("1"));
-        assertThat(secondDatasets.get(DatasetId.fromString("A")).metadata().name(), equalTo("2"));
+        assertThat(datasets.get(DatasetId.fromString("A")).getMetadata().getName(), equalTo("1"));
+        assertThat(secondDatasets.get(DatasetId.fromString("A")).getMetadata().getName(), equalTo("2"));
     }
 }
