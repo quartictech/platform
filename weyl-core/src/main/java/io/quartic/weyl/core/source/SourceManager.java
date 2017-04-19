@@ -65,15 +65,15 @@ public abstract class SourceManager {
     }
 
     private LayerPopulator createPopulator(DatasetId id, DatasetConfig config, Source source) {
-        final String name = config.metadata().name();
-        final MapDatasetExtension extension = extensionCodec().decode(name, config.extensions());
+        final String name = config.getMetadata().getName();
+        final MapDatasetExtension extension = extensionCodec().decode(name, config.getExtensions());
 
         LOG.info(format("[%s] Created layer", name));
 
         return LayerPopulator.withoutDependencies(
                 LayerSpecImpl.of(
                         new LayerId(id.getUid()),
-                        datasetMetadataFrom(config.metadata()),
+                        datasetMetadataFrom(config.getMetadata()),
                         extension.viewType().getLayerView(),
                         extension.staticSchema(),
                         source.indexable()
@@ -83,9 +83,9 @@ public abstract class SourceManager {
     }
 
     private Observable<Source> createSource(DatasetId id, DatasetConfig config) {
-        final Function<DatasetConfig, Source> func = sourceFactories().get(config.locator().getClass());
+        final Function<DatasetConfig, Source> func = sourceFactories().get(config.getLocator().getClass());
         if (func == null) {
-            LOG.error(format("[%s] Unrecognised config type: %s", id, config.locator().getClass()));
+            LOG.error(format("[%s] Unrecognised config type: %s", id, config.getLocator().getClass()));
             return empty();
         }
 
@@ -115,17 +115,16 @@ public abstract class SourceManager {
     private Observable<CatalogueEvent> deletionEventFrom(Observable<CatalogueEvent> events) {
         return events
                 .filter(e -> e.getType() == DELETE)
-                .doOnNext(e -> LOG.info(format("[%s] Deleted layer", e.getConfig().metadata().name())));
+                .doOnNext(e -> LOG.info(format("[%s] Deleted layer", e.getConfig().getMetadata().getName())));
     }
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?
     private LayerMetadata datasetMetadataFrom(DatasetMetadata metadata) {
         return LayerMetadataImpl.builder()
-                .name(metadata.name())
-                .description(metadata.description())
-                .attribution(metadata.attribution())
-                .registered(metadata.registered().get())    // Should always be set
-                .icon(metadata.icon())
+                .name(metadata.getName())
+                .description(metadata.getDescription())
+                .attribution(metadata.getAttribution())
+                .registered(metadata.getRegistered())    // Should always be non-null
                 .build();
     }
 }

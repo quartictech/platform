@@ -3,15 +3,13 @@ package io.quartic.catalogue;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadataImpl;
-import io.quartic.catalogue.api.PostgresDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.PostgresDatasetLocator;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static io.quartic.common.client.ClientUtilsKt.client;
@@ -28,9 +26,9 @@ public class CatalogueApplicationShould {
     public void retrieve_registered_datasets() throws Exception {
         final CatalogueService catalogue = client(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
 
-        final DatasetConfig config = DatasetConfigImpl.of(
-                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty(), Optional.empty()),
-                PostgresDatasetLocatorImpl.of("a", "b", "c", "d"),
+        final DatasetConfig config = new DatasetConfig(
+                new DatasetMetadata("Foo", "Bar", "Arlo", null),
+                new PostgresDatasetLocator("a", "b", "c", "d"),
                 emptyMap()
         );
 
@@ -41,7 +39,14 @@ public class CatalogueApplicationShould {
     }
 
     private DatasetConfig withTimestampRemoved(DatasetConfig actual) {
-        return DatasetConfigImpl.copyOf(actual)
-                .withMetadata(DatasetMetadataImpl.copyOf(actual.metadata()).withRegistered(Optional.empty()));
+        return new DatasetConfig(
+                new DatasetMetadata(
+                        actual.getMetadata().getName(),
+                        actual.getMetadata().getDescription(),
+                        actual.getMetadata().getAttribution(),
+                        null
+                ),
+                actual.getLocator(),
+                actual.getExtensions());  // TODO - use .copy() once in Kotlin
     }
 }

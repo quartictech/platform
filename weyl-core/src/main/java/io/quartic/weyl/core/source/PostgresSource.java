@@ -49,7 +49,7 @@ public abstract class PostgresSource implements Source {
 
     @Value.Default
     protected DBI dbi() {
-        return new DBI(locator().url(), locator().user(), locator().password());
+        return new DBI(locator().getUrl(), locator().getUser(), locator().getPassword());
     }
 
     @Override
@@ -69,7 +69,7 @@ public abstract class PostgresSource implements Source {
         try (final Handle h = dbi().open()) {
             LOG.info("[{}] Connection established", name());
 
-            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
+            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().getQuery());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
             Collection<NakedFeature> features = Lists.newArrayList();
