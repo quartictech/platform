@@ -58,8 +58,8 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
         backend.put(coordsFrom(new DatasetId("A")), dataset("1"));
         secondBackend.put(coordsFrom(new DatasetId("A")), dataset("2"));
 
-        Map<DatasetCoordinates, DatasetConfig> datasets = backend.getAllAgainstCoords();
-        Map<DatasetCoordinates, DatasetConfig> secondDatasets = secondBackend.getAllAgainstCoords();
+        Map<DatasetCoordinates, DatasetConfig> datasets = backend.getAll();
+        Map<DatasetCoordinates, DatasetConfig> secondDatasets = secondBackend.getAll();
         assertThat(datasets.size(), equalTo(1));
         assertThat(datasets.size(), equalTo(1));
 

@@ -67,63 +67,32 @@ public class GoogleDatastoreBackend implements StorageBackend {
 
     // TODO
     @Override
-    public DatasetConfig get(DatasetCoordinates datasetCoords) throws IOException {
-        return get(datasetCoords.getId());
-    }
-
-    // TODO
-    @Override
-    public void put(DatasetCoordinates datasetCoords, DatasetConfig datasetConfig) throws IOException {
-        put(datasetCoords.getId(), datasetConfig);
-    }
-
-    // TODO
-    @Override
-    public void remove(DatasetCoordinates datasetCoords) throws IOException {
-        remove(datasetCoords.getId());
-    }
-
-    // TODO
-    @Override
-    public boolean contains(DatasetCoordinates datasetCoords) throws IOException {
-        return containsKey(datasetCoords.getId());
-    }
-
-    // TODO
-    @Override
-    public Map<DatasetCoordinates, DatasetConfig> getAllAgainstCoords() throws IOException {
-        return getAll()
-                .entrySet()
-                .stream()
-                .collect(toMap(
-                        e -> new DatasetCoordinates(new DatasetNamespace("foo"), e.getKey()),
-                        Map.Entry::getValue
-                ));
-    }
-
-    @Override
-    public DatasetConfig get(DatasetId datasetId) throws IOException {
-        Entity entity = datastore.get(keyFactory.newKey(datasetId.getUid()));
+    public DatasetConfig get(DatasetCoordinates coords) throws IOException {
+        Entity entity = datastore.get(keyFactory.newKey(coords.getId().getUid()));
         return entitySerDe.entityToDataset(entity);
     }
 
+    // TODO
     @Override
-    public void put(DatasetId datasetId, DatasetConfig datasetConfig) throws IOException {
-        datastore.runInTransaction(readerWriter -> readerWriter.put(entitySerDe.datasetToEntity(datasetId, datasetConfig)));
+    public void put(DatasetCoordinates coords, DatasetConfig config) throws IOException {
+        datastore.runInTransaction(readerWriter -> readerWriter.put(entitySerDe.datasetToEntity(coords.getId(), config)));
     }
 
+    // TODO
     @Override
-    public void remove(DatasetId id) throws IOException {
-        datastore.delete(keyFactory.newKey(id.getUid()));
+    public void remove(DatasetCoordinates coords) throws IOException {
+        datastore.delete(keyFactory.newKey(coords.getId().getUid()));
     }
 
+    // TODO
     @Override
-    public boolean containsKey(DatasetId id) throws IOException {
-        return datastore.get(keyFactory.newKey(id.getUid())) != null;
+    public boolean contains(DatasetCoordinates coords) throws IOException {
+        return datastore.get(keyFactory.newKey(coords.getId().getUid())) != null;
     }
 
+    // TODO
     @Override
-    public Map<DatasetId, DatasetConfig> getAll() throws IOException {
+    public Map<DatasetCoordinates, DatasetConfig> getAll() throws IOException {
         EntityQuery query = Query.newEntityQueryBuilder()
                 .setKind(KIND)
                 .setFilter(StructuredQuery.PropertyFilter.hasAncestor(ancestorKey))
@@ -136,7 +105,13 @@ public class GoogleDatastoreBackend implements StorageBackend {
             datasets.put(new DatasetId(entity.getKey().getName()), entitySerDe.entityToDataset(entity));
         }
 
-        return datasets;
+        return datasets
+                .entrySet()
+                .stream()
+                .collect(toMap(
+                        e -> new DatasetCoordinates(new DatasetNamespace("foo"), e.getKey()),
+                        Map.Entry::getValue
+                ));
     }
 
     @Override

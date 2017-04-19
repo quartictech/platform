@@ -26,7 +26,7 @@ public abstract class StorageBackendTests {
 
         getBackend().put(coordsFrom(new DatasetId("TEST")), datasetConfig);
 
-        DatasetConfig config = getBackend().get(new DatasetId("TEST"));
+        DatasetConfig config = getBackend().get(coordsFrom(new DatasetId("TEST")));
 
         assertThat(config, equalTo(datasetConfig));
     }
@@ -49,7 +49,7 @@ public abstract class StorageBackendTests {
         getBackend().put(coordsFrom(new DatasetId("B")), datasetB);
         getBackend().put(coordsFrom(new DatasetId("C")), datasetC);
 
-        Map<DatasetCoordinates, DatasetConfig> datasets = getBackend().getAllAgainstCoords();
+        Map<DatasetCoordinates, DatasetConfig> datasets = getBackend().getAll();
 
         assertThat(datasets.size(), equalTo(3));
         assertThat(datasets.get(coordsFrom(new DatasetId("A"))), equalTo(datasetA));
@@ -72,7 +72,7 @@ public abstract class StorageBackendTests {
 
         getBackend().remove(coordsFrom(datasetId));
 
-        assertThat(getBackend().getAllAgainstCoords().size(), equalTo(0));
+        assertThat(getBackend().getAll().size(), equalTo(0));
     }
 
     protected DatasetConfig dataset(String name) {

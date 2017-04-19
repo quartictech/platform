@@ -19,63 +19,38 @@ public class InMemoryStorageBackend implements StorageBackend {
 
     // TODO
     @Override
-    public DatasetConfig get(DatasetCoordinates datasetCoords) throws IOException {
-        return get(datasetCoords.getId());
+    public DatasetConfig get(DatasetCoordinates coords) throws IOException {
+        return datasets.get(coords.getId());
     }
 
     // TODO
     @Override
-    public void put(DatasetCoordinates datasetCoords, DatasetConfig datasetConfig) throws IOException {
-        put(datasetCoords.getId(), datasetConfig);
+    public void put(DatasetCoordinates coords, DatasetConfig config) throws IOException {
+        datasets.put(coords.getId(), config);
     }
 
     // TODO
     @Override
-    public void remove(DatasetCoordinates datasetCoords) throws IOException {
-        remove(datasetCoords.getId());
+    public void remove(DatasetCoordinates coords) throws IOException {
+        datasets.remove(coords.getId());
     }
 
     // TODO
     @Override
-    public boolean contains(DatasetCoordinates datasetCoords) throws IOException {
-        return containsKey(datasetCoords.getId());
+    public boolean contains(DatasetCoordinates coords) throws IOException {
+        return datasets.containsKey(coords.getId());
     }
 
     // TODO
     @Override
-    public Map<DatasetCoordinates, DatasetConfig> getAllAgainstCoords() throws IOException {
-        return getAll()
+    public Map<DatasetCoordinates, DatasetConfig> getAll() throws IOException {
+        return ((Map<DatasetId, DatasetConfig>) ImmutableMap.copyOf(datasets))
                 .entrySet()
                 .stream()
                 .collect(toMap(
                         e -> new DatasetCoordinates(new DatasetNamespace("foo"), e.getKey()),
                         Map.Entry::getValue
                 ));
-    }
-
-    @Override
-    public DatasetConfig get(DatasetId datasetId) throws IOException {
-        return datasets.get(datasetId);
-    }
-
-    @Override
-    public void put(DatasetId datasetId, DatasetConfig datasetConfig) {
-        datasets.put(datasetId, datasetConfig);
-    }
-
-    @Override
-    public void remove(DatasetId datasetId) {
-        datasets.remove(datasetId);
-    }
-
-    @Override
-    public boolean containsKey(DatasetId id) throws IOException {
-        return datasets.containsKey(id);
-    }
-
-    @Override
-    public Map<DatasetId, DatasetConfig> getAll() throws IOException {
-        return ImmutableMap.copyOf(datasets);
     }
 
     @Override

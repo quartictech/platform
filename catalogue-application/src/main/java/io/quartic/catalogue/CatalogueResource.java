@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetCoordinates;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.catalogue.api.DatasetNamespace;
@@ -22,7 +23,10 @@ import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toMap;
 
 public class CatalogueResource extends Endpoint implements CatalogueService {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueService.class);
@@ -79,7 +83,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
         }
 
         // TODO: basic validation
-        wrapException(() -> storageBackend.put(id, withRegisteredTimestamp(config)));
+        wrapException(() -> storageBackend.put(new DatasetCoordinates(namespace, id), withRegisteredTimestamp(config)));
         updateClients();
         return id;
     }
@@ -99,18 +103,22 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
 
     @Override
     public synchronized Map<DatasetId, DatasetConfig> getDatasets(DatasetNamespace namespace) {
-        return wrapException(() -> ImmutableMap.copyOf(storageBackend.getAll()));
+        return wrapException(() -> ImmutableMap.copyOf(onlyIdsNotCoords(storageBackend.getAll())));
     }
 
     public synchronized DatasetConfig getDataset(DatasetNamespace namespace, DatasetId id) {
-        throwIfDatasetNotFound(id);
-        return wrapException(() -> storageBackend.get(id));
+        final DatasetCoordinates coords = new DatasetCoordinates(namespace, id);
+        throwIfDatasetNotFound(coords);
+        return wrapException(() -> storageBackend.get(coords));
     }
 
     @Override
     public synchronized void deleteDataset(DatasetNamespace namespace, DatasetId id) {
-        throwIfDatasetNotFound(id);
-        wrapException(() -> storageBackend.remove(id));
+        final DatasetCoordinates coords = new DatasetCoordinates(namespace, id);
+        throwIfDatasetNotFound(coords);
+        wrapException(() -> {
+            storageBackend.remove(coords);
+        });
         updateClients();
     }
 
@@ -131,18 +139,26 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
         sessions.forEach(session -> updateClient(session, wrapException(storageBackend::getAll)));
     }
 
-    private void updateClient(Session session, Map<DatasetId, DatasetConfig> datasets) {
+    // TODO - update all clients to accept coords rather than ID
+    private void updateClient(Session session, Map<DatasetCoordinates, DatasetConfig> datasets) {
         try {
-            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
+            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(onlyIdsNotCoords(datasets)));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }
     }
 
-    private void throwIfDatasetNotFound(DatasetId id) {
+    private Map<DatasetId, DatasetConfig> onlyIdsNotCoords(Map<DatasetCoordinates, DatasetConfig> all) {
+        return all
+                .entrySet()
+                .stream()
+                .collect(toMap(e -> e.getKey().getId(), Entry::getValue));
+    }
+
+    private void throwIfDatasetNotFound(DatasetCoordinates coords) {
         try {
-            if (!storageBackend.containsKey(id)) {
-                throw new NotFoundException("No dataset " + id);
+            if (!storageBackend.contains(coords)) {
+                throw new NotFoundException("No dataset: " + coords);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
