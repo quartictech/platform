@@ -1,14 +1,27 @@
-package io.quartic.catalogue.io.quartic.catalogue.datastore;
+package io.quartic.catalogue.datastore;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.google.api.client.util.Maps;
-import com.google.cloud.datastore.*;
+import com.google.cloud.datastore.Datastore;
+import com.google.cloud.datastore.DatastoreOptions;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.EntityQuery;
+import com.google.cloud.datastore.Key;
+import com.google.cloud.datastore.KeyFactory;
+import com.google.cloud.datastore.PathElement;
+import com.google.cloud.datastore.Query;
+import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.StructuredQuery;
 import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetCoordinates;
 import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetNamespace;
 
 import java.io.IOException;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * GoogleDatastoreBackend
@@ -52,6 +65,41 @@ public class GoogleDatastoreBackend implements StorageBackend {
         return new GoogleDatastoreBackend(datastore, projectId);
     }
 
+    // TODO
+    @Override
+    public DatasetConfig get(DatasetCoordinates datasetCoords) throws IOException {
+        return get(datasetCoords.getId());
+    }
+
+    // TODO
+    @Override
+    public void put(DatasetCoordinates datasetCoords, DatasetConfig datasetConfig) throws IOException {
+        put(datasetCoords.getId(), datasetConfig);
+    }
+
+    // TODO
+    @Override
+    public void remove(DatasetCoordinates datasetCoords) throws IOException {
+        remove(datasetCoords.getId());
+    }
+
+    // TODO
+    @Override
+    public boolean contains(DatasetCoordinates datasetCoords) throws IOException {
+        return containsKey(datasetCoords.getId());
+    }
+
+    // TODO
+    @Override
+    public Map<DatasetCoordinates, DatasetConfig> getAllAgainstCoords() throws IOException {
+        return getAll()
+                .entrySet()
+                .stream()
+                .collect(toMap(
+                        e -> new DatasetCoordinates(new DatasetNamespace("foo"), e.getKey()),
+                        Map.Entry::getValue
+                ));
+    }
 
     @Override
     public DatasetConfig get(DatasetId datasetId) throws IOException {

@@ -1,4 +1,4 @@
-package io.quartic.catalogue.io.quartic.catalogue.datastore;
+package io.quartic.catalogue.datastore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

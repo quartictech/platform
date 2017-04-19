@@ -7,7 +7,7 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.catalogue.api.GeoJsonDatasetLocator;
-import io.quartic.catalogue.io.quartic.catalogue.datastore.EntitySerDe;
+import io.quartic.catalogue.datastore.EntitySerDe;
 import org.junit.Test;
 
 import java.io.IOException;

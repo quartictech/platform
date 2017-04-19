@@ -7,6 +7,7 @@ import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadata;
 import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.catalogue.api.GeoJsonDatasetLocator;
+import io.quartic.catalogue.inmemory.InMemoryStorageBackend;
 import org.junit.Test;
 
 import javax.websocket.CloseReason;

@@ -1,9 +1,11 @@
-package io.quartic.catalogue;
+package io.quartic.catalogue.datastore;
 
 import com.google.cloud.datastore.testing.LocalDatastoreHelper;
+import io.quartic.catalogue.StorageBackend;
+import io.quartic.catalogue.StorageBackendTests;
 import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetCoordinates;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.io.quartic.catalogue.datastore.GoogleDatastoreBackend;
 import org.joda.time.Duration;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,7 +44,7 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
     }
 
     @Override
-    StorageBackend getBackend() {
+    protected StorageBackend getBackend() {
         return backend;
     }
 
@@ -53,15 +55,15 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
                 .setNamespace("test2")
                 .build().getService(), helper.getProjectId());
 
-        backend.put(new DatasetId("A"), dataset("1"));
-        secondBackend.put(new DatasetId("A"), dataset("2"));
+        backend.put(coordsFrom(new DatasetId("A")), dataset("1"));
+        secondBackend.put(coordsFrom(new DatasetId("A")), dataset("2"));
 
-        Map<DatasetId, DatasetConfig> datasets = backend.getAll();
-        Map<DatasetId, DatasetConfig> secondDatasets = secondBackend.getAll();
+        Map<DatasetCoordinates, DatasetConfig> datasets = backend.getAllAgainstCoords();
+        Map<DatasetCoordinates, DatasetConfig> secondDatasets = secondBackend.getAllAgainstCoords();
         assertThat(datasets.size(), equalTo(1));
         assertThat(datasets.size(), equalTo(1));
 
-        assertThat(datasets.get(new DatasetId("A")).getMetadata().getName(), equalTo("1"));
-        assertThat(secondDatasets.get(new DatasetId("A")).getMetadata().getName(), equalTo("2"));
+        assertThat(datasets.get(coordsFrom(new DatasetId("A"))).getMetadata().getName(), equalTo("1"));
+        assertThat(secondDatasets.get(coordsFrom(new DatasetId("A"))).getMetadata().getName(), equalTo("2"));
     }
 }

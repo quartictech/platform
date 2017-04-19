@@ -3,9 +3,11 @@ package io.quartic.catalogue;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetCoordinates;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetLocator;
 import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.DatasetNamespace;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -16,11 +18,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public abstract class StorageBackendTests {
+    // TODO: validate namespace isolation
+
     @Test
     public void store_and_retrieve_dataset() throws IOException {
         DatasetConfig datasetConfig = dataset("name");
 
-        getBackend().put(new DatasetId("TEST"), datasetConfig);
+        getBackend().put(coordsFrom(new DatasetId("TEST")), datasetConfig);
 
         DatasetConfig config = getBackend().get(new DatasetId("TEST"));
 
@@ -28,10 +32,10 @@ public abstract class StorageBackendTests {
     }
     @Test
     public void retrieve_updated_dataset() throws IOException {
-        getBackend().put(new DatasetId("TEST"), dataset("Old Name"));
-        getBackend().put(new DatasetId("TEST"), dataset("New Name"));
+        getBackend().put(coordsFrom(new DatasetId("TEST")), dataset("Old Name"));
+        getBackend().put(coordsFrom(new DatasetId("TEST")), dataset("New Name"));
 
-        DatasetConfig config = getBackend().get(new DatasetId("TEST"));
+        DatasetConfig config = getBackend().get(coordsFrom(new DatasetId("TEST")));
 
         assertThat(config.getMetadata().getName(), equalTo("New Name"));
     }
@@ -41,34 +45,34 @@ public abstract class StorageBackendTests {
         DatasetConfig datasetA = dataset("A");
         DatasetConfig datasetB = dataset("B");
         DatasetConfig datasetC = dataset("C");
-        getBackend().put(new DatasetId("A"), datasetA);
-        getBackend().put(new DatasetId("B"), datasetB);
-        getBackend().put(new DatasetId("C"), datasetC);
+        getBackend().put(coordsFrom(new DatasetId("A")), datasetA);
+        getBackend().put(coordsFrom(new DatasetId("B")), datasetB);
+        getBackend().put(coordsFrom(new DatasetId("C")), datasetC);
 
-        Map<DatasetId, DatasetConfig> datasets = getBackend().getAll();
+        Map<DatasetCoordinates, DatasetConfig> datasets = getBackend().getAllAgainstCoords();
 
         assertThat(datasets.size(), equalTo(3));
-        assertThat(datasets.get(new DatasetId("A")), equalTo(datasetA));
-        assertThat(datasets.get(new DatasetId("B")), equalTo(datasetB));
-        assertThat(datasets.get(new DatasetId("C")), equalTo(datasetC));
+        assertThat(datasets.get(coordsFrom(new DatasetId("A"))), equalTo(datasetA));
+        assertThat(datasets.get(coordsFrom(new DatasetId("B"))), equalTo(datasetB));
+        assertThat(datasets.get(coordsFrom(new DatasetId("C"))), equalTo(datasetC));
     }
 
     @Test
-    public void containskey() throws IOException {
-        getBackend().put(new DatasetId("A"), dataset("A"));
+    public void contains() throws IOException {
+        getBackend().put(coordsFrom(new DatasetId("A")), dataset("A"));
 
-        assertThat(getBackend().containsKey(new DatasetId("A")), equalTo(true));
+        assertThat(getBackend().contains(coordsFrom(new DatasetId("A"))), equalTo(true));
     }
 
     @Test
     public void remove() throws IOException {
         DatasetId datasetId = new DatasetId("foo");
         DatasetConfig dataset = dataset("foo");
-        getBackend().put(datasetId, dataset);
+        getBackend().put(coordsFrom(datasetId), dataset);
 
-        getBackend().remove(datasetId);
+        getBackend().remove(coordsFrom(datasetId));
 
-        assertThat(getBackend().getAll().size(), equalTo(0));
+        assertThat(getBackend().getAllAgainstCoords().size(), equalTo(0));
     }
 
     protected DatasetConfig dataset(String name) {
@@ -82,5 +86,9 @@ public abstract class StorageBackendTests {
         return new DatasetConfig(metadata, locator, extensions);
     }
 
-    abstract StorageBackend getBackend();
+    protected abstract StorageBackend getBackend();
+
+    protected DatasetCoordinates coordsFrom(DatasetId id) {
+        return new DatasetCoordinates(new DatasetNamespace("foo"), id);
+    }
 }
