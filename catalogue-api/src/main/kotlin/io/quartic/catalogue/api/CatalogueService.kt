@@ -1,5 +1,8 @@
 package io.quartic.catalogue.api
 
+import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetNamespace
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 

@@ -13,10 +13,10 @@ import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery;
 import io.quartic.catalogue.StorageBackend;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetCoordinates;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetNamespace;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 
 import java.io.IOException;
 import java.util.Map;

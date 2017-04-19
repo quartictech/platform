@@ -4,10 +4,10 @@ import com.codahale.metrics.health.HealthCheck;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.quartic.catalogue.StorageBackend;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetCoordinates;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetNamespace;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 
 import java.io.IOException;
 import java.util.Map;

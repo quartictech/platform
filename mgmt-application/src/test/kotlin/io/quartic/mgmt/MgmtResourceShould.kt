@@ -2,9 +2,9 @@ package io.quartic.mgmt
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.catalogue.api.CatalogueService
-import io.quartic.catalogue.api.DatasetConfig
-import io.quartic.catalogue.api.DatasetId
-import io.quartic.catalogue.api.DatasetNamespace
+import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetNamespace
 import org.junit.Test
 
 class MgmtResourceShould {

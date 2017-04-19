@@ -6,10 +6,10 @@ import com.google.cloud.datastore.Blob;
 import com.google.cloud.datastore.DateTime;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.KeyFactory;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetLocator;
+import io.quartic.catalogue.api.model.DatasetMetadata;
 
 import java.io.IOException;
 import java.time.Instant;

@@ -2,11 +2,11 @@ package io.quartic.catalogue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.catalogue.api.DatasetNamespace;
-import io.quartic.catalogue.api.GeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetNamespace;
+import io.quartic.catalogue.api.model.GeoJsonDatasetLocator;
 import io.quartic.catalogue.inmemory.InMemoryStorageBackend;
 import org.junit.Test;
 

@@ -1,13 +1,13 @@
 package io.quartic.catalogue;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetCoordinates;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.catalogue.api.DatasetNamespace;
+import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetLocator;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 import org.junit.Test;
 
 import java.io.IOException;

@@ -2,7 +2,7 @@ package io.quartic.mgmt;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 

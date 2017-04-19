@@ -3,8 +3,8 @@ package io.quartic.catalogue
 import com.google.common.collect.Maps.difference
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
-import io.quartic.catalogue.api.DatasetConfig
-import io.quartic.catalogue.api.DatasetId
+import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.common.logging.logger
 import io.quartic.common.rx.WithPrevious
 import io.quartic.common.rx.pairWithPrevious

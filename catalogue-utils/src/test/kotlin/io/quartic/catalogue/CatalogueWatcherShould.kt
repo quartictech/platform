@@ -6,8 +6,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
-import io.quartic.catalogue.api.DatasetConfig
-import io.quartic.catalogue.api.DatasetId
+import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.common.rx.all
 import io.quartic.common.websocket.WebsocketListener
 import org.hamcrest.Matchers.contains

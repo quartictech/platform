@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetCoordinates;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.catalogue.api.DatasetNamespace;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 import io.quartic.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,9 +116,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     public synchronized void deleteDataset(DatasetNamespace namespace, DatasetId id) {
         final DatasetCoordinates coords = new DatasetCoordinates(namespace, id);
         throwIfDatasetNotFound(coords);
-        wrapException(() -> {
-            storageBackend.remove(coords);
-        });
+        wrapException(() -> storageBackend.remove(coords));
         updateClients();
     }
 

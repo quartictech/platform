@@ -1,10 +1,10 @@
 package io.quartic.mgmt;
 
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetNamespace;
+import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;

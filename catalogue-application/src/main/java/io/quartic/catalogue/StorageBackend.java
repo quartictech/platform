@@ -1,8 +1,8 @@
 package io.quartic.catalogue;
 
 import com.codahale.metrics.health.HealthCheck;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
 
 import java.io.IOException;
 import java.util.Map;

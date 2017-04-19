@@ -1,4 +1,6 @@
-package io.quartic.catalogue.api
+package io.quartic.catalogue.api.model
+
+import io.quartic.catalogue.api.model.WebsocketDatasetLocator
 
 class WebsocketDatasetLocatorShould : DatasetLocatorTests<WebsocketDatasetLocator>() {
     override fun locator() = WebsocketDatasetLocator("foo")
