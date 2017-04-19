@@ -1,4 +1,4 @@
-pluginRepositories {
+pluginManagement.repositories {
     gradlePluginPortal()
     maven {
         url "s3://quartictech-repo.s3.eu-west-2.amazonaws.com/maven2"

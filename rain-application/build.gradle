@@ -2,7 +2,7 @@ plugins {
     id "nebula.kotlin" version "1.0.5"
     id "idea"
     id "io.quartic.service" version "12"
-    id "com.palantir.configuration-resolver" version "0.1.0"
+    id "com.palantir.configuration-resolver" version "0.2.0"
 }
 
 service {
