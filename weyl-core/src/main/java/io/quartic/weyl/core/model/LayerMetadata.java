@@ -2,12 +2,10 @@ package io.quartic.weyl.core.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.quartic.catalogue.api.Icon;
 import io.quartic.common.SweetStyle;
 import org.immutables.value.Value;
 
 import java.time.Instant;
-import java.util.Optional;
 
 @SweetStyle
 @Value.Immutable
@@ -18,5 +16,4 @@ public interface LayerMetadata {
     String description();
     String attribution();
     Instant registered();
-    Optional<Icon> icon();
 }

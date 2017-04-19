@@ -3,10 +3,9 @@ package io.quartic.catalogue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadataImpl;
-import io.quartic.catalogue.api.GeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import org.junit.Test;
 
 import javax.websocket.CloseReason;
@@ -16,7 +15,6 @@ import javax.ws.rs.BadRequestException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
@@ -35,7 +33,7 @@ public class CatalogueResourceShould {
 
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
-        final DatasetConfig config = config("X", Optional.of(clock.instant()));
+        final DatasetConfig config = config("X", clock.instant());
         resource.registerDataset(config);
     }
 
@@ -44,13 +42,13 @@ public class CatalogueResourceShould {
         final DatasetConfig config = config("X");
         final DatasetId id = resource.registerDataset(config);
 
-        assertThat(resource.getDataset(id).metadata().registered(), equalTo(Optional.of(clock.instant())));
+        assertThat(resource.getDataset(id).getMetadata().getRegistered(), equalTo(clock.instant()));
     }
 
     @Test
     public void register_dataset_with_specified_id() throws Exception {
         final DatasetConfig config = config("X");
-        final DatasetConfig configWithTimestamp = config("X", Optional.of(clock.instant()));
+        final DatasetConfig configWithTimestamp = config("X", clock.instant());
 
         final DatasetId id = new DatasetId("123");
         resource.registerOrUpdateDataset(id, config);
@@ -62,7 +60,7 @@ public class CatalogueResourceShould {
     public void update_dataset_with_specified_id() throws Exception {
         final DatasetConfig config = config("X");
         final DatasetConfig newConfig = config("Y");
-        final DatasetConfig newConfigWithTimestamp = config("Y", Optional.of(clock.instant()));
+        final DatasetConfig newConfigWithTimestamp = config("Y", clock.instant());
 
         final DatasetId id = new DatasetId("123");
         resource.registerOrUpdateDataset(id, config);
@@ -74,7 +72,7 @@ public class CatalogueResourceShould {
     @Test
     public void send_current_catalogue_state_on_websocket_open() throws Exception {
         final DatasetConfig config = config("X");
-        final DatasetConfig configWithTimestamp = config("X", Optional.of(clock.instant()));
+        final DatasetConfig configWithTimestamp = config("X", clock.instant());
 
         final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
         final DatasetId id = resource.registerDataset(config);
@@ -88,8 +86,8 @@ public class CatalogueResourceShould {
     public void send_catalogue_state_to_websocket_clients_on_change() throws Exception {
         final DatasetConfig configX = config("X");
         final DatasetConfig configY = config("Y");
-        final DatasetConfig configWithTimestampX = config("X", Optional.of(clock.instant()));
-        final DatasetConfig configWithTimestampY = config("Y", Optional.of(clock.instant()));
+        final DatasetConfig configWithTimestampX = config("X", clock.instant());
+        final DatasetConfig configWithTimestampY = config("Y", clock.instant());
 
         final Session sessionA = mock(Session.class, RETURNS_DEEP_STUBS);
         final Session sessionB = mock(Session.class, RETURNS_DEEP_STUBS);
@@ -129,13 +127,13 @@ public class CatalogueResourceShould {
     }
 
     private DatasetConfig config(String name) {
-        return config(name, Optional.empty());
+        return config(name, null);
     }
 
-    private DatasetConfig config(String name, Optional<Instant> instant) {
-        return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(name, "bar", "baz", instant, Optional.empty()),
-                GeoJsonDatasetLocatorImpl.of("blah"),
+    private DatasetConfig config(String name, Instant instant) {
+        return new DatasetConfig(
+                new DatasetMetadata(name, "bar", "baz", instant),
+                new GeoJsonDatasetLocator("blah"),
                 emptyMap()
         );
     }
