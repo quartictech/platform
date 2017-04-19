@@ -1,9 +1,8 @@
 package io.quartic.mgmt;
 
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
@@ -65,9 +64,9 @@ public class MgmtResource {
             public DatasetConfig visit(CreateStaticDatasetRequest request) {
                 try {
                     String name = preprocessFile(request.fileName(), request.fileType());
-                    return DatasetConfigImpl.of(
+                    return new DatasetConfig(
                             request.metadata(),
-                            CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name), false),
+                            new CloudGeoJsonDatasetLocator(String.format("/%s/%s", HOWL_NAMESPACE, name), false),
                             emptyMap()
                     );
                 }

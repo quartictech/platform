@@ -57,7 +57,7 @@ public class SpatialJoinShould {
     private Layer makeLayer(String layerId, List<NakedFeature> features) throws IOException {
         final LayerSpec spec = LayerSpecImpl.of(
                 LayerId.fromString(layerId),
-                LayerMetadataImpl.of("test", "test", "test", Instant.now(), Optional.empty()),
+                LayerMetadataImpl.of("test", "test", "test", Instant.now()),
                 IDENTITY_VIEW,
                 StaticSchemaImpl.builder().build(),
                 true

@@ -5,10 +5,12 @@ import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.io.quartic.catalogue.datastore.GoogleDatastoreBackend;
 import org.joda.time.Duration;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -51,15 +53,15 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
                 .setNamespace("test2")
                 .build().getService(), helper.getProjectId());
 
-        backend.put(DatasetId.fromString("A"), dataset("1"));
-        secondBackend.put(DatasetId.fromString("A"), dataset("2"));
+        backend.put(new DatasetId("A"), dataset("1"));
+        secondBackend.put(new DatasetId("A"), dataset("2"));
 
         Map<DatasetId, DatasetConfig> datasets = backend.getAll();
         Map<DatasetId, DatasetConfig> secondDatasets = secondBackend.getAll();
         assertThat(datasets.size(), equalTo(1));
         assertThat(datasets.size(), equalTo(1));
 
-        assertThat(datasets.get(DatasetId.fromString("A")).metadata().name(), equalTo("1"));
-        assertThat(secondDatasets.get(DatasetId.fromString("A")).metadata().name(), equalTo("2"));
+        assertThat(datasets.get(new DatasetId("A")).getMetadata().getName(), equalTo("1"));
+        assertThat(secondDatasets.get(new DatasetId("A")).getMetadata().getName(), equalTo("2"));
     }
 }
