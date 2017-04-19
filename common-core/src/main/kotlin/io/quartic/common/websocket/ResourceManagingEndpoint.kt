@@ -6,6 +6,7 @@ import javax.websocket.Endpoint
 import javax.websocket.EndpointConfig
 import javax.websocket.Session
 
+// TODO: use delegation rather than abstract class
 abstract class ResourceManagingEndpoint<T> : Endpoint() {
     private val LOG by logger()
 
