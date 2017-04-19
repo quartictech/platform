@@ -26,6 +26,10 @@ allprojects {
             languageLevel = '1.8'
         }
     }
+
+    test {
+        maxHeapSize = "2048m"
+    }
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
