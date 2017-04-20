@@ -46,7 +46,7 @@ public class CatalogueResourceShould {
             clock,
             objectMapper()
     );
-    private final DatasetNamespace namespace = mock(DatasetNamespace.class);
+    private final DatasetNamespace namespace = new DatasetNamespace("foo");
 
     @Test
     public void get_specific_dataset() throws Exception {
@@ -109,7 +109,7 @@ public class CatalogueResourceShould {
 
         resource.onOpen(session, mock(EndpointConfig.class));
 
-        verify(session.getAsyncRemote()).sendText(serialize(datasets));
+        verify(session.getAsyncRemote()).sendText(serialize(toMapOfMaps(datasets)));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class CatalogueResourceShould {
         resource.onOpen(session, mock(EndpointConfig.class));
         resource.registerDataset(namespace, config());
 
-        verify(session.getAsyncRemote()).sendText(serialize(datasets));
+        verify(session.getAsyncRemote()).sendText(serialize(toMapOfMaps(datasets)));
 
         final InOrder inOrder = inOrder(backend);
         inOrder.verify(backend).getAll();   // This happens on session open
@@ -142,6 +142,15 @@ public class CatalogueResourceShould {
 
         verify(session.getAsyncRemote()).sendText(serialize(emptyMap()));   // Initial catalogue state
         verifyNoMoreInteractions(session.getAsyncRemote());
+    }
+
+    private Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> toMapOfMaps(Map<DatasetCoordinates, DatasetConfig> map) {
+        return map.entrySet()
+                .stream()
+                .collect(groupingBy(
+                        e -> e.getKey().getNamespace(),
+                        toMap(e -> e.getKey().getId(), Entry::getValue)
+                ));
     }
 
     private String serialize(Object object) {
@@ -169,7 +178,7 @@ public class CatalogueResourceShould {
     }
 
     private Map<DatasetCoordinates, DatasetConfig> loadsOfDatasets() {
-        final DatasetNamespace otherNamespace = mock(DatasetNamespace.class);   // Prove that multiple namespaces work ok
+        final DatasetNamespace otherNamespace = new DatasetNamespace("bar");   // Prove that multiple namespaces work ok
         return map(
                 entry(coords(namespace, mock(DatasetId.class)), mock(DatasetConfig.class)),
                 entry(coords(namespace, mock(DatasetId.class)), mock(DatasetConfig.class)),

@@ -131,7 +131,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     @Override
     public synchronized void onOpen(Session session, EndpointConfig config) {
         LOG.info("[{}] Open", session.getId());
-        updateClient(session, wrapException(storageBackend::getAll));
+        updateClient(session, getDatasets());
         sessions.add(session);
     }
 
@@ -142,11 +142,11 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     private void updateClients() {
-        sessions.forEach(session -> updateClient(session, wrapException(storageBackend::getAll)));
+        final Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> datasets = getDatasets();
+        sessions.forEach(session -> updateClient(session, datasets));
     }
 
-    // TODO - update all clients to accept coords rather than ID
-    private void updateClient(Session session, Map<DatasetCoordinates, DatasetConfig> datasets) {
+    private void updateClient(Session session, Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> datasets) {
         try {
             session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
         } catch (JsonProcessingException e) {
