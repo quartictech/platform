@@ -10,6 +10,7 @@ import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import io.quartic.catalogue.api.WebsocketDatasetLocator;
@@ -114,7 +115,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(createTileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getDefaultCatalogueNamespace()));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
     }
@@ -170,10 +171,17 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new GeofenceStatusHandler(snapshotSequences, geofenceViolationDetector, featureConverter());
     }
 
-    private LayerExportResource createLayerExportResource(Observable<LayerSnapshotSequence> layerSnapshotSequences,
-                                                          HowlClient howlClient, CatalogueService catalogueService) {
-        LayerExporter layerExporter = new LayerExporter(layerSnapshotSequences,
-                new HowlGeoJsonLayerWriter(howlClient, featureConverter()), catalogueService);
+    private LayerExportResource createLayerExportResource(
+            Observable<LayerSnapshotSequence> layerSnapshotSequences,
+            HowlClient howlClient,
+            CatalogueService catalogueService,
+            DatasetNamespace defaultCatalogueNamespace
+    ) {
+        LayerExporter layerExporter = new LayerExporter(
+                layerSnapshotSequences,
+                new HowlGeoJsonLayerWriter(howlClient, featureConverter()),
+                catalogueService,
+                defaultCatalogueNamespace);
         return new LayerExportResource(layerExporter);
     }
 
