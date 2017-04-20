@@ -7,7 +7,6 @@ import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.EntityQuery;
 import com.google.cloud.datastore.Key;
-import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.PathElement;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
@@ -15,13 +14,9 @@ import com.google.cloud.datastore.StructuredQuery;
 import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
-import io.quartic.catalogue.api.model.DatasetId;
-import io.quartic.catalogue.api.model.DatasetNamespace;
 
 import java.io.IOException;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * GoogleDatastoreBackend
@@ -34,24 +29,19 @@ import static java.util.stream.Collectors.toMap;
  */
 public class GoogleDatastoreBackend implements StorageBackend {
     private static final String ANCESTOR = "ancestor";
-    private static final String KIND = "dataset";
     private static final String ANCESTOR_KIND = "catalogue";
+    private static final String NAMESPACE_KIND = "namespace";
+    private static final String DATASET_KIND = "dataset";
     private final Datastore datastore;
-    private final KeyFactory keyFactory;
     private final Key ancestorKey;
     private final EntitySerDe entitySerDe;
 
-    public GoogleDatastoreBackend(Datastore datastore, String projectId) {
+    public GoogleDatastoreBackend(Datastore datastore) {
         this.datastore = datastore;
-        this.keyFactory = datastore.newKeyFactory().setKind(KIND)
-                .setProjectId(projectId)
-                .addAncestor(PathElement.of(ANCESTOR_KIND, ANCESTOR))
-                .setKind(KIND);
         this.ancestorKey = datastore.newKeyFactory()
-                .setProjectId(projectId)
                 .setKind(ANCESTOR_KIND)
                 .newKey(ANCESTOR);
-        this.entitySerDe = new EntitySerDe(keyFactory);
+        this.entitySerDe = new EntitySerDe(this::key);
         datastore.put(Entity.newBuilder().setKey(ancestorKey).build());
     }
 
@@ -62,56 +52,47 @@ public class GoogleDatastoreBackend implements StorageBackend {
                 .build()
                 .getService();
 
-        return new GoogleDatastoreBackend(datastore, projectId);
+        return new GoogleDatastoreBackend(datastore);
     }
 
-    // TODO
     @Override
     public DatasetConfig get(DatasetCoordinates coords) throws IOException {
-        Entity entity = datastore.get(keyFactory.newKey(coords.getId().getUid()));
+        Entity entity = datastore.get(key(coords));
         return entitySerDe.entityToDataset(entity);
     }
 
-    // TODO
     @Override
     public void put(DatasetCoordinates coords, DatasetConfig config) throws IOException {
-        datastore.runInTransaction(readerWriter -> readerWriter.put(entitySerDe.datasetToEntity(coords.getId(), config)));
+        datastore.runInTransaction(readerWriter -> readerWriter.put(entitySerDe.datasetToEntity(coords, config)));
     }
 
-    // TODO
     @Override
     public void remove(DatasetCoordinates coords) throws IOException {
-        datastore.delete(keyFactory.newKey(coords.getId().getUid()));
+        datastore.delete(key(coords));
     }
 
-    // TODO
     @Override
     public boolean contains(DatasetCoordinates coords) throws IOException {
-        return datastore.get(keyFactory.newKey(coords.getId().getUid())) != null;
+        return datastore.get(key(coords)) != null;
     }
 
-    // TODO
     @Override
     public Map<DatasetCoordinates, DatasetConfig> getAll() throws IOException {
         EntityQuery query = Query.newEntityQueryBuilder()
-                .setKind(KIND)
+                .setKind(DATASET_KIND)
                 .setFilter(StructuredQuery.PropertyFilter.hasAncestor(ancestorKey))
                 .build();
 
-        Map<DatasetId, DatasetConfig> datasets = Maps.newHashMap();
+        Map<DatasetCoordinates, DatasetConfig> datasets = Maps.newHashMap();
         QueryResults<Entity> results = datastore.run(query);
         while (results.hasNext()) {
             Entity entity = results.next();
-            datasets.put(new DatasetId(entity.getKey().getName()), entitySerDe.entityToDataset(entity));
+            datasets.put(
+                    new DatasetCoordinates(entity.getKey().getParent().getName(), entity.getKey().getName()),
+                    entitySerDe.entityToDataset(entity)
+            );
         }
-
-        return datasets
-                .entrySet()
-                .stream()
-                .collect(toMap(
-                        e -> new DatasetCoordinates(new DatasetNamespace("foo"), e.getKey()),
-                        Map.Entry::getValue
-                ));
+        return datasets;
     }
 
     @Override
@@ -122,5 +103,15 @@ public class GoogleDatastoreBackend implements StorageBackend {
         else {
             return HealthCheck.Result.unhealthy("can't find ancestor key");
         }
+    }
+
+    private Key key(DatasetCoordinates coords) {
+        return datastore.newKeyFactory()
+                .addAncestors(
+                        PathElement.of(ANCESTOR_KIND, ANCESTOR),
+                        PathElement.of(NAMESPACE_KIND, coords.getNamespace().getNamespace())
+                )
+                .setKind(DATASET_KIND)
+                .newKey(coords.getId().getUid());
     }
 }

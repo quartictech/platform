@@ -39,7 +39,7 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
         backend = new GoogleDatastoreBackend(helper.getOptions()
                 .toBuilder()
                 .setNamespace("test")
-                .build().getService(), helper.getProjectId());
+                .build().getService());
     }
 
     @Override
@@ -52,7 +52,7 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
         GoogleDatastoreBackend secondBackend = new GoogleDatastoreBackend(helper.getOptions()
                 .toBuilder()
                 .setNamespace("test2")
-                .build().getService(), helper.getProjectId());
+                .build().getService());
 
         backend.put(coords("namespace", "A"), dataset("1"));
         secondBackend.put(coords("namespace", "A"), dataset("2"));

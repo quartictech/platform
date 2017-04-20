@@ -19,8 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public abstract class StorageBackendTests {
-    // TODO: validate namespace isolation
-
     @Test
     public void store_and_retrieve_dataset() throws IOException {
         final DatasetConfig datasetConfig = dataset("name");
