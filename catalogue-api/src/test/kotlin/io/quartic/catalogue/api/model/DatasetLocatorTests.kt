@@ -1,6 +1,5 @@
 package io.quartic.catalogue.api.model
 
-import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.common.serdes.OBJECT_MAPPER
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
