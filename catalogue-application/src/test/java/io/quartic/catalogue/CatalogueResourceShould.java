@@ -18,12 +18,15 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,7 +65,11 @@ public class CatalogueResourceShould {
 
         when(backend.getAll()).thenReturn(datasets);
 
-        assertThat(resource.getDatasets(), equalTo(datasets));
+        assertThat(resource.getDatasets(), equalTo(
+                datasets.entrySet()
+                .stream()
+                .collect(groupingBy(e -> e.getKey().getNamespace(), toMap(e -> e.getKey().getId(), Entry::getValue)))
+        ));
     }
 
     @Test(expected = BadRequestException.class)

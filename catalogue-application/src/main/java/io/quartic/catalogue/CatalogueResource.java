@@ -2,7 +2,6 @@ package io.quartic.catalogue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.model.DatasetConfig;
@@ -23,7 +22,11 @@ import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 
 public class CatalogueResource extends Endpoint implements CatalogueService {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueService.class);
@@ -100,8 +103,15 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     @Override
-    public synchronized Map<DatasetCoordinates, DatasetConfig> getDatasets() {
-        return wrapException(() -> ImmutableMap.copyOf(storageBackend.getAll()));
+    public synchronized Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> getDatasets() {
+        return wrapException(() -> storageBackend.getAll()
+                .entrySet()
+                .stream()
+                .collect(groupingBy(
+                        e -> e.getKey().getNamespace(),
+                        toMap(e -> e.getKey().getId(), Entry::getValue)
+                ))
+        );
     }
 
     public synchronized DatasetConfig getDataset(DatasetNamespace namespace, DatasetId id) {

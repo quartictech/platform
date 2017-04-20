@@ -36,9 +36,10 @@ interface CatalogueService {
 
     // TODO: get namespaces
 
+    // In an ideal world this would be Map<DatasetCoordinates, DatasetConfig>, but can't have that as a key in JSON
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(): Map<DatasetCoordinates, DatasetConfig>
+    fun getDatasets(): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>
 
     @GET
     @Path("/{namespace}/{id}")

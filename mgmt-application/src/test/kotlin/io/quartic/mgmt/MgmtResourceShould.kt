@@ -3,7 +3,6 @@ package io.quartic.mgmt
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
-import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
 import org.hamcrest.Matchers.equalTo
@@ -36,21 +35,17 @@ class MgmtResourceShould {
     }
 
     @Test
-    fun filter_retrieved_datasets_to_only_default_namespace() {
+    fun retrieve_only_datasets_from_default_namespace() {
         val idA = mock<DatasetId>()
         val idB = mock<DatasetId>()
         val datasetA = mock<DatasetConfig>()
         val datasetB = mock<DatasetConfig>()
 
         whenever(catalogue.getDatasets()).thenReturn(mapOf(
-                DatasetCoordinates(namespace, idA) to datasetA,
-                DatasetCoordinates(namespace, idB) to datasetB,
-                DatasetCoordinates(mock(), mock()) to mock()
+                namespace to mapOf(idA to datasetA, idB to datasetB),
+                mock<DatasetNamespace>() to mapOf(mock<DatasetId>() to mock<DatasetConfig>())
         ))
 
-        assertThat(resource.datasets, equalTo(mapOf(
-                idA to datasetA,
-                idB to datasetB
-        )))
+        assertThat(resource.datasets, equalTo(mapOf(idA to datasetA, idB to datasetB)))
     }
 }

@@ -1,5 +1,6 @@
 package io.quartic.mgmt;
 
+import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetConfig;
@@ -27,10 +28,8 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toMap;
 
 @Path("/")
 public class MgmtResource {
@@ -49,11 +48,7 @@ public class MgmtResource {
     @Path("/dataset")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<DatasetId, DatasetConfig> getDatasets() {
-        return catalogue.getDatasets()
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey().getNamespace().equals(defaultCatalogueNamespace))
-                .collect(toMap(e -> e.getKey().getId(), Entry::getValue));
+        return ImmutableMap.copyOf(catalogue.getDatasets().getOrDefault(defaultCatalogueNamespace, emptyMap()));
     }
 
     @DELETE

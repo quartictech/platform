@@ -6,51 +6,41 @@ import com.google.common.collect.Maps;
 import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
-import io.quartic.catalogue.api.model.DatasetId;
-import io.quartic.catalogue.api.model.DatasetNamespace;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static java.util.stream.Collectors.toMap;
-
 public class InMemoryStorageBackend implements StorageBackend {
-    private final Map<DatasetId, DatasetConfig> datasets = Maps.newConcurrentMap();
+    private final Map<DatasetCoordinates, DatasetConfig> datasets = Maps.newConcurrentMap();
 
     // TODO
     @Override
     public DatasetConfig get(DatasetCoordinates coords) throws IOException {
-        return datasets.get(coords.getId());
+        return datasets.get(coords);
     }
 
     // TODO
     @Override
     public void put(DatasetCoordinates coords, DatasetConfig config) throws IOException {
-        datasets.put(coords.getId(), config);
+        datasets.put(coords, config);
     }
 
     // TODO
     @Override
     public void remove(DatasetCoordinates coords) throws IOException {
-        datasets.remove(coords.getId());
+        datasets.remove(coords);
     }
 
     // TODO
     @Override
     public boolean contains(DatasetCoordinates coords) throws IOException {
-        return datasets.containsKey(coords.getId());
+        return datasets.containsKey(coords);
     }
 
     // TODO
     @Override
     public Map<DatasetCoordinates, DatasetConfig> getAll() throws IOException {
-        return ((Map<DatasetId, DatasetConfig>) ImmutableMap.copyOf(datasets))
-                .entrySet()
-                .stream()
-                .collect(toMap(
-                        e -> new DatasetCoordinates(new DatasetNamespace("foo"), e.getKey()),
-                        Map.Entry::getValue
-                ));
+        return ImmutableMap.copyOf(datasets);
     }
 
     @Override
