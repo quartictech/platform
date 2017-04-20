@@ -5,7 +5,6 @@ import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.StorageBackendTests;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
-import io.quartic.catalogue.api.model.DatasetId;
 import org.joda.time.Duration;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -49,21 +48,22 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
     }
 
     @Test
-    public void respect_namespace_separation() throws IOException {
+    public void respect_datastore_namespace_separation() throws IOException {
         GoogleDatastoreBackend secondBackend = new GoogleDatastoreBackend(helper.getOptions()
                 .toBuilder()
                 .setNamespace("test2")
                 .build().getService(), helper.getProjectId());
 
-        backend.put(coordsFrom(new DatasetId("A")), dataset("1"));
-        secondBackend.put(coordsFrom(new DatasetId("A")), dataset("2"));
+        backend.put(coords("namespace", "A"), dataset("1"));
+        secondBackend.put(coords("namespace", "A"), dataset("2"));
 
         Map<DatasetCoordinates, DatasetConfig> datasets = backend.getAll();
         Map<DatasetCoordinates, DatasetConfig> secondDatasets = secondBackend.getAll();
-        assertThat(datasets.size(), equalTo(1));
-        assertThat(datasets.size(), equalTo(1));
 
-        assertThat(datasets.get(coordsFrom(new DatasetId("A"))).getMetadata().getName(), equalTo("1"));
-        assertThat(secondDatasets.get(coordsFrom(new DatasetId("A"))).getMetadata().getName(), equalTo("2"));
+        assertThat(datasets.size(), equalTo(1));
+        assertThat(secondDatasets.size(), equalTo(1));
+
+        assertThat(datasets.get(coords("namespace", "A")).getMetadata().getName(), equalTo("1"));
+        assertThat(secondDatasets.get(coords("namespace", "A")).getMetadata().getName(), equalTo("2"));
     }
 }
