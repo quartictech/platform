@@ -18,6 +18,12 @@ allprojects {
             url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
         }
     }
+    
+    // NOTE: this needs to be applied before the test block below due to some strange ordering issues
+    apply plugin: "java"
+    test {
+    	maxHeapSize = "2048m"
+    }
 
     idea {
         project {
@@ -26,6 +32,7 @@ allprojects {
             languageLevel = '1.8'
         }
     }
+
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
