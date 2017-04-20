@@ -5,25 +5,34 @@ import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.logging.logger
 import io.quartic.common.rx.WithPrevious
 import io.quartic.common.rx.pairWithPrevious
-import io.quartic.common.serdes.objectMapper
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.websocket.WebsocketListener
 import rx.Observable
 import rx.Observable.from
 import rx.Observable.merge
 
-class CatalogueWatcher(listenerFactory: WebsocketListener.Factory) {
+class CatalogueWatcher(
+        listenerFactory: WebsocketListener.Factory,
+        private val namespace: DatasetNamespace
+) {
     private val listener by lazy {
-        listenerFactory.create<Map<DatasetId, DatasetConfig>>(
-                objectMapper().typeFactory.constructMapType(Map::class.java, DatasetId::class.java, DatasetConfig::class.java)
+        val tf = OBJECT_MAPPER.typeFactory
+        listenerFactory.create<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>(
+                tf.constructMapType(Map::class.java,
+                        tf.uncheckedSimpleType(DatasetNamespace::class.java),
+                        tf.constructMapType(Map::class.java, DatasetId::class.java, DatasetConfig::class.java)
+                )
         )
     }
 
     val events: Observable<CatalogueEvent>
         get() = listener.observable
                 .doOnNext { x -> LOG.info("Received catalogue update") }
+                .map { map -> map.getOrElse(namespace) { -> emptyMap<DatasetId, DatasetConfig>() } }
                 .compose(pairWithPrevious(emptyMap<DatasetId, DatasetConfig>()))
                 .concatMap { extractEvents(it) }
 

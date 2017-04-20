@@ -89,7 +89,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = new CatalogueWatcher(
-                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
+                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory),
+                configuration.getDefaultCatalogueNamespace()
         );
 
         final SourceManager sourceManager = SourceManagerImpl.builder()
