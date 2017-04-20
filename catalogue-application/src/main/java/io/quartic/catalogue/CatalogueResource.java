@@ -23,10 +23,7 @@ import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toMap;
 
 public class CatalogueResource extends Endpoint implements CatalogueService {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogueService.class);
@@ -72,20 +69,21 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     @Override
-    public DatasetId registerDataset(DatasetNamespace namespace, DatasetConfig config) {
+    public DatasetCoordinates registerDataset(DatasetNamespace namespace, DatasetConfig config) {
         return registerOrUpdateDataset(namespace, didGenerator.get(), config);
     }
 
     @Override
-    public synchronized DatasetId registerOrUpdateDataset(DatasetNamespace namespace, DatasetId id, DatasetConfig config) {
+    public synchronized DatasetCoordinates registerOrUpdateDataset(DatasetNamespace namespace, DatasetId id, DatasetConfig config) {
+        final DatasetCoordinates coords = new DatasetCoordinates(namespace, id);
         if (config.getMetadata().getRegistered() != null) {
             throw new BadRequestException("'registered' field should not be present");
         }
 
         // TODO: basic validation
-        wrapException(() -> storageBackend.put(new DatasetCoordinates(namespace, id), withRegisteredTimestamp(config)));
+        wrapException(() -> storageBackend.put(coords, withRegisteredTimestamp(config)));
         updateClients();
-        return id;
+        return coords;
     }
 
     private DatasetConfig withRegisteredTimestamp(DatasetConfig config) {
@@ -102,8 +100,8 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     @Override
-    public synchronized Map<DatasetId, DatasetConfig> getDatasets(DatasetNamespace namespace) {
-        return wrapException(() -> ImmutableMap.copyOf(onlyIdsNotCoords(storageBackend.getAll())));
+    public synchronized Map<DatasetCoordinates, DatasetConfig> getDatasets() {
+        return wrapException(() -> ImmutableMap.copyOf(storageBackend.getAll()));
     }
 
     public synchronized DatasetConfig getDataset(DatasetNamespace namespace, DatasetId id) {
@@ -140,17 +138,10 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     // TODO - update all clients to accept coords rather than ID
     private void updateClient(Session session, Map<DatasetCoordinates, DatasetConfig> datasets) {
         try {
-            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(onlyIdsNotCoords(datasets)));
+            session.getAsyncRemote().sendText(objectMapper.writeValueAsString(datasets));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }
-    }
-
-    private Map<DatasetId, DatasetConfig> onlyIdsNotCoords(Map<DatasetCoordinates, DatasetConfig> all) {
-        return all
-                .entrySet()
-                .stream()
-                .collect(toMap(e -> e.getKey().getId(), Entry::getValue));
     }
 
     private void throwIfDatasetNotFound(DatasetCoordinates coords) {

@@ -1,6 +1,7 @@
 package io.quartic.catalogue.api
 
 import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
 import javax.ws.rs.*
@@ -18,7 +19,7 @@ interface CatalogueService {
     fun registerDataset(
             @PathParam("namespace") namespace: DatasetNamespace,
             config: DatasetConfig
-    ): DatasetId
+    ): DatasetCoordinates
 
     /**
      * Registers a dataset (or updates an existing dataset) in a specified namespace, with a specified [DatasetId].
@@ -31,16 +32,13 @@ interface CatalogueService {
             @PathParam("namespace") namespace: DatasetNamespace,
             @PathParam("id") id: DatasetId,
             config: DatasetConfig
-    ): DatasetId
+    ): DatasetCoordinates
 
     // TODO: get namespaces
 
     @GET
-    @Path("/{namespace}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(
-            @PathParam("namespace") namespace: DatasetNamespace
-    ): Map<DatasetId, DatasetConfig>
+    fun getDatasets(): Map<DatasetCoordinates, DatasetConfig>
 
     @GET
     @Path("/{namespace}/{id}")
