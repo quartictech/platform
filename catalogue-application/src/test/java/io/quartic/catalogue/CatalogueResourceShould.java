@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.catalogue.api.GeoJsonDatasetLocator;
 import org.junit.Test;
 
@@ -34,15 +35,15 @@ public class CatalogueResourceShould {
     @Test(expected = BadRequestException.class)
     public void reject_registration_with_registered_timestamp_set() throws Exception {
         final DatasetConfig config = config("X", clock.instant());
-        resource.registerDataset(config);
+        resource.registerDataset(mock(DatasetNamespace.class), config);
     }
 
     @Test
     public void set_registered_timestamp_to_current_time() throws Exception {
         final DatasetConfig config = config("X");
-        final DatasetId id = resource.registerDataset(config);
+        final DatasetId id = resource.registerDataset(mock(DatasetNamespace.class), config);
 
-        assertThat(resource.getDataset(id).getMetadata().getRegistered(), equalTo(clock.instant()));
+        assertThat(resource.getDataset(mock(DatasetNamespace.class), id).getMetadata().getRegistered(), equalTo(clock.instant()));
     }
 
     @Test
@@ -51,9 +52,9 @@ public class CatalogueResourceShould {
         final DatasetConfig configWithTimestamp = config("X", clock.instant());
 
         final DatasetId id = new DatasetId("123");
-        resource.registerOrUpdateDataset(id, config);
+        resource.registerOrUpdateDataset(mock(DatasetNamespace.class), id, config);
 
-        assertThat(resource.getDataset(id), equalTo(configWithTimestamp));
+        assertThat(resource.getDataset(mock(DatasetNamespace.class), id), equalTo(configWithTimestamp));
     }
 
     @Test
@@ -63,10 +64,10 @@ public class CatalogueResourceShould {
         final DatasetConfig newConfigWithTimestamp = config("Y", clock.instant());
 
         final DatasetId id = new DatasetId("123");
-        resource.registerOrUpdateDataset(id, config);
-        resource.registerOrUpdateDataset(id, newConfig);
+        resource.registerOrUpdateDataset(mock(DatasetNamespace.class), id, config);
+        resource.registerOrUpdateDataset(mock(DatasetNamespace.class), id, newConfig);
 
-        assertThat(resource.getDataset(id), equalTo(newConfigWithTimestamp));
+        assertThat(resource.getDataset(mock(DatasetNamespace.class), id), equalTo(newConfigWithTimestamp));
     }
 
     @Test
@@ -75,7 +76,7 @@ public class CatalogueResourceShould {
         final DatasetConfig configWithTimestamp = config("X", clock.instant());
 
         final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
-        final DatasetId id = resource.registerDataset(config);
+        final DatasetId id = resource.registerDataset(mock(DatasetNamespace.class), config);
 
         resource.onOpen(session, mock(EndpointConfig.class));
 
@@ -94,9 +95,9 @@ public class CatalogueResourceShould {
         resource.onOpen(sessionA, mock(EndpointConfig.class));
         resource.onOpen(sessionB, mock(EndpointConfig.class));
 
-        final DatasetId idX = resource.registerDataset(configX);
-        final DatasetId idY = resource.registerDataset(configY);
-        resource.deleteDataset(idX);
+        final DatasetId idX = resource.registerDataset(mock(DatasetNamespace.class), configX);
+        final DatasetId idY = resource.registerDataset(mock(DatasetNamespace.class), configY);
+        resource.deleteDataset(mock(DatasetNamespace.class), idX);
 
         newArrayList(sessionA, sessionB).forEach(session -> {
             verify(session.getAsyncRemote()).sendText(serialize(ImmutableMap.of(idX, configWithTimestampX)));
@@ -112,7 +113,7 @@ public class CatalogueResourceShould {
         resource.onOpen(session, mock(EndpointConfig.class));
         resource.onClose(session, mock(CloseReason.class));
 
-        resource.registerDataset(config);
+        resource.registerDataset(mock(DatasetNamespace.class), config);
 
         verify(session.getAsyncRemote()).sendText(serialize(emptyMap()));   // Initial catalogue state
         verifyNoMoreInteractions(session.getAsyncRemote());

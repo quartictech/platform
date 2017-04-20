@@ -7,6 +7,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
@@ -27,7 +28,6 @@ import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
@@ -39,6 +39,8 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
@@ -46,12 +48,13 @@ import static org.mockito.Mockito.verify;
 import static rx.Observable.just;
 
 public class LayerExporterShould {
-    private PublishSubject<LayerSnapshotSequence> layerSnapshots = PublishSubject.create();
-    private CatalogueService catalogueService = mock(CatalogueService.class);
-    private AttributesFactory attributesFactory = new AttributesFactory();
-    private TestLayerWriter layerWriter = new TestLayerWriter();
-    private LayerExporter layerExporter = layerExporter(layerWriter);
-    private TestSubscriber<Optional<LayerExportResult>> exportResult = TestSubscriber.create();
+    private final DatasetNamespace namespace = new DatasetNamespace("foo");
+    private final PublishSubject<LayerSnapshotSequence> layerSnapshots = PublishSubject.create();
+    private final CatalogueService catalogueService = mock(CatalogueService.class);
+    private final AttributesFactory attributesFactory = new AttributesFactory();
+    private final TestLayerWriter layerWriter = new TestLayerWriter();
+    private final LayerExporter layerExporter = layerExporter(layerWriter);
+    private final TestSubscriber<Optional<LayerExportResult>> exportResult = TestSubscriber.create();
 
     private static class TestLayerWriter implements LayerWriter {
         private final List<Feature> features = Lists.newArrayList();
@@ -108,7 +111,7 @@ public class LayerExporterShould {
         layerSnapshots.onNext(sequence(layer, features));
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
-        verify(catalogueService, only()).registerDataset(ArgumentMatchers.any());
+        verify(catalogueService, only()).registerDataset(eq(namespace), any());
         assertThat(exportResult.getOnNextEvents().size(), equalTo(1));
     }
 
@@ -120,7 +123,7 @@ public class LayerExporterShould {
         layerSnapshots.onNext(sequence(layer, features));
         failingLayerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
-        verify(catalogueService, times(0)).registerDataset(ArgumentMatchers.any());
+        verify(catalogueService, times(0)).registerDataset(any(), any());
         exportResult.assertError(RuntimeException.class);
     }
 
@@ -151,6 +154,6 @@ public class LayerExporterShould {
     }
 
     private LayerExporter layerExporter(LayerWriter layerWriter) {
-        return new LayerExporter(layerSnapshots, layerWriter, catalogueService);
+        return new LayerExporter(layerSnapshots, layerWriter, catalogueService, namespace);
     }
 }

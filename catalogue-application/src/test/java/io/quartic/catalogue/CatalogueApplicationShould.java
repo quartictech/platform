@@ -5,6 +5,7 @@ import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.catalogue.api.PostgresDatasetLocator;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -32,8 +33,10 @@ public class CatalogueApplicationShould {
                 emptyMap()
         );
 
-        DatasetId did = catalogue.registerDataset(config);
-        final Map<DatasetId, DatasetConfig> datasets = catalogue.getDatasets();
+        final DatasetNamespace namespace = new DatasetNamespace("yeah");
+
+        DatasetId did = catalogue.registerDataset(namespace, config);
+        final Map<DatasetId, DatasetConfig> datasets = catalogue.getDatasets(namespace);
 
         assertThat(withTimestampRemoved(datasets.get(did)), equalTo(config));
     }

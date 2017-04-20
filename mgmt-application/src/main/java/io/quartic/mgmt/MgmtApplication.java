@@ -29,6 +29,6 @@ public class MgmtApplication extends ApplicationBase<MgmtConfiguration> {
         environment.healthChecks().register("catalogue", new PingPongHealthCheck(getClass(), configuration.getCatalogueUrl()));
 
         CatalogueService catalogueService = client(CatalogueService.class, getClass(), configuration.getCatalogueUrl());
-        environment.jersey().register(new MgmtResource(catalogueService, howlService));
+        environment.jersey().register(new MgmtResource(catalogueService, howlService, configuration.getDefaultCatalogueNamespace()));
     }
 }
