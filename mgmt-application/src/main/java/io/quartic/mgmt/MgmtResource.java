@@ -1,10 +1,10 @@
 package io.quartic.mgmt;
 
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocatorImpl;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetConfigImpl;
 import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.howl.api.HowlService;
 import io.quartic.howl.api.HowlStorageId;
@@ -33,26 +33,28 @@ import static java.util.Collections.emptyMap;
 @Path("/")
 public class MgmtResource {
     private static final String HOWL_NAMESPACE = "mgmt";
-    private final CatalogueService catalogueService;
-    private final HowlService howlService;
+    private final CatalogueService catalogue;
+    private final HowlService howl;
+    private final DatasetNamespace defaultCatalogueNamespace;
 
-    public MgmtResource(CatalogueService catalogueService, HowlService howlService) {
-        this.catalogueService = catalogueService;
-        this.howlService = howlService;
+    public MgmtResource(CatalogueService catalogue, HowlService howl, DatasetNamespace defaultCatalogueNamespace) {
+        this.catalogue = catalogue;
+        this.howl = howl;
+        this.defaultCatalogueNamespace = defaultCatalogueNamespace;
     }
 
     @GET
     @Path("/dataset")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<DatasetId, DatasetConfig> getDatasets() {
-        return catalogueService.getDatasets();
+        return catalogue.getDatasets(defaultCatalogueNamespace);
     }
 
     @DELETE
     @Path("/dataset/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteDataset(@PathParam("id") DatasetId id) {
-        catalogueService.deleteDataset(id);
+        catalogue.deleteDataset(defaultCatalogueNamespace, id);
     }
 
     @POST
@@ -60,28 +62,25 @@ public class MgmtResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public DatasetId createDataset(CreateDatasetRequest createDatasetRequest) {
-        DatasetConfig datasetConfig = createDatasetRequest.accept(new CreateDatasetRequest.Visitor<DatasetConfig>() {
-            @Override
-            public DatasetConfig visit(CreateStaticDatasetRequest request) {
-                try {
-                    String name = preprocessFile(request.fileName(), request.fileType());
-                    return DatasetConfigImpl.of(
-                            request.metadata(),
-                            CloudGeoJsonDatasetLocatorImpl.of(String.format("/%s/%s", HOWL_NAMESPACE, name), false),
-                            emptyMap()
-                    );
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("exception while preprocessing file: " + e);
-                }
+        DatasetConfig datasetConfig = createDatasetRequest.accept(request -> {
+            try {
+                String name = preprocessFile(request.fileName(), request.fileType());
+                return new DatasetConfig(
+                        request.metadata(),
+                        new CloudGeoJsonDatasetLocator(String.format("/%s/%s", HOWL_NAMESPACE, name), false),
+                        emptyMap()
+                );
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("exception while preprocessing file: " + e);
             }
         });
-        return catalogueService.registerDataset(datasetConfig);
+        return catalogue.registerDataset(defaultCatalogueNamespace, datasetConfig);
     }
 
     private String preprocessFile(String fileName, FileType fileType) throws IOException {
-        InputStream inputStream = howlService.downloadFile(HOWL_NAMESPACE, fileName)
+        InputStream inputStream = howl.downloadFile(HOWL_NAMESPACE, fileName)
                 .orElseThrow(() -> new NotFoundException("file not found: " + fileName));
 
         switch (fileType) {
@@ -94,7 +93,7 @@ public class MgmtResource {
                 return fileName;
             case CSV:
                 GeoJsonConverter converter = new CsvConverter();
-                HowlStorageId storageId = howlService.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
+                HowlStorageId storageId = howl.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE,
                         outputStream -> {
                             try {
                                 converter.convert(inputStream, outputStream);
@@ -114,7 +113,7 @@ public class MgmtResource {
     @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
     public HowlStorageId uploadFile(@Context HttpServletRequest request) throws IOException {
-        return howlService.uploadFile(request.getContentType(), HOWL_NAMESPACE,
+        return howl.uploadFile(request.getContentType(), HOWL_NAMESPACE,
                 outputStream -> {
                     try {
                         IOUtils.copy(request.getInputStream(), outputStream);

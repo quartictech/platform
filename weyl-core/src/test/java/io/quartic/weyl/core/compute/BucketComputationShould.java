@@ -79,8 +79,7 @@ public class BucketComputationShould {
                         "Foo (bucketed)",
                         "Foo bucketed by Bar aggregating by " + aggregation.describe(),
                         "Alice / Bob",
-                        Instant.EPOCH,
-                        Optional.empty()
+                        Instant.EPOCH
                 ),
                 IDENTITY_VIEW,
                 StaticSchemaImpl.copyOf(bucketSchema())

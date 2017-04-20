@@ -1,13 +1,16 @@
 package io.quartic.catalogue;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.DatasetConfig;
+import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.DatasetLocator;
+import io.quartic.catalogue.api.DatasetMetadata;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -21,9 +24,7 @@ public abstract class StorageBackendTests {
 
         DatasetConfig config = getBackend().get(new DatasetId("TEST"));
 
-        assertThat(config.metadata(), equalTo(datasetConfig.metadata()));
-        assertThat(config.locator(), equalTo(datasetConfig.locator()));
-        assertThat(config.extensions(), equalTo(datasetConfig.extensions()));
+        assertThat(config, equalTo(datasetConfig));
     }
     @Test
     public void retrieve_updated_dataset() throws IOException {
@@ -32,7 +33,7 @@ public abstract class StorageBackendTests {
 
         DatasetConfig config = getBackend().get(new DatasetId("TEST"));
 
-        assertThat(config.metadata().name(), equalTo("New Name"));
+        assertThat(config.getMetadata().getName(), equalTo("New Name"));
     }
 
     @Test
@@ -71,18 +72,14 @@ public abstract class StorageBackendTests {
     }
 
     protected DatasetConfig dataset(String name) {
-        DatasetMetadata metadata = DatasetMetadataImpl.of(
+        DatasetMetadata metadata = new DatasetMetadata(
                 name,
                 "description",
                 "attribution",
-                Optional.of(Instant.now()),
-                Optional.of(IconImpl.of("icon")));
+                Instant.now());
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
-        DatasetLocator locator = CloudGeoJsonDatasetLocatorImpl.of("WAT", false);
-        return DatasetConfigImpl.of(
-                metadata,
-                locator,
-                extensions);
+        DatasetLocator locator = new CloudGeoJsonDatasetLocator("WAT", false);
+        return new DatasetConfig(metadata, locator, extensions);
     }
 
     abstract StorageBackend getBackend();

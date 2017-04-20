@@ -85,7 +85,7 @@ public class GoogleDatastoreBackend implements StorageBackend {
         QueryResults<Entity> results = datastore.run(query);
         while (results.hasNext()) {
             Entity entity = results.next();
-            datasets.put(DatasetId.fromString(entity.getKey().getName()), entitySerDe.entityToDataset(entity));
+            datasets.put(new DatasetId(entity.getKey().getName()), entitySerDe.entityToDataset(entity));
         }
 
         return datasets;

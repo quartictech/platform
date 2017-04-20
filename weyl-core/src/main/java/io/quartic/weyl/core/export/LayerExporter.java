@@ -20,14 +20,21 @@ import static io.quartic.common.rx.RxUtilsKt.*;
 public class LayerExporter {
     private final Observable<Map<LayerId, LayerSnapshotSequence>> layers;
     private final LayerWriter layerWriter;
-    private final CatalogueService catalogueService;
+    private final CatalogueService catalogue;
+    private final DatasetNamespace defaultCatalogueNamespace;
 
-    public LayerExporter(Observable<LayerSnapshotSequence> snapshotSequences, LayerWriter layerWriter,
-                         CatalogueService catalogueService) {
-        this.layers = snapshotSequences.compose(accumulateMap(snapshot -> snapshot.spec().id(), snapshot -> snapshot))
+    public LayerExporter(
+            Observable<LayerSnapshotSequence> snapshotSequences,
+            LayerWriter layerWriter,
+            CatalogueService catalogue,
+            DatasetNamespace defaultCatalogueNamespace
+    ) {
+        this.layers = snapshotSequences
+                .compose(accumulateMap(snapshot -> snapshot.spec().id(), snapshot -> snapshot))
                 .compose(likeBehavior());
         this.layerWriter = layerWriter;
-        this.catalogueService = catalogueService;
+        this.catalogue = catalogue;
+        this.defaultCatalogueNamespace = defaultCatalogueNamespace;
     }
 
     public Observable<Optional<LayerExportResult>> export(LayerExportRequest layerExportRequest) {
@@ -46,7 +53,7 @@ public class LayerExporter {
                 .map(layer -> {
                     try {
                         LayerExportResult exportResult = layerWriter.write(layer);
-                        catalogueService.registerDataset(datasetConfig(layer, exportResult.locator()));
+                        catalogue.registerDataset(defaultCatalogueNamespace, datasetConfig(layer, exportResult.locator()));
                         return exportResult;
                     }
                     catch (IOException e) {
@@ -56,14 +63,13 @@ public class LayerExporter {
     }
 
     private DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {
-        return DatasetConfigImpl.of(
-                DatasetMetadataImpl.of(
+        return new DatasetConfig(
+                new DatasetMetadata(
                         String.format("%s (exported %s)", layer.spec().metadata().name(),
                                 DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now())),
                         layer.spec().metadata().description(),
                         layer.spec().metadata().attribution(),
-                        Optional.empty(),
-                        layer.spec().metadata().icon()
+                        null
                 ),
                 locator,
                 new ExtensionCodec().encode(MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))
