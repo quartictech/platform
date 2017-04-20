@@ -8,6 +8,7 @@ import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.DatasetConfig;
 import io.quartic.catalogue.api.DatasetId;
 import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.DatasetNamespace;
 import io.quartic.common.uid.UidGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     private final UidGenerator<DatasetId> didGenerator;
     private final Clock clock;
     private final ObjectMapper objectMapper;
-    private final Set<Session> sessions = Sets.newHashSet();
+    private final Set<Session> sessions = Sets.newHashSet();    // TODO: extend ResourceManagingEndpoint instead
 
     public CatalogueResource(StorageBackend storageBackend, UidGenerator<DatasetId> didGenerator, Clock clock, ObjectMapper objectMapper) {
         this.storageBackend = storageBackend;
@@ -67,12 +68,12 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     @Override
-    public DatasetId registerDataset(DatasetConfig config) {
-        return registerOrUpdateDataset(didGenerator.get(), config);
+    public DatasetId registerDataset(DatasetNamespace namespace, DatasetConfig config) {
+        return registerOrUpdateDataset(namespace, didGenerator.get(), config);
     }
 
     @Override
-    public synchronized DatasetId registerOrUpdateDataset(DatasetId id, DatasetConfig config) {
+    public synchronized DatasetId registerOrUpdateDataset(DatasetNamespace namespace, DatasetId id, DatasetConfig config) {
         if (config.getMetadata().getRegistered() != null) {
             throw new BadRequestException("'registered' field should not be present");
         }
@@ -97,20 +98,20 @@ public class CatalogueResource extends Endpoint implements CatalogueService {
     }
 
     @Override
-    public synchronized void deleteDataset(DatasetId id) {
-        throwIfDatasetNotFound(id);
-        wrapException(() -> storageBackend.remove(id));
-        updateClients();
-    }
-
-    @Override
-    public synchronized Map<DatasetId, DatasetConfig> getDatasets() {
+    public synchronized Map<DatasetId, DatasetConfig> getDatasets(DatasetNamespace namespace) {
         return wrapException(() -> ImmutableMap.copyOf(storageBackend.getAll()));
     }
 
-    public synchronized DatasetConfig getDataset(DatasetId id) {
+    public synchronized DatasetConfig getDataset(DatasetNamespace namespace, DatasetId id) {
         throwIfDatasetNotFound(id);
         return wrapException(() -> storageBackend.get(id));
+    }
+
+    @Override
+    public synchronized void deleteDataset(DatasetNamespace namespace, DatasetId id) {
+        throwIfDatasetNotFound(id);
+        wrapException(() -> storageBackend.remove(id));
+        updateClients();
     }
 
     @Override

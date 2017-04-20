@@ -1,11 +1,13 @@
 package io.quartic.mgmt;
 
 import io.dropwizard.Configuration;
+import io.quartic.catalogue.api.DatasetNamespace;
 
 public class MgmtConfiguration extends Configuration {
     private String catalogueUrl;
     private String bucketName;
     private String howlUrl;
+    private DatasetNamespace defaultCatalogueNamespace;
 
     public String getCatalogueUrl() {
         return catalogueUrl;
@@ -29,5 +31,13 @@ public class MgmtConfiguration extends Configuration {
 
     public void setHowlUrl(String howlUrl) {
         this.howlUrl = howlUrl;
+    }
+
+    public DatasetNamespace getDefaultCatalogueNamespace() {
+        return defaultCatalogueNamespace;
+    }
+
+    public void setHowlUrl(DatasetNamespace defaultCatalogueNamespace) {
+        this.defaultCatalogueNamespace = defaultCatalogueNamespace;
     }
 }

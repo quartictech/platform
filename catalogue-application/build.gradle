@@ -21,7 +21,7 @@ dependencies {
     compile "com.google.cloud:google-cloud-datastore:0.8.0-beta"
     compile libraries.dropwizardWebsockets
 
-    testCompile libraries.testCommon
+    testCompile project(":common-test")
     testCompile libraries.dropwizardTesting
 }
 
