@@ -1,9 +1,9 @@
 package io.quartic.weyl.core.source;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.MapDatasetExtension;

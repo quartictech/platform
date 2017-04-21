@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.catalogue.api.model.PostgresDatasetLocator;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;

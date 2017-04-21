@@ -9,6 +9,7 @@ catalogue:
   hostname: localhost
   port: 8090
   useSsl: false
+defaultCatalogueNamespace: production
 
 batchSize: 10
 extractionPeriodSeconds: 15

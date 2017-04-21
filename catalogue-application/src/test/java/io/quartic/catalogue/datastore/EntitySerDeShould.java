@@ -1,13 +1,12 @@
-package io.quartic.catalogue;
+package io.quartic.catalogue.datastore;
 
 import com.google.cloud.datastore.Entity;
-import com.google.cloud.datastore.KeyFactory;
+import com.google.cloud.datastore.Key;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.catalogue.api.GeoJsonDatasetLocator;
-import io.quartic.catalogue.io.quartic.catalogue.datastore.EntitySerDe;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.GeoJsonDatasetLocator;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -15,11 +14,10 @@ import java.time.Instant;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.mock;
 
 public class EntitySerDeShould {
-    KeyFactory keyFactory = new KeyFactory("test")
-            .setKind("dataset");
-    EntitySerDe entitySerDe = new EntitySerDe(keyFactory);
+    final EntitySerDe entitySerDe = new EntitySerDe(coords -> mock(Key.class));
 
     @Test
     public void serialize_deserialize_correctly() throws IOException {
@@ -34,9 +32,8 @@ public class EntitySerDeShould {
                 ImmutableMap.of("foo", "bar", "wat", ImmutableMap.of("ladispute", 1337))
         );
 
-        Entity entity = entitySerDe.datasetToEntity(new DatasetId("sweet"), datasetConfig);
-        DatasetConfig datasetConfig1 = entitySerDe.entityToDataset(entity);
+        Entity entity = entitySerDe.datasetToEntity(mock(DatasetCoordinates.class), datasetConfig);
 
-        assertThat(datasetConfig1, equalTo(datasetConfig));
+        assertThat(entitySerDe.entityToDataset(entity), equalTo(datasetConfig));
     }
 }

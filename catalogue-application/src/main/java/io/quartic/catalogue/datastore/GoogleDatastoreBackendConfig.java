@@ -1,4 +1,4 @@
-package io.quartic.catalogue.io.quartic.catalogue.datastore;
+package io.quartic.catalogue.datastore;
 
 import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.StorageBackendConfig;

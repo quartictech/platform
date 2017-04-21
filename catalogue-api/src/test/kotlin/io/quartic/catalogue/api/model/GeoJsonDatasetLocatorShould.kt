@@ -1,4 +1,4 @@
-package io.quartic.catalogue.api
+package io.quartic.catalogue.api.model
 
 class GeoJsonDatasetLocatorShould : DatasetLocatorTests<GeoJsonDatasetLocator>() {
     override fun locator() = GeoJsonDatasetLocator("http://wat")

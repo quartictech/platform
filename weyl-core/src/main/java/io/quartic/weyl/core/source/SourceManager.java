@@ -1,10 +1,10 @@
 package io.quartic.weyl.core.source;
 
 import io.quartic.catalogue.CatalogueEvent;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetLocator;
+import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
