@@ -1,6 +1,6 @@
 package io.quartic.weyl.core.export;
 
-import io.quartic.catalogue.api.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.common.geojson.GeoJsonGenerator;
 import io.quartic.howl.api.HowlClient;
 import io.quartic.howl.api.HowlStorageId;

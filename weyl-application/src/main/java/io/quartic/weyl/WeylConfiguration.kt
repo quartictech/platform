@@ -2,7 +2,7 @@ package io.quartic.weyl
 
 import io.dropwizard.Configuration
 import io.quartic.catalogue.CatalogueClientConfiguration
-import io.quartic.catalogue.api.DatasetNamespace
+import io.quartic.catalogue.api.model.DatasetNamespace
 
 import javax.validation.Valid
 import javax.validation.constraints.NotNull

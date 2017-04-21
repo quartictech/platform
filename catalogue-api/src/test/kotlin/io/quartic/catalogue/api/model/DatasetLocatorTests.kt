@@ -1,4 +1,4 @@
-package io.quartic.catalogue.api
+package io.quartic.catalogue.api.model
 
 import io.quartic.common.serdes.OBJECT_MAPPER
 import org.hamcrest.MatcherAssert.assertThat

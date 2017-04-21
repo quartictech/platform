@@ -1,21 +1,22 @@
-package io.quartic.catalogue.io.quartic.catalogue.datastore;
+package io.quartic.catalogue.datastore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.cloud.datastore.Blob;
 import com.google.cloud.datastore.DateTime;
 import com.google.cloud.datastore.Entity;
-import com.google.cloud.datastore.KeyFactory;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetLocator;
-import io.quartic.catalogue.api.DatasetMetadata;
+import com.google.cloud.datastore.Key;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetLocator;
+import io.quartic.catalogue.api.model.DatasetMetadata;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
@@ -27,11 +28,11 @@ public class EntitySerDe {
     private static final String REGISTERED = "registered";
     private static final String LOCATOR = "locator";
     private static final String EXTENSIONS = "extensions";
-    private static final Long CURRENT_VERSION = 1L;
-    private final KeyFactory keyFactory;
+    private static final Long CURRENT_VERSION = 2L;
+    private final Function<DatasetCoordinates, Key> keyFromCoords;
 
-    public EntitySerDe(KeyFactory keyFactory) {
-        this.keyFactory = keyFactory;
+    public EntitySerDe(Function<DatasetCoordinates, Key> keyFromCoords) {
+        this.keyFromCoords = keyFromCoords;
     }
 
     public DatasetConfig entityToDataset(Entity entity) throws IOException {
@@ -64,8 +65,8 @@ public class EntitySerDe {
         }
     }
 
-    public Entity datasetToEntity(DatasetId datasetId, DatasetConfig datasetConfig) throws JsonProcessingException {
-        Entity.Builder entityBuilder = Entity.newBuilder(keyFactory.newKey(datasetId.getUid()));
+    public Entity datasetToEntity(DatasetCoordinates coords, DatasetConfig datasetConfig) throws JsonProcessingException {
+        Entity.Builder entityBuilder = Entity.newBuilder(keyFromCoords.apply(coords));
 
         entityBuilder.set(VERSION, CURRENT_VERSION);
         entityBuilder.set(NAME, datasetConfig.getMetadata().getName());

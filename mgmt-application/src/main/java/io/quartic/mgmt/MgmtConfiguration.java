@@ -1,7 +1,7 @@
 package io.quartic.mgmt;
 
 import io.dropwizard.Configuration;
-import io.quartic.catalogue.api.DatasetNamespace;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 
 public class MgmtConfiguration extends Configuration {
     private String catalogueUrl;

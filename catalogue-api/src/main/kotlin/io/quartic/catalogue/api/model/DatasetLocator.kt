@@ -1,4 +1,4 @@
-package io.quartic.catalogue.api
+package io.quartic.catalogue.api.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

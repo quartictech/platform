@@ -1,10 +1,13 @@
-package io.quartic.catalogue;
+package io.quartic.catalogue.inmemory;
+
+import io.quartic.catalogue.StorageBackend;
+import io.quartic.catalogue.StorageBackendTests;
 
 public class InMemoryStorageBackendShould extends StorageBackendTests {
     private final InMemoryStorageBackend backend = new InMemoryStorageBackend();
 
     @Override
-    StorageBackend getBackend() {
+    protected StorageBackend getBackend() {
         return backend;
     }
 }

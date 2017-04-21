@@ -1,4 +1,4 @@
-package io.quartic.catalogue.api
+package io.quartic.catalogue.api.model
 
 data class PostgresDatasetLocator(
     val user: String,

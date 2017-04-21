@@ -7,7 +7,7 @@ import javax.websocket.ClientEndpointConfig
 import javax.websocket.Endpoint
 import javax.websocket.server.ServerEndpointConfig
 
-fun serverEndpointConfig(path: String, endpoint: Endpoint) = ServerEndpointConfig.Builder
+fun serverEndpointConfig(path: String, endpoint: Endpoint): ServerEndpointConfig = ServerEndpointConfig.Builder
         .create(endpoint.javaClass, path)
         .configurator(object : ServerEndpointConfig.Configurator() {
             @Suppress("UNCHECKED_CAST")
@@ -15,7 +15,7 @@ fun serverEndpointConfig(path: String, endpoint: Endpoint) = ServerEndpointConfi
         })
         .build()
 
-fun clientEndpointConfig(owner: Class<*>) = ClientEndpointConfig.Builder
+fun clientEndpointConfig(owner: Class<*>): ClientEndpointConfig = ClientEndpointConfig.Builder
         .create()
         .configurator(object : ClientEndpointConfig.Configurator() {
             override fun beforeRequest(headers: MutableMap<String, List<String>>?) {

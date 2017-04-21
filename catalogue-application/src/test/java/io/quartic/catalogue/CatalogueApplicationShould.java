@@ -2,11 +2,12 @@ package io.quartic.catalogue;
 
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.DatasetConfig;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetMetadata;
-import io.quartic.catalogue.api.DatasetNamespace;
-import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetNamespace;
+import io.quartic.catalogue.api.model.PostgresDatasetLocator;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -33,12 +34,10 @@ public class CatalogueApplicationShould {
                 emptyMap()
         );
 
-        final DatasetNamespace namespace = new DatasetNamespace("yeah");
+        DatasetCoordinates coords = catalogue.registerDataset(new DatasetNamespace("yeah"), config);
+        final Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> datasets = catalogue.getDatasets();
 
-        DatasetId did = catalogue.registerDataset(namespace, config);
-        final Map<DatasetId, DatasetConfig> datasets = catalogue.getDatasets(namespace);
-
-        assertThat(withTimestampRemoved(datasets.get(did)), equalTo(config));
+        assertThat(withTimestampRemoved(datasets.get(coords.getNamespace()).get(coords.getId())), equalTo(config));
     }
 
     private DatasetConfig withTimestampRemoved(DatasetConfig actual) {

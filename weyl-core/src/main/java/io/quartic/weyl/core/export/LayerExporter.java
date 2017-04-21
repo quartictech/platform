@@ -1,6 +1,10 @@
 package io.quartic.weyl.core.export;
 
 import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetLocator;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetNamespace;
 import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
