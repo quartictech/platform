@@ -14,9 +14,12 @@ import com.google.cloud.datastore.StructuredQuery;
 import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Map;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * GoogleDatastoreBackend
@@ -28,6 +31,8 @@ import java.util.Map;
  * to the docs.
  */
 public class GoogleDatastoreBackend implements StorageBackend {
+    private static final Logger LOG = getLogger(GoogleDatastoreBackend.class);
+
     private static final String ANCESTOR = "ancestor";
     private static final String ANCESTOR_KIND = "catalogue";
     private static final String NAMESPACE_KIND = "namespace";
@@ -87,10 +92,15 @@ public class GoogleDatastoreBackend implements StorageBackend {
         QueryResults<Entity> results = datastore.run(query);
         while (results.hasNext()) {
             Entity entity = results.next();
-            datasets.put(
-                    new DatasetCoordinates(entity.getKey().getParent().getName(), entity.getKey().getName()),
-                    entitySerDe.entityToDataset(entity)
-            );
+
+            if (entity.getKey().getAncestors().size() == 1) {
+                LOG.info("Skipping un-namespaced dataset '" + entity.getKey().getName() + "'");
+            } else {
+                datasets.put(
+                        new DatasetCoordinates(entity.getKey().getParent().getName(), entity.getKey().getName()),
+                        entitySerDe.entityToDataset(entity)
+                );
+            }
         }
         return datasets;
     }

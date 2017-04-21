@@ -1,5 +1,9 @@
 package io.quartic.catalogue.datastore;
 
+import com.google.cloud.datastore.Datastore;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.Key;
+import com.google.cloud.datastore.PathElement;
 import com.google.cloud.datastore.testing.LocalDatastoreHelper;
 import io.quartic.catalogue.StorageBackend;
 import io.quartic.catalogue.StorageBackendTests;
@@ -16,10 +20,12 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 
 public class GoogleDatastoreBackendShould extends StorageBackendTests {
     private static LocalDatastoreHelper helper;
+    private Datastore datastore;
     private GoogleDatastoreBackend backend;
 
     @BeforeClass
@@ -36,10 +42,11 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
     @Before
     public void setUp() throws IOException, InterruptedException {
         helper.reset();
-        backend = new GoogleDatastoreBackend(helper.getOptions()
+        datastore = helper.getOptions()
                 .toBuilder()
                 .setNamespace("test")
-                .build().getService());
+                .build().getService();
+        backend = new GoogleDatastoreBackend(datastore);
     }
 
     @Override
@@ -65,5 +72,17 @@ public class GoogleDatastoreBackendShould extends StorageBackendTests {
 
         assertThat(datasets.get(coords("namespace", "A")).getMetadata().getName(), equalTo("1"));
         assertThat(secondDatasets.get(coords("namespace", "A")).getMetadata().getName(), equalTo("2"));
+    }
+
+    @Test
+    public void ignore_unnamespaced_datasets() throws Exception {
+        // This is where a v1 dataset would be
+        final Key key = datastore.newKeyFactory()
+                .addAncestors(PathElement.of("catalogue", "ancestor"))
+                .setKind("dataset")
+                .newKey("foobles");
+        datastore.put(Entity.newBuilder(key).build());
+
+        assertThat(backend.getAll().entrySet(), empty());
     }
 }
