@@ -1,6 +1,8 @@
 package io.quartic.mgmt
 
 import io.dropwizard.assets.AssetsBundle
+import io.dropwizard.auth.AuthDynamicFeature
+import io.dropwizard.auth.AuthValueFactoryProvider
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.catalogue.api.CatalogueService
@@ -9,6 +11,9 @@ import io.quartic.common.client.client
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
+import io.quartic.mgmt.auth.NoobAuthFilter
+import io.quartic.mgmt.auth.User
+
 
 class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
@@ -20,7 +25,11 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogueService = client(CatalogueService::class.java, javaClass, configuration.catalogueUrl!!)
 
-        environment.jersey().register(MgmtResource(catalogueService, howlService, configuration.defaultCatalogueNamespace!!))
+        with (environment.jersey()) {
+            register(AuthDynamicFeature(NoobAuthFilter.create()))
+            register(AuthValueFactoryProvider.Binder(User::class.java))
+            register(MgmtResource(catalogueService, howlService, configuration.defaultCatalogueNamespace!!))
+        }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl!!))
     }
 

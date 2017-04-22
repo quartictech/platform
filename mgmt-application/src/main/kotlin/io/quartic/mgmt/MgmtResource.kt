@@ -1,5 +1,6 @@
 package io.quartic.mgmt
 
+import io.dropwizard.auth.Auth
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator
 import io.quartic.catalogue.api.model.DatasetConfig
@@ -8,6 +9,7 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
+import io.quartic.mgmt.auth.User
 import io.quartic.mgmt.conversion.CsvConverter
 import org.apache.commons.io.IOUtils
 import java.io.IOException
@@ -25,12 +27,17 @@ class MgmtResource(
     @GET
     @Path("/dataset")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(): Map<DatasetId, DatasetConfig> = catalogue.getDatasets().getOrDefault(defaultCatalogueNamespace, emptyMap())
+    fun getDatasets(@Auth user: User): Map<DatasetId, DatasetConfig> {
+        return catalogue.getDatasets().getOrDefault(defaultCatalogueNamespace, emptyMap())
+    }
 
     @DELETE
     @Path("/dataset/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun deleteDataset(@PathParam("id") id: DatasetId) {
+    fun deleteDataset(
+            @Auth user: User,
+            @PathParam("id") id: DatasetId
+    ) {
         catalogue.deleteDataset(defaultCatalogueNamespace, id)
     }
 
@@ -38,7 +45,10 @@ class MgmtResource(
     @Path("/dataset")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun createDataset(request: CreateDatasetRequest): DatasetId {
+    fun createDataset(
+            @Auth user: User,
+            request: CreateDatasetRequest
+    ): DatasetId {
         val datasetConfig = when (request) {
             is CreateStaticDatasetRequest -> {
                 try {
@@ -91,7 +101,10 @@ class MgmtResource(
     @POST
     @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
-    fun uploadFile(@Context request: HttpServletRequest): HowlStorageId {
+    fun uploadFile(
+            @Auth user: User,
+            @Context request: HttpServletRequest
+    ): HowlStorageId {
         return howl.uploadFile(request.contentType, HOWL_NAMESPACE) { outputStream ->
             try {
                 IOUtils.copy(request.inputStream, outputStream)
