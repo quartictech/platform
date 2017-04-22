@@ -5,14 +5,17 @@ import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
+import io.quartic.howl.api.HowlService
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.util.*
 
 class MgmtResourceShould {
     private val namespace = mock<DatasetNamespace>()
     private val catalogue = mock<CatalogueService>()
-    private val resource = MgmtResource(catalogue, mock(), namespace)
+    private val howl = mock<HowlService>()
+    private val resource = MgmtResource(catalogue, howl, namespace)
 
     @Test
     fun use_default_namespace_when_deleting_dataset() {
@@ -24,12 +27,9 @@ class MgmtResourceShould {
     @Test
     fun use_default_namespace_when_creating_dataset() {
         whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
+        whenever(howl.downloadFile(any(), any())).thenReturn(Optional.of("blah".byteInputStream()))
 
-        val request = mock<CreateDatasetRequest> {
-            on { accept<DatasetConfig>(any()) } doReturn mock<DatasetConfig>()
-        }
-
-        resource.createDataset(request)
+        resource.createDataset(CreateStaticDatasetRequest(mock(), "foo", FileType.RAW))
 
         verify(catalogue).registerDataset(eq(namespace), any())
     }
@@ -46,6 +46,6 @@ class MgmtResourceShould {
                 mock<DatasetNamespace>() to mapOf(mock<DatasetId>() to mock<DatasetConfig>())
         ))
 
-        assertThat(resource.datasets, equalTo(mapOf(idA to datasetA, idB to datasetB)))
+        assertThat(resource.getDatasets(), equalTo(mapOf(idA to datasetA, idB to datasetB)))
     }
 }
