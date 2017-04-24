@@ -24,6 +24,7 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -37,8 +38,9 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -84,7 +86,8 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(any(), newArrayList(snapshot.absolute().features()));
+        final ArrayList<Feature> expected = newArrayList(snapshot.absolute().features());
+        verify(converter).toGeojson(any(), eq(expected));
         assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
@@ -108,7 +111,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(any(), newArrayList());    // No features converted
+        verify(converter).toGeojson(any(), eq(newArrayList()));    // No features converted
     }
 
     @Test
