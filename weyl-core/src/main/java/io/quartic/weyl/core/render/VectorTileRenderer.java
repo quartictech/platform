@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static io.quartic.weyl.core.feature.FeatureConverter.FRONTEND_MANIPULATOR;
+import static io.quartic.weyl.core.feature.FeatureConverter.frontendManipulatorFor;
 import static io.quartic.weyl.core.feature.FeatureConverter.getRawAttributes;
 
 public class VectorTileRenderer {
@@ -58,11 +59,12 @@ public class VectorTileRenderer {
         final LayerId layerId = layer.spec().id();
         LOG.info("Encoding layer {}", layerId);
         final AtomicInteger featureCount = new AtomicInteger();
+        final FeatureConverter.AttributeManipulator manipulator = frontendManipulatorFor(layer.dynamicSchema());
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-        layerIntersection(layer, envelope).map( (feature) -> VectorTileFeature.of(
+        layerIntersection(layer, envelope).map((feature) -> VectorTileFeature.of(
                 scaleGeometry(feature.feature().geometry(), envelope),
-                getRawAttributes(FRONTEND_MANIPULATOR, feature.feature()))
+                getRawAttributes(manipulator, feature.feature()))
         ).sequential().forEach(vectorTileFeature -> {
                 featureCount.incrementAndGet();
                 encoder.addFeature(layerId.getUid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
@@ -79,12 +81,9 @@ public class VectorTileRenderer {
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {
         Geometry transformed = (Geometry) geometry.clone();
-        transformed.apply(new CoordinateFilter() {
-            @Override
-            public void filter(Coordinate coord) {
-                coord.x = 4096.0 * (coord.x - envelope.getMinX()) / (envelope.getWidth());
-                coord.y = 4096.0 * (1 - (coord.y - envelope.getMinY()) / (envelope.getHeight()));
-            }
+        transformed.apply((CoordinateFilter) coord -> {
+            coord.x = 4096.0 * (coord.x - envelope.getMinX()) / (envelope.getWidth());
+            coord.y = 4096.0 * (1 - (coord.y - envelope.getMinY()) / (envelope.getHeight()));
         });
         transformed.geometryChanged();
         return transformed;

@@ -55,7 +55,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
-import static io.quartic.weyl.core.feature.FeatureConverter.FRONTEND_MANIPULATOR;
+import static io.quartic.weyl.core.feature.FeatureConverter.MINIMAL_MANIPULATOR;
 import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
@@ -100,7 +100,7 @@ public class GeofenceStatusHandlerShould {
         when(layerSpec.id()).thenReturn(layerId);
 
         when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
-        when(converter.toGeojson(eq(FRONTEND_MANIPULATOR), any(Collection.class))).thenReturn(featureCollection);
+        when(converter.toGeojson(eq(MINIMAL_MANIPULATOR), any(Collection.class))).thenReturn(featureCollection);
 
         // Default behaviour
         when(detector.create(any())).thenReturn(mock(State.class));

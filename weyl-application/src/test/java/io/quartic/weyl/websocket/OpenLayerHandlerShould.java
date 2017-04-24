@@ -27,9 +27,7 @@ import rx.subjects.PublishSubject;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.nhaarman.mockito_kotlin.MockitoKt.eq;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
-import static io.quartic.weyl.core.feature.FeatureConverter.FRONTEND_MANIPULATOR;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -57,7 +55,7 @@ public class OpenLayerHandlerShould {
 
     @Before
     public void before() throws Exception {
-        when(converter.toGeojson(eq(FRONTEND_MANIPULATOR), any(Collection.class))).thenReturn(featureCollection());
+        when(converter.toGeojson(any(), any(Collection.class))).thenReturn(featureCollection());
     }
 
     @Test
@@ -86,7 +84,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(FRONTEND_MANIPULATOR, newArrayList(snapshot.absolute().features()));
+        verify(converter).toGeojson(any(), newArrayList(snapshot.absolute().features()));
         assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
@@ -110,7 +108,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(FRONTEND_MANIPULATOR, newArrayList());    // No features converted
+        verify(converter).toGeojson(any(), newArrayList());    // No features converted
     }
 
     @Test
