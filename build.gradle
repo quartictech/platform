@@ -25,6 +25,11 @@ allprojects {
     	maxHeapSize = "2048m"
     }
 
+    // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
+    dependencies {
+        runtime "org.jetbrains.kotlin:kotlin-reflect:1.1.0"
+    }
+
     idea {
         project {
             //if you want to set specific jdk and language level
