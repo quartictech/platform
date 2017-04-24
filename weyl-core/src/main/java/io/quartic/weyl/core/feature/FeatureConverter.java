@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.weyl.core.geojson.UtilsKt.fromJts;
@@ -26,6 +25,34 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 public class FeatureConverter {
+    public interface AttributeManipulator {
+        boolean test(Object value);
+        void postProcess(Feature feature, Map<String, Object> attributes);
+    }
+
+    public static final AttributeManipulator FRONTEND_MANIPULATOR = new AttributeManipulator() {
+        @Override
+        public boolean test(Object value) {
+            return !(value instanceof ComplexAttribute);
+        }
+
+        @Override
+        public void postProcess(Feature feature, Map<String, Object> attributes) {
+            attributes.put("_entityId", feature.entityId().getUid());
+        }
+    };
+
+    public static final AttributeManipulator DEFAULT_MANIPULATOR = new AttributeManipulator() {
+        @Override
+        public boolean test(Object value) {
+            return true;
+        }
+
+        @Override
+        public void postProcess(Feature feature, Map<String, Object> attributes) {}
+    };
+
+
     private static final Logger LOG = LoggerFactory.getLogger(FeatureConverter.class);
 
     private final AttributesFactory attributesFactory;
@@ -82,43 +109,29 @@ public class FeatureConverter {
         return value;
     }
 
-    /**
-     * Frontend GeoJSON strips out all attributes except those needed for filtering or colouring, and adds _entityId.
-     */
-    public FeatureCollection toFrontendGeojson(Collection<Feature> features) {
-        return new FeatureCollection(features.stream().map(this::toFrontendGeojson).collect(toList()));
-    }
-
-    /**
-     * Frontend GeoJSON strips out all attributes except those needed for filtering or colouring, and adds _entityId.
-     */
-    public io.quartic.common.geojson.Feature toFrontendGeojson(Feature f) {
-        return new io.quartic.common.geojson.Feature(
-                null,
-                fromJts(fromModel.transform(f.geometry())),
-                getRawAttributesForFrontend(f)
+    public FeatureCollection toGeojson(AttributeManipulator attributeManipulator, Collection<Feature> features) {
+        return new FeatureCollection(
+                features.stream()
+                        .map(f -> toGeojson(attributeManipulator, f))
+                        .collect(toList())
         );
     }
 
-    public io.quartic.common.geojson.Feature toGeojson(Feature f) {
+    public io.quartic.common.geojson.Feature toGeojson(AttributeManipulator attributeManipulator, Feature feature) {
         return new io.quartic.common.geojson.Feature(
                 null,
-                fromJts(fromModel.transform(f.geometry())),
-                getRawAttributes(f, t -> true)
+                fromJts(fromModel.transform(feature.geometry())),
+                getRawAttributes(attributeManipulator, feature)
         );
     }
 
-    public static Map<String, Object> getRawAttributesForFrontend(Feature feature) {
-        final Map<String, Object> raw = getRawAttributes(feature, v -> !(v instanceof ComplexAttribute));
-        raw.put("_entityId", feature.entityId().getUid());
-        return raw;
-    }
-
-    private static Map<String, Object> getRawAttributes(Feature feature, Predicate<Object> predicate) {
-        return feature.attributes().attributes()
+    public static Map<String, Object> getRawAttributes(AttributeManipulator attributeManipulator, Feature feature) {
+        final Map<String, Object> raw = feature.attributes().attributes()
                 .entrySet()
                 .stream()
-                .filter(e -> (e.getValue() != null) && predicate.test(e.getValue()))
+                .filter(e -> (e.getValue() != null) && attributeManipulator.test(e.getValue()))
                 .collect(toMap(e -> e.getKey().name(), Entry::getValue));
+        attributeManipulator.postProcess(feature, raw);
+        return raw;
     }
 }

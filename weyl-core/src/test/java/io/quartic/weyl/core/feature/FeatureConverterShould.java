@@ -24,6 +24,8 @@ import java.util.Optional;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
+import static io.quartic.weyl.core.feature.FeatureConverter.DEFAULT_MANIPULATOR;
+import static io.quartic.weyl.core.feature.FeatureConverter.FRONTEND_MANIPULATOR;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatorToWebMercator;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.contains;
@@ -70,8 +72,8 @@ public class FeatureConverterShould {
     }
 
     @Test
-    public void strip_nulls_but_not_complex_when_creating_raw_not_for_frontend() throws Exception {
-        assertThat(converter.toGeojson(heterogenerousFeature()).getProperties(), equalTo(map(
+    public void strip_only_nulls_when_creating_raw() throws Exception {
+        assertThat(converter.toGeojson(DEFAULT_MANIPULATOR, heterogeneousFeature()).getProperties(), equalTo(map(
                 entry("timestamp", 1234),
                 entry("complex", TimeSeriesAttributeImpl.of(emptyList()))
         )));
@@ -79,13 +81,13 @@ public class FeatureConverterShould {
 
     @Test
     public void add_id_and_strip_nulls_and_complex_when_creating_raw_for_frontend() throws Exception {
-        assertThat(converter.toFrontendGeojson(heterogenerousFeature()).getProperties(), equalTo(map(
+        assertThat(converter.toGeojson(FRONTEND_MANIPULATOR, heterogeneousFeature()).getProperties(), equalTo(map(
                 entry("_entityId", "a"),
                 entry("timestamp", 1234)
         )));
     }
 
-    private io.quartic.weyl.core.model.Feature heterogenerousFeature() {
+    private io.quartic.weyl.core.model.Feature heterogeneousFeature() {
         return io.quartic.weyl.core.model.FeatureImpl.of(
                 EntityId.fromString("a"),
                 factory.createPoint(new Coordinate(51.0, 0.1)),

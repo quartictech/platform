@@ -22,6 +22,7 @@ import static com.google.common.collect.Lists.transform;
 import static io.quartic.common.rx.RxUtilsKt.accumulateMap;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
+import static io.quartic.weyl.core.feature.FeatureConverter.FRONTEND_MANIPULATOR;
 import static java.util.stream.Collectors.toList;
 import static rx.Observable.combineLatest;
 import static rx.Observable.empty;
@@ -66,6 +67,6 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
     private FeatureCollection featureCollection(Layer layer) {
         final Collection<Feature> features = layer.spec().indexable() ? EMPTY_COLLECTION : layer.features();
         final Stream<Feature> computed = layer.spec().view().compute(features);
-        return featureConverter.toFrontendGeojson(computed.collect(toList()));
+        return featureConverter.toGeojson(FRONTEND_MANIPULATOR, computed.collect(toList()));
     }
 }

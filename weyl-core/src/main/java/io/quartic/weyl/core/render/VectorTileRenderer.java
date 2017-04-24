@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static io.quartic.weyl.core.feature.FeatureConverter.getRawAttributesForFrontend;
+import static io.quartic.weyl.core.feature.FeatureConverter.FRONTEND_MANIPULATOR;
+import static io.quartic.weyl.core.feature.FeatureConverter.getRawAttributes;
 
 public class VectorTileRenderer {
     private static final Logger LOG = LoggerFactory.getLogger(VectorTileRenderer.class);
@@ -61,7 +62,7 @@ public class VectorTileRenderer {
         Stopwatch stopwatch = Stopwatch.createStarted();
         layerIntersection(layer, envelope).map( (feature) -> VectorTileFeature.of(
                 scaleGeometry(feature.feature().geometry(), envelope),
-                getRawAttributesForFrontend(feature.feature()))
+                getRawAttributes(FRONTEND_MANIPULATOR, feature.feature()))
         ).sequential().forEach(vectorTileFeature -> {
                 featureCount.incrementAndGet();
                 encoder.addFeature(layerId.getUid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
