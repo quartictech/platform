@@ -34,18 +34,6 @@ public class FeatureConverter {
         void postProcess(Feature feature, Map<String, Object> attributes);
     }
 
-    public static final AttributeManipulator FRONTEND_MANIPULATOR = new AttributeManipulator() {
-        @Override
-        public boolean test(AttributeName name, Object value) {
-            return !(value instanceof ComplexAttribute);
-        }
-
-        @Override
-        public void postProcess(Feature feature, Map<String, Object> attributes) {
-            attributes.put("_entityId", feature.entityId().getUid());
-        }
-    };
-
     public static final AttributeManipulator MINIMAL_MANIPULATOR = new AttributeManipulator() {
         @Override
         public boolean test(AttributeName name, Object value) {
