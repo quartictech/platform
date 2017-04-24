@@ -66,6 +66,6 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
     private FeatureCollection featureCollection(Layer layer) {
         final Collection<Feature> features = layer.spec().indexable() ? EMPTY_COLLECTION : layer.features();
         final Stream<Feature> computed = layer.spec().view().compute(features);
-        return featureConverter.toGeojson(computed.collect(toList()));
+        return featureConverter.toFrontendGeojson(computed.collect(toList()));
     }
 }

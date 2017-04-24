@@ -24,6 +24,8 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
+import java.util.Collection;
+
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
@@ -53,7 +55,7 @@ public class OpenLayerHandlerShould {
 
     @Before
     public void before() throws Exception {
-        when(converter.toGeojson(any())).thenReturn(featureCollection());
+        when(converter.toFrontendGeojson(any(Collection.class))).thenReturn(featureCollection());
     }
 
     @Test
@@ -82,7 +84,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
+        verify(converter).toFrontendGeojson(newArrayList(snapshot.absolute().features()));
         assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
@@ -106,7 +108,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(newArrayList());    // No features converted
+        verify(converter).toFrontendGeojson(newArrayList());    // No features converted
     }
 
     @Test

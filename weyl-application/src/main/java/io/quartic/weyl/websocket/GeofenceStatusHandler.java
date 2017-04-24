@@ -126,7 +126,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private Observable<SocketMessage> generateGeometryUpdates(Observable<Collection<Geofence>> geofenceStatuses) {
         return geofenceStatuses
                 .map(geofences -> GeofenceGeometryUpdateMessageImpl.of(
-                        featureConverter.toGeojson(geofences.stream().map(Geofence::feature).collect(toList()))
+                        featureConverter.toFrontendGeojson(geofences.stream().map(Geofence::feature).collect(toList()))
                 ));
     }
 

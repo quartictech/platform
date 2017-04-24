@@ -13,15 +13,17 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.Predicate;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.weyl.core.geojson.UtilsKt.fromJts;
 import static io.quartic.weyl.core.geojson.UtilsKt.toJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class FeatureConverter {
     private static final Logger LOG = LoggerFactory.getLogger(FeatureConverter.class);
@@ -80,24 +82,43 @@ public class FeatureConverter {
         return value;
     }
 
-    public FeatureCollection toGeojson(Collection<Feature> features) {
-        return new FeatureCollection(features.stream().map(this::featureToGeojson).collect(toList()));
+    /**
+     * Frontend GeoJSON strips out all attributes except those needed for filtering or colouring, and adds _entityId.
+     */
+    public FeatureCollection toFrontendGeojson(Collection<Feature> features) {
+        return new FeatureCollection(features.stream().map(this::toFrontendGeojson).collect(toList()));
     }
 
-    public io.quartic.common.geojson.Feature featureToGeojson(Feature f) {
+    /**
+     * Frontend GeoJSON strips out all attributes except those needed for filtering or colouring, and adds _entityId.
+     */
+    public io.quartic.common.geojson.Feature toFrontendGeojson(Feature f) {
         return new io.quartic.common.geojson.Feature(
                 null,
                 fromJts(fromModel.transform(f.geometry())),
-                getRawProperties(f)
+                getRawAttributesForFrontend(f)
         );
     }
 
-    public static Map<String, Object> getRawProperties(Feature feature) {
-        final Map<String, Object> output = newHashMap();
-        feature.attributes().attributes().entrySet().stream()
-                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
-                .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_entityId", feature.entityId().getUid());
-        return output;
+    public io.quartic.common.geojson.Feature toGeojson(Feature f) {
+        return new io.quartic.common.geojson.Feature(
+                null,
+                fromJts(fromModel.transform(f.geometry())),
+                getRawAttributes(f, t -> true)
+        );
+    }
+
+    public static Map<String, Object> getRawAttributesForFrontend(Feature feature) {
+        final Map<String, Object> raw = getRawAttributes(feature, v -> !(v instanceof ComplexAttribute));
+        raw.put("_entityId", feature.entityId().getUid());
+        return raw;
+    }
+
+    private static Map<String, Object> getRawAttributes(Feature feature, Predicate<Object> predicate) {
+        return feature.attributes().attributes()
+                .entrySet()
+                .stream()
+                .filter(e -> (e.getValue() != null) && predicate.test(e.getValue()))
+                .collect(toMap(e -> e.getKey().name(), Entry::getValue));
     }
 }

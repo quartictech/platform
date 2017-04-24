@@ -98,7 +98,7 @@ public class GeofenceStatusHandlerShould {
         when(layerSpec.id()).thenReturn(layerId);
 
         when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
-        when(converter.toGeojson(any())).thenReturn(featureCollection);
+        when(converter.toFrontendGeojson(any(Collection.class))).thenReturn(featureCollection);
 
         // Default behaviour
         when(detector.create(any())).thenReturn(mock(State.class));
