@@ -21,13 +21,18 @@ function computeNumericStops(colorScale, nStops, minValue, maxValue) {
   return computeCategoricalStops(colorScale, categories);
 }
 
+ // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully in various places
 function colorStyle(attribute, style, attributes, attributeStats) {
   if (attribute == null) {
     return style.color;
   }
 
-  if (attributes[attribute].categories === null) {
-    // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully
+  const attributeInfo = attributes[attribute];
+  if (!attributeInfo) {
+    return style.color;
+  }
+
+  if (attributeInfo.categories === null) {
     if (!(attribute in attributeStats)) {
       return style.color;
     }
