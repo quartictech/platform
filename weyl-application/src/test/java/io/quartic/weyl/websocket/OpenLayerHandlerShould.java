@@ -24,6 +24,9 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
@@ -35,8 +38,9 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -53,7 +57,7 @@ public class OpenLayerHandlerShould {
 
     @Before
     public void before() throws Exception {
-        when(converter.toGeojson(any())).thenReturn(featureCollection());
+        when(converter.toGeojson(any(), any(Collection.class))).thenReturn(featureCollection());
     }
 
     @Test
@@ -82,7 +86,8 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
+        final ArrayList<Feature> expected = newArrayList(snapshot.absolute().features());
+        verify(converter).toGeojson(any(), eq(expected));
         assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
@@ -106,7 +111,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(newArrayList());    // No features converted
+        verify(converter).toGeojson(any(), eq(newArrayList()));    // No features converted
     }
 
     @Test

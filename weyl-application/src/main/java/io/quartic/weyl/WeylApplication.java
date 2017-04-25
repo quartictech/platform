@@ -235,7 +235,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new FeatureConverter(attributesFactory());
     }
 
-
     private AttributesFactory attributesFactory() {
         return new AttributesFactory();
     }

@@ -3,7 +3,11 @@ package io.quartic.weyl.core.feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
+import io.quartic.weyl.core.model.Attribute;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.NakedFeatureImpl;
@@ -13,17 +17,63 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.weyl.core.geojson.UtilsKt.fromJts;
 import static io.quartic.weyl.core.geojson.UtilsKt.toJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class FeatureConverter {
+    public interface AttributeManipulator {
+        boolean test(AttributeName name, Object value);
+        void postProcess(Feature feature, Map<String, Object> attributes);
+    }
+
+    public static final AttributeManipulator MINIMAL_MANIPULATOR = new AttributeManipulator() {
+        @Override
+        public boolean test(AttributeName name, Object value) {
+            return false;
+        }
+
+        @Override
+        public void postProcess(Feature feature, Map<String, Object> attributes) {}
+    };
+
+    public static final AttributeManipulator DEFAULT_MANIPULATOR = new AttributeManipulator() {
+        @Override
+        public boolean test(AttributeName name, Object value) {
+            return true;
+        }
+
+        @Override
+        public void postProcess(Feature feature, Map<String, Object> attributes) {}
+    };
+
+    public static AttributeManipulator frontendManipulatorFor(DynamicSchema schema) {
+        return new AttributeManipulator() {
+            @Override
+            public boolean test(AttributeName name, Object value) {
+                final Attribute attribute = schema.attributes().get(name);
+                if (attribute == null) {
+                    throw new RuntimeException("Couldn't find attribute '" + name.name() + "' in the schema");
+                }
+
+                return (attribute.type() == AttributeType.NUMERIC)
+                        || attribute.categories().map(s -> !s.isEmpty()).orElse(false);
+            }
+
+            @Override
+            public void postProcess(Feature feature, Map<String, Object> attributes) {
+                attributes.put("_entityId", feature.entityId().getUid());
+            }
+        };
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(FeatureConverter.class);
 
     private final AttributesFactory attributesFactory;
@@ -80,24 +130,29 @@ public class FeatureConverter {
         return value;
     }
 
-    public FeatureCollection toGeojson(Collection<Feature> features) {
-        return new FeatureCollection(features.stream().map(this::featureToGeojson).collect(toList()));
-    }
-
-    public io.quartic.common.geojson.Feature featureToGeojson(Feature f) {
-        return new io.quartic.common.geojson.Feature(
-                null,
-                fromJts(fromModel.transform(f.geometry())),
-                getRawProperties(f)
+    public FeatureCollection toGeojson(AttributeManipulator manipulator, Collection<Feature> features) {
+        return new FeatureCollection(
+                features.stream()
+                        .map(f -> toGeojson(manipulator, f))
+                        .collect(toList())
         );
     }
 
-    public static Map<String, Object> getRawProperties(Feature feature) {
-        final Map<String, Object> output = newHashMap();
-        feature.attributes().attributes().entrySet().stream()
-                .filter(entry -> !(entry.getValue() instanceof ComplexAttribute) && (entry.getValue() != null))
-                .forEach(entry -> output.put(entry.getKey().name(), entry.getValue()));
-        output.put("_entityId", feature.entityId().getUid());
-        return output;
+    public io.quartic.common.geojson.Feature toGeojson(AttributeManipulator manipulator, Feature feature) {
+        return new io.quartic.common.geojson.Feature(
+                null,
+                fromJts(fromModel.transform(feature.geometry())),
+                getRawAttributes(manipulator, feature)
+        );
+    }
+
+    public static Map<String, Object> getRawAttributes(AttributeManipulator manipulator, Feature feature) {
+        final Map<String, Object> raw = feature.attributes().attributes()
+                .entrySet()
+                .stream()
+                .filter(e -> (e.getValue() != null) && manipulator.test(e.getKey(), e.getValue()))
+                .collect(toMap(e -> e.getKey().name(), Entry::getValue));
+        manipulator.postProcess(feature, raw);
+        return raw;
     }
 }
