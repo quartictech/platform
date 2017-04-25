@@ -55,6 +55,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
+import static io.quartic.weyl.core.feature.FeatureConverter.MINIMAL_MANIPULATOR;
 import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
@@ -69,6 +70,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -90,7 +92,7 @@ public class GeofenceStatusHandlerShould {
     private final GeofenceViolationDetector detector = mock(GeofenceViolationDetector.class);
 
     private final ReplaySubject<LayerSnapshotSequence> snapshotSequences = ReplaySubject.create();
-    private final FeatureConverter converter = mock(FeatureConverter.class);
+    private final FeatureConverter converter = mock(FeatureConverter.class, RETURNS_DEEP_STUBS);
     private final ClientStatusMessageHandler handler = new GeofenceStatusHandler(snapshotSequences, detector, converter);
 
     @Before
@@ -98,7 +100,7 @@ public class GeofenceStatusHandlerShould {
         when(layerSpec.id()).thenReturn(layerId);
 
         when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
-        when(converter.toGeojson(any())).thenReturn(featureCollection);
+        when(converter.toGeojson(eq(MINIMAL_MANIPULATOR), any(Collection.class))).thenReturn(featureCollection);
 
         // Default behaviour
         when(detector.create(any())).thenReturn(mock(State.class));
