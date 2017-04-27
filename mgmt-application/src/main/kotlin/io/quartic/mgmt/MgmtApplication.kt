@@ -11,6 +11,7 @@ import io.quartic.common.client.client
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
+import io.quartic.mgmt.auth.NamespaceAuthoriser
 import io.quartic.mgmt.auth.NoobAuthFilter
 import io.quartic.mgmt.auth.User
 
@@ -28,7 +29,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         with (environment.jersey()) {
             register(AuthDynamicFeature(NoobAuthFilter.create()))
             register(AuthValueFactoryProvider.Binder(User::class.java))
-            register(MgmtResource(catalogueService, howlService, configuration.defaultCatalogueNamespace!!))
+            register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(configuration.authorisedNamespaces)))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl!!))
     }

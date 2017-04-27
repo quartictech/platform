@@ -5,47 +5,105 @@ import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
+import io.quartic.common.test.assertThrows
 import io.quartic.howl.api.HowlService
-import org.hamcrest.Matchers.equalTo
+import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.mgmt.auth.User
+import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 import java.util.*
+import javax.ws.rs.NotFoundException
 
 class MgmtResourceShould {
-    private val namespace = mock<DatasetNamespace>()
+
+    private val arlo = User("arlo")
+    private val alex = User("alex")
+
+    private val foo = DatasetNamespace("foo")
+    private val bar = DatasetNamespace("bar")
+    private val baz = DatasetNamespace("baz")
+
+    private val datasets = mapOf(
+            foo to mapOf(DatasetId("a") to mock<DatasetConfig>(), DatasetId("b") to mock<DatasetConfig>()),
+            bar to mapOf(DatasetId("c") to mock<DatasetConfig>(), DatasetId("e") to mock<DatasetConfig>()),
+            baz to mapOf(DatasetId("d") to mock<DatasetConfig>(), DatasetId("f") to mock<DatasetConfig>())
+    )
+
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
-    private val resource = MgmtResource(catalogue, howl, namespace)
+    private val authoriser = mock<NamespaceAuthoriser>()
 
-    @Test
-    fun use_default_namespace_when_deleting_dataset() {
-        resource.deleteDataset(mock())
+    private val resource = MgmtResource(catalogue, howl, authoriser)
 
-        verify(catalogue).deleteDataset(eq(namespace), any())
+
+    @Before
+    fun before() {
+        whenever(catalogue.getDatasets()).thenReturn(datasets)
     }
 
     @Test
-    fun use_default_namespace_when_creating_dataset() {
+    fun get_only_authorised_datasets() {
+        whenever(authoriser.authorisedFor(arlo, foo)).thenReturn(true)
+        whenever(authoriser.authorisedFor(arlo, bar)).thenReturn(true)
+
+        assertThat(resource.getDatasets(arlo), equalTo(mapOf(foo to datasets[foo], bar to datasets[bar])))
+    }
+
+    @Test
+    fun create_dataset_if_namespace_authorised() {
+        whenever(authoriser.authorisedFor(arlo, foo)).thenReturn(true)
         whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
         whenever(howl.downloadFile(any(), any())).thenReturn(Optional.of("blah".byteInputStream()))
 
-        resource.createDataset(CreateStaticDatasetRequest(mock(), "foo", FileType.RAW))
+        resource.createDataset(arlo, foo, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
 
-        verify(catalogue).registerDataset(eq(namespace), any())
+        verify(catalogue).registerDataset(eq(foo), any())
+
+        // TODO - validate interaction with Howl, and 2nd param to registerDataset
     }
 
     @Test
-    fun retrieve_only_datasets_from_default_namespace() {
-        val idA = mock<DatasetId>()
-        val idB = mock<DatasetId>()
-        val datasetA = mock<DatasetConfig>()
-        val datasetB = mock<DatasetConfig>()
+    fun not_create_dataset_and_respond_with_404_if_namespace_not_authorised() {
+        assertThrows<NotFoundException> {
+            resource.createDataset(arlo, baz, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
+        }
 
-        whenever(catalogue.getDatasets()).thenReturn(mapOf(
-                namespace to mapOf(idA to datasetA, idB to datasetB),
-                mock<DatasetNamespace>() to mapOf(mock<DatasetId>() to mock<DatasetConfig>())
-        ))
-
-        assertThat(resource.getDatasets(), equalTo(mapOf(idA to datasetA, idB to datasetB)))
+        verifyNoMoreInteractions(catalogue)
     }
+
+    @Test
+    fun delete_dataset_if_namespace_authorised_and_dataset_exists() {
+        whenever(authoriser.authorisedFor(arlo, foo)).thenReturn(true)
+
+        resource.deleteDataset(arlo, foo, DatasetId("a"))
+
+        verify(catalogue).deleteDataset(foo, DatasetId("a"))
+    }
+
+    @Test
+    fun not_delete_dataset_and_respond_with_404_if_namespace_not_authorised() {
+        assertThrows<NotFoundException> {
+            resource.deleteDataset(arlo, foo, DatasetId("d"))   // In unauthorised namespace
+        }
+
+        verify(catalogue, never()).deleteDataset(any(), any())
+    }
+
+    @Test
+    fun respond_with_404_if_deletion_target_namespace_not_present() {
+        assertThrows<NotFoundException> {
+            resource.deleteDataset(arlo, DatasetNamespace("made-up"), DatasetId("a"))
+        }
+    }
+
+    @Test
+    fun respond_with_404_if_deletion_target_id_not_present() {
+        assertThrows<NotFoundException> {
+            resource.deleteDataset(arlo, foo, DatasetId("made-up"))
+        }
+    }
+
+    // TODO - something for uploadFile
 }
