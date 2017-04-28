@@ -7,6 +7,7 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureCollection;
+import io.quartic.weyl.core.model.DiffImpl;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -16,7 +17,9 @@ import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerImpl;
+import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerStatsImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
@@ -57,7 +60,7 @@ public class SnapshotReducer {
                         .indexedFeatures(ImmutableList.of())
                         .stats(LayerStatsImpl.of(emptyMap()))
                         .build(),
-                emptyList()
+                DiffImpl.of(LayerUpdateType.REPLACE, emptyList())
         );
     }
 
@@ -71,7 +74,7 @@ public class SnapshotReducer {
         return SnapshotImpl.of(
                 sidGen.get(),
                 next(prevLayer, update, elaborated),
-                elaborated
+                DiffImpl.of(update.type(), elaborated)
         );
     }
 

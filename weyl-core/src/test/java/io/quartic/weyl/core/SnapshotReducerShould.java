@@ -65,7 +65,8 @@ public class SnapshotReducerShould {
         Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.of("a"))));
 
-        assertThat(updated.diff(), contains(feature(LAYER_ID + "/a")));
+        assertThat(updated.diff().updateType(), equalTo(LayerUpdateType.APPEND));
+        assertThat(updated.diff().features(), contains(feature(LAYER_ID + "/a")));
     }
 
     @Test
@@ -73,7 +74,7 @@ public class SnapshotReducerShould {
         Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.empty()), nakedFeature(Optional.empty())));
 
-        assertThat(updated.diff(), contains(feature(LAYER_ID + "/1"), feature(LAYER_ID + "/2")));
+        assertThat(updated.diff().features(), contains(feature(LAYER_ID + "/1"), feature(LAYER_ID + "/2")));
     }
 
     @Test
@@ -94,7 +95,7 @@ public class SnapshotReducerShould {
         Snapshot snapshot2 = reducer.next(snapshot1,
                 updateFor(LayerUpdateType.REPLACE,
                         nakedFeature(Optional.of("b"))));
-        assertThat(snapshot2.diff(), contains(feature(LAYER_ID + "/b")));
+        assertThat(snapshot2.diff().features(), contains(feature(LAYER_ID + "/b")));
         assertThat(snapshot2.absolute().features(), contains(feature(LAYER_ID + "/b")));
         assertThat(snapshot2.absolute().features(), not(contains(feature(LAYER_ID + "/a"))));
     }
@@ -111,7 +112,7 @@ public class SnapshotReducerShould {
                 updateFor(LayerUpdateType.APPEND,
                         nakedFeature(Optional.of("c"))));
 
-        assertThat(snapshot3.diff(), contains(feature(LAYER_ID + "/c")));
+        assertThat(snapshot3.diff().features(), contains(feature(LAYER_ID + "/c")));
         assertThat(snapshot3.absolute().features(), containsInAnyOrder(feature(LAYER_ID + "/b"), feature(LAYER_ID + "/c")));
         assertThat(snapshot3.absolute().features(), not(contains(feature(LAYER_ID + "/a"))));
     }

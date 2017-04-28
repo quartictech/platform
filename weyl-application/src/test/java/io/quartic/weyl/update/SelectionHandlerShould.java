@@ -223,7 +223,7 @@ public class SelectionHandlerShould {
 
     private Snapshot snapshot(Feature... features) {
         final Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.diff()).thenReturn(asList(features));
+        when(snapshot.diff().features()).thenReturn(asList(features));
         return snapshot;
     }
 

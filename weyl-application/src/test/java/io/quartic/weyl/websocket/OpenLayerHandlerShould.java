@@ -177,7 +177,7 @@ public class OpenLayerHandlerShould {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.spec()).thenReturn(spec);
         when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
-        return SnapshotImpl.of(new SnapshotId("123"), layer, emptyList());
+        return SnapshotImpl.of(new SnapshotId("123"), layer, LayerSnapshotSequence.Diff.empty());
     }
 
     private LayerSpec spec(LayerId id, boolean live) {

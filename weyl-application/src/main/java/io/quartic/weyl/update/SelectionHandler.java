@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.quartic.common.SweetStyle;
 import io.quartic.common.rx.StateAndOutput;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -54,17 +55,25 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         );
     }
 
+    private void applyDiff(State state, LayerId id, LayerSnapshotSequence.Diff diff) {
+        if (diff.updateType() == LayerUpdateType.REPLACE) {
+            state.entitiesPerLayer.clear();
+            state.entityLookup.clear();
+        }
+
+        diff.features().forEach(f -> {
+            state.entitiesPerLayer.put(id, f.entityId());
+            state.entityLookup.put(f.entityId(), f);
+        });
+    }
+
     // Mutates the state :(
     private StateAndOutput<State, Map<EntityId, Feature>> updateLookup(State state, LayerEvent event) {
         final LayerId id = event.layerId();
         switch (event.type()) {
             case NEXT:
-                event.diff().forEach(f -> {
-                    state.entitiesPerLayer.put(id, f.entityId());
-                    state.entityLookup.put(f.entityId(), f);
-                });
+                applyDiff(state, id, event.diff());
                 break;
-
             case COMPLETE:
                 state.entitiesPerLayer.removeAll(id).forEach(state.entityLookup::remove);
                 break;
@@ -115,7 +124,9 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
         Type type();
         LayerId layerId();
-        @Nullable Collection<Feature> diff();
+
+        @Nullable
+        LayerSnapshotSequence.Diff diff();
     }
 
     private static class State {

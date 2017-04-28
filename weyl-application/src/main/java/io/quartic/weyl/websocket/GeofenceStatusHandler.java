@@ -147,7 +147,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
         return sequences
                 .filter(seq -> !seq.spec().indexable())
                 .flatMap(LayerSnapshotSequence::snapshots)
-                .map(Snapshot::diff);
+                .map(snapshot -> snapshot.diff().features());
     }
 
     private Observable<SocketMessage> processOutput(Output output) {

@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.rx.StateAndOutput;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
 import io.quartic.weyl.core.geofence.GeofenceImpl;
@@ -17,6 +18,7 @@ import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.DiffImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -360,7 +362,7 @@ public class GeofenceStatusHandlerShould {
     }
 
     private Snapshot snapshot(Layer layer, List<Feature> diff) {
-        return SnapshotImpl.of(mock(SnapshotId.class), layer, diff);
+        return SnapshotImpl.of(mock(SnapshotId.class), layer, DiffImpl.of(LayerUpdateType.APPEND, diff));
     }
 
     private Layer layer() {
