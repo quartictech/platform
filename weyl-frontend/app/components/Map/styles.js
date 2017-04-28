@@ -4,7 +4,7 @@ import { customStyles, liveLayerStyle } from "./customStyles.js";
 
 function computeCategoricalStops(categories) {
   return categories
-    .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.6).toString(0)]);
+    .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.5).toString(0)]);
 }
 
 function computeNumericStops(colorScale, numStops, minValue, maxValue) {
