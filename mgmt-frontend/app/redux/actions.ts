@@ -1,5 +1,5 @@
 import * as constants from "./constants";
-import { IDatasetMetadata, IFiles } from "../models";
+import { IDatasetMetadata, IDatasetCoords, IFiles } from "../models";
 
 export function fetchDatasets() {
   return {
@@ -31,10 +31,10 @@ export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
     };
 }
 
-export function deleteDataset(datasetId: string) {
+export function deleteDataset(coords: IDatasetCoords) {
     return {
       type: constants.DELETE_DATASET,
-      datasetId,
+      coords,
     };
 }
 

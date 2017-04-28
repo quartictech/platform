@@ -38,7 +38,7 @@ function* watchLoadDatasets(): SagaIterator {
 function* watchDeleteDataset(): SagaIterator {
   while (true) {
     const action = yield take(constants.DELETE_DATASET);
-    const res = yield call(api.deleteDataset, action.datasetId);
+    const res = yield call(api.deleteDataset, action.action.coords);
 
     if (! res.err) {
       yield call(showSuccess, `Deleted dataset: ${action.datasetId}`);

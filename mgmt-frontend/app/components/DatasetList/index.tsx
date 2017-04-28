@@ -1,47 +1,61 @@
 import * as React from "react";
-import { IDataset } from "../../models";
+import { IDataset, IDatasetCoords, DatasetMap } from "../../models";
 import _ = require("underscore");
 
 
 interface IDatasetListProps {
-  datasets: { [id: string]: IDataset };
-  selectedId: string;
+  datasets: DatasetMap;
+  selected: IDatasetCoords;
   onSelect: (string) => void;
   searchString: string;
 };
 
-export const DatasetList = (props: IDatasetListProps) => (
-  <div className="pt-card pt-elevation-4">
-    <h3>Datasets</h3>
+export class DatasetList extends React.Component<IDatasetListProps, void> {
+  render() {
+    return (
+      <div className="pt-card pt-elevation-4">
+        <h3>Datasets</h3>
 
-    <table className="pt-table pt-interactive pt-striped" style={{ width: "100%" }}>
-      <thead>
-        <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-      {
-        _.map(props.datasets, (dataset, id) => [id, dataset] as [string, IDataset])
-        .filter(([,dataset]) =>
-          props.searchString == null || props.searchString.length === 0 ||
-          _.some([dataset.metadata.name, dataset.metadata.description, dataset.locator.type],
-            s => s.toLowerCase().includes(props.searchString)))
-        .sort(([,a], [,b]) => comparison(a, b))
-        .map(([id, dataset]) => <DatasetRow
-          key={id}
-          id={id}
-          dataset={dataset}
-          active={props.selectedId === id}
-          onSelect={() => props.onSelect(id)}
-        />)
-      }
-      </tbody>
-    </table>
-  </div>
-);
+        <table className="pt-table pt-interactive pt-striped" style={{ width: "100%" }}>
+          <thead>
+            <tr>
+            <th>Namespace</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+          {
+            _.map(this.props.datasets, (datasets, namespace) => this.renderDatasetsInNamespace(namespace, datasets))
+          }
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  private renderDatasetsInNamespace(namespace: string, datasets: { [id: string]: IDataset }) {
+    return _
+      .map(datasets, (dataset, id) => [id, dataset] as [string, IDataset])
+      .filter(([,dataset]) => this.datasetVisible(dataset))
+      .sort(([,a], [,b]) => comparison(a, b))
+      .map(([id, dataset]) => <DatasetRow
+        key={id}
+        namespace={namespace}
+        id={id}
+        dataset={dataset}
+        active={this.props.selected === <IDatasetCoords>{ id, namespace })
+        onSelect={() => this.props.onSelect(id)}
+      />)
+  }
+
+  private datasetVisible(dataset: IDataset) {
+    return this.props.searchString == null || this.props.searchString.length === 0 ||
+      _.some([dataset.metadata.name, dataset.metadata.description, dataset.locator.type],
+        s => s.toLowerCase().includes(this.props.searchString));
+  } 
+}
 
 const comparison = (a: IDataset, b: IDataset) => {
   const x = a.metadata.name.toLowerCase();
@@ -50,6 +64,7 @@ const comparison = (a: IDataset, b: IDataset) => {
 };
 
 interface IDatasetRowProps {
+  namespace: string;
   id: string;
   dataset: IDataset;
   active: boolean;
@@ -57,7 +72,8 @@ interface IDatasetRowProps {
 }
 
 export const DatasetRow = (props: IDatasetRowProps) => (
-  <tr key={props.id} onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
+  <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
+    <td>{props.namespace}</td>
     <td>{props.dataset.locator.type}</td>
     <td>{props.dataset.metadata.name}</td>
     <td>{props.dataset.metadata.description}</td>

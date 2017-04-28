@@ -11,11 +11,11 @@ import {
   Classes,
 } from "@blueprintjs/core";
 
-import { IDataset } from "../../models";
+import { IDataset, IDatasetCoords } from "../../models";
 import _ = require("underscore");
 
 interface IDatasetInfoProps {
-  id: String;
+  coords: IDatasetCoords;
   dataset: IDataset;
   deleteClick: Function;
 };

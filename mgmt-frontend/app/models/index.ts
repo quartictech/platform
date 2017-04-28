@@ -1,3 +1,7 @@
+export interface IDatasetCoords {
+  namespace: string;
+  id: string;
+}
 
 export interface IDatasetMetadata {
   name: string;
@@ -19,6 +23,8 @@ export interface IDataset {
   metadata: IDatasetMetadata;
   locator: IDatasetLocator;
 }
+
+export type DatasetMap = { [namespace: string]: { [id: string]: IDataset } };
 
 export interface ICreateDataset {
   metadata: IDatasetMetadata;

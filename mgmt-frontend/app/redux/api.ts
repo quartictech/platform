@@ -1,6 +1,6 @@
 const apiRootUrl = `${location.origin}/api`;
 
-import { IDatasetMetadata } from "../models";
+import { IDatasetMetadata, IDatasetCoords } from "../models";
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -28,7 +28,7 @@ export function fetchUtil(url, options?) {
 }
 
 export function fetchDatasets() {
-  return fetchUtil(`${apiRootUrl}/dataset`);
+  return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
 const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
@@ -43,8 +43,9 @@ export function uploadFile(files: any[]) {
   });
 }
 
+// TODO: wire through namespace
 export function createDataset(metadata: IDatasetMetadata, fileName: string, fileType: string) {
-  return fetchUtil("/api/dataset", {
+  return fetchUtil(`/api/datasets/${namespace}`, {
     headers: {
       "Content-Type": "application/json"
     },
@@ -58,8 +59,9 @@ export function createDataset(metadata: IDatasetMetadata, fileName: string, file
   });
 }
 
-export function deleteDataset(id: string) {
-  return fetchUtil(`/api/dataset/${id}`, {
+// TODO: wire through namespace
+export function deleteDataset(coords: IDatasetCoords) {
+  return fetchUtil(`/api/datasets/${coords.namespace}/${coords.id}`, {
     method: "DELETE",
   });
 }
