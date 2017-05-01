@@ -2,23 +2,14 @@ import * as chroma from "chroma-js";
 
 import { customStyles, liveLayerStyle } from "./customStyles.js";
 
-function computeCategoricalStops(colorScale, categories) {
-  const nStops = categories.length;
-  const result = [];
-  const colors = chroma.scale(colorScale).colors(nStops);
-
-  for (let i = 0; i < nStops; i++) {
-    result.push([categories[i], colors[i].toString(0)]);
-  }
-  return result;
+function computeCategoricalStops(categories) {
+  return categories
+    .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.5).toString(0)]);
 }
 
-function computeNumericStops(colorScale, nStops, minValue, maxValue) {
-  const categories = [];
-  for (let i = 0; i < nStops; i++) {
-    categories.push(minValue + ((i * (maxValue - minValue)) / nStops));
-  }
-  return computeCategoricalStops(colorScale, categories);
+function computeNumericStops(colorScale, numStops, minValue, maxValue) {
+  return chroma.scale(colorScale).colors(numStops)
+    .map((c, i) => [minValue + ((i * (maxValue - minValue)) / numStops), c.toString(0)]);
 }
 
  // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully in various places
@@ -46,7 +37,7 @@ function colorStyle(attribute, style, attributes, attributeStats) {
   return {
     "property": attribute,
     "type": "categorical",
-    "stops": computeCategoricalStops(style.colorScale, attributes[attribute].categories),
+    "stops": computeCategoricalStops(attributes[attribute].categories),
   };
 }
 
