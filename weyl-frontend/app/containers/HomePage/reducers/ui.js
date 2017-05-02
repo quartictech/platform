@@ -5,6 +5,7 @@ const initialState = fromJS({
   layerOp: null,
   panels: {
     chart: false,
+    table: false,
     layerList: true,
     settings: false,
   },

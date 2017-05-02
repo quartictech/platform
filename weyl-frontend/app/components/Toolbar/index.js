@@ -44,6 +44,13 @@ function Toolbar(props) {
       selected: props.ui.panels.chart,
       onClick: () => props.onUiToggle("chart"),
     },
+    {
+      name: "Details",
+      iconName: "th",
+      selected: props.ui.panels.table,
+      onClick: () => props.onUiToggle("table"),
+    },
+
   ];
 
   return (
@@ -63,7 +70,7 @@ function Toolbar(props) {
           />
 
           <span className="pt-navbar-divider"></span>
-          
+
           {
             panes.map(p =>
               <PaneControl

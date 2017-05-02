@@ -32,6 +32,7 @@ export const selectConnectionUp = createSelector(selectHome, p => p.connection);
 export const selectSubscriptions = createSelector(selectHomeImmutable, p => p.get("subscriptions"));
 
 export const selectChart = createSelector(selectSubscriptions, p => p.get("chart"));
+export const selectTable = createSelector(selectSubscriptions, p => p.get("table"));
 export const selectHistograms = createSelector(selectSubscriptions, p => p.get("histograms"));
 export const selectAttributes = createSelector(selectSubscriptions, p => p.get("attributes"));
 

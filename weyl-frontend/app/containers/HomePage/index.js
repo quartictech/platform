@@ -9,6 +9,7 @@ import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
+import DetailsTablePane from "../../components/DetailsTablePane";
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
@@ -102,6 +103,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onUiToggle={this.props.onUiToggle}
             visible={!noLayers && this.props.ui.panels.chart}
           />
+          <DetailsTablePane
+            table={this.props.table.toJS().data}
+            onUiToggle={this.props.onUiToggle}
+            visible={!noLayers && this.props.ui.panels.table}
+          />
         </div>
 
         <div className={styles.infoBar}>
@@ -147,6 +153,7 @@ const mapStateToProps = createStructuredSelector({
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,
+  table: selectors.selectTable,
   histograms: selectors.selectHistograms,
   attributes: selectors.selectAttributes,
   connectionUp: selectors.selectConnectionUp,

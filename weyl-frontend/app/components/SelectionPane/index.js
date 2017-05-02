@@ -36,17 +36,16 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
           ),
           state: this.props.histograms.toJS(),
         };
-      } else {
-        return {
-          component: (
-            <NonHistograms
-              featureAttributes={attributes}
-              behavior={getBehavior(singleLayer(entityIds, layers))}
-            />
-          ),
-          state: this.props.attributes
-        };
       }
+      return {
+        component: (
+          <NonHistograms
+            featureAttributes={attributes}
+            behavior={getBehavior(singleLayer(entityIds, layers))}
+          />
+        ),
+        state: this.props.attributes,
+      };
     })();
 
     const loaded = things.state.seqNum === this.props.selection.seqNum;
