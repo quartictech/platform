@@ -104,7 +104,7 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             visible={!noLayers && this.props.ui.panels.chart}
           />
           <DetailsTablePane
-            table={this.props.table.toJS().data}
+            details={this.props.details.toJS().data}
             onUiToggle={this.props.onUiToggle}
             visible={!noLayers && this.props.ui.panels.table}
           />
@@ -153,7 +153,7 @@ const mapStateToProps = createStructuredSelector({
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,
-  table: selectors.selectTable,
+  details: selectors.selectDetails,
   histograms: selectors.selectHistograms,
   attributes: selectors.selectAttributes,
   connectionUp: selectors.selectConnectionUp,

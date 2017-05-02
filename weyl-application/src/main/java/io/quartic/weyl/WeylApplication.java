@@ -46,7 +46,7 @@ import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
-import io.quartic.weyl.update.TableUpdateGenerator;
+import io.quartic.weyl.update.DetailsUpdateGenerator;
 import io.quartic.weyl.update.WebsocketEndpoint;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
@@ -160,7 +160,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                         new ChartUpdateGenerator(),
                         new HistogramsUpdateGenerator(new HistogramCalculator()),
                         new AttributesUpdateGenerator(),
-                        new TableUpdateGenerator()
+                        new DetailsUpdateGenerator()
                 )
         );
     }

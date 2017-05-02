@@ -38,7 +38,7 @@ def make_geojson(p, name, id, blood_alcohol=None):
                 "properties": {
                     "name": name,
                     "timestamp": int(round(time.time() * 1000)),
-                    "_table": [
+                    "_details": [
                         { "name": name, "bar": 123, "gimp": "yeah" },
                         { "name": name, "bar": 456, "gimp": "no" },
                         { "name": name, "bar": 789, "gimp": "maybe" },
