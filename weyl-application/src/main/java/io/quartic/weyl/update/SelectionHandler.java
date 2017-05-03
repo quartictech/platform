@@ -2,7 +2,6 @@ package io.quartic.weyl.update;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.quartic.common.SweetStyle;
 import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -13,7 +12,6 @@ import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
 import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
-import org.immutables.value.Value;
 import rx.Observable;
 
 import java.util.Collection;
@@ -49,17 +47,17 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     private Observable<LayerEvent> extractLayerEvents(Observable<LayerSnapshotSequence> sequences) {
         return sequences.flatMap(seq ->
                 seq.snapshots()
-                        .map(s -> LayerEventImpl.of(NEXT, seq.spec().id(), s.diff()))
-                        .concatWith(just(LayerEventImpl.of(COMPLETE, seq.spec().id(), null)))
+                        .map(s -> new LayerEvent(NEXT, seq.spec().id(), s.diff()))
+                        .concatWith(just(new LayerEvent(COMPLETE, seq.spec().id(), null)))
         );
     }
 
     // Mutates the state :(
     private StateAndOutput<State, Map<EntityId, Feature>> updateLookup(State state, LayerEvent event) {
-        final LayerId id = event.layerId();
-        switch (event.type()) {
+        final LayerId id = event.layerId;
+        switch (event.type) {
             case NEXT:
-                event.diff().forEach(f -> {
+                event.diff.forEach(f -> {
                     state.entitiesPerLayer.put(id, f.entityId());
                     state.entityLookup.put(f.entityId(), f);
                 });
@@ -88,7 +86,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     }
 
     private Results lookupSelectedEntities(SelectionStatus selectionStatus, Map<EntityId, Feature> map) {
-        return ResultsImpl.of(
+        return new Results(
                 selectionStatus.getSeqNum(),
                 selectionStatus.getEntityIds()
                         .stream()
@@ -101,21 +99,25 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
     private Observable<SocketMessage> generateMessages(Results results) {
         return from(generators).map(generator -> new SelectionDrivenUpdateMessage(
-                generator.name(), results.seqNum(), generator.generate(transform(results.entities(), Identity::get))
+                generator.name(), results.seqNum, generator.generate(transform(results.entities, Identity::get))
         ));
     }
 
-    @SweetStyle
-    @Value.Immutable
-    interface LayerEvent {
+    static class LayerEvent {
         enum Type {
             NEXT,
             COMPLETE
         }
 
-        Type type();
-        LayerId layerId();
-        @Nullable Collection<Feature> diff();
+        public final Type type;
+        public final LayerId layerId;
+        public final Collection<Feature> diff;
+
+        private LayerEvent(Type type, LayerId layerId, Collection<Feature> diff) {
+            this.type = type;
+            this.layerId = layerId;
+            this.diff = diff;
+        }
     }
 
     private static class State {
@@ -123,11 +125,14 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         private final Map<EntityId, Feature> entityLookup = newHashMap();
     }
 
-    @SweetStyle
-    @Value.Immutable
-    interface Results {
-        int seqNum();
-        List<Identity<Feature>> entities(); // Use of Identity enables cheap (shallow) equality check
+    static class Results {
+        public final int seqNum;
+        public final List<Identity<Feature>> entities; // Use of Identity enables cheap (shallow) equality check
+
+        Results(int seqNum, List<Identity<Feature>> entities) {
+            this.seqNum = seqNum;
+            this.entities = entities;
+        }
     }
 
     /**
