@@ -65,7 +65,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
                         if (msg instanceof ClientStatusMessage) {
                             ClientStatusMessage csm = (ClientStatusMessage)msg;
                             LOG.info("[{}] Subscribed to layers {} + entities {}",
-                                    session.getId(), csm.openLayerIds(), csm.selection().entityIds());
+                                    session.getId(), csm.getOpenLayerIds(), csm.getSelection().getEntityIds());
                             emitter.onNext(csm);
                         } else if (msg instanceof PingMessage) {
                             LOG.info("[{}] Received ping", session.getId());

@@ -51,7 +51,7 @@ import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
 import io.quartic.weyl.websocket.OpenLayerHandler;
-import io.quartic.weyl.websocket.message.AlertMessageImpl;
+import io.quartic.weyl.websocket.message.AlertMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -133,7 +133,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .compose(likeBehavior());
 
         final Observable<SocketMessage> messages = merge(
-                alertResource.alerts().map(AlertMessageImpl::of),
+                alertResource.alerts().map(AlertMessage::new),
                 layerListUpdates
         );
 

@@ -11,7 +11,7 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
-import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessageImpl;
+import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.immutables.value.Value;
 import rx.Observable;
@@ -80,7 +80,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
         return combineLatest(
-                clientStatus.map(ClientStatusMessage::selection).distinctUntilChanged(),    // Behaviourally unnecessary, but reduces superfluous lookups
+                clientStatus.map(ClientStatusMessage::getSelection).distinctUntilChanged(),    // Behaviourally unnecessary, but reduces superfluous lookups
                 entityLookup,
                 this::lookupSelectedEntities)
                 .distinctUntilChanged()             // To avoid re-running potentially heavy computations in the generators
@@ -89,8 +89,8 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
     private Results lookupSelectedEntities(SelectionStatus selectionStatus, Map<EntityId, Feature> map) {
         return ResultsImpl.of(
-                selectionStatus.seqNum(),
-                selectionStatus.entityIds()
+                selectionStatus.getSeqNum(),
+                selectionStatus.getEntityIds()
                         .stream()
                         .map(map::get)
                         .filter(Objects::nonNull)
@@ -100,7 +100,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     }
 
     private Observable<SocketMessage> generateMessages(Results results) {
-        return from(generators).map(generator -> SelectionDrivenUpdateMessageImpl.of(
+        return from(generators).map(generator -> new SelectionDrivenUpdateMessage(
                 generator.name(), results.seqNum(), generator.generate(transform(results.entities(), Identity::get))
         ));
     }

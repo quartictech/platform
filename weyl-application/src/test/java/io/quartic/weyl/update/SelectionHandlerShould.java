@@ -8,8 +8,8 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
-import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessageImpl;
-import io.quartic.weyl.websocket.message.SelectionStatusImpl;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
+import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class SelectionHandlerShould {
         sequence.onNext(snapshot(featureA));
         statuses.onNext(status(42, entityIdA));
 
-        assertThat(sub.getOnNextEvents(), contains(SelectionDrivenUpdateMessageImpl.of("Donkey", 42, payload)));
+        assertThat(sub.getOnNextEvents(), contains(new SelectionDrivenUpdateMessage("Donkey", 42, payload)));
     }
 
     @Test
@@ -229,7 +229,7 @@ public class SelectionHandlerShould {
 
     private ClientStatusMessage status(int seqNum, EntityId... entityIds) {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
-        when(msg.selection()).thenReturn(SelectionStatusImpl.of(seqNum, asList(entityIds)));
+        when(msg.getSelection()).thenReturn(new SelectionStatus(seqNum, asList(entityIds)));
         return msg;
     }
 
