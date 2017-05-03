@@ -202,7 +202,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       iconName,
       id: attribute,
       label: <small>{attribute}</small>,
-      secondaryLabel: <div>{buttons}</div>,
+      secondaryLabel: <div>{buttons.map((c, i) => <span key={i}>{c}</span>)}</div>,
       childNodes,
     };
   }
