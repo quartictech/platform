@@ -13,7 +13,6 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.Alert;
-import io.quartic.weyl.core.model.AlertImpl;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
@@ -22,12 +21,9 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.model.SnapshotId;
-import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.websocket.message.AlertMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
@@ -43,7 +39,6 @@ import rx.subjects.ReplaySubject;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -92,7 +87,7 @@ public class GeofenceStatusHandlerShould {
 
     @Before
     public void before() throws Exception {
-        when(layerSpec.id()).thenReturn(layerId);
+        when(layerSpec.getId()).thenReturn(layerId);
 
         when(converter.toModel(any())).thenReturn(newArrayList(featureA, featureB));
         when(converter.toGeojson(eq(MINIMAL_MANIPULATOR), any(Collection.class))).thenReturn(featureCollection);
@@ -116,7 +111,7 @@ public class GeofenceStatusHandlerShould {
         snapshotSequences.onNext(sequence(just(snapshot(layer()))));
 
         assertThat(extractByType(sub, GeofenceViolationsUpdateMessage.class), contains(
-                new GeofenceViolationsUpdateMessage(newHashSet(EntityId.fromString("Pluto")), 1, 2, 3)
+                new GeofenceViolationsUpdateMessage(newHashSet(new EntityId("Pluto")), 1, 2, 3)
         ));
     }
 
@@ -150,9 +145,9 @@ public class GeofenceStatusHandlerShould {
         snapshotSequences.onNext(sequence(just(snapshot(layer()))));
 
         assertThat(extractByType(sub, AlertMessage.class), contains(
-                new AlertMessage(AlertImpl.of(
+                new AlertMessage(new Alert(
                         "Geofence violation",
-                        Optional.of("Boundary violated by entity 'Goofy'"),
+                        "Boundary violated by entity 'Goofy'",
                         SEVERE
                 ))
         ));
@@ -196,7 +191,7 @@ public class GeofenceStatusHandlerShould {
 
     @Test
     public void ignore_non_live_layer_changes() throws Exception {
-        when(layerSpec.indexable()).thenReturn(true);
+        when(layerSpec.getIndexable()).thenReturn(true);
         final List<Feature> diff = newArrayList(modelFeatureOf(featureA), modelFeatureOf(featureB));
         mockDetectorBehaviour(false, false);
 
@@ -396,8 +391,8 @@ public class GeofenceStatusHandlerShould {
 
     private void mockDetectorBehaviour(boolean newViolations, boolean hasChanged) {
         final Violation violation = mock(Violation.class);
-        when(violation.entityId()).thenReturn(EntityId.fromString("Goofy"));
-        when(violation.geofenceId()).thenReturn(EntityId.fromString("Pluto"));
+        when(violation.entityId()).thenReturn(new EntityId("Goofy"));
+        when(violation.geofenceId()).thenReturn(new EntityId("Pluto"));
         when(violation.level()).thenReturn(SEVERE);
 
         final Output output = mock(Output.class);
@@ -439,12 +434,12 @@ public class GeofenceStatusHandlerShould {
     @SafeVarargs
     private final void verifyGeofences(String id, Alert.Level level, Collection<NakedFeature>... features) {
         verify(detector).create(
-                features[0].stream().map(p -> geofenceOf(id, level, p.geometry())).collect(toList())
+                features[0].stream().map(p -> geofenceOf(id, level, p.getGeometry())).collect(toList())
         );
     }
 
     private LayerSnapshotSequence sequence(Observable<Snapshot> snapshots) {
-        return LayerSnapshotSequenceImpl.of(layerSpec, snapshots);
+        return new LayerSnapshotSequence(layerSpec, snapshots);
     }
 
     private Snapshot snapshot(Layer layer) {
@@ -452,7 +447,7 @@ public class GeofenceStatusHandlerShould {
     }
 
     private Snapshot snapshot(Layer layer, List<Feature> diff) {
-        return SnapshotImpl.of(mock(SnapshotId.class), layer, diff);
+        return new Snapshot(mock(SnapshotId.class), layer, diff);
     }
 
     private Layer layer() {
@@ -463,7 +458,7 @@ public class GeofenceStatusHandlerShould {
         final io.quartic.weyl.core.feature.FeatureCollection featureCollection = mock(io.quartic.weyl.core.feature.FeatureCollection.class);
         final Layer layer = mock(Layer.class);
 
-        when(layer.features()).thenReturn(featureCollection);
+        when(layer.getFeatures()).thenReturn(featureCollection);
         when(featureCollection.stream()).thenAnswer(invocation -> stream(features));
         return layer;
     }
@@ -471,7 +466,7 @@ public class GeofenceStatusHandlerShould {
     private Geofence geofenceOf(String id, Alert.Level level, Geometry geometry) {
         return GeofenceImpl.of(
                 INCLUDE,
-                io.quartic.weyl.core.model.FeatureImpl.of(
+                new Feature(
                         new EntityId("geofence/" + id),
                         geometry,
                         AttributesImpl.of(singletonMap(ALERT_LEVEL, level))
@@ -480,10 +475,10 @@ public class GeofenceStatusHandlerShould {
     }
 
     private Feature modelFeatureOf(NakedFeature feature) {
-        return io.quartic.weyl.core.model.FeatureImpl.of(
+        return new Feature(
                 new EntityId("xyz"),
-                feature.geometry(),
-                feature.attributes());
+                feature.getGeometry(),
+                feature.getAttributes());
     }
 
     private Geometry point() {
@@ -501,7 +496,7 @@ public class GeofenceStatusHandlerShould {
     }
 
     private NakedFeature nakedFeature(Geometry polygon) {
-        return NakedFeatureImpl.of(Optional.empty(), polygon, featureAttributes);
+        return new NakedFeature(null, polygon, featureAttributes);
     }
 
 }

@@ -21,7 +21,7 @@ public abstract class BucketSum implements BucketAggregation {
     @Override
     public double aggregate(Feature bucket, Collection<Feature> features) {
         return features.stream()
-                .map(feature -> feature.attributes().attributes().get(attribute()))
+                .map(feature -> feature.getAttributes().attributes().get(attribute()))
                 .filter(Objects::nonNull)
                 .mapToDouble(BucketUtils::mapToDouble)
                 .sum();
@@ -29,6 +29,6 @@ public abstract class BucketSum implements BucketAggregation {
 
     @Override
     public String describe() {
-        return String.format("sum(%s)", attribute().name());
+        return String.format("sum(%s)", attribute().getName());
     }
 }

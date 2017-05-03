@@ -70,8 +70,8 @@ public class GeofenceViolationDetector {
         final Output output = new Output();
 
         features.forEach(feature -> state.geofences.forEach(geofence -> {
-            final EntityId entityId = feature.entityId();
-            final EntityId geofenceId = geofence.feature().entityId();
+            final EntityId entityId = feature.getEntityId();
+            final EntityId geofenceId = geofence.feature().getEntityId();
             final Alert.Level level = alertLevel(geofence.feature());
             final Violation violation = ViolationImpl.of(entityId, geofenceId, level);
 
@@ -101,7 +101,7 @@ public class GeofenceViolationDetector {
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
-        final boolean contains = geofence.feature().geometry().contains(feature.geometry());
+        final boolean contains = geofence.feature().getGeometry().contains(feature.getGeometry());
         return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
     }
 }

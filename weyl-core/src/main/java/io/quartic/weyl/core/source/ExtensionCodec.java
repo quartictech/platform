@@ -3,8 +3,7 @@ package io.quartic.weyl.core.source;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.model.MapDatasetExtension;
-import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +14,7 @@ import static java.lang.String.format;
 
 public class ExtensionCodec {
     public static final String EXTENSION_KEY = "map";
-    public static final MapDatasetExtension DEFAULT_EXTENSION = MapDatasetExtensionImpl.builder()
-            .staticSchema(StaticSchemaImpl.builder().build())
-            .build();
+    public static final MapDatasetExtension DEFAULT_EXTENSION = new MapDatasetExtension(new StaticSchema());
     private static final Logger LOG = LoggerFactory.getLogger(ExtensionCodec.class);
 
     public MapDatasetExtension decode(String name, Map<String, Object> extensions) {

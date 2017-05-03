@@ -5,7 +5,6 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.SnapshotId;
-import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.render.VectorTileRenderer;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -95,14 +94,14 @@ public class TileResourceShould {
     private BehaviorSubject<Snapshot> nextSequence(LayerId layerId) {
         final BehaviorSubject<Snapshot> snapshots = BehaviorSubject.create();
         final LayerSnapshotSequence seq = mock(LayerSnapshotSequence.class, RETURNS_DEEP_STUBS);
-        when(seq.spec().id()).thenReturn(layerId);
-        when(seq.snapshots()).thenReturn(snapshots);
+        when(seq.getSpec().getId()).thenReturn(layerId);
+        when(seq.getSnapshots()).thenReturn(snapshots);
         snapshotSequences.onNext(seq);
         return snapshots;
     }
 
     private Snapshot snapshot(Layer layer) {
-        return SnapshotImpl.of(mock(SnapshotId.class), layer, emptyList());
+        return new Snapshot(mock(SnapshotId.class), layer, emptyList());
     }
 
     private void mockRendererResult(byte[] expected) {

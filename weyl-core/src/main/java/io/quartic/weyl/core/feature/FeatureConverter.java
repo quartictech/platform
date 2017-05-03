@@ -10,7 +10,6 @@ import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.utils.GeometryTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +17,13 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static io.quartic.weyl.core.geojson.UtilsKt.fromJts;
 import static io.quartic.weyl.core.geojson.UtilsKt.toJts;
 import static io.quartic.weyl.core.utils.GeometryTransformer.webMercatortoWgs84;
 import static io.quartic.weyl.core.utils.GeometryTransformer.wgs84toWebMercator;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -58,18 +57,18 @@ public class FeatureConverter {
         return new AttributeManipulator() {
             @Override
             public boolean test(AttributeName name, Object value) {
-                final Attribute attribute = schema.attributes().get(name);
+                final Attribute attribute = schema.getAttributes().get(name);
                 if (attribute == null) {
-                    throw new RuntimeException("Couldn't find attribute '" + name.name() + "' in the schema");
+                    throw new RuntimeException("Couldn't find attribute '" + name.getName() + "' in the schema");
                 }
 
-                return (attribute.type() == AttributeType.NUMERIC)
-                        || attribute.categories().map(s -> !s.isEmpty()).orElse(false);
+                return (attribute.getType() == AttributeType.NUMERIC)
+                        || ofNullable(attribute.getCategories()).map(s -> !s.isEmpty()).orElse(false);
             }
 
             @Override
             public void postProcess(Feature feature, Map<String, Object> attributes) {
-                attributes.put("_entityId", feature.entityId().getUid());
+                attributes.put("_entityId", feature.getEntityId().getUid());
             }
         };
     }
@@ -103,8 +102,8 @@ public class FeatureConverter {
 
     private NakedFeature toModel(io.quartic.common.geojson.Feature f) {
         // HACK: we can assume that we've simply filtered out features with null geometries for now
-        return NakedFeatureImpl.of(
-                Optional.ofNullable(f.getId()),
+        return new NakedFeature(
+                f.getId(),
                 toModel.transform(toJts(f.getGeometry())),
                 convertToModelAttributes(f.getProperties())
         );
@@ -141,17 +140,17 @@ public class FeatureConverter {
     public io.quartic.common.geojson.Feature toGeojson(AttributeManipulator manipulator, Feature feature) {
         return new io.quartic.common.geojson.Feature(
                 null,
-                fromJts(fromModel.transform(feature.geometry())),
+                fromJts(fromModel.transform(feature.getGeometry())),
                 getRawAttributes(manipulator, feature)
         );
     }
 
     public static Map<String, Object> getRawAttributes(AttributeManipulator manipulator, Feature feature) {
-        final Map<String, Object> raw = feature.attributes().attributes()
+        final Map<String, Object> raw = feature.getAttributes().attributes()
                 .entrySet()
                 .stream()
                 .filter(e -> (e.getValue() != null) && manipulator.test(e.getKey(), e.getValue()))
-                .collect(toMap(e -> e.getKey().name(), Entry::getValue));
+                .collect(toMap(e -> e.getKey().getName(), Entry::getValue));
         manipulator.postProcess(feature, raw);
         return raw;
     }

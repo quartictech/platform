@@ -27,22 +27,22 @@ public class LayerListUpdateGenerator implements Transformer<LayerSnapshotSequen
     // Track which layers currently have features - this also handles layer-deletion nicely (as deleted layers become empty)
     private Observable<Set<LayerSpec>> extractSpecsForLayersWithFeatures(Observable<LayerSnapshotSequence> sequences) {
         final Set<LayerSpec> initial = newHashSet();
-        return merge(sequences.map(LayerSnapshotSequence::snapshots))
+        return merge(sequences.map(LayerSnapshotSequence::getSnapshots))
                 .scan(initial, this::addOrRemoveFromSetBasedOnFeatures)
                 .distinctUntilChanged(this::collectIds);
     }
 
     private Set<LayerSpec> addOrRemoveFromSetBasedOnFeatures(Set<LayerSpec> set, Snapshot s) {
-        if (s.absolute().features().isEmpty()) {
-            set.remove(s.absolute().spec());
+        if (s.getAbsolute().getFeatures().isEmpty()) {
+            set.remove(s.getAbsolute().getSpec());
         } else {
-            set.add(s.absolute().spec());
+            set.add(s.getAbsolute().getSpec());
         }
         return set;
     }
 
     private Set<LayerId> collectIds(Set<LayerSpec> set) {
-        return set.stream().map(LayerSpec::id).collect(toSet());
+        return set.stream().map(LayerSpec::getId).collect(toSet());
     }
 
     private SocketMessage toMessage(Set<LayerSpec> specs) {
@@ -55,10 +55,10 @@ public class LayerListUpdateGenerator implements Transformer<LayerSnapshotSequen
 
     private LayerInfo toInfo(LayerSpec spec) {
         return new LayerInfo(
-                spec.id(),
-                spec.metadata(),
-                spec.staticSchema(),
-                !spec.indexable()
+                spec.getId(),
+                spec.getMetadata(),
+                spec.getStaticSchema(),
+                !spec.getIndexable()
         );
     }
 }

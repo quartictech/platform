@@ -11,11 +11,10 @@ import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
-import io.quartic.weyl.core.model.ImmutableIndexedFeature;
+import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerUpdate;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +57,7 @@ public class SpatialPredicateShould {
 
     @Test
     public void produce_valid_metadata() throws Exception {
-        assertThat(computation.spec(newArrayList(layerA, layerB)).metadata(), equalTo(LayerMetadataImpl.of(
+        assertThat(computation.spec(newArrayList(layerA, layerB)).getMetadata(), equalTo(new LayerMetadata(
                 "A CONTAINS B",
                 "A CONTAINS B",
                 "Quartic",
@@ -85,18 +84,15 @@ public class SpatialPredicateShould {
 
     private Layer layer(String name) {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec().metadata().name()).thenReturn(name);
-        when(layer.spec().metadata().description()).thenReturn(name);
-        when(layer.spec().metadata().attribution()).thenReturn("Quartic");
+        when(layer.getSpec().getMetadata().getName()).thenReturn(name);
+        when(layer.getSpec().getMetadata().getDescription()).thenReturn(name);
+        when(layer.getSpec().getMetadata().getAttribution()).thenReturn("Quartic");
         Feature feature = feature();
-        when(layer.features()).thenReturn(FeatureCollection.EMPTY_COLLECTION.append(
+        when(layer.getFeatures()).thenReturn(FeatureCollection.EMPTY_COLLECTION.append(
                 ImmutableList.of(feature)
         ));
-        when(layer.indexedFeatures()).thenReturn(ImmutableList.of(
-                ImmutableIndexedFeature.builder()
-                        .feature(feature)
-                        .preparedGeometry(prepare(feature.geometry()))
-                        .build()
+        when(layer.getIndexedFeatures()).thenReturn(ImmutableList.of(
+                new IndexedFeature(prepare(feature.getGeometry()), feature)
         ));
         return layer;
     }
@@ -106,7 +102,7 @@ public class SpatialPredicateShould {
     }
 
     private Feature feature() {
-        return FeatureImpl.of(EntityId.fromString("test"), point(), Attributes.EMPTY_ATTRIBUTES);
+        return new Feature(new EntityId("test"), point(), Attributes.EMPTY_ATTRIBUTES);
     }
 
     private Point point() {

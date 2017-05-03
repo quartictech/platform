@@ -1,7 +1,8 @@
 package io.quartic.weyl.update;
 
 import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.Attributes;
+import io.quartic.weyl.core.model.AttributeName;
+import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -11,11 +12,15 @@ import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
 import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
@@ -180,7 +185,8 @@ public class SelectionHandlerShould {
 
     @Test
     public void perform_cheap_equality_checks() throws Exception {
-        final Feature feature = new AlwaysUnequalFeature(entityIdA);
+        final Feature feature = alwaysUnequalFeature(entityIdA);
+        System.out.println(feature.equals(feature));
         assertThat(feature, not(equalTo(feature)));     // Sanity check
 
         subscribe();
@@ -189,7 +195,7 @@ public class SelectionHandlerShould {
         sequence.onNext(snapshot(feature));
         sequence.onNext(snapshot(feature));             // Same feature, but compares unequal
 
-        assertGeneratorCallCountIs(1);                  // Thus an identity check is required
+        assertGeneratorCallCountIs(1);         // Thus an identity check is required
     }
 
     @Test
@@ -216,14 +222,14 @@ public class SelectionHandlerShould {
 
     private LayerSnapshotSequence sequence(LayerId layerId, Observable<Snapshot> snapshots) {
         final LayerSnapshotSequence seq = mock(LayerSnapshotSequence.class, RETURNS_DEEP_STUBS);
-        when(seq.spec().id()).thenReturn(layerId);
-        when(seq.snapshots()).thenReturn(snapshots);
+        when(seq.getSpec().getId()).thenReturn(layerId);
+        when(seq.getSnapshots()).thenReturn(snapshots);
         return seq;
     }
 
     private Snapshot snapshot(Feature... features) {
         final Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.diff()).thenReturn(asList(features));
+        when(snapshot.getDiff()).thenReturn(asList(features));
         return snapshot;
     }
 
@@ -235,7 +241,7 @@ public class SelectionHandlerShould {
 
     private Feature feature(EntityId id) {
         final Feature feature = mock(Feature.class);
-        when(feature.entityId()).thenReturn(id);
+        when(feature.getEntityId()).thenReturn(id);
         return feature;
     }
 
@@ -247,31 +253,26 @@ public class SelectionHandlerShould {
         verify(generator, times(expected)).generate(any());
     }
 
-    private static class AlwaysUnequalFeature implements Feature {
-        private final EntityId entityId;
+    private Feature alwaysUnequalFeature(EntityId id) {
+        final Object vv = alwaysUnequalObject();
+        System.out.println(vv.equals(vv));
+        final Map<AttributeName, Object> map = new HashMap();
+        map.put(new AttributeName("foo"), vv);
+        System.out.println(map.equals(map));
+        return new Feature(
+                id,
+                mock(Geometry.class),
+                AttributesImpl.of(map)
+        );
+    }
 
-        private AlwaysUnequalFeature(EntityId entityId) {
-            this.entityId = entityId;
-        }
-
-        @Override
-        public EntityId entityId() {
-            return entityId;
-        }
-
-        @Override
-        public Geometry geometry() {
-            return null;
-        }
-
-        @Override
-        public Attributes attributes() {
-            return null;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return false;
-        }
+    @NotNull
+    private Object alwaysUnequalObject() {
+        return new Object() {
+            @Override
+            public boolean equals(Object obj) {
+                return false;
+            }
+        };
     }
 }

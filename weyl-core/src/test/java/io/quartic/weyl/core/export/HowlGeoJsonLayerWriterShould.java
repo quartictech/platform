@@ -37,13 +37,13 @@ public class HowlGeoJsonLayerWriterShould {
     }
 
     private Feature feature(String id){
-        return FeatureImpl.of(EntityId.fromString(id), new GeometryFactory().createPoint(new Coordinate(0, 0)),
+        return new Feature(new EntityId(id), new GeometryFactory().createPoint(new Coordinate(0, 0)),
                 attributesFactory.builder().put("foo", 1).build());
     }
 
 
     private Layer layer(String layerId, FeatureCollection features) {
-        return LayerImpl.of(
+        return new Layer(
                 mock(LayerSpec.class, RETURNS_DEEP_STUBS),
                 features,
                 mock(DynamicSchema.class),

@@ -56,15 +56,15 @@ public class VectorTileRenderer {
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
 
-        final LayerId layerId = layer.spec().id();
+        final LayerId layerId = layer.getSpec().getId();
         LOG.info("Encoding layer {}", layerId);
         final AtomicInteger featureCount = new AtomicInteger();
-        final FeatureConverter.AttributeManipulator manipulator = frontendManipulatorFor(layer.dynamicSchema());
+        final FeatureConverter.AttributeManipulator manipulator = frontendManipulatorFor(layer.getDynamicSchema());
 
         Stopwatch stopwatch = Stopwatch.createStarted();
         layerIntersection(layer, envelope).map((feature) -> VectorTileFeature.of(
-                scaleGeometry(feature.feature().geometry(), envelope),
-                getRawAttributes(manipulator, feature.feature()))
+                scaleGeometry(feature.getFeature().getGeometry(), envelope),
+                getRawAttributes(manipulator, feature.getFeature()))
         ).sequential().forEach(vectorTileFeature -> {
                 featureCount.incrementAndGet();
                 encoder.addFeature(layerId.getUid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
@@ -76,7 +76,7 @@ public class VectorTileRenderer {
 
     @SuppressWarnings("unchecked")
     private Stream<IndexedFeature> layerIntersection(Layer layer, Envelope envelope) {
-        return layer.spatialIndex().query(envelope).stream();
+        return layer.getSpatialIndex().query(envelope).stream();
     }
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {

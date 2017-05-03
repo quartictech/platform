@@ -29,7 +29,7 @@ class TileResource @JvmOverloads constructor(
 
     // Don't do anything smart with deleted layers
     private val layers = snapshotSequences
-            .compose(accumulateMap({ snapshot: LayerSnapshotSequence -> snapshot.spec().id() }) { snapshot -> snapshot })
+            .compose(accumulateMap({ snapshot: LayerSnapshotSequence -> snapshot.spec.id }) { snapshot -> snapshot })
             .compose(likeBehavior())
 
     @GET
@@ -45,7 +45,7 @@ class TileResource @JvmOverloads constructor(
                @Suspended asyncResponse: AsyncResponse
     ) {
         layers.subscribeOn(scheduler)
-                .map { layers -> renderer.render(latest(getOrError(layers, layerId)).absolute(), z, x, y) }
+                .map { layers -> renderer.render(latest(getOrError(layers, layerId)).absolute, z, x, y) }
                 .first()
                 .subscribe({ data ->
                     LOG.info("returned data: {}", data.size)
@@ -54,11 +54,6 @@ class TileResource @JvmOverloads constructor(
     }
 
     private fun getOrError(layers: Map<LayerId, LayerSnapshotSequence>, id: LayerId): Observable<Snapshot> {
-        val layer = layers[id]
-        return if (layer != null) {
-            layer.snapshots()
-        } else {
-            error(NotFoundException("No layer with id " + id))
-        }
+        return layers[id]?.snapshots ?: error(NotFoundException("No layer with id $id"))
     }
 }

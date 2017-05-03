@@ -9,16 +9,13 @@ import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
-import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -31,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
@@ -48,9 +46,9 @@ import static org.mockito.Mockito.when;
 
 public class SourceManagerShould {
 
-    private static final AttributeName TITLE_ATTRIBUTE = AttributeNameImpl.of("title_attr");
-    private static final AttributeName IMAGE_ATTRIBUTE = AttributeNameImpl.of("image_attr");
-    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeNameImpl.of("cool_attr"), AttributeNameImpl.of("slick_attr") };
+    private static final AttributeName TITLE_ATTRIBUTE = new AttributeName("title_attr");
+    private static final AttributeName IMAGE_ATTRIBUTE = new AttributeName("image_attr");
+    private static final AttributeName[] BLESSED_ATTRIBUTES = { new AttributeName("cool_attr"), new AttributeName("slick_attr") };
 
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
@@ -86,7 +84,7 @@ public class SourceManagerShould {
                     final TestSubscriber<LayerUpdate> updateSubscriber = TestSubscriber.create();
                     final LayerSpec spec = populator.spec(emptyList());
                     populator.updates(emptyList()).subscribe(updateSubscriber);
-                    updateSubscribers.put(spec.id(), updateSubscriber);
+                    updateSubscribers.put(spec.getId(), updateSubscriber);
                 })
                 .subscribe(sub);
     }
@@ -101,9 +99,9 @@ public class SourceManagerShould {
         catalogueEvents.onCompleted();
 
         final LayerPopulator populator = collectedLayerPopulators().get(0);
-        assertThat(populator.spec(emptyList()), equalTo(LayerSpecImpl.of(
+        assertThat(populator.spec(emptyList()), equalTo(new LayerSpec(
                 new LayerId("123"),
-                LayerMetadataImpl.of("foo", "blah", "quartic", Instant.EPOCH),
+                new LayerMetadata("foo", "blah", "quartic", Instant.EPOCH),
                 LOCATION_AND_TRACK.getLayerView(),
                 staticSchema(),
                 true
@@ -141,7 +139,7 @@ public class SourceManagerShould {
         catalogueEvents.onNext(event(CREATE, "456", "foo", new LocatorB()));
         catalogueEvents.onCompleted();
 
-        assertThat(collectedLayerPopulators().stream().map(p -> p.spec(emptyList()).id()).collect(toList()),
+        assertThat(collectedLayerPopulators().stream().map(p -> p.spec(emptyList()).getId()).collect(toList()),
                 contains(new LayerId("123"), new LayerId("456")));
     }
 
@@ -177,18 +175,16 @@ public class SourceManagerShould {
     }
 
     private MapDatasetExtension extension() {
-        return MapDatasetExtensionImpl.builder()
-                .viewType(LOCATION_AND_TRACK)
-                .staticSchema(staticSchema())
-                .build();
+        return new MapDatasetExtension(staticSchema(), LOCATION_AND_TRACK);
     }
 
-    private StaticSchemaImpl staticSchema() {
-        return StaticSchemaImpl.builder()
-                .titleAttribute(TITLE_ATTRIBUTE)
-                .imageAttribute(IMAGE_ATTRIBUTE)
-                .blessedAttribute(BLESSED_ATTRIBUTES)
-                .build();
+    private StaticSchema staticSchema() {
+        return new StaticSchema(
+                TITLE_ATTRIBUTE,
+                null,
+                IMAGE_ATTRIBUTE,
+                newHashSet(BLESSED_ATTRIBUTES)
+        );
     }
 
     private Source sourceOf(Observable<LayerUpdate> updates, boolean indexable) {

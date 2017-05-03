@@ -8,7 +8,6 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.SnapshotId;
@@ -112,13 +111,13 @@ public abstract class LayerRouter {
         return sequences
                 .stream()
                 .flatMap(this::latest)
-                .collect(toMap(layer -> layer.spec().id(), identity()));
+                .collect(toMap(layer -> layer.getSpec().getId(), identity()));
     }
 
     // Deal with completed (i.e. deleted) layers
     private Stream<Layer> latest(LayerSnapshotSequence sequence) {
         try {
-            return Stream.of(RxUtilsKt.latest(sequence.snapshots()).absolute());
+            return Stream.of(RxUtilsKt.latest(sequence.getSnapshots()).getAbsolute());
         } catch (Exception e) {
             return Stream.empty();
         }
@@ -128,9 +127,9 @@ public abstract class LayerRouter {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
-            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().getUid());
+            checkArgument(!layers.containsKey(spec.getId()), "Already have layer with id=" + spec.getId().getUid());
 
-            return just(LayerSnapshotSequenceImpl.of(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
+            return just(new LayerSnapshotSequence(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
         } catch (Exception e) {
             LOG.error("Could not create sequence", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
             return empty();
@@ -141,7 +140,7 @@ public abstract class LayerRouter {
         final Snapshot empty = snapshotReducer().empty(spec);   // If this fails, then layer creation fails
         return updates -> updates
                 .scan(empty, (s, u) -> snapshotReducer().next(s, u))
-                .doOnError(e -> LOG.error("[{}] Upstream error", spec.metadata().name(), e))
+                .doOnError(e -> LOG.error("[{}] Upstream error", spec.getMetadata().getName(), e))
                 .onErrorResumeNext(empty())                     // On error, emit a final empty snapshot
                 .concatWith(just(empty))                        // On completion, emit a final empty snapshot
                 .compose(this::toSnapshotSubscriptionBehaviour);

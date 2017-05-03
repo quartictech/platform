@@ -46,9 +46,9 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
     private Observable<LayerEvent> extractLayerEvents(Observable<LayerSnapshotSequence> sequences) {
         return sequences.flatMap(seq ->
-                seq.snapshots()
-                        .map(s -> new LayerEvent(NEXT, seq.spec().id(), s.diff()))
-                        .concatWith(just(new LayerEvent(COMPLETE, seq.spec().id(), null)))
+                seq.getSnapshots()
+                        .map(s -> new LayerEvent(NEXT, seq.getSpec().getId(), s.getDiff()))
+                        .concatWith(just(new LayerEvent(COMPLETE, seq.getSpec().getId(), null)))
         );
     }
 
@@ -58,8 +58,8 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         switch (event.type) {
             case NEXT:
                 event.diff.forEach(f -> {
-                    state.entitiesPerLayer.put(id, f.entityId());
-                    state.entityLookup.put(f.entityId(), f);
+                    state.entitiesPerLayer.put(id, f.getEntityId());
+                    state.entityLookup.put(f.getEntityId(), f);
                 });
                 break;
 

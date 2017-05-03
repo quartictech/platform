@@ -4,10 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.GeoJsonParser;
-import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -27,6 +25,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 
 @Value.Immutable
 public abstract class GeoJsonSource implements Source {
@@ -44,7 +43,7 @@ public abstract class GeoJsonSource implements Source {
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
             try {
-                sub.onNext(LayerUpdateImpl.of(LayerUpdateType.REPLACE, importAllFeatures()));
+                sub.onNext(new LayerUpdate(REPLACE, importAllFeatures()));
             } catch (IOException e) {
                 sub.onError(e);
             }

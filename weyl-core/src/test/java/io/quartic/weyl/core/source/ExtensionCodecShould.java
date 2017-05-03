@@ -4,11 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetMetadata;
-import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.MapDatasetExtension;
-import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ public class ExtensionCodecShould {
         final Map<String, Object> raw = ImmutableMap.of("viewType", "LOCATION_AND_TRACK");
 
         assertThat(codec.decode("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK, StaticSchemaImpl.builder().build())));
+                equalTo(new MapDatasetExtension(new StaticSchema(), LOCATION_AND_TRACK)));
     }
 
     @Test
@@ -53,8 +52,7 @@ public class ExtensionCodecShould {
         );
 
         assertThat(codec.decode("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
-                        StaticSchemaImpl.builder().titleAttribute(AttributeNameImpl.of("foo")).build())));
+                equalTo(new MapDatasetExtension(new StaticSchema(new AttributeName("foo")), LOCATION_AND_TRACK)));
     }
 
     @Test
@@ -64,18 +62,29 @@ public class ExtensionCodecShould {
                 "attributeTypes", ImmutableMap.of("foo", "TIMESTAMP")
         );
         assertThat(codec.decode("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
-                equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
-                        StaticSchemaImpl.builder()
-                                .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP).build())));
+                equalTo(new MapDatasetExtension(
+                        new StaticSchema(
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                ImmutableMap.of(new AttributeName("foo"), AttributeType.TIMESTAMP)),
+                        LOCATION_AND_TRACK
+                        )));
     }
 
     @Test
     public void unparse_to_original() throws IOException {
-        MapDatasetExtension extension = MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
-                StaticSchemaImpl.builder()
-                        .titleAttribute(AttributeNameImpl.of("test"))
-                        .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP)
-                .build());
+        MapDatasetExtension extension = new MapDatasetExtension(
+                new StaticSchema(
+                        new AttributeName("test"),
+                        null,
+                        null,
+                        null,
+                        null,
+                        ImmutableMap.of(new AttributeName("foo"), AttributeType.TIMESTAMP)),
+                LOCATION_AND_TRACK);
         DatasetConfig datasetConfig = new DatasetConfig(
                 new DatasetMetadata("foo", "wat", "nope", null),
                 new CloudGeoJsonDatasetLocator("test", false),

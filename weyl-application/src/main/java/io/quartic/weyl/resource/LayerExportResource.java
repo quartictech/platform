@@ -24,10 +24,10 @@ public class LayerExportResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public LayerExportResult export(LayerExportRequest layerExportRequest) {
-        LOG.info("layer export request received for id: {}", layerExportRequest.layerId());
+        LOG.info("layer export request received for id: {}", layerExportRequest.getLayerId());
         return layerExporter.export(layerExportRequest)
                 .toBlocking()
                 .first()
-                .orElseThrow(() -> new NotFoundException("unable to find layer with id " + layerExportRequest.layerId()));
+                .orElseThrow(() -> new NotFoundException("unable to find layer with id " + layerExportRequest.getLayerId()));
     }
 }

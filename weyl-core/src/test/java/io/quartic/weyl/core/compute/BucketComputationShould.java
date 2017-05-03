@@ -4,18 +4,14 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.StaticSchema;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
 import org.junit.Before;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -26,7 +22,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Iterables.getLast;
@@ -73,18 +68,23 @@ public class BucketComputationShould {
     public void generate_correct_layer_metadata_and_schema() throws Exception {
         final LayerSpec spec = evaluateSpec();
 
-        assertThat(spec, equalTo(LayerSpecImpl.of(
+        assertThat(spec, equalTo(new LayerSpec(
                 myLayerId,
-                LayerMetadataImpl.of(
+                new LayerMetadata(
                         "Foo (bucketed)",
                         "Foo bucketed by Bar aggregating by " + aggregation.describe(),
                         "Alice / Bob",
                         Instant.EPOCH
                 ),
                 IDENTITY_VIEW,
-                StaticSchemaImpl.copyOf(bucketSchema())
-                        .withPrimaryAttribute(name("Foo"))
-                        .withBlessedAttributes(name("Foo"), name("BlessedA"), name("BlessedB")),
+                // TODO: Kotlin-ify the grossness
+                new StaticSchema(
+                        bucketSchema().getTitleAttribute(),
+                        name("Foo"),
+                        bucketSchema().getImageAttribute(),
+                        newHashSet(name("Foo"), name("BlessedA"), name("BlessedB")),
+                        bucketSchema().getCategoricalAttributes()
+                ),
                 true
         )));
     }
@@ -92,13 +92,13 @@ public class BucketComputationShould {
     @Test
     public void generate_features_with_augmented_attributes() throws Exception {
         final Feature bucketFeature = bucketFeature();
-        final ArrayList<Tuple> tuples = newArrayList(TupleImpl.of(bucketFeature, mock(Feature.class)));
+        final ArrayList<Tuple> tuples = newArrayList(new Tuple(bucketFeature, mock(Feature.class)));
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
 
-        assertThat(getLast(evaluateFirstUpdate().get(0).features()).attributes().attributes(),
+        assertThat(getLast(evaluateFirstUpdate().get(0).getFeatures()).getAttributes().attributes(),
                 equalTo(ImmutableMap.builder()
-                        .putAll(bucketFeature.attributes().attributes())
+                        .putAll(bucketFeature.getAttributes().attributes())
                         .put(name("Foo"), 42.0)
                         .build()
                 )
@@ -111,8 +111,8 @@ public class BucketComputationShould {
         final Feature groupFeatureA = mock(Feature.class);
         final Feature groupFeatureB = mock(Feature.class);
         final List<Tuple> tuples = newArrayList(
-                TupleImpl.of(bucketFeature, groupFeatureA),
-                TupleImpl.of(bucketFeature, groupFeatureB)
+                new Tuple(bucketFeature, groupFeatureA),
+                new Tuple(bucketFeature, groupFeatureB)
         );
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
 
@@ -128,8 +128,8 @@ public class BucketComputationShould {
         final Feature groupFeatureA = mock(Feature.class);
         final Feature groupFeatureB = mock(Feature.class);
         final List<Tuple> tuples = newArrayList(
-                TupleImpl.of(bucketFeature, groupFeatureA),
-                TupleImpl.of(bucketFeature, groupFeatureB)
+                new Tuple(bucketFeature, groupFeatureA),
+                new Tuple(bucketFeature, groupFeatureB)
         );
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
 
@@ -159,25 +159,25 @@ public class BucketComputationShould {
 
     private Layer featureLayer() {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec().metadata().name()).thenReturn("Foo");
-        when(layer.spec().metadata().attribution()).thenReturn("Alice");
+        when(layer.getSpec().getMetadata().getName()).thenReturn("Foo");
+        when(layer.getSpec().getMetadata().getAttribution()).thenReturn("Alice");
         return layer;
     }
 
     private Layer bucketLayer() {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec().metadata().name()).thenReturn("Bar");
-        when(layer.spec().metadata().attribution()).thenReturn("Bob");
-        when(layer.spec().staticSchema()).thenReturn(bucketSchema());
-        when(layer.indexedFeatures()).thenReturn(emptyList());
+        when(layer.getSpec().getMetadata().getName()).thenReturn("Bar");
+        when(layer.getSpec().getMetadata().getAttribution()).thenReturn("Bob");
+        when(layer.getSpec().getStaticSchema()).thenReturn(bucketSchema());
+        when(layer.getIndexedFeatures()).thenReturn(emptyList());
         return layer;
     }
 
     private StaticSchema bucketSchema() {
-        return StaticSchemaImpl.of(
-                Optional.of(name("Title")),
-                Optional.of(name("Primary")),
-                Optional.of(name("Image")),
+        return new StaticSchema(
+                name("Title"),
+                name("Primary"),
+                name("Image"),
                 newHashSet(name("BlessedA"), name("BlessedB")),
                 emptySet(),
                 ImmutableMap.of()
@@ -185,14 +185,14 @@ public class BucketComputationShould {
     }
 
     private Feature bucketFeature() {
-        return FeatureImpl.of(
-                EntityId.fromString("12345"),
+        return new Feature(
+                new EntityId("12345"),
                 mock(Geometry.class),
                 () -> ImmutableMap.of(name("Height"), 180, name("Weight"), 70)
         );
     }
 
     private AttributeName name(String name) {
-        return AttributeNameImpl.of(name);
+        return new AttributeName(name);
     }
 }

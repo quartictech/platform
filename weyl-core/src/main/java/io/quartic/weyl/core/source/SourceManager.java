@@ -8,9 +8,8 @@ import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
-import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import org.immutables.value.Value;
@@ -71,11 +70,11 @@ public abstract class SourceManager {
         LOG.info(format("[%s] Created layer", name));
 
         return LayerPopulator.withoutDependencies(
-                LayerSpecImpl.of(
+                new LayerSpec(
                         new LayerId(id.getUid()),
                         datasetMetadataFrom(config.getMetadata()),
-                        extension.viewType().getLayerView(),
-                        extension.staticSchema(),
+                        extension.getViewType().getLayerView(),
+                        extension.getStaticSchema(),
                         source.indexable()
                 ),
                 source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source;
@@ -120,11 +119,11 @@ public abstract class SourceManager {
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?
     private LayerMetadata datasetMetadataFrom(DatasetMetadata metadata) {
-        return LayerMetadataImpl.builder()
-                .name(metadata.getName())
-                .description(metadata.getDescription())
-                .attribution(metadata.getAttribution())
-                .registered(metadata.getRegistered())    // Should always be non-null
-                .build();
+        return new LayerMetadata(
+                metadata.getName(),
+                metadata.getDescription(),
+                metadata.getAttribution(),
+                metadata.getRegistered()    // Should always be non-null
+        );
     }
 }
