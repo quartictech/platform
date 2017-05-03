@@ -7,12 +7,14 @@ curl -H Content-Type:application/json -XPOST http://localhost:8090/api/datasets/
       "description": "Arlo and Alex go wild",
       "attribution": "Quartic"
     },
-    "map": {
-        "viewType": "LOCATION_AND_TRACK",
-        "titleAttribute": "name",
-        "blessedAttributes": [ "name" ],
-        "attributeTypes": {
-          "timestamp": "TIMESTAMP"
+    "extensions": {
+        "map": {
+            "viewType": "LOCATION_AND_TRACK",
+            "titleAttribute": "name",
+            "blessedAttributes": [ "name" ],
+            "attributeTypes": {
+              "timestamp": "TIMESTAMP"
+            }
         }
     },
     "locator": {
