@@ -1,9 +1,8 @@
 package io.quartic.howl;
 
-import io.quartic.howl.api.StorageBackendChangeImpl;
+import io.quartic.howl.api.StorageBackendChange;
 import io.quartic.howl.storage.ObservableStorageBackend;
 import io.quartic.howl.storage.StorageBackend;
-import io.quartic.howl.api.StorageBackendChange;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
@@ -28,7 +27,7 @@ public class ObservableStorageBackendShould {
         observableStorageBackend.put(MediaType.TEXT_PLAIN, "test", "ladispute",
                 new ByteArrayInputStream("hello".getBytes()));
 
-        subscriber.assertValue(StorageBackendChangeImpl.of("test", "ladispute", 1L));
+        subscriber.assertValue(new StorageBackendChange("test", "ladispute", 1L));
     }
 
     @Test

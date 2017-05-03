@@ -10,7 +10,6 @@ import io.quartic.common.websocket.WebsocketClientSessionFactory
 import io.quartic.common.websocket.WebsocketListener
 import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.StorageBackendChange
-import io.quartic.howl.api.StorageBackendChangeImpl
 import io.quartic.weyl.api.LayerUpdateType
 import org.slf4j.LoggerFactory
 import rx.Subscription
@@ -24,19 +23,19 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
                         private val howlClient: HowlClient) : ResourceManagingEndpoint<Subscription>() {
 
     override fun createResourceFor(session: Session): Subscription {
-        val namespace = session.pathParameters["namespace"]
-        val objectName = session.pathParameters["objectName"]
+        val namespace = session.pathParameters["namespace"]!!
+        val objectName = session.pathParameters["objectName"]!!
         val listener = WebsocketListener<StorageBackendChange>(
                 OBJECT_MAPPER.typeFactory.uncheckedSimpleType(StorageBackendChange::class.java),
                 String.format("%s/%s/%s", howlWatchUrl, namespace, objectName),
                 websocketClientSessionFactory)
 
         return listener.observable
-                .startWith(StorageBackendChangeImpl.of(namespace, objectName, null))
+                .startWith(StorageBackendChange(namespace, objectName, null))
                 .doOnError { LOG.error("error: $it") }
                 .subscribe({ change ->
                     LOG.info("[{}/{}] receiving update: {}", namespace, objectName, change)
-                    howlClient.downloadFile(change.namespace(), change.objectName()).map {
+                    howlClient.downloadFile(change.namespace, change.objectName).map {
                         it.use { inputStream ->
                             if (inputStream != null) {
                                 val stop = Stopwatch.createStarted()

@@ -29,8 +29,8 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
         LOG.info("[{}/{}] changes websocket created", namespace, objectName);
 
         Subscription subscription = changes
-                .filter(change -> change.namespace().equals(namespace) &&
-                        change.objectName().equals(objectName))
+                .filter(change -> change.getNamespace().equals(namespace) &&
+                        change.getObjectName().equals(objectName))
                 .doOnEach(change -> LOG.info("[{}/{}] change broadcast", namespace, objectName))
                 .subscribe(change -> {
                     try {
