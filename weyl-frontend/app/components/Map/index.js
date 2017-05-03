@@ -16,6 +16,8 @@ mapboxgl.accessToken = mapboxToken;
 
 const _ = require("underscore");
 
+const SELECTION_COLOR = Colors.GOLD5;
+
 
 class Map extends React.Component { // eslint-disable-line react/prefer-stateless-function
   constructor() {
@@ -279,7 +281,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "id": "point_sel",
       "type": "circle",
       "paint": {
-        "circle-color": "#FFB85F", // "#6e599f",
+        "circle-color": SELECTION_COLOR,
       },
       "filter": ["in", "_entityId", ""],
     });
@@ -288,7 +290,7 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "id": "polygon_sel",
       "type": "fill",
       "paint": {
-        "fill-color": "#FFB85F", // "#6e599f",
+        "fill-color": SELECTION_COLOR,
       },
       "filter": ["in", "_entityId", ""],
     });
@@ -297,7 +299,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       "id": "line_sel",
       "type": "line",
       "paint": {
-        "line-color": "#FFB85F", // "#6e599f",
+        "line-color": SELECTION_COLOR,
+        "line-width": 5,
       },
       "filter": ["in", "_entityId", ""],
     });
