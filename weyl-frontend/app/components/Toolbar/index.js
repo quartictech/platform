@@ -19,6 +19,40 @@ import styles from "./styles.css";
 import logo from "./quartic.svg";
 
 function Toolbar(props) {
+  const panes = [
+    {
+      name: "Layers",
+      iconName: "layers",
+      selected: props.ui.panels.layerList,
+      onClick: () => props.onUiToggle("layerList"),
+    },
+    {
+      name: "Compute",
+      iconName: "calculator",
+      selected: props.ui.layerOp === "calculate",
+      onClick: () => props.onUiToggle("calculate"),
+    },
+    {
+      name: "Geofence",
+      iconName: "polygon-filter",
+      selected: props.geofencePaneVisible,
+      onClick: props.onGeofencePaneToggle,
+    },
+    {
+      name: "Chart",
+      iconName: "chart",
+      selected: props.ui.panels.chart,
+      onClick: () => props.onUiToggle("chart"),
+    },
+    {
+      name: "Details",
+      iconName: "th",
+      selected: props.ui.panels.table,
+      onClick: () => props.onUiToggle("table"),
+    },
+
+  ];
+
   return (
     <div className={classNames(styles.toolbar, "pt-elevation-3")}>
       <nav className="pt-navbar pt-dark">
@@ -36,41 +70,19 @@ function Toolbar(props) {
           />
 
           <span className="pt-navbar-divider"></span>
-          <Tooltip content="Layers" position={Position.BOTTOM}>
-            <AnchorButton
-              iconName="layers"
-              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.layerList && !props.buttonsDisabled })}
-              onClick={() => props.onUiToggle("layerList")}
-              disabled={props.buttonsDisabled}
-            />
-          </Tooltip>
 
-          <Tooltip content="Compute" position={Position.BOTTOM}>
-            <AnchorButton
-              iconName="calculator"
-              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.ui.layerOp === "calculate") && !props.buttonsDisabled })}
-              onClick={() => props.onUiToggle("calculate")}
-              disabled={props.buttonsDisabled}
-            />
-          </Tooltip>
-
-          <Tooltip content="Geofence" position={Position.BOTTOM}>
-            <AnchorButton
-              iconName="polygon-filter"
-              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: (props.geofencePaneVisible) && !props.buttonsDisabled })}
-              onClick={props.onGeofencePaneToggle}
-              disabled={props.buttonsDisabled}
-            />
-          </Tooltip>
-
-          <Tooltip content="Chart" position={Position.BOTTOM}>
-            <AnchorButton
-              iconName="chart"
-              className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: props.ui.panels.chart && !props.buttonsDisabled })}
-              onClick={() => props.onUiToggle("chart")}
-              disabled={props.buttonsDisabled}
-            />
-          </Tooltip>
+          {
+            panes.map(p =>
+              <PaneControl
+                key={p.name}
+                name={p.name}
+                iconName={p.iconName}
+                selected={p.selected}
+                disabled={props.buttonsDisabled}
+                onClick={p.onClick}
+              />
+            )
+          }
 
           <span className="pt-navbar-divider"></span>
           <ThemePicker
@@ -82,6 +94,23 @@ function Toolbar(props) {
     </div>
   );
 }
+
+const PaneControl = ({
+  name,
+  iconName,
+  selected,
+  disabled,
+  onClick,
+}) => (
+  <Tooltip content={name} position={Position.BOTTOM}>
+    <AnchorButton
+      iconName={iconName}
+      className={classNames(Classes.MINIMAL, { [Classes.ACTIVE]: selected && !disabled })}
+      onClick={onClick}
+      disabled={disabled}
+    />
+  </Tooltip>
+);
 
 const ThemePicker = ({ selected, onSelect }) => {
   const menu = (
