@@ -49,12 +49,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
   }
 
   queryRenderedFeatures(point) {
-    return this.map.queryRenderedFeatures(point, { layers: this.getVisibleSubLayers() });
+    return this.map.queryRenderedFeatures(point, { layers: this.getSelectableSubLayers() });
   }
 
-  getVisibleSubLayers() {
+  getSelectableSubLayers() {
     const visibleLayerIds = _.values(this.props.layers)
-      .filter(l => l.visible)
+      .filter(l => l.visible && !l.style.isTransparent)
       .map(l => l.id);
     return _.flatten(Object.keys(this.subLayers)
       .filter(id => visibleLayerIds.some(i => i === id))
