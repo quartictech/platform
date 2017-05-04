@@ -2,6 +2,7 @@ import React from "react";
 import {
   Button,
   Classes,
+  IconContents,
   Intent,
   Menu,
   MenuDivider,
@@ -251,6 +252,11 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
               />
             ))
           }
+          <MenuItem
+            text="Transparent"
+            label={layer.style.isTransparent ? IconContents.TICK : ""}
+            onClick={() => this.props.onLayerStyleChange(layer.id, "TRANSPARENCY", !layer.style.isTransparent)}
+          />
         </MenuItem>
         <MenuItem iconName="tint" text="Colour by...">
           {

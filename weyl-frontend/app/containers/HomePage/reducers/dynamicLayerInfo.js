@@ -29,6 +29,8 @@ const layerReducer = (state, action) => {
       switch (action.key) {
         case "ATTRIBUTE":
           return state.setIn(["style", "attribute"], action.value);
+        case "TRANSPARENCY":
+          return state.setIn(["style", "isTransparent"], action.value);
         case "THEME":
           return state
             .set("themeIdx", action.value)
@@ -106,6 +108,7 @@ const defaultLayerStyle = (attribute, themeIdx) => ({
   type: "DEFAULT",
   attribute,
   opacity: 0.8,
+  isTransparent: false,
   point: {
     "circle-radius": 6,
     "color": layerThemes[themeIdx].line,
