@@ -93,7 +93,7 @@ export function buildStyleLayers(layer) {
 const polygonSpec = (style, attributes, attributeStats) => ({
   type: "fill",
   paint: {
-    "fill-color": colorStyle(style.attribute, style.polygon, attributes, attributeStats),
+    "fill-color": style.isTransparent ? "rgba(0, 0, 0, 0)" : colorStyle(style.attribute, style.polygon, attributes, attributeStats),
     "fill-outline-color": style.polygon["fill-outline-color"],
     "fill-opacity": style.opacity,
   },
