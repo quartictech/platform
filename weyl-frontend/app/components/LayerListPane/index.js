@@ -87,7 +87,9 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           layer.stats ? layer.stats.attributeStats : {},
           (k, v) => this.props.onToggleValueVisible(layer.id, k, v),
           (k) => this.props.onToggleAllValuesVisible(layer.id, k),
-          (k, startTime, endTime) => this.props.onApplyTimeRangeFilter(layer.id, k, startTime, endTime)
+          (k, startTime, endTime) => this.props.onApplyTimeRangeFilter(layer.id, k, startTime, endTime),
+          layer.style.attribute,
+          (k) => this.props.onLayerStyleChange(layer.id, "ATTRIBUTE", layer.style.attribute === k ? null : k)
         ),
       };
       node.onClick = () => toggleOnPredicate(node, this.state.activeLayerId === layer.id);
@@ -98,12 +100,13 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
     });
   }
 
-  attributeNodes(attributes, filter, attributeStats, onValueClick, onCategoryClick, applyTimeRangeFilter) {
+  attributeNodes(attributes, filter, attributeStats, onValueClick, onCategoryClick, applyTimeRangeFilter, layerColourAttribute, colourByAttributeClick) {
     return _.chain(attributes)
       .keys()
       .sort(naturalsort)
       .map(k => {
-        const node = this.attributeNode(k, attributes[k], attributeStats[k], filter[k], onValueClick, onCategoryClick, applyTimeRangeFilter);
+        const node = this.attributeNode(k, attributes[k], attributeStats[k], filter[k],
+          onValueClick, onCategoryClick, applyTimeRangeFilter, layerColourAttribute === k, colourByAttributeClick);
         node.onClick = () => toggleOnPredicate(node, this.state.activeAttribute === k);
         node.onExpand = () => this.setState({ activeAttribute: k });
         node.onCollapse = () => this.setState({ activeAttribute: null });
@@ -113,58 +116,95 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
       .value();
   }
 
-  attributeNode(attribute, attributeInfo, attributeStats, filter, onValueClick, onCategoryClick, applyTimeRangeFilter) {
-    if (attributeInfo.type === "TIMESTAMP") {
-      return {
-        iconName: "time",
-        id: attribute,
-        label: <small>{attribute}</small>,
-        secondaryLabel: (
-          <Tooltip content={this.timeRangeFilterTooltip(filter)}>
-            <Popover
-              content={
-                <DateRangePicker
-                  startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
-                  endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
-                  minTime={attributeStats ? attributeStats.minimum : null}
-                  maxTime={attributeStats ? attributeStats.maximum : null}
-                  onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
-                />}
-              position={Position.RIGHT_TOP}
-            >
-              <Button
-                iconName="filter"
-                className={Classes.MINIMAL}
-                intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
-              />
-            </Popover>
-          </Tooltip>
-        ),
-      };
-    } else if (attributeInfo.categories) {
-      return {
-        iconName: "th-list",
-        id: attribute,
-        label: <small>{attribute}</small>,
-        secondaryLabel: <Tooltip content="Invert Selection" position={Position.BOTTOM}>
+  invertSelectionButton(attribute, filter, onCategoryClick) {
+    return (
+      <Tooltip content="Invert Selection" position={Position.BOTTOM}>
+        <Button
+          iconName="swap-horizontal"
+          className={Classes.MINIMAL}
+          onClick={() => onCategoryClick(attribute)}
+          intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
+        />
+      </Tooltip>
+      );
+  }
+
+  timeFilterButton(attribute, attributeStats, filter, applyTimeRangeFilter) {
+    return (
+      <Tooltip content={this.timeRangeFilterTooltip(filter)}>
+        <Popover
+          content={
+            <DateRangePicker
+              startTime={filter && filter.timeRange ? filter.timeRange.startTime : null}
+              endTime={filter && filter.timeRange ? filter.timeRange.endTime : null}
+              minTime={attributeStats ? attributeStats.minimum : null}
+              maxTime={attributeStats ? attributeStats.maximum : null}
+              onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
+            />}
+          position={Position.RIGHT_TOP}
+        >
           <Button
-            iconName="swap-horizontal"
+            iconName="filter"
             className={Classes.MINIMAL}
-            onClick={() => onCategoryClick(attribute)}
             intent={filter && filter.timeRange ? Intent.WARNING : Intent.NONE}
           />
-        </Tooltip>,
-        childNodes: this.attributeCategoryNodes(
+        </Popover>
+      </Tooltip>
+    );
+  }
+
+  colourByButton(attribute, isColourAttribute, colourByAttributeClick) {
+    return (
+      <Tooltip content="Colour By" position={Position.BOTTOM}>
+        <Button
+          iconName="tint"
+          className={Classes.MINIMAL}
+          onClick={() => colourByAttributeClick(attribute)}
+          intent={isColourAttribute ? Intent.WARNING : Intent.NONE}
+        />
+      </Tooltip>
+    );
+  }
+
+  emptyButton() {
+    return (
+      <Button className={Classes.DISABLED} style={{ backgroundColor: "rgba(0, 0, 0, 0)", cursor: "default" }} />
+    );
+  }
+
+
+  attributeNode(attribute, attributeInfo, attributeStats, filter, onValueClick, onCategoryClick, applyTimeRangeFilter, isColourAttribute, colourByAttributeClick) {
+    const buttons = [];
+    let iconName = "property";
+    let childNodes = null;
+
+    if (isColourable(attributeInfo)) {
+      buttons.push(this.colourByButton(attribute, isColourAttribute, colourByAttributeClick));
+    } else {
+      buttons.push(this.emptyButton());
+    }
+
+    if (attributeInfo.type === "TIMESTAMP") {
+      iconName = "time";
+      buttons.push(this.timeFilterButton(attribute, attributeStats, filter, applyTimeRangeFilter));
+    } else if (attributeInfo.categories) {
+      iconName = "th-list";
+      buttons.push(this.invertSelectionButton(attribute, filter, onCategoryClick));
+      childNodes = this.attributeCategoryNodes(
           attributeInfo.categories,
           filter,
           (v) => onValueClick(attribute, v),
-        ),
-      };
+        );
+    } else {
+      buttons.push(this.emptyButton());
     }
+
     return {
-      iconName: "property",
+      iconName,
       id: attribute,
       label: <small>{attribute}</small>,
+      secondaryLabel: <div>{buttons.map((c, i) => <span key={i}>{c}</span>)}</div>,
+      childNodes,
     };
   }
 
@@ -257,21 +297,6 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
             label={layer.style.isTransparent ? IconContents.TICK : ""}
             onClick={() => this.props.onLayerStyleChange(layer.id, "TRANSPARENCY", !layer.style.isTransparent)}
           />
-        </MenuItem>
-        <MenuItem iconName="tint" text="Colour by...">
-          {
-            _.keys(layer.dynamicSchema.attributes)
-              .filter(k => isColourable(layer.dynamicSchema.attributes[k]))
-              .sort(naturalsort)
-              .map(k =>
-                <MenuItem
-                  key={k}
-                  text={k}
-                  iconName="property"
-                  onClick={() => this.props.onLayerStyleChange(layer.id, "ATTRIBUTE", k)}
-                />
-              )
-          }
         </MenuItem>
         <MenuItem iconName="info-sign" text="Info">
           <MenuItem text={`Description: ${layer.metadata.description}`} disabled />
