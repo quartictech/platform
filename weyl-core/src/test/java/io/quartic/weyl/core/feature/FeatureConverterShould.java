@@ -110,7 +110,7 @@ public class FeatureConverterShould {
         assertTrue(manipulator.test(name("numeric"), null));
         assertFalse(manipulator.test(name("string"), null));
         assertFalse(manipulator.test(name("timeseries"), null));
-        assertFalse(manipulator.test(name("timestamp"), null));
+        assertTrue(manipulator.test(name("timestamp"), null));
         assertFalse(manipulator.test(name("unknown"), null));
         assertTrue(manipulator.test(name("categorical"), null));
     }
