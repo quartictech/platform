@@ -65,8 +65,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.map = new mapboxgl.Map({
       container: "map-inner",
       style: mapThemes[this.props.map.theme].mapbox,
-      zoom: 9.7,
-      center: [-0.0915, 51.5174],
+      zoom: 11.7,
+      center: [-0.3548, 51.4679],
     });
 
     this.map.dragRotate.disable();
