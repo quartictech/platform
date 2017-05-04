@@ -133,6 +133,18 @@ public class SelectionHandler implements ClientStatusMessageHandler {
             this.seqNum = seqNum;
             this.entities = entities;
         }
+
+        // TODO - Kotlin-ify
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Results results = (Results) o;
+
+            if (seqNum != results.seqNum) return false;
+            return entities.equals(results.entities);
+        }
     }
 
     /**
