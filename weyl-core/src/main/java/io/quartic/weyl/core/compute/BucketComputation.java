@@ -62,7 +62,7 @@ public abstract class BucketComputation implements LayerPopulator {
 
     @Override
     public List<LayerId> dependencies() {
-        return ImmutableList.of(bucketSpec().features(), bucketSpec().buckets());
+        return ImmutableList.of(bucketSpec().getFeatures(), bucketSpec().getBuckets());
     }
 
     @Override
@@ -77,7 +77,7 @@ public abstract class BucketComputation implements LayerPopulator {
                 layerId(),
                 LayerMetadataImpl.of(
                         String.format("%s (bucketed)", featureName),
-                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().aggregation().describe()),
+                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().getAggregation().describe()),
                         String.format("%s / %s", featureLayer.spec().metadata().attribution(), bucketLayer.spec().metadata().attribution()),
                         clock().instant()
                 ),
@@ -123,11 +123,11 @@ public abstract class BucketComputation implements LayerPopulator {
 
     private NakedFeature featureForBucket(String attributeName, Entry<Feature, List<Tuple>> entry) {
         Feature bucket = entry.getKey();
-        Double value = bucketSpec().aggregation().aggregate(
+        Double value = bucketSpec().getAggregation().aggregate(
                 bucket,
                 entry.getValue().stream().map(Tuple::right).collect(toList()));
 
-        if (bucketSpec().normalizeToArea()) {
+        if (bucketSpec().getNormalizeToArea()) {
             if (bucket.geometry().getArea() > 0) {
                 value /= bucket.geometry().getArea();
             }

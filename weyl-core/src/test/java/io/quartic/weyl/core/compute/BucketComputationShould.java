@@ -55,7 +55,7 @@ public class BucketComputationShould {
     private final LayerId bucketLayerId = mock(LayerId.class);
     private final LayerId featureLayerId = mock(LayerId.class);
     private final BucketAggregation aggregation = mock(BucketAggregation.class);
-    private final BucketSpec bucketSpec = BucketSpecImpl.of(bucketLayerId, featureLayerId, aggregation, false);
+    private final BucketSpec bucketSpec = new BucketSpec(bucketLayerId, featureLayerId, aggregation, false);
     private final SpatialJoiner joiner = mock(SpatialJoiner.class);
     private BucketComputation computation;
 
