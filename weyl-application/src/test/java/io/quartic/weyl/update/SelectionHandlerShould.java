@@ -1,8 +1,5 @@
 package io.quartic.weyl.update;
 
-import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -12,21 +9,15 @@ import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
 import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -184,21 +175,6 @@ public class SelectionHandlerShould {
     }
 
     @Test
-    public void perform_cheap_equality_checks() throws Exception {
-        final Feature feature = alwaysUnequalFeature(entityIdA);
-        System.out.println(feature.equals(feature));
-        assertThat(feature, not(equalTo(feature)));     // Sanity check
-
-        subscribe();
-        final PublishSubject<Snapshot> sequence = createSequence(layerIdX);
-        statuses.onNext(status(42, entityIdA));
-        sequence.onNext(snapshot(feature));
-        sequence.onNext(snapshot(feature));             // Same feature, but compares unequal
-
-        assertGeneratorCallCountIs(1);         // Thus an identity check is required
-    }
-
-    @Test
     public void stop_passing_entities_that_came_from_deleted_layer() throws Exception {
         subscribe();
         final PublishSubject<Snapshot> sequence = createSequence(layerIdX);
@@ -251,28 +227,5 @@ public class SelectionHandlerShould {
 
     private void assertGeneratorCallCountIs(int expected) {
         verify(generator, times(expected)).generate(any());
-    }
-
-    private Feature alwaysUnequalFeature(EntityId id) {
-        final Object vv = alwaysUnequalObject();
-        System.out.println(vv.equals(vv));
-        final Map<AttributeName, Object> map = new HashMap();
-        map.put(new AttributeName("foo"), vv);
-        System.out.println(map.equals(map));
-        return new Feature(
-                id,
-                mock(Geometry.class),
-                AttributesImpl.of(map)
-        );
-    }
-
-    @NotNull
-    private Object alwaysUnequalObject() {
-        return new Object() {
-            @Override
-            public boolean equals(Object obj) {
-                return false;
-            }
-        };
     }
 }

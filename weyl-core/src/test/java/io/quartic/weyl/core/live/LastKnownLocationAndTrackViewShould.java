@@ -67,6 +67,10 @@ public class LastKnownLocationAndTrackViewShould {
         );
 
         assertThat(features.size(), equalTo(4));
+
+        System.out.println(features);
+        System.out.println(expectedFeatures);
+
         assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
     }
 
