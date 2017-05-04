@@ -6,7 +6,6 @@ import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
@@ -88,7 +87,7 @@ public abstract class BucketComputation implements LayerPopulator {
     }
 
     private StaticSchema schemaFrom(StaticSchema original, String rawAttributeName) {
-        final AttributeName attributeName = AttributeNameImpl.of(rawAttributeName);
+        final AttributeName attributeName = new AttributeName(rawAttributeName);
         return StaticSchemaImpl.copyOf(original)
                 .withBlessedAttributes(concat(singletonList(attributeName), original.blessedAttributes()))
                 .withPrimaryAttribute(attributeName);

@@ -49,7 +49,7 @@ public class StatsCalculator {
 
     private static Attribute getAttribute(DynamicSchema schema, AttributeName name) {
         if (!schema.attributes().containsKey(name)) {
-            throw new IllegalStateException("Attribute not present in schema: " + name.name());
+            throw new IllegalStateException("Attribute not present in schema: " + name.getName());
         }
         return schema.attributes().get(name);
     }

@@ -4,7 +4,7 @@ import io.quartic.weyl.core.model.AttributeName
 import io.quartic.weyl.core.model.Feature
 import java.util.*
 
-data class BucketMean(private val attribute: AttributeName) : BucketAggregation {
+data class BucketMean(val attribute: AttributeName) : BucketAggregation {
     override fun aggregate(bucket: Feature, features: Collection<Feature>): Double {
         if (features.isEmpty()) {
             return 0.0
@@ -17,5 +17,5 @@ data class BucketMean(private val attribute: AttributeName) : BucketAggregation 
         }
     }
 
-    override fun describe() = String.format("mean(%s)", attribute.name())
+    override fun describe() = "sum(${attribute.name})"
 }

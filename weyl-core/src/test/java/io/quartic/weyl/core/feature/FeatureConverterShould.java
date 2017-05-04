@@ -13,7 +13,6 @@ import io.quartic.weyl.core.attributes.TimeSeriesAttributeImpl;
 import io.quartic.weyl.core.feature.FeatureConverter.AttributeManipulator;
 import io.quartic.weyl.core.model.AttributeImpl;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
@@ -162,6 +161,6 @@ public class FeatureConverterShould {
     }
 
     private AttributeName name(String name) {
-        return AttributeNameImpl.of(name);
+        return new AttributeName(name);
     }
 }

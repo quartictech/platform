@@ -4,7 +4,7 @@ import io.quartic.weyl.core.model.AttributeName
 import io.quartic.weyl.core.model.Feature
 import java.util.*
 
-data class BucketSum(private val attribute: AttributeName) : BucketAggregation {
+data class BucketSum(val attribute: AttributeName) : BucketAggregation {
     override fun aggregate(bucket: Feature, features: Collection<Feature>): Double {
         return features.stream()
                 .map<Any> { feature -> feature.attributes().attributes()[attribute] }
@@ -13,5 +13,5 @@ data class BucketSum(private val attribute: AttributeName) : BucketAggregation {
                 .sum()
     }
 
-    override fun describe() = String.format("sum(%s)", attribute.name())
+    override fun describe() = "sum(${attribute.name})"
 }

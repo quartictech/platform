@@ -60,7 +60,7 @@ public class FeatureConverter {
             public boolean test(AttributeName name, Object value) {
                 final Attribute attribute = schema.attributes().get(name);
                 if (attribute == null) {
-                    throw new RuntimeException("Couldn't find attribute '" + name.name() + "' in the schema");
+                    throw new RuntimeException("Couldn't find attribute '" + name.getName() + "' in the schema");
                 }
 
                 return (attribute.type() == AttributeType.NUMERIC)
@@ -151,7 +151,7 @@ public class FeatureConverter {
                 .entrySet()
                 .stream()
                 .filter(e -> (e.getValue() != null) && manipulator.test(e.getKey(), e.getValue()))
-                .collect(toMap(e -> e.getKey().name(), Entry::getValue));
+                .collect(toMap(e -> e.getKey().getName(), Entry::getValue));
         manipulator.postProcess(feature, raw);
         return raw;
     }

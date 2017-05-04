@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.AttributeImpl;
-import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.DynamicSchemaImpl;
@@ -82,7 +82,7 @@ public class SnapshotReducerShould {
         Snapshot updated = reducer.next(original, updateFor(LayerUpdateType.APPEND,
                 nakedFeature(Optional.of("a"))));
 
-        assertThat(updated.absolute().spec().staticSchema().blessedAttributes(), contains(AttributeNameImpl.of("blah")));
+        assertThat(updated.absolute().spec().staticSchema().blessedAttributes(), contains(new AttributeName("blah")));
     }
 
     @Test
@@ -121,7 +121,7 @@ public class SnapshotReducerShould {
         Snapshot snapshot = initialSnapshot();
         Layer layerWithDynamicSchema = LayerImpl.copyOf(snapshot.absolute())
                 .withDynamicSchema(DynamicSchemaImpl.of(ImmutableMap.of(
-                        AttributeNameImpl.of("wat"), AttributeImpl.of(AttributeType.NUMERIC, Optional.empty())
+                        new AttributeName("wat"), AttributeImpl.of(AttributeType.NUMERIC, Optional.empty())
                 )));
         Snapshot snapshot1 = SnapshotImpl.copyOf(snapshot).withAbsolute(layerWithDynamicSchema);
         assertThat(snapshot1.absolute().dynamicSchema(), not(equalTo(DynamicSchema.EMPTY_SCHEMA)));
@@ -165,7 +165,7 @@ public class SnapshotReducerShould {
 
     private static StaticSchema schema(String blessed) {
         return StaticSchemaImpl.builder()
-                .blessedAttribute(AttributeNameImpl.of(blessed))
+                .blessedAttribute(new AttributeName(blessed))
                 .build();
     }
 

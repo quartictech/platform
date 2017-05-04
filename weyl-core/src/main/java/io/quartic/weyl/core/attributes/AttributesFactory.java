@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.attributes;
 
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Attributes;
 
 import java.util.AbstractMap;
@@ -59,7 +58,7 @@ public class AttributesFactory {
         }
 
         public AttributesBuilder put(String name, Object value) {
-            attributes.put(AttributeNameImpl.of(name), value);
+            attributes.put(new AttributeName(name), value);
             return this;
         }
 

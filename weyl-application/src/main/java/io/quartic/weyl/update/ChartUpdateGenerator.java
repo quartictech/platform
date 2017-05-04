@@ -2,7 +2,6 @@ package io.quartic.weyl.update;
 
 import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.Feature;
 
 import java.util.Collection;
@@ -14,7 +13,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
-    private static final AttributeName NAME = AttributeNameImpl.of("name");
+    private static final AttributeName NAME = new AttributeName("name");
 
     @Override
     public String name() {
