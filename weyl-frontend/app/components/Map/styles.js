@@ -3,7 +3,8 @@ import * as chroma from "chroma-js";
 import { customStyles, liveLayerStyle } from "./customStyles.js";
 
 function computeCategoricalStops(categories) {
-  return categories
+  // Mapbox seems to complain if the categories are not sorted.
+  return categories.sort()
     .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.5).toString(0)]);
 }
 
@@ -92,7 +93,7 @@ export function buildStyleLayers(layer) {
 const polygonSpec = (style, attributes, attributeStats) => ({
   type: "fill",
   paint: {
-    "fill-color": colorStyle(style.attribute, style.polygon, attributes, attributeStats),
+    "fill-color": style.isTransparent ? "rgba(0, 0, 0, 0)" : colorStyle(style.attribute, style.polygon, attributes, attributeStats),
     "fill-outline-color": style.polygon["fill-outline-color"],
     "fill-opacity": style.opacity,
   },
