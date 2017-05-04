@@ -141,7 +141,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
               maxTime={attributeStats ? attributeStats.maximum : null}
               onApply={(startTime, endTime) => applyTimeRangeFilter(attribute, startTime, endTime)}
             />}
-          position={Position.RIGHT_TOP}
+          position={Position.RIGHT_BOTTOM}
         >
           <Button
             iconName="filter"
