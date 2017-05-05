@@ -1,11 +1,15 @@
 package io.quartic.weyl.resource;
 
-import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.*;
+import io.quartic.weyl.core.compute.BucketComputationImpl;
+import io.quartic.weyl.core.compute.BucketSpec;
+import io.quartic.weyl.core.compute.BufferComputationImpl;
+import io.quartic.weyl.core.compute.BufferSpec;
+import io.quartic.weyl.core.compute.ComputationSpec;
+import io.quartic.weyl.core.compute.SpatialPredicateComputationImpl;
+import io.quartic.weyl.core.compute.SpatialPredicateSpec;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
-import org.immutables.value.Value;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
@@ -15,18 +19,20 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@SweetStyle
-@Value.Immutable
 @Path("/compute")
-public abstract class ComputeResource {
+public class ComputeResource {
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
-    protected abstract UidGenerator<LayerId> lidGenerator();
+    private final UidGenerator<LayerId> lidGenerator;
+
+    public ComputeResource(UidGenerator<LayerId> lidGenerator) {
+        this.lidGenerator = lidGenerator;
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public LayerId createComputedLayer(ComputationSpec spec) {
-        final LayerId layerId = lidGenerator().get();
+        final LayerId layerId = lidGenerator.get();
         populators.onNext(createPopulator(layerId, spec));
         return layerId;
     }

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetMetadata;
-import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeType;
 import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
@@ -54,7 +54,7 @@ public class ExtensionCodecShould {
 
         assertThat(codec.decode("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
                 equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
-                        StaticSchemaImpl.builder().titleAttribute(AttributeNameImpl.of("foo")).build())));
+                        StaticSchemaImpl.builder().titleAttribute(new AttributeName("foo")).build())));
     }
 
     @Test
@@ -66,15 +66,15 @@ public class ExtensionCodecShould {
         assertThat(codec.decode("foo", ImmutableMap.of(EXTENSION_KEY, raw)),
                 equalTo(MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
                         StaticSchemaImpl.builder()
-                                .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP).build())));
+                                .attributeType(new AttributeName("foo"), AttributeType.TIMESTAMP).build())));
     }
 
     @Test
     public void unparse_to_original() throws IOException {
         MapDatasetExtension extension = MapDatasetExtensionImpl.of(LOCATION_AND_TRACK,
                 StaticSchemaImpl.builder()
-                        .titleAttribute(AttributeNameImpl.of("test"))
-                        .attributeType(AttributeNameImpl.of("foo"), AttributeType.TIMESTAMP)
+                        .titleAttribute(new AttributeName("test"))
+                        .attributeType(new AttributeName("foo"), AttributeType.TIMESTAMP)
                 .build());
         DatasetConfig datasetConfig = new DatasetConfig(
                 new DatasetMetadata("foo", "wat", "nope", null),

@@ -2,7 +2,7 @@ package io.quartic.howl;
 
 import io.dropwizard.testing.junit.ResourceTestRule;
 import io.quartic.howl.api.HowlStorageId;
-import io.quartic.howl.storage.InputStreamWithContentTypeImpl;
+import io.quartic.howl.storage.InputStreamWithContentType;
 import io.quartic.howl.storage.StorageBackend;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
@@ -62,7 +62,7 @@ public class HowlResourceShould {
         byte[] data = "wat".getBytes();
         when(backend.get(any(), any(), any())).thenAnswer(invocation -> {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-            return Optional.of(InputStreamWithContentTypeImpl.of(MediaType.TEXT_PLAIN, byteArrayInputStream));
+            return Optional.of(new InputStreamWithContentType(MediaType.TEXT_PLAIN, byteArrayInputStream));
         });
 
         Response response = resources.getJerseyTest().target("/test/thing")

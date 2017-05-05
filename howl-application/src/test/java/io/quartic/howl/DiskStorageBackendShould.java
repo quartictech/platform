@@ -13,8 +13,6 @@ import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -75,7 +73,7 @@ public class DiskStorageBackendShould {
         Optional<InputStreamWithContentType> inputStreamWithContentType = backend.get("test", objectName, version);
         if (inputStreamWithContentType.isPresent()) {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            IOUtils.copy(inputStreamWithContentType.get().inputStream(), outputStream);
+            IOUtils.copy(inputStreamWithContentType.get().getInputStream(), outputStream);
             return Optional.of(outputStream.toByteArray());
         }
         return Optional.empty();

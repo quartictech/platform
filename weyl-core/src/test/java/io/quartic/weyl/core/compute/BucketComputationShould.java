@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -55,7 +54,7 @@ public class BucketComputationShould {
     private final LayerId bucketLayerId = mock(LayerId.class);
     private final LayerId featureLayerId = mock(LayerId.class);
     private final BucketAggregation aggregation = mock(BucketAggregation.class);
-    private final BucketSpec bucketSpec = BucketSpecImpl.of(bucketLayerId, featureLayerId, aggregation, false);
+    private final BucketSpec bucketSpec = new BucketSpec(bucketLayerId, featureLayerId, aggregation, false);
     private final SpatialJoiner joiner = mock(SpatialJoiner.class);
     private BucketComputation computation;
 
@@ -193,6 +192,6 @@ public class BucketComputationShould {
     }
 
     private AttributeName name(String name) {
-        return AttributeNameImpl.of(name);
+        return new AttributeName(name);
     }
 }

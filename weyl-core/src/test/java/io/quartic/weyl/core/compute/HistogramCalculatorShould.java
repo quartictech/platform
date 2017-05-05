@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.FeatureImpl;
@@ -19,8 +18,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class HistogramCalculatorShould {
-    private static final AttributeName SPECIES = AttributeNameImpl.of("species");
-    private static final AttributeName NAME = AttributeNameImpl.of("name");
+    private static final AttributeName SPECIES = new AttributeName("species");
+    private static final AttributeName NAME = new AttributeName("name");
     private final HistogramCalculator calculator = new HistogramCalculator();
 
     @Test

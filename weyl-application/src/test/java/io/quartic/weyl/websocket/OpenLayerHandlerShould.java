@@ -15,7 +15,7 @@ import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
-import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
+import io.quartic.weyl.websocket.message.LayerUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -191,12 +191,12 @@ public class OpenLayerHandlerShould {
 
     private ClientStatusMessage status(LayerId... ids) {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
-        when(msg.openLayerIds()).thenReturn(asList(ids));
+        when(msg.getOpenLayerIds()).thenReturn(asList(ids));
         return msg;
     }
 
-    private LayerUpdateMessageImpl message(LayerId id, Snapshot snapshot) {
-        return LayerUpdateMessageImpl.of(
+    private LayerUpdateMessage message(LayerId id, Snapshot snapshot) {
+        return new LayerUpdateMessage(
                 id,
                 new SnapshotId("123"),
                 snapshot.absolute().dynamicSchema(),

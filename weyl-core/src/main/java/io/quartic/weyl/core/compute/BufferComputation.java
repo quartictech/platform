@@ -24,7 +24,6 @@ import java.util.Optional;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static rx.Observable.just;
 
 @SweetStyle
 @Value.Immutable
@@ -39,7 +38,7 @@ public abstract class BufferComputation implements LayerPopulator {
 
     @Override
     public List<LayerId> dependencies() {
-        return singletonList(bufferSpec().layerId());
+        return singletonList(bufferSpec().getLayerId());
     }
 
     @Override
@@ -50,7 +49,7 @@ public abstract class BufferComputation implements LayerPopulator {
                 layerId(),
                 LayerMetadataImpl.builder()
                         .name(layer.spec().metadata().name() + " (buffered)")
-                        .description(layer.spec().metadata().description() + " (buffered by " + bufferSpec().bufferDistance() + "m)")
+                        .description(layer.spec().metadata().description() + " (buffered by " + bufferSpec().getBufferDistance() + "m)")
                         .attribution(layer.spec().metadata().attribution())
                         .registered(clock().instant())
                         .build(),
@@ -67,7 +66,7 @@ public abstract class BufferComputation implements LayerPopulator {
         Collection<NakedFeature> bufferedFeatures = layer.features().parallelStream()
                 .map(feature -> NakedFeatureImpl.of(
                         Optional.of(feature.entityId().getUid()),
-                        BufferOp.bufferOp(feature.geometry(), bufferSpec().bufferDistance()),
+                        BufferOp.bufferOp(feature.geometry(), bufferSpec().getBufferDistance()),
                         feature.attributes())
                 )
                 .collect(toList());

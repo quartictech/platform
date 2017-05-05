@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.attributes;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Attributes;
 import org.junit.Test;
 
@@ -137,8 +137,8 @@ public class AttributesFactoryShould {
         )));
     }
 
-    private AttributeNameImpl name(String name) {
-        return AttributeNameImpl.of(name);
+    private AttributeName name(String name) {
+        return new AttributeName(name);
     }
 
     private Attributes buildAttributes() {

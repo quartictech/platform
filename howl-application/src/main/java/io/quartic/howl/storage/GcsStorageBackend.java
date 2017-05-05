@@ -59,7 +59,7 @@ public class GcsStorageBackend implements StorageBackend {
 
         HttpResponse httpResponse = get.executeMedia();
         return Optional.ofNullable(httpResponse.getContent())
-                .map(inputStream -> InputStreamWithContentTypeImpl.of(httpResponse.getContentType(), inputStream));
+                .map(inputStream -> new InputStreamWithContentType(httpResponse.getContentType(), inputStream));
     }
 
     @Override
