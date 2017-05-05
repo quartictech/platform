@@ -78,6 +78,14 @@ public class SnapshotReducerShould {
     }
 
     @Test
+    public void propagate_replace_update_type() {
+        Snapshot updated = reducer.next(initialSnapshot(), updateFor(LayerUpdateType.REPLACE,
+                nakedFeature(Optional.of("a"))));
+
+        assertThat(updated.diff().updateType(), equalTo(LayerUpdateType.REPLACE));
+    }
+
+    @Test
     public void preserve_core_schema_info_upon_update() throws Exception {
         Snapshot original = initialSnapshot();
         Snapshot updated = reducer.next(original, updateFor(LayerUpdateType.APPEND,
