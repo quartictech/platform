@@ -65,8 +65,8 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
     this.map = new mapboxgl.Map({
       container: "map-inner",
       style: mapThemes[this.props.map.theme].mapbox,
-      zoom: 11.7,
-      center: [-0.3548, 51.4679],
+      zoom: 0,
+      center: [0, 0],
     });
 
     this.map.dragRotate.disable();
@@ -87,6 +87,12 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
       this.props.onGeofenceSetManualGeometry(this.draw.getAll());
     });
 
+    // We need to check this here as well as componentWillReceiveProps() because the initial value may come in before
+    // we mounted
+    if (this.props.map.targetLocation !== null) {
+      this.flyMyPretty(this.props.map.targetLocation);
+    }
+
     this.draw = new MapboxDraw({   // eslint-disable-line new-cap
       position: "top-right",
       displayControlsDefault: false,
@@ -95,6 +101,23 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
         trash: true,
       },
     });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.map.targetLocation !== this.props.map.targetLocation) {
+      this.flyMyPretty(nextProps.map.targetLocation);
+    }
+    if (nextProps.map.theme !== this.props.map.theme) {
+      this.props.onMapLoading();
+      this.map.setStyle(mapThemes[nextProps.map.theme].mapbox);
+    } else if (nextProps.map.ready) {
+      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox "style.load" callback)
+      this.updateMap(nextProps);
+    }
+  }
+
+  flyMyPretty(targetLocation) {
+    this.map.jumpTo({ ...targetLocation });
   }
 
   updateMap(props) {
@@ -381,16 +404,6 @@ class Map extends React.Component { // eslint-disable-line react/prefer-stateles
 
   setSubLayerVisibility(id, visible) {
     this.map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.map.theme !== this.props.map.theme) {
-      this.props.onMapLoading();
-      this.map.setStyle(mapThemes[nextProps.map.theme].mapbox);
-    } else if (nextProps.map.ready) {
-      // Drawing before the map is ready causes sadness (this prop is set indirectly via the MapBox "style.load" callback)
-      this.updateMap(nextProps);
-    }
   }
 
   render() {
