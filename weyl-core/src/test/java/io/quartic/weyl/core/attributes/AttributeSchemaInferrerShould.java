@@ -95,6 +95,15 @@ public class AttributeSchemaInferrerShould {
     }
 
     @Test
+    public void infer_categories_for_booleans() throws Exception {
+        final List<Feature> features = features("a", true, false, true);
+
+        assertThat(inferSchema(features, schema(), emptyStaticSchema()), equalTo(schema(
+                entry(name("a"), AttributeImpl.of(STRING, Optional.of(newHashSet(true, false))))
+        )));
+    }
+
+    @Test
     public void infer_no_categories_when_no_values() throws Exception {
         final List<Feature> features = features("a", new Object[] { null });    // Synthesise a feature with a missing attribute
 
