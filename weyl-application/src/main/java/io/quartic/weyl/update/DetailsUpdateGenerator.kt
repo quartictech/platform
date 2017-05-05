@@ -25,6 +25,6 @@ class DetailsUpdateGenerator : SelectionDrivenUpdateGenerator {
     }
 
     companion object {
-        val DETAILS_ATTRIBUTE_NAME = AttributeName.fromString("_details")   // TODO: move into static schema and plumb through somehow
+        val DETAILS_ATTRIBUTE_NAME = AttributeName("_details")   // TODO: move into static schema and plumb through somehow
     }
 }

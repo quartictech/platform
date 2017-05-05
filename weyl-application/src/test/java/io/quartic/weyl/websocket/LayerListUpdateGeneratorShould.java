@@ -5,10 +5,8 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.websocket.message.LayerInfoImpl;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage.LayerInfo;
-import io.quartic.weyl.websocket.message.LayerListUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,8 +14,8 @@ import rx.observers.TestSubscriber;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
+import static org.hibernate.validator.internal.util.CollectionHelper.asSet;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -95,11 +93,11 @@ public class LayerListUpdateGeneratorShould {
     }
 
     private LayerListUpdateMessage message(LayerInfo... infos) {
-        return LayerListUpdateMessageImpl.of(asList(infos));
+        return new LayerListUpdateMessage(asSet(infos));
     }
 
     private LayerInfo layerInfo(LayerSpec spec) {
-        return LayerInfoImpl.of(
+        return new LayerInfo(
                 spec.id(),
                 spec.metadata(),
                 spec.staticSchema(),

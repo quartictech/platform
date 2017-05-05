@@ -38,10 +38,8 @@ import io.quartic.weyl.core.source.SourceManagerImpl;
 import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
-import io.quartic.weyl.resource.ComputeResourceImpl;
 import io.quartic.weyl.resource.LayerExportResource;
 import io.quartic.weyl.resource.TileResource;
-import io.quartic.weyl.resource.TileResourceImpl;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
@@ -52,7 +50,7 @@ import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.GeofenceStatusHandler;
 import io.quartic.weyl.websocket.LayerListUpdateGenerator;
 import io.quartic.weyl.websocket.OpenLayerHandler;
-import io.quartic.weyl.websocket.message.AlertMessageImpl;
+import io.quartic.weyl.websocket.message.AlertMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -100,7 +98,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
                 .build();
 
-        final ComputeResource computeResource = ComputeResourceImpl.of(lidGenerator);
+        final ComputeResource computeResource = new ComputeResource(lidGenerator);
 
         final LayerRouter router = createRouter(merge(
                 sourceManager.layerPopulators(),
@@ -115,7 +113,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         CatalogueService catalogueService = client(CatalogueService.class, getClass(),
                 configuration.getCatalogue().getRestUrl());
         environment.jersey().register(computeResource);
-        environment.jersey().register(createTileResource(snapshotSequences));
+        environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
         environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getDefaultCatalogueNamespace()));
 
@@ -134,17 +132,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 .compose(likeBehavior());
 
         final Observable<SocketMessage> messages = merge(
-                alertResource.alerts().map(AlertMessageImpl::of),
+                alertResource.alerts().map(AlertMessage::new),
                 layerListUpdates
         );
 
         return new WebsocketEndpoint(messages, handlers);
-    }
-
-    private TileResource createTileResource(Observable<LayerSnapshotSequence> snapshotSequences) {
-        return TileResourceImpl.builder()
-                .snapshotSequences(snapshotSequences)
-                .build();
     }
 
     private LayerRouter createRouter(Observable<LayerPopulator> populators) {

@@ -39,9 +39,9 @@ public abstract class WebsocketSource implements Source {
         return listenerFactory().create(LiveEvent.class)
                 .getObservable()
                 .doOnNext(s -> messageRateMeter().mark())
-                .doOnNext(s -> LOG.info("[{}] received {}", name(), s.updateType()))
-                .map(event -> LayerUpdateImpl.of(event.updateType(),
-                        converter().toModel(event.featureCollection())));
+                .doOnNext(s -> LOG.info("[{}] received {}", name(), s.getUpdateType()))
+                .map(event -> LayerUpdateImpl.of(event.getUpdateType(),
+                        converter().toModel(event.getFeatureCollection())));
     }
 
 }

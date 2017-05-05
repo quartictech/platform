@@ -9,7 +9,6 @@ import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -48,9 +47,9 @@ import static org.mockito.Mockito.when;
 
 public class SourceManagerShould {
 
-    private static final AttributeName TITLE_ATTRIBUTE = AttributeNameImpl.of("title_attr");
-    private static final AttributeName IMAGE_ATTRIBUTE = AttributeNameImpl.of("image_attr");
-    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeNameImpl.of("cool_attr"), AttributeNameImpl.of("slick_attr") };
+    private static final AttributeName TITLE_ATTRIBUTE = new AttributeName("title_attr");
+    private static final AttributeName IMAGE_ATTRIBUTE = new AttributeName("image_attr");
+    private static final AttributeName[] BLESSED_ATTRIBUTES = { new AttributeName("cool_attr"), new AttributeName("slick_attr") };
 
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}

@@ -7,9 +7,8 @@ import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
-import io.quartic.weyl.websocket.message.ClientStatusMessageImpl;
-import io.quartic.weyl.websocket.message.GeofenceStatusImpl;
-import io.quartic.weyl.websocket.message.SelectionStatusImpl;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
+import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
@@ -24,7 +23,6 @@ import javax.websocket.MessageHandler.Whole;
 import javax.websocket.Session;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -95,14 +93,14 @@ public class WebsocketEndpointShould {
 
     private ClientStatusMessage clientStatusMessage() {
         // It would be nice to mock all of this, but we need to serialise
-        return ClientStatusMessageImpl.of(
+        return new ClientStatusMessage(
                 emptyList(),
-                SelectionStatusImpl.of(42, emptyList()),
-                GeofenceStatusImpl.of(
+                new SelectionStatus(42, emptyList()),
+                new GeofenceStatus(
                         GeofenceType.EXCLUDE,
                         Alert.Level.WARNING,
-                        Optional.empty(),
-                        Optional.empty(),
+                        null,
+                        null,
                         0.0
                 )
         );

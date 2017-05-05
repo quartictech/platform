@@ -28,7 +28,7 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
 
     @Override
     public List<LayerId> dependencies() {
-        return ImmutableList.of(spatialPredicateSpec().layerA(), spatialPredicateSpec().layerB());
+        return ImmutableList.of(spatialPredicateSpec().getLayerA(), spatialPredicateSpec().getLayerB());
     }
 
     @Override
@@ -53,7 +53,7 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
     private static String name(Layer layerA, Layer layerB, SpatialPredicateSpec spatialPredicateSpec) {
         return String.format("%s %s %s",
                 layerA.spec().metadata().name(),
-                spatialPredicateSpec.predicate(),
+                spatialPredicateSpec.getPredicate(),
                 layerB.spec().metadata().name());
     }
 
@@ -64,7 +64,7 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
 
         Collection<NakedFeature> bufferedFeatures = layerA.indexedFeatures().parallelStream()
                 .filter(featureA -> layerB.features().stream()
-                        .anyMatch(featureB -> spatialPredicateSpec().predicate()
+                        .anyMatch(featureB -> spatialPredicateSpec().getPredicate()
                                         .test(featureA.preparedGeometry(), featureB.geometry())))
                 .map(feature -> NakedFeatureImpl.of(
                         Optional.of(feature.feature().entityId().getUid()),

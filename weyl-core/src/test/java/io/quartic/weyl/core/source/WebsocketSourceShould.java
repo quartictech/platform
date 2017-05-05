@@ -3,14 +3,13 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
 import io.quartic.common.geojson.Point;
+import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.api.LiveEvent;
-import io.quartic.weyl.api.LiveEventImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.LayerUpdateImpl;
@@ -34,7 +33,7 @@ import static rx.Observable.just;
 
 public class WebsocketSourceShould {
     private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", point()));
-    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(LayerUpdateType.APPEND, Instant.now(), FEATURE_COLLECTION);
+    private final static LiveEvent LIVE_EVENT = new LiveEvent(LayerUpdateType.APPEND, Instant.now(), FEATURE_COLLECTION);
 
     @Test
     public void import_things() throws Exception {

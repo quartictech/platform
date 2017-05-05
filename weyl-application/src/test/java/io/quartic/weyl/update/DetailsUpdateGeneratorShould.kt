@@ -18,7 +18,7 @@ class DetailsUpdateGeneratorShould {
     fun cope_when_no_details_attribute() {
         val result = gen.generate(listOf(
                 feature(mapOf(
-                        AttributeName.fromString("other") to "oh no"
+                        AttributeName("other") to "oh no"
                 ))
         ))
 
@@ -33,7 +33,7 @@ class DetailsUpdateGeneratorShould {
                                 mapOf("name" to "arlo", "age" to 56),
                                 mapOf("name" to "alex", "age" to 57)
                         ),
-                        AttributeName.fromString("other") to "oh no"
+                        AttributeName("other") to "oh no"
                 ))
         ))
 

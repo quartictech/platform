@@ -8,7 +8,7 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
-import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
+import io.quartic.weyl.websocket.message.LayerUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
 
@@ -41,7 +41,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
 
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
-        final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::openLayerIds);
+        final Observable<List<LayerId>> keys = clientStatus.map(ClientStatusMessage::getOpenLayerIds);
 
         return combineLatest(keys, sequenceMap, this::collectSequences)
                 .distinctUntilChanged()
@@ -55,13 +55,13 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
 
     private SocketMessage toMessage(Snapshot snapshot) {
         final Layer layer = snapshot.absolute();
-        return LayerUpdateMessageImpl.builder()
-                .layerId(layer.spec().id())
-                .snapshotId(snapshot.id())
-                .dynamicSchema(layer.dynamicSchema())
-                .stats(layer.stats())
-                .featureCollection(featureCollection(layer))
-                .build();
+        return new LayerUpdateMessage(
+                layer.spec().id(),
+                snapshot.id(),
+                layer.dynamicSchema(),
+                layer.stats(),
+                featureCollection(layer)
+        );
     }
 
     private FeatureCollection featureCollection(Layer layer) {

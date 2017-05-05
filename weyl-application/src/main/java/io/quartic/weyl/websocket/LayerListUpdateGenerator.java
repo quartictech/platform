@@ -4,18 +4,15 @@ import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.websocket.message.LayerInfoImpl;
+import io.quartic.weyl.websocket.message.LayerListUpdateMessage;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage.LayerInfo;
-import io.quartic.weyl.websocket.message.LayerListUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import rx.Observable;
 import rx.Observable.Transformer;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static rx.Observable.merge;
 
@@ -49,15 +46,15 @@ public class LayerListUpdateGenerator implements Transformer<LayerSnapshotSequen
     }
 
     private SocketMessage toMessage(Set<LayerSpec> specs) {
-        return LayerListUpdateMessageImpl.of(toInfo(specs));
+        return new LayerListUpdateMessage(toInfo(specs));
     }
 
-    private List<LayerInfo> toInfo(Set<LayerSpec> accumulated) {
-        return accumulated.stream().map(this::toInfo).collect(toList());
+    private Set<LayerInfo> toInfo(Set<LayerSpec> accumulated) {
+        return accumulated.stream().map(this::toInfo).collect(toSet());
     }
 
     private LayerInfo toInfo(LayerSpec spec) {
-        return LayerInfoImpl.of(
+        return new LayerInfo(
                 spec.id(),
                 spec.metadata(),
                 spec.staticSchema(),

@@ -34,11 +34,7 @@ import static org.mockito.Mockito.when;
 public class TileResourceShould {
     private final PublishSubject<LayerSnapshotSequence> snapshotSequences = PublishSubject.create();
     private final VectorTileRenderer renderer = mock(VectorTileRenderer.class);
-    private final TileResource resource = TileResourceImpl.builder()
-            .snapshotSequences(snapshotSequences)
-            .renderer(renderer)
-            .build();
-
+    private final TileResource resource = new TileResource(snapshotSequences, renderer);
     private final LayerId layerId = mock(LayerId.class);
 
     @Test
