@@ -5,8 +5,10 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.common.websocket.ResourceManagingEndpoint;
+import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
+import io.quartic.weyl.websocket.message.OnOpenMessage;
 import io.quartic.weyl.websocket.message.PingMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.slf4j.Logger;
@@ -31,13 +33,16 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
     private static final Logger LOG = getLogger(WebsocketEndpoint.class);
     private final Observable<? extends SocketMessage> messages;
     private final Collection<ClientStatusMessageHandler> handlers;
+    private final MapConfig mapConfig;
 
     public WebsocketEndpoint(
             Observable<? extends SocketMessage> messages,
-            Collection<ClientStatusMessageHandler> handlers
+            Collection<ClientStatusMessageHandler> handlers,
+            MapConfig mapConfig
     ) {
         this.messages = messages;
         this.handlers = handlers;
+        this.mapConfig = mapConfig;
     }
 
     @Override
@@ -45,6 +50,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
         return receivedMessages(session)
                 .compose(combine(handlers))
                 .mergeWith(messages)
+                .startWith(new OnOpenMessage(mapConfig))
                 .subscribe(message -> sendMessage(session, message));
     }
 
