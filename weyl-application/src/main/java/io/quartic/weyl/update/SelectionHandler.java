@@ -134,7 +134,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
             this.entities = entities;
         }
 
-        // TODO - eliminate once Kotlin
+        // TODO - Kotlin-ify
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

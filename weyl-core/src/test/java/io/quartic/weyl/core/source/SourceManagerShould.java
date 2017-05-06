@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
@@ -183,7 +183,7 @@ public class SourceManagerShould {
                 TITLE_ATTRIBUTE,
                 null,
                 IMAGE_ATTRIBUTE,
-                newHashSet(BLESSED_ATTRIBUTES)
+                newArrayList(BLESSED_ATTRIBUTES)
         );
     }
 

@@ -64,6 +64,9 @@ function* handleMessages(channel) {
   for (;;) {
     const msg = yield take(channel);
     switch (msg.type) {
+      case "OnOpen":
+        yield put(actions.mapSetTargetLocation(msg.config));
+        break;
       case "LayerListUpdate":
         yield put(actions.layerListUpdate(msg.layers));
         break;

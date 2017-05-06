@@ -29,10 +29,12 @@ const layerReducer = (state, action) => {
       switch (action.key) {
         case "ATTRIBUTE":
           return state.setIn(["style", "attribute"], action.value);
+        case "TRANSPARENCY":
+          return state.setIn(["style", "isTransparent"], action.value);
         case "THEME":
           return state
             .set("themeIdx", action.value)
-            .set("style", fromJS(defaultLayerStyle(state.getIn(["style", "attribute"]), action.value)));
+            .set("style", fromJS(defaultLayerStyle(state.getIn(["style", "attribute"]), action.value, state.getIn(["style", "isTransparent"]))));
         default:
           console.error("Unknown style key", action.key);
           return state;
@@ -82,7 +84,7 @@ const newLayer = (action) => fromJS({
   snapshotId: 0,    // Technically, this doesn't match any SnapshotID on the backend, but that doesn't currently matter
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(null, 0),
+  style: defaultLayerStyle(null, 0, false),
   stats: {
     attributeStats: {},
   },
@@ -102,10 +104,11 @@ const defaultAttributeFilter = () => fromJS({
   timeRange: null,
 });
 
-const defaultLayerStyle = (attribute, themeIdx) => ({
+const defaultLayerStyle = (attribute, themeIdx, isTransparent) => ({
   type: "DEFAULT",
   attribute,
   opacity: 0.8,
+  isTransparent,
   point: {
     "circle-radius": 6,
     "color": layerThemes[themeIdx].line,

@@ -19,6 +19,7 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
 import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.howl.api.HowlClient;
+import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -42,6 +43,7 @@ import io.quartic.weyl.resource.LayerExportResource;
 import io.quartic.weyl.resource.TileResource;
 import io.quartic.weyl.update.AttributesUpdateGenerator;
 import io.quartic.weyl.update.ChartUpdateGenerator;
+import io.quartic.weyl.update.DetailsUpdateGenerator;
 import io.quartic.weyl.update.HistogramsUpdateGenerator;
 import io.quartic.weyl.update.SelectionHandler;
 import io.quartic.weyl.update.WebsocketEndpoint;
@@ -116,10 +118,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(alertResource);
         environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getDefaultCatalogueNamespace()));
 
-        websocketBundle.addEndpoint(serverEndpointConfig("/ws", createWebsocketEndpoint(snapshotSequences, alertResource)));
+        websocketBundle.addEndpoint(serverEndpointConfig("/ws",
+                createWebsocketEndpoint(snapshotSequences, alertResource, configuration.getMap())));
     }
 
-    private WebsocketEndpoint createWebsocketEndpoint(Observable<LayerSnapshotSequence> snapshotSequences, AlertResource alertResource) {
+    private WebsocketEndpoint createWebsocketEndpoint(
+            Observable<LayerSnapshotSequence> snapshotSequences,
+            AlertResource alertResource,
+            MapConfig mapConfig
+    ) {
         final Collection<ClientStatusMessageHandler> handlers = newArrayList(
                 createSelectionHandler(snapshotSequences),
                 createOpenLayerHandler(snapshotSequences),
@@ -135,7 +142,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 layerListUpdates
         );
 
-        return new WebsocketEndpoint(messages, handlers);
+        return new WebsocketEndpoint(messages, handlers, mapConfig);
     }
 
     private LayerRouter createRouter(Observable<LayerPopulator> populators) {
@@ -150,7 +157,8 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 newArrayList(
                         new ChartUpdateGenerator(),
                         new HistogramsUpdateGenerator(new HistogramCalculator()),
-                        new AttributesUpdateGenerator()
+                        new AttributesUpdateGenerator(),
+                        new DetailsUpdateGenerator()
                 )
         );
     }

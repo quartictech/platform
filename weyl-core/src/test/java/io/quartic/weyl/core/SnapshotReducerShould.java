@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import java.time.Instant;
 
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
@@ -38,6 +38,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 
 public class SnapshotReducerShould {
 
@@ -101,6 +102,7 @@ public class SnapshotReducerShould {
     @Test
     public void clear_dynamic_schema_on_replace() {
         Snapshot snapshot = initialSnapshot();
+
         // TODO: Kotlin-ify the grossness
         Layer layerWithDynamicSchema = new Layer(
                 snapshot.getAbsolute().getSpec(),
@@ -157,7 +159,7 @@ public class SnapshotReducerShould {
 
     private static StaticSchema schema(String blessed) {
         final StaticSchema schema = mock(StaticSchema.class);
-        when(schema.getBlessedAttributes()).thenReturn(newHashSet(new AttributeName(blessed)));
+        when(schema.getBlessedAttributes()).thenReturn(newArrayList(new AttributeName(blessed)));
         return schema;
     }
 

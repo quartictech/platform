@@ -62,8 +62,9 @@ public class FeatureConverter {
                     throw new RuntimeException("Couldn't find attribute '" + name.getName() + "' in the schema");
                 }
 
-                return (attribute.getType() == AttributeType.NUMERIC)
-                        || ofNullable(attribute.getCategories()).map(s -> !s.isEmpty()).orElse(false);
+                return attribute.getType() == AttributeType.NUMERIC ||
+                        attribute.getType() == AttributeType.TIMESTAMP ||
+                        ofNullable(attribute.getCategories()).map(s -> !s.isEmpty()).orElse(false);
             }
 
             @Override

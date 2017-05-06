@@ -48,8 +48,7 @@ public class SpatialPredicateShould {
     public void before() throws Exception {
         computation = SpatialPredicateComputationImpl.builder()
                 .layerId(myLayerId)
-                .spatialPredicateSpec(SpatialPredicateSpecImpl.
-                        of(layerAId, layerBId, SpatialPredicate.CONTAINS))
+                .spatialPredicateSpec(new SpatialPredicateSpec(layerAId, layerBId, SpatialPredicate.CONTAINS))
                 .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
                 .build();
     }

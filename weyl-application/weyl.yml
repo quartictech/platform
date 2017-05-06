@@ -8,6 +8,12 @@ rainWsUrlRoot: ws://localhost:8150/ws
 
 defaultCatalogueNamespace: production
 
+# All of London
+map:
+  lat: 51.5174
+  lng: -0.0915
+  zoom: 9.7
+
 server:
   applicationContextPath: /
   applicationConnectors:

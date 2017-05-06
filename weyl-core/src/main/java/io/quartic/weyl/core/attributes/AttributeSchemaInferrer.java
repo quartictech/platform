@@ -114,6 +114,6 @@ public class AttributeSchemaInferrer {
     }
 
     private static boolean isPrimitive(Object v) {
-        return (v instanceof String) || (v instanceof Number);
+        return (v instanceof String) || (v instanceof Number) || (v instanceof Boolean);
     }
 }

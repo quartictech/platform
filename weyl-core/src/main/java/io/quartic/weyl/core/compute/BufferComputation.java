@@ -34,7 +34,7 @@ public abstract class BufferComputation implements LayerPopulator {
 
     @Override
     public List<LayerId> dependencies() {
-        return singletonList(bufferSpec().layerId());
+        return singletonList(bufferSpec().getLayerId());
     }
 
     @Override
@@ -45,7 +45,7 @@ public abstract class BufferComputation implements LayerPopulator {
                 layerId(),
                 new LayerMetadata(
                         layer.getSpec().getMetadata().getName() + " (buffered)",
-                        layer.getSpec().getMetadata().getDescription() + " (buffered by " + bufferSpec().bufferDistance() + "m)",
+                        layer.getSpec().getMetadata().getDescription() + " (buffered by " + bufferSpec().getBufferDistance() + "m)",
                         layer.getSpec().getMetadata().getAttribution(),
                         clock().instant()
                 ),
@@ -62,7 +62,7 @@ public abstract class BufferComputation implements LayerPopulator {
         Collection<NakedFeature> bufferedFeatures = layer.getFeatures().parallelStream()
                 .map(feature -> new NakedFeature(
                         feature.getEntityId().getUid(),
-                        BufferOp.bufferOp(feature.getGeometry(), bufferSpec().bufferDistance()),
+                        BufferOp.bufferOp(feature.getGeometry(), bufferSpec().getBufferDistance()),
                         feature.getAttributes())
                 )
                 .collect(toList());

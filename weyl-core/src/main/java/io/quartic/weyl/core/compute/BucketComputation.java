@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static io.quartic.weyl.core.compute.SpatialPredicate.CONTAINS;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
@@ -57,7 +57,7 @@ public abstract class BucketComputation implements LayerPopulator {
 
     @Override
     public List<LayerId> dependencies() {
-        return ImmutableList.of(bucketSpec().features(), bucketSpec().buckets());
+        return ImmutableList.of(bucketSpec().getFeatures(), bucketSpec().getBuckets());
     }
 
     @Override
@@ -72,7 +72,7 @@ public abstract class BucketComputation implements LayerPopulator {
                 layerId(),
                 new LayerMetadata(
                         String.format("%s (bucketed)", featureName),
-                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().aggregation().describe()),
+                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().getAggregation().describe()),
                         String.format("%s / %s", featureLayer.getSpec().getMetadata().getAttribution(), bucketLayer.getSpec().getMetadata().getAttribution()),
                         clock().instant()
                 ),
@@ -84,12 +84,13 @@ public abstract class BucketComputation implements LayerPopulator {
 
     private StaticSchema schemaFrom(StaticSchema original, String rawAttributeName) {
         final AttributeName attributeName = new AttributeName(rawAttributeName);
+
         // TODO: Kotlin-ify this
         return new StaticSchema(
                 original.getTitleAttribute(),
                 attributeName,
                 original.getImageAttribute(),
-                newHashSet(concat(singletonList(attributeName), original.getBlessedAttributes())),
+                newArrayList(concat(singletonList(attributeName), original.getBlessedAttributes())),
                 original.getCategoricalAttributes(),
                 original.getAttributeTypes()
         );
@@ -124,11 +125,11 @@ public abstract class BucketComputation implements LayerPopulator {
 
     private NakedFeature featureForBucket(String attributeName, Entry<Feature, List<Tuple>> entry) {
         Feature bucket = entry.getKey();
-        Double value = bucketSpec().aggregation().aggregate(
+        Double value = bucketSpec().getAggregation().aggregate(
                 bucket,
                 entry.getValue().stream().map(Tuple::getRight).collect(toList()));
 
-        if (bucketSpec().normalizeToArea()) {
+        if (bucketSpec().getNormalizeToArea()) {
             if (bucket.getGeometry().getArea() > 0) {
                 value /= bucket.getGeometry().getArea();
             }

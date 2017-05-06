@@ -42,11 +42,10 @@ public class BufferComputationShould {
     public void before() throws Exception {
         computation = BufferComputationImpl.builder()
                 .layerId(myLayerId)
-                .bufferSpec(BufferSpecImpl.of(sourceLayerId, 25.0))
+                .bufferSpec(new BufferSpec(sourceLayerId, 25.0))
                 .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
                 .build();
     }
-
 
     @Test
     public void produce_valid_metadata() throws Exception {

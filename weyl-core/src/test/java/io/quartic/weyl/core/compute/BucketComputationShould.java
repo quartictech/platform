@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
-import static com.google.common.collect.Sets.newHashSet;
 import static io.quartic.common.rx.RxUtilsKt.all;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
@@ -50,7 +49,7 @@ public class BucketComputationShould {
     private final LayerId bucketLayerId = mock(LayerId.class);
     private final LayerId featureLayerId = mock(LayerId.class);
     private final BucketAggregation aggregation = mock(BucketAggregation.class);
-    private final BucketSpec bucketSpec = BucketSpecImpl.of(bucketLayerId, featureLayerId, aggregation, false);
+    private final BucketSpec bucketSpec = new BucketSpec(bucketLayerId, featureLayerId, aggregation, false);
     private final SpatialJoiner joiner = mock(SpatialJoiner.class);
     private BucketComputation computation;
 
@@ -82,7 +81,7 @@ public class BucketComputationShould {
                         bucketSchema().getTitleAttribute(),
                         name("Foo"),
                         bucketSchema().getImageAttribute(),
-                        newHashSet(name("Foo"), name("BlessedA"), name("BlessedB")),
+                        newArrayList(name("Foo"), name("BlessedA"), name("BlessedB")),
                         bucketSchema().getCategoricalAttributes()
                 ),
                 true
@@ -178,7 +177,7 @@ public class BucketComputationShould {
                 name("Title"),
                 name("Primary"),
                 name("Image"),
-                newHashSet(name("BlessedA"), name("BlessedB")),
+                newArrayList(name("BlessedA"), name("BlessedB")),
                 emptySet(),
                 ImmutableMap.of()
         );
