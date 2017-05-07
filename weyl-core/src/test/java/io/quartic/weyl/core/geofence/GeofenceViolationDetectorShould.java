@@ -9,7 +9,6 @@ import io.quartic.weyl.core.model.Feature;
 import org.junit.Test;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static io.quartic.weyl.core.geofence.GeofenceType.EXCLUDE;
 import static io.quartic.weyl.core.geofence.GeofenceType.INCLUDE;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
@@ -140,7 +139,7 @@ public class GeofenceViolationDetectorShould {
     }
 
     private Geofence geofence(GeofenceType type) {
-        return GeofenceImpl.of(type, geofenceFeature());
+        return new Geofence(type, geofenceFeature());
     }
 
     private Feature geofenceFeature() {
@@ -158,6 +157,6 @@ public class GeofenceViolationDetectorShould {
     }
 
     private Violation violation(Geofence geofence, Feature feature) {
-        return ViolationImpl.of(feature.getEntityId(), geofence.feature().getEntityId(), alertLevel(geofence.feature()));
+        return new Violation(feature.getEntityId(), geofence.getFeature().getEntityId(), Geofence.Companion.alertLevel(geofence.getFeature()));
     }
 }

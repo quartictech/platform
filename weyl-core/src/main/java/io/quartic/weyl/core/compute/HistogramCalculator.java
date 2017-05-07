@@ -21,13 +21,13 @@ public class HistogramCalculator {
                 .collect(groupingBy(Entry::getKey, groupingBy(Entry::getValue, counting())));
 
         return counts.entrySet().stream()
-                .map(e -> HistogramImpl.of(e.getKey(), countsToBuckets(e.getValue())))
+                .map(e -> new Histogram(e.getKey(), countsToBuckets(e.getValue())))
                 .collect(toSet());
     }
 
     private Collection<Bucket> countsToBuckets(Map<Object, Long> counts) {
         return counts.entrySet().stream()
-                .map(e2 -> BucketImpl.of(e2.getKey(), e2.getValue()))
+                .map(e -> new Bucket(e.getKey(), e.getValue()))
                 .collect(toSet());
     }
 }

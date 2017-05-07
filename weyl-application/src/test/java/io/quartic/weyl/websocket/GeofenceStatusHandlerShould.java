@@ -7,7 +7,6 @@ import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
-import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
@@ -46,7 +45,6 @@ import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
 import static io.quartic.weyl.core.feature.FeatureConverter.MINIMAL_MANIPULATOR;
-import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
 import static io.quartic.weyl.core.geofence.GeofenceType.INCLUDE;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
@@ -314,7 +312,7 @@ public class GeofenceStatusHandlerShould {
 
     @Test
     public void set_level_attribute_based_on_attribute_from_features() throws Exception {
-        when(featureAttributes.attributes()).thenReturn(singletonMap(ALERT_LEVEL, "warning"));
+        when(featureAttributes.attributes()).thenReturn(singletonMap(Geofence.Companion.getALERT_LEVEL(), "warning"));
 
         subscribeToHandler(status(new GeofenceStatus(
                 INCLUDE,
@@ -391,9 +389,9 @@ public class GeofenceStatusHandlerShould {
 
     private void mockDetectorBehaviour(boolean newViolations, boolean hasChanged) {
         final Violation violation = mock(Violation.class);
-        when(violation.entityId()).thenReturn(new EntityId("Goofy"));
-        when(violation.geofenceId()).thenReturn(new EntityId("Pluto"));
-        when(violation.level()).thenReturn(SEVERE);
+        when(violation.getEntityId()).thenReturn(new EntityId("Goofy"));
+        when(violation.getGeofenceId()).thenReturn(new EntityId("Pluto"));
+        when(violation.getLevel()).thenReturn(SEVERE);
 
         final Output output = mock(Output.class);
         when(output.hasChanged()).thenReturn(hasChanged);
@@ -464,12 +462,12 @@ public class GeofenceStatusHandlerShould {
     }
 
     private Geofence geofenceOf(String id, Alert.Level level, Geometry geometry) {
-        return GeofenceImpl.of(
+        return new Geofence(
                 INCLUDE,
                 new Feature(
                         new EntityId("geofence/" + id),
                         geometry,
-                        AttributesImpl.of(singletonMap(ALERT_LEVEL, level))
+                        AttributesImpl.of(singletonMap(Geofence.Companion.getALERT_LEVEL(), level))
                 )
         );
     }
