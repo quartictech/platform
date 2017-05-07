@@ -92,9 +92,9 @@ public class SnapshotReducer {
 
             // TODO: Kotlin-ify the grossness
             return new Layer(
-                    layer.getSpec(),
-                    layer.getFeatures(),
-                    layer.getDynamicSchema(),
+                    withFeatures.getSpec(),
+                    withFeatures.getFeatures(),
+                    withFeatures.getDynamicSchema(),
                     spatialIndex(indexedFeatures),
                     indexedFeatures,
                     calculateStats(withFeatures.getDynamicSchema(), updatedFeatures)
