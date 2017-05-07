@@ -33,7 +33,6 @@ import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceManager;
-import io.quartic.weyl.core.source.SourceManagerImpl;
 import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
@@ -91,11 +90,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 configuration.getDefaultCatalogueNamespace()
         );
 
-        final SourceManager sourceManager = SourceManagerImpl.builder()
-                .catalogueEvents(catalogueWatcher.getEvents())
-                .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
-                .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
-                .build();
+        final SourceManager sourceManager = new SourceManager(
+                catalogueWatcher.getEvents(),
+                createSourceFactories(configuration, environment, websocketFactory),
+                Schedulers.from(Executors.newScheduledThreadPool(2))
+        );
 
         final ComputeResource computeResource = new ComputeResource(lidGenerator);
 

@@ -16,8 +16,7 @@ class BufferComputation @JvmOverloads constructor(
     override fun dependencies() = listOf(bufferSpec.layerId)
 
     override fun spec(dependencies: List<Layer>): LayerSpec {
-        val (spec) = dependencies[0]
-
+        val spec = dependencies[0].spec
         return LayerSpec(
                 layerId,
                 LayerMetadata(
@@ -33,16 +32,13 @@ class BufferComputation @JvmOverloads constructor(
     }
 
     override fun updates(dependencies: List<Layer>): Observable<LayerUpdate> {
-        val (_, features) = dependencies[0]
-
-        val bufferedFeatures = features
+        val bufferedFeatures = dependencies[0].features
                 .map { (entityId, geometry, attributes) ->
                     NakedFeature(
                             entityId.uid,
                             BufferOp.bufferOp(geometry, bufferSpec.bufferDistance),
                             attributes)
                 }
-
         return Observable.never<LayerUpdate>().startWith(LayerUpdate(REPLACE, bufferedFeatures))
     }
 }

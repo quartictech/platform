@@ -38,7 +38,6 @@ public class WebsocketSource implements Source {
         return indexable;
     }
 
-    // TODO - lazy
     @Override
     public Observable<LayerUpdate> observable() {
         return listenerFactory.create(LiveEvent.class)

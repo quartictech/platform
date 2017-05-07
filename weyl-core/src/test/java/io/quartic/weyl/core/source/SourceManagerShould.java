@@ -64,12 +64,12 @@ public class SourceManagerShould {
 
     private final ExtensionCodec extensionCodec = mock(ExtensionCodec.class);
 
-    private final SourceManager manager = SourceManagerImpl.builder()
-            .catalogueEvents(catalogueEvents)
-            .sourceFactories(sourceFactories)
-            .extensionCodec(extensionCodec)
-            .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
-            .build();
+    private final SourceManager manager = new SourceManager(
+            catalogueEvents,
+            sourceFactories,
+            Schedulers.immediate(), // Force onto same thread for synchronous behaviour
+            extensionCodec
+    );
 
     private final TestSubscriber<LayerPopulator> sub = TestSubscriber.create();
     private final Map<LayerId, TestSubscriber<LayerUpdate>> updateSubscribers = Maps.newHashMap();
