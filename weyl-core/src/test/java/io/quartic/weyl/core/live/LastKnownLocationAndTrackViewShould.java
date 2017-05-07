@@ -55,22 +55,18 @@ public class LastKnownLocationAndTrackViewShould {
 
         List<Feature> expectedFeatures = ImmutableList.of(
                 lineFeature("bob", new Coordinate[]{
-                        new Coordinate(100, 100),
-                        new Coordinate(200, 200)
+                        new Coordinate(200, 200),
+                        new Coordinate(100, 100)
                 }),
                 lineFeature("alex", new Coordinate[]{
-                        new Coordinate(100, 100),
-                        new Coordinate(300, 300)
+                        new Coordinate(300, 300),
+                        new Coordinate(100, 100)
                 }),
                 featureA,
                 featureB
         );
 
         assertThat(features.size(), equalTo(4));
-
-        System.out.println(features);
-        System.out.println(expectedFeatures);
-
         assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
     }
 

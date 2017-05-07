@@ -26,21 +26,21 @@ public class LastKnownLocationAndTrackView implements LayerView {
     }
 
     private static Stream<Feature> makeTrack(List<Feature> history) {
-        final Feature first = history.get(0);
-        final GeometryFactory factory = first.getGeometry().getFactory();
+        final Feature latest = history.get(0);
+        final GeometryFactory factory = latest.getGeometry().getFactory();
         if (history.size() == 1) {
-            return Stream.of(first);
+            return Stream.of(latest);
         }
         return Stream.of(
-                first,
+                latest,
                 new Feature(
-                        first.getEntityId(),
+                        latest.getEntityId(),
                         factory.createLineString(history.stream()
                                 .map(f -> f.getGeometry().getCoordinate())
                                 .collect(Collectors.toList())
                                 .toArray(new Coordinate[0])
                         ),
-                        first.getAttributes()
+                        latest.getAttributes()
                 )
         );
     }
