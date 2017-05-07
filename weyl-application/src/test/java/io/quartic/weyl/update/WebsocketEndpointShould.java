@@ -2,6 +2,7 @@ package io.quartic.weyl.update;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.common.test.rx.Interceptor;
+import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
@@ -9,6 +10,7 @@ import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.GeofenceStatus;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
+import io.quartic.weyl.websocket.message.OnOpenMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
@@ -40,6 +42,7 @@ import static rx.Observable.just;
 import static rx.Observable.never;
 
 public class WebsocketEndpointShould {
+    private static final MapConfig MAP_CONFIG = new MapConfig(5.0, 6.0, 7.0);
     private final Session session = mock(Session.class, RETURNS_DEEP_STUBS);
     private final ClientStatusMessageHandler handler = mock(ClientStatusMessageHandler.class);
 
@@ -47,6 +50,13 @@ public class WebsocketEndpointShould {
     public void before() throws Exception {
         final Map<String, Object> map = newHashMap();
         when(session.getUserProperties()).thenReturn(map);
+    }
+
+    @Test
+    public void send_on_open_message_when_connection_opened() throws Exception {
+        createAndOpenEndpoint();
+
+        verifyMessage(new OnOpenMessage(MAP_CONFIG));
     }
 
     @Test
@@ -115,7 +125,7 @@ public class WebsocketEndpointShould {
     }
 
     private WebsocketEndpoint createAndOpenEndpoint(Observable<SocketMessage> messages) {
-        final WebsocketEndpoint endpoint = new WebsocketEndpoint(messages, newArrayList(handler));
+        final WebsocketEndpoint endpoint = new WebsocketEndpoint(messages, newArrayList(handler), MAP_CONFIG);
         endpoint.onOpen(session, mock(EndpointConfig.class));
         return endpoint;
     }

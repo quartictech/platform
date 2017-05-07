@@ -133,6 +133,11 @@ export function mapMouseClick(feature, multiSelectEnabled) {
   };
 }
 
+export const mapSetTargetLocation = (config) => ({
+  type: constants.MAP_SET_TARGET_LOCATION,
+  ...config,
+});
+
 // Geofence
 
 export const geofencePaneToggleVisibility = () => ({
