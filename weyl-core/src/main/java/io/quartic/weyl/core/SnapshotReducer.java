@@ -13,6 +13,7 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerStats;
@@ -54,7 +55,7 @@ public class SnapshotReducer {
                         emptyList(),
                         new LayerStats(emptyMap())
                 ),
-                emptyList()
+                new Diff(LayerUpdateType.REPLACE, emptyList())
         );
     }
 
@@ -68,7 +69,7 @@ public class SnapshotReducer {
         return new Snapshot(
                 sidGen.get(),
                 next(prevLayer, update, elaborated),
-                elaborated
+                new Diff(update.getType(), elaborated)
         );
     }
 

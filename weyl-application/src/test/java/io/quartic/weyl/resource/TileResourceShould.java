@@ -3,6 +3,7 @@ package io.quartic.weyl.resource;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.render.VectorTileRenderer;
@@ -16,6 +17,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.util.function.Consumer;
 
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -101,7 +103,7 @@ public class TileResourceShould {
     }
 
     private Snapshot snapshot(Layer layer) {
-        return new Snapshot(mock(SnapshotId.class), layer, emptyList());
+        return new Snapshot(mock(SnapshotId.class), layer, new Diff(APPEND, emptyList()));
     }
 
     private void mockRendererResult(byte[] expected) {

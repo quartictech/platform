@@ -8,6 +8,7 @@ import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetNamespace;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
@@ -18,6 +19,7 @@ import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerStats;
@@ -125,7 +127,8 @@ public class LayerExporterShould {
     }
 
     private LayerSnapshotSequence sequence(Layer layer, List<Feature> features) {
-        return new LayerSnapshotSequence(layer.getSpec(), just(new Snapshot(mock(SnapshotId.class), layer, features)));
+        return new LayerSnapshotSequence(layer.getSpec(),
+                just(new Snapshot(mock(SnapshotId.class), layer, new Diff(LayerUpdateType.APPEND, features))));
     }
 
     private Feature feature(String id){

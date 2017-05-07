@@ -204,8 +204,10 @@ public class SelectionHandlerShould {
     }
 
     private Snapshot snapshot(Feature... features) {
+        LayerSnapshotSequence.Diff diff = mock(LayerSnapshotSequence.Diff.class);
+        when(diff.getFeatures()).thenReturn(asList(features));
         final Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.getDiff()).thenReturn(asList(features));
+        when(snapshot.getDiff()).thenReturn(diff);
         return snapshot;
     }
 
