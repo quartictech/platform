@@ -21,7 +21,6 @@ import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.howl.api.HowlClient;
 import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.core.LayerRouter;
-import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.export.HowlGeoJsonLayerWriter;
@@ -29,7 +28,6 @@ import io.quartic.weyl.core.export.LayerExporter;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
@@ -101,7 +99,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final ComputeResource computeResource = new ComputeResource(lidGenerator);
 
-        final LayerRouter router = createRouter(merge(
+        final LayerRouter router = new LayerRouter(merge(
                 sourceManager.layerPopulators(),
                 computeResource.layerPopulators()
         ));
@@ -143,12 +141,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         );
 
         return new WebsocketEndpoint(messages, handlers, mapConfig);
-    }
-
-    private LayerRouter createRouter(Observable<LayerPopulator> populators) {
-        return LayerRouterImpl.builder()
-                .populators(populators)
-                .build();
     }
 
     private SelectionHandler createSelectionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
