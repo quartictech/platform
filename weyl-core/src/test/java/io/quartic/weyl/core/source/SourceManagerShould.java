@@ -32,7 +32,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
-import static io.quartic.weyl.core.source.ExtensionCodec.EXTENSION_KEY;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
@@ -150,7 +149,7 @@ public class SourceManagerShould {
 
         collectedLayerPopulators();
 
-        verify(extensionCodec).decode("foo", ImmutableMap.of(EXTENSION_KEY, "raw"));
+        verify(extensionCodec).decode("foo", ImmutableMap.of(ExtensionCodec.Companion.getEXTENSION_KEY(), "raw"));
     }
 
     private List<LayerUpdate> collectedUpdateSequenceFor(String layerId) {
@@ -170,7 +169,7 @@ public class SourceManagerShould {
         return new DatasetConfig(
                 new DatasetMetadata(name, "blah", "quartic", Instant.EPOCH),
                 source,
-                ImmutableMap.of(EXTENSION_KEY, "raw")
+                ImmutableMap.of(ExtensionCodec.Companion.getEXTENSION_KEY(), "raw")
         );
     }
 
