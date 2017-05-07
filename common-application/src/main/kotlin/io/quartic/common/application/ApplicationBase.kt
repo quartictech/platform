@@ -44,7 +44,7 @@ abstract class ApplicationBase<T : Configuration> : Application<T>() {
 
         with (environment.jersey()) {
             urlPattern = "/api/*"
-            register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response (TODO: upgrade to DW 1.0.5+?)
+            register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response
             register(PingPongResource())
         }
 

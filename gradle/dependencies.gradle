@@ -3,7 +3,7 @@ ext {
     libraries = [:]
 }
 
-versions.dropwizard = "1.0.0"
+versions.dropwizard = "1.1.0"
 versions.vectorTile = "1.2.1"
 versions.jackson = "2.7.6"      // This is the Jackson version that Dropwizard currently pulls in
 versions.feign = "8.18.0"
@@ -16,7 +16,7 @@ libraries.guava = "com.google.guava:guava:19.0"
 libraries.commonsLang = "org.apache.commons:commons-lang3:3.4"
 libraries.rxjava = "io.reactivex:rxjava:${versions.rxjava}"
 libraries.websocket = "javax.websocket:javax.websocket-api:1.1"
-libraries.dropwizardWebsockets = "com.liveperson:dropwizard-websockets:1.0.0-1"  // BEWARE! The highest version number in maven central is 1.2. This is actually an older version (and not compatible with DW 1.0)
+libraries.dropwizardWebsockets = "com.liveperson:dropwizard-websockets:${versions.dropwizard}"
 libraries.dropwizardTesting = "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1.1.8"
 libraries.junit = "junit:junit:4.12"

@@ -33,7 +33,7 @@ class MessageExtractor(
 
             do {
                 val messages = pubsub.pull(subscriptionName, batchSize).asSequence().toList()
-                val success = ackLatency.time {
+                val doIt: () -> Boolean = {
                     if (messages.isEmpty()) {
                         LOG.info("Pulled no messages from subscription - skipping handling".nicely())
                         true
@@ -48,6 +48,7 @@ class MessageExtractor(
                         }, timestamp, partNumber)
                     }
                 }
+                val success = ackLatency.time(doIt)
 
                 // This is all or nothing - either ack everything or nothing
                 if (success) {
