@@ -12,7 +12,7 @@ data class Geofence(
         val ALERT_LEVEL = AttributeName("_alertLevel")
 
         @JvmOverloads fun alertLevel(feature: Feature, defaultLevel: Level = Level.SEVERE): Level { // Default default!
-            val level = feature.attributes.attributes()[ALERT_LEVEL]
+            val level = feature.attributes.attributes[ALERT_LEVEL]
             try {
                 return Level.valueOf(level.toString().toUpperCase())
             } catch (e: Exception) {

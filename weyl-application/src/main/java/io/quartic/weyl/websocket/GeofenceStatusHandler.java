@@ -7,7 +7,7 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.Alert;
-import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -92,7 +92,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
                 new Feature(
                         new EntityId("geofence/" + f.getEntityId().getUid()),
                         bufferOp(f.getGeometry(), status.getBufferDistance()),
-                        AttributesImpl.of(singletonMap(
+                        Attributes.Companion.of(singletonMap(
                                 Geofence.Companion.getALERT_LEVEL(),
                                 Geofence.Companion.alertLevel(f, status.getDefaultLevel())
                         ))

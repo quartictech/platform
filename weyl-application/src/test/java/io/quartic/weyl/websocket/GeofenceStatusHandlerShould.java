@@ -13,7 +13,6 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.Attributes;
-import io.quartic.weyl.core.model.AttributesImpl;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -312,7 +311,7 @@ public class GeofenceStatusHandlerShould {
 
     @Test
     public void set_level_attribute_based_on_attribute_from_features() throws Exception {
-        when(featureAttributes.attributes()).thenReturn(singletonMap(Geofence.Companion.getALERT_LEVEL(), "warning"));
+        when(featureAttributes.getAttributes()).thenReturn(singletonMap(Geofence.Companion.getALERT_LEVEL(), "warning"));
 
         subscribeToHandler(status(new GeofenceStatus(
                 INCLUDE,
@@ -467,7 +466,7 @@ public class GeofenceStatusHandlerShould {
                 new Feature(
                         new EntityId("geofence/" + id),
                         geometry,
-                        AttributesImpl.of(singletonMap(Geofence.Companion.getALERT_LEVEL(), level))
+                        Attributes.Companion.of(singletonMap(Geofence.Companion.getALERT_LEVEL(), level))
                 )
         );
     }

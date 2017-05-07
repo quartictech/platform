@@ -10,7 +10,7 @@ import io.quartic.common.test.entry
 import io.quartic.common.test.map
 import io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION
 import io.quartic.weyl.core.model.*
-import io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES
+import io.quartic.weyl.core.model.Attributes.Companion.EMPTY_ATTRIBUTES
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before

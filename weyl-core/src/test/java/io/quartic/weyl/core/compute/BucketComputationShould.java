@@ -95,9 +95,9 @@ public class BucketComputationShould {
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
 
-        assertThat(getLast(evaluateFirstUpdate().get(0).getFeatures()).getAttributes().attributes(),
+        assertThat(getLast(evaluateFirstUpdate().get(0).getFeatures()).getAttributes().getAttributes(),
                 equalTo(ImmutableMap.builder()
-                        .putAll(bucketFeature.getAttributes().attributes())
+                        .putAll(bucketFeature.getAttributes().getAttributes())
                         .put(name("Foo"), 42.0)
                         .build()
                 )

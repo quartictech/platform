@@ -101,7 +101,7 @@ public class SpatialPredicateComputationShould {
     }
 
     private Feature feature() {
-        return new Feature(new EntityId("test"), point(), Attributes.EMPTY_ATTRIBUTES);
+        return new Feature(new EntityId("test"), point(), Attributes.Companion.getEMPTY_ATTRIBUTES());
     }
 
     private Point point() {

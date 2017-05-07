@@ -54,7 +54,7 @@ public class AttributesFactory {
         }
 
         public AttributesBuilder(Attributes attributes) {
-            this.attributes = newHashMap(attributes.attributes());
+            this.attributes = newHashMap(attributes.getAttributes());
         }
 
         public AttributesBuilder put(String name, Object value) {
@@ -101,7 +101,7 @@ public class AttributesFactory {
         }
 
         @Override
-        public Map<AttributeName, Object> attributes() {
+        public Map<AttributeName, Object> getAttributes() {
             return new AbstractMap<AttributeName, Object>() {
                 @Override
                 public Set<Entry<AttributeName, Object>> entrySet() {

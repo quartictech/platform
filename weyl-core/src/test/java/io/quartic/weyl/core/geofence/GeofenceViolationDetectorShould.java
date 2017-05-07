@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.core.geofence.GeofenceType.EXCLUDE;
 import static io.quartic.weyl.core.geofence.GeofenceType.INCLUDE;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
-import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -143,14 +143,14 @@ public class GeofenceViolationDetectorShould {
     }
 
     private Feature geofenceFeature() {
-        return new Feature(mock(EntityId.class), fenceGeometry, EMPTY_ATTRIBUTES);
+        return new Feature(mock(EntityId.class), fenceGeometry, Attributes.Companion.getEMPTY_ATTRIBUTES());
     }
 
     private Feature point(boolean containsResult) {
         final Feature point = new Feature(
                 new EntityId("foo"),   // Use a fixed EntityId to represent evolution of a single entity
                 mock(Geometry.class),
-                EMPTY_ATTRIBUTES
+                Attributes.Companion.getEMPTY_ATTRIBUTES()
         );
         when(fenceGeometry.contains(point.getGeometry())).thenReturn(containsResult);
         return point;

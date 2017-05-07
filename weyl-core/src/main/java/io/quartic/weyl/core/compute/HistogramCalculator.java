@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toSet;
 public class HistogramCalculator {
     public Collection<Histogram> calculate(Collection<? extends Feature> features) {
         final Map<AttributeName, Map<Object, Long>> counts = features.stream()
-                .flatMap(f -> f.getAttributes().attributes().entrySet().stream())
+                .flatMap(f -> f.getAttributes().getAttributes().entrySet().stream())
                 .filter(entry -> isSimple(entry.getValue()))
                 .collect(groupingBy(Entry::getKey, groupingBy(Entry::getValue, counting())));
 
