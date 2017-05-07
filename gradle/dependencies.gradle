@@ -5,8 +5,8 @@ ext {
 
 versions.dropwizard = "1.1.0"
 versions.vectorTile = "1.2.1"
-versions.jackson = "2.7.6"      // This is the Jackson version that Dropwizard currently pulls in
-versions.feign = "8.18.0"
+versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard currently pulls in
+versions.feign = "9.5.0"
 versions.geoTools = "15.2"
 versions.metrics = "3.1.2"
 versions.tyrus = "1.13"

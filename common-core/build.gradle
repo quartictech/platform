@@ -17,12 +17,12 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
 
-    compile "com.netflix.feign:feign-core:${versions.feign}"
-    compile("com.netflix.feign:feign-jaxrs:${versions.feign}") {
+    compile "io.github.openfeign:feign-core:${versions.feign}"
+    compile("io.github.openfeign:feign-jaxrs:${versions.feign}") {
         exclude group: "javax.ws.rs", module: "jsr311-api"      // This is JAX-RS 1.0, which conflicts with Jersey reliance on 2.0
     }
-    compile "com.netflix.feign:feign-jackson:${versions.feign}"
-    compile "com.netflix.feign:feign-slf4j:${versions.feign}"
+    compile "io.github.openfeign:feign-jackson:${versions.feign}"
+    compile "io.github.openfeign:feign-slf4j:${versions.feign}"
     compile "commons-io:commons-io:2.5"
     compile "com.squareup.okhttp3:okhttp:3.4.2"
 
