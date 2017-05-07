@@ -60,7 +60,8 @@ public class SnapshotReducerShould {
     public void provide_update_features_as_diff() throws Exception {
         Snapshot updated = reducer.next(initialSnapshot(), updateFor(APPEND, nakedFeature("a")));
 
-        assertThat(updated.getDiff(), contains(feature(LAYER_ID + "/a")));
+        assertThat(updated.getDiff().getUpdateType(), equalTo(APPEND));
+        assertThat(updated.getDiff().getFeatures(), contains(feature(LAYER_ID + "/a")));
     }
 
     @Test
@@ -68,7 +69,14 @@ public class SnapshotReducerShould {
         Snapshot updated = reducer.next(initialSnapshot(), updateFor(APPEND,
                 nakedFeature(null), nakedFeature(null)));
 
-        assertThat(updated.getDiff(), contains(feature(LAYER_ID + "/1"), feature(LAYER_ID + "/2")));
+        assertThat(updated.getDiff().getFeatures(), contains(feature(LAYER_ID + "/1"), feature(LAYER_ID + "/2")));
+    }
+
+    @Test
+    public void propagate_replace_update_type() {
+        Snapshot updated = reducer.next(initialSnapshot(), updateFor(REPLACE, nakedFeature("a")));
+
+        assertThat(updated.getDiff().getUpdateType(), equalTo(REPLACE));
     }
 
     @Test
@@ -84,7 +92,7 @@ public class SnapshotReducerShould {
         Snapshot snapshot1 = reducer.next(initialSnapshot(), updateFor(APPEND, nakedFeature("a")));
         Snapshot snapshot2 = reducer.next(snapshot1, updateFor(REPLACE, nakedFeature("b")));
 
-        assertThat(snapshot2.getDiff(), contains(feature(LAYER_ID + "/b")));
+        assertThat(snapshot2.getDiff().getFeatures(), contains(feature(LAYER_ID + "/b")));
         assertThat(snapshot2.getAbsolute().getFeatures(), contains(feature(LAYER_ID + "/b")));
         assertThat(snapshot2.getAbsolute().getFeatures(), not(contains(feature(LAYER_ID + "/a"))));
     }
@@ -95,7 +103,7 @@ public class SnapshotReducerShould {
         Snapshot snapshot2 = reducer.next(snapshot1, updateFor(REPLACE, nakedFeature("b")));
         Snapshot snapshot3 = reducer.next(snapshot2, updateFor(APPEND, nakedFeature("c")));
 
-        assertThat(snapshot3.getDiff(), contains(feature(LAYER_ID + "/c")));
+        assertThat(snapshot3.getDiff().getFeatures(), contains(feature(LAYER_ID + "/c")));
         assertThat(snapshot3.getAbsolute().getFeatures(), containsInAnyOrder(feature(LAYER_ID + "/b"), feature(LAYER_ID + "/c")));
         assertThat(snapshot3.getAbsolute().getFeatures(), not(contains(feature(LAYER_ID + "/a"))));
     }

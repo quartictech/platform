@@ -18,6 +18,7 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.NakedFeature;
@@ -43,6 +44,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.vividsolutions.jts.operation.buffer.BufferOp.bufferOp;
 import static io.quartic.common.test.CollectionUtilsKt.entry;
 import static io.quartic.common.test.CollectionUtilsKt.map;
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static io.quartic.weyl.core.feature.FeatureConverter.MINIMAL_MANIPULATOR;
 import static io.quartic.weyl.core.geofence.GeofenceType.INCLUDE;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
@@ -444,7 +446,7 @@ public class GeofenceStatusHandlerShould {
     }
 
     private Snapshot snapshot(Layer layer, List<Feature> diff) {
-        return new Snapshot(mock(SnapshotId.class), layer, diff);
+        return new Snapshot(mock(SnapshotId.class), layer, new Diff(APPEND, diff));
     }
 
     private Layer layer() {

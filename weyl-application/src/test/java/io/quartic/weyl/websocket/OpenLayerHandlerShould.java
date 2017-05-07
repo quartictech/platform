@@ -8,6 +8,7 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.SnapshotId;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
@@ -175,7 +177,7 @@ public class OpenLayerHandlerShould {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
         when(layer.getSpec()).thenReturn(spec);
         when(layer.getFeatures()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
-        return new Snapshot(new SnapshotId("123"), layer, emptyList());
+        return new Snapshot(new SnapshotId("123"), layer, new Diff(APPEND, emptyList()));
     }
 
     private LayerSpec spec(LayerId id, boolean live) {

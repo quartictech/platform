@@ -1,5 +1,6 @@
 package io.quartic.weyl.core.model
 
+import io.quartic.weyl.api.LayerUpdateType
 import rx.Observable
 
 data class LayerSnapshotSequence(
@@ -13,6 +14,11 @@ data class LayerSnapshotSequence(
              * Note: if you're using diff(), that probably means you'll be sensitive to missed values, etc.  Thus you need
              * to avoid constructs that involve resubscription (with the potential for either duplicates or missed values).
              */
-            val diff: Collection<Feature>
+            val diff: Diff
+    )
+
+    data class Diff(
+            val updateType: LayerUpdateType,
+            val features: Collection<Feature>
     )
 }

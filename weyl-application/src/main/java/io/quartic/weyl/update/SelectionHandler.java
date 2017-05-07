@@ -3,6 +3,7 @@ package io.quartic.weyl.update;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.quartic.common.rx.StateAndOutput;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -57,18 +58,26 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         final LayerId id = event.layerId;
         switch (event.type) {
             case NEXT:
-                event.diff.forEach(f -> {
-                    state.entitiesPerLayer.put(id, f.getEntityId());
-                    state.entityLookup.put(f.getEntityId(), f);
-                });
+                applyDiff(state, id, event.diff);
                 break;
-
             case COMPLETE:
                 state.entitiesPerLayer.removeAll(id).forEach(state.entityLookup::remove);
                 break;
         }
 
         return new StateAndOutput<>(state, state.entityLookup);
+    }
+
+    private void applyDiff(State state, LayerId id, LayerSnapshotSequence.Diff diff) {
+        if (diff.getUpdateType() == LayerUpdateType.REPLACE) {
+            state.entitiesPerLayer.clear();
+            state.entityLookup.clear();
+        }
+
+        diff.getFeatures().forEach(f -> {
+            state.entitiesPerLayer.put(id, f.getEntityId());
+            state.entityLookup.put(f.getEntityId(), f);
+        });
     }
 
     // This approach re-performs the selection lookup every time *any* upstream data changes.
@@ -111,9 +120,9 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
         public final Type type;
         public final LayerId layerId;
-        public final Collection<Feature> diff;
+        public final LayerSnapshotSequence.Diff diff;
 
-        private LayerEvent(Type type, LayerId layerId, Collection<Feature> diff) {
+        private LayerEvent(Type type, LayerId layerId, LayerSnapshotSequence.Diff diff) {
             this.type = type;
             this.layerId = layerId;
             this.diff = diff;
