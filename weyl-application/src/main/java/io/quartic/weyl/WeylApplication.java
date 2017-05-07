@@ -184,11 +184,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WebsocketClientSessionFactory websocketFactory
     ) {
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, config -> PostgresSource.builder()
-                        .name(config.getMetadata().getName())
-                        .locator((PostgresDatasetLocator) config.getLocator())
-                        .attributesFactory(attributesFactory())
-                        .build(),
+                PostgresDatasetLocator.class, config -> new PostgresSource(
+                        config.getMetadata().getName(),
+                        (PostgresDatasetLocator) config.getLocator(),
+                        attributesFactory()
+                ),
                 GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.getLocator()).getUrl()),
                 WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
                         new WebsocketListener.Factory(((WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
@@ -205,22 +205,22 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private GeoJsonSource geojsonSource(DatasetConfig config, String url) {
-        return GeoJsonSource.builder()
-        .name(config.getMetadata().getName())
-        .url(url)
-        .userAgent(userAgentFor(getClass()))
-        .converter(featureConverter())
-        .build();
+        return new GeoJsonSource(
+                config.getMetadata().getName(),
+                url,
+                userAgentFor(getClass()),
+                featureConverter()
+        );
     }
 
     private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
-        return WebsocketSource.builder()
-                .name(config.getMetadata().getName())
-                .listenerFactory(listenerFactory)
-                .converter(featureConverter())
-                .metrics(environment.metrics())
-                .indexable(indexable)
-                .build();
+        return new WebsocketSource(
+                config.getMetadata().getName(),
+                featureConverter(),
+                environment.metrics(),
+                listenerFactory,
+                indexable
+        );
     }
 
     private FeatureConverter featureConverter() {

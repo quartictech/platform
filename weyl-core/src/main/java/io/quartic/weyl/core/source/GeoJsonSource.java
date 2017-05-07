@@ -7,7 +7,6 @@ import io.quartic.common.geojson.GeoJsonParser;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -24,20 +23,21 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 
-@Value.Immutable
-public abstract class GeoJsonSource implements Source {
+public class GeoJsonSource implements Source {
     private static final Logger LOG = LoggerFactory.getLogger(GeoJsonSource.class);
-    public static ImmutableGeoJsonSource.Builder builder() {
-        return ImmutableGeoJsonSource.builder();
-    }
+    private final String name;
+    private final String url;
+    private final String userAgent;
+    private final FeatureConverter converter;
 
-    protected abstract String name();
-    protected abstract String url();
-    protected abstract String userAgent();
-    protected abstract FeatureConverter converter();
+    public GeoJsonSource(String name, String url, String userAgent, FeatureConverter converter) {
+        this.name = name;
+        this.url = url;
+        this.userAgent = userAgent;
+        this.converter = converter;
+    }
 
     @Override
     public Observable<LayerUpdate> observable() {
@@ -56,8 +56,8 @@ public abstract class GeoJsonSource implements Source {
     }
 
     private List<NakedFeature> importAllFeatures() throws IOException {
-        final URLConnection conn = parseURL(url()).openConnection();
-        conn.setRequestProperty(HttpHeaders.USER_AGENT, userAgent());
+        final URLConnection conn = parseURL(url).openConnection();
+        conn.setRequestProperty(HttpHeaders.USER_AGENT, userAgent);
 
         try (final InputStream inputStream = conn.getInputStream()) {
             Stream<Feature> featureStream = StreamSupport.stream(
@@ -71,13 +71,13 @@ public abstract class GeoJsonSource implements Source {
             featureStream.forEach(feature -> {
                 counter.incrementAndGet();
                 if (features.size() == 10000) {
-                    LOG.info("[{}] importing features: {}", name(), counter);
-                    convertedFeatures.addAll(converter().featuresToModel(features));
+                    LOG.info("[{}] importing features: {}", name, counter);
+                    convertedFeatures.addAll(converter.featuresToModel(features));
                     features.clear();
                 }
                 features.add(feature);
             });
-            convertedFeatures.addAll(converter().featuresToModel(features));
+            convertedFeatures.addAll(converter.featuresToModel(features));
 
             return convertedFeatures;
         }

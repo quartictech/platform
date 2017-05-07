@@ -6,40 +6,46 @@ import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.weyl.api.LiveEvent;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 
-@Value.Immutable
-public abstract class WebsocketSource implements Source {
+public class WebsocketSource implements Source {
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSource.class);
 
-    public static ImmutableWebsocketSource.Builder builder() {
-        return ImmutableWebsocketSource.builder();
-    }
+    private final String name;
+    private final FeatureConverter converter;
+    private final WebsocketListener.Factory listenerFactory;
+    private final Meter messageRateMeter;
+    private final boolean indexable;
 
-    protected abstract String name();
-    protected abstract FeatureConverter converter();
-    protected abstract MetricRegistry metrics();
-    protected abstract WebsocketListener.Factory listenerFactory();
+    public WebsocketSource(
+            String name,
+            FeatureConverter converter,
+            MetricRegistry metrics,
+            WebsocketListener.Factory listenerFactory,
+            boolean indexable
+    ) {
+        this.name = name;
+        this.converter = converter;
+        this.listenerFactory = listenerFactory;
+        this.messageRateMeter = metrics.meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate", name));
+        this.indexable = indexable;
+    }
 
     @Override
-    public abstract boolean indexable();
-
-    @Value.Derived
-    protected Meter messageRateMeter() {
-        return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate", name()));
+    public boolean indexable() {
+        return indexable;
     }
 
-    @Value.Lazy
+    // TODO - lazy
     @Override
     public Observable<LayerUpdate> observable() {
-        return listenerFactory().create(LiveEvent.class)
+        return listenerFactory.create(LiveEvent.class)
                 .getObservable()
-                .doOnNext(s -> messageRateMeter().mark())
-                .doOnNext(s -> LOG.info("[{}] received {}", name(), s.getUpdateType()))
-                .map(event -> new LayerUpdate(event.getUpdateType(), converter().toModel(event.getFeatureCollection())));
+                .doOnNext(s -> messageRateMeter.mark())
+                .doOnNext(s -> LOG.info("[{}] received {}", name, s.getUpdateType()))
+                .map(event -> new LayerUpdate(event.getUpdateType(), converter.toModel(event.getFeatureCollection())));
     }
 
 }
