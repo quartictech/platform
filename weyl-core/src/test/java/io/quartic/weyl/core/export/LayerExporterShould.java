@@ -8,9 +8,11 @@ import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetNamespace;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
+import io.quartic.weyl.core.model.DiffImpl;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -128,7 +130,8 @@ public class LayerExporterShould {
     }
 
     private LayerSnapshotSequence sequence(Layer layer, List<Feature> features) {
-        return LayerSnapshotSequenceImpl.of(layer.spec(), just(SnapshotImpl.of(mock(SnapshotId.class), layer, features)));
+        return LayerSnapshotSequenceImpl.of(layer.spec(), just(SnapshotImpl.of(mock(SnapshotId.class), layer,
+                DiffImpl.of(LayerUpdateType.APPEND, features))));
     }
 
     private Feature feature(String id){

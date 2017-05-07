@@ -1,5 +1,7 @@
 package io.quartic.weyl.resource;
 
+import io.quartic.weyl.api.LayerUpdateType;
+import io.quartic.weyl.core.model.DiffImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
@@ -102,7 +104,7 @@ public class TileResourceShould {
     }
 
     private Snapshot snapshot(Layer layer) {
-        return SnapshotImpl.of(mock(SnapshotId.class), layer, emptyList());
+        return SnapshotImpl.of(mock(SnapshotId.class), layer, LayerSnapshotSequence.Diff.empty());
     }
 
     private void mockRendererResult(byte[] expected) {
