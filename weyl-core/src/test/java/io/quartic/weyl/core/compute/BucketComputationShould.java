@@ -55,12 +55,12 @@ public class BucketComputationShould {
 
     @Before
     public void before() throws Exception {
-        computation = BucketComputationImpl.builder()
-                .layerId(myLayerId)
-                .bucketSpec(bucketSpec)
-                .joiner(joiner)
-                .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
-                .build();
+        computation = new BucketComputation(
+                myLayerId,
+                bucketSpec,
+                joiner,
+                Clock.fixed(Instant.EPOCH, ZoneId.systemDefault())
+        );
     }
 
     @Test

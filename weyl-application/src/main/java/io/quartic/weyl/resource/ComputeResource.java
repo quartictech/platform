@@ -1,12 +1,12 @@
 package io.quartic.weyl.resource;
 
 import io.quartic.common.uid.UidGenerator;
-import io.quartic.weyl.core.compute.BucketComputationImpl;
+import io.quartic.weyl.core.compute.BucketComputation;
 import io.quartic.weyl.core.compute.BucketSpec;
-import io.quartic.weyl.core.compute.BufferComputationImpl;
+import io.quartic.weyl.core.compute.BufferComputation;
 import io.quartic.weyl.core.compute.BufferSpec;
 import io.quartic.weyl.core.compute.ComputationSpec;
-import io.quartic.weyl.core.compute.SpatialPredicateComputationImpl;
+import io.quartic.weyl.core.compute.SpatialPredicateComputation;
 import io.quartic.weyl.core.compute.SpatialPredicateSpec;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
@@ -39,20 +39,11 @@ public class ComputeResource {
 
     private LayerPopulator createPopulator(LayerId layerId, ComputationSpec spec) {
         if (spec instanceof BucketSpec) {
-            return BucketComputationImpl.builder()
-                    .layerId(layerId)
-                    .bucketSpec((BucketSpec) spec)
-                    .build();
+            return new BucketComputation(layerId, (BucketSpec) spec);
         } else if (spec instanceof BufferSpec) {
-            return BufferComputationImpl.builder()
-                    .layerId(layerId)
-                    .bufferSpec((BufferSpec) spec)
-                    .build();
+            return new BufferComputation(layerId, (BufferSpec) spec);
         } else if (spec instanceof SpatialPredicateSpec) {
-            return SpatialPredicateComputationImpl.builder()
-                    .layerId(layerId)
-                    .spatialPredicateSpec((SpatialPredicateSpec) spec)
-                    .build();
+            return new SpatialPredicateComputation(layerId, (SpatialPredicateSpec) spec);
         }
 
         else {

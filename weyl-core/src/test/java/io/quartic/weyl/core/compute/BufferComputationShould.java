@@ -33,18 +33,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class BufferComputationShould {
-    private BufferComputationImpl computation;
+    private BufferComputation computation;
     private LayerId myLayerId = mock(LayerId.class);
     private LayerId sourceLayerId = mock(LayerId.class);
     private Layer layer = layer();
 
     @Before
     public void before() throws Exception {
-        computation = BufferComputationImpl.builder()
-                .layerId(myLayerId)
-                .bufferSpec(new BufferSpec(sourceLayerId, 25.0))
-                .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
-                .build();
+        computation = new BufferComputation(
+                myLayerId,
+                new BufferSpec(sourceLayerId, 25.0),
+                Clock.fixed(Instant.EPOCH, ZoneId.systemDefault())
+        );
     }
 
     @Test
