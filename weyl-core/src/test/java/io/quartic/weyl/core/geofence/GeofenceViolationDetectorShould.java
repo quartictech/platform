@@ -6,7 +6,6 @@ import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.State;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
 import org.junit.Test;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -145,20 +144,20 @@ public class GeofenceViolationDetectorShould {
     }
 
     private Feature geofenceFeature() {
-        return FeatureImpl.of(mock(EntityId.class), fenceGeometry, EMPTY_ATTRIBUTES);
+        return new Feature(mock(EntityId.class), fenceGeometry, EMPTY_ATTRIBUTES);
     }
 
     private Feature point(boolean containsResult) {
-        final Feature point = FeatureImpl.builder()
-                .entityId(EntityId.fromString("foo"))   // Use a fixed EntityId to represent evolution of a single entity
-                .geometry(mock(Geometry.class))
-                .attributes(EMPTY_ATTRIBUTES)
-                .build();
-        when(fenceGeometry.contains(point.geometry())).thenReturn(containsResult);
+        final Feature point = new Feature(
+                new EntityId("foo"),   // Use a fixed EntityId to represent evolution of a single entity
+                mock(Geometry.class),
+                EMPTY_ATTRIBUTES
+        );
+        when(fenceGeometry.contains(point.getGeometry())).thenReturn(containsResult);
         return point;
     }
 
     private Violation violation(Geofence geofence, Feature feature) {
-        return ViolationImpl.of(feature.entityId(), geofence.feature().entityId(), alertLevel(geofence.feature()));
+        return ViolationImpl.of(feature.getEntityId(), geofence.feature().getEntityId(), alertLevel(geofence.feature()));
     }
 }

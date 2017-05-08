@@ -10,7 +10,7 @@ data class BucketMean(val attribute: AttributeName) : BucketAggregation {
             return 0.0
         } else {
             return features.stream()
-                    .map { feature -> feature.attributes().attributes()[attribute] }
+                    .map { feature -> feature.attributes.attributes()[attribute] }
                     .filter { Objects.nonNull(it) }
                     .mapToDouble { BucketUtils.mapToDouble(it) }
                     .sum() / features.size

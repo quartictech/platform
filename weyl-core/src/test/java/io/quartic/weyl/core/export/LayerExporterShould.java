@@ -12,22 +12,19 @@ import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.live.LayerView;
-import io.quartic.weyl.core.model.DiffImpl;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerImpl;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
-import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerStats;
 import io.quartic.weyl.core.model.SnapshotId;
-import io.quartic.weyl.core.model.SnapshotImpl;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -63,8 +60,8 @@ public class LayerExporterShould {
 
         @Override
         public LayerExportResult write(Layer layer) {
-            layer.features().stream().collect(toCollection(() -> features));
-            return LayerExportResultImpl.of(new CloudGeoJsonDatasetLocator("test", false), "ok");
+            layer.getFeatures().stream().collect(toCollection(() -> features));
+            return new LayerExportResult(new CloudGeoJsonDatasetLocator("test", false), "ok");
         }
 
         public List<Feature> getFeatures() {
@@ -87,8 +84,8 @@ public class LayerExporterShould {
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
-        exportResult.assertValue(Optional.of(LayerExportResultImpl.of(new CloudGeoJsonDatasetLocator("test", false), "ok")));
-        assertThat(layerWriter.getFeatures().get(0).entityId(), equalTo(features.get(0).entityId()));
+        exportResult.assertValue(Optional.of(new LayerExportResult(new CloudGeoJsonDatasetLocator("test", false), "ok")));
+        assertThat(layerWriter.getFeatures().get(0).getEntityId(), equalTo(features.get(0).getEntityId()));
     }
 
     @Test
@@ -102,8 +99,8 @@ public class LayerExporterShould {
     }
 
     @NotNull
-    private LayerExportRequestImpl exportRequest(String layerId) {
-        return LayerExportRequestImpl.of(LayerId.fromString(layerId));
+    private LayerExportRequest exportRequest(String layerId) {
+        return new LayerExportRequest(new LayerId(layerId));
     }
 
     @Test
@@ -130,12 +127,12 @@ public class LayerExporterShould {
     }
 
     private LayerSnapshotSequence sequence(Layer layer, List<Feature> features) {
-        return LayerSnapshotSequenceImpl.of(layer.spec(), just(SnapshotImpl.of(mock(SnapshotId.class), layer,
-                DiffImpl.of(LayerUpdateType.APPEND, features))));
+        return new LayerSnapshotSequence(layer.getSpec(),
+                just(new Snapshot(mock(SnapshotId.class), layer, new Diff(LayerUpdateType.APPEND, features))));
     }
 
     private Feature feature(String id){
-        return FeatureImpl.of(EntityId.fromString(id), new GeometryFactory().createPoint(new Coordinate(0, 0)),
+        return new Feature(new EntityId(id), new GeometryFactory().createPoint(new Coordinate(0, 0)),
                 attributesFactory.builder().put("foo", 1).build());
     }
 
@@ -144,11 +141,14 @@ public class LayerExporterShould {
     }
 
     private Layer layer(String layerId, FeatureCollection features) {
-        return LayerImpl.of(
-                LayerSpecImpl.of(LayerId.fromString(layerId),
-                        LayerMetadataImpl.of("yeh", "no", "weird", Instant.now()),
+        return new Layer(
+                new LayerSpec(
+                        new LayerId(layerId),
+                        new LayerMetadata("yeh", "no", "weird", Instant.now()),
                         mock(LayerView.class),
-                        StaticSchemaImpl.builder().build(), true),
+                        new StaticSchema(),
+                        true
+                ),
                 features,
                 mock(DynamicSchema.class),
                 mock(SpatialIndex.class),

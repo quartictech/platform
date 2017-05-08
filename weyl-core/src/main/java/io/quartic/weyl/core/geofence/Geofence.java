@@ -19,7 +19,7 @@ public interface Geofence {
     }
 
     static Alert.Level alertLevel(Feature feature, Alert.Level defaultLevel) {
-        final Object level = feature.attributes().attributes().get(ALERT_LEVEL);
+        final Object level = feature.getAttributes().attributes().get(ALERT_LEVEL);
         try {
             return Alert.Level.valueOf(level.toString().toUpperCase());
         } catch (Exception e) {

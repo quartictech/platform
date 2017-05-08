@@ -15,7 +15,7 @@ function computeNumericStops(colorScale, numStops, minValue, maxValue) {
 
  // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully in various places
 function colorStyle(attribute, style, attributes, attributeStats) {
-  if (attribute == null) {
+  if (!attribute) {
     return style.color;
   }
 
@@ -24,7 +24,7 @@ function colorStyle(attribute, style, attributes, attributeStats) {
     return style.color;
   }
 
-  if (attributeInfo.categories === null) {
+  if (!attributeInfo.categories) {
     if (!(attribute in attributeStats)) {
       return style.color;
     }

@@ -26,11 +26,12 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
         HowlStorageId howlStorageId = howlClient.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE, outputStream -> {
             GeoJsonGenerator geoJsonGenerator = new GeoJsonGenerator(outputStream);
 
-            featureCount[0] = geoJsonGenerator.writeFeatures(layer.features().stream().map((f) -> featureConverter.toGeojson(FeatureConverter.DEFAULT_MANIPULATOR, f)));
+            featureCount[0] = geoJsonGenerator.writeFeatures(
+                    layer.getFeatures().stream().map((f) -> featureConverter.toGeojson(FeatureConverter.DEFAULT_MANIPULATOR, f)));
         });
-        return LayerExportResultImpl.of(
+        return new LayerExportResult(
                 new CloudGeoJsonDatasetLocator(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId), false),
-                String.format("exported %d features to layer: %s", featureCount[0], layer.spec().metadata().name()));
+                String.format("exported %d features to layer: %s", featureCount[0], layer.getSpec().getMetadata().getName()));
     }
 
     @Override

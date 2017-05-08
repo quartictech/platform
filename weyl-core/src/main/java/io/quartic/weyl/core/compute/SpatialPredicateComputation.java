@@ -2,16 +2,21 @@ package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableList;
 import io.quartic.common.SweetStyle;
-import io.quartic.weyl.api.LayerUpdateType;
-import io.quartic.weyl.core.model.*;
+import io.quartic.weyl.core.model.Layer;
+import io.quartic.weyl.core.model.LayerId;
+import io.quartic.weyl.core.model.LayerMetadata;
+import io.quartic.weyl.core.model.LayerPopulator;
+import io.quartic.weyl.core.model.LayerSpec;
+import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.NakedFeature;
 import org.immutables.value.Value;
 import rx.Observable;
 
 import java.time.Clock;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
+import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.stream.Collectors.toList;
 
@@ -36,25 +41,25 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
         final Layer layerA = dependencies.get(0);
         final Layer layerB = dependencies.get(1);
 
-        return LayerSpecImpl.of(
+        return new LayerSpec(
                 layerId(),
-                LayerMetadataImpl.builder()
-                        .name(name(layerA, layerB, spatialPredicateSpec()))
-                        .description(name(layerA, layerB, spatialPredicateSpec()))
-                        .attribution(layerA.spec().metadata().attribution())
-                        .registered(clock().instant())
-                        .build(),
+                new LayerMetadata(
+                        name(layerA, layerB, spatialPredicateSpec()),
+                        name(layerA, layerB, spatialPredicateSpec()),
+                        layerA.getSpec().getMetadata().getAttribution(),
+                        clock().instant()
+                ),
                 IDENTITY_VIEW,
-                layerA.spec().staticSchema(),
+                layerA.getSpec().getStaticSchema(),
                 true
         );
     }
 
     private static String name(Layer layerA, Layer layerB, SpatialPredicateSpec spatialPredicateSpec) {
         return String.format("%s %s %s",
-                layerA.spec().metadata().name(),
+                layerA.getSpec().getMetadata().getName(),
                 spatialPredicateSpec.getPredicate(),
-                layerB.spec().metadata().name());
+                layerB.getSpec().getMetadata().getName());
     }
 
     @Override
@@ -62,17 +67,17 @@ public abstract class SpatialPredicateComputation implements LayerPopulator {
         final Layer layerA = dependencies.get(0);
         final Layer layerB = dependencies.get(1);
 
-        Collection<NakedFeature> bufferedFeatures = layerA.indexedFeatures().parallelStream()
-                .filter(featureA -> layerB.features().stream()
+        Collection<NakedFeature> bufferedFeatures = layerA.getIndexedFeatures().parallelStream()
+                .filter(featureA -> layerB.getFeatures().stream()
                         .anyMatch(featureB -> spatialPredicateSpec().getPredicate()
-                                        .test(featureA.preparedGeometry(), featureB.geometry())))
-                .map(feature -> NakedFeatureImpl.of(
-                        Optional.of(feature.feature().entityId().getUid()),
-                        feature.feature().geometry(),
-                        feature.feature().attributes())
+                                        .test(featureA.getPreparedGeometry(), featureB.getGeometry())))
+                .map(feature -> new NakedFeature(
+                        feature.getFeature().getEntityId().getUid(),
+                        feature.getFeature().getGeometry(),
+                        feature.getFeature().getAttributes())
                 )
                 .collect(toList());
 
-        return Observable.<LayerUpdate>never().startWith(LayerUpdateImpl.of(LayerUpdateType.REPLACE, bufferedFeatures));
+        return Observable.<LayerUpdate>never().startWith(new LayerUpdate(REPLACE, bufferedFeatures));
     }
 }

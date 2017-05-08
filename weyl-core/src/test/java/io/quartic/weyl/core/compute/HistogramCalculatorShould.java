@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
 import org.junit.Test;
 
 import java.util.List;
@@ -67,10 +66,6 @@ public class HistogramCalculatorShould {
     }
 
     private Feature feature(Map<AttributeName, Object> attributes) {
-        return FeatureImpl.builder()
-                .entityId(new EntityId("def"))
-                .geometry(mock(Geometry.class))
-                .attributes(() -> attributes)
-                .build();
+        return new Feature(new EntityId("def"), mock(Geometry.class), () -> attributes);
     }
 }

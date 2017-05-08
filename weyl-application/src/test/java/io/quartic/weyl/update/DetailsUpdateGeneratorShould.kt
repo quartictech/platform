@@ -4,7 +4,6 @@ import com.nhaarman.mockito_kotlin.mock
 import io.quartic.weyl.core.model.AttributeName
 import io.quartic.weyl.core.model.AttributesImpl
 import io.quartic.weyl.core.model.Feature
-import io.quartic.weyl.core.model.FeatureImpl
 import io.quartic.weyl.update.DetailsUpdateGenerator.Companion.DETAILS_ATTRIBUTE_NAME
 import io.quartic.weyl.update.DetailsUpdateGenerator.Details
 import org.hamcrest.Matchers.equalTo
@@ -120,6 +119,6 @@ class DetailsUpdateGeneratorShould {
     }
 
     private fun feature(attributes: Map<AttributeName, Any>): Feature {
-        return FeatureImpl.of(mock(), mock(), AttributesImpl.of(attributes))
+        return Feature(mock(), mock(), AttributesImpl.of(attributes))
     }
 }

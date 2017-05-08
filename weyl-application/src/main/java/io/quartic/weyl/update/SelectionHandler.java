@@ -47,22 +47,10 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
     private Observable<LayerEvent> extractLayerEvents(Observable<LayerSnapshotSequence> sequences) {
         return sequences.flatMap(seq ->
-                seq.snapshots()
-                        .map(s -> new LayerEvent(NEXT, seq.spec().id(), s.diff()))
-                        .concatWith(just(new LayerEvent(COMPLETE, seq.spec().id(), null)))
+                seq.getSnapshots()
+                        .map(s -> new LayerEvent(NEXT, seq.getSpec().getId(), s.getDiff()))
+                        .concatWith(just(new LayerEvent(COMPLETE, seq.getSpec().getId(), null)))
         );
-    }
-
-    private void applyDiff(State state, LayerId id, LayerSnapshotSequence.Diff diff) {
-        if (diff.updateType() == LayerUpdateType.REPLACE) {
-            state.entitiesPerLayer.clear();
-            state.entityLookup.clear();
-        }
-
-        diff.features().forEach(f -> {
-            state.entitiesPerLayer.put(id, f.entityId());
-            state.entityLookup.put(f.entityId(), f);
-        });
     }
 
     // Mutates the state :(
@@ -78,6 +66,18 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         }
 
         return new StateAndOutput<>(state, state.entityLookup);
+    }
+
+    private void applyDiff(State state, LayerId id, LayerSnapshotSequence.Diff diff) {
+        if (diff.getUpdateType() == LayerUpdateType.REPLACE) {
+            state.entitiesPerLayer.clear();
+            state.entityLookup.clear();
+        }
+
+        diff.getFeatures().forEach(f -> {
+            state.entitiesPerLayer.put(id, f.getEntityId());
+            state.entityLookup.put(f.getEntityId(), f);
+        });
     }
 
     // This approach re-performs the selection lookup every time *any* upstream data changes.
@@ -181,5 +181,12 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         }
 
         // Don't care about hashcode
+
+        @Override
+        public String toString() {
+            return "Identity{" +
+                    "t=" + t +
+                    '}';
+        }
     }
 }

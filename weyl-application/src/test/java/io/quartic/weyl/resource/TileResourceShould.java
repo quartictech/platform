@@ -1,13 +1,11 @@
 package io.quartic.weyl.resource;
 
-import io.quartic.weyl.api.LayerUpdateType;
-import io.quartic.weyl.core.model.DiffImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.SnapshotId;
-import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.render.VectorTileRenderer;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,6 +17,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.util.function.Consumer;
 
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -97,14 +96,14 @@ public class TileResourceShould {
     private BehaviorSubject<Snapshot> nextSequence(LayerId layerId) {
         final BehaviorSubject<Snapshot> snapshots = BehaviorSubject.create();
         final LayerSnapshotSequence seq = mock(LayerSnapshotSequence.class, RETURNS_DEEP_STUBS);
-        when(seq.spec().id()).thenReturn(layerId);
-        when(seq.snapshots()).thenReturn(snapshots);
+        when(seq.getSpec().getId()).thenReturn(layerId);
+        when(seq.getSnapshots()).thenReturn(snapshots);
         snapshotSequences.onNext(seq);
         return snapshots;
     }
 
     private Snapshot snapshot(Layer layer) {
-        return SnapshotImpl.of(mock(SnapshotId.class), layer, LayerSnapshotSequence.Diff.empty());
+        return new Snapshot(mock(SnapshotId.class), layer, new Diff(APPEND, emptyList()));
     }
 
     private void mockRendererResult(byte[] expected) {

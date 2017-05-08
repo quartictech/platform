@@ -10,9 +10,7 @@ import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
@@ -55,7 +53,7 @@ public abstract class PostgresSource implements Source {
     @Override
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(LayerUpdateImpl.of(LayerUpdateType.REPLACE, importAllFeatures()));
+            sub.onNext(new LayerUpdate(LayerUpdateType.REPLACE, importAllFeatures()));
             // Don't complete, because downstream uses that to indicate layer completion (TODO: maybe we should concat with never())
         });
     }
@@ -111,9 +109,7 @@ public abstract class PostgresSource implements Source {
                 }
             }
 
-            Optional<String> id = Optional.ofNullable((String) row.get(ID_FIELD));
-
-            return NakedFeatureImpl.of(id, geometry, builder.build());
+            return new NakedFeature((String) row.get(ID_FIELD), geometry, builder.build());
         });
     }
 

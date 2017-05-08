@@ -34,7 +34,7 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
     public OpenLayerHandler(Observable<LayerSnapshotSequence> snapshotSequences, FeatureConverter featureConverter) {
         // Each item is a map from all current layer IDs to the corresponding snapshot sequence for that layer
         this.sequenceMap = snapshotSequences
-                .compose(accumulateMap(seq -> seq.spec().id(), LayerSnapshotSequence::snapshots))
+                .compose(accumulateMap(seq -> seq.getSpec().getId(), LayerSnapshotSequence::getSnapshots))
                 .compose(likeBehavior());
         this.featureConverter = featureConverter;
     }
@@ -54,19 +54,19 @@ public class OpenLayerHandler implements ClientStatusMessageHandler {
     }
 
     private SocketMessage toMessage(Snapshot snapshot) {
-        final Layer layer = snapshot.absolute();
+        final Layer layer = snapshot.getAbsolute();
         return new LayerUpdateMessage(
-                layer.spec().id(),
-                snapshot.id(),
-                layer.dynamicSchema(),
-                layer.stats(),
+                layer.getSpec().getId(),
+                snapshot.getId(),
+                layer.getDynamicSchema(),
+                layer.getStats(),
                 featureCollection(layer)
         );
     }
 
     private FeatureCollection featureCollection(Layer layer) {
-        final Collection<Feature> features = layer.spec().indexable() ? EMPTY_COLLECTION : layer.features();
-        final Stream<Feature> computed = layer.spec().view().compute(features);
-        return featureConverter.toGeojson(frontendManipulatorFor(layer.dynamicSchema()), computed.collect(toList()));
+        final Collection<Feature> features = layer.getSpec().getIndexable() ? EMPTY_COLLECTION : layer.getFeatures();
+        final Stream<Feature> computed = layer.getSpec().getView().compute(features);
+        return featureConverter.toGeojson(frontendManipulatorFor(layer.getDynamicSchema()), computed.collect(toList()));
     }
 }

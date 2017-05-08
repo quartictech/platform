@@ -1,7 +1,5 @@
 package io.quartic.weyl.update;
 
-import com.vividsolutions.jts.geom.Geometry;
-import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -20,8 +18,6 @@ import rx.subjects.PublishSubject;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -179,20 +175,6 @@ public class SelectionHandlerShould {
     }
 
     @Test
-    public void perform_cheap_equality_checks() throws Exception {
-        final Feature feature = new AlwaysUnequalFeature(entityIdA);
-        assertThat(feature, not(equalTo(feature)));     // Sanity check
-
-        subscribe();
-        final PublishSubject<Snapshot> sequence = createSequence(layerIdX);
-        statuses.onNext(status(42, entityIdA));
-        sequence.onNext(snapshot(feature));
-        sequence.onNext(snapshot(feature));             // Same feature, but compares unequal
-
-        assertGeneratorCallCountIs(1);                  // Thus an identity check is required
-    }
-
-    @Test
     public void stop_passing_entities_that_came_from_deleted_layer() throws Exception {
         subscribe();
         final PublishSubject<Snapshot> sequence = createSequence(layerIdX);
@@ -216,16 +198,16 @@ public class SelectionHandlerShould {
 
     private LayerSnapshotSequence sequence(LayerId layerId, Observable<Snapshot> snapshots) {
         final LayerSnapshotSequence seq = mock(LayerSnapshotSequence.class, RETURNS_DEEP_STUBS);
-        when(seq.spec().id()).thenReturn(layerId);
-        when(seq.snapshots()).thenReturn(snapshots);
+        when(seq.getSpec().getId()).thenReturn(layerId);
+        when(seq.getSnapshots()).thenReturn(snapshots);
         return seq;
     }
 
     private Snapshot snapshot(Feature... features) {
         LayerSnapshotSequence.Diff diff = mock(LayerSnapshotSequence.Diff.class);
-        when(diff.features()).thenReturn(asList(features));
+        when(diff.getFeatures()).thenReturn(asList(features));
         final Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.diff()).thenReturn(diff);
+        when(snapshot.getDiff()).thenReturn(diff);
         return snapshot;
     }
 
@@ -237,7 +219,7 @@ public class SelectionHandlerShould {
 
     private Feature feature(EntityId id) {
         final Feature feature = mock(Feature.class);
-        when(feature.entityId()).thenReturn(id);
+        when(feature.getEntityId()).thenReturn(id);
         return feature;
     }
 
@@ -247,33 +229,5 @@ public class SelectionHandlerShould {
 
     private void assertGeneratorCallCountIs(int expected) {
         verify(generator, times(expected)).generate(any());
-    }
-
-    private static class AlwaysUnequalFeature implements Feature {
-        private final EntityId entityId;
-
-        private AlwaysUnequalFeature(EntityId entityId) {
-            this.entityId = entityId;
-        }
-
-        @Override
-        public EntityId entityId() {
-            return entityId;
-        }
-
-        @Override
-        public Geometry geometry() {
-            return null;
-        }
-
-        @Override
-        public Attributes attributes() {
-            return null;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return false;
-        }
     }
 }

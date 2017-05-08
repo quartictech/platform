@@ -6,7 +6,6 @@ import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.weyl.api.LiveEvent;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +39,7 @@ public abstract class WebsocketSource implements Source {
                 .getObservable()
                 .doOnNext(s -> messageRateMeter().mark())
                 .doOnNext(s -> LOG.info("[{}] received {}", name(), s.getUpdateType()))
-                .map(event -> LayerUpdateImpl.of(event.getUpdateType(),
-                        converter().toModel(event.getFeatureCollection())));
+                .map(event -> new LayerUpdate(event.getUpdateType(), converter().toModel(event.getFeatureCollection())));
     }
 
 }

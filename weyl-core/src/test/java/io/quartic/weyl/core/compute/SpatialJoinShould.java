@@ -4,30 +4,26 @@ import com.google.common.collect.ImmutableList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.SnapshotReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
-import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
+import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import io.quartic.weyl.core.model.SnapshotId;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
+import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.stream.Collectors.toList;
@@ -49,22 +45,22 @@ public class SpatialJoinShould {
                 .collect(toList());
 
         assertThat(joinResults, containsInAnyOrder(
-                TupleImpl.of(feature(polyA, "1"), feature(pointA, "2")),
-                TupleImpl.of(feature(polyB, "1"), feature(pointB, "2"))
+                new Tuple(feature(polyA, "1"), feature(pointA, "2")),
+                new Tuple(feature(polyB, "1"), feature(pointB, "2"))
         ));
     }
 
     private Layer makeLayer(String layerId, List<NakedFeature> features) throws IOException {
-        final LayerSpec spec = LayerSpecImpl.of(
-                LayerId.fromString(layerId),
-                LayerMetadataImpl.of("test", "test", "test", Instant.now()),
+        final LayerSpec spec = new LayerSpec(
+                new LayerId(layerId),
+                new LayerMetadata("test", "test", "test", Instant.now()),
                 IDENTITY_VIEW,
-                StaticSchemaImpl.builder().build(),
+                new StaticSchema(),
                 true
         );
 
         final SnapshotReducer reducer = new SnapshotReducer(sequenceGenerator(SnapshotId::new));
-        return reducer.next(reducer.empty(spec), LayerUpdateImpl.of(LayerUpdateType.REPLACE, features)).absolute();
+        return reducer.next(reducer.empty(spec), new LayerUpdate(REPLACE, features)).getAbsolute();
     }
 
     private NakedFeature point(double x, double y) {
@@ -86,14 +82,14 @@ public class SpatialJoinShould {
     }
 
     private NakedFeature feature(Geometry geometry) {
-       return NakedFeatureImpl.of(Optional.of("123"), geometry, EMPTY_ATTRIBUTES);
+       return new NakedFeature("123", geometry, EMPTY_ATTRIBUTES);
     }
 
     private Feature feature(NakedFeature feature, String layerId) {
-        return FeatureImpl.of(
-                new EntityId(layerId + "/" + feature.externalId().get()),
-                feature.geometry(),
-                feature.attributes()
+        return new Feature(
+                new EntityId(layerId + "/" + feature.getExternalId()),
+                feature.getGeometry(),
+                feature.getAttributes()
         );
     }
 }

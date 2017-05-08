@@ -8,11 +8,10 @@ import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.SnapshotId;
-import io.quartic.weyl.core.model.SnapshotImpl;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.LayerUpdateMessage;
@@ -28,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
@@ -86,7 +86,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        final ArrayList<Feature> expected = newArrayList(snapshot.absolute().features());
+        final ArrayList<Feature> expected = newArrayList(snapshot.getAbsolute().getFeatures());
         verify(converter).toGeojson(any(), eq(expected));
         assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
@@ -166,7 +166,7 @@ public class OpenLayerHandlerShould {
     }
 
     private void nextSequence(LayerSpec spec, Observable<Snapshot> snapshots) {
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, snapshots));
+        snapshotSequences.onNext(new LayerSnapshotSequence(spec, snapshots));
     }
 
     private void nextStatus(ClientStatusMessage status) {
@@ -175,17 +175,17 @@ public class OpenLayerHandlerShould {
 
     private Snapshot snapshot(LayerSpec spec) {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec()).thenReturn(spec);
-        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
-        return SnapshotImpl.of(new SnapshotId("123"), layer, LayerSnapshotSequence.Diff.empty());
+        when(layer.getSpec()).thenReturn(spec);
+        when(layer.getFeatures()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
+        return new Snapshot(new SnapshotId("123"), layer, new Diff(APPEND, emptyList()));
     }
 
     private LayerSpec spec(LayerId id, boolean live) {
         final LayerSpec spec = mock(LayerSpec.class);
-        when(spec.id()).thenReturn(id);
-        when(spec.view()).thenReturn(IDENTITY_VIEW);
-        when(spec.staticSchema()).thenReturn(mock(StaticSchema.class));
-        when(spec.indexable()).thenReturn(!live);
+        when(spec.getId()).thenReturn(id);
+        when(spec.getView()).thenReturn(IDENTITY_VIEW);
+        when(spec.getStaticSchema()).thenReturn(mock(StaticSchema.class));
+        when(spec.getIndexable()).thenReturn(!live);
         return spec;
     }
 
@@ -199,8 +199,8 @@ public class OpenLayerHandlerShould {
         return new LayerUpdateMessage(
                 id,
                 new SnapshotId("123"),
-                snapshot.absolute().dynamicSchema(),
-                snapshot.absolute().stats(),
+                snapshot.getAbsolute().getDynamicSchema(),
+                snapshot.getAbsolute().getStats(),
                 featureCollection()
         );
     }

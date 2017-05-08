@@ -11,18 +11,16 @@ import io.quartic.common.geojson.Point;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.TimeSeriesAttributeImpl;
 import io.quartic.weyl.core.feature.FeatureConverter.AttributeManipulator;
-import io.quartic.weyl.core.model.AttributeImpl;
+import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -97,13 +95,13 @@ public class FeatureConverterShould {
         final DynamicSchema schema = mock(DynamicSchema.class);
         final AttributeManipulator manipulator = FeatureConverter.frontendManipulatorFor(schema);
 
-        when(schema.attributes()).thenReturn(map(
-                entry(name("numeric"), AttributeImpl.of(NUMERIC, Optional.empty())),
-                entry(name("string"), AttributeImpl.of(STRING, Optional.empty())),
-                entry(name("timeseries"), AttributeImpl.of(TIME_SERIES, Optional.empty())),
-                entry(name("timestamp"), AttributeImpl.of(TIMESTAMP, Optional.empty())),
-                entry(name("unknown"), AttributeImpl.of(UNKNOWN, Optional.empty())),
-                entry(name("categorical"), AttributeImpl.of(UNKNOWN, Optional.of(newHashSet(1, 2, 3))))
+        when(schema.getAttributes()).thenReturn(map(
+                entry(name("numeric"), new Attribute(NUMERIC, null)),
+                entry(name("string"), new Attribute(STRING, null)),
+                entry(name("timeseries"), new Attribute(TIME_SERIES, null)),
+                entry(name("timestamp"), new Attribute(TIMESTAMP, null)),
+                entry(name("unknown"), new Attribute(UNKNOWN, null)),
+                entry(name("categorical"), new Attribute(UNKNOWN, newHashSet(1, 2, 3)))
         ));
 
         assertTrue(manipulator.test(name("numeric"), null));
@@ -119,7 +117,7 @@ public class FeatureConverterShould {
         final AttributeManipulator manipulator = FeatureConverter.frontendManipulatorFor(mock(DynamicSchema.class));
         final io.quartic.weyl.core.model.Feature feature = mock(io.quartic.weyl.core.model.Feature.class, RETURNS_DEEP_STUBS);
         final Map<String, Object> attributes = newHashMap();
-        when(feature.entityId()).thenReturn(EntityId.fromString("123"));
+        when(feature.getEntityId()).thenReturn(new EntityId("123"));
 
         manipulator.postProcess(feature, attributes);
 
@@ -127,8 +125,8 @@ public class FeatureConverterShould {
     }
 
     private io.quartic.weyl.core.model.Feature heterogeneousFeature() {
-        return io.quartic.weyl.core.model.FeatureImpl.of(
-                EntityId.fromString("a"),
+        return new io.quartic.weyl.core.model.Feature(
+                new EntityId("a"),
                 factory.createPoint(new Coordinate(51.0, 0.1)),
                 () -> map(
                         entry(name("timestamp"), 1234),
@@ -144,8 +142,8 @@ public class FeatureConverterShould {
         return builder;
     }
 
-    private NakedFeatureImpl modelFeature(String id, Attributes attributes) {
-        return NakedFeatureImpl.of(Optional.of(id), factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
+    private NakedFeature modelFeature(String id, Attributes attributes) {
+        return new NakedFeature(id, factory.createPoint(new Coordinate(51.0, 0.1)), attributes);
     }
 
     private Feature geojsonFeature(String id, Geometry geometry) {
