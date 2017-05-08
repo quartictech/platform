@@ -4,7 +4,7 @@ import { customStyles, liveLayerStyle } from "./customStyles.js";
 
 function computeCategoricalStops(categories) {
   // Mapbox seems to complain if the categories are not sorted.
-  return categories
+  return categories.sort()
     .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.5).toString(0)]);
 }
 
