@@ -23,8 +23,8 @@ class CsvConverterShould {
 
         assertProducesCorrectGeoJson(
                 raw,
-                Feature(null, Point(listOf(2.0, 1.0)), mapOf("foo" to "a", "bar" to "b", "baz" to "c")),
-                Feature(null, Point(listOf(4.0, 3.0)), mapOf("foo" to "d", "bar" to "e", "baz" to "f"))
+                Feature(null, Point(2.0, 1.0), mapOf("foo" to "a", "bar" to "b", "baz" to "c")),
+                Feature(null, Point(4.0, 3.0), mapOf("foo" to "d", "bar" to "e", "baz" to "f"))
         )
     }
 
@@ -32,8 +32,8 @@ class CsvConverterShould {
     fun handle_windows_line_endings() {
         assertProducesCorrectGeoJson(
                 "lat,lon,stuff\r\n1,2,foo\r\n3,4,bar",
-                Feature(null, Point(listOf(2.0, 1.0)), mapOf("stuff" to "foo")),
-                Feature(null, Point(listOf(4.0, 3.0)), mapOf("stuff" to "bar"))
+                Feature(null, Point(2.0, 1.0), mapOf("stuff" to "foo")),
+                Feature(null, Point(4.0, 3.0), mapOf("stuff" to "bar"))
         )
     }
 
@@ -41,8 +41,8 @@ class CsvConverterShould {
     fun handle_unix_line_endings() {
         assertProducesCorrectGeoJson(
                 "lat,lon,stuff\n1,2,foo\n3,4,bar",
-                Feature(null, Point(listOf(2.0, 1.0)), mapOf("stuff" to "foo")),
-                Feature(null, Point(listOf(4.0, 3.0)), mapOf("stuff" to "bar"))
+                Feature(null, Point(2.0, 1.0), mapOf("stuff" to "foo")),
+                Feature(null, Point(4.0, 3.0), mapOf("stuff" to "bar"))
         )
     }
 
