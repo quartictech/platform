@@ -41,10 +41,7 @@ public class LayerRouterShould {
     private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final Interceptor<LayerPopulator> interceptor = new Interceptor<>();
-    private final LayerRouter router = LayerRouterImpl.builder()
-            .populators(populators.compose(interceptor))
-            .snapshotReducer(snapshotReducer)
-            .build();
+    private final LayerRouter router = new LayerRouter(populators.compose(interceptor), snapshotReducer);
 
     public class UpstreamConsumption {
         @Test

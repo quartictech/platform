@@ -47,13 +47,13 @@ public class WebsocketSourceShould {
         when(listener.getObservable()).thenReturn(just(LIVE_EVENT));
         when(converter.toModel(any())).thenReturn(modelFeatures);
 
-        final WebsocketSource source = ImmutableWebsocketSource.builder()
-                .name("test")
-                .converter(converter)
-                .listenerFactory(listenerFactory)
-                .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
-                .indexable(false)
-                .build();
+        final WebsocketSource source = new WebsocketSource(
+                "test",
+                converter,
+                mock(MetricRegistry.class, RETURNS_DEEP_STUBS),
+                listenerFactory,
+                false
+        );
 
         TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
         source.observable().subscribe(subscriber);

@@ -27,7 +27,7 @@ public class StatsCalculator {
         Map<AttributeName, Double> minNumeric = newHashMap();
 
         features.stream()
-                .flatMap(feature -> feature.getAttributes().attributes().entrySet().stream())
+                .flatMap(feature -> feature.getAttributes().getAttributes().entrySet().stream())
                 .filter(entry -> STATS_ATTRIBUTE_TYPES.contains(getAttribute(schema, entry.getKey()).getType()) && entry.getValue() != null)
                 .forEach(entry -> {
                     final double value = Double.valueOf(entry.getValue().toString());

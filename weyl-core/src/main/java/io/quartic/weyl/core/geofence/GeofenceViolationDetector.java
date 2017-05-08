@@ -15,7 +15,6 @@ import java.util.Set;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
@@ -71,9 +70,9 @@ public class GeofenceViolationDetector {
 
         features.forEach(feature -> state.geofences.forEach(geofence -> {
             final EntityId entityId = feature.getEntityId();
-            final EntityId geofenceId = geofence.feature().getEntityId();
-            final Alert.Level level = alertLevel(geofence.feature());
-            final Violation violation = ViolationImpl.of(entityId, geofenceId, level);
+            final EntityId geofenceId = geofence.getFeature().getEntityId();
+            final Alert.Level level = Geofence.Companion.alertLevel(geofence.getFeature());
+            final Violation violation = new Violation(entityId, geofenceId, level);
 
             final boolean violating = inViolation(geofence, feature);
             final boolean previouslyViolating = state.violations.contains(violation);
@@ -101,7 +100,7 @@ public class GeofenceViolationDetector {
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
-        final boolean contains = geofence.feature().getGeometry().contains(feature.getGeometry());
-        return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
+        final boolean contains = geofence.getFeature().getGeometry().contains(feature.getGeometry());
+        return (geofence.getType() == GeofenceType.INCLUDE && !contains) || (geofence.getType() == GeofenceType.EXCLUDE && contains);
     }
 }

@@ -1,6 +1,5 @@
 package io.quartic.weyl.core;
 
-import io.quartic.common.SweetStyle;
 import io.quartic.common.rx.RxUtilsKt;
 import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.Layer;
@@ -11,7 +10,6 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.SnapshotId;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
 import rx.Observable;
 import rx.Observable.Transformer;
@@ -34,13 +32,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
-@SweetStyle
-@Value.Immutable
-public abstract class LayerRouter {
+public class LayerRouter {
     private static final Logger LOG = getLogger(LayerRouter.class);
+    private final Observable<LayerPopulator> populators;
+    private final SnapshotReducer snapshotReducer;
+    private final ConnectableObservable<LayerSnapshotSequence> snapshotSequences;
 
     /**
-     * Invariants:
+     * Invariants on <code>populators</code>:
      *
      * <ul>
      *     <li>Never terminates (with either an error or completion).</li>
@@ -56,16 +55,25 @@ public abstract class LayerRouter {
      *     <li></li>
      * </ul>
      */
-    protected abstract Observable<LayerPopulator> populators();
+    public LayerRouter(Observable<LayerPopulator> populators) {
+        this(populators, new SnapshotReducer(randomGenerator(SnapshotId::new)));
+    }
 
-    @Value.Default
-    protected SnapshotReducer snapshotReducer() {
-        return new SnapshotReducer(randomGenerator(SnapshotId::new));
+    public LayerRouter(Observable<LayerPopulator> populators, SnapshotReducer snapshotReducer) {
+        this.populators = populators;
+        this.snapshotReducer = snapshotReducer;
+
+        snapshotSequences = populators
+                .doOnTerminate(() -> LOG.error("Unexpected upstream termination"))  // This should never happen
+                .compose(mealy(emptySet(), this::nextState))
+                .concatMap(x -> x)
+                .replay();  // So that late subscribers get all previous sequences
+        snapshotSequences.connect();
     }
 
     /**
      * This class is designed to buffer subscribers from the complexities of unknown upstream behaviour.  Thus under
-     * the invariants listed for input {@link #populators()}, this observable behaves as follows:
+     * the invariants listed for input {@link #LayerRouter(Observable)}, this observable behaves as follows:
      *
      * <ul>
      *     <li>Consumes the upstream populators even if no subscribers.</li>
@@ -86,15 +94,8 @@ public abstract class LayerRouter {
      * Note that backpressure and scheduling are unexplored, so it's possible that one subscriber could block all other
      * subscribers.
      */
-    @Value.Derived
     public Observable<LayerSnapshotSequence> snapshotSequences() {
-        final ConnectableObservable<LayerSnapshotSequence> connectable = populators()
-                .doOnTerminate(() -> LOG.error("Unexpected upstream termination"))  // This should never happen
-                .compose(mealy(emptySet(), this::nextState))
-                .concatMap(x -> x)
-                .replay();  // So that late subscribers get all previous sequences
-        connectable.connect();
-        return connectable;
+        return snapshotSequences;
     }
 
     private StateAndOutput<Set<LayerSnapshotSequence>, Observable<LayerSnapshotSequence>> nextState(
@@ -137,9 +138,9 @@ public abstract class LayerRouter {
     }
 
     private Transformer<LayerUpdate, Snapshot> toSnapshots(LayerSpec spec) {
-        final Snapshot empty = snapshotReducer().empty(spec);   // If this fails, then layer creation fails
+        final Snapshot empty = snapshotReducer.empty(spec);   // If this fails, then layer creation fails
         return updates -> updates
-                .scan(empty, (s, u) -> snapshotReducer().next(s, u))
+                .scan(empty, (s, u) -> snapshotReducer.next(s, u))
                 .doOnError(e -> LOG.error("[{}] Upstream error", spec.getMetadata().getName(), e))
                 .onErrorResumeNext(empty())                     // On error, emit a final empty snapshot
                 .concatWith(just(empty))                        // On completion, emit a final empty snapshot

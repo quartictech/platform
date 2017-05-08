@@ -8,6 +8,7 @@ import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.DynamicSchemaKt;
 import io.quartic.weyl.core.model.EntityId;
@@ -27,9 +28,9 @@ import java.time.Instant;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
-import static io.quartic.weyl.api.LayerUpdateType.*;
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
+import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
-import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -183,7 +184,7 @@ public class SnapshotReducerShould {
         return new NakedFeature(
                 externalId,
                 new GeometryFactory().createPoint(new Coordinate(123.0, 456.0)),
-                EMPTY_ATTRIBUTES
+                Attributes.Companion.getEMPTY_ATTRIBUTES()
         );
     }
 
@@ -191,7 +192,7 @@ public class SnapshotReducerShould {
         return new Feature(
                 new EntityId(entityId),
                 new GeometryFactory().createPoint(new Coordinate(123.0, 456.0)),
-                EMPTY_ATTRIBUTES
+                Attributes.Companion.getEMPTY_ATTRIBUTES()
         );
     }
 }

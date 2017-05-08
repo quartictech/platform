@@ -36,8 +36,8 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SpatialPredicateShould {
-    private SpatialPredicateComputationImpl computation;
+public class SpatialPredicateComputationShould {
+    private SpatialPredicateComputation computation;
     private LayerId myLayerId = mock(LayerId.class);
     private LayerId layerAId = mock(LayerId.class);
     private LayerId layerBId = mock(LayerId.class);
@@ -46,11 +46,11 @@ public class SpatialPredicateShould {
 
     @Before
     public void before() throws Exception {
-        computation = SpatialPredicateComputationImpl.builder()
-                .layerId(myLayerId)
-                .spatialPredicateSpec(new SpatialPredicateSpec(layerAId, layerBId, SpatialPredicate.CONTAINS))
-                .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
-                .build();
+        computation = new SpatialPredicateComputation(
+                myLayerId,
+                new SpatialPredicateSpec(layerAId, layerBId, SpatialPredicate.CONTAINS),
+                Clock.fixed(Instant.EPOCH, ZoneId.systemDefault())
+        );
     }
 
 
@@ -101,7 +101,7 @@ public class SpatialPredicateShould {
     }
 
     private Feature feature() {
-        return new Feature(new EntityId("test"), point(), Attributes.EMPTY_ATTRIBUTES);
+        return new Feature(new EntityId("test"), point(), Attributes.Companion.getEMPTY_ATTRIBUTES());
     }
 
     private Point point() {

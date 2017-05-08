@@ -2,7 +2,7 @@ package io.quartic.weyl.update
 
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.weyl.core.model.AttributeName
-import io.quartic.weyl.core.model.AttributesImpl
+import io.quartic.weyl.core.model.Attributes
 import io.quartic.weyl.core.model.Feature
 import io.quartic.weyl.update.DetailsUpdateGenerator.Companion.DETAILS_ATTRIBUTE_NAME
 import io.quartic.weyl.update.DetailsUpdateGenerator.Details
@@ -119,6 +119,6 @@ class DetailsUpdateGeneratorShould {
     }
 
     private fun feature(attributes: Map<AttributeName, Any>): Feature {
-        return Feature(mock(), mock(), AttributesImpl.of(attributes))
+        return Feature(mock(), mock(), Attributes.of(attributes))
     }
 }

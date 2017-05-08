@@ -23,7 +23,7 @@ public class AttributesUpdateGenerator implements SelectionDrivenUpdateGenerator
     }
 
     private Attributes externalAttributes(Feature feature) {
-        return () -> feature.getAttributes().attributes().entrySet().stream()
+        return () -> feature.getAttributes().getAttributes().entrySet().stream()
                 .filter(e -> isSimple(e.getValue()))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }

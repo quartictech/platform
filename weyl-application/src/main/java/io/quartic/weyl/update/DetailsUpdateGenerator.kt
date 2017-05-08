@@ -10,7 +10,7 @@ class DetailsUpdateGenerator : SelectionDrivenUpdateGenerator {
 
     override fun generate(entities: Collection<Feature>): Details {
         val records = entities
-                .map { e -> e.attributes.attributes()[DETAILS_ATTRIBUTE_NAME] }
+                .map { e -> e.attributes.attributes[DETAILS_ATTRIBUTE_NAME] }
                 .filterNotNull()
                 .filterIsInstance<List<Any>>()
                 .flatMap { it }

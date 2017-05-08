@@ -38,7 +38,7 @@ class TileResource @JvmOverloads constructor(
     @CacheControl(maxAge = 60 * 60)
     @ManagedAsync
     fun render(@PathParam("layerId") layerId: LayerId,
-               @PathParam("snapshotId") snapshotId: SnapshotId, // We don't actually use this, it's just there to invalidate the browser cache
+               @PathParam("snapshotId") @Suppress("UNUSED_PARAMETER") snapshotId: SnapshotId, // We don't actually use this, it's just there to invalidate the browser cache
                @PathParam("z") z: Int,
                @PathParam("x") x: Int,
                @PathParam("y") y: Int,
