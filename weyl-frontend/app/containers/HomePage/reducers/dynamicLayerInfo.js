@@ -11,6 +11,8 @@ export default (state = new OrderedMap(), action) => {
     case constants.LAYER_TOGGLE_VISIBLE:
     case constants.LAYER_SET_STYLE:
     case constants.LAYER_TOGGLE_VALUE_VISIBLE:
+    case constants.LAYER_TOGGLE_ALL_VALUES_VISIBLE:
+    case constants.LAYER_APPLY_TIME_RANGE_FILTER:
     case constants.LAYER_UPDATE:
       return state.update(action.layerId, val => layerReducer(val, action));
     default:
@@ -27,10 +29,12 @@ const layerReducer = (state, action) => {
       switch (action.key) {
         case "ATTRIBUTE":
           return state.setIn(["style", "attribute"], action.value);
+        case "TRANSPARENCY":
+          return state.setIn(["style", "isTransparent"], action.value);
         case "THEME":
           return state
             .set("themeIdx", action.value)
-            .set("style", fromJS(defaultLayerStyle(state.getIn(["style", "attribute"]), action.value)));
+            .set("style", fromJS(defaultLayerStyle(state.getIn(["style", "attribute"]), action.value, state.getIn(["style", "isTransparent"]))));
         default:
           console.error("Unknown style key", action.key);
           return state;
@@ -49,11 +53,26 @@ const layerReducer = (state, action) => {
         });
       });
 
+    case constants.LAYER_TOGGLE_ALL_VALUES_VISIBLE:
+      return state.updateIn(["filter", action.attribute], defaultAttributeFilter(), filter =>
+        filter.update("notApplicable", x => !x)
+          .update("categories", set => new Set(state.getIn(["dynamicSchema", "attributes", action.attribute, "categories"])).subtract(set))
+    );
+
+    case constants.LAYER_APPLY_TIME_RANGE_FILTER:
+      return state.updateIn(["filter", action.attribute], defaultAttributeFilter(), filter => {
+        if (action.startTime != null || action.endTime != null) {
+          return filter.set("timeRange", fromJS({ startTime: action.startTime, endTime: action.endTime }));
+        }
+        return filter.set("timeRange", null);
+      });
+
     case constants.LAYER_UPDATE:
       return state
+        .set("snapshotId", action.snapshotId)
         .set("data", action.data)
-        .set("stats", action.stats)
-        .set("dynamicSchema", action.dynamicSchema);
+        .set("stats", fromJS(action.stats))
+        .set("dynamicSchema", fromJS(action.dynamicSchema));
 
     default:
       return state;
@@ -62,9 +81,10 @@ const layerReducer = (state, action) => {
 
 const newLayer = (action) => fromJS({
   id: action.layerId,
+  snapshotId: 0,    // Technically, this doesn't match any SnapshotID on the backend, but that doesn't currently matter
   visible: true,
   themeIdx: 0,
-  style: defaultLayerStyle(null, 0),
+  style: defaultLayerStyle(null, 0, false),
   stats: {
     attributeStats: {},
   },
@@ -81,12 +101,14 @@ const newLayer = (action) => fromJS({
 const defaultAttributeFilter = () => fromJS({
   notApplicable: false,
   categories: new Set(),
+  timeRange: null,
 });
 
-const defaultLayerStyle = (attribute, themeIdx) => ({
+const defaultLayerStyle = (attribute, themeIdx, isTransparent) => ({
   type: "DEFAULT",
   attribute,
   opacity: 0.8,
+  isTransparent,
   point: {
     "circle-radius": 6,
     "color": layerThemes[themeIdx].line,

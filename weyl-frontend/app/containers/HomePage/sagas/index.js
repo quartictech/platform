@@ -1,27 +1,24 @@
-import { take, fork, cancel } from "redux-saga/effects";
-import { takeLatest } from "redux-saga";
+import { takeLatest, fork } from "redux-saga/effects";
 
-import { LOCATION_CHANGE } from "react-router-redux";
 import * as constants from "../constants";
-
 import manageSocket from "./manageSocket";
 import performComputation from "./performComputation";
+import layerExport from "./layerExport";
 
 function watch(action, generator) {
   return function* () {
-    yield* takeLatest(action, generator);
+    yield takeLatest(action, generator);
   };
 }
 
 function prepare(generator) {
   return function* () {
-    const forked = yield fork(generator);
-    yield take(LOCATION_CHANGE);
-    yield cancel(forked);
+    yield fork(generator);
   };
 }
 
 export default [
   prepare(manageSocket),
-  prepare(watch(constants.LAYER_COMPUTATION_START, performComputation)),
+  prepare(watch(constants.COMPUTATION_START, performComputation)),
+  prepare(watch(constants.LAYER_EXPORT, layerExport)),
 ];

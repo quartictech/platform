@@ -5,6 +5,6 @@ import java.io.InputStream;
 import java.util.Optional;
 
 public interface StorageBackend {
-    Optional<InputStreamWithContentType> get(String namespace, String objectName) throws IOException;
-    void put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException;
+    Optional<InputStreamWithContentType> get(String namespace, String objectName, Long version) throws IOException;
+    Long put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException;
 }

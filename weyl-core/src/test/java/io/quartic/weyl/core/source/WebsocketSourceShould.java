@@ -3,14 +3,14 @@ package io.quartic.weyl.core.source;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
 import io.quartic.common.geojson.Point;
+import io.quartic.common.websocket.WebsocketListener;
+import io.quartic.weyl.api.LiveEvent;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +32,7 @@ import static rx.Observable.just;
 
 public class WebsocketSourceShould {
     private static final FeatureCollection FEATURE_COLLECTION = featureCollection(geojsonFeature("a", point()));
-    private final static LiveEvent LIVE_EVENT = LiveEventImpl.of(Instant.now(), FEATURE_COLLECTION);
+    private final static LiveEvent LIVE_EVENT = new LiveEvent(APPEND, Instant.now(), FEATURE_COLLECTION);
 
     @Test
     public void import_things() throws Exception {
@@ -51,6 +52,7 @@ public class WebsocketSourceShould {
                 .converter(converter)
                 .listenerFactory(listenerFactory)
                 .metrics(mock(MetricRegistry.class, RETURNS_DEEP_STUBS))
+                .indexable(false)
                 .build();
 
         TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
@@ -58,7 +60,7 @@ public class WebsocketSourceShould {
         subscriber.awaitValueCount(1, 1, TimeUnit.SECONDS);
 
         verify(converter).toModel(FEATURE_COLLECTION);
-        assertThat(subscriber.getOnNextEvents().get(0), equalTo(LayerUpdateImpl.of(modelFeatures)));
+        assertThat(subscriber.getOnNextEvents().get(0), equalTo(new LayerUpdate(APPEND, modelFeatures)));
     }
 
     // TODO: there's a lot of duplication of helper methods here (with e.g. LiveEventConverterShould)

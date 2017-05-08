@@ -3,7 +3,7 @@ package io.quartic.catalogue;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.DatasetId;
+import io.quartic.catalogue.api.model.DatasetId;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 

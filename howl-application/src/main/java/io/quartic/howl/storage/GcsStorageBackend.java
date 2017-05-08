@@ -53,22 +53,22 @@ public class GcsStorageBackend implements StorageBackend {
     }
 
     @Override
-    public Optional<InputStreamWithContentType> get(String namespace, String objectName) throws IOException {
+    public Optional<InputStreamWithContentType> get(String namespace, String objectName, Long version) throws IOException {
         Storage.Objects.Get get = storage.objects().get(bucketName, getObjectName(namespace, objectName));
-        try {
-            HttpResponse httpResponse = get.executeMedia();
-            return Optional.of(InputStreamWithContentTypeImpl.of(httpResponse.getContentType(), httpResponse.getContent()));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
+        get.setGeneration(version);
+
+        HttpResponse httpResponse = get.executeMedia();
+        return Optional.ofNullable(httpResponse.getContent())
+                .map(inputStream -> new InputStreamWithContentType(httpResponse.getContentType(), inputStream));
     }
 
     @Override
-    public void put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException {
+    public Long put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException {
         InputStreamContent inputStreamContent = new InputStreamContent(contentType, inputStream);
         StorageObject objectMetadata = new StorageObject()
                 .setName(getObjectName(namespace, objectName));
         Storage.Objects.Insert insert = storage.objects().insert(bucketName, objectMetadata, inputStreamContent);
-        insert.execute();
+        StorageObject object = insert.execute();
+        return object.getGeneration();
     }
 }

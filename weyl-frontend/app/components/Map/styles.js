@@ -2,26 +2,43 @@ import * as chroma from "chroma-js";
 
 import { customStyles, liveLayerStyle } from "./customStyles.js";
 
-function computeStops(colorScale, nStops, minValue, maxValue) {
-  const result = [];
-  const colors = chroma.scale(colorScale).colors(nStops);
-
-  for (let i = 0; i < nStops; i++) {
-    result.push([minValue + ((i * (maxValue - minValue)) / nStops), colors[i].toString(0)]);
-  }
-  return result;
+function computeCategoricalStops(categories) {
+  // Mapbox seems to complain if the categories are not sorted.
+  return categories.sort()
+    .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.5).toString(0)]);
 }
 
-function colorStyle(attribute, style, attributeStats) {
-  // the attribute may be missing from attributeStats as the dynamicSchema associated
-  // with the layer appears asynchronously and so may arrive later than the attribute
-  // (particularly for computed layers)
-  if (attribute == null || !(attribute in attributeStats)) {
+function computeNumericStops(colorScale, numStops, minValue, maxValue) {
+  return chroma.scale(colorScale).colors(numStops)
+    .map((c, i) => [minValue + ((i * (maxValue - minValue)) / numStops), c.toString(0)]);
+}
+
+ // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully in various places
+function colorStyle(attribute, style, attributes, attributeStats) {
+  if (!attribute) {
     return style.color;
   }
+
+  const attributeInfo = attributes[attribute];
+  if (!attributeInfo) {
+    return style.color;
+  }
+
+  if (!attributeInfo.categories) {
+    if (!(attribute in attributeStats)) {
+      return style.color;
+    }
+
+    return {
+      "property": attribute,
+      "stops": computeNumericStops(style.colorScale, 8, attributeStats[attribute].minimum, attributeStats[attribute].maximum),
+    };
+  }
+
   return {
     "property": attribute,
-    "stops": computeStops(style.colorScale, 8, attributeStats[attribute].minimum, attributeStats[attribute].maximum),
+    "type": "categorical",
+    "stops": computeCategoricalStops(attributes[attribute].categories),
   };
 }
 
@@ -35,18 +52,18 @@ function filter(attribute, geomType) {
 }
 
 export function buildStyleLayers(layer) {
-  const [layerName, style, attributeStats] = [layer.metadata.name, layer.style, layer.stats.attributeStats];
+  const [layerName, style, attributes, attributeStats] = [layer.metadata.name, layer.style, layer.dynamicSchema.attributes, layer.stats.attributeStats];
   if (layerName in customStyles) {
     return customStyles[layerName];
   } else if (layer.live) {
-    return Object.assign({}, liveLayerStyle, { polygon: polygonSpec(style, attributeStats) });
+    return Object.assign({}, liveLayerStyle, { polygon: polygonSpec(style, attributes, attributeStats) });
   }
   return {
     point: {
       type: "circle",
       paint: {
         "circle-radius": style.point["circle-radius"] - 2,
-        "circle-color": colorStyle(style.attribute, style.point, attributeStats),
+        "circle-color": colorStyle(style.attribute, style.point, attributes, attributeStats),
         "circle-opacity": style.opacity,
       },
       filter: filter(style.attribute, "Point"),
@@ -61,11 +78,11 @@ export function buildStyleLayers(layer) {
       filter: filter(style.attribute, "Point"),
       _zorder: 1,
     },
-    polygon: polygonSpec(style, attributeStats),
+    polygon: polygonSpec(style, attributes, attributeStats),
     line: {
       type: "line",
       paint: {
-        "line-color": colorStyle(style.attribute, style.line, attributeStats),
+        "line-color": colorStyle(style.attribute, style.line, attributes, attributeStats),
         "line-width": 5,
       },
       filter: ["==", "$type", "LineString"],
@@ -73,11 +90,11 @@ export function buildStyleLayers(layer) {
   };
 }
 
-const polygonSpec = (style, attributeStats) => ({
+const polygonSpec = (style, attributes, attributeStats) => ({
   type: "fill",
   paint: {
-    "fill-color": colorStyle(style.attribute, style.polygon, attributeStats),
-    "fill-outline-color": style.attribute == null ? style.polygon["fill-outline-color"] : style.polygon.color,
+    "fill-color": style.isTransparent ? "rgba(0, 0, 0, 0)" : colorStyle(style.attribute, style.polygon, attributes, attributeStats),
+    "fill-outline-color": style.polygon["fill-outline-color"],
     "fill-opacity": style.opacity,
   },
   filter: filter(style.attribute, "Polygon"),

@@ -5,13 +5,12 @@ import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.catalogue.api.PostgresDatasetLocator;
+import io.quartic.catalogue.api.model.PostgresDatasetLocator;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
 import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
@@ -48,13 +47,13 @@ public abstract class PostgresSource implements Source {
 
     @Value.Default
     protected DBI dbi() {
-        return new DBI(locator().url(), locator().user(), locator().password());
+        return new DBI(locator().getUrl(), locator().getUser(), locator().getPassword());
     }
 
     @Override
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(LayerUpdateImpl.of(importAllFeatures()));
+            sub.onNext(new LayerUpdate(LayerUpdateType.REPLACE, importAllFeatures()));
             // Don't complete, because downstream uses that to indicate layer completion (TODO: maybe we should concat with never())
         });
     }
@@ -68,7 +67,7 @@ public abstract class PostgresSource implements Source {
         try (final Handle h = dbi().open()) {
             LOG.info("[{}] Connection established", name());
 
-            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().query());
+            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().getQuery());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
             Collection<NakedFeature> features = Lists.newArrayList();
@@ -110,9 +109,7 @@ public abstract class PostgresSource implements Source {
                 }
             }
 
-            Optional<String> id = Optional.ofNullable((String) row.get(ID_FIELD));
-
-            return NakedFeatureImpl.of(id, geometry, builder.build());
+            return new NakedFeature((String) row.get(ID_FIELD), geometry, builder.build());
         });
     }
 

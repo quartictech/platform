@@ -1,5 +1,5 @@
-bucketName: quartic-test
-dataDir: ./data
+storage:
+  type: local_disk
 
 server:
   applicationContextPath: /

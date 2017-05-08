@@ -53,21 +53,33 @@ public class HowlResource {
         storageBackend.put(request.getContentType(), namespace, fileName, request.getInputStream());
     }
 
-    @GET
-    @Path("/{fileName}")
-    public Response downloadFile(@PathParam("namespace") String namespace,
-                                 @PathParam("fileName") String fileName) throws IOException {
-        Optional<InputStreamWithContentType> file = storageBackend.get(namespace, fileName);
+    private Response handleDownload(String namespace, String fileName, Long version) throws IOException {
+        Optional<InputStreamWithContentType> file = storageBackend.get(namespace, fileName, version);
 
         return file.map( f ->
             Response.ok()
-                .header(CONTENT_TYPE, f.contentType())
+                .header(CONTENT_TYPE, f.getContentType())
                 .entity(((StreamingOutput) output -> {
-                    try (InputStream inputStream = f.inputStream()) {
+                    try (InputStream inputStream = f.getInputStream()) {
                         IOUtils.copy(inputStream, output);
                     }
                 }))
                 .build())
                 .orElseThrow(NotFoundException::new);
+    }
+
+    @GET
+    @Path("/{fileName}")
+    public Response downloadFile(@PathParam("namespace") String namespace,
+                                 @PathParam("fileName") String fileName) throws IOException {
+        return handleDownload(namespace, fileName, null);
+    }
+
+    @GET
+    @Path("/{fileName}/{version}")
+    public Response downloadFile(@PathParam("namespace") String namespace,
+                                 @PathParam("fileName") String fileName,
+                                 @PathParam("version") Long version) throws IOException {
+        return handleDownload(namespace, fileName, version);
     }
 }

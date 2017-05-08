@@ -9,6 +9,7 @@ import SelectionPane from "../../components/SelectionPane";
 import MapInfo from "../../components/MapInfo";
 import ConnectionStatus from "../../components/ConnectionStatus";
 import Chart from "../../components/Chart";
+import DetailsTablePane from "../../components/DetailsTablePane";
 import styles from "./styles.css";
 
 import { connect } from "react-redux";
@@ -56,7 +57,8 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
         <div className={styles.leftDrawer}>
           <ComputePane
             layers={this.props.layers}
-            onCompute={this.props.onCompute}
+            computation={this.props.computation}
+            onComputationStart={this.props.onComputationStart}
             onClose={() => this.props.onUiToggle("calculate")}
             visible={!noLayers && (this.props.ui.layerOp === "calculate")}
           />
@@ -77,8 +79,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onLayerStyleChange={this.props.onLayerStyleChange}
             layerClose={this.props.layerClose}
             onToggleValueVisible={this.props.onToggleValueVisible}
+            onToggleAllValuesVisible={this.props.onToggleAllValuesVisible}
+            onApplyTimeRangeFilter={this.props.onApplyTimeRangeFilter}
             onClose={() => this.props.onUiToggle("layerList")}
             visible={!noLayers && this.props.ui.panels.layerList}
+            onLayerExport={this.props.onLayerExport}
           />
         </div>
 
@@ -98,6 +103,11 @@ class HomePage extends React.Component { // eslint-disable-line react/prefer-sta
             onUiToggle={this.props.onUiToggle}
             visible={!noLayers && this.props.ui.panels.chart}
           />
+          <DetailsTablePane
+            details={this.props.details.toJS().data}
+            onUiToggle={this.props.onUiToggle}
+            visible={!noLayers && this.props.ui.panels.table}
+          />
         </div>
 
         <div className={styles.infoBar}>
@@ -114,13 +124,15 @@ const mapDispatchToProps = {
   onSelectLayer: actions.layerCreate,
   layerToggleVisible: actions.layerToggleVisible,
   layerClose: actions.layerClose,
-  onCompute: actions.layerComputation,
+  onComputationStart: actions.computationStart,
   onUiToggle: actions.toggleUi,
   onGeofencePaneToggle: actions.geofencePaneToggleVisibility,
   onSetTheme: actions.uiSetTheme,
   onSelectionClose: actions.clearSelection,
   onLayerStyleChange: actions.layerSetStyle,
   onToggleValueVisible: actions.layerToggleValueVisible,
+  onToggleAllValuesVisible: actions.layerToggleAllValuesVisible,
+  onApplyTimeRangeFilter: actions.layerApplyTimeRangeFilter,
   onMapLoading: actions.mapLoading,
   onMapLoaded: actions.mapLoaded,
   onMapMouseMove: actions.mapMouseMove,
@@ -129,6 +141,7 @@ const mapDispatchToProps = {
   onGeofenceCommitSettings: actions.geofenceCommitSettings,
   onGeofenceSetManualGeometry: actions.geofenceSetManualGeometry,
   onGeofenceToggleAlerts: actions.geofenceToggleAlerts,
+  onLayerExport: actions.layerExport,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -136,9 +149,11 @@ const mapStateToProps = createStructuredSelector({
   layers: selectors.selectLayers,
   ui: selectors.selectUi,
   selection: selectors.selectSelection,
+  computation: selectors.selectComputation,
   map: selectors.selectMap,
   geofence: selectors.selectGeofence,
   chart: selectors.selectChart,
+  details: selectors.selectDetails,
   histograms: selectors.selectHistograms,
   attributes: selectors.selectAttributes,
   connectionUp: selectors.selectConnectionUp,

@@ -5,6 +5,7 @@ import map from "./map";
 import geofence from "./geofence";
 import ui from "./ui";
 import selection from "./selection";
+import computation from "./computation";
 import subscriptions from "./subscriptions";
 import connection from "./connection";
 
@@ -23,6 +24,7 @@ export default combineReducers({
   geofence,
   ui,
   selection,
+  computation,
   subscriptions,
   connection,
 });

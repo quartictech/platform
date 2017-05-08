@@ -1,9 +1,8 @@
 plugins {
-    id "java"
+    id "nebula.kotlin" version "1.1.0"
     id "idea"
     id "io.quartic.service" version "12"
-    id "org.inferred.processors" version "1.2.3"
-    id "com.palantir.configuration-resolver" version "0.1.0"
+    id "com.palantir.configuration-resolver" version "0.2.0"
 }
 
 service {
@@ -13,15 +12,18 @@ service {
 }
 
 dependencies {
-    processor libraries.immutables
-
     compile project(":common-application")
     compile project(":howl-api")
     compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
-
+    compile libraries.dropwizardWebsockets
 
     testCompile libraries.testCommon
     testCompile libraries.dropwizardTesting
+    testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25"
 }
 
-
+idea {
+    module {
+        excludeDirs += file("data")
+    }
+}

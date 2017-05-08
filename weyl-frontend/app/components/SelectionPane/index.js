@@ -12,11 +12,12 @@ import NonHistograms from "./NonHistograms";
 import Histograms from "./Histograms";
 import { defaultTitle, curatedTitles } from "./behaviors";
 
+import { formatDateTime } from "../../utils/time";
+
 class SelectionPane extends React.Component { // eslint-disable-line react/prefer-stateless-function
   render() {
     const layers = this.props.layers;
     const entityIds = this.props.selection.ids;
-    const histograms = this.props.histograms.get("data"); // immutable
     const attributes = this.props.attributes.data;
 
     // TODO: reconcile with visibility
@@ -24,7 +25,30 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
       return null;
     }
     const visible = true; // TODO
-    const loaded = (histogramEnabled(entityIds) ? this.props.histograms.toJS() : this.props.attributes).seqNum === this.props.selection.seqNum;
+
+    const things = (() => {
+      if (histogramEnabled(entityIds)) {
+        return {
+          component: (
+            <Histograms
+              histograms={this.props.histograms.get("data")}
+            />
+          ),
+          state: this.props.histograms.toJS(),
+        };
+      }
+      return {
+        component: (
+          <NonHistograms
+            featureAttributes={attributes}
+            behavior={getBehavior(singleLayer(entityIds, layers))}
+          />
+        ),
+        state: this.props.attributes,
+      };
+    })();
+
+    const loaded = things.state.seqNum === this.props.selection.seqNum;
 
     // TODO: depluralise appropriately
     const title = (numEntities(entityIds) > 1 || _.size(attributes) === 0)
@@ -38,37 +62,15 @@ class SelectionPane extends React.Component { // eslint-disable-line react/prefe
         visible={visible}
         onClose={this.props.onClose}
       >
-        {loaded || (
+        {loaded ? things.component : (
           <NonIdealState
             visual={<Spinner className={Classes.LARGE} />}
           />
         )}
-
-        <SelectionView
-          entityIds={entityIds}
-          histograms={histograms}
-          attributes={attributes}
-          layers={layers}
-          loaded={loaded}
-        />
       </Pane>
     );
   }
 }
-
-const SelectionView = ({ entityIds, histograms, attributes, layers, loaded }) => (
-  <div>
-    <Histograms
-      histograms={histograms}
-      visible={histogramEnabled(entityIds) && loaded}
-    />
-    <NonHistograms
-      featureAttributes={attributes}
-      behavior={getBehavior(singleLayer(entityIds, layers))}
-      visible={!histogramEnabled(entityIds) && loaded}
-    />
-  </div>
-);
 
 // entityIds is an object { layerId -> [entityIds] }
 const histogramEnabled = (entityIds) =>
@@ -93,6 +95,7 @@ const getBehavior = (layer) => {
     blessedAttributeOrder: staticSchema.blessedAttributes.filter(k => k in attributeKeys),
     // Find all other attributes, and then natural-sort for convenience
     unblessedAttributeOrder: _.keys(attributeKeys).filter(k => (staticSchema.blessedAttributes.indexOf(k) === -1)).sort(naturalsort),
+    render: (key, value) => ((staticSchema.attributeTypes[key] === "TIMESTAMP") ? formatDateTime(value) : value),
   };
 };
 
