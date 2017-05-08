@@ -1,4 +1,4 @@
-import { take, takem, call, fork, cancel, put, select, race } from "redux-saga/effects";
+import { take, call, fork, cancel, put, select, race } from "redux-saga/effects";
 import { eventChannel, END, delay } from "redux-saga";
 import { wsUrl } from "../../../utils.js";
 import { showToast } from "../toaster";
@@ -46,7 +46,7 @@ function* reportStatus(socket) {
 function* handleLayerUpdate(msg) {
   const layers = yield select(selectors.selectLayers);
   if (msg.layerId in layers.toJS()) {
-    yield put(actions.layerUpdate(msg.layerId, msg.featureCollection, msg.stats, msg.dynamicSchema));
+    yield put(actions.layerUpdate(msg.layerId, msg.snapshotId, msg.featureCollection, msg.stats, msg.dynamicSchema));
   } else {
     console.warn(`Recieved unactionable update for layerId ${msg.layerId}`);
   }
@@ -64,6 +64,9 @@ function* handleMessages(channel) {
   for (;;) {
     const msg = yield take(channel);
     switch (msg.type) {
+      case "OnOpen":
+        yield put(actions.mapSetTargetLocation(msg.config));
+        break;
       case "LayerListUpdate":
         yield put(actions.layerListUpdate(msg.layers));
         break;
@@ -131,7 +134,7 @@ export default function* () {
     const socket = yield call(createSocket);
     const channel = yield call(createSocketChannel, socket);
 
-    const result = yield takem(channel);  // First result should be "open"
+    const result = yield take.maybe(channel);  // First result should be "open"
     if (result !== END) {
       yield put(actions.connectionUp());
       yield* reportStatus(socket);

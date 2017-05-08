@@ -4,9 +4,11 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.quartic.common.server.ResourceManagingEndpoint;
+import io.quartic.common.websocket.ResourceManagingEndpoint;
+import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
+import io.quartic.weyl.websocket.message.OnOpenMessage;
 import io.quartic.weyl.websocket.message.PingMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.slf4j.Logger;
@@ -18,9 +20,8 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Collection;
 
-import static io.quartic.common.rx.RxUtils.combine;
-import static io.quartic.common.serdes.ObjectMappers.OBJECT_MAPPER;
-import static io.quartic.common.uid.UidUtils.stringify;
+import static io.quartic.common.rx.RxUtilsKt.combine;
+import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 import static org.slf4j.LoggerFactory.getLogger;
 import static rx.Emitter.BackpressureMode.BUFFER;
 import static rx.Observable.fromEmitter;
@@ -32,13 +33,16 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
     private static final Logger LOG = getLogger(WebsocketEndpoint.class);
     private final Observable<? extends SocketMessage> messages;
     private final Collection<ClientStatusMessageHandler> handlers;
+    private final MapConfig mapConfig;
 
     public WebsocketEndpoint(
             Observable<? extends SocketMessage> messages,
-            Collection<ClientStatusMessageHandler> handlers
+            Collection<ClientStatusMessageHandler> handlers,
+            MapConfig mapConfig
     ) {
         this.messages = messages;
         this.handlers = handlers;
+        this.mapConfig = mapConfig;
     }
 
     @Override
@@ -46,6 +50,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
         return receivedMessages(session)
                 .compose(combine(handlers))
                 .mergeWith(messages)
+                .startWith(new OnOpenMessage(mapConfig))
                 .subscribe(message -> sendMessage(session, message));
     }
 
@@ -62,11 +67,11 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
                 @Override
                 public void onMessage(String message) {
                     try {
-                        final SocketMessage msg = OBJECT_MAPPER.readValue(message, SocketMessage.class);
+                        final SocketMessage msg = objectMapper().readValue(message, SocketMessage.class);
                         if (msg instanceof ClientStatusMessage) {
                             ClientStatusMessage csm = (ClientStatusMessage)msg;
                             LOG.info("[{}] Subscribed to layers {} + entities {}",
-                                    session.getId(), stringify(csm.openLayerIds()), stringify(csm.selection().entityIds()));
+                                    session.getId(), csm.getOpenLayerIds(), csm.getSelection().getEntityIds());
                             emitter.onNext(csm);
                         } else if (msg instanceof PingMessage) {
                             LOG.info("[{}] Received ping", session.getId());
@@ -83,7 +88,7 @@ public class WebsocketEndpoint extends ResourceManagingEndpoint<Subscription> {
 
     private void sendMessage(Session session, SocketMessage message) {
         try {
-            session.getAsyncRemote().sendText(OBJECT_MAPPER.writeValueAsString(message));
+            session.getAsyncRemote().sendText(objectMapper().writeValueAsString(message));
         } catch (JsonProcessingException e) {
             LOG.error("Error producing JSON", e);
         }

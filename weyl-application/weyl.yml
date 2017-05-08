@@ -1,6 +1,18 @@
-catalogueWatchUrl: ws://localhost:8090/api/datasets/watch
-terminatorUrl: ws://localhost:8110/ws
+catalogue:
+  hostname: localhost
+  port: 8090
+  useSsl: false
+
 howlStorageUrl: http://localhost:8120/api
+rainWsUrlRoot: ws://localhost:8150/ws
+
+defaultCatalogueNamespace: production
+
+# All of London
+map:
+  lat: 51.5174
+  lng: -0.0915
+  zoom: 9.7
 
 server:
   applicationContextPath: /

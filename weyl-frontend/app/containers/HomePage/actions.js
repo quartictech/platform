@@ -5,12 +5,9 @@ export const layerListUpdate = (layers) => ({
   layers,
 });
 
-export const layerCreate = (result) => ({
+export const layerCreate = (layerId) => ({
   type: constants.LAYER_CREATE,
-  id: result.id,
-  metadata: result.metadata,
-  staticSchema: result.staticSchema,
-  live: result.live,
+  layerId,
 });
 
 export const layerSetStyle = (layerId, key, value) => ({
@@ -29,6 +26,24 @@ export function layerToggleValueVisible(layerId, attribute, value) {
   };
 }
 
+export function layerToggleAllValuesVisible(layerId, attribute) {
+  return {
+    type: constants.LAYER_TOGGLE_ALL_VALUES_VISIBLE,
+    layerId,
+    attribute,
+  };
+}
+
+export function layerApplyTimeRangeFilter(layerId, attribute, startTime, endTime) {
+  return {
+    type: constants.LAYER_APPLY_TIME_RANGE_FILTER,
+    layerId,
+    attribute,
+    startTime,
+    endTime,
+  };
+}
+
 export function layerToggleVisible(layerId) {
   return {
     type: constants.LAYER_TOGGLE_VISIBLE,
@@ -43,20 +58,22 @@ export function layerClose(layerId) {
   };
 }
 
-export const layerUpdate = (layerId, data, stats, dynamicSchema) => ({
+export const layerUpdate = (layerId, snapshotId, data, stats, dynamicSchema) => ({
   type: constants.LAYER_UPDATE,
+  snapshotId,
   layerId,
   data,
   stats,
   dynamicSchema,
 });
 
-export function layerComputation(computation) {
+export function layerExport(layerId) {
   return {
-    type: constants.LAYER_COMPUTATION_START,
-    computation,
+    type: constants.LAYER_EXPORT,
+    layerId,
   };
 }
+
 
 export function toggleUi(element) {
   return {
@@ -75,6 +92,17 @@ export function clearSelection() {
     type: constants.CLEAR_SELECTION,
   };
 }
+
+// Computation
+
+export const computationStart = (computation) => ({
+  type: constants.COMPUTATION_START,
+  computation,
+});
+
+export const computationEnd = () => ({
+  type: constants.COMPUTATION_END,
+});
 
 // Map
 
@@ -104,6 +132,11 @@ export function mapMouseClick(feature, multiSelectEnabled) {
     multiSelectEnabled,
   };
 }
+
+export const mapSetTargetLocation = (config) => ({
+  type: constants.MAP_SET_TARGET_LOCATION,
+  ...config,
+});
 
 // Geofence
 

@@ -1,3 +1,5 @@
+import { openMapTiles } from "./openmaptiles";
+
 export const mapThemes = {
   light: {
     label: "Light",
@@ -13,6 +15,11 @@ export const mapThemes = {
     label: "Satellite",
     icon: "globe",
     mapbox: "mapbox://styles/mapbox/satellite-streets-v9",
+  },
+  mapzen: {
+    label: "Open Map Tiles - OSM Bright",
+    icon: "send-to-map",
+    mapbox: openMapTiles,
   },
   blank: {
     label: "Blank",

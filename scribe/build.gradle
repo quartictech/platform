@@ -1,0 +1,29 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.service" version "15"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+    id "idea"
+}
+
+service {
+    simpleName = "scribe"
+    mainClassName = "io.quartic.tracker.scribe.ScribeApplication"
+    memory = System.env.SCRIBE_MEMORY ?: "64m"
+    // We need to override this due to an apparent bug with netty in alpine
+    // see: https://github.com/GoogleCloudPlatform/google-cloud-java/issues/1430
+    dockerBaseImage = "openjdk:8u111-jre"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":catalogue-utils")
+
+    compile("com.google.cloud:google-cloud-pubsub:0.8.0") {
+        exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
+    }
+    compile("com.google.cloud:google-cloud-storage:0.8.0-beta") {
+        exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
+    }
+
+    testCompile project(":common-test")
+}

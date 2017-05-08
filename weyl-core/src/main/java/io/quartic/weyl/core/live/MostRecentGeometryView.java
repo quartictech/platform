@@ -14,7 +14,7 @@ public class MostRecentGeometryView implements LayerView {
     @Override
     public Stream<Feature> compute(Collection<Feature> history) {
         Map<EntityId, List<Feature>> historyById = history.stream()
-                .collect(groupingBy(Feature::entityId));
+                .collect(groupingBy(Feature::getEntityId));
 
         return historyById.entrySet().stream().map(entry -> entry.getValue().get(0));
     }

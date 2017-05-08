@@ -1,7 +1,5 @@
 backend:
-  type: google_datastore
-  projectId: quartictech
-  namespace: test
+  type: in_memory
 server:
   applicationContextPath: /
   applicationConnectors:

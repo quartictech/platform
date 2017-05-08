@@ -3,12 +3,9 @@ package io.quartic.weyl.websocket;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.websocket.message.LayerInfoImpl;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage;
 import io.quartic.weyl.websocket.message.LayerListUpdateMessage.LayerInfo;
-import io.quartic.weyl.websocket.message.LayerListUpdateMessageImpl;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,8 +13,8 @@ import rx.observers.TestSubscriber;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
+import static org.hibernate.validator.internal.util.CollectionHelper.asSet;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -90,34 +87,34 @@ public class LayerListUpdateGeneratorShould {
 
     private BehaviorSubject<Snapshot> registerSequence(LayerSpec spec) {
         final BehaviorSubject<Snapshot> snapshots = BehaviorSubject.create();
-        sequences.onNext(LayerSnapshotSequenceImpl.of(spec, snapshots));
+        sequences.onNext(new LayerSnapshotSequence(spec, snapshots));
         return snapshots;
     }
 
     private LayerListUpdateMessage message(LayerInfo... infos) {
-        return LayerListUpdateMessageImpl.of(asList(infos));
+        return new LayerListUpdateMessage(asSet(infos));
     }
 
     private LayerInfo layerInfo(LayerSpec spec) {
-        return LayerInfoImpl.of(
-                spec.id(),
-                spec.metadata(),
-                spec.staticSchema(),
-                !spec.indexable()
+        return new LayerInfo(
+                spec.getId(),
+                spec.getMetadata(),
+                spec.getStaticSchema(),
+                !spec.getIndexable()
         );
     }
 
     private Snapshot snapshot(LayerSpec spec, int size) {
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        when(snapshot.absolute().spec()).thenReturn(spec);
-        when(snapshot.absolute().features().size()).thenReturn(size);
-        when(snapshot.absolute().features().isEmpty()).thenReturn(size == 0);
+        when(snapshot.getAbsolute().getSpec()).thenReturn(spec);
+        when(snapshot.getAbsolute().getFeatures().size()).thenReturn(size);
+        when(snapshot.getAbsolute().getFeatures().isEmpty()).thenReturn(size == 0);
         return snapshot;
     }
 
     private LayerSpec spec(String id) {
         final LayerSpec spec = mock(LayerSpec.class, RETURNS_DEEP_STUBS);
-        when(spec.id()).thenReturn(LayerId.fromString(id));
+        when(spec.getId()).thenReturn(new LayerId(id));
         return spec;
     }
 }

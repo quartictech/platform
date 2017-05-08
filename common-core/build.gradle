@@ -1,12 +1,11 @@
 plugins {
-    id "java"
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.publish" version "12"
     id "idea"
-    id "org.inferred.processors" version "1.2.3"
 }
 
 dependencies {
-    processor libraries.immutables
-
+    compile libraries.immutables    // Only needed until we delete SweetStyle
     compile libraries.guava
     compile libraries.rxjava
     compile libraries.websocket
@@ -15,7 +14,7 @@ dependencies {
 
     compile "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
     compile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-    compile "com.fasterxml.jackson.module:jackson-module-kotlin:${versions.jackson}"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7" // Hardcode this version due to needing support for default values (see https://github.com/FasterXML/jackson-module-kotlin)
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
 

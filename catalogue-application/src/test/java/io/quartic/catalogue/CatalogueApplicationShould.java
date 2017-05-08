@@ -1,15 +1,20 @@
 package io.quartic.catalogue;
 
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import io.quartic.catalogue.api.*;
-import io.quartic.common.client.ClientBuilder;
+import io.quartic.catalogue.api.CatalogueService;
+import io.quartic.catalogue.api.model.DatasetConfig;
+import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.DatasetNamespace;
+import io.quartic.catalogue.api.model.PostgresDatasetLocator;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
+import static io.quartic.common.client.ClientUtilsKt.client;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -21,22 +26,29 @@ public class CatalogueApplicationShould {
 
     @Test
     public void retrieve_registered_datasets() throws Exception {
-        final CatalogueService catalogue = ClientBuilder.build(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
+        final CatalogueService catalogue = client(CatalogueService.class, getClass(), "http://localhost:" + RULE.getLocalPort() + "/api");
 
-        final DatasetConfig config = DatasetConfigImpl.of(
-                DatasetMetadataImpl.of("Foo", "Bar", "Arlo", Optional.empty(), Optional.empty()),
-                PostgresDatasetLocatorImpl.of("a", "b", "c", "d"),
+        final DatasetConfig config = new DatasetConfig(
+                new DatasetMetadata("Foo", "Bar", "Arlo", null),
+                new PostgresDatasetLocator("a", "b", "c", "d"),
                 emptyMap()
         );
 
-        DatasetId did = catalogue.registerDataset(config);
-        final Map<DatasetId, DatasetConfig> datasets = catalogue.getDatasets();
+        DatasetCoordinates coords = catalogue.registerDataset(new DatasetNamespace("yeah"), config);
+        final Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> datasets = catalogue.getDatasets();
 
-        assertThat(withTimestampRemoved(datasets.get(did)), equalTo(config));
+        assertThat(withTimestampRemoved(datasets.get(coords.getNamespace()).get(coords.getId())), equalTo(config));
     }
 
     private DatasetConfig withTimestampRemoved(DatasetConfig actual) {
-        return DatasetConfigImpl.copyOf(actual)
-                .withMetadata(DatasetMetadataImpl.copyOf(actual.metadata()).withRegistered(Optional.empty()));
+        return new DatasetConfig(
+                new DatasetMetadata(
+                        actual.getMetadata().getName(),
+                        actual.getMetadata().getDescription(),
+                        actual.getMetadata().getAttribution(),
+                        null
+                ),
+                actual.getLocator(),
+                actual.getExtensions());  // TODO - use .copy() once in Kotlin
     }
 }

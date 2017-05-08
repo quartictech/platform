@@ -1,7 +1,7 @@
 package io.quartic.weyl.core.geofence;
 
 import com.google.common.collect.ImmutableList;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
@@ -70,8 +70,8 @@ public class GeofenceViolationDetector {
         final Output output = new Output();
 
         features.forEach(feature -> state.geofences.forEach(geofence -> {
-            final EntityId entityId = feature.entityId();
-            final EntityId geofenceId = geofence.feature().entityId();
+            final EntityId entityId = feature.getEntityId();
+            final EntityId geofenceId = geofence.feature().getEntityId();
             final Alert.Level level = alertLevel(geofence.feature());
             final Violation violation = ViolationImpl.of(entityId, geofenceId, level);
 
@@ -97,11 +97,11 @@ public class GeofenceViolationDetector {
         output.hasChanged |= state.reset;
         state.reset = false;
 
-        return StateAndOutput.of(state, output);
+        return new StateAndOutput<>(state, output);
     }
 
     private boolean inViolation(Geofence geofence, Feature feature) {
-        final boolean contains = geofence.feature().geometry().contains(feature.geometry());
+        final boolean contains = geofence.feature().getGeometry().contains(feature.getGeometry());
         return (geofence.type() == GeofenceType.INCLUDE && !contains) || (geofence.type() == GeofenceType.EXCLUDE && contains);
     }
 }

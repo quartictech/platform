@@ -1,5 +1,7 @@
 ## Running the stack locally
 
+**Note:** The Scribe service writes to a real cloud bucket, even when running locally.
+
 1. Start the back-end:
 
    ```
@@ -40,10 +42,11 @@ Note that this will build the images with a registry name of `null` and a tag of
 
 ## Services
 
-Service    | Port (app/admin)
------------|-----------------
-Weyl       | 8080 / 8081
-Catalogue  | 8090 / 8091
-Management | 8100 / 8101
-Terminator | 8110 / 8111
-Howl       | 8120 / 8121
+Service    | Port (app/admin) | Port (frontend dev)
+-----------|------------------|----------------------
+Weyl       | 8080 / 8081      | 3000
+Catalogue  | 8090 / 8091      |
+Mgmt       | 8100 / 8101      | 3010
+Howl       | 8120 / 8121      |
+Scribe     | 8140 / 8141      |
+Rain       | 8150 / 8151      |

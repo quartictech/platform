@@ -1,12 +1,12 @@
 package io.quartic.weyl.core.attributes;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.weyl.core.model.AttributeNameImpl;
+import io.quartic.weyl.core.model.AttributeName;
 import io.quartic.weyl.core.model.Attributes;
 import org.junit.Test;
 
-import static io.quartic.common.test.CollectionUtils.entry;
-import static io.quartic.common.test.CollectionUtils.map;
+import static io.quartic.common.test.CollectionUtilsKt.entry;
+import static io.quartic.common.test.CollectionUtilsKt.map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -137,8 +137,8 @@ public class AttributesFactoryShould {
         )));
     }
 
-    private AttributeNameImpl name(String name) {
-        return AttributeNameImpl.of(name);
+    private AttributeName name(String name) {
+        return new AttributeName(name);
     }
 
     private Attributes buildAttributes() {

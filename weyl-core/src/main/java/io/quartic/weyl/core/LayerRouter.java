@@ -1,16 +1,16 @@
 package io.quartic.weyl.core;
 
 import io.quartic.common.SweetStyle;
-import io.quartic.common.rx.RxUtils;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.RxUtilsKt;
+import io.quartic.common.rx.StateAndOutput;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
+import io.quartic.weyl.core.model.SnapshotId;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import rx.Observable;
@@ -25,7 +25,8 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.quartic.common.rx.RxUtils.mealy;
+import static io.quartic.common.rx.RxUtilsKt.mealy;
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static java.util.Collections.emptySet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -59,7 +60,7 @@ public abstract class LayerRouter {
 
     @Value.Default
     protected SnapshotReducer snapshotReducer() {
-        return new SnapshotReducer();
+        return new SnapshotReducer(randomGenerator(SnapshotId::new));
     }
 
     /**
@@ -103,20 +104,20 @@ public abstract class LayerRouter {
         final Observable<LayerSnapshotSequence> nextSequence = maybeCreateSequence(latestLayerSnapshots(state), populator);
         final Set<LayerSnapshotSequence> nextState = newHashSet(state); // Rebuilding the set each time is expensive, but we're doing this infrequently
         nextSequence.subscribe(nextState::add);
-        return StateAndOutput.of(nextState, nextSequence);
+        return new StateAndOutput<>(nextState, nextSequence);
     }
 
     private Map<LayerId, Layer> latestLayerSnapshots(Set<LayerSnapshotSequence> sequences) {
         return sequences
                 .stream()
                 .flatMap(this::latest)
-                .collect(toMap(layer -> layer.spec().id(), identity()));
+                .collect(toMap(layer -> layer.getSpec().getId(), identity()));
     }
 
     // Deal with completed (i.e. deleted) layers
     private Stream<Layer> latest(LayerSnapshotSequence sequence) {
         try {
-            return Stream.of(RxUtils.latest(sequence.snapshots()).absolute());
+            return Stream.of(RxUtilsKt.latest(sequence.getSnapshots()).getAbsolute());
         } catch (Exception e) {
             return Stream.empty();
         }
@@ -126,9 +127,9 @@ public abstract class LayerRouter {
         try {
             final List<Layer> dependencies = transform(populator.dependencies(), layers::get);
             final LayerSpec spec = populator.spec(dependencies);
-            checkArgument(!layers.containsKey(spec.id()), "Already have layer with id=" + spec.id().uid());
+            checkArgument(!layers.containsKey(spec.getId()), "Already have layer with id=" + spec.getId().getUid());
 
-            return just(LayerSnapshotSequenceImpl.of(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
+            return just(new LayerSnapshotSequence(spec, populator.updates(dependencies).compose(toSnapshots(spec))));
         } catch (Exception e) {
             LOG.error("Could not create sequence", e);   // TODO: we can do much better - e.g. send alert in the case of layer computation
             return empty();
@@ -139,7 +140,7 @@ public abstract class LayerRouter {
         final Snapshot empty = snapshotReducer().empty(spec);   // If this fails, then layer creation fails
         return updates -> updates
                 .scan(empty, (s, u) -> snapshotReducer().next(s, u))
-                .doOnError(e -> LOG.error("Upstream error", e))
+                .doOnError(e -> LOG.error("[{}] Upstream error", spec.getMetadata().getName(), e))
                 .onErrorResumeNext(empty())                     // On error, emit a final empty snapshot
                 .concatWith(just(empty))                        // On completion, emit a final empty snapshot
                 .compose(this::toSnapshotSubscriptionBehaviour);

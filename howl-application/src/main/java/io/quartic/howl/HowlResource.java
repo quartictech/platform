@@ -1,9 +1,7 @@
 package io.quartic.howl;
 
-import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.howl.api.HowlStorageId;
-import io.quartic.howl.api.HowlStorageIdImpl;
 import io.quartic.howl.storage.InputStreamWithContentType;
 import io.quartic.howl.storage.StorageBackend;
 import org.apache.commons.io.IOUtils;
@@ -24,12 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 
 @Path("/{namespace}")
 public class HowlResource {
     private final StorageBackend storageBackend;
-    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = RandomUidGenerator.of(HowlStorageIdImpl::of);
+    private final UidGenerator<HowlStorageId> howlStorageIdGenerator = randomGenerator(HowlStorageId::new);
 
     public HowlResource(StorageBackend storageBackend) {
         this.storageBackend = storageBackend;
@@ -41,7 +40,7 @@ public class HowlResource {
     public HowlStorageId uploadFile(@PathParam("namespace") String namespace,
                                     @Context HttpServletRequest request) throws IOException {
         HowlStorageId howlStorageId = howlStorageIdGenerator.get();
-        storageBackend.put(request.getContentType(), namespace, howlStorageId.uid(), request.getInputStream());
+        storageBackend.put(request.getContentType(), namespace, howlStorageId.getUid(), request.getInputStream());
         return howlStorageId;
     }
 
@@ -54,21 +53,33 @@ public class HowlResource {
         storageBackend.put(request.getContentType(), namespace, fileName, request.getInputStream());
     }
 
-    @GET
-    @Path("/{fileName}")
-    public Response downloadFile(@PathParam("namespace") String namespace,
-                                 @PathParam("fileName") String fileName) throws IOException {
-        Optional<InputStreamWithContentType> file = storageBackend.get(namespace, fileName);
+    private Response handleDownload(String namespace, String fileName, Long version) throws IOException {
+        Optional<InputStreamWithContentType> file = storageBackend.get(namespace, fileName, version);
 
         return file.map( f ->
             Response.ok()
-                .header(CONTENT_TYPE, f.contentType())
+                .header(CONTENT_TYPE, f.getContentType())
                 .entity(((StreamingOutput) output -> {
-                    try (InputStream inputStream = f.inputStream()) {
+                    try (InputStream inputStream = f.getInputStream()) {
                         IOUtils.copy(inputStream, output);
                     }
                 }))
                 .build())
                 .orElseThrow(NotFoundException::new);
+    }
+
+    @GET
+    @Path("/{fileName}")
+    public Response downloadFile(@PathParam("namespace") String namespace,
+                                 @PathParam("fileName") String fileName) throws IOException {
+        return handleDownload(namespace, fileName, null);
+    }
+
+    @GET
+    @Path("/{fileName}/{version}")
+    public Response downloadFile(@PathParam("namespace") String namespace,
+                                 @PathParam("fileName") String fileName,
+                                 @PathParam("version") Long version) throws IOException {
+        return handleDownload(namespace, fileName, version);
     }
 }

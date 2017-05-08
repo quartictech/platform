@@ -1,17 +1,14 @@
 package io.quartic.howl.api;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.quartic.common.SweetStyle;
 import io.quartic.common.uid.Uid;
-import org.immutables.value.Value;
+import org.jetbrains.annotations.NotNull;
 
-@SweetStyle
-@Value.Immutable
-@JsonSerialize(as = HowlStorageIdImpl.class)
-@JsonDeserialize(as = HowlStorageIdImpl.class)
-public abstract class HowlStorageId extends Uid {
+public class HowlStorageId extends Uid {
+    public HowlStorageId(@NotNull String uid) {
+        super(uid);
+    }
+
     public static HowlStorageId fromString(String uid) {
-        return HowlStorageIdImpl.of(uid);
+        return new HowlStorageId(uid);
     }
 }

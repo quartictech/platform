@@ -1,26 +1,21 @@
 package io.quartic.catalogue;
 
-import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
-import io.quartic.catalogue.api.DatasetId;
-import io.quartic.catalogue.api.DatasetIdImpl;
-import io.quartic.catalogue.io.quartic.catalogue.datastore.GoogleDatastoreBackend;
+import io.quartic.catalogue.api.model.DatasetId;
 import io.quartic.common.application.ApplicationBase;
-import io.quartic.common.pingpong.PingPongResource;
-import io.quartic.common.uid.RandomUidGenerator;
 import io.quartic.common.uid.UidGenerator;
 
 import javax.websocket.server.ServerEndpointConfig;
-
 import java.time.Clock;
 
-import static io.quartic.common.server.WebsocketServerUtils.createEndpointConfig;
+import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
+import static io.quartic.common.websocket.WebsocketUtilsKt.serverEndpointConfig;
 
 public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration> {
     private final WebsocketBundle websocketBundle = new WebsocketBundle(new ServerEndpointConfig[0]);
-    private final UidGenerator<DatasetId> didGenerator = RandomUidGenerator.of(DatasetIdImpl::of);
+    private final UidGenerator<DatasetId> didGenerator = randomGenerator(DatasetId::new);
 
     public static void main(String[] args) throws Exception {
         new CatalogueApplication().run(args);
@@ -32,17 +27,11 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
     }
 
     @Override
-    public void runApplication(CatalogueConfiguration configuration, Environment environment) throws Exception {
-        environment.jersey().setUrlPattern("/api/*");
-        environment.jersey().register(new JsonProcessingExceptionMapper(true)); // So we get Jackson deserialization errors in the response
-
+    public void runApplication(CatalogueConfiguration configuration, Environment environment) {
         StorageBackend storageBackend = configuration.getBackend();
         final CatalogueResource catalogue = new CatalogueResource(storageBackend, didGenerator, Clock.systemUTC(), environment.getObjectMapper());
         environment.healthChecks().register("storageBackend", new StorageBackendHealthCheck(storageBackend));
-
-        environment.jersey().register(new PingPongResource());
         environment.jersey().register(catalogue);
-
-        websocketBundle.addEndpoint(createEndpointConfig("/api/datasets/watch", catalogue));
+        websocketBundle.addEndpoint(serverEndpointConfig("/api/datasets/watch", catalogue));
     }
 }

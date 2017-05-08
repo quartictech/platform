@@ -98,6 +98,7 @@ class Bucket extends React.Component { // eslint-disable-line react/prefer-state
             text="Compute"
             disabled={!this.isValid()}
             intent={Intent.PRIMARY}
+            loading={this.props.active}
             onClick={this.onComputeClick}
           />
         </div>
@@ -175,7 +176,7 @@ class Bucket extends React.Component { // eslint-disable-line react/prefer-state
       computeSpec.aggregation.attribute = this.state.selectedAttribute;
     }
 
-    this.props.onCompute(computeSpec);
+    this.props.onComputationStart(computeSpec);
   }
 }
 

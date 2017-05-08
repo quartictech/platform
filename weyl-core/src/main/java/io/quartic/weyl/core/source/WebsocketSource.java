@@ -2,10 +2,10 @@ package io.quartic.weyl.core.source;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import io.quartic.common.client.WebsocketListener;
+import io.quartic.common.websocket.WebsocketListener;
+import io.quartic.weyl.api.LiveEvent;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +24,9 @@ public abstract class WebsocketSource implements Source {
     protected abstract MetricRegistry metrics();
     protected abstract WebsocketListener.Factory listenerFactory();
 
+    @Override
+    public abstract boolean indexable();
+
     @Value.Derived
     protected Meter messageRateMeter() {
         return metrics().meter(MetricRegistry.name(WebsocketSource.class, "messages", "rate", name()));
@@ -33,13 +36,10 @@ public abstract class WebsocketSource implements Source {
     @Override
     public Observable<LayerUpdate> observable() {
         return listenerFactory().create(LiveEvent.class)
-                .observable()
+                .getObservable()
                 .doOnNext(s -> messageRateMeter().mark())
-                .map(event -> LayerUpdateImpl.of(converter().toModel(event.featureCollection())));
+                .doOnNext(s -> LOG.info("[{}] received {}", name(), s.getUpdateType()))
+                .map(event -> new LayerUpdate(event.getUpdateType(), converter().toModel(event.getFeatureCollection())));
     }
 
-    @Override
-    public boolean indexable() {
-        return false;
-    }
 }

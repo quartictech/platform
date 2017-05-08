@@ -18,6 +18,17 @@ allprojects {
             url "https://github.com/ElectronicChartCentre/ecc-mvn-repo/raw/master/releases"
         }
     }
+    
+    // NOTE: this needs to be applied before the test block below due to some strange ordering issues
+    apply plugin: "java"
+    test {
+    	maxHeapSize = "2048m"
+    }
+
+    // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
+    }
 
     idea {
         project {
@@ -26,10 +37,17 @@ allprojects {
             languageLevel = '1.8'
         }
     }
+
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    group "io.quartic.platform"
     version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
 }
 
+idea {
+    module {
+        excludeDirs += file(".env")
+    }
+}
 

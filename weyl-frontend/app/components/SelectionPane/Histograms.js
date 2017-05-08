@@ -29,14 +29,12 @@ class Histograms extends React.Component { // eslint-disable-line react/prefer-s
 
   render() {
     return (
-      <div style={{ display: this.props.visible ? "block" : "none" }}>
-        <Tree
-          contents={this.state.nodes}
-          onClick={n => n.onClick()}
-          onNodeExpand={n => n.onExpand()}
-          onNodeCollapse={n => n.onCollapse()}
-        />
-      </div>
+      <Tree
+        contents={this.state.nodes}
+        onClick={n => n.onClick()}
+        onNodeExpand={n => n.onExpand()}
+        onNodeCollapse={n => n.onCollapse()}
+      />
     );
   }
 

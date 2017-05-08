@@ -1,22 +1,20 @@
 package io.quartic.weyl.websocket;
 
+import io.quartic.common.geojson.FeatureCollection;
+import io.quartic.common.geojson.Point;
 import io.quartic.common.test.rx.Interceptor;
-import io.quartic.geojson.FeatureCollection;
-import io.quartic.geojson.FeatureCollectionImpl;
-import io.quartic.geojson.FeatureImpl;
-import io.quartic.geojson.PointImpl;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.core.model.LayerSnapshotSequence.Snapshot;
-import io.quartic.weyl.core.model.LayerSnapshotSequenceImpl;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.SnapshotImpl;
+import io.quartic.weyl.core.model.SnapshotId;
 import io.quartic.weyl.core.model.StaticSchema;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
-import io.quartic.weyl.websocket.message.LayerUpdateMessageImpl;
+import io.quartic.weyl.websocket.message.LayerUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,22 +23,24 @@ import rx.Subscription;
 import rx.observers.TestSubscriber;
 import rx.subjects.PublishSubject;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static io.quartic.weyl.api.LayerUpdateType.APPEND;
 import static io.quartic.weyl.core.feature.FeatureCollection.EMPTY_COLLECTION;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -57,23 +57,23 @@ public class OpenLayerHandlerShould {
 
     @Before
     public void before() throws Exception {
-        when(converter.toGeojson(any())).thenReturn(featureCollection());
+        when(converter.toGeojson(any(), any(Collection.class))).thenReturn(featureCollection());
     }
 
     @Test
     public void subscribe_to_and_unsubscribe_from_layer_based_on_status_message() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Interceptor<Snapshot> interceptor = Interceptor.create();
+        final Interceptor<Snapshot> interceptor = new Interceptor<>();
 
         nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
 
-        assertThat(interceptor.subscribed(), equalTo(true));
-        assertThat(interceptor.unsubscribed(), equalTo(false));
+        assertThat(interceptor.getSubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(false));
 
         nextStatus(status());
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     @Test
@@ -86,7 +86,8 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(newArrayList(snapshot.absolute().features()));
+        final ArrayList<Feature> expected = newArrayList(snapshot.getAbsolute().getFeatures());
+        verify(converter).toGeojson(any(), eq(expected));
         assertThat(sub.getOnNextEvents(), contains(message(id, snapshot)));
     }
 
@@ -110,7 +111,7 @@ public class OpenLayerHandlerShould {
         nextStatus(status(id));
 
         completeInputsAndAwait();
-        verify(converter).toGeojson(newArrayList());    // No features converted
+        verify(converter).toGeojson(any(), eq(newArrayList()));    // No features converted
     }
 
     @Test
@@ -149,13 +150,13 @@ public class OpenLayerHandlerShould {
     @Test
     public void unsubscribe_from_layers_on_downstream_unsubscribe() throws Exception {
         final LayerId id = mock(LayerId.class);
-        final Interceptor<Snapshot> interceptor = Interceptor.create();
+        final Interceptor<Snapshot> interceptor = new Interceptor<>();
 
         nextSequence(spec(id, true), Observable.<Snapshot>never().compose(interceptor));
         nextStatus(status(id));
         subscription.unsubscribe();
 
-        assertThat(interceptor.unsubscribed(), equalTo(true));
+        assertThat(interceptor.getUnsubscribed(), equalTo(true));
     }
 
     private void completeInputsAndAwait() {
@@ -165,7 +166,7 @@ public class OpenLayerHandlerShould {
     }
 
     private void nextSequence(LayerSpec spec, Observable<Snapshot> snapshots) {
-        snapshotSequences.onNext(LayerSnapshotSequenceImpl.of(spec, snapshots));
+        snapshotSequences.onNext(new LayerSnapshotSequence(spec, snapshots));
     }
 
     private void nextStatus(ClientStatusMessage status) {
@@ -174,33 +175,37 @@ public class OpenLayerHandlerShould {
 
     private Snapshot snapshot(LayerSpec spec) {
         final Layer layer = mock(Layer.class, RETURNS_DEEP_STUBS);
-        when(layer.spec()).thenReturn(spec);
-        when(layer.features()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
-        return SnapshotImpl.of(layer, emptyList());
+        when(layer.getSpec()).thenReturn(spec);
+        when(layer.getFeatures()).thenReturn(EMPTY_COLLECTION.append(newArrayList(mock(Feature.class), mock(Feature.class))));
+        return new Snapshot(new SnapshotId("123"), layer, new Diff(APPEND, emptyList()));
     }
 
     private LayerSpec spec(LayerId id, boolean live) {
         final LayerSpec spec = mock(LayerSpec.class);
-        when(spec.id()).thenReturn(id);
-        when(spec.view()).thenReturn(IDENTITY_VIEW);
-        when(spec.staticSchema()).thenReturn(mock(StaticSchema.class));
-        when(spec.indexable()).thenReturn(!live);
+        when(spec.getId()).thenReturn(id);
+        when(spec.getView()).thenReturn(IDENTITY_VIEW);
+        when(spec.getStaticSchema()).thenReturn(mock(StaticSchema.class));
+        when(spec.getIndexable()).thenReturn(!live);
         return spec;
     }
 
     private ClientStatusMessage status(LayerId... ids) {
         final ClientStatusMessage msg = mock(ClientStatusMessage.class);
-        when(msg.openLayerIds()).thenReturn(asList(ids));
+        when(msg.getOpenLayerIds()).thenReturn(asList(ids));
         return msg;
     }
 
-    private LayerUpdateMessageImpl message(LayerId id, Snapshot snapshot) {
-        return LayerUpdateMessageImpl.of(id, snapshot.absolute().dynamicSchema(), snapshot.absolute().stats(), featureCollection());
+    private LayerUpdateMessage message(LayerId id, Snapshot snapshot) {
+        return new LayerUpdateMessage(
+                id,
+                new SnapshotId("123"),
+                snapshot.getAbsolute().getDynamicSchema(),
+                snapshot.getAbsolute().getStats(),
+                featureCollection()
+        );
     }
 
     private FeatureCollection featureCollection() {
-        return FeatureCollectionImpl.of(newArrayList(
-                FeatureImpl.of(Optional.of("foo"), Optional.of(PointImpl.of(newArrayList(1.0, 2.0))), emptyMap())
-        ));
+        return new FeatureCollection(newArrayList(new io.quartic.common.geojson.Feature("foo", new Point(newArrayList(1.0, 2.0)))));
     }
 }

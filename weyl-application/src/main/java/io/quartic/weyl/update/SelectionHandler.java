@@ -2,9 +2,8 @@ package io.quartic.weyl.update;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.quartic.common.SweetStyle;
-import io.quartic.common.rx.Nullable;
-import io.quartic.common.rx.RxUtils.StateAndOutput;
+import io.quartic.common.rx.StateAndOutput;
+import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -12,9 +11,8 @@ import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
-import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessageImpl;
+import io.quartic.weyl.websocket.message.SelectionDrivenUpdateMessage;
 import io.quartic.weyl.websocket.message.SocketMessage;
-import org.immutables.value.Value;
 import rx.Observable;
 
 import java.util.Collection;
@@ -25,8 +23,8 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Maps.newHashMap;
-import static io.quartic.common.rx.RxUtils.likeBehavior;
-import static io.quartic.common.rx.RxUtils.mealy;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+import static io.quartic.common.rx.RxUtilsKt.mealy;
 import static io.quartic.weyl.update.SelectionHandler.LayerEvent.Type.COMPLETE;
 import static io.quartic.weyl.update.SelectionHandler.LayerEvent.Type.NEXT;
 import static java.util.stream.Collectors.toList;
@@ -49,29 +47,37 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
     private Observable<LayerEvent> extractLayerEvents(Observable<LayerSnapshotSequence> sequences) {
         return sequences.flatMap(seq ->
-                seq.snapshots()
-                        .map(s -> LayerEventImpl.of(NEXT, seq.spec().id(), s.diff()))
-                        .concatWith(just(LayerEventImpl.of(COMPLETE, seq.spec().id(), null)))
+                seq.getSnapshots()
+                        .map(s -> new LayerEvent(NEXT, seq.getSpec().getId(), s.getDiff()))
+                        .concatWith(just(new LayerEvent(COMPLETE, seq.getSpec().getId(), null)))
         );
     }
 
     // Mutates the state :(
     private StateAndOutput<State, Map<EntityId, Feature>> updateLookup(State state, LayerEvent event) {
-        final LayerId id = event.layerId();
-        switch (event.type()) {
+        final LayerId id = event.layerId;
+        switch (event.type) {
             case NEXT:
-                event.diff().forEach(f -> {
-                    state.entitiesPerLayer.put(id, f.entityId());
-                    state.entityLookup.put(f.entityId(), f);
-                });
+                applyDiff(state, id, event.diff);
                 break;
-
             case COMPLETE:
                 state.entitiesPerLayer.removeAll(id).forEach(state.entityLookup::remove);
                 break;
         }
 
-        return StateAndOutput.of(state, state.entityLookup);
+        return new StateAndOutput<>(state, state.entityLookup);
+    }
+
+    private void applyDiff(State state, LayerId id, LayerSnapshotSequence.Diff diff) {
+        if (diff.getUpdateType() == LayerUpdateType.REPLACE) {
+            state.entitiesPerLayer.clear();
+            state.entityLookup.clear();
+        }
+
+        diff.getFeatures().forEach(f -> {
+            state.entitiesPerLayer.put(id, f.getEntityId());
+            state.entityLookup.put(f.getEntityId(), f);
+        });
     }
 
     // This approach re-performs the selection lookup every time *any* upstream data changes.
@@ -81,7 +87,7 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     @Override
     public Observable<SocketMessage> call(Observable<ClientStatusMessage> clientStatus) {
         return combineLatest(
-                clientStatus.map(ClientStatusMessage::selection).distinctUntilChanged(),    // Behaviourally unnecessary, but reduces superfluous lookups
+                clientStatus.map(ClientStatusMessage::getSelection).distinctUntilChanged(),    // Behaviourally unnecessary, but reduces superfluous lookups
                 entityLookup,
                 this::lookupSelectedEntities)
                 .distinctUntilChanged()             // To avoid re-running potentially heavy computations in the generators
@@ -89,9 +95,9 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     }
 
     private Results lookupSelectedEntities(SelectionStatus selectionStatus, Map<EntityId, Feature> map) {
-        return ResultsImpl.of(
-                selectionStatus.seqNum(),
-                selectionStatus.entityIds()
+        return new Results(
+                selectionStatus.getSeqNum(),
+                selectionStatus.getEntityIds()
                         .stream()
                         .map(map::get)
                         .filter(Objects::nonNull)
@@ -101,22 +107,26 @@ public class SelectionHandler implements ClientStatusMessageHandler {
     }
 
     private Observable<SocketMessage> generateMessages(Results results) {
-        return from(generators).map(generator -> SelectionDrivenUpdateMessageImpl.of(
-                generator.name(), results.seqNum(), generator.generate(transform(results.entities(), Identity::get))
+        return from(generators).map(generator -> new SelectionDrivenUpdateMessage(
+                generator.name(), results.seqNum, generator.generate(transform(results.entities, Identity::get))
         ));
     }
 
-    @SweetStyle
-    @Value.Immutable
-    interface LayerEvent {
+    static class LayerEvent {
         enum Type {
             NEXT,
             COMPLETE
         }
 
-        Type type();
-        LayerId layerId();
-        @Nullable Collection<Feature> diff();
+        public final Type type;
+        public final LayerId layerId;
+        public final LayerSnapshotSequence.Diff diff;
+
+        private LayerEvent(Type type, LayerId layerId, LayerSnapshotSequence.Diff diff) {
+            this.type = type;
+            this.layerId = layerId;
+            this.diff = diff;
+        }
     }
 
     private static class State {
@@ -124,11 +134,26 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         private final Map<EntityId, Feature> entityLookup = newHashMap();
     }
 
-    @SweetStyle
-    @Value.Immutable
-    interface Results {
-        int seqNum();
-        List<Identity<Feature>> entities(); // Use of Identity enables cheap (shallow) equality check
+    static class Results {
+        public final int seqNum;
+        public final List<Identity<Feature>> entities; // Use of Identity enables cheap (shallow) equality check
+
+        Results(int seqNum, List<Identity<Feature>> entities) {
+            this.seqNum = seqNum;
+            this.entities = entities;
+        }
+
+        // TODO - Kotlin-ify
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Results results = (Results) o;
+
+            if (seqNum != results.seqNum) return false;
+            return entities.equals(results.entities);
+        }
     }
 
     /**
@@ -156,5 +181,12 @@ public class SelectionHandler implements ClientStatusMessageHandler {
         }
 
         // Don't care about hashcode
+
+        @Override
+        public String toString() {
+            return "Identity{" +
+                    "t=" + t +
+                    '}';
+        }
     }
 }

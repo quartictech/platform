@@ -1,0 +1,13 @@
+catalogueUrl: http://localhost:8090/api
+bucketName: quartic-test
+howlUrl: http://localhost:8120/api
+defaultCatalogueNamespace: production
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8100
+  adminConnectors:
+    - type: http
+      port: 8101

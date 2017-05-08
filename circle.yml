@@ -8,15 +8,16 @@ dependencies:
   cache_directories:
     - .gradle
     - weyl-frontend/.gradle/nodejs
-    - management-frontend/.gradle/nodejs
+    - mgmt-frontend/.gradle/nodejs
     - weyl-frontend/node_modules
-    - management-frontend/node_modules
+    - mgmt-frontend/node_modules
   override:
-    - ./gradlew resolveConfigurations npmInstall --parallel --console=plain
+    - ./gradlew resolveConfigurations npmInstall --parallel --info --console=plain
 
 test:
   override:
-    - ./gradlew check docker --parallel --info --console=plain
+    # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
+    - ./gradlew check --info --console=plain --profile
   post:
     - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
@@ -26,4 +27,8 @@ deployment:
     branch: /.*/
     commands:
       - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
-      - ./gradlew dockerPush --parallel --info --console=plain
+      - ./gradlew publish dockerPush --parallel --info --console=plain
+
+general:
+  artifacts:
+    - build/reports/profile
