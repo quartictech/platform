@@ -3,11 +3,11 @@ package io.quartic.weyl.update;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.quartic.common.rx.StateAndOutput;
-import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.model.LayerSnapshotSequence.Diff;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.ClientStatusMessage.SelectionStatus;
@@ -25,6 +25,7 @@ import static com.google.common.collect.Lists.transform;
 import static com.google.common.collect.Maps.newHashMap;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.rx.RxUtilsKt.mealy;
+import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static io.quartic.weyl.update.SelectionHandler.LayerEvent.Type.COMPLETE;
 import static io.quartic.weyl.update.SelectionHandler.LayerEvent.Type.NEXT;
 import static java.util.stream.Collectors.toList;
@@ -33,7 +34,6 @@ import static rx.Observable.from;
 import static rx.Observable.just;
 
 public class SelectionHandler implements ClientStatusMessageHandler {
-
     private final Collection<SelectionDrivenUpdateGenerator> generators;
     private final Observable<Map<EntityId, Feature>> entityLookup;
 
@@ -61,23 +61,26 @@ public class SelectionHandler implements ClientStatusMessageHandler {
                 applyDiff(state, id, event.diff);
                 break;
             case COMPLETE:
-                state.entitiesPerLayer.removeAll(id).forEach(state.entityLookup::remove);
+                clearLayer(state, id);
                 break;
         }
 
         return new StateAndOutput<>(state, state.entityLookup);
     }
 
-    private void applyDiff(State state, LayerId id, LayerSnapshotSequence.Diff diff) {
-        if (diff.getUpdateType() == LayerUpdateType.REPLACE) {
-            state.entitiesPerLayer.clear();
-            state.entityLookup.clear();
+    private void applyDiff(State state, LayerId id, Diff diff) {
+        if (diff.getUpdateType() == REPLACE) {
+            clearLayer(state, id);
         }
 
         diff.getFeatures().forEach(f -> {
             state.entitiesPerLayer.put(id, f.getEntityId());
             state.entityLookup.put(f.getEntityId(), f);
         });
+    }
+
+    private void clearLayer(State state, LayerId id) {
+        state.entitiesPerLayer.removeAll(id).forEach(state.entityLookup::remove);
     }
 
     // This approach re-performs the selection lookup every time *any* upstream data changes.
@@ -120,9 +123,9 @@ public class SelectionHandler implements ClientStatusMessageHandler {
 
         public final Type type;
         public final LayerId layerId;
-        public final LayerSnapshotSequence.Diff diff;
+        public final Diff diff;
 
-        private LayerEvent(Type type, LayerId layerId, LayerSnapshotSequence.Diff diff) {
+        private LayerEvent(Type type, LayerId layerId, Diff diff) {
             this.type = type;
             this.layerId = layerId;
             this.diff = diff;
