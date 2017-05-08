@@ -7,7 +7,7 @@ import java.util.*
 data class BucketSum(val attribute: AttributeName) : BucketAggregation {
     override fun aggregate(bucket: Feature, features: Collection<Feature>): Double {
         return features.stream()
-                .map<Any> { feature -> feature.attributes.attributes()[attribute] }
+                .map<Any> { feature -> feature.attributes.attributes[attribute] }
                 .filter { Objects.nonNull(it) }
                 .mapToDouble { BucketUtils.mapToDouble(it) }
                 .sum()

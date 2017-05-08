@@ -3,7 +3,6 @@ package io.quartic.common.application
 import de.thomaskrille.dropwizard_template_config.TemplateConfigBundle
 import io.dropwizard.Application
 import io.dropwizard.Configuration
-import io.dropwizard.java8.Java8Bundle
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
@@ -33,7 +32,6 @@ abstract class ApplicationBase<T : Configuration> : Application<T>() {
                 )
             }
 
-            addBundle(Java8Bundle())
             addBundle(TemplateConfigBundle())
             initializeApplication(this)
         }
@@ -44,7 +42,7 @@ abstract class ApplicationBase<T : Configuration> : Application<T>() {
 
         with (environment.jersey()) {
             urlPattern = "/api/*"
-            register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response (TODO: upgrade to DW 1.0.5+?)
+            register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response
             register(PingPongResource())
         }
 

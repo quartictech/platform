@@ -9,7 +9,7 @@ import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Geometry;
 import io.quartic.common.geojson.Point;
 import io.quartic.weyl.core.attributes.AttributesFactory;
-import io.quartic.weyl.core.attributes.TimeSeriesAttributeImpl;
+import io.quartic.weyl.core.attributes.TimeSeriesAttribute;
 import io.quartic.weyl.core.feature.FeatureConverter.AttributeManipulator;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeName;
@@ -86,7 +86,7 @@ public class FeatureConverterShould {
     public void strip_only_nulls_when_creating_raw() throws Exception {
         assertThat(converter.toGeojson(DEFAULT_MANIPULATOR, heterogeneousFeature()).getProperties(), equalTo(map(
                 entry("timestamp", 1234),
-                entry("complex", TimeSeriesAttributeImpl.of(emptyList()))
+                entry("complex", new TimeSeriesAttribute(emptyList()))
         )));
     }
 
@@ -131,7 +131,7 @@ public class FeatureConverterShould {
                 () -> map(
                         entry(name("timestamp"), 1234),
                         entry(name("noob"), null),
-                        entry(name("complex"), TimeSeriesAttributeImpl.of(emptyList()))
+                        entry(name("complex"), new TimeSeriesAttribute(emptyList()))
                 )
         );
     }

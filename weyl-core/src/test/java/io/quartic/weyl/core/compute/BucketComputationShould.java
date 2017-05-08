@@ -55,12 +55,12 @@ public class BucketComputationShould {
 
     @Before
     public void before() throws Exception {
-        computation = BucketComputationImpl.builder()
-                .layerId(myLayerId)
-                .bucketSpec(bucketSpec)
-                .joiner(joiner)
-                .clock(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()))
-                .build();
+        computation = new BucketComputation(
+                myLayerId,
+                bucketSpec,
+                joiner,
+                Clock.fixed(Instant.EPOCH, ZoneId.systemDefault())
+        );
     }
 
     @Test
@@ -95,9 +95,9 @@ public class BucketComputationShould {
         when(joiner.innerJoin(any(), any(), any())).thenReturn(tuples.stream());
         when(aggregation.aggregate(any(), any())).thenReturn(42.0);
 
-        assertThat(getLast(evaluateFirstUpdate().get(0).getFeatures()).getAttributes().attributes(),
+        assertThat(getLast(evaluateFirstUpdate().get(0).getFeatures()).getAttributes().getAttributes(),
                 equalTo(ImmutableMap.builder()
-                        .putAll(bucketFeature.getAttributes().attributes())
+                        .putAll(bucketFeature.getAttributes().getAttributes())
                         .put(name("Foo"), 42.0)
                         .build()
                 )

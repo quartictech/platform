@@ -21,7 +21,6 @@ import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.howl.api.HowlClient;
 import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.core.LayerRouter;
-import io.quartic.weyl.core.LayerRouterImpl;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
 import io.quartic.weyl.core.export.HowlGeoJsonLayerWriter;
@@ -29,13 +28,11 @@ import io.quartic.weyl.core.export.LayerExporter;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
 import io.quartic.weyl.core.source.GeoJsonSource;
 import io.quartic.weyl.core.source.PostgresSource;
 import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceManager;
-import io.quartic.weyl.core.source.SourceManagerImpl;
 import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
@@ -93,15 +90,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 configuration.getDefaultCatalogueNamespace()
         );
 
-        final SourceManager sourceManager = SourceManagerImpl.builder()
-                .catalogueEvents(catalogueWatcher.getEvents())
-                .sourceFactories(createSourceFactories(configuration, environment, websocketFactory))
-                .scheduler(Schedulers.from(Executors.newScheduledThreadPool(2)))
-                .build();
+        final SourceManager sourceManager = new SourceManager(
+                catalogueWatcher.getEvents(),
+                createSourceFactories(configuration, environment, websocketFactory),
+                Schedulers.from(Executors.newScheduledThreadPool(2))
+        );
 
         final ComputeResource computeResource = new ComputeResource(lidGenerator);
 
-        final LayerRouter router = createRouter(merge(
+        final LayerRouter router = new LayerRouter(merge(
                 sourceManager.layerPopulators(),
                 computeResource.layerPopulators()
         ));
@@ -145,12 +142,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new WebsocketEndpoint(messages, handlers, mapConfig);
     }
 
-    private LayerRouter createRouter(Observable<LayerPopulator> populators) {
-        return LayerRouterImpl.builder()
-                .populators(populators)
-                .build();
-    }
-
     private SelectionHandler createSelectionHandler(Observable<LayerSnapshotSequence> snapshotSequences) {
         return new SelectionHandler(
                 snapshotSequences,
@@ -192,11 +183,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WebsocketClientSessionFactory websocketFactory
     ) {
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, config -> PostgresSource.builder()
-                        .name(config.getMetadata().getName())
-                        .locator((PostgresDatasetLocator) config.getLocator())
-                        .attributesFactory(attributesFactory())
-                        .build(),
+                PostgresDatasetLocator.class, config -> new PostgresSource(
+                        config.getMetadata().getName(),
+                        (PostgresDatasetLocator) config.getLocator(),
+                        attributesFactory()
+                ),
                 GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.getLocator()).getUrl()),
                 WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
                         new WebsocketListener.Factory(((WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
@@ -213,22 +204,22 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
     }
 
     private GeoJsonSource geojsonSource(DatasetConfig config, String url) {
-        return GeoJsonSource.builder()
-        .name(config.getMetadata().getName())
-        .url(url)
-        .userAgent(userAgentFor(getClass()))
-        .converter(featureConverter())
-        .build();
+        return new GeoJsonSource(
+                config.getMetadata().getName(),
+                url,
+                userAgentFor(getClass()),
+                featureConverter()
+        );
     }
 
     private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
-        return WebsocketSource.builder()
-                .name(config.getMetadata().getName())
-                .listenerFactory(listenerFactory)
-                .converter(featureConverter())
-                .metrics(environment.metrics())
-                .indexable(indexable)
-                .build();
+        return new WebsocketSource(
+                config.getMetadata().getName(),
+                featureConverter(),
+                environment.metrics(),
+                listenerFactory,
+                indexable
+        );
     }
 
     private FeatureConverter featureConverter() {

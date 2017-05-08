@@ -24,12 +24,12 @@ public class PostgresSourceShould {
         when(handle.createQuery(anyString()).iterator()).thenReturn(ri);
         when(ri.hasNext()).thenReturn(false);
 
-        PostgresSource importer = PostgresSource.builder()
-                .name("Budgie")
-                .locator(new PostgresDatasetLocator("foo", "bar", "baz", "SELECT * FROM foo"))
-                .dbi(dbi)
-                .attributesFactory(mock(AttributesFactory.class))
-                .build();
+        PostgresSource importer = new PostgresSource(
+                "Budgie",
+                new PostgresDatasetLocator("foo", "bar", "baz", "SELECT * FROM foo"),
+                mock(AttributesFactory.class),
+                dbi
+        );
 
         importer.observable().subscribe(Subscribers.empty());
 

@@ -3,12 +3,11 @@ package io.quartic.weyl.websocket;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.Geofence;
-import io.quartic.weyl.core.geofence.GeofenceImpl;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector.Output;
 import io.quartic.weyl.core.geofence.Violation;
 import io.quartic.weyl.core.model.Alert;
-import io.quartic.weyl.core.model.AttributesImpl;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerId;
@@ -34,8 +33,6 @@ import static io.quartic.common.rx.RxUtilsKt.latest;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.rx.RxUtilsKt.mealy;
 import static io.quartic.weyl.core.feature.FeatureConverter.MINIMAL_MANIPULATOR;
-import static io.quartic.weyl.core.geofence.Geofence.ALERT_LEVEL;
-import static io.quartic.weyl.core.geofence.Geofence.alertLevel;
 import static io.quartic.weyl.core.model.Alert.Level.INFO;
 import static io.quartic.weyl.core.model.Alert.Level.SEVERE;
 import static io.quartic.weyl.core.model.Alert.Level.WARNING;
@@ -85,17 +82,20 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private Collection<Geofence> toGeofences(GeofenceStatus status, Collection<Feature> features) {
         return features.stream()
                 .map(f -> toGeofence(status, f))
-                .filter(g -> !g.feature().getGeometry().isEmpty())
+                .filter(g -> !g.getFeature().getGeometry().isEmpty())
                 .collect(toList());
     }
 
     private Geofence toGeofence(GeofenceStatus status, Feature f) {
-        return GeofenceImpl.of(
+        return new Geofence(
                 status.getType(),
                 new Feature(
                         new EntityId("geofence/" + f.getEntityId().getUid()),
                         bufferOp(f.getGeometry(), status.getBufferDistance()),
-                        AttributesImpl.of(singletonMap(ALERT_LEVEL, alertLevel(f, status.getDefaultLevel())))
+                        Attributes.Companion.of(singletonMap(
+                                Geofence.Companion.getALERT_LEVEL(),
+                                Geofence.Companion.alertLevel(f, status.getDefaultLevel())
+                        ))
                 )
         );
     }
@@ -124,7 +124,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private Observable<SocketMessage> generateGeometryUpdates(Observable<Collection<Geofence>> geofenceStatuses) {
         return geofenceStatuses
                 .map(geofences -> new GeofenceGeometryUpdateMessage(
-                        featureConverter.toGeojson(MINIMAL_MANIPULATOR, geofences.stream().map(Geofence::feature).collect(toList()))
+                        featureConverter.toGeojson(MINIMAL_MANIPULATOR, geofences.stream().map(Geofence::getFeature).collect(toList()))
                 ));
     }
 
@@ -155,7 +155,7 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
 
     private SocketMessage violationUpdateMessage(Output output) {
         return new GeofenceViolationsUpdateMessage(
-                output.violations().stream().map(Violation::geofenceId).collect(toSet()),
+                output.violations().stream().map(Violation::getGeofenceId).collect(toSet()),
                 output.counts().get(INFO),
                 output.counts().get(WARNING),
                 output.counts().get(SEVERE)
@@ -165,8 +165,8 @@ public class GeofenceStatusHandler implements ClientStatusMessageHandler {
     private SocketMessage alertMessage(Violation violation) {
         return new AlertMessage(new Alert(
                 "Geofence violation",
-                "Boundary violated by entity '" + violation.entityId() + "'",
-                violation.level()
+                "Boundary violated by entity '" + violation.getEntityId() + "'",
+                violation.getLevel()
         ));
     }
 }

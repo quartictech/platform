@@ -9,6 +9,7 @@ import io.quartic.common.geojson.Point;
 import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,13 +61,7 @@ public class GeoJsonSourceShould {
     public void import_things() throws Exception {
         TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
 
-        GeoJsonSource.builder()
-                .name("Budgie")
-                .url("http://localhost:" + wireMockRule.port())
-                .userAgent("MyUserAgent")
-                .converter(converter)
-                .build()
-                .observable().subscribe(subscriber);
+        source().observable().subscribe(subscriber);
 
         verify(converter).featuresToModel(original.getFeatures());
         subscriber.assertValue(new LayerUpdate(REPLACE, modelFeatures));
@@ -74,16 +69,20 @@ public class GeoJsonSourceShould {
 
     @Test
     public void set_the_correct_user_agent_header() throws Exception {
-        GeoJsonSource.builder()
-                .name("Budgie")
-                .url("http://localhost:" + wireMockRule.port())
-                .userAgent("MyUserAgent")
-                .converter(converter)
-                .build()
-                .observable().subscribe();
+        source().observable().subscribe();
 
         final LoggedRequest request = findAll(getRequestedFor(urlMatching("/.*"))).get(0);
 
         assertThat(request.header("User-Agent").firstValue(), equalTo("MyUserAgent"));
+    }
+
+    @NotNull
+    private GeoJsonSource source() {
+        return new GeoJsonSource(
+                "Budgie",
+                "http://localhost:" + wireMockRule.port(),
+                "MyUserAgent",
+                converter
+        );
     }
 }

@@ -1,7 +1,6 @@
 package io.quartic.weyl.core.compute;
 
 import com.google.common.collect.ImmutableList;
-import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
 import io.quartic.weyl.core.model.AttributeName;
@@ -14,8 +13,6 @@ import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.NakedFeature;
 import io.quartic.weyl.core.model.StaticSchema;
-import org.immutables.value.Value;
-import org.slf4j.Logger;
 import rx.Observable;
 
 import java.time.Clock;
@@ -33,31 +30,28 @@ import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.slf4j.LoggerFactory.getLogger;
 
-@SweetStyle
-@Value.Immutable
-public abstract class BucketComputation implements LayerPopulator {
-    private static final Logger LOG = getLogger(BucketComputation.class);
-
-    protected abstract LayerId layerId();
-    protected abstract BucketSpec bucketSpec();
-
-    @Value.Default
-    protected Clock clock() {
-        return Clock.systemUTC();
-    }
-
-    @Value.Default
-    protected SpatialJoiner joiner() {
-        return new SpatialJoiner();
-    }
-
+public class BucketComputation implements LayerPopulator {
+    private final LayerId layerId;
+    private final BucketSpec bucketSpec;
+    private final SpatialJoiner joiner;
+    private final Clock clock;
     private final AttributesFactory attributesFactory = new AttributesFactory();
+
+    public BucketComputation(LayerId layerId, BucketSpec bucketSpec) {
+        this(layerId, bucketSpec, new SpatialJoiner(), Clock.systemUTC());
+    }
+
+    public BucketComputation(LayerId layerId, BucketSpec bucketSpec, SpatialJoiner joiner, Clock clock) {
+        this.layerId = layerId;
+        this.bucketSpec = bucketSpec;
+        this.joiner = joiner;
+        this.clock = clock;
+    }
 
     @Override
     public List<LayerId> dependencies() {
-        return ImmutableList.of(bucketSpec().getFeatures(), bucketSpec().getBuckets());
+        return ImmutableList.of(bucketSpec.getFeatures(), bucketSpec.getBuckets());
     }
 
     @Override
@@ -69,12 +63,12 @@ public abstract class BucketComputation implements LayerPopulator {
         final String bucketName = bucketLayer.getSpec().getMetadata().getName();
 
         return new LayerSpec(
-                layerId(),
+                layerId,
                 new LayerMetadata(
                         String.format("%s (bucketed)", featureName),
-                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec().getAggregation().describe()),
+                        String.format("%s bucketed by %s aggregating by %s", featureName, bucketName, bucketSpec.getAggregation().describe()),
                         String.format("%s / %s", featureLayer.getSpec().getMetadata().getAttribution(), bucketLayer.getSpec().getMetadata().getAttribution()),
-                        clock().instant()
+                        clock.instant()
                 ),
                 IDENTITY_VIEW,
                 schemaFrom(bucketLayer.getSpec().getStaticSchema(), featureName),
@@ -108,7 +102,7 @@ public abstract class BucketComputation implements LayerPopulator {
                     forkJoinPool.submit(() -> {
                         // The order here is that CONTAINS applies from left -> right and
                         // the spatial index on the right layer is the one that is queried
-                        Map<Feature, List<Tuple>> groups = joiner()
+                        Map<Feature, List<Tuple>> groups = joiner
                                 .innerJoin(bucketLayer, featureLayer, CONTAINS)
                                 .collect(groupingBy(Tuple::getLeft));
 
@@ -125,11 +119,11 @@ public abstract class BucketComputation implements LayerPopulator {
 
     private NakedFeature featureForBucket(String attributeName, Entry<Feature, List<Tuple>> entry) {
         Feature bucket = entry.getKey();
-        Double value = bucketSpec().getAggregation().aggregate(
+        Double value = bucketSpec.getAggregation().aggregate(
                 bucket,
                 entry.getValue().stream().map(Tuple::getRight).collect(toList()));
 
-        if (bucketSpec().getNormalizeToArea()) {
+        if (bucketSpec.getNormalizeToArea()) {
             if (bucket.getGeometry().getArea() > 0) {
                 value /= bucket.getGeometry().getArea();
             }
