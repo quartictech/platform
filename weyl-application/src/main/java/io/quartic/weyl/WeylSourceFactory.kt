@@ -4,7 +4,6 @@ import io.dropwizard.setup.Environment
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.common.client.userAgentFor
-import io.quartic.common.logging.logger
 import io.quartic.common.websocket.WebsocketClientSessionFactory
 import io.quartic.common.websocket.WebsocketListener
 import io.quartic.weyl.core.attributes.AttributesFactory

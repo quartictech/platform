@@ -3,7 +3,6 @@ package io.quartic.weyl.core.source;
 import io.quartic.catalogue.CatalogueEvent;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetId;
-import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -11,15 +10,12 @@ import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
-import kotlin.jvm.functions.Function0;
-import kotlin.jvm.functions.Function1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Scheduler;
 import rx.observables.GroupedObservable;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
