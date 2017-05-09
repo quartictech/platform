@@ -7,13 +7,9 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.CatalogueWatcher;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetNamespace;
-import io.quartic.catalogue.api.model.GeoJsonDatasetLocator;
-import io.quartic.catalogue.api.model.PostgresDatasetLocator;
-import io.quartic.catalogue.api.model.WebsocketDatasetLocator;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
@@ -183,18 +179,18 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             WebsocketClientSessionFactory websocketFactory
     ) {
         return ImmutableMap.of(
-                PostgresDatasetLocator.class, config -> new PostgresSource(
+                DatasetLocator.PostgresDatasetLocator.class, config -> new PostgresSource(
                         config.getMetadata().getName(),
-                        (PostgresDatasetLocator) config.getLocator(),
+                        (DatasetLocator.PostgresDatasetLocator) config.getLocator(),
                         attributesFactory()
                 ),
-                GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.getLocator()).getUrl()),
-                WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
+                DatasetLocator.GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((DatasetLocator.GeoJsonDatasetLocator) config.getLocator()).getUrl()),
+                DatasetLocator.WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
+                        new WebsocketListener.Factory(((DatasetLocator.WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
                                 false),
-                CloudGeoJsonDatasetLocator.class, config -> {
+                DatasetLocator.CloudGeoJsonDatasetLocator.class, config -> {
                     // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-                    final CloudGeoJsonDatasetLocator cgjLocator = (CloudGeoJsonDatasetLocator) config.getLocator();
+                    final DatasetLocator.CloudGeoJsonDatasetLocator cgjLocator = (DatasetLocator.CloudGeoJsonDatasetLocator) config.getLocator();
                     return cgjLocator.getStreaming()
                             ? websocketSource(environment, config,
                             new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.getPath(), websocketFactory), true)

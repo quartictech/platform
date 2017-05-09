@@ -1,7 +1,6 @@
 package io.quartic.catalogue;
 
 import com.google.common.collect.ImmutableMap;
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
 import io.quartic.catalogue.api.model.DatasetLocator;
@@ -96,7 +95,7 @@ public abstract class StorageBackendTests {
                 "attribution",
                 Instant.now());
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
-        DatasetLocator locator = new CloudGeoJsonDatasetLocator("WAT", false);
+        DatasetLocator locator = new DatasetLocator.CloudGeoJsonDatasetLocator("WAT", false);
         return new DatasetConfig(metadata, locator, extensions);
     }
 
