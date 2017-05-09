@@ -1,5 +1,4 @@
 pluginManagement.repositories {
-    gradlePluginPortal()
     maven {
         url "s3://quartictech-repo.s3.eu-west-2.amazonaws.com/maven2"
         credentials(AwsCredentials) {
@@ -15,6 +14,7 @@ pluginManagement.repositories {
             }
         }
     }
+    gradlePluginPortal()
 }
 
 include "common-core"
