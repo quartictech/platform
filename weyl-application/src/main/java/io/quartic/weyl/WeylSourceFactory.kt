@@ -18,6 +18,10 @@ data class WeylSourceFactory(
         val environment: Environment,
         val websocketFactory: WebsocketClientSessionFactory) {
 
+    companion object {
+        val MIME_TYPE = "application/geojson"
+    }
+
     fun geojsonSource(config: DatasetConfig, url: String) = GeoJsonSource(
             config.metadata.name,
             url,
@@ -35,6 +39,15 @@ data class WeylSourceFactory(
                     indexable
             )
 
+    fun liveOrStaticGeojson(dataset: DatasetConfig, locatorPath: String, streaming: Boolean) =
+            if (streaming) {
+                websocketSource(dataset,
+                        WebsocketListener.Factory(configuration.rainWsUrlRoot + locatorPath, websocketFactory),
+                        true)
+            } else {
+                geojsonSource(dataset, configuration.howlStorageUrl + locatorPath)
+            }
+
     fun createSource(dataset: DatasetConfig): Source? {
         val locator = dataset.locator
         return when (locator) {
@@ -47,20 +60,10 @@ data class WeylSourceFactory(
                     WebsocketListener.Factory(locator.url, websocketFactory), false)
             is DatasetLocator.CloudGeoJsonDatasetLocator ->
                 // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-                if (locator.streaming) {
-                    websocketSource(dataset,
-                            WebsocketListener.Factory(configuration.rainWsUrlRoot + locator.path, websocketFactory), true)
-                } else {
-                    geojsonSource(dataset, configuration.howlStorageUrl + locator.path)
-                }
+                liveOrStaticGeojson(dataset, locator.path, locator.streaming)
             is DatasetLocator.CloudDatasetLocator ->
-                if (locator.mimeType == "application/geojson") {
-                    if (locator.streaming) {
-                        websocketSource(dataset,
-                                WebsocketListener.Factory(configuration.rainWsUrlRoot + locator.path, websocketFactory), true)
-                    } else {
-                        geojsonSource(dataset, configuration.howlStorageUrl + locator.path)
-                    }
+                if (locator.mimeType == MIME_TYPE) {
+                    liveOrStaticGeojson(dataset, locator.path, locator.streaming)
                 }
                 else null
             else -> null

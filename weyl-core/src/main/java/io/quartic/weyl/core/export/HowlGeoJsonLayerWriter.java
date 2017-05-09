@@ -12,6 +12,7 @@ import java.io.IOException;
 
 public class HowlGeoJsonLayerWriter implements LayerWriter {
     private static final String HOWL_NAMESPACE = "weyl";
+    private static final String MIME_TYPE = "application/geojson";
     private final HowlClient howlClient;
     private final FeatureConverter featureConverter;
 
@@ -30,7 +31,8 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
                     layer.getFeatures().stream().map((f) -> featureConverter.toGeojson(FeatureConverter.DEFAULT_MANIPULATOR, f)));
         });
         return new LayerExportResult(
-                new DatasetLocator.CloudGeoJsonDatasetLocator(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId), false),
+                new DatasetLocator.CloudDatasetLocator(
+                        String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId), false, MIME_TYPE),
                 String.format("exported %d features to layer: %s", featureCount[0], layer.getSpec().getMetadata().getName()));
     }
 
