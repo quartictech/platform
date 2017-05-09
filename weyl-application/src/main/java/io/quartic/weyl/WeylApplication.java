@@ -51,7 +51,6 @@ import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
@@ -86,9 +85,10 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 configuration.getDefaultCatalogueNamespace()
         );
 
+        WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);
         final SourceManager sourceManager = new SourceManager(
                 catalogueWatcher.getEvents(),
-                createSourceFactories(configuration, environment, websocketFactory),
+                sourceFactory::createSource,
                 Schedulers.from(Executors.newScheduledThreadPool(2))
         );
 
@@ -173,50 +173,50 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new LayerExportResource(layerExporter);
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
-            WeylConfiguration configuration,
-            Environment environment,
-            WebsocketClientSessionFactory websocketFactory
-    ) {
-        return ImmutableMap.of(
-                DatasetLocator.PostgresDatasetLocator.class, config -> new PostgresSource(
-                        config.getMetadata().getName(),
-                        (DatasetLocator.PostgresDatasetLocator) config.getLocator(),
-                        attributesFactory()
-                ),
-                DatasetLocator.GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((DatasetLocator.GeoJsonDatasetLocator) config.getLocator()).getUrl()),
-                DatasetLocator.WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(((DatasetLocator.WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
-                                false),
-                DatasetLocator.CloudGeoJsonDatasetLocator.class, config -> {
-                    // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-                    final DatasetLocator.CloudGeoJsonDatasetLocator cgjLocator = (DatasetLocator.CloudGeoJsonDatasetLocator) config.getLocator();
-                    return cgjLocator.getStreaming()
-                            ? websocketSource(environment, config,
-                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.getPath(), websocketFactory), true)
-                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.getPath());
-                }
-        );
-    }
+//    private Function<DatasetLocator, SourceManager.SourceFactory> sourceFactoryFactory(
+//            WeylConfiguration configuration,
+//            Environment environment,
+//            WebsocketClientSessionFactory websocketFactory
+//    ) {
+//        return (locator) -> {
+//            if (locator instanceof DatasetLocator.PostgresDatasetLocator) {
+//                return (SourceManager.SourceFactory) config -> new PostgresSource(
+//                        config.getMetadata().getName(),
+//                        (DatasetLocator.PostgresDatasetLocator) config.getLocator(),
+//                        attributesFactory()
+//                );
+//            }
+//            else if (locator instanceof DatasetLocator.GeoJsonDatasetLocator) {
+//                return (SourceManager.SourceFactory)
+//                        config -> geojsonSource(config, ((DatasetLocator.GeoJsonDatasetLocator) config.getLocator()).getUrl());
+//            }
+//            else if (locator instanceof )
+//
+//        }
+//    }
 
-    private GeoJsonSource geojsonSource(DatasetConfig config, String url) {
-        return new GeoJsonSource(
-                config.getMetadata().getName(),
-                url,
-                userAgentFor(getClass()),
-                featureConverter()
-        );
-    }
+//        return ImmutableMap.of(
+//                DatasetLocator.PostgresDatasetLocator.class, config -> new PostgresSource(
+//                        config.getMetadata().getName(),
+//                        (DatasetLocator.PostgresDatasetLocator) config.getLocator(),
+//                        attributesFactory()
+//                ),
+//                DatasetLocator.GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((DatasetLocator.GeoJsonDatasetLocator) config.getLocator()).getUrl()),
+//                DatasetLocator.WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
+//                        new WebsocketListener.Factory(((DatasetLocator.WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
+//                                false),
+//                DatasetLocator.CloudGeoJsonDatasetLocator.class, config -> {
+//                    // TODO: can remove the geojsonSource variant once we've regularised the Rain path
+//                    final DatasetLocator.CloudGeoJsonDatasetLocator cgjLocator = (DatasetLocator.CloudGeoJsonDatasetLocator) config.getLocator();
+//                    return cgjLocator.getStreaming()
+//                            ? websocketSource(environment, config,
+//                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.getPath(), websocketFactory), true)
+//                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.getPath());
+//                }
+//        );
+//    }
 
-    private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
-        return new WebsocketSource(
-                config.getMetadata().getName(),
-                featureConverter(),
-                environment.metrics(),
-                listenerFactory,
-                indexable
-        );
-    }
+
 
     private FeatureConverter featureConverter() {
         return new FeatureConverter(attributesFactory());
