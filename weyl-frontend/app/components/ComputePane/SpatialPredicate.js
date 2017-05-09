@@ -20,6 +20,7 @@ class SpatialPredicate extends React.Component { // eslint-disable-line react/pr
     this.onComputeClick = this.onComputeClick.bind(this);
     this.onLayerAChange = this.onLayerAChange.bind(this);
     this.onLayerBChange = this.onLayerBChange.bind(this);
+    this.onOperationChange = this.onOperationChange.bind(this);
     this.isValid = this.isValid.bind(this);
     this.layerIdsToNames = this.layerIdsToNames.bind(this);
   }
@@ -110,10 +111,7 @@ class SpatialPredicate extends React.Component { // eslint-disable-line react/pr
   }
 
   onLayerAChange(value) {
-    // Avoid unnecessarily resetting attribute
-    if (value !== this.state.selectedLayerA) {
-      this.setState({ selectedLayerA: value });
-    }
+    this.setState({ selectedLayerA: value });
   }
 
   onLayerBChange(value) {
@@ -121,9 +119,7 @@ class SpatialPredicate extends React.Component { // eslint-disable-line react/pr
   }
 
   onOperationChange(value) {
-    this.setState({
-      selectedOperation: value,
-    });
+    this.setState({ selectedOperation: value });
   }
 
   onComputeClick() {
