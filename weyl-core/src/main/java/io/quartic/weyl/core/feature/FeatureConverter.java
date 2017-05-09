@@ -147,7 +147,7 @@ public class FeatureConverter {
     }
 
     public static Map<String, Object> getRawAttributes(AttributeManipulator manipulator, Feature feature) {
-        final Map<String, Object> raw = feature.getAttributes().attributes()
+        final Map<String, Object> raw = feature.getAttributes().getAttributes()
                 .entrySet()
                 .stream()
                 .filter(e -> (e.getValue() != null) && manipulator.test(e.getKey(), e.getValue()))

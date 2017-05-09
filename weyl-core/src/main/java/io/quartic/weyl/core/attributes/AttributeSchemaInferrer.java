@@ -36,7 +36,7 @@ public class AttributeSchemaInferrer {
             return DynamicSchemaKt.getEMPTY_SCHEMA();
         }
 
-        final Collection<AttributeName> names = attributes.iterator().next().attributes().keySet();   // They should all be the same
+        final Collection<AttributeName> names = attributes.iterator().next().getAttributes().keySet();   // They should all be the same
         return new DynamicSchema(names.parallelStream()
                 .collect(toConcurrentMap(identity(),
                         attribute -> inferAttribute(
@@ -74,7 +74,7 @@ public class AttributeSchemaInferrer {
         Set<Object> union = (previous != null) ? newHashSet(previous.getCategories()) : newHashSet();
 
         Set<Object> values = attributes.stream()
-                .map(a -> a.attributes().get(name))
+                .map(a -> a.getAttributes().get(name))
                 .filter(v -> (v != null) && isPrimitive(v))
                 .collect(toCollection(() -> union));
 
@@ -85,7 +85,7 @@ public class AttributeSchemaInferrer {
 
     private static AttributeType inferAttributeType(AttributeName name, Collection<Attributes> attributes, Attribute previous) {
         Set<AttributeType> types = attributes.stream()
-                .map(a -> a.attributes().get(name))
+                .map(a -> a.getAttributes().get(name))
                 .filter(Objects::nonNull)
                 .map(AttributeSchemaInferrer::inferValueType)
                 .collect(toSet());

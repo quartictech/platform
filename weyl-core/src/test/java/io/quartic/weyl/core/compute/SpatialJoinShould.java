@@ -6,6 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.weyl.core.SnapshotReducer;
 import io.quartic.weyl.core.compute.SpatialJoiner.Tuple;
+import io.quartic.weyl.core.model.Attributes;
 import io.quartic.weyl.core.model.EntityId;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.Layer;
@@ -25,7 +26,6 @@ import java.util.List;
 import static io.quartic.common.uid.UidUtilsKt.sequenceGenerator;
 import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static io.quartic.weyl.core.live.LayerView.IDENTITY_VIEW;
-import static io.quartic.weyl.core.model.Attributes.EMPTY_ATTRIBUTES;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -82,7 +82,7 @@ public class SpatialJoinShould {
     }
 
     private NakedFeature feature(Geometry geometry) {
-       return new NakedFeature("123", geometry, EMPTY_ATTRIBUTES);
+       return new NakedFeature("123", geometry, Attributes.Companion.getEMPTY_ATTRIBUTES());
     }
 
     private Feature feature(NakedFeature feature, String layerId) {

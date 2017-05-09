@@ -22,8 +22,8 @@ public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
 
     public Map<AttributeName, Map<String, TimeSeriesAttribute>> generate(Collection<Feature> entities) {
         Set<AttributeName> eligibleAttributes = entities.stream()
-                .filter(feature -> feature.getAttributes().attributes().containsKey(NAME))
-                .flatMap(feature -> feature.getAttributes().attributes().entrySet().stream())
+                .filter(feature -> feature.getAttributes().getAttributes().containsKey(NAME))
+                .flatMap(feature -> feature.getAttributes().getAttributes().entrySet().stream())
                 .filter(entry -> entry.getValue() instanceof TimeSeriesAttribute)
                 .map(Map.Entry::getKey)
                 .collect(toSet());
@@ -35,11 +35,11 @@ public class ChartUpdateGenerator implements SelectionDrivenUpdateGenerator {
     // Map of { name -> timeseries }
     private Map<String, TimeSeriesAttribute> timeSeriesForAttribute(Collection<Feature> features, AttributeName attribute) {
         return features.stream()
-                .filter(feature -> feature.getAttributes().attributes().containsKey(NAME))
-                .filter(feature -> feature.getAttributes().attributes().containsKey(attribute) &&
-                        feature.getAttributes().attributes().get(attribute) instanceof TimeSeriesAttribute)
+                .filter(feature -> feature.getAttributes().getAttributes().containsKey(NAME))
+                .filter(feature -> feature.getAttributes().getAttributes().containsKey(attribute) &&
+                        feature.getAttributes().getAttributes().get(attribute) instanceof TimeSeriesAttribute)
                 .collect(toMap(
-                        feature -> (String) feature.getAttributes().attributes().get(NAME),
-                        feature -> (TimeSeriesAttribute) feature.getAttributes().attributes().get(attribute)));
+                        feature -> (String) feature.getAttributes().getAttributes().get(NAME),
+                        feature -> (TimeSeriesAttribute) feature.getAttributes().getAttributes().get(attribute)));
     }
 }

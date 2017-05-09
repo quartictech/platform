@@ -8,7 +8,6 @@ dependencies {
     compile project(":common-core")
 
     compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
-    compile "io.dropwizard.modules:dropwizard-java8:0.9.0-1"
     compile "de.thomaskrille:dropwizard-template-config:1.4.0"
 
     runtime libraries.dropwizardMetricsInfluxdb
