@@ -7,11 +7,11 @@
    ```
    SKIP_FRONTEND= ./gradlew run --parallel
    ```
-        
+
 2. Start the front-end:
 
     ```
-    ./gradlew npmStart
+    ./gradlew npmStart --parallel
     ```
 
 3. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
@@ -23,7 +23,7 @@ To run a subset of services (example):
 ```
 SKIP_FRONTEND= ./gradlew :catalogue-app:run :weyl-app:run --parallel
 ```
-    
+
 To run a service with reduced memory (example):
 
 ```
