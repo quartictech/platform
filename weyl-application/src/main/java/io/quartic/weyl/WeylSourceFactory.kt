@@ -3,6 +3,7 @@ package io.quartic.weyl
 import io.dropwizard.setup.Environment
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetLocator
+import io.quartic.catalogue.api.model.MimeTypes
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.websocket.WebsocketClientSessionFactory
 import io.quartic.common.websocket.WebsocketListener
@@ -17,10 +18,6 @@ data class WeylSourceFactory(
         val configuration: WeylConfiguration,
         val environment: Environment,
         val websocketFactory: WebsocketClientSessionFactory) {
-
-    companion object {
-        val MIME_TYPE = "application/geojson"
-    }
 
     fun geojsonSource(config: DatasetConfig, url: String) = GeoJsonSource(
             config.metadata.name,
@@ -62,7 +59,7 @@ data class WeylSourceFactory(
                 // TODO: can remove the geojsonSource variant once we've regularised the Rain path
                 liveOrStaticGeojson(dataset, locator.path, locator.streaming)
             is DatasetLocator.CloudDatasetLocator ->
-                if (locator.mimeType == MIME_TYPE) {
+                if (locator.mimeType == MimeTypes.GEOJSON) {
                     liveOrStaticGeojson(dataset, locator.path, locator.streaming)
                 }
                 else null

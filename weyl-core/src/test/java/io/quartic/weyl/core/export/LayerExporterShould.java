@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static io.quartic.catalogue.api.model.MimeTypes.GEOJSON;
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -61,7 +62,7 @@ public class LayerExporterShould {
         @Override
         public LayerExportResult write(Layer layer) {
             layer.getFeatures().stream().collect(toCollection(() -> features));
-            return new LayerExportResult(new DatasetLocator.CloudGeoJsonDatasetLocator("test", false), "ok");
+            return new LayerExportResult(new DatasetLocator.CloudDatasetLocator("test", false, GEOJSON), "ok");
         }
 
         public List<Feature> getFeatures() {
