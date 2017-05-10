@@ -1,14 +1,11 @@
 package io.quartic.weyl;
 
-import com.google.common.collect.ImmutableMap;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.CatalogueWatcher;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.model.DatasetConfig;
-import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetNamespace;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
@@ -25,11 +22,7 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.PostgresSource;
-import io.quartic.weyl.core.source.Source;
 import io.quartic.weyl.core.source.SourceManager;
-import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.LayerExportResource;
@@ -53,7 +46,6 @@ import javax.websocket.server.ServerEndpointConfig;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.client.ClientUtilsKt.client;
@@ -173,50 +165,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
                 defaultCatalogueNamespace);
         return new LayerExportResource(layerExporter);
     }
-
-//    private Function<DatasetLocator, SourceManager.SourceFactory> sourceFactoryFactory(
-//            WeylConfiguration configuration,
-//            Environment environment,
-//            WebsocketClientSessionFactory websocketFactory
-//    ) {
-//        return (locator) -> {
-//            if (locator instanceof DatasetLocator.PostgresDatasetLocator) {
-//                return (SourceManager.SourceFactory) config -> new PostgresSource(
-//                        config.getMetadata().getName(),
-//                        (DatasetLocator.PostgresDatasetLocator) config.getLocator(),
-//                        attributesFactory()
-//                );
-//            }
-//            else if (locator instanceof DatasetLocator.GeoJsonDatasetLocator) {
-//                return (SourceManager.SourceFactory)
-//                        config -> geojsonSource(config, ((DatasetLocator.GeoJsonDatasetLocator) config.getLocator()).getUrl());
-//            }
-//            else if (locator instanceof )
-//
-//        }
-//    }
-
-//        return ImmutableMap.of(
-//                DatasetLocator.PostgresDatasetLocator.class, config -> new PostgresSource(
-//                        config.getMetadata().getName(),
-//                        (DatasetLocator.PostgresDatasetLocator) config.getLocator(),
-//                        attributesFactory()
-//                ),
-//                DatasetLocator.GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((DatasetLocator.GeoJsonDatasetLocator) config.getLocator()).getUrl()),
-//                DatasetLocator.WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
-//                        new WebsocketListener.Factory(((DatasetLocator.WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
-//                                false),
-//                DatasetLocator.CloudGeoJsonDatasetLocator.class, config -> {
-//                    // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-//                    final DatasetLocator.CloudGeoJsonDatasetLocator cgjLocator = (DatasetLocator.CloudGeoJsonDatasetLocator) config.getLocator();
-//                    return cgjLocator.getStreaming()
-//                            ? websocketSource(environment, config,
-//                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.getPath(), websocketFactory), true)
-//                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.getPath());
-//                }
-//        );
-//    }
-
 
 
     private FeatureConverter featureConverter() {

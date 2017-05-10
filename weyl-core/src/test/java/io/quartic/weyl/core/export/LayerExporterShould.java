@@ -85,7 +85,7 @@ public class LayerExporterShould {
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
-        exportResult.assertValue(Optional.of(new LayerExportResult(new DatasetLocator.CloudGeoJsonDatasetLocator("test", false), "ok")));
+        exportResult.assertValue(Optional.of(new LayerExportResult(new DatasetLocator.CloudDatasetLocator("test", false, GEOJSON), "ok")));
         assertThat(layerWriter.getFeatures().get(0).getEntityId(), equalTo(features.get(0).getEntityId()));
     }
 
