@@ -1,7 +1,7 @@
 package io.quartic.mgmt
 
 import io.quartic.catalogue.api.model.DatasetMetadata
-import io.quartic.catalogue.api.model.MimeTypes
+import io.quartic.catalogue.api.model.MimeType
 
 data class CreateStaticDatasetRequest(
         val metadata: DatasetMetadata,
@@ -9,8 +9,8 @@ data class CreateStaticDatasetRequest(
         val fileType: FileType
 ) : CreateDatasetRequest {
     fun mimeType() = when (fileType) {
-        FileType.CSV -> MimeTypes.CSV
-        FileType.GEOJSON -> MimeTypes.GEOJSON
-        FileType.RAW -> MimeTypes.RAW
+        FileType.CSV -> MimeType.CSV
+        FileType.GEOJSON -> MimeType.GEOJSON
+        FileType.RAW -> MimeType.RAW
     }
 }

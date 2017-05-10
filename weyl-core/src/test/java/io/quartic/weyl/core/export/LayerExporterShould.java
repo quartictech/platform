@@ -35,7 +35,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import static io.quartic.catalogue.api.model.MimeTypes.GEOJSON;
+import static io.quartic.catalogue.api.model.MimeType.GEOJSON;
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
