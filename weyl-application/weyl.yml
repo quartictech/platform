@@ -6,7 +6,7 @@ catalogue:
 howlStorageUrl: http://localhost:8120/api
 rainWsUrlRoot: ws://localhost:8150/ws
 
-defaultCatalogueNamespace: production
+defaultCatalogueNamespace: weyl-export
 
 # All of London
 map:
