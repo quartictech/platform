@@ -113,7 +113,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getDefaultCatalogueNamespace()));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportCatalogueNamespace()));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws",
                 createWebsocketEndpoint(snapshotSequences, alertResource, configuration.getMap())));
@@ -167,13 +167,13 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
             Observable<LayerSnapshotSequence> layerSnapshotSequences,
             HowlClient howlClient,
             CatalogueService catalogueService,
-            DatasetNamespace defaultCatalogueNamespace
+            DatasetNamespace exportCatalogueNamespace
     ) {
         LayerExporter layerExporter = new LayerExporter(
                 layerSnapshotSequences,
                 new HowlGeoJsonLayerWriter(howlClient, featureConverter()),
                 catalogueService,
-                defaultCatalogueNamespace);
+                exportCatalogueNamespace);
         return new LayerExportResource(layerExporter);
     }
 

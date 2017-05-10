@@ -32,5 +32,9 @@ class WeylConfiguration : Configuration() {
 
     @Valid
     @NotNull
+    var exportCatalogueNamespace: DatasetNamespace? = null
+
+    @Valid
+    @NotNull
     var map: MapConfig? = null
 }
