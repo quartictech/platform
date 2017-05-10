@@ -263,12 +263,12 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           content={this.layerSettings(layer)}
           interactionKind={PopoverInteractionKind.CLICK}
           position={Position.RIGHT_TOP}
-          tetherOptions={{ 
-              constraints: [{   
-                attachment: "together",
-                pin: true,
-                to: "window",
-              }]
+          tetherOptions={{
+            constraints: [{
+              attachment: "together",
+              pin: true,
+              to: "window",
+            }],
           }}
         >
           <Button
