@@ -6,7 +6,7 @@ import io.quartic.common.geojson.*
 
 private val factory = GeometryFactory()
 
-fun toJts(geometry: Geometry) = when (geometry) {
+fun toJts(geometry: Geometry): com.vividsolutions.jts.geom.Geometry = when (geometry) {
     is Point -> factory.createPoint(listToCoord(geometry.coordinates))
     is LineString -> factory.createLineString(listToCoords(geometry.coordinates))
     is Polygon -> createPolygon(geometry.coordinates)
@@ -17,6 +17,8 @@ fun toJts(geometry: Geometry) = when (geometry) {
     is MultiPolygon -> factory.createMultiPolygon(geometry.coordinates
             .map(::createPolygon)
             .toTypedArray())
+    is GeometryCollection -> factory
+                .createGeometryCollection(geometry.geometries.map(::toJts).toTypedArray())
     else -> throw RuntimeException("Unsupported geometry type: ${geometry.javaClass.canonicalName}")
 }
 
