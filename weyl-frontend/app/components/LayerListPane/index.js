@@ -320,7 +320,7 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
   }
 }
 
-const isColourable = (attribute) => (attribute.type === "NUMERIC") || (attribute.categories != null);
+const isColourable = (attribute) => (attribute.type === "NUMERIC") || attribute.categories;
 
 const toggleOnPredicate = (node, predicate) => (predicate ? node.onCollapse() : node.onExpand());
 
