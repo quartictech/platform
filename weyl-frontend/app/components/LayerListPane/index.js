@@ -263,6 +263,15 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
           content={this.layerSettings(layer)}
           interactionKind={PopoverInteractionKind.CLICK}
           position={Position.RIGHT_TOP}
+          // these options seem to prevent a bug where the body gets scrolled when the popover goes beyond the page bottom
+          // since we have set overflow:hidden, this behaviour is particularly confusing :(
+          tetherOptions={{
+            constraints: [{
+              attachment: "together",
+              pin: true,
+              to: "window",
+            }],
+          }}
         >
           <Button
             iconName="settings"
