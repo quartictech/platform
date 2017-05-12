@@ -85,7 +85,7 @@ export function buildStyleLayers(layer) {
         "line-color": colorStyle(style.attribute, style.line, attributes, attributeStats),
         "line-width": 5,
       },
-      filter: ["==", "$type", "LineString"],
+      filter: filter(style.attribute, "LineString"),
     },
   };
 }
