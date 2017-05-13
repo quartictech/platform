@@ -1,0 +1,14 @@
+ext {
+    versions = [:]
+    libraries = [:]
+}
+
+versions.dropwizard = "1.1.0"
+versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard currently pulls in
+versions.platform = "1284"
+
+libraries.testCommon = [
+        "junit:junit:4.12",
+        "org.hamcrest:hamcrest-all:1.3",
+        "com.nhaarman:mockito-kotlin:1.1.0",
+]
