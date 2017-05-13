@@ -1,0 +1,11 @@
+# TODO: this isn't a real thing
+message: "Hello world"
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8160
+  adminConnectors:
+    - type: http
+      port: 8161

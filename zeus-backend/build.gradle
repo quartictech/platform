@@ -15,6 +15,7 @@ dependencies {
         compile project(":zeus-frontend")
     }
     compile "io.quartic.platform:common-application:${versions.platform}"
+    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
 
     testCompile libraries.testCommon
     testCompile "io.quartic.platform:common-test:${versions.platform}"
