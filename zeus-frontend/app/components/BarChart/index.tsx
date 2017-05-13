@@ -33,8 +33,8 @@ class RealBarChart  extends React.Component<IProps, any> {
       plot.redraw();
     });
 
-    //const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
-    //const group = new Plottable.Components.Group([yAxis, plot]);
+    // const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
+    // const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
       [yLabel, yAxis, chart],

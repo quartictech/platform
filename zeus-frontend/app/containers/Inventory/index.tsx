@@ -65,7 +65,11 @@ const COLUMNS: IColumn[] = [
 ];
 
 class Inventory extends React.Component<IProps, IState> {
-  private filterAssets = (assets: { [id : string]: IAsset }, _filterColumn: number, _filterValue: string, _filterInvert: boolean) => {
+  private filterAssets = (
+    assets: { [id : string]: IAsset },
+    _filterColumn: number,
+    _filterValue: string,
+    _filterInvert: boolean) => {
     // HACK!!!
     const MAGIC_ASSET_IDS = ["AB74476", "AB29632", "AB65062", "AB10711"];
     return _.filter(_.values(assets), asset => MAGIC_ASSET_IDS.indexOf(asset.id) > -1);
@@ -75,7 +79,8 @@ class Inventory extends React.Component<IProps, IState> {
 
     // return _.filter(
     //   _.values(assets),
-    //   asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase().indexOf(filterValue.toLocaleLowerCase()) !== -1) !== filterInvert
+    //   asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase()
+    //    .indexOf(filterValue.toLocaleLowerCase()) !== -1) !== filterInvert
     // );
   }
 
@@ -98,7 +103,9 @@ class Inventory extends React.Component<IProps, IState> {
   }
 
   render() {
-    const filteredAssets = this.filterAssets(this.props.assets, this.state.filterColumn, this.state.filterValue, this.state.filterInvert );
+    const filteredAssets = this.filterAssets(
+      this.props.assets, this.state.filterColumn, this.state.filterValue, this.state.filterInvert
+    );
     const selectedAssets = this.state.selectedRows.map(i => filteredAssets[i]);
 
     return (
@@ -107,7 +114,10 @@ class Inventory extends React.Component<IProps, IState> {
 
             <div className="pt-control-group">
               <div className="pt-select">
-                <select value={this.state.filterColumn} onChange={e => this.setState({ filterColumn: +e.target.value })}>
+                <select
+                  value={this.state.filterColumn}
+                  onChange={e => this.setState({ filterColumn: +e.target.value })}
+                >
                   <option value="-1">Filter...</option>
                   { COLUMNS.map((col, idx) => <option key={col.name} value={`${idx}`}>{col.name}</option>) }
                 </select>
@@ -336,7 +346,9 @@ class Inventory extends React.Component<IProps, IState> {
       .value();
 }
 
-const dateToString = (date: Date) => date.getFullYear() + "/" + formatDateComponent(date.getMonth() + 1) + "/" + formatDateComponent(date.getDate());
+const dateToString = (date: Date) => date.getFullYear()
+  + "/" + formatDateComponent(date.getMonth() + 1)
+  + "/" + formatDateComponent(date.getDate());
 const formatDateComponent = (x: number) => ((x < 10) ? "0" : "") + x;
 
 const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
