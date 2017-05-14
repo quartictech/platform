@@ -1,0 +1,21 @@
+pluginManagement.repositories {
+    maven {
+        url "s3://quartictech-repo.s3.eu-west-2.amazonaws.com/maven2"
+        credentials(AwsCredentials) {
+            new File("${System.properties["user.home"]}/.aws/credentials").eachLine { line ->
+                def matcher = line =~ /^(aws_access_key_id|aws_secret_access_key)\s*=\s(.*)$/
+                if (matcher) {
+                    if (matcher[0][1] == "aws_access_key_id") {
+                        accessKey matcher[0][2]
+                    } else {
+                        secretKey matcher[0][2]
+                    }
+                }
+            }
+        }
+    }
+    gradlePluginPortal()
+}
+
+include ":zeus-frontend"
+include ":zeus-backend"

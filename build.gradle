@@ -1,0 +1,21 @@
+allprojects {
+    apply plugin: "java"
+    apply from: "${rootDir}/gradle/dependencies.gradle"
+    apply from: "${rootDir}/gradle/quartic-repos.gradle"
+
+    repositories {
+        mavenCentral()
+    }
+    
+    // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
+    }
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group "io.quartic.zeus"
+    version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
+}
+

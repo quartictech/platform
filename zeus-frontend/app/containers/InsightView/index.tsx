@@ -18,10 +18,10 @@ import { Map } from "../../components";
 interface IProps {
   ui: any;
   insights: [IInsight];
-  assets: {[id:string]: IAsset};
+  assets: { [id: string]: IAsset };
   params: { 
     insightId: string;
-  }
+  };
 }
 
 interface IState {
@@ -30,21 +30,26 @@ interface IState {
 
 const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
     return insight.assetIds.map(assetId => assets[assetId]);
-}
+};
 
 const Asset = ({ insight, asset }) => {
-  const failed = insight.unfailedAssetIds.indexOf(asset.id) == -1;
+  const failed = insight.unfailedAssetIds.indexOf(asset.id) === -1;
     // HACK: I'm filtering out failures here because the data is all fake
     return (
     <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
             <h5>
-              <Link to={`/assets/${asset.id}`}>{asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}</Link>
+              <Link to={`/assets/${asset.id}`}>
+                {asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}
+              </Link>
             </h5>
               { failed ? <span className="pt-tag pt-intent-danger" style={{float: "right"}}>Failed</span> :
           <span className="pt-tag pt-intent-success" style={{ float: "right" }}>No failure</span> }
-            <TimeChart yLabel="Voltage" events={failed? asset.events : asset.events.filter(ev => ev.type != "failure")}/>
+            <TimeChart
+              yLabel="Voltage"
+              events={failed ? asset.events : asset.events.filter(ev => ev.type !== "failure")}
+            />
           </div>);
-}
+};
 
 class InsightView extends React.Component<IProps, IState> {
   public state : IState = {
@@ -52,7 +57,7 @@ class InsightView extends React.Component<IProps, IState> {
   };
 
   render() {
-    const insight = this.props.insights.filter(i => i.id == this.props.params.insightId)[0];
+    const insight = this.props.insights.filter(i => i.id === this.props.params.insightId)[0];
     const assets = joinAssets(insight, this.props.assets);
     return (
 <div className={s.container}>
@@ -81,7 +86,11 @@ class InsightView extends React.Component<IProps, IState> {
         </div>
 
      <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-      <Map height={100} locations={assets.map((asset) => asset.location)} colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)} />
+      <Map
+        height={100}
+        locations={assets.map((asset) => asset.location)}
+        colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)}
+      />
       </div>
 
         { assets.map(asset => <Asset key={asset.id} asset={asset} insight={insight} /> )}
@@ -94,7 +103,12 @@ class InsightView extends React.Component<IProps, IState> {
           4 / 10 of similar assets have not yet failed. 
           </p>
           <p><b>Consider scheduling proactive maintenance.</b></p>
-          <Link className="pt-button pt-intent-primary"  to={{ pathname: "/inventory", query: {clazz: "Signal"}}}>View</Link>
+          <Link
+            className="pt-button pt-intent-primary"
+            to={{ pathname: "/inventory", query: {clazz: "Signal"}}}
+          >
+            View
+          </Link>
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 plugins {
     id "com.moowork.node" version "1.0.1"
     id "java"
-    id "idea"
 }
 
 apply from: "${rootDir}/gradle/frontend.gradle"

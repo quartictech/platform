@@ -9,7 +9,7 @@ const s = require("./style.css");
 
 interface IProps {
   ui: any;
-  assets: {[id:string]: IAsset};
+  assets: {[id: string]: IAsset};
   params: {
     assetId: string;
   };

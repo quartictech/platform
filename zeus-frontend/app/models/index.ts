@@ -5,9 +5,9 @@ export interface INote {
 }
 
 export interface IAssetModel {
-  name: string,
-  manufacturer: string,
-  snGen: () => string
+  name: string;
+  manufacturer: string;
+  snGen: () => string;
 };
 
 export interface ILatLon {
@@ -47,7 +47,7 @@ export interface IInsight {
     data: IBar[];
     xLabel: string;
     yLabel: string;
-  },
+  };
   assetIds?: string[];
   unfailedAssetIds?: string[];
   subInsights: ISubInsight[];

@@ -15,14 +15,12 @@ interface ITimeChartProps {
 
 function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
   const data = [];
-  for (var d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+  for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
     data.push({
-      x:new Date(d),
+      x: new Date(d),
       y: Math.random()
-  });
-
-}
-
+    });
+  }
   return data;
 }
 
@@ -38,17 +36,17 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
     const yScale = new Plottable.Scales.Linear();
     yScale.range([0, 1]);
     const xAxis = new Plottable.Axes.Time(xScale, "bottom");
-    var colorScale = new Plottable.Scales.Color();
-    colorScale.domain(["maintenance", "failure"])
-    colorScale.range(['#1F77B4', '#db1e7b']);
+    const colorScale = new Plottable.Scales.Color();
+    colorScale.domain(["maintenance", "failure"]);
+    colorScale.range(["#1F77B4", "#db1e7b"]);
     const gridLines = new Plottable.Components.Gridlines(xScale, null);
 
     const yLabel = new Plottable.Components.AxisLabel(this.props.yLabel, 270);
 
     const yScaleTimeSeries = new Plottable.Scales.Linear();
 
-    const maintenance = this.props.events.filter(event => event.type == "maintenance")
-    const failures = this.props.events.filter(event => event.type === "failure")
+    const maintenance = this.props.events.filter(event => event.type === "maintenance");
+    const failures = this.props.events.filter(event => event.type === "failure");
     const plot = new Plottable.Plots.Segment()
       .addDataset(new Plottable.Dataset(maintenance).metadata("maintenance"))
       .addDataset(new Plottable.Dataset(failures).metadata("failure"))
@@ -73,8 +71,8 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
       plot.redraw();
     });
 
-    //const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
-    //const group = new Plottable.Components.Group([yAxis, plot]);
+    // const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
+    // const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
       [yLabel, chart],
