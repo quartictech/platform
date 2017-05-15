@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
 import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.catalogue.api.model.DatasetNamespace;
-import io.quartic.catalogue.api.model.GeoJsonDatasetLocator;
 import org.junit.Test;
 import org.mockito.InOrder;
 
@@ -168,7 +168,7 @@ public class CatalogueResourceShould {
     private DatasetConfig config(Instant instant) {
         return new DatasetConfig(
                 new DatasetMetadata("foo", "bar", "baz", instant),
-                new GeoJsonDatasetLocator("blah"),
+                new DatasetLocator.GeoJsonDatasetLocator("blah"),
                 emptyMap()
         );
     }

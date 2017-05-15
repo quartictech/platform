@@ -1,8 +1,8 @@
 package io.quartic.weyl.core.source
 
 import com.google.common.collect.ImmutableMap
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator
 import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.common.serdes.objectMapper
 import io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK
@@ -75,7 +75,7 @@ class ExtensionCodecShould {
                 LOCATION_AND_TRACK)
         val datasetConfig = DatasetConfig(
                 DatasetMetadata("foo", "wat", "nope", null),
-                CloudGeoJsonDatasetLocator("test", false),
+                DatasetLocator.CloudGeoJsonDatasetLocator("test", false),
                 codec.encode(extension))
 
         val json = objectMapper().writeValueAsString(datasetConfig)
