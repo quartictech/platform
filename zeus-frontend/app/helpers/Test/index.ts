@@ -11,4 +11,4 @@ function createMockStore(initialState) {
   return mockStore(initialState);
 }
 
-export { createMockStore }
+export { createMockStore };

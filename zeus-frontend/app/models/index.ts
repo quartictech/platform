@@ -1,6 +1,6 @@
 export interface Note {
   id: string;
-  created: Date;
+  timestamp: Date;
   text: string;
 }
 
@@ -8,31 +8,31 @@ export interface AssetModel {
   name: string;
   manufacturer: string;
   snGen: () => string;
-};
+}
 
 export interface LatLon {
   lat: number;
   lon: number;
-};
+}
 
 export interface Asset {
   id: string;
   clazz: string;
   model: AssetModel;
   serial: string;
-  purchaseDate: Date;
-  lastInspectionDate: Date;
+  purchaseTimestamp: Date;
+  lastInspectionTimestamp: Date;
   lastInspectionSignoff: string;
-  retirementDate: Date;
+  retirementTimestamp: Date;
   location: LatLon;
   notes: Note[];
   events: MaintenanceEvent[];
-};
+}
 
 export interface Bar {
   name: string;
   value: number;
-};
+}
 
 export interface SubInsight {
   icon: string;
@@ -68,7 +68,6 @@ export interface TimeSeriesPoint {
 
 export interface MaintenanceEvent {
   type: string;
-  date: Date;
+  timestamp: Date;
 }
-
 

@@ -33,4 +33,4 @@ const rootReducer: Redux.Reducer<any> = combineReducers({
   ui: uiReducer,
 });
 
-export { rootReducer }
+export { rootReducer };

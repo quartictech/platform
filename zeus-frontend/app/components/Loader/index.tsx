@@ -12,4 +12,4 @@ class Loader extends React.Component<void, void> {
   }
 }
 
-export { Loader }
+export { Loader };

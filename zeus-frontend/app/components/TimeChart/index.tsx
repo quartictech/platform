@@ -98,4 +98,4 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
   }
 }
 
-export const TimeChart = SizeMe()(RealTimeChart);
+export const TimeChart = SizeMe()(RealTimeChart); // tslint:disable-line:variable-name

@@ -12,7 +12,7 @@ interface IMapProps {
   locations: LatLon[];
   colors: number[];
   width: number;
-};
+}
 
 const circleLayer = (id, locations, width, color) => ({
       "id": id,
@@ -74,4 +74,4 @@ class RealMap  extends React.Component<IMapProps, any> {
   }
 }
 
-export const Map = SizeMe()(RealMap);
+export const Map = SizeMe()(RealMap); // tslint:disable-line:variable-name

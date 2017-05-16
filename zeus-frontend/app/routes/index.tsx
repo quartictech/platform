@@ -11,6 +11,6 @@ function getRoutes() { return (
       <IndexRedirect to="/insights" />
     </Route>
   );
-};
+}
 
-export { getRoutes }
+export { getRoutes };

@@ -4,6 +4,7 @@ import { BarChart } from "../BarChart";
 import { TimeChart } from "../TimeChart";
 import * as _ from "underscore";
 
+// tslint:disable-next-line:variable-name
 const InsightSummary = ({ insight, assets }) => (
       <div>
       { insight.insightType === "failure"
@@ -16,4 +17,4 @@ const InsightSummary = ({ insight, assets }) => (
       </div>
      );
 
-export { InsightSummary }
+export { InsightSummary };

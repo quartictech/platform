@@ -11,7 +11,7 @@ interface IProps {
   data: Bar[];
   xLabel: string;
   yLabel: string;
-};
+}
 
 class RealBarChart  extends React.Component<IProps, any> {
   createChart() {
@@ -61,4 +61,4 @@ class RealBarChart  extends React.Component<IProps, any> {
   }
 }
 
-export const BarChart = SizeMe()(RealBarChart);
+export const BarChart = SizeMe()(RealBarChart); // tslint:disable-line:variable-name

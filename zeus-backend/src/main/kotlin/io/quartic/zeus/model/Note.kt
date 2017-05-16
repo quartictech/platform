@@ -4,6 +4,6 @@ import java.time.ZonedDateTime
 
 data class Note(
         val id: NoteId,
-        val created: ZonedDateTime,
+        val timestamp: ZonedDateTime,
         val text: String
 )

@@ -7,10 +7,10 @@ data class Asset(
     val clazz: String,
     val model: AssetModel,
     val serial: String,
-    val purchaseDate: ZonedDateTime,
-    val lastInspectionDate: ZonedDateTime,
+    val purchaseTimestamp: ZonedDateTime,
+    val lastInspectionTimestamp: ZonedDateTime,
     val lastInspectionSignoff: String,
-    val retirementDate: ZonedDateTime,
+    val retirementTimestamp: ZonedDateTime,
     val location: Location,
     val notes: List<Note>,
     val events: List<MaintenanceEvent>

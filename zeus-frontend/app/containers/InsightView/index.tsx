@@ -26,10 +26,10 @@ interface IProps {
 
 interface IState {
   datasetId: string;
-};
+}
 
 const joinAssets = (insight: Insight, assets: {[id: string]: Asset}) => {
-    return insight.assetIds.map(assetId => assets[assetId]);
+  return insight.assetIds.map(assetId => assets[assetId]);
 };
 
 const Asset = ({ insight, asset }) => {
