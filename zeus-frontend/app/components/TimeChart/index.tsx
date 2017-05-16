@@ -3,17 +3,17 @@ import * as React from "react";
 import * as Plottable from "plottable";
 const s = require("./style.css");
 
-import { IMaintenanceEvent, ITimeSeriesPoint } from "../../models";
+import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
 
 import SizeMe from "react-sizeme";
 
 interface ITimeChartProps {
-  events: IMaintenanceEvent[];
-  timeSeries: ITimeSeriesPoint[];
+  events: MaintenanceEvent[];
+  timeSeries: TimeSeriesPoint[];
   yLabel: string;
 }
 
-function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
+function generateTimeSeries(startDate: Date, endDate): TimeSeriesPoint[] {
   const data = [];
   for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
     data.push({
@@ -25,7 +25,7 @@ function generateTimeSeries(startDate: Date, endDate): ITimeSeriesPoint[] {
 }
 
 class RealTimeChart  extends React.Component<ITimeChartProps, any> {
-  timeSeries: ITimeSeriesPoint[] = generateTimeSeries(new Date(2016, 1, 1), Date.now());
+  timeSeries: TimeSeriesPoint[] = generateTimeSeries(new Date(2016, 1, 1), Date.now());
 
   constructor() {
     super();

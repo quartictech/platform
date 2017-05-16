@@ -3,12 +3,12 @@ import * as React from "react";
 import * as Plottable from "plottable";
 const s = require("./style.css");
 
-import { IBar } from "../../models";
+import { Bar } from "../../models";
 
 import SizeMe from "react-sizeme";
 
 interface IProps {
-  data: IBar[];
+  data: Bar[];
   xLabel: string;
   yLabel: string;
 };

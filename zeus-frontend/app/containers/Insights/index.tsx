@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
-import { IInsight, IAsset } from "../../models";
+import { Insight, Asset } from "../../models";
 const s = require("./style.css");
 
 import * as classNames from "classnames";
@@ -15,8 +15,8 @@ import { InsightSummary } from "../../components";
 
 interface IProps {
   ui: any;
-  insights: IInsight[];
-  assets: {[id: string] : IAsset};
+  insights: Insight[];
+  assets: {[id: string] : Asset};
   location?: {
     query?: {
       insightType: string;
@@ -28,8 +28,8 @@ interface IState {
 };
 
 interface IInsightProps {
-  insight: IInsight;
-  assets: {[id: string] : IAsset};
+  insight: Insight;
+  assets: {[id: string] : Asset};
 };
 
 const Insight = (props: IInsightProps) => (

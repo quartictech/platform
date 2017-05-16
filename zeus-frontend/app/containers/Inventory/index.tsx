@@ -15,7 +15,7 @@ import {
   Table,
 } from "@blueprintjs/table";
 
-import { IAsset } from "../../models";
+import { Asset } from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
@@ -24,8 +24,9 @@ import * as _ from "underscore";
 const s = require("./style.css");
 
 interface IProps {
+  assetsRequired: () => void;
   createNote: (assetIds: string[], text: string) => void;
-  assets: { [id : string]: IAsset };
+  assets: { [id : string]: Asset };
   location?: {
     query?: { [key : string]: string };
   };
@@ -66,7 +67,7 @@ const COLUMNS: IColumn[] = [
 
 class Inventory extends React.Component<IProps, IState> {
   private filterAssets = (
-    assets: { [id : string]: IAsset },
+    assets: { [id : string]: Asset },
     _filterColumn: number,
     _filterValue: string,
     _filterInvert: boolean) => {
@@ -100,6 +101,10 @@ class Inventory extends React.Component<IProps, IState> {
       dialogMode: DialogMode.None,
       noteText: "",
     };
+  }
+
+  componentDidMount() {
+    this.props.assetsRequired();
   }
 
   render() {
@@ -185,7 +190,7 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  private renderDialog(selectedAssets: IAsset[]) {
+  private renderDialog(selectedAssets: Asset[]) {
     if (selectedAssets.length === 0) {
       return null;
     }
@@ -330,7 +335,7 @@ class Inventory extends React.Component<IProps, IState> {
     }
   }
 
-  private uniqueNotes = (assets: IAsset[]) =>
+  private uniqueNotes = (assets: Asset[]) =>
     _.chain(assets)
       .map(a => a.notes)
       .flatten()
@@ -355,6 +360,7 @@ const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
 
 
 const mapDispatchToProps = {
+  assetsRequired: actions.assets.required,
   createNote: actions.createNote,
 };
 

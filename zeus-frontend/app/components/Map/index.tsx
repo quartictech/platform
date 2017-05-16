@@ -2,14 +2,14 @@ import * as React from "react";
 
 const s = require("./style.css");
 
-import { ILatLon } from "../../models";
+import { LatLon } from "../../models";
 
 import SizeMe from "react-sizeme";
 
 import mapboxgl from "./mapbox-gl-helper";
 
 interface IMapProps {
-  locations: ILatLon[];
+  locations: LatLon[];
   colors: number[];
   width: number;
 };
