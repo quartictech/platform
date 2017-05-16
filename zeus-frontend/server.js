@@ -13,7 +13,10 @@ app.use(proxy("/ws", { target: "ws://localhost:8160" }));
 
 app.use(require('webpack-dev-middleware')(compiler, {
 	noInfo: true,
-	publicPath: config.output.publicPath
+	publicPath: config.output.publicPath,
+	stats: {
+		colors: true,
+	},
 }));
 
 app.use(require('webpack-hot-middleware')(compiler));
