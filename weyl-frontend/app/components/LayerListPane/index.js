@@ -12,6 +12,7 @@ import {
   Position,
   Tree,
   Tooltip,
+  RangeSlider,
 } from "@blueprintjs/core";
 
 import classNames from "classnames";
@@ -278,6 +279,47 @@ class LayerListPane extends React.Component { // eslint-disable-line react/prefe
             className={Classes.MINIMAL}
           />
         </Popover>
+        {layer.style.attribute ? <Popover
+          autoFocus={false}
+          enforceFocus={false}
+          content={this.colorBySettings(layer)}
+          interactionKind={PopoverInteractionKind.CLICK}
+          position={Position.RIGHT_TOP}
+          // these options seem to prevent a bug where the body gets scrolled when the popover goes beyond the page bottom
+          // since we have set overflow:hidden, this behaviour is particularly confusing :(
+          tetherOptions={{
+            constraints: [{
+              attachment: "together",
+              pin: true,
+              to: "window",
+            }],
+          }}
+        >
+          <Button
+            iconName="tint"
+            className={Classes.MINIMAL}
+          />
+        </Popover> : null}
+
+      </div>
+    );
+  }
+
+  colorBySettings(layer) {
+    const stats = layer.stats.attributeStats[layer.style.attribute];
+    const step = (stats.maximum - stats.minimum) * 0.01;
+    return (
+      <div style={{ padding: 30 }}>
+        { layer.style.attribute }
+        <RangeSlider
+          min={stats.minimum}
+          max={stats.maximum}
+          stepSize={step}
+          labelStepSize={step * 50}
+          labelPrecision={2}
+          value={[layer.style.attributeRange.minimum, layer.style.attributeRange.maximum]}
+          onChange={([x, y]) => this.props.onLayerStyleChange(layer.id, "ATTRIBUTE_RANGE", { minimum: x, maximum: y })}
+        />
       </div>
     );
   }

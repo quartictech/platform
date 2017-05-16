@@ -14,7 +14,7 @@ function computeNumericStops(colorScale, numStops, minValue, maxValue) {
 }
 
  // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully in various places
-function colorStyle(attribute, style, attributes, attributeStats) {
+function colorStyle(attribute, style, attributes, attributeRange) {
   if (!attribute) {
     return style.color;
   }
@@ -25,13 +25,13 @@ function colorStyle(attribute, style, attributes, attributeStats) {
   }
 
   if (!attributeInfo.categories) {
-    if (!(attribute in attributeStats)) {
+    if (!attributeRange) {
       return style.color;
     }
 
     return {
       "property": attribute,
-      "stops": computeNumericStops(style.colorScale, 8, attributeStats[attribute].minimum, attributeStats[attribute].maximum),
+      "stops": computeNumericStops(style.colorScale, 8, attributeRange.minimum, attributeRange.maximum),
     };
   }
 
@@ -42,31 +42,35 @@ function colorStyle(attribute, style, attributes, attributeStats) {
   };
 }
 
-function filter(attribute, geomType) {
+function filter(attribute, geomType, attributeRange) {
   const geomFilter = ["==", "$type", geomType];
   if (attribute != null) {
     const attrFilter = ["has", attribute];
+    if (attributeRange != null) {
+      const rangefilter = ["all", ["<=", attribute, attributeRange.maximum], [">=", attribute, attributeRange.minimum]];
+      return ["all", geomFilter, attrFilter, rangefilter];
+    }
     return ["all", geomFilter, attrFilter];
   }
   return geomFilter;
 }
 
 export function buildStyleLayers(layer) {
-  const [layerName, style, attributes, attributeStats] = [layer.metadata.name, layer.style, layer.dynamicSchema.attributes, layer.stats.attributeStats];
+  const [layerName, style, attributes, attributeRange] = [layer.metadata.name, layer.style, layer.dynamicSchema.attributes, layer.style.attributeRange];
   if (layerName in customStyles) {
     return customStyles[layerName];
   } else if (layer.live) {
-    return Object.assign({}, liveLayerStyle, { polygon: polygonSpec(style, attributes, attributeStats) });
+    return Object.assign({}, liveLayerStyle, { polygon: polygonSpec(style, attributes, attributeRange) });
   }
   return {
     point: {
       type: "circle",
       paint: {
         "circle-radius": style.point["circle-radius"] - 2,
-        "circle-color": colorStyle(style.attribute, style.point, attributes, attributeStats),
+        "circle-color": colorStyle(style.attribute, style.point, attributes, attributeRange),
         "circle-opacity": style.opacity,
       },
-      filter: filter(style.attribute, "Point"),
+      filter: filter(style.attribute, "Point", attributeRange),
     },
     point2: {
       type: "circle",
@@ -75,25 +79,25 @@ export function buildStyleLayers(layer) {
         "circle-color": "#FFFFFF",
         "circle-opacity": style.opacity,
       },
-      filter: filter(style.attribute, "Point"),
+      filter: filter(style.attribute, "Point", attributeRange),
       _zorder: 1,
     },
-    polygon: polygonSpec(style, attributes, attributeStats),
+    polygon: polygonSpec(style, attributes, attributeRange),
     line: {
       type: "line",
       paint: {
-        "line-color": colorStyle(style.attribute, style.line, attributes, attributeStats),
+        "line-color": colorStyle(style.attribute, style.line, attributes, attributeRange),
         "line-width": 5,
       },
-      filter: filter(style.attribute, "LineString"),
+      filter: filter(style.attribute, "LineString", attributeRange),
     },
   };
 }
 
-const polygonSpec = (style, attributes, attributeStats) => ({
+const polygonSpec = (style, attributes, attributeRange) => ({
   type: "fill",
   paint: {
-    "fill-color": style.isTransparent ? "rgba(0, 0, 0, 0)" : colorStyle(style.attribute, style.polygon, attributes, attributeStats),
+    "fill-color": style.isTransparent ? "rgba(0, 0, 0, 0)" : colorStyle(style.attribute, style.polygon, attributes, attributeRange),
     "fill-outline-color": style.polygon["fill-outline-color"],
     "fill-opacity": style.opacity,
   },
