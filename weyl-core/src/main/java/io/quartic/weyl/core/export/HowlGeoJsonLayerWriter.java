@@ -1,6 +1,7 @@
 package io.quartic.weyl.core.export;
 
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetLocator;
+import io.quartic.catalogue.api.model.MimeType;
 import io.quartic.common.geojson.GeoJsonGenerator;
 import io.quartic.howl.api.HowlClient;
 import io.quartic.howl.api.HowlStorageId;
@@ -30,7 +31,8 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
                     layer.getFeatures().stream().map((f) -> featureConverter.toGeojson(FeatureConverter.DEFAULT_MANIPULATOR, f)));
         });
         return new LayerExportResult(
-                new CloudGeoJsonDatasetLocator(String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId), false),
+                new DatasetLocator.CloudDatasetLocator(
+                        String.format("/%s/%s", HOWL_NAMESPACE, howlStorageId), false, MimeType.GEOJSON),
                 String.format("exported %d features to layer: %s", featureCount[0], layer.getSpec().getMetadata().getName()));
     }
 

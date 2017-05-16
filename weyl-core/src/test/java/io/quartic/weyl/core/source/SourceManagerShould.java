@@ -26,6 +26,7 @@ import rx.subjects.PublishSubject;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -57,16 +58,21 @@ public class SourceManagerShould {
     private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
     private final Interceptor<LayerUpdate> interceptor = new Interceptor<>();
 
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
-            LocatorA.class, config -> sourceOf(layerUpdatesA.compose(interceptor), true),
-            LocatorB.class, config -> sourceOf(layerUpdatesB, false)
-    );
+    private final Function<DatasetConfig, Optional<Source>> sourceFactory = (config) -> {
+        Source source = null;
+        if (config.getLocator() instanceof LocatorA) {
+            source = sourceOf(layerUpdatesA.compose(interceptor), true);
+        } else if (config.getLocator() instanceof LocatorB) {
+            source = sourceOf(layerUpdatesB, false);
+        }
+        return Optional.ofNullable(source);
+    };
 
     private final ExtensionCodec extensionCodec = mock(ExtensionCodec.class);
 
     private final SourceManager manager = new SourceManager(
             catalogueEvents,
-            sourceFactories,
+            sourceFactory,
             Schedulers.immediate(), // Force onto same thread for synchronous behaviour
             extensionCodec
     );

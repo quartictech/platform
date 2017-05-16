@@ -1,9 +1,9 @@
 package io.quartic.mgmt
 
 import io.quartic.catalogue.api.CatalogueService
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.howl.api.HowlService
@@ -43,9 +43,13 @@ class MgmtResource(
             is CreateStaticDatasetRequest -> {
                 try {
                     val name = preprocessFile(request.fileName, request.fileType)
+                    val locator = DatasetLocator.CloudDatasetLocator(
+                            "/%s/%s".format(HOWL_NAMESPACE, name),
+                            false,
+                            request.mimeType())
                     DatasetConfig(
                             request.metadata,
-                            CloudGeoJsonDatasetLocator("/%s/%s".format(HOWL_NAMESPACE, name), false),
+                            locator,
                             emptyMap()
                     )
                 } catch (e: IOException) {

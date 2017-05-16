@@ -3,7 +3,6 @@ package io.quartic.weyl.core.source;
 import io.quartic.catalogue.CatalogueEvent;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetId;
-import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
@@ -17,7 +16,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.observables.GroupedObservable;
 
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
@@ -29,27 +28,27 @@ import static rx.Observable.just;
 public class SourceManager {
     private static final Logger LOG = LoggerFactory.getLogger(SourceManager.class);
     private final Observable<CatalogueEvent> catalogueEvents;
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories;
+    private final Function<DatasetConfig, Optional<Source>> sourceFactory;
     private final Scheduler scheduler;
     private final ExtensionCodec extensionCodec;
     private Observable<LayerPopulator> layerPopulators = null;  // TODO - eliminate grossness to emulate lazy evaluation
 
     public SourceManager(
             Observable<CatalogueEvent> catalogueEvents,
-            Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories,
+            Function<DatasetConfig, Optional<Source>> sourceFactory,
             Scheduler scheduler
     ) {
-        this(catalogueEvents, sourceFactories, scheduler, new ExtensionCodec());
+        this(catalogueEvents, sourceFactory, scheduler, new ExtensionCodec());
     }
 
     public SourceManager(
             Observable<CatalogueEvent> catalogueEvents,
-            Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories,
+            Function<DatasetConfig, Optional<Source>> sourceFactory,
             Scheduler scheduler,
             ExtensionCodec extensionCodec
     ) {
         this.catalogueEvents = catalogueEvents;
-        this.sourceFactories = sourceFactories;
+        this.sourceFactory = sourceFactory;
         this.scheduler = scheduler;
         this.extensionCodec = extensionCodec;
     }
@@ -98,14 +97,14 @@ public class SourceManager {
     }
 
     private Observable<Source> createSource(DatasetId id, DatasetConfig config) {
-        final Function<DatasetConfig, Source> func = sourceFactories.get(config.getLocator().getClass());
-        if (func == null) {
-            LOG.error(format("[%s] Unrecognised config type: %s", id, config.getLocator().getClass()));
-            return empty();
-        }
-
         try {
-            return just(func.apply(config));
+            Optional<Source> source = sourceFactory.apply(config);
+            if (!source.isPresent()) {
+                LOG.error(format("[%s] Unhandled config : %s", id, config.getLocator()));
+                return empty();
+            }
+
+            return just(source.get());
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
             return empty();

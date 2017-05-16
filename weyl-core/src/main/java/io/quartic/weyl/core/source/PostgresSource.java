@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.catalogue.api.model.PostgresDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
@@ -36,15 +36,15 @@ public class PostgresSource implements Source {
 
     private final WKBReader wkbReader = new WKBReader();
     private final String name;
-    private final PostgresDatasetLocator locator;
+    private final DatasetLocator.PostgresDatasetLocator locator;
     private final AttributesFactory attributesFactory;
     private final DBI dbi;
 
-    public PostgresSource(String name, PostgresDatasetLocator locator, AttributesFactory attributesFactory) {
+    public PostgresSource(String name, DatasetLocator.PostgresDatasetLocator locator, AttributesFactory attributesFactory) {
         this(name, locator, attributesFactory, new DBI(locator.getUrl(), locator.getUser(), locator.getPassword()));
     }
 
-    public PostgresSource(String name, PostgresDatasetLocator locator, AttributesFactory attributesFactory, DBI dbi) {
+    public PostgresSource(String name, DatasetLocator.PostgresDatasetLocator locator, AttributesFactory attributesFactory, DBI dbi) {
         this.name = name;
         this.locator = locator;
         this.attributesFactory = attributesFactory;

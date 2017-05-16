@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.index.SpatialIndex;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetNamespace;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static io.quartic.catalogue.api.model.MimeType.GEOJSON;
 import static java.util.stream.Collectors.toCollection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -61,7 +62,7 @@ public class LayerExporterShould {
         @Override
         public LayerExportResult write(Layer layer) {
             layer.getFeatures().stream().collect(toCollection(() -> features));
-            return new LayerExportResult(new CloudGeoJsonDatasetLocator("test", false), "ok");
+            return new LayerExportResult(new DatasetLocator.CloudDatasetLocator("test", false, GEOJSON), "ok");
         }
 
         public List<Feature> getFeatures() {
@@ -84,7 +85,7 @@ public class LayerExporterShould {
         layerExporter.export(exportRequest("layer"))
                 .subscribe(exportResult);
 
-        exportResult.assertValue(Optional.of(new LayerExportResult(new CloudGeoJsonDatasetLocator("test", false), "ok")));
+        exportResult.assertValue(Optional.of(new LayerExportResult(new DatasetLocator.CloudDatasetLocator("test", false, GEOJSON), "ok")));
         assertThat(layerWriter.getFeatures().get(0).getEntityId(), equalTo(features.get(0).getEntityId()));
     }
 
