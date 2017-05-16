@@ -20,7 +20,7 @@ interface IProps {
 
 const Menu = () => (
  <div className={s.menu}>
-          <ul className="pt-menu pt-elevation-1">
+  <ul className="pt-menu pt-elevation-1">
   <li className="pt-menu-header"><h6>Insights</h6></li>
   <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights" }}>All</Link></li>
   <li>

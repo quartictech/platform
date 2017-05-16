@@ -362,7 +362,4 @@ const mapStateToProps = createStructuredSelector({
   assets: selectors.selectAssets,
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Inventory);
+export default connect(mapStateToProps, mapDispatchToProps)(Inventory);

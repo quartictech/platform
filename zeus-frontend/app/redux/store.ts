@@ -1,6 +1,7 @@
-import { createStore, applyMiddleware, compose } from "redux";
+import { createStore, applyMiddleware } from "redux";
 import { routerMiddleware } from "react-router-redux";
 import { browserHistory } from "react-router";
+import { composeWithDevTools } from 'redux-devtools-extension';
 import { rootReducer } from "./reducers";
 const logger = require("redux-logger")();
 const router = routerMiddleware(browserHistory);
@@ -23,13 +24,15 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
 		middlewares.push(logger);
   }
 
-	const finalCreateStore = compose(
-		applyMiddleware(...middlewares)
-	)(createStore);
-
   /** Final Redux Store!!! */
 	// TODO: fix type!
-	const store: Redux.Store<any> = finalCreateStore(rootReducer, initialState);
+	const store: Redux.Store<any> = createStore(
+		rootReducer,
+		initialState,
+		composeWithDevTools(
+			applyMiddleware(...middlewares)
+		)
+	);
 
   /** Adds Hot Reloading Capability to Reducers in Dev. Mode */
 	if (env === "development" && (module as any).hot) {
