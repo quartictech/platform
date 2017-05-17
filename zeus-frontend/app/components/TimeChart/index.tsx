@@ -13,20 +13,7 @@ interface ITimeChartProps {
   yLabel: string;
 }
 
-function generateTimeSeries(startDate: Date, endDate): TimeSeriesPoint[] {
-  const data = [];
-  for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-    data.push({
-      x: new Date(d),
-      y: Math.random()
-    });
-  }
-  return data;
-}
-
-class RealTimeChart  extends React.Component<ITimeChartProps, any> {
-  timeSeries: TimeSeriesPoint[] = generateTimeSeries(new Date(2016, 1, 1), Date.now());
-
+class RealTimeChart extends React.Component<ITimeChartProps, any> {
   constructor() {
     super();
   }
@@ -57,7 +44,7 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
        .y2( _ => 1);
 
     const timeSeriesPlot = new Plottable.Plots.Line()
-      .addDataset(new Plottable.Dataset(this.timeSeries))
+      .addDataset(new Plottable.Dataset(this.props.timeSeries))
       .attr("stroke", _ => "#D3D3D3")
       .x(d => d.x, xScale)
       .y(d => d.y, yScaleTimeSeries);
@@ -85,8 +72,8 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
   render() {
     return (
       <div style={{padding: "10px", width: "99%"}}>
-    <div className={s.chart} style={{width: "100%", height: 150}} ref="svg">
-    </div>
+    <svg className={s.chart} style={{width: "100%", height: 150}} ref="svg">
+    </svg>
     </div>
     );
   }
@@ -98,4 +85,5 @@ class RealTimeChart  extends React.Component<ITimeChartProps, any> {
   }
 }
 
-export const TimeChart = SizeMe()(RealTimeChart); // tslint:disable-line:variable-name
+declare function SizeMe<T>(): (c: React.ComponentClass<T>) => React.ComponentClass<T>
+export const TimeChart = SizeMe<ITimeChartProps>()(RealTimeChart); // tslint:disable-line:variable-name

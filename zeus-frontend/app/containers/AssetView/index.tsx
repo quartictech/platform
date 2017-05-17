@@ -24,6 +24,8 @@ import * as actions from "../../redux/actions";
 import { Asset } from "../../models";
 const s = require("./style.css");
 
+import { TimeChart } from "../../components/TimeChart";
+
 interface IProps {
   ui: any;
   params: {
@@ -44,7 +46,10 @@ class AssetView extends React.Component<IProps, void> {
     switch (asset.status) {
       case ResourceStatus.LOADED:
         return (
-          <h1>{asset.data.clazz}-{asset.data.model.manufacturer}-{asset.data.model.name}-{asset.data.serial}</h1>
+          <div>
+            <h1>{asset.data.clazz}-{asset.data.model.manufacturer}-{asset.data.model.name}-{asset.data.serial}</h1>
+            <TimeChart yLabel="Road Quality" events={[]} timeSeries={[]} />
+          </div>
         );
 
       case ResourceStatus.NOT_LOADED:

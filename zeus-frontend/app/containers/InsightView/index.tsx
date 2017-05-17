@@ -47,6 +47,7 @@ const Asset = ({ insight, asset }) => {
             <TimeChart
               yLabel="Voltage"
               events={failed ? asset.events : asset.events.filter(ev => ev.type !== "failure")}
+              timeSeries={[]}
             />
           </div>);
 };
