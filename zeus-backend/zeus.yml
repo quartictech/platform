@@ -1,5 +1,7 @@
-# TODO: this isn't a real thing
-message: "Hello world"
+datasets:
+  assets:
+    type: classpath
+    resourceName: "/assets.json"
 
 server:
   applicationContextPath: /
