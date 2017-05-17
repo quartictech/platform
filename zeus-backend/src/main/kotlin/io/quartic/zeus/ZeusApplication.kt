@@ -1,13 +1,10 @@
 package io.quartic.zeus
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.dropwizard.assets.AssetsBundle
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.zeus.model.DatasetName
-import io.quartic.zeus.model.ItemId
 import io.quartic.zeus.resource.DatasetResource
 
 class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
@@ -17,14 +14,8 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
 
     override fun runApplication(configuration: ZeusConfiguration, environment: Environment) {
         environment.jersey().register(DatasetResource(mapOf(
-                DatasetName("assets") to assetProvider()
+                DatasetName("assets") to ClasspathDataProvider("/assets.json")  // TODO: get rid of this long-term
         )))
-    }
-
-    private fun assetProvider() = object : DataProvider {
-        override val data by lazy {
-            OBJECT_MAPPER.readValue<Map<ItemId, Map<String, Any>>>(javaClass.getResourceAsStream("/assets.json"))
-        }
     }
 
     companion object {
