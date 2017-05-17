@@ -1,8 +1,8 @@
 package io.quartic.zeus.resource
 
-import io.quartic.zeus.provider.DataProvider
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
+import io.quartic.zeus.provider.DataProvider
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
@@ -14,20 +14,27 @@ class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
     @Path("/{dataset-name}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getAllItemsInDataset(
-            @PathParam("dataset-name") name: DatasetName
-    ) = getDatasetOrThrow(name).mapValues { it.value.filterKeys { !it.startsWith("_") } }
-
+            @PathParam("dataset-name") name: DatasetName,
+            @QueryParam("term") term: String? = null
+    ): Map<ItemId, Map<String, Any>> {
+        return with(getProviderOrThrow(name)) {
+            if (term == null) {
+                data
+            } else {
+                matcher(term)
+            }
+        }.mapValues { it.value.filterKeys { !it.startsWith("_") } }
+    }
+    
     @GET
     @Path("/{dataset-name}/{item-id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemInDataset(
             @PathParam("dataset-name") name: DatasetName,
             @PathParam("item-id") id: ItemId
-    ) = getDatasetOrThrow(name)[id] ?: throw NotFoundException("No item with id '$id'")
+    ) = getProviderOrThrow(name).data[id] ?: throw NotFoundException("No item with id '$id'")
 
-    // TODO: add search endpoint
-
-    private fun getDatasetOrThrow(name: DatasetName) =
-            providers[name]?.data ?: throw NotFoundException("No dataset with name '$name'")
+    private fun getProviderOrThrow(name: DatasetName) =
+            providers[name] ?: throw NotFoundException("No dataset with name '$name'")
 
 }

@@ -34,6 +34,8 @@ class UrlDataProviderShould {
                 )
         )
 
-        assertThat(UrlDataProvider(URL("http://localhost:${wireMockRule.port()}/weird.json")).data, equalTo(data))
+        assertThat(UrlDataProvider(URL("http://localhost:${wireMockRule.port()}/weird.json"), emptyList()).data, equalTo(data))
     }
+
+    // TODO: test filtering
 }

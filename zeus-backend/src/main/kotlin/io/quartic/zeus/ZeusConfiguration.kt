@@ -11,6 +11,7 @@ data class ZeusConfiguration(
 ) : Configuration()
 
 // TODO: is there a sweeter way to automate Jackson polymorphism for sealed classes?
+// TODO: this repetition of indexedAttributes is quite lame
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
         JsonSubTypes.Type(value = ClasspathDataProviderConfiguration::class, name = "classpath"),
@@ -18,5 +19,12 @@ data class ZeusConfiguration(
 )
 sealed class DataProviderConfiguration
 
-data class ClasspathDataProviderConfiguration(val resourceName: String) : DataProviderConfiguration()
-data class UrlDataProviderConfiguration(val url: URL) : DataProviderConfiguration()
+data class ClasspathDataProviderConfiguration(
+        val resourceName: String,
+        val indexedAttributes: List<String> = emptyList()
+) : DataProviderConfiguration()
+
+data class UrlDataProviderConfiguration(
+        val url: URL,
+        val indexedAttributes: List<String> = emptyList()
+) : DataProviderConfiguration()

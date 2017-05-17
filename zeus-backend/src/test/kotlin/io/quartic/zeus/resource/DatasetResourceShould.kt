@@ -1,11 +1,14 @@
 package io.quartic.zeus.resource
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import io.quartic.common.test.assertThrows
-import io.quartic.zeus.provider.DataProvider
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
+import io.quartic.zeus.provider.DataProvider
+import io.quartic.zeus.provider.DataProvider.TermMatcher
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -64,6 +67,22 @@ class DatasetResourceShould {
         val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(filterableData)))
 
         assertThat(resource.getItemInDataset(DatasetName("yeah"), ItemId("789")), equalTo(filterableData[ItemId("789")]))
+    }
+
+    @Test
+    fun pass_term_to_matcher_and_return_only_its_results() {
+        val myMatcher = mock<TermMatcher> {
+            on { invoke(any()) } doReturn simpleData
+        }
+        val provider = mock<DataProvider> {
+            on { matcher } doReturn myMatcher
+        }
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to provider))
+
+        val results = resource.getAllItemsInDataset(DatasetName("yeah"), "hello")
+
+        verify(myMatcher).invoke("hello")
+        assertThat(results, equalTo(simpleData))
     }
 
     private fun providerOf(myData: Map<ItemId, Map<String, Any>>) = mock<DataProvider> {
