@@ -7,6 +7,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.provider.ClasspathDataProvider
+import io.quartic.zeus.provider.UrlDataProvider
 import io.quartic.zeus.resource.DatasetResource
 
 class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
@@ -26,6 +27,7 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
                 val v = it.value
                 when (v) {
                     is ClasspathDataProviderConfiguration -> ClasspathDataProvider(v.resourceName)
+                    is UrlDataProviderConfiguration -> UrlDataProvider(v.url)
                 }
             }
 
