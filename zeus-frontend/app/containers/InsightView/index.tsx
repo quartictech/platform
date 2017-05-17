@@ -19,7 +19,7 @@ interface IProps {
   ui: any;
   insights: [Insight];
   assets: { [id: string]: Asset };
-  params: { 
+  params: {
     insightId: string;
   };
 }
@@ -65,7 +65,7 @@ class InsightView extends React.Component<IProps, IState> {
     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
       <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
       <div className={s.subInsightContainer}>
-        { insight.subInsights ? insight.subInsights.map((sub, idx) => 
+        { insight.subInsights ? insight.subInsights.map((sub, idx) =>
         <div key={idx} className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
           {sub.text}
         </div>) : null }
@@ -76,7 +76,7 @@ class InsightView extends React.Component<IProps, IState> {
         <label className="pt-label pt-inline" style={{marginBottom: 0}}>
               Time Series
               <div className={Classes.SELECT}>
-                  <select> 
+                  <select>
                     <option key={0} value="temperature">Temperature</option>
                     <option key={1} value="pressure">Pressure</option>
                   </select>
@@ -100,7 +100,7 @@ class InsightView extends React.Component<IProps, IState> {
         <div className="pt-card pt-elevation-2">
           <h2>Actions</h2>
           <p>
-          4 / 10 of similar assets have not yet failed. 
+          4 / 10 of similar assets have not yet failed.
           </p>
           <p><b>Consider scheduling proactive maintenance.</b></p>
           <Link

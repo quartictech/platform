@@ -23,17 +23,22 @@ const constants = (resource: ManagedResource<any>) => <ApiConstants> {
   failedToLoad: `API/${resource.shortName}/FAILED_TO_LOAD`,
 };
 
+interface ApiAction<T> extends Action {
+  args: any[];
+  data: T;
+}
+
 interface ApiActionCreators<T> {
-  required: () => Action;
-  beganLoading: () => Action;
-  loaded: (data: T) => Action;
-  failedToLoad: () => Action;
+  required: (...args: any[]) => ApiAction<T>;
+  beganLoading: () => ApiAction<T>;
+  loaded: (data: T) => ApiAction<T>;
+  failedToLoad: () => ApiAction<T>;
 }
 
 export const resourceActions = <T>(resource: ManagedResource<T>) => {
   const c = constants(resource);
-  return <ApiActionCreators<T>> { 
-    required: () => ({ type: c.required }),
+  return <ApiActionCreators<T>> {
+    required: (...args) => ({ type: c.required, args }),
     beganLoading: () => ({ type: c.beganLoading }),
     loaded: (data) => ({ type: c.loaded, data }),
     failedToLoad: () => ({ type: c.failedToLoad }),
@@ -46,11 +51,11 @@ const showError = (message) => toaster.show({
   message
 });
 
-function* fetch<T>(resource: ManagedResource<T>): SagaIterator {
+function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   yield put(resourceActions(resource).beganLoading());
   try {
-    const assets = yield call(resource.endpoint);
-    yield put(resourceActions(resource).loaded(assets));
+    const result = yield call(resource.endpoint, ...action.args);
+    yield put(resourceActions(resource).loaded(result));
   } catch (e) {
     console.warn(e);
     showError(`Error loading ${resource.name}.`);
@@ -107,5 +112,5 @@ export const reducer = <T>(resource: ManagedResource<T>) => (
 export interface ManagedResource<T> {
   name: string;
   shortName: string;
-  endpoint: () => Promise<T>;
+  endpoint: (...args: any[]) => Promise<T>;
 }

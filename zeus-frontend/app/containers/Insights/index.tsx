@@ -32,7 +32,7 @@ interface IInsightProps {
   assets: {[id: string] : Asset};
 }
 
-const Insight = (props: IInsightProps) => (
+const InsightDetail = (props: IInsightProps) => (
   <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
     <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
      <h5>{ props.insight.title }</h5>
@@ -59,7 +59,7 @@ class Insights extends React.Component<IProps, IState> {
       <div className={s.container}>
           { this.props.insights.filter (i => (!this.props.location.query.insightType ||
             i.insightType === this.props.location.query.insightType))
-            .map(insight => (<Insight key={insight.id} insight={insight} assets={this.props.assets} />))}
+            .map(insight => (<InsightDetail key={insight.id} insight={insight} assets={this.props.assets} />))}
       </div>
     );
   }

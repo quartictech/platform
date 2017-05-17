@@ -1,10 +1,10 @@
 import { createStore, applyMiddleware } from "redux";
 import { routerMiddleware } from "react-router-redux";
-import { browserHistory } from "react-router";
+import { appHistory } from "../routes";
 import { composeWithDevTools } from "redux-devtools-extension";
 import { rootReducer } from "./reducers";
 const logger = require("redux-logger")();
-const router = routerMiddleware(browserHistory);
+const router = routerMiddleware(appHistory);
 
 import { sagas } from "./sagas";
 

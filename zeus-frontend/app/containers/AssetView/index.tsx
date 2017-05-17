@@ -2,6 +2,23 @@ import * as React from "react";
 import { connect } from "react-redux";
 
 import { createStructuredSelector } from "reselect";
+
+import {
+  resourceActions,
+  ResourceState,
+  ResourceStatus,
+} from "../../api-management";
+
+import {
+  Classes,
+  NonIdealState,
+  Spinner,
+} from "@blueprintjs/core";
+
+import {
+  asset
+} from "../../api";
+
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 import { Asset } from "../../models";
@@ -9,18 +26,51 @@ const s = require("./style.css");
 
 interface IProps {
   ui: any;
-  assets: {[id: string]: Asset};
   params: {
     assetId: string;
   };
+
+  asset: ResourceState<Asset>;
+  assetRequired: (string) => void;
 }
 
 class AssetView extends React.Component<IProps, void> {
+  componentDidMount() {
+    this.props.assetRequired(this.props.params.assetId);
+  }
+
+  renderData() {
+    const asset = this.props.asset;
+    switch (asset.status) {
+      case ResourceStatus.LOADED:
+        return (
+          <h1>{asset.data.clazz}-{asset.data.model.manufacturer}-{asset.data.model.name}-{asset.data.serial}</h1>
+        );
+
+      case ResourceStatus.NOT_LOADED:
+        return <NonIdealState
+          visual="cross"
+          title="No asset loaded."
+        />;
+
+      case ResourceStatus.LOADING:
+        return <NonIdealState
+          visual={<Spinner className={Classes.LARGE} />}
+          title="Loading asset ..."
+        />;
+
+      case ResourceStatus.ERROR:
+        return <NonIdealState
+          visual="error"
+          title="There was an error loading asset."
+        />;
+    }
+  }
+
   render() {
-    const asset = this.props.assets[this.props.params.assetId];
     return (
       <div className={s.container}>
-        <h1>{asset.clazz}-{asset.model.manufacturer}-{asset.model.name}-{asset.serial}</h1>
+      {this.renderData()}
       </div>
     );
   }
@@ -29,12 +79,13 @@ class AssetView extends React.Component<IProps, void> {
 export { AssetView };
 
 const mapDispatchToProps = {
-  closeNewDatasetModal: () => actions.setActiveModal(null as string)
+  closeNewDatasetModal: () => actions.setActiveModal(null as string),
+  assetRequired: resourceActions(asset).required,
 };
 
 const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi,
-  assets: selectors.selectAssets,
+  asset: selectors.selectAsset,
 });
 
 export default connect(
