@@ -1,4 +1,4 @@
-package io.quartic.zeus
+package io.quartic.zeus.provider
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER

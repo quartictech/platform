@@ -5,6 +5,7 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.zeus.model.DatasetName
+import io.quartic.zeus.provider.ClasspathDataProvider
 import io.quartic.zeus.resource.DatasetResource
 
 class ZeusApplication : ApplicationBase<ZeusConfiguration>() {

@@ -1,6 +1,6 @@
 package io.quartic.zeus.resource
 
-import io.quartic.zeus.DataProvider
+import io.quartic.zeus.provider.DataProvider
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
 import javax.ws.rs.*
