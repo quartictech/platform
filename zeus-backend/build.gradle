@@ -18,5 +18,6 @@ dependencies {
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
 
     testCompile libraries.testCommon
+    testCompile libraries.wiremock
     testCompile "io.quartic.platform:common-test:${versions.platform}"
 }

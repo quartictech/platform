@@ -7,6 +7,8 @@ versions.dropwizard = "1.1.0"
 versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard currently pulls in
 versions.platform = "1284"
 
+libraries.wiremock = "com.github.tomakehurst:wiremock:2.6.0"
+
 libraries.testCommon = [
         "junit:junit:4.12",
         "org.hamcrest:hamcrest-all:1.3",

@@ -1,5 +1,10 @@
-# TODO: this isn't a real thing
-message: "Hello world"
+datasets:
+  assets:
+    type: classpath
+    resourceName: "/assets.json"
+  noobs:
+    type: url
+    url: "http://localhost:8160/api/noob.json"
 
 server:
   applicationContextPath: /

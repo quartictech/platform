@@ -1,4 +1,4 @@
-package io.quartic.zeus
+package io.quartic.zeus.provider
 
 import io.quartic.zeus.model.ItemId
 
