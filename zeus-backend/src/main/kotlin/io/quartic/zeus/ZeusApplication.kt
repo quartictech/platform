@@ -8,7 +8,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
-import io.quartic.zeus.resource.StuffResource
+import io.quartic.zeus.resource.DatasetResource
 
 class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     public override fun initializeApplication(bootstrap: Bootstrap<ZeusConfiguration>) {
@@ -16,7 +16,7 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     }
 
     override fun runApplication(configuration: ZeusConfiguration, environment: Environment) {
-        environment.jersey().register(StuffResource(mapOf(
+        environment.jersey().register(DatasetResource(mapOf(
                 DatasetName("assets") to assetProvider()
         )))
     }

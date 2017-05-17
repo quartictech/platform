@@ -20,5 +20,5 @@ const fetchUtil = <T>(url, options?) => fetch(url, Object.assign({}, options, { 
 export const assets = <ManagedResource<Map<string, Asset>>>{
   name: "assets",
   shortName: "assets",
-  endpoint: () => fetchUtil<Map<string, Asset>>(`${apiRootUrl}/stuff/assets`),
+  endpoint: () => fetchUtil<Map<string, Asset>>(`${apiRootUrl}/datasets/assets`),
 };
