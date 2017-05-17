@@ -9,15 +9,13 @@ import javax.ws.rs.core.MediaType
 @Path("/datasets")
 class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
 
+    // TODO: should potentially do the filtering via a lazy sequence to avoid memory footprint
     @GET
     @Path("/{dataset-name}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getAllItemsInDataset(
             @PathParam("dataset-name") name: DatasetName
-    ) = getDatasetOrThrow(name)
-            .mapValues { removeNestedAttributes(it.value) }
-
-    private fun removeNestedAttributes(item: Map<String, Any>) = item.filterValues { it !is Collection<*> && it !is Map<*,*> }
+    ) = getDatasetOrThrow(name).mapValues { it.value.filterKeys { !it.startsWith("_") } }
 
     @GET
     @Path("/{dataset-name}/{item-id}")

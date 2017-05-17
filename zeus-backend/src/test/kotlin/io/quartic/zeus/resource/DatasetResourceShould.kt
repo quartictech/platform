@@ -18,8 +18,8 @@ class DatasetResourceShould {
             ItemId("456") to mapOf("e" to "f", "g" to "h") as Map<String, Any>
     )
 
-    private val nestedData = mapOf(
-            ItemId("789") to mapOf("a" to "b", "c" to emptyList<Any>(), "d" to emptyMap<Any, Any>())
+    private val filterableData = mapOf(
+            ItemId("789") to mapOf("a" to "b", "_c" to "d", "e_" to "f") as Map<String, Any>
     )
 
     private val resource = DatasetResource(mapOf(
@@ -52,18 +52,18 @@ class DatasetResourceShould {
     }
 
     @Test
-    fun filter_out_nested_attributes_if_getting_all_items() {
-        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(nestedData)))
+    fun filter_out_keys_beginning_with_underscore_if_getting_all_items() {
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(filterableData)))
 
         assertThat(resource.getAllItemsInDataset(DatasetName("yeah")),
-                equalTo(mapOf(ItemId("789") to mapOf("a" to "b") as Map<String, Any>)))
+                equalTo(mapOf(ItemId("789") to mapOf("a" to "b", "e_" to "f") as Map<String, Any>)))
     }
 
     @Test
-    fun not_filter_out_nested_attributes_if_getting_specific_item() {
-        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(nestedData)))
+    fun not_filter_out_keys_if_getting_specific_item() {
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(filterableData)))
 
-        assertThat(resource.getItemInDataset(DatasetName("yeah"), ItemId("789")), equalTo(nestedData[ItemId("789")]))
+        assertThat(resource.getItemInDataset(DatasetName("yeah"), ItemId("789")), equalTo(filterableData[ItemId("789")]))
     }
 
     private fun providerOf(myData: Map<ItemId, Map<String, Any>>) = mock<DataProvider> {
