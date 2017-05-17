@@ -3,15 +3,15 @@ import * as React from "react";
 import * as Plottable from "plottable";
 const s = require("./style.css");
 
-import { IBar } from "../../models";
+import { Bar } from "../../models";
 
 import SizeMe from "react-sizeme";
 
 interface IProps {
-  data: IBar[];
+  data: Bar[];
   xLabel: string;
   yLabel: string;
-};
+}
 
 class RealBarChart  extends React.Component<IProps, any> {
   createChart() {
@@ -61,4 +61,4 @@ class RealBarChart  extends React.Component<IProps, any> {
   }
 }
 
-export const BarChart = SizeMe()(RealBarChart);
+export const BarChart = SizeMe()(RealBarChart); // tslint:disable-line:variable-name

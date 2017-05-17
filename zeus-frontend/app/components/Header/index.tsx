@@ -45,4 +45,4 @@ class Header extends React.Component<IProps, void> {
   }
 }
 
-export { Header }
+export { Header };

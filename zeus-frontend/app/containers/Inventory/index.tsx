@@ -2,7 +2,10 @@ import * as React from "react";
 import { connect } from "react-redux";
 import {
   Button,
+  Classes,
   Intent,
+  NonIdealState,
+  Spinner,
   Switch,
   Tag,
 } from "@blueprintjs/core";
@@ -14,8 +17,17 @@ import {
   SelectionModes,
   Table,
 } from "@blueprintjs/table";
-
-import { IAsset } from "../../models";
+import {
+  resourceActions,
+  ResourceState,
+  ResourceStatus,
+} from "../../api-management";
+import {
+  assets,
+} from "../../api";
+import {
+  Asset,
+} from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
@@ -24,8 +36,9 @@ import * as _ from "underscore";
 const s = require("./style.css");
 
 interface IProps {
+  assetsRequired: () => void;
   createNote: (assetIds: string[], text: string) => void;
-  assets: { [id : string]: IAsset };
+  assets: ResourceState<Map<string, Asset>>;
   location?: {
     query?: { [key : string]: string };
   };
@@ -35,7 +48,7 @@ const enum DialogMode {
    None,
    AddNote,
    ScheduleMaintenance,
-};
+}
 
 interface IState {
   filterColumn: number;
@@ -44,12 +57,12 @@ interface IState {
   selectedRows: number[];
   dialogMode: DialogMode;
   noteText: string;
-};
+}
 
 interface IColumn {
   name: string;
-  displayValue: (IAsset) => string;
-};
+  displayValue: (Asset) => string;
+}
 
 const COLUMNS: IColumn[] = [
   { name: "Asset #", displayValue: x => x.id },
@@ -58,43 +71,42 @@ const COLUMNS: IColumn[] = [
   { name: "Serial #", displayValue: x => x.serial },
   { name: "Manufacturer code", displayValue: x => x.model.manufacturer },
   { name: "Location", displayValue: x => `${x.location.lat},${x.location.lon}`},
-  { name: "Purchase date", displayValue: x => dateToString(x.purchaseDate) },
-  { name: "Last inspection date", displayValue: x => dateToString(x.lastInspectionDate) },
+  { name: "Purchase date", displayValue: x => timestampToString(x.purchaseTimestamp) },
+  { name: "Last inspection date", displayValue: x => timestampToString(x.lastInspectionTimestamp) },
   { name: "Last inspection signoff", displayValue: x => x.lastInspectionSignoff },
-  { name: "Projected retirement date", displayValue: x => dateToString(x.retirementDate) },
+  { name: "Projected retirement date", displayValue: x => timestampToString(x.retirementTimestamp) },
 ];
 
 class Inventory extends React.Component<IProps, IState> {
   private filterAssets = (
-    assets: { [id : string]: IAsset },
-    _filterColumn: number,
-    _filterValue: string,
-    _filterInvert: boolean) => {
-    // HACK!!!
-    const MAGIC_ASSET_IDS = ["AB74476", "AB29632", "AB65062", "AB10711"];
-    return _.filter(_.values(assets), asset => MAGIC_ASSET_IDS.indexOf(asset.id) > -1);
-    // if (filterColumn === -1 || filterValue === "") {
-    //   return _.values(assets);
-    // }
+    assets: Map<string, Asset>,
+    filterColumn: number,
+    filterValue: string,
+    filterInvert: boolean) => {
+    if (filterColumn === -1 || filterValue === "") {
+      return _.values(assets);
+    }
 
-    // return _.filter(
-    //   _.values(assets),
-    //   asset => (COLUMNS[filterColumn].displayValue(asset).toLocaleLowerCase()
-    //    .indexOf(filterValue.toLocaleLowerCase()) !== -1) !== filterInvert
-    // );
+    const stringInString = (needle: string, haystack: string) =>
+      (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
+
+    return _.filter(
+      _.values(assets),
+      asset => stringInString(filterValue, COLUMNS[filterColumn].displayValue(asset)) !== filterInvert,
+    );
   }
 
   state : IState = this.initialState();
 
   initialState(): IState {
+    // Deal with URL params
     const firstKey = _.first(_.keys(this.props.location.query)) || "";
-    const firstValue = this.props.location.query[firstKey];
-
+    const firstValue = this.props.location.query[firstKey] || "";
     const columnIndex = _.findIndex(COLUMNS, c => c.name.toLocaleLowerCase() === firstKey.toLocaleLowerCase());
 
     return {
       filterColumn: columnIndex,
-      filterValue: columnIndex ? firstValue : "",
+      filterValue: firstValue,
       filterInvert: false,
       selectedRows: [],
       dialogMode: DialogMode.None,
@@ -102,9 +114,13 @@ class Inventory extends React.Component<IProps, IState> {
     };
   }
 
+  componentDidMount() {
+    this.props.assetsRequired();
+  }
+
   render() {
     const filteredAssets = this.filterAssets(
-      this.props.assets, this.state.filterColumn, this.state.filterValue, this.state.filterInvert
+      this.props.assets.data, this.state.filterColumn, this.state.filterValue, this.state.filterInvert
     );
     const selectedAssets = this.state.selectedRows.map(i => filteredAssets[i]);
 
@@ -140,21 +156,7 @@ class Inventory extends React.Component<IProps, IState> {
               />
             </div>
 
-            <Table
-              isRowResizable={true}
-              numRows={filteredAssets.length}
-              selectionModes={SelectionModes.ROWS_AND_CELLS}
-              onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
-              selectedRegionTransform={cellToRow}
-            >
-              {
-                COLUMNS.map(col => <Column
-                  key={col.name}
-                  name={col.name}
-                  renderCell={(row: number) => <Cell>{col.displayValue(filteredAssets[row])}</Cell>}
-                />)
-              }
-            </Table>
+            {this.renderData(filteredAssets)}
           </div>
 
           <div className={s.right}>
@@ -167,7 +169,7 @@ class Inventory extends React.Component<IProps, IState> {
                   className="pt-callout pt-elevation-2 pt-intent-warning"
                   style={{ marginBottom: "10px" }}
                 >
-                  <h5>{dateToString(note.created)}</h5>
+                  <h5>{timestampToString(note.timestamp)}</h5>
                   <p>{note.text}</p>
                   <p style={{ textAlign: "right" }}>
                     <Tag intent={Intent.WARNING}>Serious</Tag>
@@ -185,7 +187,48 @@ class Inventory extends React.Component<IProps, IState> {
     );
   }
 
-  private renderDialog(selectedAssets: IAsset[]) {
+  private renderData(filteredAssets: Asset[]) {
+    switch (this.props.assets.status) {
+      case ResourceStatus.LOADED:
+        return (
+          <Table
+            isRowResizable={true}
+            numRows={filteredAssets.length}
+            selectionModes={SelectionModes.ROWS_AND_CELLS}
+            onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
+            selectedRegionTransform={cellToRow}
+          >
+            {
+              COLUMNS.map(col => <Column
+                key={col.name}
+                name={col.name}
+                renderCell={(row: number) => <Cell>{col.displayValue(filteredAssets[row])}</Cell>}
+              />)
+            }
+          </Table>
+        );
+
+      case ResourceStatus.NOT_LOADED:
+        return <NonIdealState
+          visual="cross"
+          title="No assets loaded."
+        />;
+
+      case ResourceStatus.LOADING:
+        return <NonIdealState
+          visual={<Spinner className={Classes.LARGE} />}
+          title="Loading assets ..."
+        />;
+
+      case ResourceStatus.ERROR:
+        return <NonIdealState
+          visual="error"
+          title="There was an error loading assets."
+        />;
+    }
+  }
+
+  private renderDialog(selectedAssets: Asset[]) {
     if (selectedAssets.length === 0) {
       return null;
     }
@@ -330,23 +373,23 @@ class Inventory extends React.Component<IProps, IState> {
     }
   }
 
-  private uniqueNotes = (assets: IAsset[]) =>
+  private uniqueNotes = (assets: Asset[]) =>
     _.chain(assets)
       .map(a => a.notes)
       .flatten()
       .uniq(a => a.id)
-      .sortBy(a => a.created)
-      .value();
+      .sortBy(a => a.timestamp)
+      .value()
 
   private calculateSelectedRows = (regions: IRegion[]) => 
     _.chain(regions)
       .map(r => _.range(r.rows[0], r.rows[1] + 1))
       .flatten()
       .uniq()
-      .value();
+      .value()
 }
 
-const dateToString = (date: Date) => date.getFullYear()
+const timestampToString = (date: Date) => date.getFullYear()
   + "/" + formatDateComponent(date.getMonth() + 1)
   + "/" + formatDateComponent(date.getDate());
 const formatDateComponent = (x: number) => ((x < 10) ? "0" : "") + x;
@@ -355,6 +398,7 @@ const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
 
 
 const mapDispatchToProps = {
+  assetsRequired: resourceActions(assets).required,
   createNote: actions.createNote,
 };
 
@@ -362,7 +406,4 @@ const mapStateToProps = createStructuredSelector({
   assets: selectors.selectAssets,
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Inventory);
+export default connect(mapStateToProps, mapDispatchToProps)(Inventory);

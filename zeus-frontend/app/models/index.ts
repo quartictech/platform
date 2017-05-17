@@ -1,56 +1,56 @@
-export interface INote {
+export interface Note {
   id: string;
-  created: Date;
+  timestamp: Date;
   text: string;
 }
 
-export interface IAssetModel {
+export interface AssetModel {
   name: string;
   manufacturer: string;
   snGen: () => string;
-};
+}
 
-export interface ILatLon {
+export interface LatLon {
   lat: number;
   lon: number;
-};
+}
 
-export interface IAsset {
+export interface Asset {
   id: string;
   clazz: string;
-  model: IAssetModel;
+  model: AssetModel;
   serial: string;
-  purchaseDate: Date;
-  lastInspectionDate: Date;
+  purchaseTimestamp: Date;
+  lastInspectionTimestamp: Date;
   lastInspectionSignoff: string;
-  retirementDate: Date;
-  location: ILatLon;
-  notes: INote[];
-  events: IMaintenanceEvent[];
-};
+  retirementTimestamp: Date;
+  location: LatLon;
+  notes: Note[];
+  events: MaintenanceEvent[];
+}
 
-export interface IBar {
+export interface Bar {
   name: string;
   value: number;
-};
+}
 
-export interface ISubInsight {
+export interface SubInsight {
   icon: string;
   text: string;
 }
 
-export interface IInsight {
+export interface Insight {
   id: string;
   title: string;
   insightType: string;
   barChart?: {
-    data: IBar[];
+    data: Bar[];
     xLabel: string;
     yLabel: string;
   };
   assetIds?: string[];
   unfailedAssetIds?: string[];
-  subInsights: ISubInsight[];
+  subInsights: SubInsight[];
   assetClass?: string;
 }
 
@@ -61,14 +61,13 @@ export interface UiAction {
   search?: string;
 }
 
-export interface ITimeSeriesPoint {
+export interface TimeSeriesPoint {
   x: Date;
   y: number;
 }
 
-export interface IMaintenanceEvent {
+export interface MaintenanceEvent {
   type: string;
-  date: Date;
+  timestamp: Date;
 }
-
 

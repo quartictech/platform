@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
-import { IInsight, IAsset } from "../../models";
+import { Insight, Asset } from "../../models";
 const s = require("./style.css");
 
 import * as classNames from "classnames";
@@ -15,8 +15,8 @@ import { InsightSummary } from "../../components";
 
 interface IProps {
   ui: any;
-  insights: IInsight[];
-  assets: {[id: string] : IAsset};
+  insights: Insight[];
+  assets: {[id: string] : Asset};
   location?: {
     query?: {
       insightType: string;
@@ -25,19 +25,19 @@ interface IProps {
 }
 
 interface IState {
-};
+}
 
 interface IInsightProps {
-  insight: IInsight;
-  assets: {[id: string] : IAsset};
-};
+  insight: Insight;
+  assets: {[id: string] : Asset};
+}
 
 const Insight = (props: IInsightProps) => (
   <div className={classNames(s.insight, "pt-card", "pt-elevation-2", "pt-interactive")}>
     <div className="pt-callout pt-icon-warning-sign" style={{backgroundColor: "#ffffff"}}>
      <h5>{ props.insight.title }</h5>
         { props.insight.assetClass
-          ? <div className="pt-tag" style={{float:"right"}}>{props.insight.assetClass}</div>
+          ? <div className="pt-tag" style={{ float: "right" }}>{props.insight.assetClass}</div>
           : null
         }
     </div>

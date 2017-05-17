@@ -8,14 +8,15 @@ var compiler = webpack(config);
 
 // Stuff to proxy to backend during dev
 const proxy = require("http-proxy-middleware");
-const apiProxy = proxy("/api", { target: "http://localhost:8100" });
-const wsProxy = proxy("/ws", { target: "ws://localhost:8100" });
-app.use(apiProxy);
-app.use(wsProxy);
+app.use(proxy("/api", { target: "http://localhost:8160" }));
+app.use(proxy("/ws", { target: "ws://localhost:8160" }));
 
 app.use(require('webpack-dev-middleware')(compiler, {
 	noInfo: true,
-	publicPath: config.output.publicPath
+	publicPath: config.output.publicPath,
+	stats: {
+		colors: true,
+	},
 }));
 
 app.use(require('webpack-hot-middleware')(compiler));

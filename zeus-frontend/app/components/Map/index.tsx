@@ -2,17 +2,17 @@ import * as React from "react";
 
 const s = require("./style.css");
 
-import { ILatLon } from "../../models";
+import { LatLon } from "../../models";
 
 import SizeMe from "react-sizeme";
 
 import mapboxgl from "./mapbox-gl-helper";
 
 interface IMapProps {
-  locations: ILatLon[];
+  locations: LatLon[];
   colors: number[];
   width: number;
-};
+}
 
 const circleLayer = (id, locations, width, color) => ({
       "id": id,
@@ -74,4 +74,4 @@ class RealMap  extends React.Component<IMapProps, any> {
   }
 }
 
-export const Map = SizeMe()(RealMap);
+export const Map = SizeMe()(RealMap); // tslint:disable-line:variable-name

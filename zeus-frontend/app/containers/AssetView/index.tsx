@@ -4,12 +4,12 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
-import { IAsset } from "../../models";
+import { Asset } from "../../models";
 const s = require("./style.css");
 
 interface IProps {
   ui: any;
-  assets: {[id: string]: IAsset};
+  assets: {[id: string]: Asset};
   params: {
     assetId: string;
   };

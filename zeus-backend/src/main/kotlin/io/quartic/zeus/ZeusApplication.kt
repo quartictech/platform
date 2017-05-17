@@ -4,6 +4,7 @@ import io.dropwizard.assets.AssetsBundle
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.zeus.resource.AssetResource
 
 class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     public override fun initializeApplication(bootstrap: Bootstrap<ZeusConfiguration>) {
@@ -11,7 +12,7 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     }
 
     override fun runApplication(configuration: ZeusConfiguration, environment: Environment) {
-        // TODO
+        environment.jersey().register(AssetResource())
     }
 
     companion object {

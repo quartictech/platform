@@ -17,6 +17,7 @@ var config = {
   },
 
   module: {
+    noParse: /node_modules\/mapbox-gl\/dist\/mapbox-gl.js/, // See https://github.com/mapbox/mapbox-gl-js/issues/2742#issuecomment-267001402
     loaders: [
       // See (for TS -> Babel): http://www.jbrantly.com/es6-modules-with-typescript-and-webpack/
       {

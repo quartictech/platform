@@ -7,10 +7,10 @@
    "manufacturer": "GE"
   },
   "serial": "1920739620",
-  "purchaseDate": 1111036541000,
-  "lastInspectionDate": 1479342292000,
+  "purchaseTimestamp": 1111036541,
+  "lastInspectionTimestamp": 1479342292,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1540856120000,
+  "retirementTimestamp": 1540856120,
   "location": {
    "lon": 8.76037765169,
    "lat": 47.5079239099
@@ -18,22 +18,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -45,10 +45,10 @@
    "manufacturer": "GE"
   },
   "serial": "7763375757",
-  "purchaseDate": 1219008448000,
-  "lastInspectionDate": 1453215542000,
+  "purchaseTimestamp": 1219008448,
+  "lastInspectionTimestamp": 1453215542,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1561724715000,
+  "retirementTimestamp": 1561724715,
   "location": {
    "lon": 7.46595357541,
    "lat": 46.9805891207
@@ -56,22 +56,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -83,10 +83,10 @@
    "manufacturer": "GE"
   },
   "serial": "8972786584",
-  "purchaseDate": 1048132387000,
-  "lastInspectionDate": 1470952203000,
+  "purchaseTimestamp": 1048132387,
+  "lastInspectionTimestamp": 1470952203,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1572732696000,
+  "retirementTimestamp": 1572732696,
   "location": {
    "lon": 7.2147006007,
    "lat": 46.0793726017
@@ -94,22 +94,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -121,10 +121,10 @@
    "manufacturer": "GE"
   },
   "serial": "0112416953",
-  "purchaseDate": 1264069297000,
-  "lastInspectionDate": 1475977559000,
+  "purchaseTimestamp": 1264069297,
+  "lastInspectionTimestamp": 1475977559,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1572460889000,
+  "retirementTimestamp": 1572460889,
   "location": {
    "lon": 8.02330497794,
    "lat": 46.6228279355
@@ -132,22 +132,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -159,10 +159,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "98529409",
-  "purchaseDate": 1131763653000,
-  "lastInspectionDate": 1466348170000,
+  "purchaseTimestamp": 1131763653,
+  "lastInspectionTimestamp": 1466348170,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1554335161000,
+  "retirementTimestamp": 1554335161,
   "location": {
    "lon": 8.27783859234,
    "lat": 46.9550422334
@@ -170,22 +170,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -197,10 +197,10 @@
    "manufacturer": "GE"
   },
   "serial": "6367618837",
-  "purchaseDate": 1079701872000,
-  "lastInspectionDate": 1473123458000,
+  "purchaseTimestamp": 1079701872,
+  "lastInspectionTimestamp": 1473123458,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1527504161000,
+  "retirementTimestamp": 1527504161,
   "location": {
    "lon": 8.37730048775,
    "lat": 47.422844033
@@ -208,22 +208,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -235,10 +235,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "91552278",
-  "purchaseDate": 1078444393000,
-  "lastInspectionDate": 1463652894000,
+  "purchaseTimestamp": 1078444393,
+  "lastInspectionTimestamp": 1463652894,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1519760429000,
+  "retirementTimestamp": 1519760429,
   "location": {
    "lon": 7.44795892858,
    "lat": 46.946809272
@@ -246,22 +246,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -273,10 +273,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "85968476",
-  "purchaseDate": 1088671826000,
-  "lastInspectionDate": 1471471369000,
+  "purchaseTimestamp": 1088671826,
+  "lastInspectionTimestamp": 1471471369,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1568553381000,
+  "retirementTimestamp": 1568553381,
   "location": {
    "lon": 8.81673454623,
    "lat": 47.2248889702
@@ -284,22 +284,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -311,10 +311,10 @@
    "manufacturer": "GE"
   },
   "serial": "5255564784",
-  "purchaseDate": 1072647662000,
-  "lastInspectionDate": 1481159099000,
+  "purchaseTimestamp": 1072647662,
+  "lastInspectionTimestamp": 1481159099,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1554934301000,
+  "retirementTimestamp": 1554934301,
   "location": {
    "lon": 6.81355491279,
    "lat": 46.9684170355
@@ -322,22 +322,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -349,10 +349,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "89005898",
-  "purchaseDate": 1238712031000,
-  "lastInspectionDate": 1472420667000,
+  "purchaseTimestamp": 1238712031,
+  "lastInspectionTimestamp": 1472420667,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1521120033000,
+  "retirementTimestamp": 1521120033,
   "location": {
    "lon": 6.14437296234,
    "lat": 46.2175751404
@@ -360,22 +360,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -387,10 +387,10 @@
    "manufacturer": "GE"
   },
   "serial": "9702852629",
-  "purchaseDate": 1184735031000,
-  "lastInspectionDate": 1479420756000,
+  "purchaseTimestamp": 1184735031,
+  "lastInspectionTimestamp": 1479420756,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1570779993000,
+  "retirementTimestamp": 1570779993,
   "location": {
    "lon": 7.66231220136,
    "lat": 47.531499232
@@ -398,22 +398,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -425,10 +425,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "39169933",
-  "purchaseDate": 1329979355000,
-  "lastInspectionDate": 1455738580000,
+  "purchaseTimestamp": 1329979355,
+  "lastInspectionTimestamp": 1455738580,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1523775049000,
+  "retirementTimestamp": 1523775049,
   "location": {
    "lon": 7.24322845425,
    "lat": 47.1318941701
@@ -436,22 +436,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -463,10 +463,10 @@
    "manufacturer": "GE"
   },
   "serial": "2162227886",
-  "purchaseDate": 1231425517000,
-  "lastInspectionDate": 1463067086000,
+  "purchaseTimestamp": 1231425517,
+  "lastInspectionTimestamp": 1463067086,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1564977723000,
+  "retirementTimestamp": 1564977723,
   "location": {
    "lon": 7.7595069489,
    "lat": 46.3515234735
@@ -474,22 +474,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -501,10 +501,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "24246218",
-  "purchaseDate": 1052961906000,
-  "lastInspectionDate": 1459196634000,
+  "purchaseTimestamp": 1052961906,
+  "lastInspectionTimestamp": 1459196634,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1516094154000,
+  "retirementTimestamp": 1516094154,
   "location": {
    "lon": 7.19168361949,
    "lat": 46.9756510222
@@ -512,22 +512,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -539,10 +539,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "87290643",
-  "purchaseDate": 1319147987000,
-  "lastInspectionDate": 1462942189000,
+  "purchaseTimestamp": 1319147987,
+  "lastInspectionTimestamp": 1462942189,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1540758726000,
+  "retirementTimestamp": 1540758726,
   "location": {
    "lon": 7.15772047531,
    "lat": 47.3130942818
@@ -550,22 +550,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -577,10 +577,10 @@
    "manufacturer": "GE"
   },
   "serial": "3009330356",
-  "purchaseDate": 1098725219000,
-  "lastInspectionDate": 1452848790000,
+  "purchaseTimestamp": 1098725219,
+  "lastInspectionTimestamp": 1452848790,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1556784292000,
+  "retirementTimestamp": 1556784292,
   "location": {
    "lon": 8.52887806832,
    "lat": 47.3812620016
@@ -588,22 +588,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -615,10 +615,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "41862721",
-  "purchaseDate": 1307903251000,
-  "lastInspectionDate": 1478137517000,
+  "purchaseTimestamp": 1307903251,
+  "lastInspectionTimestamp": 1478137517,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1559189568000,
+  "retirementTimestamp": 1559189568,
   "location": {
    "lon": 7.07913438842,
    "lat": 46.1058290128
@@ -626,22 +626,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -653,10 +653,10 @@
    "manufacturer": "GE"
   },
   "serial": "8261285775",
-  "purchaseDate": 1078108499000,
-  "lastInspectionDate": 1454504820000,
+  "purchaseTimestamp": 1078108499,
+  "lastInspectionTimestamp": 1454504820,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1525979192000,
+  "retirementTimestamp": 1525979192,
   "location": {
    "lon": 7.43913028915,
    "lat": 46.9488310905
@@ -664,22 +664,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -691,10 +691,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "88377436",
-  "purchaseDate": 1340389343000,
-  "lastInspectionDate": 1458096725000,
+  "purchaseTimestamp": 1340389343,
+  "lastInspectionTimestamp": 1458096725,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1563275943000,
+  "retirementTimestamp": 1563275943,
   "location": {
    "lon": 6.96369048122,
    "lat": 46.3168528715
@@ -702,22 +702,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -729,10 +729,10 @@
    "manufacturer": "GE"
   },
   "serial": "4458262803",
-  "purchaseDate": 1135600205000,
-  "lastInspectionDate": 1479770154000,
+  "purchaseTimestamp": 1135600205,
+  "lastInspectionTimestamp": 1479770154,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1548186147000,
+  "retirementTimestamp": 1548186147,
   "location": {
    "lon": 7.63300469153,
    "lat": 46.7503510482
@@ -740,22 +740,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -767,10 +767,10 @@
    "manufacturer": "GE"
   },
   "serial": "3967594297",
-  "purchaseDate": 1151953180000,
-  "lastInspectionDate": 1482056550000,
+  "purchaseTimestamp": 1151953180,
+  "lastInspectionTimestamp": 1482056550,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1525893217000,
+  "retirementTimestamp": 1525893217,
   "location": {
    "lon": 7.8440989101,
    "lat": 46.3061670866
@@ -778,22 +778,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -805,10 +805,10 @@
    "manufacturer": "GE"
   },
   "serial": "8055211974",
-  "purchaseDate": 1046080620000,
-  "lastInspectionDate": 1469305585000,
+  "purchaseTimestamp": 1046080620,
+  "lastInspectionTimestamp": 1469305585,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1515537791000,
+  "retirementTimestamp": 1515537791,
   "location": {
    "lon": 8.98777381642,
    "lat": 46.1506159422
@@ -816,22 +816,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -843,10 +843,10 @@
    "manufacturer": "GE"
   },
   "serial": "8596920399",
-  "purchaseDate": 1241797971000,
-  "lastInspectionDate": 1461932632000,
+  "purchaseTimestamp": 1241797971,
+  "lastInspectionTimestamp": 1461932632,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1540218209000,
+  "retirementTimestamp": 1540218209,
   "location": {
    "lon": 8.74410340791,
    "lat": 47.1279074279
@@ -854,22 +854,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -881,10 +881,10 @@
    "manufacturer": "GE"
   },
   "serial": "7234328486",
-  "purchaseDate": 1084821809000,
-  "lastInspectionDate": 1455836876000,
+  "purchaseTimestamp": 1084821809,
+  "lastInspectionTimestamp": 1455836876,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1561895091000,
+  "retirementTimestamp": 1561895091,
   "location": {
    "lon": 7.62122391289,
    "lat": 46.7601324884
@@ -892,22 +892,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -919,10 +919,10 @@
    "manufacturer": "GE"
   },
   "serial": "8617150141",
-  "purchaseDate": 1051477208000,
-  "lastInspectionDate": 1459483568000,
+  "purchaseTimestamp": 1051477208,
+  "lastInspectionTimestamp": 1459483568,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1523978256000,
+  "retirementTimestamp": 1523978256,
   "location": {
    "lon": 6.53400072449,
    "lat": 46.5249773373
@@ -930,22 +930,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -957,10 +957,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "88112610",
-  "purchaseDate": 1126477628000,
-  "lastInspectionDate": 1459605460000,
+  "purchaseTimestamp": 1126477628,
+  "lastInspectionTimestamp": 1459605460,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1564235641000,
+  "retirementTimestamp": 1564235641,
   "location": {
    "lon": 6.1277302579,
    "lat": 46.2055506098
@@ -968,22 +968,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -995,10 +995,10 @@
    "manufacturer": "GE"
   },
   "serial": "8341723204",
-  "purchaseDate": 1175431995000,
-  "lastInspectionDate": 1464639664000,
+  "purchaseTimestamp": 1175431995,
+  "lastInspectionTimestamp": 1464639664,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1526924489000,
+  "retirementTimestamp": 1526924489,
   "location": {
    "lon": 7.07340358692,
    "lat": 46.3219301904
@@ -1006,22 +1006,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1033,10 +1033,10 @@
    "manufacturer": "GE"
   },
   "serial": "5631176654",
-  "purchaseDate": 1052046604000,
-  "lastInspectionDate": 1476710868000,
+  "purchaseTimestamp": 1052046604,
+  "lastInspectionTimestamp": 1476710868,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1547094649000,
+  "retirementTimestamp": 1547094649,
   "location": {
    "lon": 8.54903604549,
    "lat": 47.4157691582
@@ -1044,22 +1044,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1071,10 +1071,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "10159727",
-  "purchaseDate": 1323015232000,
-  "lastInspectionDate": 1461349937000,
+  "purchaseTimestamp": 1323015232,
+  "lastInspectionTimestamp": 1461349937,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1546015853000,
+  "retirementTimestamp": 1546015853,
   "location": {
    "lon": 8.7781200266,
    "lat": 47.2029988673
@@ -1082,22 +1082,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1109,10 +1109,10 @@
    "manufacturer": "GE"
   },
   "serial": "5325228830",
-  "purchaseDate": 1153567196000,
-  "lastInspectionDate": 1476504412000,
+  "purchaseTimestamp": 1153567196,
+  "lastInspectionTimestamp": 1476504412,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1562957061000,
+  "retirementTimestamp": 1562957061,
   "location": {
    "lon": 7.90686530591,
    "lat": 47.3136451916
@@ -1120,22 +1120,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1147,10 +1147,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "82847565",
-  "purchaseDate": 1203951078000,
-  "lastInspectionDate": 1476271782000,
+  "purchaseTimestamp": 1203951078,
+  "lastInspectionTimestamp": 1476271782,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1523455097000,
+  "retirementTimestamp": 1523455097,
   "location": {
    "lon": 6.97475408388,
    "lat": 46.3184194382
@@ -1158,22 +1158,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1185,10 +1185,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "12194057",
-  "purchaseDate": 1123397283000,
-  "lastInspectionDate": 1462869860000,
+  "purchaseTimestamp": 1123397283,
+  "lastInspectionTimestamp": 1462869860,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1554290041000,
+  "retirementTimestamp": 1554290041,
   "location": {
    "lon": 8.76840247407,
    "lat": 46.6709832925
@@ -1196,22 +1196,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1223,10 +1223,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "92617803",
-  "purchaseDate": 1243317244000,
-  "lastInspectionDate": 1470590429000,
+  "purchaseTimestamp": 1243317244,
+  "lastInspectionTimestamp": 1470590429,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1553429705000,
+  "retirementTimestamp": 1553429705,
   "location": {
    "lon": 7.35005920477,
    "lat": 47.3620078641
@@ -1234,22 +1234,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1261,10 +1261,10 @@
    "manufacturer": "GE"
   },
   "serial": "8695593088",
-  "purchaseDate": 1078148040000,
-  "lastInspectionDate": 1460556566000,
+  "purchaseTimestamp": 1078148040,
+  "lastInspectionTimestamp": 1460556566,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1521138746000,
+  "retirementTimestamp": 1521138746,
   "location": {
    "lon": 7.35005920477,
    "lat": 47.3620078641
@@ -1272,22 +1272,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1299,10 +1299,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "93366823",
-  "purchaseDate": 1326359198000,
-  "lastInspectionDate": 1472735417000,
+  "purchaseTimestamp": 1326359198,
+  "lastInspectionTimestamp": 1472735417,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1522744453000,
+  "retirementTimestamp": 1522744453,
   "location": {
    "lon": 8.54433548004,
    "lat": 47.3070517406
@@ -1310,22 +1310,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1337,10 +1337,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "56711107",
-  "purchaseDate": 1166353253000,
-  "lastInspectionDate": 1477121925000,
+  "purchaseTimestamp": 1166353253,
+  "lastInspectionTimestamp": 1477121925,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1560182343000,
+  "retirementTimestamp": 1560182343,
   "location": {
    "lon": 7.25837376857,
    "lat": 47.1308802942
@@ -1348,22 +1348,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1375,10 +1375,10 @@
    "manufacturer": "GE"
   },
   "serial": "2776805901",
-  "purchaseDate": 1188968246000,
-  "lastInspectionDate": 1476258811000,
+  "purchaseTimestamp": 1188968246,
+  "lastInspectionTimestamp": 1476258811,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1534347647000,
+  "retirementTimestamp": 1534347647,
   "location": {
    "lon": 7.59561396018,
    "lat": 47.5449309686
@@ -1386,22 +1386,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1413,10 +1413,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "49152385",
-  "purchaseDate": 1192770958000,
-  "lastInspectionDate": 1462887020000,
+  "purchaseTimestamp": 1192770958,
+  "lastInspectionTimestamp": 1462887020,
   "lastInspectionSignoff": "B Wilson",
-  "retirementDate": 1535367101000,
+  "retirementTimestamp": 1535367101,
   "location": {
    "lon": 8.28683824161,
    "lat": 47.0566015594
@@ -1424,22 +1424,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1451,10 +1451,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "05894196",
-  "purchaseDate": 1240020744000,
-  "lastInspectionDate": 1466383913000,
+  "purchaseTimestamp": 1240020744,
+  "lastInspectionTimestamp": 1466383913,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1566077688000,
+  "retirementTimestamp": 1566077688,
   "location": {
    "lon": 8.029017127,
    "lat": 47.3857357506
@@ -1462,22 +1462,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1489,10 +1489,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "60112119",
-  "purchaseDate": 1320288891000,
-  "lastInspectionDate": 1452186621000,
+  "purchaseTimestamp": 1320288891,
+  "lastInspectionTimestamp": 1452186621,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1546955039000,
+  "retirementTimestamp": 1546955039,
   "location": {
    "lon": 7.90799888446,
    "lat": 46.5983529266
@@ -1500,22 +1500,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1527,10 +1527,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "27472382",
-  "purchaseDate": 1222537328000,
-  "lastInspectionDate": 1457655435000,
+  "purchaseTimestamp": 1222537328,
+  "lastInspectionTimestamp": 1457655435,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1530036728000,
+  "retirementTimestamp": 1530036728,
   "location": {
    "lon": 7.72622428973,
    "lat": 47.4878780789
@@ -1538,22 +1538,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1565,10 +1565,10 @@
    "manufacturer": "GE"
   },
   "serial": "9694282619",
-  "purchaseDate": 1185287311000,
-  "lastInspectionDate": 1461927497000,
+  "purchaseTimestamp": 1185287311,
+  "lastInspectionTimestamp": 1461927497,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1542383263000,
+  "retirementTimestamp": 1542383263,
   "location": {
    "lon": 8.52887806832,
    "lat": 47.3812620016
@@ -1576,22 +1576,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1603,10 +1603,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "10067900",
-  "purchaseDate": 1276579879000,
-  "lastInspectionDate": 1456016625000,
+  "purchaseTimestamp": 1276579879,
+  "lastInspectionTimestamp": 1456016625,
   "lastInspectionSignoff": "P Graham",
-  "retirementDate": 1525143528000,
+  "retirementTimestamp": 1525143528,
   "location": {
    "lon": 9.36896733328,
    "lat": 47.4222956455
@@ -1614,22 +1614,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1641,10 +1641,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "11216059",
-  "purchaseDate": 1066490540000,
-  "lastInspectionDate": 1465714880000,
+  "purchaseTimestamp": 1066490540,
+  "lastInspectionTimestamp": 1465714880,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1544289634000,
+  "retirementTimestamp": 1544289634,
   "location": {
    "lon": 6.54508276306,
    "lat": 46.5308315876
@@ -1652,22 +1652,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1679,10 +1679,10 @@
    "manufacturer": "GE"
   },
   "serial": "6772808935",
-  "purchaseDate": 1275376656000,
-  "lastInspectionDate": 1478293588000,
+  "purchaseTimestamp": 1275376656,
+  "lastInspectionTimestamp": 1478293588,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1523859398000,
+  "retirementTimestamp": 1523859398,
   "location": {
    "lon": 6.87128364285,
    "lat": 46.1750031678
@@ -1690,22 +1690,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1717,10 +1717,10 @@
    "manufacturer": "GE"
   },
   "serial": "0548106434",
-  "purchaseDate": 1075076681000,
-  "lastInspectionDate": 1464593049000,
+  "purchaseTimestamp": 1075076681,
+  "lastInspectionTimestamp": 1464593049,
   "lastInspectionSignoff": "J Nole",
-  "retirementDate": 1567586579000,
+  "retirementTimestamp": 1567586579,
   "location": {
    "lon": 8.67438161458,
    "lat": 46.7665420533
@@ -1728,22 +1728,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1755,10 +1755,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "07853248",
-  "purchaseDate": 1285933767000,
-  "lastInspectionDate": 1467035843000,
+  "purchaseTimestamp": 1285933767,
+  "lastInspectionTimestamp": 1467035843,
   "lastInspectionSignoff": "G Kemp",
-  "retirementDate": 1574753980000,
+  "retirementTimestamp": 1574753980,
   "location": {
    "lon": 8.81673454623,
    "lat": 47.2248889702
@@ -1766,22 +1766,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1793,10 +1793,10 @@
    "manufacturer": "GE"
   },
   "serial": "0020570603",
-  "purchaseDate": 1354439049000,
-  "lastInspectionDate": 1466954915000,
+  "purchaseTimestamp": 1354439049,
+  "lastInspectionTimestamp": 1466954915,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1540292985000,
+  "retirementTimestamp": 1540292985,
   "location": {
    "lon": 7.90762404404,
    "lat": 47.3456147793
@@ -1804,22 +1804,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1831,10 +1831,10 @@
    "manufacturer": "SIEM"
   },
   "serial": "73101910",
-  "purchaseDate": 1297197353000,
-  "lastInspectionDate": 1458860526000,
+  "purchaseTimestamp": 1297197353,
+  "lastInspectionTimestamp": 1458860526,
   "lastInspectionSignoff": "A McFadden",
-  "retirementDate": 1560570759000,
+  "retirementTimestamp": 1560570759,
   "location": {
    "lon": 8.65217444814,
    "lat": 47.4404168284
@@ -1842,22 +1842,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  },
@@ -1869,10 +1869,10 @@
    "manufacturer": "GE"
   },
   "serial": "8619000618",
-  "purchaseDate": 1341309000000,
-  "lastInspectionDate": 1464997906000,
+  "purchaseTimestamp": 1341309000,
+  "lastInspectionTimestamp": 1464997906,
   "lastInspectionSignoff": "B Gee",
-  "retirementDate": 1524450177000,
+  "retirementTimestamp": 1524450177,
   "location": {
    "lon": 7.44352282181,
    "lat": 46.4585813799
@@ -1880,22 +1880,22 @@
   "notes": [
    {
     "id": "123",
-    "created": 1483228800000,
+    "timestamp": 1483228800,
     "text": "Please check that control circuit asset # sticker matches expected before performing maintenance."
    }
   ],
   "events": [
    {
     "type": "maintenance",
-    "date": 1473465600000
+    "timestamp": 1473465600
    },
    {
     "type": "maintenance",
-    "date": 1483401600000
+    "timestamp": 1483401600
    },
    {
     "type": "failure",
-    "date": 1485561600000
+    "timestamp": 1485561600
    }
   ]
  }

@@ -11,14 +11,14 @@ import { Link } from "react-router";
 import { TimeChart } from "../../components";
 import { InsightSummary } from "../../components";
 // import { Classes } from "@blueprintjs/core";
-import { IInsight,  IAsset } from "../../models";
+import { Insight,  Asset } from "../../models";
 
 import { Map } from "../../components";
 
 interface IProps {
   ui: any;
-  insights: [IInsight];
-  assets: { [id: string]: IAsset };
+  insights: [Insight];
+  assets: { [id: string]: Asset };
   params: { 
     insightId: string;
   };
@@ -26,10 +26,10 @@ interface IProps {
 
 interface IState {
   datasetId: string;
-};
+}
 
-const joinAssets = (insight: IInsight, assets: {[id: string]: IAsset}) => {
-    return insight.assetIds.map(assetId => assets[assetId]);
+const joinAssets = (insight: Insight, assets: {[id: string]: Asset}) => {
+  return insight.assetIds.map(assetId => assets[assetId]);
 };
 
 const Asset = ({ insight, asset }) => {
