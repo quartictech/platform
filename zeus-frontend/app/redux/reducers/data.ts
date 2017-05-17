@@ -2,4 +2,5 @@ import {
   Insight,
 } from "../../models";
 
-export const INSIGHTS: Insight[] = require("../../../data/insights.json");
+// Temporarily
+export const INSIGHTS: Insight[] = [];
