@@ -8,10 +8,12 @@ import org.junit.Test
 class ClasspathDataProviderShould {
     @Test
     fun provide_data_from_classpath_resource() {
-        assertThat(ClasspathDataProvider("/noob.json").data, equalTo(mapOf(
+        assertThat(ClasspathDataProvider("/noob.json", emptyList()).data, equalTo(mapOf(
                 ItemId("123") to mapOf("name" to "alex") as Map<String, Any>,
                 ItemId("456") to mapOf("name" to "arlo") as Map<String, Any>,
                 ItemId("789") to mapOf("name" to "oliver") as Map<String, Any>
         )))
     }
+
+    // TODO: test filtering
 }

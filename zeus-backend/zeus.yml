@@ -2,9 +2,7 @@ datasets:
   assets:
     type: classpath
     resourceName: "/assets.json"
-  noobs:
-    type: url
-    url: "http://localhost:8160/api/noob.json"
+    indexedAttributes: [ "id", "serial" ]
 
 server:
   applicationContextPath: /

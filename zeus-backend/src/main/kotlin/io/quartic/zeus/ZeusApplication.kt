@@ -26,8 +26,8 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
             .mapValues {
                 val v = it.value
                 when (v) {
-                    is ClasspathDataProviderConfiguration -> ClasspathDataProvider(v.resourceName)
-                    is UrlDataProviderConfiguration -> UrlDataProvider(v.url)
+                    is ClasspathDataProviderConfiguration -> ClasspathDataProvider(v.resourceName, v.indexedAttributes)
+                    is UrlDataProviderConfiguration -> UrlDataProvider(v.url, v.indexedAttributes)
                 }
             }
 
