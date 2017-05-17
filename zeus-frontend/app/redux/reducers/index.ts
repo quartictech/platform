@@ -1,9 +1,11 @@
 import { LOCATION_CHANGE } from "react-router-redux";
 import { uiReducer } from "./ui";
-import { assetsReducer } from "./assets";
 import { insightsReducer } from "./insights";
 import { combineReducers } from "redux-immutable";
 import { fromJS } from "immutable";
+
+import { reducer } from "../../api-management";
+import { assets, asset } from "../../api";
 
 // Initial routing state
 const routeInitialState = fromJS({
@@ -28,7 +30,8 @@ function routeReducer(state = routeInitialState, action) {
 // TODO: Fix type!
 const rootReducer: Redux.Reducer<any> = combineReducers({
   route: routeReducer,
-  assets: assetsReducer,
+  assets: reducer(assets),
+  asset: reducer(asset),
   insights: insightsReducer,
   ui: uiReducer,
 });
