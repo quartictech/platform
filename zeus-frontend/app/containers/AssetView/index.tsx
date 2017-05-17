@@ -50,19 +50,19 @@ class AssetView extends React.Component<IProps, void> {
       case ResourceStatus.NOT_LOADED:
         return <NonIdealState
           visual="cross"
-          title="No assets loaded."
+          title="No asset loaded."
         />;
 
       case ResourceStatus.LOADING:
         return <NonIdealState
           visual={<Spinner className={Classes.LARGE} />}
-          title="Loading assets ..."
+          title="Loading asset ..."
         />;
 
       case ResourceStatus.ERROR:
         return <NonIdealState
           visual="error"
-          title="There was an error loading assets."
+          title="There was an error loading asset."
         />;
     }
   }
