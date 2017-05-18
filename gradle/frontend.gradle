@@ -6,18 +6,18 @@ def env = [BUILD_VERSION: version] + System.getenv()  // See https://github.com/
 //    download = "true"
 //}
 
-task yarnLint(type: Yarntask, dependsOn: yarn_install) {
+task yarnLint(type: YarnTask, dependsOn: yarn_install) {
     args = ["run", "lint", "--silent"]
 }
 
-task yarnBuild(type: Yarntask, dependsOn: yarn_install) {
+task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
     args = ["run", "build", "--silent"]
     environment = env + [NODE_ENV: "production"]
     // TODO: specify input files
     outputs.dir   "${buildDir}/webpack"
 }
 
-task yarnStart(type: Yarntask, dependsOn: yarn_install) {
+task yarnStart(type: YarnTask, dependsOn: yarn_install) {
     args = ["start", "--silent"]
     environment = env
     // TODO: specify input files
