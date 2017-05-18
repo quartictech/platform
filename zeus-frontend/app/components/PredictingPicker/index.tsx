@@ -140,6 +140,11 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
         break;
       }
 
+      case Keys.ESCAPE: {
+        this.onChangeText("");
+        break;
+      }
+
       default:
         return;
     }
@@ -222,10 +227,14 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   private renderMenu() {
     const items = _.map(this.state.sortedEntries, (entries, category: string) => this.renderCategory(category, entries));
 
+    if (_.isEmpty(items) && this.state.text === "") {
+      return null;  // Otherwise a weird empty box appears
+    }
+
     return (
       <Menu>
         {
-          _.isEmpty(items)
+          (_.isEmpty(items) && this.state.text !== "")
             ? <MenuItem className={classNames(Classes.MENU_ITEM, Classes.DISABLED)} text="No results found." />
             : items
         }

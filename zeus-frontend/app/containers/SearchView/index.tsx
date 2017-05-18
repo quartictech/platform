@@ -65,7 +65,7 @@ class SearchView extends React.Component<IProps, IState> {
               entryIconName="person"
               placeholder="Search noobs..."
               
-              entries={this.state.filteredEntries}
+              entries={rawEntries}
               selectedKey={null}
               onChange={this.onNoobChange}
               errorDisabled={true}
