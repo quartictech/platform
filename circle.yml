@@ -7,7 +7,7 @@ machine:
 dependencies:
   cache_directories:
     - .gradle
-    - ~/.yarn/cache
+    - ~/.cache/yarn
     - zeus-frontend/.gradle
   override:
     - yarn cache dir
