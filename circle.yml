@@ -7,9 +7,9 @@ machine:
 dependencies:
   cache_directories:
     - .gradle
-    - zeus-frontend/.gradle/nodejs
+    - zeus-frontend/.gradle
   override:
-    - ./gradlew resolveConfigurations npmInstall --parallel --info --console=plain
+    - ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
 
 test:
   override:
