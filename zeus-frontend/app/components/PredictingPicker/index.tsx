@@ -1,5 +1,5 @@
 // TODO - this entire component is duplicated from platform :(
-import React from "react";
+import * as React from "react";
 import {
   Classes,
   Colors,
@@ -14,11 +14,42 @@ import {
   PopoverInteractionKind,
   Position,
 } from "@blueprintjs/core";
-import classNames from "classnames";
+import * as classNames from "classnames";
 import * as _ from "underscore";
 
-class PredictingPicker extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  constructor(props) {
+// TODO: look into https://basarat.gitbooks.io/typescript/docs/types/index-signatures.html
+
+// TODO: should these all be optional?
+// TODO: could we just pass a bunch of these through implicitly?
+interface PredictingPickerProps {
+  type?: string;
+  iconName?: string;
+  entryIconName?: string;
+  placeholder?: string;
+  entries: any; // TODO: is this type correct?
+  selectedKey: string;
+  disabled?: boolean;
+  errorDisabled?: boolean;
+  onChange?: (key: string) => void;
+}
+
+interface PredictingPickerState {
+  text: string;
+  menuVisible: boolean;
+  shouldFilter: boolean;
+  idxHighlighted: number;
+  mouseCaptured: boolean;
+}
+
+// TODO: add scrolling (see https://github.com/palantir/blueprint/pull/1049)
+
+export default class PredictingPicker extends React.Component<PredictingPickerProps, PredictingPickerState> {
+  public static defaultProps: Partial<PredictingPickerProps> = {
+    errorDisabled: false,
+    disabled: false,
+  };
+
+  public constructor(props) {
     super(props);
     this.state = {
       text: "",
@@ -28,18 +59,19 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       mouseCaptured: false,
     };
 
+    // TODO: do we still need these in TS?
     this.onInteraction = this.onInteraction.bind(this);
     this.onSelectEntry = this.onSelectEntry.bind(this);
     this.onChangeText = this.onChangeText.bind(this);
   }
 
-  componentWillReceiveProps(nextProps) {
+  public componentWillReceiveProps(nextProps: PredictingPickerProps) {
     if (nextProps.selectedKey && (this.props.selectedKey !== nextProps.selectedKey)) {
       this.setState({ text: this.entriesAsMap()[nextProps.selectedKey] });
     }
   }
 
-  render() {
+  public render() {
     return (
       <Popover
         autoFocus={false}
@@ -54,7 +86,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
         <InputGroup
           disabled={this.props.disabled}
           type={this.props.type}
-          leftIconName={this.props.leftIconName || this.props.iconName}
+          leftIconName={this.props.iconName || this.props.entryIconName}
           placeholder={this.props.placeholder}
           value={this.state.text}
           onKeyDown={(e) => this.onKeyDown(e)}
@@ -65,8 +97,8 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     );
   }
 
-  renderMenu() {
-    const items = _.map(this.categorisedFilteredEntries(), (entries, category) => this.renderCategory(category, entries));
+  private renderMenu() {
+    const items = _.map(this.categorisedFilteredEntries() as _.Dictionary<any>, (entries, category) => this.renderCategory(category, entries));
 
     return (
       <Menu>
@@ -79,17 +111,17 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     );
   }
 
-  renderCategory(category, entries) {
+  private renderCategory(category: string, entries: Map<string, string>) {
     return (
       <div key={category}>
         {(category !== "undefined") && <MenuDivider title={category} />}
-        {_.map(entries, entry => this.renderEntry(entry))}
+        {_.map(entries as _.Dictionary<any>, entry => this.renderEntry(entry))}
       </div>
     );
   }
 
   // 25px is a hack - compensates for hardcoded ::before size in Blueprint CSS
-  renderEntry(entry) {
+  private renderEntry(entry) {
     return (
       <div
         key={entry.key}
@@ -99,7 +131,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       >
         <MenuItem
           key={entry.key}
-          text={
+          text={(
             <div style={{ marginLeft: "25px" }}>
               <div><b>{entry.name}</b></div>
               <small className="pt-text-muted">
@@ -120,9 +152,9 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
 
               </small>
             </div>
-          }
+          ) as any} // Cast required because text not declared as string | JSXElement (even though that works)
           label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
-          iconName={this.props.iconName}
+          iconName={this.props.entryIconName}
           onClick={() => this.onSelectEntry(entry.key)}
         />
       </div>
@@ -131,15 +163,15 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
 
   // We cannot prevent the Blueprint :hover behaviour, thus if the mouse is currently hovered over an entry we have
   // to disable the up/down arrow behaviour.  This is what mouseCaptured is for.
-  onMouseEnter(idx) {
+  private onMouseEnter(idx: number) {
     this.setState({ mouseCaptured: true, idxHighlighted: idx });
   }
 
-  onMouseLeave() {
+  private onMouseLeave(_: number) {
     this.setState({ mouseCaptured: false });
   }
 
-  onKeyDown(e) {
+  private onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     switch (e.which) {
       case Keys.ARROW_DOWN:
         if (!this.state.mouseCaptured) {
@@ -170,12 +202,12 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     }
   }
 
-  onSelectEntry(key) {
+  private onSelectEntry(key: string) {
     this.setState({ menuVisible: false });
     this.props.onChange(key);
   }
 
-  onInteraction(nextOpenState) {
+  private onInteraction(nextOpenState: boolean) {
     this.setState({
       menuVisible: nextOpenState,
       shouldFilter: false,
@@ -184,7 +216,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     });
   }
 
-  onChangeText(text) {
+  private onChangeText(text: string) {
     this.setState({
       text,
       menuVisible: true,
@@ -195,7 +227,7 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
     this.props.onChange(_.invert(this.entriesAsMap())[text]);
   }
 
-  categorisedFilteredEntries() {
+  private categorisedFilteredEntries() {
     let idx = 0;
     return _.chain(this.filteredEntries())
       .groupBy(entry => entry.category)
@@ -203,35 +235,29 @@ class PredictingPicker extends React.Component { // eslint-disable-line react/pr
       .value();
   }
 
-  filteredEntries() {
+  private filteredEntries() {
     return _.chain(this.entriesAsMap())
-      .mapObject((v, k) => normalize(k, v))
+      .map((v, k: string) =>  this.normalize(k, v))
       .values()
       .filter(entry => !this.state.shouldFilter || !this.state.text || entry.name.toLowerCase().includes(this.state.text.toLowerCase()))
       .value();
   }
 
-  entriesAsMap() {
+  // TODO: this type stuff is gross
+  private entriesAsMap() {
     return _.isArray(this.props.entries)
-      ? _.object(_.map(this.props.entries, x => [x, x]))
+      ? _.object(_.map(this.props.entries as Array<any>, x => [x, x]))
       : this.props.entries;
   }
-}
 
-const normalize = (key, entry) => {
-  const isObject = (typeof entry === "object");
-  return {
-    key,
-    name: isObject ? entry.name : entry,
-    description: isObject ? entry.description : undefined,
-    extra: isObject ? entry.extra : undefined,
-    category: isObject ? entry.category : undefined,
+  private normalize = (key: string, entry: any) => {
+    const isObject = (typeof entry === "object");
+    return {
+      key,
+      name: isObject ? entry.name : entry,
+      description: isObject ? entry.description : undefined,
+      extra: isObject ? entry.extra : undefined,
+      category: isObject ? entry.category : undefined,
+    };
   };
-};
-
-PredictingPicker.defaultProps = {
-  errorDisabled: false,
-  disabled: false,
-};
-
-export default PredictingPicker;
+}
