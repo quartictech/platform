@@ -4,12 +4,6 @@ export interface Note {
   text: string;
 }
 
-export interface AssetModel {
-  name: string;
-  manufacturer: string;
-  snGen: () => string;
-}
-
 export interface LatLon {
   lat: number;
   lon: number;
