@@ -70,6 +70,7 @@ class SearchView extends React.Component<IProps, IState> {
               onChange={this.onNoobChange}
               errorDisabled={true}
               onQueryChange={this.onQueryChange}
+              large={true}
         />
       </div>
     );

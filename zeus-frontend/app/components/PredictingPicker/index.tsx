@@ -53,6 +53,7 @@ interface PredictingPickerProps {
   selectedKey: string;
   disabled?: boolean;
   errorDisabled?: boolean;
+  large?: boolean;
   onChange?: (key: string) => void;
   onQueryChange?: (text: string) => void;
 }
@@ -211,6 +212,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
         position={Position.BOTTOM_LEFT}
       >
         <InputGroup
+          className={this.props.large ? Classes.LARGE: null}
           disabled={this.props.disabled}
           type={this.props.type}
           leftIconName={this.props.iconName || this.props.entryIconName}
@@ -232,7 +234,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     }
 
     return (
-      <Menu>
+      <Menu className={this.props.large ? Classes.LARGE: null}>
         {
           (_.isEmpty(items) && this.state.text !== "")
             ? <MenuItem className={classNames(Classes.MENU_ITEM, Classes.DISABLED)} text="No results found." />
@@ -251,7 +253,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     );
   }
 
-  // 25px is a hack - compensates for hardcoded ::before size in Blueprint CSS.
+  // marginLeft is a hack - compensates for hardcoded ::before size in Blueprint CSS.
   // Note that the MenuItem behaviour is not very controllable, so we completely override it - we've disabled 
   // pointer-events, and use a wrapper div to capture events and do colouring.
   private renderEntry(entry: PredictingPickerEntry, idx: number) {
@@ -270,7 +272,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
           className={s.bad}
           key={entry.key}
           text={(
-            <div style={{ marginLeft: "25px" }}>
+            <div style={{ marginLeft: this.props.large ? "30px" : "25px" }}>
               <div><b>{entry.name}</b></div>
               <small className="pt-text-muted">
                 {
