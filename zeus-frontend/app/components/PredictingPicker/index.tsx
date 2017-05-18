@@ -20,12 +20,12 @@ const s = require("./style.css");
 
 // TODO: sort out inverse text colouring when selected
 // TODO: sort out bold font weight
-// TODO: look into https://basarat.gitbooks.io/typescript/docs/types/index-signatures.html
 // TODO: add scrolling (see https://github.com/palantir/blueprint/pull/1049)
 // TODO: add back convenience support for array of string entries
 // TODO: spinner?
+// TODO: make escape work
 
-interface PredictingPickerEntry {
+export interface PredictingPickerEntry {
   key: string;
   name: string;
   description?: string;
@@ -54,6 +54,7 @@ interface PredictingPickerProps {
   disabled?: boolean;
   errorDisabled?: boolean;
   onChange?: (key: string) => void;
+  onQueryChange?: (text: string) => void;
 }
 
 interface PredictingPickerState {
@@ -78,7 +79,6 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
       sortedEntries: null,
     };
 
-    // TODO: do we still need these in TS?
     this.onInteraction = this.onInteraction.bind(this);
     this.onSelectEntry = this.onSelectEntry.bind(this);
     this.onChangeText = this.onChangeText.bind(this);
@@ -161,6 +161,8 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     this.setState({ text });
     this.showMenu();
     this.resetHighlight();
+
+    this.props.onQueryChange(text);
 
     const matchingEntry = _.find(this.props.entries, entry => stringInString(text, entry.name));
     this.props.onChange(matchingEntry ? matchingEntry.key : undefined); // TODO: is this nice?
@@ -291,19 +293,3 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
 function stringInString(needle: string, haystack: string) {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }
-
-
-
-// TODO: move this logic to external
-// TODO: shouldFilter is false when first interacted with, switches to true as soon as typing 
-
-  // private filteredEntries(): PredictingPickerEntry[] {
-  //   // No filtering if disabled or if there's no text to filter by!
-  //   if (!this.state.shouldFilter || !this.state.text) {
-  //     return this.props.entries;
-  //   }
-
-  //   return _.chain(this.props.entries)
-  //     .filter(entry => this.stringInString(this.state.text, entry.name))
-  //     .value();
-  // }
