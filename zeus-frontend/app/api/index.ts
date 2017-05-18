@@ -1,7 +1,7 @@
 import { Asset } from "../models";
 import { ManagedResource } from "../api-management";
 
-export const apiRootUrl = `${location.origin}/api`;
+export const apiRootUrl = `${location.origin}${location.pathname}api`;
 
 const checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
