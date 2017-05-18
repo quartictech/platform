@@ -15,19 +15,7 @@ export interface LatLon {
   lon: number;
 }
 
-export interface Asset {
-  id: string;
-  clazz: string;
-  model: AssetModel;
-  serial: string;
-  purchaseTimestamp: Date;
-  lastInspectionTimestamp: Date;
-  lastInspectionSignoff: string;
-  retirementTimestamp: Date;
-  location: LatLon;
-  notes: Note[];
-  events: MaintenanceEvent[];
-}
+export type Asset = any;
 
 export interface Bar {
   name: string;

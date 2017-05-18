@@ -8,7 +8,13 @@ import * as _ from "underscore";
 const InsightSummary = ({ insight, assets }) => (
       <div>
       { insight.insightType === "failure"
-        ? <div><TimeChart yLabel="Voltage" events={assets[_.first(insight.assetIds) as string].events} timeSeries={[]} /></div>
+        ? <div>
+            <TimeChart
+              yLabel="Voltage"
+              events={assets[_.first(insight.assetIds) as string].events}
+              timeSeries={[]}
+            />
+           </div>
         : null
       }
       { insight.barChart ? (<div>

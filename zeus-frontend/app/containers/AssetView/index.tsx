@@ -3,6 +3,9 @@ import { connect } from "react-redux";
 
 import { createStructuredSelector } from "reselect";
 
+import * as moment from "moment";
+import * as numeral from "numeraljs";
+
 import {
   resourceActions,
   ResourceState,
@@ -41,14 +44,68 @@ class AssetView extends React.Component<IProps, void> {
     this.props.assetRequired(this.props.params.assetId);
   }
 
+  renderAttributes(asset) {
+    return (
+      <table className="pt-table pt-striped">
+        <tr>
+          <th>
+            Road Name
+          </th>
+          <td>
+            {asset["Road Name"]}
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Length (m)
+          </th>
+          <td>
+            { numeral(asset["Length"]).format("0.00") }
+          </td>
+        </tr>
+      </table>
+    );
+  }
+
+  renderJobsTable(asset) {
+    return (
+      <table className="pt-table pt-interactive pt-striped">
+        <tr>
+          <th>Job No.</th>
+          <th>Start Date</th>
+          <th>Notes</th>
+        </tr>
+
+        { asset._jobs.map(job =>
+          <tr>
+            <td>
+              { job["Number"] }
+            </td>
+
+            <td>
+              { moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a") }
+            </td>
+
+            <td>
+              { job["Notes"] }
+            </td>
+          </tr>
+        )}
+      </table>
+    );
+  }
+
+
   renderData() {
     const asset = this.props.asset;
     switch (asset.status) {
       case ResourceStatus.LOADED:
         return (
-          <div>
-            <h1>{asset.data.clazz}-{asset.data.model.manufacturer}-{asset.data.model.name}-{asset.data.serial}</h1>
+          <div style={{flex: 1}}>
+            <h1>{asset.data.RSL}</h1>
+            {this.renderAttributes(asset.data)}
             <TimeChart yLabel="Road Quality" events={[]} timeSeries={[]} />
+            {this.renderJobsTable(asset.data)}
           </div>
         );
 

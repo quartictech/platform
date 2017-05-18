@@ -26,5 +26,5 @@ export const assets = <ManagedResource<Map<string, Asset>>>{
 export const asset = <ManagedResource<Asset>>{
   name: "asset",
   shortName: "asset",
-  endpoint: (id) => fetchUtil<Asset>(`${apiRootUrl}/datasets/assets/${id}`)
+  endpoint: (id) => fetchUtil<Asset>(`${apiRootUrl}/datasets/assets/${encodeURIComponent(id)}`)
 };
