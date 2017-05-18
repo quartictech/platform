@@ -7,8 +7,10 @@ machine:
 dependencies:
   cache_directories:
     - .gradle
+    - ~/.yarn/cache
     - zeus-frontend/.gradle
   override:
+    - yarn cache dir
     - ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
 
 test:
