@@ -2,7 +2,7 @@ datasets:
   assets:
     type: classpath
     resourceName: "/assets.json"
-    indexedAttributes: [ "id", "serial" ]
+    indexedAttributes: [ "RSL" ]
 
 server:
   applicationContextPath: /

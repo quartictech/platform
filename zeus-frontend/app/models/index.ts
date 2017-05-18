@@ -4,30 +4,12 @@ export interface Note {
   text: string;
 }
 
-export interface AssetModel {
-  name: string;
-  manufacturer: string;
-  snGen: () => string;
-}
-
 export interface LatLon {
   lat: number;
   lon: number;
 }
 
-export interface Asset {
-  id: string;
-  clazz: string;
-  model: AssetModel;
-  serial: string;
-  purchaseTimestamp: Date;
-  lastInspectionTimestamp: Date;
-  lastInspectionSignoff: string;
-  retirementTimestamp: Date;
-  location: LatLon;
-  notes: Note[];
-  events: MaintenanceEvent[];
-}
+export type Asset = any;
 
 export interface Bar {
   name: string;
