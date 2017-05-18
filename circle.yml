@@ -7,9 +7,10 @@ machine:
 dependencies:
   cache_directories:
     - .gradle
-    - zeus-frontend/.gradle/nodejs
+    - ~/.cache/yarn
+    - zeus-frontend/.gradle
   override:
-    - ./gradlew resolveConfigurations npmInstall --parallel --info --console=plain
+    - ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
 
 test:
   override:
@@ -19,14 +20,12 @@ test:
     - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
 
-# TODO: enable deployment once everything's sweet
-
-#deployment:
-#  hub:
-#    branch: /.*/
-#    commands:
-#      - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
-#      - ./gradlew publish dockerPush --parallel --info --console=plain
+deployment:
+  hub:
+    branch: /.*/
+    commands:
+      - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
+      - ./gradlew dockerPush --parallel --info --console=plain
 
 general:
   artifacts:
