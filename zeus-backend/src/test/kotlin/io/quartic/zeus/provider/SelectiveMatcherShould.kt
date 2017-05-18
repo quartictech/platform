@@ -15,10 +15,27 @@ class SelectiveMatcherShould {
                 ItemId("789") to mapOf("a" to "x")
         )
 
-        val matcher = SelectiveMatcher(listOf("a"), data)
+        val matcher = SelectiveMatcher(setOf("a"), data)
 
-        assertThat(matcher("x"), equalTo(mapOf(
+        assertThat(matcher(setOf("x")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to "x"),
+                ItemId("789") to mapOf("a" to "x")
+        ) as Map<ItemId, Map<String, Any>>))
+    }
+
+    @Test
+    fun return_items_that_match_any_of_multiple_terms() {
+        val data: Map<ItemId, Map<String, Any>> = mapOf(
+                ItemId("123") to mapOf("a" to "x"),
+                ItemId("456") to mapOf("a" to "y"),
+                ItemId("789") to mapOf("a" to "x")
+        )
+
+        val matcher = SelectiveMatcher(setOf("a"), data)
+
+        assertThat(matcher(setOf("x", "y")), equalTo(mapOf(
+                ItemId("123") to mapOf("a" to "x"),
+                ItemId("456") to mapOf("a" to "y"),
                 ItemId("789") to mapOf("a" to "x")
         ) as Map<ItemId, Map<String, Any>>))
     }
@@ -30,9 +47,9 @@ class SelectiveMatcherShould {
                 ItemId("789") to mapOf("b" to "x")
         )
 
-        val matcher = SelectiveMatcher(listOf("a", "b"), data)
+        val matcher = SelectiveMatcher(setOf("a", "b"), data)
 
-        assertThat(matcher("x"), equalTo(mapOf(
+        assertThat(matcher(setOf("x")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("789") to mapOf("b" to "x")
         ) as Map<ItemId, Map<String, Any>>))
@@ -45,9 +62,9 @@ class SelectiveMatcherShould {
                 ItemId("789") to mapOf("c" to "x")
         )
 
-        val matcher = SelectiveMatcher(listOf("a"), data)
+        val matcher = SelectiveMatcher(setOf("a"), data)
 
-        assertThat(matcher("x"), equalTo(mapOf(
+        assertThat(matcher(setOf("x")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to "x")
         ) as Map<ItemId, Map<String, Any>>))
     }
@@ -58,9 +75,9 @@ class SelectiveMatcherShould {
                 ItemId("123") to mapOf("a" to 42)
         )
 
-        val matcher = SelectiveMatcher(listOf("a"), data)
+        val matcher = SelectiveMatcher(setOf("a"), data)
 
-        assertThat(matcher("42"), equalTo(mapOf(
+        assertThat(matcher(setOf("42")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to 42)
         ) as Map<ItemId, Map<String, Any>>))
     }
