@@ -17,7 +17,29 @@ import {
 import * as classNames from "classnames";
 import * as _ from "underscore";
 
+// TODO: sort out inverse text colouring when selected
+// TODO: sort out bold font weight
 // TODO: look into https://basarat.gitbooks.io/typescript/docs/types/index-signatures.html
+// TODO: add scrolling (see https://github.com/palantir/blueprint/pull/1049)
+// TODO: add back convenience support for array of string entries
+
+
+interface PredictingPickerEntry {
+  key: string;
+  name: string;
+  description?: string;
+  extra?: string;
+  category?: string;
+}
+
+interface NumberedEntry {
+  idx: number;
+  entry: PredictingPickerEntry;
+}
+
+interface CategorisedEntries {
+  [index: string] : NumberedEntry[]
+}
 
 // TODO: should these all be optional?
 // TODO: could we just pass a bunch of these through implicitly?
@@ -26,7 +48,7 @@ interface PredictingPickerProps {
   iconName?: string;
   entryIconName?: string;
   placeholder?: string;
-  entries: any; // TODO: is this type correct?
+  entries: PredictingPickerEntry[];
   selectedKey: string;
   disabled?: boolean;
   errorDisabled?: boolean;
@@ -41,8 +63,6 @@ interface PredictingPickerState {
   mouseCaptured: boolean;
 }
 
-// TODO: add scrolling (see https://github.com/palantir/blueprint/pull/1049)
-
 export default class PredictingPicker extends React.Component<PredictingPickerProps, PredictingPickerState> {
   public static defaultProps: Partial<PredictingPickerProps> = {
     errorDisabled: false,
@@ -52,7 +72,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   public constructor(props) {
     super(props);
     this.state = {
-      text: "",
+      text: "",               // Text to be displayed in search box
       menuVisible: false,
       shouldFilter: false,
       idxHighlighted: 0,
@@ -66,8 +86,13 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 
   public componentWillReceiveProps(nextProps: PredictingPickerProps) {
+    // The selection can be affected either by either (1) what the user types into the search box, or (2) by
+    // explicitly selecting something in the menu.  The mechanism below ensure the search-box text is updated in case
+    // #2 (assuming a feedback mechanism from onChange to selectedKey outside this component).
+    // However, in case #1 there's the case where the user types something that doesn't match any entry, leading to
+    // key being null.  Hence the logic that skips the update in that case.
     if (nextProps.selectedKey && (this.props.selectedKey !== nextProps.selectedKey)) {
-      this.setState({ text: this.entriesAsMap()[nextProps.selectedKey] });
+      this.setState({ text: this.props.entries[nextProps.selectedKey].name });
     }
   }
 
@@ -98,7 +123,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 
   private renderMenu() {
-    const items = _.map(this.categorisedFilteredEntries() as _.Dictionary<any>, (entries, category) => this.renderCategory(category, entries));
+    const items = _.map(this.categorisedFilteredEntries(), (entries, category: string) => this.renderCategory(category, entries));
 
     return (
       <Menu>
@@ -111,23 +136,23 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     );
   }
 
-  private renderCategory(category: string, entries: Map<string, string>) {
+  private renderCategory(category: string, entries: NumberedEntry[]) {
     return (
       <div key={category}>
         {(category !== "undefined") && <MenuDivider title={category} />}
-        {_.map(entries as _.Dictionary<any>, entry => this.renderEntry(entry))}
+        {_.map(entries, entry => this.renderEntry(entry.entry, entry.idx))}
       </div>
     );
   }
 
   // 25px is a hack - compensates for hardcoded ::before size in Blueprint CSS
-  private renderEntry(entry) {
+  private renderEntry(entry: PredictingPickerEntry, idx: number) {
     return (
       <div
         key={entry.key}
-        style={(entry.idx === this.state.idxHighlighted) ? { backgroundColor: Colors.BLUE3 } : {}}  // TODO: set ::before color to white
-        onMouseEnter={() => this.onMouseEnter(entry.idx)}
-        onMouseLeave={() => this.onMouseLeave(entry.idx)}
+        style={(idx === this.state.idxHighlighted) ? { backgroundColor: Colors.BLUE3 } : {}}  // TODO: set ::before color to white
+        onMouseEnter={() => this.onMouseEnter(idx)}
+        onMouseLeave={() => this.onMouseLeave(idx)}
       >
         <MenuItem
           key={entry.key}
@@ -224,40 +249,34 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
       idxHighlighted: 0,
       mouseCaptured: false,
     });
-    this.props.onChange(_.invert(this.entriesAsMap())[text]);
+
+    const matchingEntry = _.find(this.props.entries, entry => this.stringInString(text, entry.name));
+    this.props.onChange(matchingEntry.key);
   }
 
-  private categorisedFilteredEntries() {
+  private categorisedFilteredEntries(): CategorisedEntries {
     let idx = 0;
-    return _.chain(this.filteredEntries())
+    // TODO: make types work properly
+    const x: {} = _.chain(this.filteredEntries())
       .groupBy(entry => entry.category)
-      .mapObject(entries => _.map(entries, entry => ({ ...entry, idx: idx++ })))
+      .map((entries, category: string) => [category, _.map(entries, entry => ({idx: idx++, entry} as NumberedEntry))])
+      .object()
+      .value();
+    return x;
+  }
+
+  private filteredEntries(): PredictingPickerEntry[] {
+    // No filtering if disabled or if there's no text to filter by!
+    if (!this.state.shouldFilter || !this.state.text) {
+      return this.props.entries;
+    }
+
+    return _.chain(this.props.entries)
+      .filter(entry => this.stringInString(this.state.text, entry.name))
       .value();
   }
 
-  private filteredEntries() {
-    return _.chain(this.entriesAsMap())
-      .map((v, k: string) =>  this.normalize(k, v))
-      .values()
-      .filter(entry => !this.state.shouldFilter || !this.state.text || entry.name.toLowerCase().includes(this.state.text.toLowerCase()))
-      .value();
+  private stringInString(needle: string, haystack: string) {
+    return haystack.toLowerCase().includes(needle.toLowerCase());
   }
-
-  // TODO: this type stuff is gross
-  private entriesAsMap() {
-    return _.isArray(this.props.entries)
-      ? _.object(_.map(this.props.entries as Array<any>, x => [x, x]))
-      : this.props.entries;
-  }
-
-  private normalize = (key: string, entry: any) => {
-    const isObject = (typeof entry === "object");
-    return {
-      key,
-      name: isObject ? entry.name : entry,
-      description: isObject ? entry.description : undefined,
-      extra: isObject ? entry.extra : undefined,
-      category: isObject ? entry.category : undefined,
-    };
-  };
 }

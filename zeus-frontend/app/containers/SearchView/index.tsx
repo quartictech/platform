@@ -28,28 +28,36 @@ class SearchView extends React.Component<IProps, IState> {
               entryIconName="person"
               placeholder="Search noobs..."
               
-              entries={{
-                "123": {
+              entries={[
+                {
+                  key: "123",
                   name: "Arlo",
                   description: "CEO",
+                  extra: "Arlo is a noob",
                   category: "Humans",
                 },
-                "456": {
+                {
+                  key: "456",
                   name: "Alex",
                   description: "CTO",
+                  extra: "Alex is a noob",
                   category: "Humans",
                 },
-                "789": {
+                {
+                  key: "789",
                   name: "Oliver",
                   description: "Head of Engineering",
+                  extra: "Oliver is a noob",
                   category: "Humans",
                 },
-                "ABC": {
+                {
+                  key: "ABC",
                   name: "Edmund",
                   description: "VP of Pugs",
+                  extra: "Edmund is a noob",
                   category: "Animals",
                 }
-              }}
+              ]}
               selectedKey={null}
               onChange={this.onNoobChange}
               errorDisabled={true}
