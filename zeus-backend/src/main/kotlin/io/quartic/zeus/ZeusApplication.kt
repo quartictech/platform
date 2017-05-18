@@ -24,10 +24,10 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     private fun createDatasetMap(config: Map<DatasetName, DataProviderConfiguration>) = config
             .onEach { LOG.info("Registered data provider: ${it.key} -> ${it.value}") }
             .mapValues {
-                val v = it.value
-                when (v) {
-                    is ClasspathDataProviderConfiguration -> ClasspathDataProvider(v.resourceName, v.indexedAttributes)
-                    is UrlDataProviderConfiguration -> UrlDataProvider(v.url, v.indexedAttributes)
+                val providerConfig = it.value
+                when (providerConfig) {
+                    is ClasspathDataProviderConfiguration -> ClasspathDataProvider(providerConfig)
+                    is UrlDataProviderConfiguration -> UrlDataProvider(providerConfig)
                 }
             }
 

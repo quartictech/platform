@@ -21,10 +21,10 @@ sealed class DataProviderConfiguration
 
 data class ClasspathDataProviderConfiguration(
         val resourceName: String,
-        val indexedAttributes: List<String> = emptyList()
+        val indexedAttributes: Set<String> = emptySet()
 ) : DataProviderConfiguration()
 
 data class UrlDataProviderConfiguration(
         val url: URL,
-        val indexedAttributes: List<String> = emptyList()
+        val indexedAttributes: Set<String> = emptySet()
 ) : DataProviderConfiguration()

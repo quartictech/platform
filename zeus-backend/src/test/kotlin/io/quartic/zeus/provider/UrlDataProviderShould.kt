@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.zeus.UrlDataProviderConfiguration
 import io.quartic.zeus.model.ItemId
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
@@ -34,7 +35,8 @@ class UrlDataProviderShould {
                 )
         )
 
-        assertThat(UrlDataProvider(URL("http://localhost:${wireMockRule.port()}/weird.json"), emptyList()).data, equalTo(data))
+        val provider = UrlDataProvider(UrlDataProviderConfiguration(URL("http://localhost:${wireMockRule.port()}/weird.json"), emptySet()))
+        assertThat(provider.data, equalTo(data))
     }
 
     // TODO: test filtering
