@@ -154,6 +154,17 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (!this.state.defectChartSelection &&
+      nextProps.asset.data &&
+      nextProps.asset.data._defect_time_series) {
+      const timeSeriesKeys = Object.keys(nextProps.asset.data._defect_time_series);
+      if (timeSeriesKeys.length > 0) {
+        this.setState({ defectChartSelection: timeSeriesKeys[0] });
+      }
+    }
+  }
+
 
   renderData() {
     const asset = this.props.asset;
