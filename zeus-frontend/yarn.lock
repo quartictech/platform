@@ -85,7 +85,7 @@
   version "2.2.33"
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-2.2.33.tgz#d79a0061ec270379f4d9e225f4096fb436669def"
 
-"@types/moment@^2.13.0":
+"@types/moment@2.13.0":
   version "2.13.0"
   resolved "https://registry.yarnpkg.com/@types/moment/-/moment-2.13.0.tgz#604ebd189bc3bc34a1548689404e61a2a4aac896"
   dependencies:
@@ -95,7 +95,7 @@
   version "6.0.48"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-6.0.48.tgz#86ccc15f66b73cbbc5eb3483398936c585122b3c"
 
-"@types/numeral@^0.0.20":
+"@types/numeral@0.0.20":
   version "0.0.20"
   resolved "https://registry.yarnpkg.com/@types/numeral/-/numeral-0.0.20.tgz#82f15ae655faf73e1b8ffd71befc84ce9a9a3900"
 
@@ -3277,7 +3277,7 @@ moment@*:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
-momentjs@^2.0.0:
+momentjs@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/momentjs/-/momentjs-2.0.0.tgz#73df904b4fa418f6e3c605e831cef6ed5518ebd4"
 
@@ -3429,7 +3429,7 @@ number-is-nan@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/number-is-nan/-/number-is-nan-1.0.1.tgz#097b602b53422a522c1afb8790318336941a011d"
 
-numeraljs@^1.5.6:
+numeraljs@1.5.6:
   version "1.5.6"
   resolved "https://registry.yarnpkg.com/numeraljs/-/numeraljs-1.5.6.tgz#91ac1901578a42657b877583a28b5ea040a83271"
 

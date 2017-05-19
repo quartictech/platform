@@ -7,15 +7,24 @@ import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
 
 import SizeMe from "react-sizeme";
 
-interface ITimeChartProps {
+interface IProps {
   events: MaintenanceEvent[];
   timeSeries: TimeSeriesPoint[];
   yLabel: string;
 }
 
-class RealTimeChart extends React.Component<ITimeChartProps, any> {
+interface IState {
+  timeSeriesPlot: Plottable.Plots.Line<{}>;
+  chart: any;
+}
+
+class RealTimeChart extends React.Component<IProps, IState> {
   constructor() {
     super();
+    this.state = {
+      timeSeriesPlot: null,
+      chart: null
+    };
   }
 
   createChart() {
@@ -44,7 +53,6 @@ class RealTimeChart extends React.Component<ITimeChartProps, any> {
        .y2( _ => 1);
 
     const timeSeriesPlot = new Plottable.Plots.Line()
-      .addDataset(new Plottable.Dataset(this.props.timeSeries))
       .attr("stroke", _ => "#D3D3D3")
       .x(d => d.x, xScale)
       .y(d => d.y, yScaleTimeSeries);
@@ -58,32 +66,39 @@ class RealTimeChart extends React.Component<ITimeChartProps, any> {
       plot.redraw();
     });
 
-    // const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
-    // const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
-      [yLabel, chart],
-      [null, xAxis],
-    ]),
-    plot: plot
+        [yLabel, chart],
+        [null, xAxis],
+      ]),
+      timeSeriesPlot: timeSeriesPlot
     };
   }
 
   render() {
+    if (this.state.chart) {
+      this.state.chart.redraw();
+    }
     return (
       <div style={{padding: "10px", width: "99%"}}>
-    <svg className={s.chart} style={{width: "100%", height: 150}} ref="svg">
-    </svg>
-    </div>
+        <svg className={s.chart} style={{ width: "100%", height: 150 }} ref="svg">
+        </svg>
+      </div>
     );
   }
 
   componentDidMount() {
     this.createChart();
     this.state.chart.renderTo(this.refs["svg"]);
-    this.state.plot.redraw();
+    this.state.chart.redraw();
+  }
+
+  componentWillUpdate(nextProps, _) {
+    if (this.state.timeSeriesPlot != null) {
+      this.state.timeSeriesPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
+    }
   }
 }
 
 declare function SizeMe<T>(): (c: React.ComponentClass<T>) => React.ComponentClass<T>;
-export const TimeChart = SizeMe<ITimeChartProps>()(RealTimeChart); // tslint:disable-line:variable-name
+export const TimeChart = SizeMe<IProps>()(RealTimeChart); // tslint:disable-line:variable-name

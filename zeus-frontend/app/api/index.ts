@@ -10,7 +10,8 @@ const checkStatus = (response) => {
   throw new Error(response.statusText);
 };
 
-const dateInferringReviver = (key, value) => (key.toLowerCase().endsWith("timestamp") ? new Date(value * 1000) : value);
+// NOTE: we may  want to switch representations to seconds since the epoch here for better Java compatibility
+const dateInferringReviver = (key, value) => (key.toLowerCase().endsWith("timestamp") ? new Date(value) : value);
 
 const fetchUtil = <T>(url, options?) => fetch(url, Object.assign({}, options, { credentials: "same-origin" }))
   .then(checkStatus)

@@ -6,6 +6,10 @@ import { createStructuredSelector } from "reselect";
 import * as moment from "moment";
 import * as numeral from "numeraljs";
 
+import * as classNames from "classnames";
+
+import { TimeSeriesPoint } from "../../models";
+
 import {
   resourceActions,
   ResourceState,
@@ -19,7 +23,7 @@ import {
 } from "@blueprintjs/core";
 
 import {
-  asset
+  asset,
 } from "../../api";
 
 import * as selectors from "../../redux/selectors";
@@ -39,30 +43,82 @@ interface IProps {
   assetRequired: (string) => void;
 }
 
-class AssetView extends React.Component<IProps, void> {
+interface IState {
+  defectChartSelection: string;
+}
+
+class AssetView extends React.Component<IProps, IState> {
+  constructor() {
+    super();
+    this.state = {
+      defectChartSelection: null,
+    };
+  }
+
   componentDidMount() {
     this.props.assetRequired(this.props.params.assetId);
+  }
+
+  computeTimeSeries(asset): TimeSeriesPoint[] {
+    if (this.state.defectChartSelection) {
+      return asset._defect_time_series[this.state.defectChartSelection]
+        .series.map( ({ timestamp, value }) => ({x: new Date(timestamp), y: value }));
+    }
+    return [];
+  }
+
+  renderDefectsChart(asset) {
+    const timeSeries = this.computeTimeSeries(asset);
+    return (
+      <div>
+        {this.renderChartButtons(asset)}
+        <TimeChart yLabel="Road Quality" events={[]} timeSeries={timeSeries} />
+      </div>
+    );
+  }
+
+  renderChartButtons(asset) {
+    const charts = Object.keys(asset._defect_time_series);
+    return (
+      <div className="pt-button-group pull-right">
+        {
+          charts.map( c =>
+            <a
+              key={c}
+              id={c}
+              className={classNames("pt-button", {"pt-active": c === this.state.defectChartSelection})}
+              role="button"
+              onClick={e => this.setState({ defectChartSelection: e.currentTarget.id })}
+            >
+              {c}
+            </a>
+          )
+        }
+      </div>
+    );
   }
 
   renderAttributes(asset) {
     return (
       <table className="pt-table pt-striped">
-        <tr>
-          <th>
-            Road Name
-          </th>
-          <td>
-            {asset["Road Name"]}
-          </td>
-        </tr>
-        <tr>
-          <th>
-            Length (m)
-          </th>
-          <td>
-            { numeral(asset["Length"]).format("0.00") }
-          </td>
-        </tr>
+        <tbody>
+          <tr>
+            <th>
+              Road Name
+            </th>
+            <td>
+              {asset["Road Name"]}
+            </td>
+          </tr>
+          <tr>
+            <th>
+              Length (m)
+            </th>
+            <td>
+              { numeral(asset["Length"]).format("0.00") }
+            </td>
+          </tr>
+        </tbody>
       </table>
     );
   }
@@ -70,27 +126,30 @@ class AssetView extends React.Component<IProps, void> {
   renderJobsTable(asset) {
     return (
       <table className="pt-table pt-interactive pt-striped">
-        <tr>
-          <th>Job No.</th>
-          <th>Start Date</th>
-          <th>Notes</th>
-        </tr>
-
-        { asset._jobs.map(job =>
+        <thead>
           <tr>
-            <td>
-              { job["Number"] }
-            </td>
-
-            <td>
-              { moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a") }
-            </td>
-
-            <td>
-              { job["Notes"] }
-            </td>
+            <th>Job No.</th>
+            <th>Start Date</th>
+            <th>Notes</th>
           </tr>
-        )}
+        </thead>
+        <tbody>
+          {asset._jobs.map(job =>
+            <tr key={job["Number"]}>
+              <td>
+                {job["Number"]}
+              </td>
+
+              <td>
+                {moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a")}
+              </td>
+
+              <td>
+                {job["Notes"]}
+              </td>
+            </tr>
+          )}
+        </tbody>
       </table>
     );
   }
@@ -104,7 +163,7 @@ class AssetView extends React.Component<IProps, void> {
           <div style={{flex: 1}}>
             <h1>{asset.data.RSL}</h1>
             {this.renderAttributes(asset.data)}
-            <TimeChart yLabel="Road Quality" events={[]} timeSeries={[]} />
+            {this.renderDefectsChart(asset.data)}
             {this.renderJobsTable(asset.data)}
           </div>
         );
