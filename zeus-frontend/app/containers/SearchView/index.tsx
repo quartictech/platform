@@ -7,70 +7,59 @@ import { createStructuredSelector } from "reselect";
 import * as _ from "underscore";
 import * as classNames from "classnames";
 import PredictingPicker, { PredictingPickerEntry } from "../../components/PredictingPicker";
+import * as selectors from "../../redux/selectors";
+import {
+  resourceActions,
+  ResourceState,
+  ResourceStatus,
+} from "../../api-management";
+import {
+  noobs,
+} from "../../api";
+import {
+  Noob,
+} from "../../models";
+
 const s = require("./style.css");
 
-// TODO - layout page
-// TODO - sort out inverse colouring
-// TODO - hook up to backend via Redux + API
-// TODO - ensure selection callback is working properly
-// TODO - handle API errors nicely
-// TODO - (backend) substring search
-// TODO - order by relevance rather than alphabetic?
-// TODO - scrolling
+/*-----------------------------------------------------*
+  TODO
 
+  - Appearance
+    - vertical center
+    - sensible width (both input control + menu)
+    - fix inverse colouring
+    - stop the jerking around due to spinner appearing/disappearing
+    - boldness
+    - scrolling (see https://github.com/palantir/blueprint/pull/1049)
 
-const rawEntries: PredictingPickerEntry[] = [
-  {
-    key: "123",
-    name: "Arlo",
-    description: "CEO",
-    extra: "Arlo is a noob",
-    category: "Humans",
-  },
-  {
-    key: "456",
-    name: "Alex",
-    description: "CTO",
-    extra: "Alex is a noob",
-    category: "Humans",
-  },
-  {
-    key: "789",
-    name: "Oliver",
-    description: "Head of Engineering",
-    extra: "Oliver is a noob",
-    category: "Humans",
-  },
-  {
-    key: "ABC",
-    name: "Edmund",
-    description: "VP of Pugs",
-    extra: "Edmund is a noob",
-    category: "Animals",
-  },
-  {
-    key: "DEF",
-    name: "Puss",
-    description: "VP of Cats",
-    extra: "Puss is a noob",
-    category: "Animals",
-  },
-];
+  - Behaviour
+    - debouncing
+    - limit results
+    - order by relevance
+    - handle backend errors nicely
+    - controlled selection
+
+  - Flow
+    - click on result takes you to result page
+    - press enter when none selected takes you to full results page
+
+ *-----------------------------------------------------*/
 
 interface IProps {
+  noobsClear: () => void;
+  noobsRequired: (string) => void;
+  noobs: ResourceState<{ [id: string] : Noob }>;
 }
 
 interface IState {
-  filteredEntries: PredictingPickerEntry[];
   working: boolean;
 }
 
 class SearchView extends React.Component<IProps, IState> {
-
   constructor(props) {
     super(props);
     this.state = {
-      filteredEntries: rawEntries,
       working: true,
     };
 
@@ -85,16 +74,29 @@ class SearchView extends React.Component<IProps, IState> {
           className={classNames(Classes.LARGE, Classes.ROUND)}
           iconName="search"
           entryIconName="person"
-          placeholder="What do you want to know?"
+          placeholder="Search..."
           
-          entries={this.state.filteredEntries}
+          entries={this.results()}
           selectedKey={null}
           onChange={this.onNoobChange}
           errorDisabled={true}
           onQueryChange={this.onQueryChange}
-          working={this.state.working}
+          working={this.props.noobs.status === ResourceStatus.LOADING}
         />
       </div>
+    );
+  }
+
+  // TODO: need to cache while working
+  private results() {
+    return _.map(this.props.noobs.data,
+      (noob, id: string) => ({
+        key: id,
+        name: noob.name,
+        description: noob.role,
+        category: noob.category,
+        extra: `${noob.name} is a noob`,
+      } as PredictingPickerEntry)
     );
   }
 
@@ -103,27 +105,21 @@ class SearchView extends React.Component<IProps, IState> {
   }
 
   private onQueryChange(query: string) {
-    // TODO: shouldFilter is false when first interacted with, switches to true as soon as typing 
-    // No filtering if disabled or if there's no text to filter by!
-    if (/*!this.state.shouldFilter || */!query) {
-      this.setState({ filteredEntries: rawEntries });
+    if (query.length > 0) {
+      this.props.noobsRequired(query);
+    } else {
+      this.props.noobsClear();
     }
-
-    this.setState({ filteredEntries: _.chain(rawEntries)
-      .filter(entry => stringInString(query, entry.name))
-      .value()
-    });
   }
 }
 
-function stringInString(needle: string, haystack: string) {
-  return haystack.toLowerCase().includes(needle.toLowerCase());
-}
-
 const mapDispatchToProps = {
+  noobsClear: resourceActions(noobs).clear,
+  noobsRequired: resourceActions(noobs).required,
 };
 
 const mapStateToProps = createStructuredSelector({
+  noobs: selectors.selectNoobs,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SearchView);

@@ -19,13 +19,6 @@ import * as classNames from "classnames";
 import * as _ from "underscore";
 const s = require("./style.css");
 
-// TODO: sort out inverse text colouring when selected
-// TODO: sort out bold font weight
-// TODO: add scrolling (see https://github.com/palantir/blueprint/pull/1049)
-// TODO: add back convenience support for array of string entries
-// TODO: spinner?
-// TODO: make escape work
-
 export interface PredictingPickerEntry {
   key: string;
   name: string;
@@ -43,8 +36,6 @@ interface CategorisedEntries {
   [index: string] : NumberedEntry[]
 }
 
-// TODO: should these all be optional?
-// TODO: could we just pass a bunch of these through implicitly?
 interface PredictingPickerProps {
   className?: string;
   type?: string;
@@ -104,6 +95,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     // }
 
     // Note: this is a shallow check
+    console.log(nextProps.entries);
     if (this.props.entries !== nextProps.entries) {
       this.recalculateCategorisedEntries(nextProps.entries);
       this.resetHighlight();

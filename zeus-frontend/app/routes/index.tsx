@@ -14,7 +14,7 @@ function getRoutes() { return (
       <Route path="/inventory" component={Inventory} />
       <Route path="/assets/:assetId" component={AssetView} />
       <Route path="/insights/:insightId" component={InsightView} />
-      <IndexRedirect to="/insights" />
+      <IndexRedirect to="/search" />
     </Route>
   );
 }
