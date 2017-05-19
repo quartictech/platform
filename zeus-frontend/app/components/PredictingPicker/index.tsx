@@ -96,7 +96,6 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     // }
 
     // Note: this is a shallow check
-    console.log(nextProps.entries);
     if (this.props.entries !== nextProps.entries) {
       this.recalculateCategorisedEntries(nextProps.entries);
       this.resetHighlight();
