@@ -13,6 +13,7 @@ import {
   Popover,
   PopoverInteractionKind,
   Position,
+  Spinner,
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
@@ -45,6 +46,7 @@ interface CategorisedEntries {
 // TODO: should these all be optional?
 // TODO: could we just pass a bunch of these through implicitly?
 interface PredictingPickerProps {
+  className?: string;
   type?: string;
   iconName?: string;
   entryIconName?: string;
@@ -53,7 +55,7 @@ interface PredictingPickerProps {
   selectedKey: string;
   disabled?: boolean;
   errorDisabled?: boolean;
-  large?: boolean;
+  working?: boolean;
   onChange?: (key: string) => void;
   onQueryChange?: (text: string) => void;
 }
@@ -62,7 +64,7 @@ interface PredictingPickerState {
   text: string;
   menuVisible: boolean;
   idxHighlighted: number;
-  sortedEntries: CategorisedEntries;  // Cached to avoid recompute during render
+  categorisedEntries: CategorisedEntries;  // Cached to avoid recompute during render
 }
 
 export default class PredictingPicker extends React.Component<PredictingPickerProps, PredictingPickerState> {
@@ -77,7 +79,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
       text: "",               // Text to be displayed in search box
       menuVisible: false,
       idxHighlighted: 0,
-      sortedEntries: null,
+      categorisedEntries: null,
     };
 
     this.onInteraction = this.onInteraction.bind(this);
@@ -86,7 +88,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 
   public componentWillMount() {
-    this.recalculateSortedEntries(this.props.entries);
+    this.recalculateCategorisedEntries(this.props.entries);
   }
 
   public componentWillReceiveProps(nextProps: PredictingPickerProps) {
@@ -103,20 +105,20 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
 
     // Note: this is a shallow check
     if (this.props.entries !== nextProps.entries) {
-      this.recalculateSortedEntries(nextProps.entries);
+      this.recalculateCategorisedEntries(nextProps.entries);
       this.resetHighlight();
     }
   }
 
-  private recalculateSortedEntries(entries: PredictingPickerEntry[]) {
+  private recalculateCategorisedEntries(entries: PredictingPickerEntry[]) {
     let idx = 0;
     // TODO: make types work properly
-    const sortedEntries: {} = _.chain(entries)
+    const categorisedEntries: {} = _.chain(entries)
       .groupBy(entry => entry.category)
       .map((entries, category: string) => [category, _.map(entries, entry => ({idx: idx++, entry} as NumberedEntry))])
       .object()
       .value();
-    this.setState({ sortedEntries });
+    this.setState({ categorisedEntries });
   }
 
   private onMouseEnter(idx: number) {
@@ -192,7 +194,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 
   private getHighlightedEntry() {
-    return _.chain(this.state.sortedEntries)
+    return _.chain(this.state.categorisedEntries)
           .values()
           .flatten()
           .find(entry => entry.idx === this.state.idxHighlighted)
@@ -212,10 +214,11 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
         position={Position.BOTTOM_LEFT}
       >
         <InputGroup
-          className={this.props.large ? Classes.LARGE: null}
+          className={this.props.className}
           disabled={this.props.disabled}
           type={this.props.type}
           leftIconName={this.props.iconName || this.props.entryIconName}
+          rightElement={this.props.working ? <Spinner className={Classes.SMALL} /> : undefined}
           placeholder={this.props.placeholder}
           value={this.state.text}
           onKeyDown={(e) => this.onKeyDown(e)}
@@ -227,14 +230,14 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 
   private renderMenu() {
-    const items = _.map(this.state.sortedEntries, (entries, category: string) => this.renderCategory(category, entries));
+    const items = _.map(this.state.categorisedEntries, (entries, category: string) => this.renderCategory(category, entries));
 
     if (_.isEmpty(items) && this.state.text === "") {
       return null;  // Otherwise a weird empty box appears
     }
 
     return (
-      <Menu className={this.props.large ? Classes.LARGE: null}>
+      <Menu className={this.props.className}>
         {
           (_.isEmpty(items) && this.state.text !== "")
             ? <MenuItem className={classNames(Classes.MENU_ITEM, Classes.DISABLED)} text="No results found." />
@@ -272,7 +275,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
           className={s.bad}
           key={entry.key}
           text={(
-            <div style={{ marginLeft: this.props.large ? "30px" : "25px" }}>
+            <div style={{ marginLeft: "30px" }}>
               <div><b>{entry.name}</b></div>
               <small className="pt-text-muted">
                 {

@@ -1,10 +1,23 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import {
+  Classes,
 } from "@blueprintjs/core";
 import { createStructuredSelector } from "reselect";
 import * as _ from "underscore";
+import * as classNames from "classnames";
 import PredictingPicker, { PredictingPickerEntry } from "../../components/PredictingPicker";
+const s = require("./style.css");
+
+// TODO - layout page
+// TODO - sort out inverse colouring
+// TODO - hook up to backend via Redux + API
+// TODO - ensure selection callback is working properly
+// TODO - handle API errors nicely
+// TODO - (backend) substring search
+// TODO - order by relevance rather than alphabetic?
+// TODO - scrolling
+
 
 const rawEntries: PredictingPickerEntry[] = [
   {
@@ -34,7 +47,14 @@ const rawEntries: PredictingPickerEntry[] = [
     description: "VP of Pugs",
     extra: "Edmund is a noob",
     category: "Animals",
-  }
+  },
+  {
+    key: "DEF",
+    name: "Puss",
+    description: "VP of Cats",
+    extra: "Puss is a noob",
+    category: "Animals",
+  },
 ];
 
 interface IProps {
@@ -42,6 +62,7 @@ interface IProps {
 
 interface IState {
   filteredEntries: PredictingPickerEntry[];
+  working: boolean;
 }
 
 class SearchView extends React.Component<IProps, IState> {
@@ -50,6 +71,7 @@ class SearchView extends React.Component<IProps, IState> {
     super(props);
     this.state = {
       filteredEntries: rawEntries,
+      working: true,
     };
 
     this.onNoobChange = this.onNoobChange.bind(this);
@@ -58,19 +80,19 @@ class SearchView extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div>
-        <p>Hello mummy</p>
+      <div className={s.container}>
         <PredictingPicker
-              iconName="search"
-              entryIconName="person"
-              placeholder="Search noobs..."
-              
-              entries={rawEntries}
-              selectedKey={null}
-              onChange={this.onNoobChange}
-              errorDisabled={true}
-              onQueryChange={this.onQueryChange}
-              large={true}
+          className={classNames(Classes.LARGE, Classes.ROUND)}
+          iconName="search"
+          entryIconName="person"
+          placeholder="What do you want to know?"
+          
+          entries={this.state.filteredEntries}
+          selectedKey={null}
+          onChange={this.onNoobChange}
+          errorDisabled={true}
+          onQueryChange={this.onQueryChange}
+          working={this.state.working}
         />
       </div>
     );
