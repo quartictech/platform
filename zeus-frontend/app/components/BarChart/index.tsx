@@ -61,4 +61,4 @@ class RealBarChart  extends React.Component<IProps, any> {
   }
 }
 
-export const BarChart = SizeMe()(RealBarChart); // tslint:disable-line:variable-name
+export const BarChart = SizeMe<IProps>()(RealBarChart); // tslint:disable-line:variable-name
