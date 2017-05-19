@@ -6,7 +6,7 @@ import { createStructuredSelector } from "reselect";
 import * as moment from "moment";
 import * as numeral from "numeraljs";
 
-import * as classNames from "classnames";
+// import * as classNames from "classnames";
 
 import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
 
@@ -19,6 +19,7 @@ import {
 import {
   Classes,
   NonIdealState,
+  Position,
   Spinner,
 } from "@blueprintjs/core";
 
@@ -33,6 +34,8 @@ const s = require("./style.css");
 
 import { TimeChart } from "../../components/TimeChart";
 import { Map } from "../../components/Map";
+import NormalPicker from "../../components/NormalPicker";
+import Pane from "../../components/Pane";
 
 interface IProps {
   ui: any;
@@ -78,35 +81,30 @@ class AssetView extends React.Component<IProps, IState> {
     const timeSeries = this.computeTimeSeries(asset);
     const events = this.computeEvents(asset);
     return (
-      <div>
-        {this.renderChartButtons(asset)}
+      <Pane
+        title="Defects"
+        iconName="error"
+        extraHeaderContent={this.renderChartButtons(asset)}
+      >
         <TimeChart
           yLabel="Road Quality"
           events={events}
           timeSeries={timeSeries}
          />
-      </div>
+      </Pane>
     );
   }
 
   renderChartButtons(asset) {
     const charts = Object.keys(asset._defect_time_series);
     return (
-      <div className="pt-button-group pull-right">
-        {
-          charts.map( c =>
-            <a
-              key={c}
-              id={c}
-              className={classNames("pt-button", {"pt-active": c === this.state.defectChartSelection})}
-              role="button"
-              onClick={e => this.setState({ defectChartSelection: e.currentTarget.id })}
-            >
-              {c}
-            </a>
-          )
-        }
-      </div>
+      <NormalPicker
+        iconName="timeline-line-chart"
+        position={Position.TOP}
+        selected={this.state.defectChartSelection}
+        entries={charts}
+        onChange={id => this.setState({ defectChartSelection: id })}
+      />
     );
   }
 
@@ -122,63 +120,69 @@ class AssetView extends React.Component<IProps, IState> {
       ]
     };
     return (
-      <Map height={100} width={500} featureCollection={fc}/>
+      <Pane>
+        <Map height={100} width={500} featureCollection={fc}/>
+      </Pane>
     );
   }
 
   renderAttributes(asset) {
     return (
-      <table className="pt-table pt-striped">
-        <tbody>
-          <tr>
-            <th>
-              Road Name
-            </th>
-            <td>
-              {asset["Road Name"]}
-            </td>
-          </tr>
-          <tr>
-            <th>
-              Length (m)
-            </th>
-            <td>
-              { numeral(asset["Length"]).format("0.00") }
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <Pane>
+        <table className="pt-table pt-striped">
+          <tbody>
+            <tr>
+              <th>
+                Road Name
+              </th>
+              <td>
+                {asset["Road Name"]}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Length (m)
+              </th>
+              <td>
+                { numeral(asset["Length"]).format("0.00") }
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Pane>
     );
   }
 
   renderJobsTable(asset) {
     return (
-      <table className="pt-table pt-interactive pt-striped">
-        <thead>
-          <tr>
-            <th>Job No.</th>
-            <th>Start Date</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {asset._jobs.map(job =>
-            <tr key={job["Number"]}>
-              <td>
-                {job["Number"]}
-              </td>
-
-              <td>
-                {moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a")}
-              </td>
-
-              <td>
-                {job["Notes"]}
-              </td>
+      <Pane title="Jobs" iconName="person">
+        <table className="pt-table pt-interactive pt-striped">
+          <thead>
+            <tr>
+              <th>Job No.</th>
+              <th>Start Date</th>
+              <th>Notes</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {asset._jobs.map(job =>
+              <tr key={job["Number"]}>
+                <td>
+                  {job["Number"]}
+                </td>
+
+                <td>
+                  {moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a")}
+                </td>
+
+                <td>
+                  {job["Notes"]}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Pane>
     );
   }
 
