@@ -14,3 +14,17 @@
   padding: 10px;
   align-self: flex-start;
 }
+
+.splitRow {
+  flex-direction: row;
+  flex: 1;
+  display: flex;
+}
+
+.splitLeft {
+  flex: 0.5;
+}
+
+.splitRight {
+  flex: 0.5;
+}

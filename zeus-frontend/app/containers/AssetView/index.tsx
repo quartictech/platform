@@ -201,8 +201,14 @@ class AssetView extends React.Component<IProps, IState> {
         return (
           <div style={{flex: 1}}>
             <h1>{asset.data.RSL}</h1>
-            {this.renderAttributes(asset.data)}
-            {this.renderMap(asset.data)}
+            <div className={s.splitRow}>
+              <div className={s.splitLeft}>
+                {this.renderAttributes(asset.data)}
+              </div>
+              <div className={s.splitRight}>
+                {this.renderMap(asset.data)}
+              </div>
+            </div>
             {this.renderDefectsChart(asset.data)}
             {this.renderJobsTable(asset.data)}
           </div>
