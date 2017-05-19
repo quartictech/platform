@@ -9,6 +9,7 @@ import * as classNames from "classnames";
 import PredictingPicker, { PredictingPickerEntry } from "../../components/PredictingPicker";
 import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
+import { toTitleCase } from "../../helpers/Utils";
 import {
   resourceActions,
   ResourceState,
@@ -114,10 +115,6 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
     }
   }
 }
-
-// From http://stackoverflow.com/a/196991
-const toTitleCase = (str) =>
-  str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 
 const mapDispatchToProps = {
   entriesClear: resourceActions(assets).clear,
