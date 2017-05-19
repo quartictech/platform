@@ -79,7 +79,11 @@ class AssetView extends React.Component<IProps, IState> {
     return (
       <div>
         {this.renderChartButtons(asset)}
-        <TimeChart yLabel="Road Quality" events={events} timeSeries={timeSeries} />
+        <TimeChart
+          yLabel="Road Quality"
+          events={events}
+          timeSeries={timeSeries}
+         />
       </div>
     );
   }

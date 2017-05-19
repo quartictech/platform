@@ -11,7 +11,8 @@ import mapboxgl from "./mapbox-gl-helper";
 interface IMapProps {
   locations: LatLon[];
   colors: number[];
-  width: number;
+  width?: number;
+  height: number;
 }
 
 const circleLayer = (id, locations, width, color) => ({
@@ -58,7 +59,7 @@ class RealMap  extends React.Component<IMapProps, any> {
         this.props.locations.filter((_, idx) => this.props.colors[idx] === 0), 6, "#db3737"));
       this.map.addLayer(circleLayer("points2_1",
         this.props.locations.filter( (_, idx) => this.props.colors[idx] === 1), 6, "#0f9960"));
-      this.map.fitBounds([[Math.min.apply(null, lons), Math.min.apply(null, lats)],  
+      this.map.fitBounds([[Math.min.apply(null, lons), Math.min.apply(null, lats)],
       [Math.max.apply(null, lons), Math.max.apply(null, lats)]
       ], { duration: 0, padding: 10 });
     });
@@ -74,4 +75,4 @@ class RealMap  extends React.Component<IMapProps, any> {
   }
 }
 
-export const Map = SizeMe()(RealMap); // tslint:disable-line:variable-name
+export const Map = SizeMe<IMapProps>()(RealMap); // tslint:disable-line:variable-name

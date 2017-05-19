@@ -105,5 +105,4 @@ class RealTimeChart extends React.Component<IProps, IState> {
   }
 }
 
-declare function SizeMe<T>(): (c: React.ComponentClass<T>) => React.ComponentClass<T>;
 export const TimeChart = SizeMe<IProps>()(RealTimeChart); // tslint:disable-line:variable-name
