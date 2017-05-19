@@ -8,7 +8,7 @@ import * as numeral from "numeraljs";
 
 import * as classNames from "classnames";
 
-import { TimeSeriesPoint } from "../../models";
+import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
 
 import {
   resourceActions,
@@ -67,12 +67,19 @@ class AssetView extends React.Component<IProps, IState> {
     return [];
   }
 
+  computeEvents(asset): MaintenanceEvent[] {
+    return asset._jobs
+      .filter(job => job["Start Date"] != null)
+      .map(job => ({ type: "maintenance", timestamp: new Date(job["Start Date"]) }));
+  }
+
   renderDefectsChart(asset) {
     const timeSeries = this.computeTimeSeries(asset);
+    const events = this.computeEvents(asset);
     return (
       <div>
         {this.renderChartButtons(asset)}
-        <TimeChart yLabel="Road Quality" events={[]} timeSeries={timeSeries} />
+        <TimeChart yLabel="Road Quality" events={events} timeSeries={timeSeries} />
       </div>
     );
   }

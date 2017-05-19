@@ -15,6 +15,7 @@ interface IProps {
 
 interface IState {
   timeSeriesPlot: Plottable.Plots.Line<{}>;
+  eventsPlot: Plottable.Plots.Segment<{}, {}>;
   chart: any;
 }
 
@@ -23,6 +24,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
     super();
     this.state = {
       timeSeriesPlot: null,
+      eventsPlot: null,
       chart: null
     };
   }
@@ -41,15 +43,11 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     const yScaleTimeSeries = new Plottable.Scales.Linear();
 
-    const maintenance = this.props.events.filter(event => event.type === "maintenance");
-    const failures = this.props.events.filter(event => event.type === "failure");
-    const plot = new Plottable.Plots.Segment()
-      .addDataset(new Plottable.Dataset(maintenance).metadata("maintenance"))
-      .addDataset(new Plottable.Dataset(failures).metadata("failure"))
+    const eventsPlot = new Plottable.Plots.Segment()
        .attr("stroke", function(_d, _i, dataset) { return dataset.metadata(); }, colorScale)
-       .x(function(d) { return d.date; }, xScale)
+       .x(function(d: MaintenanceEvent) { return d.timestamp; }, xScale)
        .y(function(_) { return 0; }, yScale)
-       .x2(d => d.date)
+       .x2((d: MaintenanceEvent) => d.timestamp)
        .y2( _ => 1);
 
     const timeSeriesPlot = new Plottable.Plots.Line()
@@ -57,13 +55,13 @@ class RealTimeChart extends React.Component<IProps, IState> {
       .x(d => d.x, xScale)
       .y(d => d.y, yScaleTimeSeries);
 
-    const chart = new Plottable.Components.Group([timeSeriesPlot, plot, gridLines]);
+    const chart = new Plottable.Components.Group([timeSeriesPlot, eventsPlot, gridLines]);
     let pzi = new Plottable.Interactions.PanZoom();
     pzi.addXScale(xScale);
-    pzi.attachTo(plot);
+    pzi.attachTo(eventsPlot);
     pzi.attachTo(timeSeriesPlot);
     window.addEventListener("resize", function() {
-      plot.redraw();
+      eventsPlot.redraw();
     });
 
     this.state = {
@@ -71,6 +69,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
         [yLabel, chart],
         [null, xAxis],
       ]),
+      eventsPlot: eventsPlot,
       timeSeriesPlot: timeSeriesPlot
     };
   }
@@ -90,12 +89,18 @@ class RealTimeChart extends React.Component<IProps, IState> {
   componentDidMount() {
     this.createChart();
     this.state.chart.renderTo(this.refs["svg"]);
-    this.state.chart.redraw();
   }
 
-  componentWillUpdate(nextProps, _) {
+  componentWillUpdate(nextProps: IProps, _) {
     if (this.state.timeSeriesPlot != null) {
       this.state.timeSeriesPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
+    }
+
+    if (this.state.eventsPlot != null) {
+      this.state.eventsPlot.datasets([
+        new Plottable.Dataset(nextProps.events.filter(e => e.type === "maintenance")).metadata("maintenance"),
+        new Plottable.Dataset(nextProps.events.filter(e => e.type === "failure")).metadata("failure")
+      ]);
     }
   }
 }
