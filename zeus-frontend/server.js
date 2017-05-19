@@ -15,6 +15,11 @@ app.use(require('webpack-dev-middleware')(compiler, {
 	noInfo: true,
 	publicPath: config.output.publicPath,
 	stats: {
+		timings: false,
+		hash: false,
+		version: false,
+		assets: false,
+		chunks: false,
 		colors: true,
 	},
 }));

@@ -5,11 +5,13 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+private typealias Data = Map<ItemId, Map<String, Any>>
+
 class SelectiveMatcherShould {
 
     @Test
     fun return_only_items_that_match() {
-        val data: Map<ItemId, Map<String, Any>> = mapOf(
+        val data = mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("456") to mapOf("a" to "y"),
                 ItemId("789") to mapOf("a" to "x")
@@ -20,12 +22,12 @@ class SelectiveMatcherShould {
         assertThat(matcher(setOf("x")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("789") to mapOf("a" to "x")
-        ) as Map<ItemId, Map<String, Any>>))
+        ) as Data))
     }
 
     @Test
     fun return_items_that_match_any_of_multiple_terms() {
-        val data: Map<ItemId, Map<String, Any>> = mapOf(
+        val data = mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("456") to mapOf("a" to "y"),
                 ItemId("789") to mapOf("a" to "x")
@@ -37,12 +39,12 @@ class SelectiveMatcherShould {
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("456") to mapOf("a" to "y"),
                 ItemId("789") to mapOf("a" to "x")
-        ) as Map<ItemId, Map<String, Any>>))
+        ) as Data))
     }
 
     @Test
     fun return_items_that_match_on_any_indexed_attribute() {
-        val data: Map<ItemId, Map<String, Any>> = mapOf(
+        val data = mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("789") to mapOf("b" to "x")
         )
@@ -52,12 +54,12 @@ class SelectiveMatcherShould {
         assertThat(matcher(setOf("x")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("789") to mapOf("b" to "x")
-        ) as Map<ItemId, Map<String, Any>>))
+        ) as Data))
     }
 
     @Test
     fun not_return_items_that_match_on_unindexed_attributes() {
-        val data: Map<ItemId, Map<String, Any>> = mapOf(
+        val data = mapOf(
                 ItemId("123") to mapOf("a" to "x"),
                 ItemId("789") to mapOf("c" to "x")
         )
@@ -66,12 +68,12 @@ class SelectiveMatcherShould {
 
         assertThat(matcher(setOf("x")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to "x")
-        ) as Map<ItemId, Map<String, Any>>))
+        ) as Data))
     }
 
     @Test
     fun return_items_that_match_on_stringified_values() {
-        val data: Map<ItemId, Map<String, Any>> = mapOf(
+        val data = mapOf(
                 ItemId("123") to mapOf("a" to 42)
         )
 
@@ -79,6 +81,30 @@ class SelectiveMatcherShould {
 
         assertThat(matcher(setOf("42")), equalTo(mapOf(
                 ItemId("123") to mapOf("a" to 42)
-        ) as Map<ItemId, Map<String, Any>>))
+        ) as Data))
+    }
+
+    @Test
+    fun return_items_that_match_partially() {
+        val data = mapOf(
+                ItemId("123") to mapOf("a" to "tube"),
+                ItemId("456") to mapOf("a" to "uber"),
+                ItemId("789") to mapOf("a" to "lube")
+        )
+
+        val matcher = SelectiveMatcher(setOf("a"), data)
+
+        assertThat(matcher(setOf("ub")), equalTo(data as Data))
+    }
+
+    @Test
+    fun return_items_that_match_even_with_different_case() {
+        val data = mapOf(
+                ItemId("123") to mapOf("a" to "TuBe")
+        )
+
+        val matcher = SelectiveMatcher(setOf("a"), data)
+
+        assertThat(matcher(setOf("tUbE")), equalTo(data as Data))
     }
 }

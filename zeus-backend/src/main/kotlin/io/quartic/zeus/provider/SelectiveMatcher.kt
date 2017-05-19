@@ -7,9 +7,10 @@ class SelectiveMatcher(
         private val indexedAttributes: Set<String>,
         private val data: Map<ItemId, Map<String, Any>>
 ) : TermMatcher {
+    // TODO: this needs optimising
     override fun invoke(terms: Set<String>): Map<ItemId, Map<String, Any>> {
         return data.filterValues { item ->
-            indexedAttributes.any { terms.contains(item[it]?.toString()) }
+            indexedAttributes.any { terms.any { term -> (item[it]?.toString() ?: "").toLowerCase().contains(term.toLowerCase()) } }
         }
     }
 }
