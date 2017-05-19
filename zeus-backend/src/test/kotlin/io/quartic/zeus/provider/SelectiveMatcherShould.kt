@@ -107,4 +107,17 @@ class SelectiveMatcherShould {
 
         assertThat(matcher(setOf("tUbE")), equalTo(data as Data))
     }
+
+    @Test
+    fun limit_return_items_if_limit_specified() {
+        val data = mapOf(
+                ItemId("123") to mapOf("a" to "tube"),
+                ItemId("456") to mapOf("a" to "uber"),
+                ItemId("789") to mapOf("a" to "lube")
+        )
+
+        val matcher = SelectiveMatcher(setOf("a"), data)
+
+        assertThat(matcher(setOf("ub"), 2).size, equalTo(2))
+    }
 }

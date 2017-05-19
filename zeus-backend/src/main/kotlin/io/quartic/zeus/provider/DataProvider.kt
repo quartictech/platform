@@ -4,7 +4,7 @@ import io.quartic.zeus.model.ItemId
 
 interface DataProvider {
     interface TermMatcher {
-        operator fun invoke(terms: Set<String>): Map<ItemId, Map<String, Any>>
+        operator fun invoke(terms: Set<String>, limit: Int = 0): Map<ItemId, Map<String, Any>>
     }
 
     val data: Map<ItemId, Map<String, Any>>

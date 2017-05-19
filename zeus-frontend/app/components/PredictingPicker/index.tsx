@@ -25,6 +25,7 @@ export interface PredictingPickerEntry {
   description?: string;
   extra?: string;
   category?: string;
+  iconName?: string;
 }
 
 interface NumberedEntry {
@@ -40,7 +41,7 @@ interface PredictingPickerProps {
   className?: string;
   type?: string;
   iconName?: string;
-  entryIconName?: string;
+  defaultEntryIconName?: string;
   placeholder?: string;
   entries: PredictingPickerEntry[];
   selectedKey: string;
@@ -209,7 +210,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
           className={this.props.className}
           disabled={this.props.disabled}
           type={this.props.type}
-          leftIconName={this.props.iconName || this.props.entryIconName}
+          leftIconName={this.props.iconName || this.props.defaultEntryIconName}
           rightElement={this.props.working ? <Spinner className={Classes.SMALL} /> : undefined}
           placeholder={this.props.placeholder}
           value={this.state.text}
@@ -292,7 +293,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
             </div>
           ) as any} // Cast required because text not declared as string | JSXElement (even though that works)
           label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
-          iconName={this.props.entryIconName}
+          iconName={entry.iconName || this.props.defaultEntryIconName}
         />
       </div>
     );

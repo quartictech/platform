@@ -14,10 +14,10 @@ import {
   ResourceStatus,
 } from "../../api-management";
 import {
-  noobs,
+  assets,
 } from "../../api";
 import {
-  Noob,
+  Asset,
 } from "../../models";
 
 const s = require("./style.css");
@@ -47,9 +47,9 @@ const s = require("./style.css");
  *-----------------------------------------------------*/
 
 interface IProps {
-  noobsClear: () => void;
-  noobsRequired: (string) => void;
-  noobs: ResourceState<{ [id: string] : Noob }>;
+  entriesClear: () => void;
+  entriesRequired: (string, int) => void;
+  entries: ResourceState<{ [id: string] : Asset }>;
 }
 
 interface IState {
@@ -73,7 +73,7 @@ class SearchView extends React.Component<IProps, IState> {
         <PredictingPicker
           className={classNames(Classes.LARGE, Classes.ROUND)}
           iconName="search"
-          entryIconName="person"
+          defaultEntryIconName="person"
           placeholder="Search..."
           
           entries={this.results()}
@@ -81,7 +81,7 @@ class SearchView extends React.Component<IProps, IState> {
           onChange={this.onNoobChange}
           errorDisabled={true}
           onQueryChange={this.onQueryChange}
-          working={this.props.noobs.status === ResourceStatus.LOADING}
+          working={this.props.entries.status === ResourceStatus.LOADING}
         />
       </div>
     );
@@ -89,13 +89,14 @@ class SearchView extends React.Component<IProps, IState> {
 
   // TODO: need to cache while working
   private results() {
-    return _.map(this.props.noobs.data,
-      (noob, id: string) => ({
+    return _.map(this.props.entries.data,
+      (entry, id: string) => ({
         key: id,
-        name: noob.name,
-        description: noob.role,
-        category: noob.category,
-        extra: `${noob.name} is a noob`,
+        name: toTitleCase(entry["Road Name"]),
+        description: entry["RSL"],
+        category: "RSLs",
+        extra: toTitleCase(entry["Section Description"]),
+        iconName: "drive-time", // A car :)
       } as PredictingPickerEntry)
     );
   }
@@ -106,20 +107,24 @@ class SearchView extends React.Component<IProps, IState> {
 
   private onQueryChange(query: string) {
     if (query.length > 0) {
-      this.props.noobsRequired(query);
+      this.props.entriesRequired(query, 5); // Limit results to keep things responsive
     } else {
-      this.props.noobsClear();
+      this.props.entriesClear();
     }
   }
 }
 
+// From http://stackoverflow.com/a/196991
+const toTitleCase = (str) =>
+  str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+
 const mapDispatchToProps = {
-  noobsClear: resourceActions(noobs).clear,
-  noobsRequired: resourceActions(noobs).required,
+  entriesClear: resourceActions(assets).clear,
+  entriesRequired: resourceActions(assets).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  noobs: selectors.selectNoobs,
+  entries: selectors.selectAssets,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SearchView);
