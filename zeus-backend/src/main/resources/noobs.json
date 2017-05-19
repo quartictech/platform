@@ -1,0 +1,27 @@
+{
+  "123": {
+    "name": "Arlo",
+    "role": "CEO",
+    "category": "Humans"
+  },
+  "456": {
+    "name": "Alex",
+    "role": "CTO",
+    "category": "Humans"
+  },
+  "789": {
+    "name": "Oliver",
+    "role": "Head of Engineering",
+    "category": "Humans"
+  },
+  "ABC": {
+    "name": "Edmund",
+    "role": "VP of Pugs",
+    "category": "Animals"
+  },
+  "DEF": {
+    "name": "Maneki-Neko",
+    "role": "VP of Waving",
+    "category": "Animals"
+  }
+}

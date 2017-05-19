@@ -3,6 +3,10 @@ datasets:
     type: classpath
     resourceName: "/assets.json"
     indexedAttributes: [ "RSL" ]
+  noobs:
+    type: classpath
+    resourceName: "/noobs.json"
+    indexedAttributes: [ "name", "role" ]
 
 server:
   applicationContextPath: /
