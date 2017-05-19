@@ -33,7 +33,7 @@ interface NumberedEntry {
 }
 
 interface CategorisedEntries {
-  [index: string] : NumberedEntry[]
+  [index: string] : NumberedEntry[];
 }
 
 interface PredictingPickerProps {
@@ -95,7 +95,6 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     // }
 
     // Note: this is a shallow check
-    console.log(nextProps.entries);
     if (this.props.entries !== nextProps.entries) {
       this.recalculateCategorisedEntries(nextProps.entries);
       this.resetHighlight();
@@ -215,14 +214,17 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
           value={this.state.text}
           onKeyDown={(e) => this.onKeyDown(e)}
           onChange={(e) => this.onChangeText(e.target.value)}
-          intent={(this.props.selectedKey || this.props.disabled || this.props.errorDisabled) ? Intent.NONE : Intent.DANGER}
+          intent={
+            (this.props.selectedKey || this.props.disabled || this.props.errorDisabled) ? Intent.NONE : Intent.DANGER
+          }
         />
       </Popover>
     );
   }
 
   private renderMenu() {
-    const items = _.map(this.state.categorisedEntries, (entries, category: string) => this.renderCategory(category, entries));
+    const items =
+      _.map(this.state.categorisedEntries, (entries, category: string) => this.renderCategory(category, entries));
 
     if (_.isEmpty(items) && this.state.text === "") {
       return null;  // Otherwise a weird empty box appears

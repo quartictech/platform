@@ -100,8 +100,8 @@ class SearchView extends React.Component<IProps, IState> {
     );
   }
 
-  private onNoobChange(noob: string) {
-    console.log("Selected:", noob);
+  private onNoobChange(_noob: string) {
+    // TODO
   }
 
   private onQueryChange(query: string) {

@@ -33,5 +33,6 @@ export const asset = <ManagedResource<Asset>>{
 export const noobs = <ManagedResource<{ [id: string] : Noob }>>{
   name: "noobs",
   shortName: "noobs",
-  endpoint: (query) => fetchUtil<{ [id: string] : Noob }>(`${apiRootUrl}/datasets/noobs?term=${encodeURIComponent(query)}`),
+  endpoint: (query) =>
+    fetchUtil<{ [id: string] : Noob }>(`${apiRootUrl}/datasets/noobs?term=${encodeURIComponent(query)}`),
 };
