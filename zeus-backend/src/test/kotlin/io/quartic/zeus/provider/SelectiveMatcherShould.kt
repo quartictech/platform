@@ -86,19 +86,25 @@ class SelectiveMatcherShould {
 
     @Test
     fun return_items_that_match_partially() {
-        val data: Map<ItemId, Map<String, Any>> = mapOf(
+        val data = mapOf(
                 ItemId("123") to mapOf("a" to "tube"),
                 ItemId("456") to mapOf("a" to "uber"),
-                ItemId("789") to mapOf("a" to "lube"),
-                ItemId("abc") to mapOf("a" to "hmmm")
+                ItemId("789") to mapOf("a" to "lube")
         )
 
         val matcher = SelectiveMatcher(setOf("a"), data)
 
-        assertThat(matcher(setOf("ub")), equalTo(mapOf(
-                ItemId("123") to mapOf("a" to "tube"),
-                ItemId("456") to mapOf("a" to "uber"),
-                ItemId("789") to mapOf("a" to "lube")
-        ) as Data))
+        assertThat(matcher(setOf("ub")), equalTo(data as Data))
+    }
+
+    @Test
+    fun return_items_that_match_even_with_different_case() {
+        val data = mapOf(
+                ItemId("123") to mapOf("a" to "TuBe")
+        )
+
+        val matcher = SelectiveMatcher(setOf("a"), data)
+
+        assertThat(matcher(setOf("tUbE")), equalTo(data as Data))
     }
 }
