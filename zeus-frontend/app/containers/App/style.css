@@ -1,6 +1,28 @@
+/* TODO: how to make this apply to everything? */
+body,
+p,
+h1,
+h2,
+h3
+h4,
+h5,
+input,
+textarea,
+select {
+  font-family: Roboto !important;
+  font-weight: 300 !important;
+}
+
+/* This one's not !important because that seems to break icon buttons in some places */
+button {
+  font-family: Roboto;
+  font-weight: 300;
+}
+
+
 .App {
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400;
+  /*font-family: 'Roboto', sans-serif;
+  font-weight: 300 !important;*/
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
 

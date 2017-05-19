@@ -3,6 +3,8 @@ import { SagaIterator } from "redux-saga";
 import {
   call,
   put,
+  race,
+  take,
   takeLatest,
 } from "redux-saga/effects";
 import { fromJS } from "immutable";
@@ -10,6 +12,7 @@ import { Intent } from "@blueprintjs/core";
 import { toaster } from "../containers/App/toaster";
 
 interface ApiConstants {
+  clear: string;
   required: string;
   beganLoading: string;
   loaded: string;
@@ -17,6 +20,7 @@ interface ApiConstants {
 }
 
 const constants = (resource: ManagedResource<any>) => <ApiConstants> {
+  clear: `API/${resource.shortName}/CLEAR`,
   required: `API/${resource.shortName}/REQUIRED`,
   beganLoading: `API/${resource.shortName}/BEGAN_LOADING`,
   loaded: `API/${resource.shortName}/LOADED`,
@@ -29,6 +33,7 @@ interface ApiAction<T> extends Action {
 }
 
 interface ApiActionCreators<T> {
+  clear: () => ApiAction<T>;
   required: (...args: any[]) => ApiAction<T>;
   beganLoading: () => ApiAction<T>;
   loaded: (data: T) => ApiAction<T>;
@@ -38,6 +43,7 @@ interface ApiActionCreators<T> {
 export const resourceActions = <T>(resource: ManagedResource<T>) => {
   const c = constants(resource);
   return <ApiActionCreators<T>> {
+    clear: () => ({ type: c.clear }),
     required: (...args) => ({ type: c.required, args }),
     beganLoading: () => ({ type: c.beganLoading }),
     loaded: (data) => ({ type: c.loaded, data }),
@@ -63,8 +69,15 @@ function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   }
 }
 
+function *fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): SagaIterator {
+  yield race({
+    fetch: call(fetch, resource, action),
+    cancel: take(constants(resource).clear)
+  });
+}
+
 export function* watchAndFetch<T>(resource: ManagedResource<T>): SagaIterator {
-    yield takeLatest(constants(resource).required, fetch, resource);
+    yield takeLatest(constants(resource).required, fetchAndWatchForClear, resource);
 }
 
 export const enum ResourceStatus {
@@ -86,6 +99,12 @@ export const reducer = <T>(resource: ManagedResource<T>) => (
   }),
   action: any) => {
     switch (action.type) {
+      case constants(resource).clear:
+        return fromJS(<ResourceState<T>>{
+          data: {},
+          status: ResourceStatus.NOT_LOADED,
+        });
+
       case constants(resource).beganLoading:
         return fromJS(<ResourceState<T>>{
           data: {},

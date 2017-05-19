@@ -9,6 +9,8 @@ export interface LatLon {
   lon: number;
 }
 
+export type Noob = any; // TODO: delete this
+
 export type Asset = any;
 
 export interface Bar {
