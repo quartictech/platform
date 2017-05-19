@@ -22,7 +22,9 @@ export const assets = <ManagedResource<Map<string, Asset>>>{
   name: "assets",
   shortName: "assets",
   endpoint: (term, limit) =>
-    fetchUtil<Map<string, Asset>>(`${apiRootUrl}/datasets/assets${term ? `?term=${encodeURIComponent(term)}` : ""}${limit ? `&limit=${encodeURIComponent(limit)}` : ""}`),
+    fetchUtil<Map<string, Asset>>(`${apiRootUrl}/datasets/assets`
+      + (term ? `?term=${encodeURIComponent(term)}` : "")
+      + (limit ? `&limit=${encodeURIComponent(limit)}` : "")),
 };
 
 export const asset = <ManagedResource<Asset>>{
