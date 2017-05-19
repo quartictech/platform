@@ -6,7 +6,7 @@ import { createStructuredSelector } from "reselect";
 import * as moment from "moment";
 import * as numeral from "numeraljs";
 
-// import * as classNames from "classnames";
+import * as classNames from "classnames";
 
 import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
 
@@ -32,6 +32,7 @@ import * as actions from "../../redux/actions";
 import { Asset } from "../../models";
 const s = require("./style.css");
 
+import { toTitleCase } from "../../helpers/Utils";
 import { TimeChart } from "../../components/TimeChart";
 import { Map } from "../../components/Map";
 import NormalPicker from "../../components/NormalPicker";
@@ -128,35 +129,39 @@ class AssetView extends React.Component<IProps, IState> {
 
   renderAttributes(asset) {
     return (
-      <Pane>
-        <table className="pt-table pt-striped">
+      <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
+        <h1>{asset.RSL}</h1>
+        <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
           <tbody>
             <tr>
-              <th>
-                Road Name
-              </th>
               <td>
-                {asset["Road Name"]}
+                <b>Road Name</b>
+              </td>
+              <td>
+                {toTitleCase(asset["Road Name"])}
               </td>
             </tr>
             <tr>
-              <th>
-                Length (m)
-              </th>
+              <td>
+                <b>Length (m)</b>
+              </td>
               <td>
                 { numeral(asset["Length"]).format("0.00") }
               </td>
             </tr>
           </tbody>
         </table>
-      </Pane>
+      </div>
     );
   }
 
   renderJobsTable(asset) {
     return (
       <Pane title="Jobs" iconName="person">
-        <table className="pt-table pt-interactive pt-striped">
+        <table
+          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+          style={{ width: "100%" }}
+        >
           <thead>
             <tr>
               <th>Job No.</th>
@@ -204,7 +209,6 @@ class AssetView extends React.Component<IProps, IState> {
       case ResourceStatus.LOADED:
         return (
           <div style={{flex: 1}}>
-            <h1>{asset.data.RSL}</h1>
             <div className={s.splitRow}>
               <div className={s.splitLeft}>
                 {this.renderAttributes(asset.data)}
