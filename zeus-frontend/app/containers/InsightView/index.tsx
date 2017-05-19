@@ -13,7 +13,7 @@ import { InsightSummary } from "../../components";
 // import { Classes } from "@blueprintjs/core";
 import { Insight,  Asset } from "../../models";
 
-import { Map } from "../../components";
+// import { Map } from "../../components";
 
 interface IProps {
   ui: any;
@@ -87,11 +87,11 @@ class InsightView extends React.Component<IProps, IState> {
         </div>
 
      <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-      <Map
+      {/*<Map
         height={100}
         locations={assets.map((asset) => asset.location)}
         colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)}
-      />
+      />*/}
       </div>
 
         { assets.map(asset => <Asset key={asset.id} asset={asset} insight={insight} /> )}

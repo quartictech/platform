@@ -2,66 +2,48 @@ import * as React from "react";
 
 const s = require("./style.css");
 
-import { LatLon } from "../../models";
-
 import SizeMe from "react-sizeme";
 
-import mapboxgl from "./mapbox-gl-helper";
+// import mapboxgl from "./mapbox-gl-helper";
+import mapbox = require("mapbox-gl/dist/mapbox-gl.js");
+import * as mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+mapbox.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbThmeWEifQ.s_Z4AWim5WwKa0adU9P2Uw";
+
+import geojsonExtent = require("@mapbox/geojson-extent");
 
 interface IMapProps {
-  locations: LatLon[];
-  colors: number[];
+  featureCollection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
   width?: number;
   height: number;
 }
 
-const circleLayer = (id, locations, width, color) => ({
-      "id": id,
-      "type": "circle",
-      "source": {
-          "type": "geojson",
-          "data": {
-              "type": "FeatureCollection",
-              "features": locations.map(loc => ({
-                  "type": "Feature",
-                  "geometry": {
-                    "type": "Point",
-                    "coordinates": [loc.lon, loc.lat]
-                  }
-              }))
-          }
-      },
-      "paint": {
-        "circle-radius": width,
-        "circle-color": color,
-      }
-});
-
 class RealMap  extends React.Component<IMapProps, any> {
-  map: any;
+  map: mapboxgl.Map;
 
   constructor() {
     super();
   }
 
   componentDidMount() {
-    const lons = this.props.locations.map(l => l.lon);
-    const lats = this.props.locations.map(l => l.lat);
     this.map = new mapboxgl.Map({
       container: "map-inner",
       style: "mapbox://styles/mapbox/bright-v9",
       zoom: 9.7,
-      center: [lons[0], lats[0]],
     });
+
     this.map.on("load", () => {
-      this.map.addLayer(circleLayer("points", this.props.locations, 8, "#ffffff"));
-      this.map.addLayer(circleLayer("points2_0",
-        this.props.locations.filter((_, idx) => this.props.colors[idx] === 0), 6, "#db3737"));
-      this.map.addLayer(circleLayer("points2_1",
-        this.props.locations.filter( (_, idx) => this.props.colors[idx] === 1), 6, "#0f9960"));
-      this.map.fitBounds([[Math.min.apply(null, lons), Math.min.apply(null, lats)],
-      [Math.max.apply(null, lons), Math.max.apply(null, lats)]
-      ], { duration: 0, padding: 10 });
+      this.map.addSource("geojson", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      this.updateData(this.props.featureCollection);
+      this.map.addLayer({
+        id: "line",
+        type: "line",
+        source: "geojson",
+        paint: {
+          "line-width": 5,
+          "line-color": "#0f9960"
+        }
+      });
     });
   }
 
@@ -72,6 +54,21 @@ class RealMap  extends React.Component<IMapProps, any> {
         </div>
       </div>
     );
+  }
+
+  componentWillUpdate(nextProps: IMapProps) {
+    this.updateData(nextProps.featureCollection);
+  }
+
+  updateData(featureCollection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>) {
+    const source: mapboxgl.GeoJSONSource = this.map.getSource("geojson") as mapboxgl.GeoJSONSource;
+    if (source != null) {
+      source.setData(featureCollection);
+
+      const e = geojsonExtent(featureCollection);
+      const options = { padding: 30 , animate: false };
+      this.map.fitBounds(e, options);
+    }
   }
 }
 
