@@ -8,6 +8,7 @@ import * as _ from "underscore";
 import * as classNames from "classnames";
 import PredictingPicker, { PredictingPickerEntry } from "../../components/PredictingPicker";
 import * as selectors from "../../redux/selectors";
+import { appHistory } from "../../routes";
 import {
   resourceActions,
   ResourceState,
@@ -27,9 +28,7 @@ const s = require("./style.css");
 
   - Appearance
     - vertical center
-    - sensible width (both input control + menu)
     - fix inverse colouring
-    - stop the jerking around due to spinner appearing/disappearing
     - boldness
     - scrolling (see https://github.com/palantir/blueprint/pull/1049)
 
@@ -38,10 +37,6 @@ const s = require("./style.css");
     - order by relevance
     - handle backend errors nicely
     - controlled selection
-
-  - Flow
-    - click on result takes you to result page
-    - press enter when none selected takes you to full results page
 
  *-----------------------------------------------------*/
 
@@ -62,7 +57,7 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
       entries: {}
     };
 
-    this.onNoobChange = this.onNoobChange.bind(this);
+    this.onEntrySelect = this.onEntrySelect.bind(this);
     this.onQueryChange = this.onQueryChange.bind(this);
   }
 
@@ -77,14 +72,14 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
     return (
       <div className={s.container}>
         <PredictingPicker
-          className={classNames(Classes.LARGE, Classes.ROUND)}
+          className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
           iconName="search"
           defaultEntryIconName="person"
-          placeholder="Search..."
+          placeholder="What do you want to know?"
           
           entries={this.results()}
           selectedKey={null}
-          onChange={this.onNoobChange}
+          onEntrySelect={this.onEntrySelect}
           errorDisabled={true}
           onQueryChange={this.onQueryChange}
           working={this.props.entries.status === ResourceStatus.LOADING}
@@ -93,7 +88,6 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
     );
   }
 
-  // TODO: need to cache while working
   private results() {
     return _.map(this.state.entries,
       (entry, id: string) => ({
@@ -107,8 +101,9 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
     );
   }
 
-  private onNoobChange(noob: string) {
-    console.log("Selected:", noob);
+  // TODO: find a better way to construct routes
+  private onEntrySelect(key: string) {
+    appHistory.push(`/assets/${encodeURIComponent(key)}`);
   }
 
   private onQueryChange(query: string) {

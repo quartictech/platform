@@ -48,7 +48,7 @@ interface PredictingPickerProps {
   disabled?: boolean;
   errorDisabled?: boolean;
   working?: boolean;
-  onChange?: (key: string) => void;
+  onEntrySelect?: (key: string) => void;
   onQueryChange?: (text: string) => void;
 }
 
@@ -150,7 +150,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
 
   private onSelectEntry(key: string) {
     this.hideMenu();
-    this.props.onChange(key);
+    this.props.onEntrySelect(key);
   }
 
   private onInteraction(nextOpenState: boolean) {
@@ -165,8 +165,8 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
 
     this.props.onQueryChange(text);
 
-    const matchingEntry = _.find(this.props.entries, entry => stringInString(text, entry.name));
-    this.props.onChange(matchingEntry ? matchingEntry.key : undefined); // TODO: is this nice?
+    // const matchingEntry = _.find(this.props.entries, entry => stringInString(text, entry.name));
+    // this.props.onChange(matchingEntry ? matchingEntry.key : undefined); // TODO: is this nice?
   }
 
   private resetHighlight() {
@@ -186,12 +186,13 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     this.setState({ menuVisible: false });
   }
 
-  private getHighlightedEntry() {
+  private getHighlightedEntry(): PredictingPickerEntry {
     return _.chain(this.state.categorisedEntries)
           .values()
           .flatten()
           .find(entry => entry.idx === this.state.idxHighlighted)
-          .value();
+          .value()
+          .entry;
   }
 
   public render() {
@@ -268,8 +269,8 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
         onClick={() => this.onSelectEntry(entry.key)}
       >
         <MenuItem
-          className={s.bad}
           key={entry.key}
+          className={s.bad}
           text={(
             <div style={{ marginLeft: "30px" }}>
               <div><b>{entry.name}</b></div>
@@ -300,6 +301,6 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 }
 
-function stringInString(needle: string, haystack: string) {
-  return haystack.toLowerCase().includes(needle.toLowerCase());
-}
+// function stringInString(needle: string, haystack: string) {
+//   return haystack.toLowerCase().includes(needle.toLowerCase());
+// }
