@@ -32,6 +32,7 @@ import { Asset } from "../../models";
 const s = require("./style.css");
 
 import { TimeChart } from "../../components/TimeChart";
+import { Map } from "../../components/Map";
 
 interface IProps {
   ui: any;
@@ -106,6 +107,22 @@ class AssetView extends React.Component<IProps, IState> {
           )
         }
       </div>
+    );
+  }
+
+  renderMap(asset) {
+    const fc: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: asset._geometry,
+          properties: {}
+        }
+      ]
+    };
+    return (
+      <Map height={100} width={500} featureCollection={fc}/>
     );
   }
 
@@ -185,6 +202,7 @@ class AssetView extends React.Component<IProps, IState> {
           <div style={{flex: 1}}>
             <h1>{asset.data.RSL}</h1>
             {this.renderAttributes(asset.data)}
+            {this.renderMap(asset.data)}
             {this.renderDefectsChart(asset.data)}
             {this.renderJobsTable(asset.data)}
           </div>
