@@ -35,7 +35,6 @@ const s = require("./style.css");
 
   - Behaviour
     - debouncing
-    - limit results
     - order by relevance
     - handle backend errors nicely
     - controlled selection
@@ -46,25 +45,32 @@ const s = require("./style.css");
 
  *-----------------------------------------------------*/
 
-interface IProps {
+interface SearchViewProps {
   entriesClear: () => void;
   entriesRequired: (string, int) => void;
   entries: ResourceState<{ [id: string] : Asset }>;
 }
 
-interface IState {
-  working: boolean;
+interface SearchViewState {
+  entries: { [id: string] : Asset };
 }
 
-class SearchView extends React.Component<IProps, IState> {
+class SearchView extends React.Component<SearchViewProps, SearchViewState> {
   constructor(props) {
     super(props);
     this.state = {
-      working: true,
+      entries: {}
     };
 
     this.onNoobChange = this.onNoobChange.bind(this);
     this.onQueryChange = this.onQueryChange.bind(this);
+  }
+
+  public componentWillReceiveProps(nextProps: SearchViewProps) {
+    // Cache current results whilst working
+    if (nextProps.entries.status !== ResourceStatus.LOADING) {
+      this.setState({ entries: nextProps.entries.data });
+    }
   }
 
   render() {
@@ -89,13 +95,13 @@ class SearchView extends React.Component<IProps, IState> {
 
   // TODO: need to cache while working
   private results() {
-    return _.map(this.props.entries.data,
+    return _.map(this.state.entries,
       (entry, id: string) => ({
         key: id,
-        name: toTitleCase(entry["Road Name"]),
+        name: toTitleCase(entry["Road Name"] || ""),
         description: entry["RSL"],
+        extra: toTitleCase(entry["Section Description"] || ""),
         category: "RSLs",
-        extra: toTitleCase(entry["Section Description"]),
         iconName: "drive-time", // A car :)
       } as PredictingPickerEntry)
     );
@@ -116,7 +122,7 @@ class SearchView extends React.Component<IProps, IState> {
 
 // From http://stackoverflow.com/a/196991
 const toTitleCase = (str) =>
-  str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+  str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 
 const mapDispatchToProps = {
   entriesClear: resourceActions(assets).clear,
