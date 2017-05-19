@@ -8,16 +8,17 @@ import * as _ from "underscore";
 import * as classNames from "classnames";
 import PredictingPicker, { PredictingPickerEntry } from "../../components/PredictingPicker";
 import * as selectors from "../../redux/selectors";
+import { appHistory } from "../../routes";
 import {
   resourceActions,
   ResourceState,
   ResourceStatus,
 } from "../../api-management";
 import {
-  noobs,
+  assets,
 } from "../../api";
 import {
-  Noob,
+  Asset,
 } from "../../models";
 
 const s = require("./style.css");
@@ -27,99 +28,104 @@ const s = require("./style.css");
 
   - Appearance
     - vertical center
-    - sensible width (both input control + menu)
     - fix inverse colouring
-    - stop the jerking around due to spinner appearing/disappearing
     - boldness
     - scrolling (see https://github.com/palantir/blueprint/pull/1049)
 
   - Behaviour
     - debouncing
-    - limit results
     - order by relevance
     - handle backend errors nicely
     - controlled selection
 
-  - Flow
-    - click on result takes you to result page
-    - press enter when none selected takes you to full results page
-
  *-----------------------------------------------------*/
 
-interface IProps {
-  noobsClear: () => void;
-  noobsRequired: (string) => void;
-  noobs: ResourceState<{ [id: string] : Noob }>;
+interface SearchViewProps {
+  entriesClear: () => void;
+  entriesRequired: (string, int) => void;
+  entries: ResourceState<{ [id: string] : Asset }>;
 }
 
-interface IState {
-  working: boolean;
+interface SearchViewState {
+  entries: { [id: string] : Asset };
 }
 
-class SearchView extends React.Component<IProps, IState> {
+class SearchView extends React.Component<SearchViewProps, SearchViewState> {
   constructor(props) {
     super(props);
     this.state = {
-      working: true,
+      entries: {}
     };
 
-    this.onNoobChange = this.onNoobChange.bind(this);
+    this.onEntrySelect = this.onEntrySelect.bind(this);
     this.onQueryChange = this.onQueryChange.bind(this);
+  }
+
+  public componentWillReceiveProps(nextProps: SearchViewProps) {
+    // Cache current results whilst working
+    if (nextProps.entries.status !== ResourceStatus.LOADING) {
+      this.setState({ entries: nextProps.entries.data });
+    }
   }
 
   render() {
     return (
       <div className={s.container}>
         <PredictingPicker
-          className={classNames(Classes.LARGE, Classes.ROUND)}
+          className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
           iconName="search"
-          entryIconName="person"
-          placeholder="Search..."
+          defaultEntryIconName="person"
+          placeholder="What do you want to know?"
           
           entries={this.results()}
           selectedKey={null}
-          onChange={this.onNoobChange}
+          onEntrySelect={this.onEntrySelect}
           errorDisabled={true}
           onQueryChange={this.onQueryChange}
-          working={this.props.noobs.status === ResourceStatus.LOADING}
+          working={this.props.entries.status === ResourceStatus.LOADING}
         />
       </div>
     );
   }
 
-  // TODO: need to cache while working
   private results() {
-    return _.map(this.props.noobs.data,
-      (noob, id: string) => ({
+    return _.map(this.state.entries,
+      (entry, id: string) => ({
         key: id,
-        name: noob.name,
-        description: noob.role,
-        category: noob.category,
-        extra: `${noob.name} is a noob`,
+        name: toTitleCase(entry["Road Name"] || ""),
+        description: entry["RSL"],
+        extra: toTitleCase(entry["Section Description"] || ""),
+        category: "RSLs",
+        iconName: "drive-time", // A car :)
       } as PredictingPickerEntry)
     );
   }
 
-  private onNoobChange(_noob: string) {
-    // TODO
+  // TODO: find a better way to construct routes
+  private onEntrySelect(key: string) {
+    appHistory.push(`/assets/${encodeURIComponent(key)}`);
   }
 
   private onQueryChange(query: string) {
     if (query.length > 0) {
-      this.props.noobsRequired(query);
+      this.props.entriesRequired(query, 5); // Limit results to keep things responsive
     } else {
-      this.props.noobsClear();
+      this.props.entriesClear();
     }
   }
 }
 
+// From http://stackoverflow.com/a/196991
+const toTitleCase = (str) =>
+  str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+
 const mapDispatchToProps = {
-  noobsClear: resourceActions(noobs).clear,
-  noobsRequired: resourceActions(noobs).required,
+  entriesClear: resourceActions(assets).clear,
+  entriesRequired: resourceActions(assets).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  noobs: selectors.selectNoobs,
+  entries: selectors.selectAssets,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SearchView);

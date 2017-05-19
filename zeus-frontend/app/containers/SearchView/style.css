@@ -5,6 +5,11 @@
   margin-left: auto;
 }
 
+/* TODO: figure out responsive width */
+.myPicker {
+  width: 500px;
+}
+
 /*.main {
   width: 80%;
 }*/

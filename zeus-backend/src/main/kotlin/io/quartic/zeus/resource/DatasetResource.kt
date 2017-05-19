@@ -15,13 +15,14 @@ class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
     @Produces(MediaType.APPLICATION_JSON)
     fun getAllItemsInDataset(
             @PathParam("dataset-name") name: DatasetName,
-            @QueryParam("term") terms: Set<String> = emptySet()
+            @QueryParam("term") terms: Set<String> = emptySet(),
+            @QueryParam("limit") limit: Int = 0
     ): Map<ItemId, Map<String, Any>> {
         return with(getProviderOrThrow(name)) {
             if (terms.isEmpty()) {
                 data
             } else {
-                matcher(terms)
+                matcher(terms, limit)
             }
         }.mapValues { it.value.filterKeys { !it.startsWith("_") } }
     }

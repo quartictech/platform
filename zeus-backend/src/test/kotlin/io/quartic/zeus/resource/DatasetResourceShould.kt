@@ -72,16 +72,16 @@ class DatasetResourceShould {
     @Test
     fun pass_terms_to_matcher_and_return_only_its_results() {
         val myMatcher = mock<TermMatcher> {
-            on { invoke(any()) } doReturn simpleData
+            on { invoke(any(), any()) } doReturn simpleData
         }
         val provider = mock<DataProvider> {
             on { matcher } doReturn myMatcher
         }
         val resource = DatasetResource(mapOf(DatasetName("yeah") to provider))
 
-        val results = resource.getAllItemsInDataset(DatasetName("yeah"), setOf("hello", "goodbye"))
+        val results = resource.getAllItemsInDataset(DatasetName("yeah"), setOf("hello", "goodbye"), 5)
 
-        verify(myMatcher).invoke(setOf("hello", "goodbye"))
+        verify(myMatcher).invoke(setOf("hello", "goodbye"), 5)
         assertThat(results, equalTo(simpleData))
     }
 
