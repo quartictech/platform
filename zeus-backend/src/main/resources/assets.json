@@ -19,6 +19,21 @@
         "Notes": "Fix up pothole",
         "Location": "A100/1 - Sweet road"
       }
-    ]
+    ],
+    "_defect_time_series": {
+      "Defects - CW": {
+        "type": "timeseries",
+        "series": [
+          {
+            "timestamp": 1374231360000,
+            "value": 123
+          },
+          {
+            "timestamp": 1374231370000,
+            "value": 500
+          }
+        ]
+      }
+    }
   }
 }

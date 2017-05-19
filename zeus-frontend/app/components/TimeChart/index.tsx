@@ -7,15 +7,26 @@ import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
 
 import SizeMe from "react-sizeme";
 
-interface ITimeChartProps {
+interface IProps {
   events: MaintenanceEvent[];
   timeSeries: TimeSeriesPoint[];
   yLabel: string;
 }
 
-class RealTimeChart extends React.Component<ITimeChartProps, any> {
+interface IState {
+  timeSeriesPlot: Plottable.Plots.Line<{}>;
+  eventsPlot: Plottable.Plots.Segment<{}, {}>;
+  chart: any;
+}
+
+class RealTimeChart extends React.Component<IProps, IState> {
   constructor() {
     super();
+    this.state = {
+      timeSeriesPlot: null,
+      eventsPlot: null,
+      chart: null
+    };
   }
 
   createChart() {
@@ -32,58 +43,66 @@ class RealTimeChart extends React.Component<ITimeChartProps, any> {
 
     const yScaleTimeSeries = new Plottable.Scales.Linear();
 
-    const maintenance = this.props.events.filter(event => event.type === "maintenance");
-    const failures = this.props.events.filter(event => event.type === "failure");
-    const plot = new Plottable.Plots.Segment()
-      .addDataset(new Plottable.Dataset(maintenance).metadata("maintenance"))
-      .addDataset(new Plottable.Dataset(failures).metadata("failure"))
+    const eventsPlot = new Plottable.Plots.Segment()
        .attr("stroke", function(_d, _i, dataset) { return dataset.metadata(); }, colorScale)
-       .x(function(d) { return d.date; }, xScale)
+       .x(function(d: MaintenanceEvent) { return d.timestamp; }, xScale)
        .y(function(_) { return 0; }, yScale)
-       .x2(d => d.date)
+       .x2((d: MaintenanceEvent) => d.timestamp)
        .y2( _ => 1);
 
     const timeSeriesPlot = new Plottable.Plots.Line()
-      .addDataset(new Plottable.Dataset(this.props.timeSeries))
       .attr("stroke", _ => "#D3D3D3")
       .x(d => d.x, xScale)
       .y(d => d.y, yScaleTimeSeries);
 
-    const chart = new Plottable.Components.Group([timeSeriesPlot, plot, gridLines]);
+    const chart = new Plottable.Components.Group([timeSeriesPlot, eventsPlot, gridLines]);
     let pzi = new Plottable.Interactions.PanZoom();
     pzi.addXScale(xScale);
-    pzi.attachTo(plot);
+    pzi.attachTo(eventsPlot);
     pzi.attachTo(timeSeriesPlot);
     window.addEventListener("resize", function() {
-      plot.redraw();
+      eventsPlot.redraw();
     });
 
-    // const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
-    // const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
-      [yLabel, chart],
-      [null, xAxis],
-    ]),
-    plot: plot
+        [yLabel, chart],
+        [null, xAxis],
+      ]),
+      eventsPlot: eventsPlot,
+      timeSeriesPlot: timeSeriesPlot
     };
   }
 
   render() {
+    if (this.state.chart) {
+      this.state.chart.redraw();
+    }
     return (
       <div style={{padding: "10px", width: "99%"}}>
-    <svg className={s.chart} style={{width: "100%", height: 150}} ref="svg">
-    </svg>
-    </div>
+        <svg className={s.chart} style={{ width: "100%", height: 150 }} ref="svg">
+        </svg>
+      </div>
     );
   }
 
   componentDidMount() {
     this.createChart();
     this.state.chart.renderTo(this.refs["svg"]);
-    this.state.plot.redraw();
+  }
+
+  componentWillUpdate(nextProps: IProps, _) {
+    if (this.state.timeSeriesPlot != null) {
+      this.state.timeSeriesPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
+    }
+
+    if (this.state.eventsPlot != null) {
+      this.state.eventsPlot.datasets([
+        new Plottable.Dataset(nextProps.events.filter(e => e.type === "maintenance")).metadata("maintenance"),
+        new Plottable.Dataset(nextProps.events.filter(e => e.type === "failure")).metadata("failure")
+      ]);
+    }
   }
 }
 
-declare function SizeMe<T>(): (c: React.ComponentClass<T>) => React.ComponentClass<T>;
-export const TimeChart = SizeMe<ITimeChartProps>()(RealTimeChart); // tslint:disable-line:variable-name
+export const TimeChart = SizeMe<IProps>()(RealTimeChart); // tslint:disable-line:variable-name
