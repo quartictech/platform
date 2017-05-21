@@ -1,4 +1,4 @@
-import { Asset, Noob } from "../models";
+import { Asset, DatasetName, Noob } from "../models";
 import { ManagedResource } from "../api-management";
 
 export const apiRootUrl = `${location.origin}${location.pathname}api`;
@@ -31,6 +31,12 @@ export const asset = <ManagedResource<Asset>>{
   name: "asset",
   shortName: "asset",
   endpoint: (id) => fetchUtil<Asset>(`${apiRootUrl}/datasets/assets/${encodeURIComponent(id)}`)
+};
+
+export const datasetList = <ManagedResource<DatasetName[]>>{
+  name: "dataset list",
+  shortName: "datasetList",
+  endpoint: () => fetchUtil(`${apiRootUrl}/datasets`),
 };
 
 // TODO: get rid of this

@@ -1,54 +1,89 @@
 import * as React from "react";
-import { Header } from "../../components";
-
+import {
+  Classes,
+  Menu as BlueprintMenu,
+  MenuDivider,
+  MenuItem,
+} from "@blueprintjs/core";
 import { createStructuredSelector } from "reselect";
-import * as actions from "../../redux/actions";
 import { connect } from "react-redux";
-import { Link } from "react-router";
+import * as _ from "underscore";
+import {
+  resourceActions,
+  ResourceState,
+  ResourceStatus,
+} from "../../api-management";
+import {
+  datasetList,
+} from "../../api";
+import {
+  DatasetName,
+} from "../../models";
+import { appHistory } from "../../routes";
+import { Header } from "../../components";
+import * as selectors from "../../redux/selectors";
+import * as actions from "../../redux/actions";
+
 
 const s = require("./style.css");
 
-interface IProps {
-  children?: any;
-  location?: {
-    pathname: string
-  };
-  params?: {
-    node: string
-  };
+interface AppProps {
+  datasetListRequired: () => void;
+  datasetList: ResourceState<DatasetName[]>;
 }
 
-const Menu = () => (
- <div className={s.menu}>
-  <ul className="pt-menu pt-elevation-1">
-  <li className="pt-menu-header"><h6>Insights</h6></li>
-  <li><Link className="pt-menu-item pt-icon-layout-auto" to={{ pathname: "/insights" }}>All</Link></li>
-  <li>
-    <Link
-      className="pt-menu-item pt-icon-layout-auto"
-      to={{ pathname: "/insights", query: {insightType: "failure"}}}>Failure Predictions
-    </Link>
-  </li>
-  <li>
-    <Link
-      className="pt-menu-item pt-icon-layout-auto"
-      to={{ pathname: "/insights", query: {insightType: "cluster"}}}>Incident Clusters
-    </Link>
-  </li>
-  <li>
-    <Link
-      className="pt-menu-item pt-icon-layout-auto"
-      to={{ pathname: "/insights", query: {insightType: "smartops"}}}>SmartOps
-    </Link>
-  </li>
-  <li className="pt-menu-header"><h6>Views</h6></li>
-  <li><Link className="pt-menu-item pt-icon-history" to={`/inventory`}>Inventory</Link></li>
-  <li><button type="button" className="pt-menu-item pt-icon-envelope">Messages</button></li>
-</ul>
-</div>
+interface MenuProps {
+  datasetList: ResourceState<DatasetName[]>;
+}
+
+const Menu: React.SFC<MenuProps> = (props) => (
+  <div className={s.menu}>
+    <BlueprintMenu className={Classes.ELEVATION_3}>
+      <MenuDivider title="Insights" />
+
+      <MenuItem iconName="layout-auto" text="All" href={appHistory.createHref({
+        pathname: "/insights",
+      })} />
+      <MenuItem iconName="layout-auto" text="Failure predictions" href={appHistory.createHref({
+        pathname: "/insights",
+        query: { insightType: "failure" },
+      })} />
+      <MenuItem iconName="layout-auto" text="Incident clusters" href={appHistory.createHref({
+        pathname: "/insights",
+        query: { insightType: "cluster" },
+      })} />
+      <MenuItem iconName="layout-auto" text="SmartOps" href={appHistory.createHref({
+        pathname: "/insights",
+        query: { insightType: "smartops" },
+      })} />
+
+      <MenuDivider title="Views" />
+
+      <MenuItem iconName="database" text="Data explorer">
+        {
+          (props.datasetList.status !== ResourceStatus.LOADED)
+            ? <MenuItem text="Dataset list unavailable" disabled={true} />
+            : _.map(props.datasetList.data, d => (
+                <MenuItem key={d} iconName="database" text={d} href={appHistory.createHref({
+                  pathname: `/explorer/${encodeURIComponent(d)}`,
+                })} />
+              )
+          )
+        }
+      </MenuItem>
+
+      <MenuItem iconName="envelope" text="Messages" onClick={() => {}} />
+
+    </BlueprintMenu>
+  </div>
 );
 
-export class App extends React.Component<IProps, void> {
+export class App extends React.Component<AppProps, void> {
+
+  componentDidMount() {
+    this.props.datasetListRequired();
+  }
+
   render() {
     const { children } = this.props;
     return (
@@ -59,7 +94,9 @@ export class App extends React.Component<IProps, void> {
         />
 
       <div className={s.container}>
-          <Menu />
+          <Menu
+            datasetList={this.props.datasetList}
+          />
           <div className={s.main}>
             {children}
           </div>
@@ -71,10 +108,12 @@ export class App extends React.Component<IProps, void> {
 }
 
 const mapDispatchToProps = {
+  datasetListRequired: resourceActions(datasetList).required,
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),
 };
 
 const mapStateToProps = createStructuredSelector({
+  datasetList: selectors.selectDatasets,
 });
 
 export default connect(
