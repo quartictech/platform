@@ -9,10 +9,7 @@ export interface LatLon {
   lon: number;
 }
 
-
 export type DatasetName = string;
-
-export type Noob = any; // TODO: delete this
 
 export type Asset = any;
 

@@ -5,11 +5,5 @@
 }
 
 .main {
-  width: 80%;
-}
-
-.right {
-  width: 20%;
-  padding: 10px;
-  align-self: flex-start;
+  width: 100%;
 }

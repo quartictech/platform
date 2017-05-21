@@ -113,7 +113,7 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  datasetList: selectors.selectDatasets,
+  datasetList: selectors.selectDatasetList,
 });
 
 export default connect(
