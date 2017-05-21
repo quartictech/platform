@@ -78,7 +78,7 @@ function* fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): S
 }
 
 export function* watchAndFetch(resources: ManagedResource<any>[]): SagaIterator {
-  for (var i = 0; i < resources.length; i++) {
+  for (let i = 0; i < resources.length; i++) {
     yield takeLatest(constants(resources[i]).required, fetchAndWatchForClear, resources[i]);
   }
 }

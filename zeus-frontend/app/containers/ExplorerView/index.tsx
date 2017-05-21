@@ -151,7 +151,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
           onChange={() => this.setState({ filterInvert: !this.state.filterInvert })}
         />
       </div>
-    )
+    );
   }
 
   private renderData() {
@@ -181,7 +181,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
   private columns = () => {
     // TODO: assumption is that schema of first item is representative
     const data = this.props.datasetContent.data;
-    return _.keys(data[_.keys(data)[0]])
+    return _.keys(data[_.keys(data)[0]]);
   }
 
   private calculateSelectedRows = (regions: IRegion[]) => 

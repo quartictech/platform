@@ -27,8 +27,6 @@ function routeReducer(state = routeInitialState, action) {
   }
 }
 
-console.log(reducer(api.managedResources));
-
 // TODO: Fix type!
 const rootReducer: Redux.Reducer<any> = combineReducers({
   route: routeReducer,
