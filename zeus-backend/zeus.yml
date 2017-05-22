@@ -1,8 +1,8 @@
 datasets:
-  assets:
-    type: url
-    url: "http://localhost:8120/api/zeus/roads"
-    indexedAttributes: [ "RSL", "Road Name" ]
+#  assets:
+#    type: url
+#    url: "http://localhost:8120/api/zeus/roads"
+#    indexedAttributes: [ "RSL", "Road Name" ]
   noobs:
     type: classpath
     resourceName: "/noobs.json"
