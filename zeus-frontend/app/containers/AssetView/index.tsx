@@ -1,13 +1,10 @@
 import * as React from "react";
 import { connect } from "react-redux";
-
 import { createStructuredSelector } from "reselect";
-
 import * as moment from "moment";
 import * as numeral from "numeraljs";
-
 import * as classNames from "classnames";
-
+import * as _ from "underscore";
 import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
 
 import {
@@ -18,9 +15,11 @@ import {
 
 import {
   Classes,
+  Intent,
   NonIdealState,
   Position,
   Spinner,
+  Tag,
 } from "@blueprintjs/core";
 
 import {
@@ -81,6 +80,7 @@ class AssetView extends React.Component<IProps, IState> {
 
   private onNewAsset(assetId: string) {
     this.props.assetRequired(assetId);
+    this.setState({ defectChartSelection: null });
     document.title = `Quartic - ${assetId}`;
   }
 
@@ -124,13 +124,19 @@ class AssetView extends React.Component<IProps, IState> {
       <Pane
         title="Defects"
         iconName="error"
-        extraHeaderContent={this.renderChartButtons(asset)}
+        extraHeaderContent={asset._defect_time_series ? this.renderChartButtons(asset) : null}
       >
-        <TimeChart
-          yLabel={this.state.defectChartSelection}
-          events={events}
-          timeSeries={timeSeries}
-         />
+        { asset._defect_time_series ?
+          <TimeChart
+            yLabel={this.state.defectChartSelection}
+            events={events}
+            timeSeries={timeSeries}
+          /> :
+          <NonIdealState
+            visual="info"
+            title="No survey data available"
+          />
+         }
       </Pane>
     );
   }
@@ -166,55 +172,47 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
+  private renderStat(key, value, quartile) {
+    let color = null;
+    let tag = null;
+    if (quartile > 0.9) {
+      color = "rgba(219, 55, 55, 0.4)";   // Alpha-modified version of callout with INTENT_DANGER
+      tag = <Tag style={{ float: "right" }} intent={Intent.DANGER}>Top 10% offender</Tag>;
+    } else if (quartile > 0.67) {
+      color = "rgba(217, 130, 43, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
+      tag = <Tag style={{ float: "right" }} intent={Intent.WARNING}>Top 33% offender</Tag>;
+    } else if (quartile < 0.25) {
+      color = "rgba(15, 153, 96, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
+      tag = <Tag style={{ float: "right" }} intent={Intent.SUCCESS}>Bottom 25% offender</Tag>;
+    }
+    return (
+      <tr className={classNames(Classes.CALLOUT)} style={{ backgroundColor: color }}>
+        <td className={s["attribute-name"]}>{key}</td>
+        <td>{value} {tag}</td>
+      </tr>
+    );
+  }
+
   private renderAttributes(asset) {
     return (
-      <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
-        <h1>{asset.RSL}</h1>
-        <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
-          <tbody>
-            <tr>
-              <td>
-                <b>Road Name</b>
-              </td>
-              <td>
-                {toTitleCase(asset["Road Name"])}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Section Description</b>
-              </td>
-              <td>
-                {toTitleCase(asset["Section Description"])}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Link Place</b>
-              </td>
-              <td>
-                {asset["Link"]} {asset["Place"]}
-              </td>
-            </tr>
-                       <tr>
-              <td>
-                <b>Length (m)</b>
-              </td>
-              <td>
-                { numeral(asset["Length"]).format("0.00") }
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Speed Limit</b>
-              </td>
-              <td>
-                {asset["Speed Limit"]}
-              </td>
-            </tr>
-
-          </tbody>
-        </table>
+      <div>
+        <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
+          <h1>{asset.RSL}</h1>
+          <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
+            <tbody>
+              {
+                _.map({
+                  "Road name": toTitleCase(asset["Road Name"]),
+                  "Section description": toTitleCase(asset["Section Description"]),
+                  "Link place": `${asset["Link"]} ${asset["Place"]}`,
+                  "Length (m)": numeral(asset["Length"]).format("0.00"),
+                  "Speed limit (mph)": asset["Speed Limit"],
+                }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
+              }
+              {_.map(asset._stats, (v, k) => this.renderStat(k, numeral(v[0]).format("0.00"), v[1]))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

@@ -27,3 +27,8 @@
 .splitRight {
   flex: 0.5;
 }
+
+.attribute-name {
+  width: 25%;
+  font-weight: bold;
+}
