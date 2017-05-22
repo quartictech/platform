@@ -9,6 +9,7 @@ import {
 } from "../../api-management";
 import {
   Asset,
+  Job,
 } from "../../models";
 
 /*-----------------------------------------------------*
@@ -29,22 +30,29 @@ import {
  *-----------------------------------------------------*/
 
 interface SearchProps {
-  entriesClear: () => void;
-  entriesRequired: (string, int) => void;
-  entries: ResourceState<{ [id: string] : Asset }>;
+  assetsClear: () => void;
+  assetsRequired: (string, int) => void;
+  assets: ResourceState<{ [id: string] : Asset }>;
+
+  jobsClear: () => void;
+  jobsRequired: (string, int) => void;
+  jobs: ResourceState<{ [id: string] : Job }>;
+  
   placeholder?: string;
   className?: string;
 }
 
 interface SearchState {
-  entries: { [id: string] : Asset };
+  cachedAssets: { [id: string] : Asset };
+  cachedJobs: { [id: string] : Job };
 }
 
 export default class Search extends React.Component<SearchProps, SearchState> {
   constructor(props) {
     super(props);
     this.state = {
-      entries: {}
+      cachedAssets: {},
+      cachedJobs: {},
     };
 
     this.onEntrySelect = this.onEntrySelect.bind(this);
@@ -53,8 +61,11 @@ export default class Search extends React.Component<SearchProps, SearchState> {
 
   public componentWillReceiveProps(nextProps: SearchProps) {
     // Cache current results whilst working
-    if (nextProps.entries.status !== ResourceStatus.LOADING) {
-      this.setState({ entries: nextProps.entries.data });
+    if (nextProps.assets.status !== ResourceStatus.LOADING) {
+      this.setState({ cachedAssets: nextProps.assets.data });
+    }
+    if (nextProps.jobs.status !== ResourceStatus.LOADING) {
+      this.setState({ cachedJobs: nextProps.jobs.data });
     }
   }
 
@@ -71,13 +82,19 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         onEntrySelect={this.onEntrySelect}
         errorDisabled={true}
         onQueryChange={this.onQueryChange}
-        working={this.props.entries.status === ResourceStatus.LOADING}
+        working={
+          (this.props.assets.status === ResourceStatus.LOADING) ||
+          (this.props.jobs.status === ResourceStatus.LOADING)
+        }
       />
     );
   }
-
   private results() {
-    return _.map(this.state.entries,
+    return _.flatten([this.assetResults(), this.jobResults()]);
+  }
+  
+  private assetResults() {
+    return _.map(this.state.cachedAssets,
       (entry, id: string) => ({
         key: id,
         name: toTitleCase(entry["Road Name"] || ""),
@@ -85,20 +102,37 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         extra: toTitleCase(entry["Section Description"] || ""),
         category: "RSLs",
         iconName: "drive-time", // A car :)
+        onSelect: () => appHistory.push(`/assets/${encodeURIComponent(id)}`),
+      } as PickerEntry)
+    );
+  }
+
+  private jobResults() {
+    return _.map(this.state.cachedJobs,
+      (entry, id: string) => ({
+        key: id,
+        name: toTitleCase(entry["Number"] || ""),
+        description: entry["RSLs"],
+        extra: entry["Type"],
+        category: "Jobs",
+        iconName: "wrench",
+        onSelect: () => appHistory.push(`/assets/${encodeURIComponent(entry["RSLs"].split(",")[0])}`),  // TODO: what about the other RSLs?
       } as PickerEntry)
     );
   }
 
   // TODO: find a better way to construct routes
-  private onEntrySelect(key: string) {
-    appHistory.push(`/assets/${encodeURIComponent(key)}`);
+  private onEntrySelect(entry: PickerEntry) {
+    (entry as any).onSelect();  // Slightly gross abuse
   }
 
   private onQueryChange(query: string) {
     if (query.length > 0) {
-      this.props.entriesRequired(query, 5); // Limit results to keep things responsive
+      this.props.assetsRequired(query, 5); // Limit results to keep things responsive
+      this.props.jobsRequired(query, 5);
     } else {
-      this.props.entriesClear();
+      this.props.assetsClear();
+      this.props.jobsClear();
     }
   }
 }

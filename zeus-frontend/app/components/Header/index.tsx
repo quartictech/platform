@@ -14,24 +14,30 @@ import {
 } from "../../api-management";
 import {
   assets,
+  jobs,
 } from "../../api";
 import {
   Asset,
+  Job,
 } from "../../models";
 
 const logo = require("./quartic.svg");
 
 interface HeaderProps {
-  entriesClear: () => void;
-  entriesRequired: (string, int) => void;
-  entries: ResourceState<{ [id: string] : Asset }>;
+  assetsClear: () => void;
+  assetsRequired: (string, int) => void;
+  assets: ResourceState<{ [id: string] : Asset }>;
+
+  jobsClear: () => void;
+  jobsRequired: (string, int) => void;
+  jobs: ResourceState<{ [id: string] : Job }>;
 }
 
 class Header extends React.Component<HeaderProps, void> {
   render() {
     return (
-      <nav className="pt-navbar .modifier pt-dark">
-        <div className="pt-navbar-group pt-align-left">
+      <nav className={classNames(Classes.NAVBAR, Classes.DARK)}>
+        <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_LEFT)}>
           <Link to="/" style={{ height: "100%", display: "inline-block" }}>
             <img
               style={{
@@ -48,27 +54,33 @@ class Header extends React.Component<HeaderProps, void> {
           </Link>
           <Search
             className={classNames(Classes.DARK, Classes.ROUND)}
-            entriesClear={this.props.entriesClear}
-            entriesRequired={this.props.entriesRequired}
-            entries={this.props.entries}
+            assetsClear={this.props.assetsClear}
+            assetsRequired={this.props.assetsRequired}
+            assets={this.props.assets}
+            jobsClear={this.props.jobsClear}
+            jobsRequired={this.props.jobsRequired}
+            jobs={this.props.jobs}
             placeholder="Search..."
           />
         </div>
-        <div className="pt-navbar-group pt-align-right">
-          <span className="pt-navbar-divider"></span>
-          <a href="/map" alt="Map" className="pt-button pt-minimal pt-icon-map" />
+        <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
+          <span className={Classes.NAVBAR_DIVIDER} />
+          <a href="/map" alt="Map" className={classNames(Classes.BUTTON, Classes.MINIMAL, Classes.iconClass("map"))} />
         </div>
       </nav>);
   }
 }
 
 const mapDispatchToProps = {
-  entriesClear: resourceActions(assets).clear,
-  entriesRequired: resourceActions(assets).required,
+  assetsClear: resourceActions(assets).clear,
+  assetsRequired: resourceActions(assets).required,
+  jobsClear: resourceActions(jobs).clear,
+  jobsRequired: resourceActions(jobs).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  entries: selectors.selectAssets,
+  assets: selectors.selectAssets,
+  jobs: selectors.selectJobs,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Header);

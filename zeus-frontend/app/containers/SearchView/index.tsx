@@ -10,39 +10,40 @@ import * as selectors from "../../redux/selectors";
 import {
   resourceActions,
   ResourceState,
-  ResourceStatus,
 } from "../../api-management";
 import {
   assets,
+  jobs,
 } from "../../api";
 import {
   Asset,
+  Job,
 } from "../../models";
 
 const s = require("./style.css");
 
 interface SearchViewProps {
-  entriesClear: () => void;
-  entriesRequired: (string, int) => void;
-  entries: ResourceState<{ [id: string] : Asset }>;
+  assetsClear: () => void;
+  assetsRequired: (string, int) => void;
+  assets: ResourceState<{ [id: string] : Asset }>;
+
+  jobsClear: () => void;
+  jobsRequired: (string, int) => void;
+  jobs: ResourceState<{ [id: string] : Job }>;
 }
 
 class SearchView extends React.Component<SearchViewProps, {}> {
-  public componentWillReceiveProps(nextProps: SearchViewProps) {
-    // Cache current results whilst working
-    if (nextProps.entries.status !== ResourceStatus.LOADING) {
-      this.setState({ entries: nextProps.entries.data });
-    }
-  }
-
   render() {
     return (
       <div className={s.container} style={{ marginTop: "25%" }}>
         <Search
           className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
-          entriesClear={this.props.entriesClear}
-          entriesRequired={this.props.entriesRequired}
-          entries={this.props.entries}
+          assetsClear={this.props.assetsClear}
+          assetsRequired={this.props.assetsRequired}
+          assets={this.props.assets}
+          jobsClear={this.props.jobsClear}
+          jobsRequired={this.props.jobsRequired}
+          jobs={this.props.jobs}
           placeholder="What do you want to know?"
         />
       </div>
@@ -51,12 +52,15 @@ class SearchView extends React.Component<SearchViewProps, {}> {
 }
 
 const mapDispatchToProps = {
-  entriesClear: resourceActions(assets).clear,
-  entriesRequired: resourceActions(assets).required,
+  assetsClear: resourceActions(assets).clear,
+  assetsRequired: resourceActions(assets).required,
+  jobsClear: resourceActions(jobs).clear,
+  jobsRequired: resourceActions(jobs).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  entries: selectors.selectAssets,
+  assets: selectors.selectAssets,
+  jobs: selectors.selectJobs,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SearchView);

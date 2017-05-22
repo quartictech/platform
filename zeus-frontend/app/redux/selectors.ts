@@ -18,6 +18,7 @@ export const selectLocationState = () => {
 
 export const selectDatasetList = (state) => state.get("managed").datasetList.toJS();
 export const selectDatasetContent = (state) => state.get("managed").datasetContent.toJS();
+export const selectJobs = (state) => state.get("managed").jobs.toJS();
 export const selectAssets = (state) => state.get("managed").assets.toJS();
 export const selectAsset = (state) => state.get("managed").asset.toJS();
 export const selectInsights = (state) => state.get("insights").toJS();

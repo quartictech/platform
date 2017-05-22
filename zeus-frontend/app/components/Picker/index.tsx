@@ -49,7 +49,7 @@ export interface PickerProps {
   disabled?: boolean;
   errorDisabled?: boolean;
   working?: boolean;
-  onEntrySelect?: (key: string) => void;
+  onEntrySelect?: (entry: PickerEntry) => void;
   onQueryChange?: (text: string) => void;
   manageFilter?: boolean; // If true, then onQueryChange is ignored
 }
@@ -152,7 +152,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 
   private onSelectEntry(key: string) {
     this.hideMenu();
-    BlueprintUtils.safeInvoke(this.props.onEntrySelect, key);
+    BlueprintUtils.safeInvoke(this.props.onEntrySelect, _.find(this.props.entries, e => e.key === key));
   }
 
   private onInteraction(nextOpenState: boolean) {

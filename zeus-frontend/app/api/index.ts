@@ -1,4 +1,4 @@
-import { Asset, DatasetName } from "../models";
+import { Asset, Job, DatasetName } from "../models";
 import { ManagedResource } from "../api-management";
 
 export const apiRootUrl = `${location.origin}${location.pathname}api`;
@@ -18,14 +18,17 @@ const fetchUtil = <T>(url, options?) => fetch(url, Object.assign({}, options, { 
   .then((response: Response) => response.text() )
   .then<T>(r => JSON.parse(r, dateInferringReviver));
 
-export const assets = <ManagedResource<Map<string, Asset>>>{
-  name: "assets",
-  shortName: "assets",
+const searchableResource = <T>(name: string) => ({
+  name,
+  shortName: name,
   endpoint: (term, limit) =>
-    fetchUtil<Map<string, Asset>>(`${apiRootUrl}/datasets/assets`
+    fetchUtil<Map<string, T>>(`${apiRootUrl}/datasets/${name}`
       + (term ? `?term=${encodeURIComponent(term)}` : "")
       + (limit ? `&limit=${encodeURIComponent(limit)}` : "")),
-};
+});
+
+export const jobs = searchableResource<Job>("jobs");
+export const assets = searchableResource<Asset>("assets");
 
 export const asset = <ManagedResource<Asset>>{
   name: "asset",
@@ -46,6 +49,7 @@ export const datasetContent = <ManagedResource<{ [id: string] : any }>>{
 };
 
 export const managedResources: ManagedResource<any>[] = [
+  jobs,
   assets,
   asset,
   datasetList,
