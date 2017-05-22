@@ -19,6 +19,11 @@ interface IState {
   timeSeriesScatterPlot: Plottable.Plots.Scatter<{}, {}>;
   eventsPlot: Plottable.Plots.Segment<{}, {}>;
   chart: any;
+  tooltip: {
+    x: number;
+    y: number;
+    value: string;
+  }
 }
 
 class RealTimeChart extends React.Component<IProps, IState> {
@@ -28,7 +33,8 @@ class RealTimeChart extends React.Component<IProps, IState> {
       timeSeriesPlot: null,
       timeSeriesScatterPlot: null,
       eventsPlot: null,
-      chart: null
+      chart: null,
+      tooltip: null,
     };
   }
 
@@ -73,11 +79,29 @@ class RealTimeChart extends React.Component<IProps, IState> {
       eventsPlot.redraw();
     });
 
+    const pointer = new Plottable.Interactions.Pointer();
+    pointer.onPointerMove(p => {
+      const closest = eventsPlot.entityNearest(p);
+      if (closest) {
+        this.setState({
+          tooltip: {
+            x: closest.position.x,
+            y: closest.position.y,
+            value: closest.datum.detail,
+          }
+        });
+      }
+    });
+    pointer.onPointerExit(() => this.setState({ tooltip: null }));
+
+    pointer.attachTo(eventsPlot);
+
     this.state = {
       chart: new Plottable.Components.Table([
         [yLabel, yAxis, chart],
         [null, null, xAxis],
       ]),
+      tooltip: null,
       eventsPlot,
       timeSeriesPlot,
        timeSeriesScatterPlot
@@ -92,6 +116,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
       <div style={{padding: "10px", width: "99%"}}>
         <svg className={s.chart} style={{ width: "100%", height: 175 }} ref="svg">
         </svg>
+        { this.state.tooltip ? <span className="pt-text-muted"><b>Selection:</b> {this.state.tooltip.value}</span> : "\u00A0"}
       </div>
     );
   }
