@@ -45,7 +45,7 @@ class Header extends React.Component<HeaderProps, void> {
                 paddingTop: "10px",
                 paddingBottom: "10px",
                 marginLeft: "-5px",
-                marginRight: "10px"
+                marginRight: "10px",
               }}
               src={logo}
               role="presentation"

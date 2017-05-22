@@ -33,7 +33,7 @@ export const assets = searchableResource<Asset>("assets");
 export const asset = <ManagedResource<Asset>>{
   name: "asset",
   shortName: "asset",
-  endpoint: (id) => fetchUtil<Asset>(`${apiRootUrl}/datasets/assets/${encodeURIComponent(id)}`)
+  endpoint: (id) => fetchUtil<Asset>(`${apiRootUrl}/datasets/assets/${encodeURIComponent(id)}`),
 };
 
 export const datasetList = <ManagedResource<DatasetName[]>>{

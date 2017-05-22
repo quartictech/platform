@@ -44,8 +44,7 @@ export default class NormalPicker extends React.Component<NormalPickerProps, {}>
             label={(this.props.selected === entry) ? IconContents.TICK : ""}
             iconName={this.props.iconName}
             onClick={() => this.props.onChange(entry)}
-          />
-        )}
+          />)}
       </Menu>
     );
   }

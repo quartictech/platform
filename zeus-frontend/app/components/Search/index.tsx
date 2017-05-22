@@ -103,7 +103,7 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         category: "RSLs",
         iconName: "drive-time", // A car :)
         onSelect: () => appHistory.push(`/assets/${encodeURIComponent(id)}`),
-      } as PickerEntry)
+      } as PickerEntry),
     );
   }
 
@@ -119,7 +119,7 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         // TODO: what about the other RSLs?
         onSelect: () =>
           entry["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(entry["RSLs"].split(",")[0])}`),
-      } as PickerEntry)
+      } as PickerEntry),
     );
   }
 

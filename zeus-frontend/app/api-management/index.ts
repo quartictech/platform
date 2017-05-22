@@ -55,7 +55,7 @@ export const resourceActions = <T>(resource: ManagedResource<T>) => {
 const showError = (message) => toaster.show({
   iconName: "warning-sign",
   intent: Intent.DANGER,
-  message
+  message,
 });
 
 function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
@@ -73,7 +73,7 @@ function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
 function* fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   yield race({
     fetch: call(fetch, resource, action),
-    cancel: take(constants(resource).clear)
+    cancel: take(constants(resource).clear),
   });
 }
 

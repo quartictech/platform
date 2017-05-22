@@ -24,7 +24,7 @@
     "no-eval": true,
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
-    "trailing-comma": true,
+    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
     "no-trailing-whitespace": false,
     "no-unused-expression": true,
     "no-use-before-declare": false,

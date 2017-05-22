@@ -67,8 +67,7 @@ const Menu: React.SFC<MenuProps> = (props) => (
                 <MenuItem key={d} iconName="database" text={d} href={appHistory.createHref({
                   pathname: `/explorer/${encodeURIComponent(d)}`,
                 })} />
-              )
-          )
+              ))
         }
       </MenuItem>
 
@@ -116,5 +115,5 @@ const mapStateToProps = createStructuredSelector({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(App);
