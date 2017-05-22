@@ -7,12 +7,8 @@ import { App } from "./";
 /** Data */
 const s = require("./style.css");
 const props = {
-  params: {
-    node: undefined
-  },
-  location: {
-    pathname: "/"
-  },
+  datasetListRequired: () => null,
+  datasetList: null,
   showNewDatasetModal: () => null,
   searchDatasets: () => null,
 };
