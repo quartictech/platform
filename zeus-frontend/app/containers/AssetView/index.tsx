@@ -62,6 +62,7 @@ class AssetView extends React.Component<IProps, IState> {
 
   componentDidMount() {
     this.props.assetRequired(this.props.params.assetId);
+    document.title = `Quartic - ${this.props.params.assetId}`;
   }
 
   computeTimeSeries(asset): TimeSeriesPoint[] {
