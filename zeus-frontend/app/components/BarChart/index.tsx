@@ -37,11 +37,11 @@ class RealBarChart  extends React.Component<IProps, any> {
     // const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
       chart: new Plottable.Components.Table([
-      [yLabel, yAxis, chart],
-      [null, null, xAxis],
-      [null, null, xLabel]
-    ]),
-    plot: plot
+        [yLabel, yAxis, chart],
+        [null, null, xAxis],
+        [null, null, xLabel],
+      ]),
+      plot: plot,
     };
   }
 

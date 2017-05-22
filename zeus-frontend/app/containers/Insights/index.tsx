@@ -66,7 +66,7 @@ class Insights extends React.Component<IProps, IState> {
 }
 
 const mapDispatchToProps = {
-  closeNewDatasetModal: () => actions.setActiveModal(null as string)
+  closeNewDatasetModal: () => actions.setActiveModal(null as string),
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -77,5 +77,5 @@ const mapStateToProps = createStructuredSelector({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(Insights);

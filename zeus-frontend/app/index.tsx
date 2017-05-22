@@ -33,5 +33,5 @@ ReactDOM.render(
   <Provider store={store}>
     {component}
   </Provider>,
-  document.getElementById("app")
+  document.getElementById("app"),
 );
