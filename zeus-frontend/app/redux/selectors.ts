@@ -16,6 +16,7 @@ export const selectLocationState = () => {
   };
 };
 
+export const selectManaged = (state) => state.get("managed");
 export const selectDatasetList = (state) => state.get("managed").datasetList.toJS();
 export const selectDatasetContent = (state) => state.get("managed").datasetContent.toJS();
 export const selectJobs = (state) => state.get("managed").jobs.toJS();
