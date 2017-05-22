@@ -225,7 +225,7 @@ class AssetView extends React.Component<IProps, IState> {
                 </td>
 
                 <td>
-                  {job["Treatment Type"]}
+                  {job["Treatment"]}
                 </td>
 
                 <td>
