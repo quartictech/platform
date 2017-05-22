@@ -60,12 +60,32 @@ class AssetView extends React.Component<IProps, IState> {
     };
   }
 
-  componentDidMount() {
-    this.props.assetRequired(this.props.params.assetId);
-    document.title = `Quartic - ${this.props.params.assetId}`;
+  public componentWillMount() {
+    this.onNewAsset(this.props.params.assetId);
   }
 
-  computeTimeSeries(asset): TimeSeriesPoint[] {
+  public componentWillReceiveProps(nextProps: IProps) {
+    if (this.props.params.assetId !== nextProps.params.assetId) {
+      this.onNewAsset(nextProps.params.assetId);
+    }
+
+    if (!this.state.defectChartSelection &&
+      nextProps.asset.data &&
+      nextProps.asset.data._defect_time_series) {
+      const timeSeriesKeys = Object.keys(nextProps.asset.data._defect_time_series);
+      if (timeSeriesKeys.length > 0) {
+        this.setState({ defectChartSelection: timeSeriesKeys[0] });
+      }
+    }
+  }
+
+  private onNewAsset(assetId: string) {
+    this.props.assetRequired(assetId);
+    document.title = `Quartic - ${assetId}`;
+  }
+
+
+  private computeTimeSeries(asset): TimeSeriesPoint[] {
     if (this.state.defectChartSelection) {
       return asset._defect_time_series[this.state.defectChartSelection]
         .series.map( ({ timestamp, value }) => ({x: new Date(timestamp), y: value }));
@@ -73,13 +93,13 @@ class AssetView extends React.Component<IProps, IState> {
     return [];
   }
 
-  computeEvents(asset): MaintenanceEvent[] {
+  private computeEvents(asset): MaintenanceEvent[] {
     return asset._jobs
       .filter(job => job["Start Date"] != null)
       .map(job => ({ type: "maintenance", timestamp: new Date(job["Start Date"]) }));
   }
 
-  renderDefectsChart(asset) {
+  private renderDefectsChart(asset) {
     const timeSeries = this.computeTimeSeries(asset);
     const events = this.computeEvents(asset);
     return (
@@ -97,7 +117,7 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  renderChartButtons(asset) {
+  private renderChartButtons(asset) {
     const charts = Object.keys(asset._defect_time_series);
     return (
       <NormalPicker
@@ -110,7 +130,7 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  renderMap(asset) {
+  private renderMap(asset) {
     const fc: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
       type: "FeatureCollection",
       features: [
@@ -128,7 +148,7 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  renderAttributes(asset) {
+  private renderAttributes(asset) {
     return (
       <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
         <h1>{asset.RSL}</h1>
@@ -156,7 +176,7 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  renderJobsTable(asset) {
+  private renderJobsTable(asset) {
     return (
       <Pane title="Jobs" iconName="person">
         <table
@@ -192,19 +212,7 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (!this.state.defectChartSelection &&
-      nextProps.asset.data &&
-      nextProps.asset.data._defect_time_series) {
-      const timeSeriesKeys = Object.keys(nextProps.asset.data._defect_time_series);
-      if (timeSeriesKeys.length > 0) {
-        this.setState({ defectChartSelection: timeSeriesKeys[0] });
-      }
-    }
-  }
-
-
-  renderData() {
+  private renderData() {
     const asset = this.props.asset;
     switch (asset.status) {
       case ResourceStatus.LOADED:
