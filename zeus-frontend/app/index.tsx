@@ -9,6 +9,7 @@ import { getRoutes, appHistory } from "./routes";
 
 import "@blueprintjs/core/dist/blueprint.css";
 import "@blueprintjs/table/dist/table.css";
+import "plottable/plottable.css";
 import "./plottable.css.global";
 
 import { FocusStyleManager } from "@blueprintjs/core";
