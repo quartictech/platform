@@ -96,11 +96,23 @@ class AssetView extends React.Component<IProps, IState> {
   private computeEvents(asset): MaintenanceEvent[] {
     const treatments = asset._treatments
       .filter(job => job["Estimated Completion Date"] != null)
-      .map(job => ({ type: "maintenance", timestamp: new Date(job["Estimated Completion Date"]) }));
+      .map(job => ({
+        type: "maintenance",
+        detail: job["Treatment"],
+        timestamp: new Date(job["Estimated Completion Date"]),
+      }));
 
-    const jobs = asset._jobs
+    const jobs = asset._jobs.concat(asset._jobs_geo)
       .filter(job => job["Start Date"] != null)
-      .map(job => ({ type: "other", timestamp: new Date(job["Start Date"]) }));
+      .filter(job =>
+          job["Type"] !== "Street Cleansing - Reactive Response" &&
+          job["Type"] !== "MNHL - Highway Lighting" &&
+          job["Type"] !== "Street Lighting - Reactive Fault Repairs")
+      .map(job => ({
+        type: "other",
+        detail: `${job["Type"]} (${job["Number"]})`,
+        timestamp: new Date(job["Start Date"]),
+      }));
 
     return treatments.concat(jobs);
   }

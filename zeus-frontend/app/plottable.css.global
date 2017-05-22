@@ -1,0 +1,3 @@
+.plottable .axis-label text {
+  text-transform: none !important;
+}
