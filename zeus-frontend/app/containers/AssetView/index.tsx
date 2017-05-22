@@ -15,9 +15,11 @@ import {
 
 import {
   Classes,
+  Intent,
   NonIdealState,
   Position,
   Spinner,
+  Tag,
 } from "@blueprintjs/core";
 
 import {
@@ -151,23 +153,45 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
+  private renderStat(key, value, quartile) {
+    let color = null;
+    let tag = null;
+    if (quartile > 0.9) {
+      color = "rgba(219, 55, 55, 0.4)";   // Alpha-modified version of callout with INTENT_DANGER
+      tag = <Tag style={{ float: "right" }} intent={Intent.DANGER}>Top 10% offender</Tag>;
+    } else if (quartile > 0.67) {
+      color = "rgba(217, 130, 43, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
+      tag = <Tag style={{ float: "right" }} intent={Intent.WARNING}>Top 33% offender</Tag>;
+    }
+    return (
+      <tr className={classNames(Classes.CALLOUT)} style={{ backgroundColor: color }}>
+        <td className={s["attribute-name"]}>{key}</td>
+        <td>{value} {tag}</td>
+      </tr>
+    );
+  }
+
   private renderAttributes(asset) {
     return (
-      <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
-        <h1>{asset.RSL}</h1>
-        <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
-          <tbody>
-            {
-              _.map({
-                "Road name": toTitleCase(asset["Road Name"]),
-                "Section description": toTitleCase(asset["Section Description"]),
-                "Link place": `${asset["Link"]} ${asset["Place"]}`,
-                "Length (m)": numeral(asset["Length"]).format("0.00"),
-                "Speed limit (mph)": asset["Speed Limit"],
-              }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
-            }
-          </tbody>
-        </table>
+      <div>
+        <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
+          <h1>{asset.RSL}</h1>
+          <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
+            <tbody>
+              {
+                _.map({
+                  "Road name": toTitleCase(asset["Road Name"]),
+                  "Section description": toTitleCase(asset["Section Description"]),
+                  "Link place": `${asset["Link"]} ${asset["Place"]}`,
+                  "Length (m)": numeral(asset["Length"]).format("0.00"),
+                  "Speed limit (mph)": asset["Speed Limit"],
+                }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
+              }
+              {this.renderStat("Defects / m", 25, 0.75)}
+              {this.renderStat("Potholes / m", 350, 0.95)}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
