@@ -112,11 +112,11 @@ export default class Search extends React.Component<SearchProps, SearchState> {
       (entry, id: string) => ({
         key: id,
         name: toTitleCase(entry["Number"] || ""),
-        description: entry["RSLs"],
+        description: entry["RSLs"] || "<< No associated RSLs >>",
         extra: entry["Type"],
         category: "Jobs",
         iconName: "wrench",
-        onSelect: () => appHistory.push(`/assets/${encodeURIComponent(entry["RSLs"].split(",")[0])}`),  // TODO: what about the other RSLs?
+        onSelect: () => entry["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(entry["RSLs"].split(",")[0])}`),  // TODO: what about the other RSLs?
       } as PickerEntry)
     );
   }
