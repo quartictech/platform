@@ -188,15 +188,20 @@ class AssetView extends React.Component<IProps, IState> {
   }
 
   renderEventRow(idx, event) {
-    if (event.type === "job") {
+    if (event.type === "job" || event.type === "job_geo") {
       return (
         <tr key={idx}>
           <td>
-              <span className="pt-icon-standard pt-icon-person"></span> {event["Number"]}
+              { event.type === "job" ? <span className="pt-icon-standard pt-icon-person"></span> :
+                <span className="pt-icon-standard pt-icon-geosearch"></span> } {event["Number"]}
           </td>
 
           <td>
-            {event._date ? moment(event._date).format("Do MMMM YYYY, h:mm:ss a") : null}
+            {event._date ? moment(event._date).format("Do MMM YYYY") : null}
+          </td>
+
+          <td>
+            { event["Type"] }
           </td>
 
           <td>
@@ -211,11 +216,14 @@ class AssetView extends React.Component<IProps, IState> {
           </td>
 
           <td>
-            {event._date ? moment(event._date).format("Do MMMM YYYY") : null}
+            {event._date ? moment(event._date).format("Do MMM YYYY") : null}
           </td>
 
           <td>
             {event["Treatment"]} <br />
+          </td>
+
+          <td>
             {event["Notes"]}
           </td>
         </tr>);
@@ -223,9 +231,16 @@ class AssetView extends React.Component<IProps, IState> {
   }
 
   renderEventsTable(asset) {
-    const events = asset._treatments
-      .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }))
-      .concat(asset._jobs.map(j => Object.assign(j, { type: "job", _date: j["Actual Start Date"] })));
+    const treatments = asset._treatments
+      .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }));
+
+    const jobs = asset._jobs
+      .map(j => Object.assign(j, { type: "job", _date: j["Start Date"] }));
+
+    const jobsGeo = asset._jobs_geo
+      .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"]}));
+
+    const events = treatments.concat(jobs).concat(jobsGeo);
 
     events.sort((a, b) => a._date - b._date);
 
@@ -233,63 +248,18 @@ class AssetView extends React.Component<IProps, IState> {
       <Pane title="Events" iconName="timeline-events">
         <table
           className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
-          style={{ width: "100%" }}
+          style={{ width: "100%", tableLayout: "fixed" }}
         >
           <thead>
             <tr>
-              <th width={100}>Job No.</th>
-              <th>Date</th>
-              <th>Details</th>
+              <th width={120}>Job No.</th>
+              <th width={120}>Date</th>
+              <th width={200}>Type</th>
+              <th className={s.eventsTableDetailsColumns}>Details</th>
             </tr>
           </thead>
           <tbody>
             {events.map((e, idx) => this.renderEventRow(idx, e))}
-          </tbody>
-        </table>
-      </Pane>
-    );
-  }
-
-  renderTreatmentsTable(asset) {
-    return (
-      <Pane title="Treatments" iconName="tint">
-        <table
-          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
-          style={{ width: "100%" }}
-        >
-          <thead>
-            <tr>
-              <th>Confirm Number</th>
-              <th>Est. Completion Date</th>
-              <th>Treatment Type</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {asset._treatments
-              .filter(job => job["Confirm Number"] ||
-                job["Estimated Completion Date"] ||
-                job["Treatment"] || job["Notes"])
-              .map((job, idx) =>
-              <tr key={idx}>
-                <td>
-                  {job["Confirm Number"]}
-                </td>
-
-                <td>
-                  {job["Estimated Completion Date"] ?
-                    moment(job["Estimated Completion Date"]).format("Do MMMM YYYY") : null}
-                </td>
-
-                <td>
-                  {job["Treatment"]}
-                </td>
-
-                <td>
-                  {job["Notes"]}
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </Pane>
