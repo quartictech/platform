@@ -80,6 +80,7 @@ class AssetView extends React.Component<IProps, IState> {
 
   private onNewAsset(assetId: string) {
     this.props.assetRequired(assetId);
+    this.setState({ defectChartSelection: null });
     document.title = `Quartic - ${assetId}`;
   }
 
@@ -111,13 +112,19 @@ class AssetView extends React.Component<IProps, IState> {
       <Pane
         title="Defects"
         iconName="error"
-        extraHeaderContent={this.renderChartButtons(asset)}
+        extraHeaderContent={asset._defect_time_series ? this.renderChartButtons(asset) : null}
       >
-        <TimeChart
-          yLabel={this.state.defectChartSelection}
-          events={events}
-          timeSeries={timeSeries}
-         />
+        { asset._defect_time_series ?
+          <TimeChart
+            yLabel={this.state.defectChartSelection}
+            events={events}
+            timeSeries={timeSeries}
+          /> :
+          <NonIdealState
+            visual="info"
+            title="No survey data available"
+          />
+         }
       </Pane>
     );
   }
@@ -162,6 +169,9 @@ class AssetView extends React.Component<IProps, IState> {
     } else if (quartile > 0.67) {
       color = "rgba(217, 130, 43, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
       tag = <Tag style={{ float: "right" }} intent={Intent.WARNING}>Top 33% offender</Tag>;
+    } else if (quartile < 0.25) {
+      color = "rgba(15, 153, 96, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
+      tag = <Tag style={{ float: "right" }} intent={Intent.SUCCESS}>Bottom 25% offender</Tag>;
     }
     return (
       <tr className={classNames(Classes.CALLOUT)} style={{ backgroundColor: color }}>
@@ -187,8 +197,7 @@ class AssetView extends React.Component<IProps, IState> {
                   "Speed limit (mph)": asset["Speed Limit"],
                 }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
               }
-              {this.renderStat("Defects / m", 25, 0.75)}
-              {this.renderStat("Potholes / m", 350, 0.95)}
+              {_.map(asset._stats, (v, k) => this.renderStat(k, numeral(v[0]).format("0.00"), v[1]))}
             </tbody>
           </table>
         </div>
