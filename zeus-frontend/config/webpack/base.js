@@ -30,6 +30,12 @@ var config = {
         loader: 'json'
       },
       {
+      // CSS files named appropriately get loaded into global scope (for plottable)
+        test: /\.css.global$/,
+        exclude: /node_modules/,
+        loaders: ['style-loader', 'css-loader'],
+      },
+      {
         test: /\.css$/,
         include: /app/,
         loaders: [
