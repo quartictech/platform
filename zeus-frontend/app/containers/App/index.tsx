@@ -20,7 +20,7 @@ import {
   DatasetName,
 } from "../../models";
 import { appHistory } from "../../routes";
-import { Header } from "../../components";
+import Header from "../../components/Header";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 
@@ -89,18 +89,16 @@ export class App extends React.Component<AppProps, void> {
     return (
       <div>
       <section className={s.App}>
-        <Header
-          searchBoxChange={() => {}}
-        />
+        <Header />
 
-      <div className={s.container}>
-          <Menu
-            datasetList={this.props.datasetList}
-          />
-          <div className={s.main}>
-            {children}
-          </div>
-      </div>
+        <div className={s.container}>
+            <Menu
+              datasetList={this.props.datasetList}
+            />
+            <div className={s.main}>
+              {children}
+            </div>
+        </div>
       </section>
       </div>
     );

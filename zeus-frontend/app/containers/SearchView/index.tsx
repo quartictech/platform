@@ -1,9 +1,9 @@
 import * as React from "react";
 import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
 import {
   Classes,
 } from "@blueprintjs/core";
-import { createStructuredSelector } from "reselect";
 import * as classNames from "classnames";
 import Search from "../../components/Search";
 import * as selectors from "../../redux/selectors";
@@ -43,6 +43,7 @@ class SearchView extends React.Component<SearchViewProps, {}> {
           entriesClear={this.props.entriesClear}
           entriesRequired={this.props.entriesRequired}
           entries={this.props.entries}
+          placeholder="What do you want to know?"
         />
       </div>
     );

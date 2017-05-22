@@ -32,6 +32,7 @@ interface SearchProps {
   entriesClear: () => void;
   entriesRequired: (string, int) => void;
   entries: ResourceState<{ [id: string] : Asset }>;
+  placeholder?: string;
   className?: string;
 }
 
@@ -63,7 +64,7 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         className={this.props.className}
         iconName="search"
         defaultEntryIconName="person"
-        placeholder="What do you want to know?"
+        placeholder={this.props.placeholder}
         
         entries={this.results()}
         selectedKey={null}
