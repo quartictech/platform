@@ -214,10 +214,12 @@ class AssetView extends React.Component<IProps, IState> {
             </tr>
           </thead>
           <tbody>
-            {asset._treatments.map((job, idx) =>
+            {asset._treatments
+              .filter(job => job["Confirm Number"] || job["Estimated Completion Date"] || job["Treatment"] || job["Notes"])
+              .map((job, idx) =>
               <tr key={idx}>
                 <td>
-                  {job["Number"]}
+                  {job["Confirm Number"]}
                 </td>
 
                 <td>
