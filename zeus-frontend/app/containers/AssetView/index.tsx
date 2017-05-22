@@ -162,36 +162,63 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  renderJobsTable(asset) {
+  renderEventRow(idx, event) {
+    if (event.type === "job") {
+      return (
+        <tr key={idx}>
+          <td>
+              <span className="pt-icon-standard pt-icon-person"></span> {event["Number"]}
+          </td>
+
+          <td>
+            {event._date ? moment(event._date).format("Do MMMM YYYY, h:mm:ss a") : null}
+          </td>
+
+          <td>
+            {event["Notes"]}
+          </td>
+        </tr>);
+    } else if (event.type === "treatment") {
+      return (
+        <tr key={idx}>
+          <td>
+            <span className="pt-icon-standard pt-icon-tint"></span> {event["Confirm Number"]}
+          </td>
+
+          <td>
+            {event._date ? moment(event._date).format("Do MMMM YYYY") : null}
+          </td>
+
+          <td>
+            {event["Treatment"]} <br />
+            {event["Notes"]}
+          </td>
+        </tr>);
+    }
+  }
+
+  renderEventsTable(asset) {
+    const events = asset._treatments
+      .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }))
+      .concat(asset._jobs.map(j => Object.assign(j, { type: "job", _date: j["Actual Start Date"] })));
+
+    events.sort((a, b) => a._date - b._date);
+
     return (
-      <Pane title="Jobs" iconName="person">
+      <Pane title="Events" iconName="timeline-events">
         <table
           className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
           style={{ width: "100%" }}
         >
           <thead>
             <tr>
-              <th>Job No.</th>
-              <th>Start Date</th>
-              <th>Notes</th>
+              <th width={100}>Job No.</th>
+              <th>Date</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
-            {asset._jobs.map(job =>
-              <tr key={job["Number"]}>
-                <td>
-                  {job["Number"]}
-                </td>
-
-                <td>
-                  {moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a")}
-                </td>
-
-                <td>
-                  {job["Notes"]}
-                </td>
-              </tr>
-            )}
+            {events.map((e, idx) => this.renderEventRow(idx, e))}
           </tbody>
         </table>
       </Pane>
@@ -271,8 +298,7 @@ class AssetView extends React.Component<IProps, IState> {
               </div>
             </div>
             {this.renderDefectsChart(asset.data)}
-            {this.renderJobsTable(asset.data)}
-            {this.renderTreatmentsTable(asset.data)}
+            {this.renderEventsTable(asset.data)}
           </div>
         );
 
