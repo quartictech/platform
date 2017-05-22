@@ -170,94 +170,116 @@ class AssetView extends React.Component<IProps, IState> {
             </tr>
             <tr>
               <td>
+                <b>Section Description</b>
+              </td>
+              <td>
+                {toTitleCase(asset["Section Description"])}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Link Place</b>
+              </td>
+              <td>
+                {asset["Link"]} {asset["Place"]}
+              </td>
+            </tr>
+                       <tr>
+              <td>
                 <b>Length (m)</b>
               </td>
               <td>
                 { numeral(asset["Length"]).format("0.00") }
               </td>
             </tr>
+            <tr>
+              <td>
+                <b>Speed Limit</b>
+              </td>
+              <td>
+                {asset["Speed Limit"]}
+              </td>
+            </tr>
+
           </tbody>
         </table>
       </div>
     );
   }
 
-  private renderJobsTable(asset) {
-    return (
-      <Pane title="Jobs" iconName="person">
-        <table
-          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
-          style={{ width: "100%" }}
-        >
-          <thead>
-            <tr>
-              <th>Job No.</th>
-              <th>Start Date</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {asset._jobs.map(job =>
-              <tr key={job["Number"]}>
-                <td>
-                  {job["Number"]}
-                </td>
+  private renderEventRow(idx, event) {
+    if (event.type === "job" || event.type === "job_geo") {
+      return (
+        <tr key={idx}>
+          <td>
+              { event.type === "job" ? <span className="pt-icon-standard pt-icon-person"></span> :
+                <span className="pt-icon-standard pt-icon-geosearch"></span> } {event["Number"]}
+          </td>
 
-                <td>
-                  {moment(job["Start Date"]).format("Do MMMM YYYY, h:mm:ss a")}
-                </td>
+          <td>
+            {event._date ? moment(event._date).format("Do MMM YYYY") : null}
+          </td>
 
-                <td>
-                  {job["Notes"]}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </Pane>
-    );
+          <td>
+            { event["Type"] }
+          </td>
+
+          <td>
+            {event["Notes"]}
+          </td>
+        </tr>);
+    } else if (event.type === "treatment") {
+      return (
+        <tr key={idx}>
+          <td>
+            <span className="pt-icon-standard pt-icon-tint"></span> {event["Confirm Number"]}
+          </td>
+
+          <td>
+            {event._date ? moment(event._date).format("Do MMM YYYY") : null}
+          </td>
+
+          <td>
+            {event["Treatment"]} <br />
+          </td>
+
+          <td>
+            {event["Notes"]}
+          </td>
+        </tr>);
+    }
   }
 
-  renderTreatmentsTable(asset) {
+  private renderEventsTable(asset) {
+    const treatments = asset._treatments
+      .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }));
+
+    const jobs = asset._jobs
+      .map(j => Object.assign(j, { type: "job", _date: j["Start Date"] }));
+
+    const jobsGeo = asset._jobs_geo
+      .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"]}));
+
+    const events = treatments.concat(jobs).concat(jobsGeo);
+
+    events.sort((a, b) => a._date - b._date);
+
     return (
-      <Pane title="Treatments" iconName="tint">
+      <Pane title="Events" iconName="timeline-events">
         <table
           className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
-          style={{ width: "100%" }}
+          style={{ width: "100%", tableLayout: "fixed" }}
         >
           <thead>
             <tr>
-              <th>Confirm Number</th>
-              <th>Est. Completion Date</th>
-              <th>Treatment Type</th>
-              <th>Notes</th>
+              <th width={120}>Job No.</th>
+              <th width={120}>Date</th>
+              <th width={200}>Type</th>
+              <th className={s.eventsTableDetailsColumns}>Details</th>
             </tr>
           </thead>
           <tbody>
-            {asset._treatments
-              .filter(job => job["Confirm Number"] ||
-                job["Estimated Completion Date"] ||
-                job["Treatment"] || job["Notes"])
-              .map((job, idx) =>
-              <tr key={idx}>
-                <td>
-                  {job["Confirm Number"]}
-                </td>
-
-                <td>
-                  {job["Estimated Completion Date"] ?
-                    moment(job["Estimated Completion Date"]).format("Do MMMM YYYY") : null}
-                </td>
-
-                <td>
-                  {job["Treatment"]}
-                </td>
-
-                <td>
-                  {job["Notes"]}
-                </td>
-              </tr>
-            )}
+            {events.map((e, idx) => this.renderEventRow(idx, e))}
           </tbody>
         </table>
       </Pane>
@@ -279,8 +301,7 @@ class AssetView extends React.Component<IProps, IState> {
               </div>
             </div>
             {this.renderDefectsChart(asset.data)}
-            {this.renderJobsTable(asset.data)}
-            {this.renderTreatmentsTable(asset.data)}
+            {this.renderEventsTable(asset.data)}
           </div>
         );
 
