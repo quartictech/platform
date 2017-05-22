@@ -71,7 +71,7 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
 
   render() {
     return (
-      <div className={s.container}>
+      <div className={s.container} style={{ marginTop: "25%" }}>
         <Picker
           className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
           iconName="search"
