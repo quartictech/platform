@@ -150,12 +150,37 @@ class AssetView extends React.Component<IProps, IState> {
             </tr>
             <tr>
               <td>
+                <b>Section Description</b>
+              </td>
+              <td>
+                {toTitleCase(asset["Section Description"])}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Link Place</b>
+              </td>
+              <td>
+                {asset["Link"]} {asset["Place"]}
+              </td>
+            </tr>
+                       <tr>
+              <td>
                 <b>Length (m)</b>
               </td>
               <td>
                 { numeral(asset["Length"]).format("0.00") }
               </td>
             </tr>
+            <tr>
+              <td>
+                <b>Speed Limit</b>
+              </td>
+              <td>
+                {asset["Speed Limit"]}
+              </td>
+            </tr>
+
           </tbody>
         </table>
       </div>
