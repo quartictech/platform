@@ -13,6 +13,8 @@ export type DatasetName = string;
 
 export type Asset = any;
 
+export type Job = any;
+
 export interface Bar {
   name: string;
   value: number;

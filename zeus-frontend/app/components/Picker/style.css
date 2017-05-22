@@ -2,3 +2,12 @@
 .bad {
     pointer-events: none;
 }
+
+.highlighted {
+    color: white;
+    background-color: #137CBD;    /* Colors.BLUE3 from Blueprint */
+}
+
+.highlighted :global(.pt-menu-item::before) {
+    color: white !important;
+}

@@ -2,7 +2,6 @@
 import * as React from "react";
 import {
   Classes,
-  Colors,
   IconContents,
   InputGroup,
   Intent,
@@ -49,7 +48,7 @@ export interface PickerProps {
   disabled?: boolean;
   errorDisabled?: boolean;
   working?: boolean;
-  onEntrySelect?: (key: string) => void;
+  onEntrySelect?: (entry: PickerEntry) => void;
   onQueryChange?: (text: string) => void;
   manageFilter?: boolean; // If true, then onQueryChange is ignored
 }
@@ -152,7 +151,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 
   private onSelectEntry(key: string) {
     this.hideMenu();
-    BlueprintUtils.safeInvoke(this.props.onEntrySelect, key);
+    BlueprintUtils.safeInvoke(this.props.onEntrySelect, _.find(this.props.entries, e => e.key === key));
   }
 
   private onInteraction(nextOpenState: boolean) {
@@ -215,7 +214,10 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           disabled={this.props.disabled}
           type={this.props.type}
           leftIconName={this.props.iconName || this.props.defaultEntryIconName}
-          rightElement={this.props.working ? <Spinner className={Classes.SMALL} /> : undefined}
+          rightElement={(this.props.working && this.state.menuVisible)
+            ? <Spinner className={Classes.SMALL} />
+            : undefined
+          }
           placeholder={this.props.placeholder}
           value={this.state.text}
           onKeyDown={(e) => this.onKeyDown(e)}
@@ -258,16 +260,16 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 
   // marginLeft is a hack - compensates for hardcoded ::before size in Blueprint CSS.
   // Note that the MenuItem behaviour is not very controllable, so we completely override it - we've disabled 
-  // pointer-events, and use a wrapper div to capture events and do colouring.
+  // pointer-events, and use a wrapper div to capture events and do colouring.  This is gross.
   private renderEntry(entry: PickerEntry, idx: number) {
     const isHighlighted = (idx === this.state.idxHighlighted);
     return (
       <div
         key={entry.key}
+        className={isHighlighted ? s.highlighted : null}
         style={{
-          backgroundColor: isHighlighted ? Colors.BLUE3 : null,
           cursor: "pointer"
-        }}  // TODO: set ::before color to white
+        }}
         onMouseEnter={() => this.onMouseEnter(idx)}
         onClick={() => this.onSelectEntry(entry.key)}
       >
@@ -277,7 +279,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           text={(
             <div style={{ marginLeft: "30px" }}>
               <div><b>{entry.name}</b></div>
-              <small className="pt-text-muted">
+              <small className={isHighlighted ? null : "pt-text-muted"}>
                 {
                   entry.extra
                     ? (
