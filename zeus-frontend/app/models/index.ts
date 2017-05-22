@@ -55,5 +55,6 @@ export interface TimeSeriesPoint {
 export interface MaintenanceEvent {
   type: string;
   timestamp: Date;
+  detail: string;
 }
 

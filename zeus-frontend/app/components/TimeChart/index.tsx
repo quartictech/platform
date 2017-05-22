@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import * as Plottable from "plottable";
+
 const s = require("./style.css");
 
 import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
@@ -18,6 +19,12 @@ interface IState {
   timeSeriesScatterPlot: Plottable.Plots.Scatter<{}, {}>;
   eventsPlot: Plottable.Plots.Segment<{}, {}>;
   chart: any;
+  yAxisLabel: Plottable.Components.AxisLabel;
+  tooltip: {
+    x: number;
+    y: number;
+    value: string;
+  };
 }
 
 class RealTimeChart extends React.Component<IProps, IState> {
@@ -28,6 +35,8 @@ class RealTimeChart extends React.Component<IProps, IState> {
       timeSeriesScatterPlot: null,
       eventsPlot: null,
       chart: null,
+      tooltip: null,
+      yAxisLabel: null,
     };
   }
 
@@ -72,14 +81,33 @@ class RealTimeChart extends React.Component<IProps, IState> {
       eventsPlot.redraw();
     });
 
+    const pointer = new Plottable.Interactions.Pointer();
+    pointer.onPointerMove(p => {
+      const closest = eventsPlot.entityNearest(p);
+      if (closest) {
+        this.setState({
+          tooltip: {
+            x: closest.position.x,
+            y: closest.position.y,
+            value: closest.datum.detail,
+          },
+        });
+      }
+    });
+    pointer.onPointerExit(() => this.setState({ tooltip: null }));
+
+    pointer.attachTo(eventsPlot);
+
     this.state = {
       chart: new Plottable.Components.Table([
         [yLabel, yAxis, chart],
         [null, null, xAxis],
       ]),
+      tooltip: null,
       eventsPlot,
       timeSeriesPlot,
       timeSeriesScatterPlot,
+      yAxisLabel: yLabel,
     };
   }
 
@@ -91,6 +119,10 @@ class RealTimeChart extends React.Component<IProps, IState> {
       <div style={{padding: "10px", width: "99%"}}>
         <svg className={s.chart} style={{ width: "100%", height: 175 }} ref="svg">
         </svg>
+        <span
+          style={{ visibility: this.state.tooltip ? "visible" : "hidden" }}
+          className="pt-callout pt-text-muted">
+          <b>Selection:</b> {this.state.tooltip ? this.state.tooltip.value : "\u00A0"}</span>
       </div>
     );
   }
@@ -104,6 +136,10 @@ class RealTimeChart extends React.Component<IProps, IState> {
     if (this.state.timeSeriesPlot != null) {
       this.state.timeSeriesPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
       this.state.timeSeriesScatterPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
+    }
+
+    if (this.state.yAxisLabel) {
+      this.state.yAxisLabel.text(nextProps.yLabel);
     }
 
     if (this.state.eventsPlot != null) {
