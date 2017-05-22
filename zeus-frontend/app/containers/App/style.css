@@ -28,11 +28,6 @@ button {
 
   text-align: left;
 
-  & a {
-    text-decoration: none;
-    text-transform: none;
-  }
-
   height: 100vh;
   background-color: #f5f8fa;
 }
@@ -49,14 +44,8 @@ button {
 }
 
 .main {
-  width: 80%;
+  width: 100%;
   display: flex;
-  padding: 20px;
-}
-
-.menu {
-  width: 20%;
-  flex: 0.2;
   padding: 20px;
 }
 

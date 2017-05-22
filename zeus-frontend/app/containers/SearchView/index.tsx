@@ -35,7 +35,7 @@ interface SearchViewProps {
 class SearchView extends React.Component<SearchViewProps, {}> {
   render() {
     return (
-      <div className={s.container} style={{ marginTop: "25%" }}>
+      <div className={s.container} style={{ marginTop: "10%" }}>
         <Search
           className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
           assetsClear={this.props.assetsClear}

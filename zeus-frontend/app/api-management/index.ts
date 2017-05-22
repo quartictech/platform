@@ -4,12 +4,14 @@ import {
   call,
   put,
   race,
+  select,
   take,
   takeLatest,
 } from "redux-saga/effects";
 import { fromJS } from "immutable";
 import { Intent } from "@blueprintjs/core";
 import * as _ from "underscore";
+import * as selectors from "../redux/selectors";
 import { toaster } from "../containers/App/toaster";
 
 interface ApiConstants {
@@ -38,7 +40,7 @@ interface ApiActionCreators<T> {
   required: (...args: any[]) => ApiAction<T>;
   beganLoading: () => ApiAction<T>;
   loaded: (data: T) => ApiAction<T>;
-  failedToLoad: () => ApiAction<T>;
+  failedToLoad: (key: string) => any;
 }
 
 export const resourceActions = <T>(resource: ManagedResource<T>) => {
@@ -48,15 +50,22 @@ export const resourceActions = <T>(resource: ManagedResource<T>) => {
     required: (...args) => ({ type: c.required, args }),
     beganLoading: () => ({ type: c.beganLoading }),
     loaded: (data) => ({ type: c.loaded, data }),
-    failedToLoad: () => ({ type: c.failedToLoad }),
+    failedToLoad: (key: string) => ({ type: c.failedToLoad, key }),
   };
 };
 
-const showError = (message) => toaster.show({
-  iconName: "warning-sign",
-  intent: Intent.DANGER,
-  message,
-});
+const showError = (key, message) => {
+  // Avoids duplicates
+  if (_.some(toaster.getToasts(), t => t.key === key )) {
+    return key;
+  }
+
+  return toaster.show({
+    iconName: "warning-sign",
+    intent: Intent.DANGER,
+    message,
+  });
+};
 
 function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   yield put(resourceActions(resource).beganLoading());
@@ -65,8 +74,9 @@ function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
     yield put(resourceActions(resource).loaded(result));
   } catch (e) {
     console.warn(e);
-    showError(`Error loading ${resource.name}.`);
-    yield put(resourceActions(resource).failedToLoad());
+    const myState = (yield select(selectors.selectManaged))[resource.shortName].toJS() as ResourceState<T>;
+    const toasterKey = showError(myState.toasterKey, `Error loading ${resource.name}.`);
+    yield put(resourceActions(resource).failedToLoad(toasterKey));
   }
 }
 
@@ -93,38 +103,37 @@ export const enum ResourceStatus {
 export interface ResourceState<T> {
   data: T;
   status: ResourceStatus;
+  toasterKey: string;
 }
 
 export const singleReducer = <T>(resource: ManagedResource<T>) => (
   state = fromJS(<ResourceState<T>>{
     data: {},
     status: ResourceStatus.NOT_LOADED,
+    toasterKey: null,
   }),
   action: any) => {
     switch (action.type) {
       case constants(resource).clear:
-        return fromJS(<ResourceState<T>>{
-          data: {},
-          status: ResourceStatus.NOT_LOADED,
-        });
+        return state
+          .set("data", {})
+          .set("status", ResourceStatus.NOT_LOADED);
 
       case constants(resource).beganLoading:
-        return fromJS(<ResourceState<T>>{
-          data: {},
-          status: ResourceStatus.LOADING,
-        });
+        return state
+          .set("data", {})
+          .set("status", ResourceStatus.LOADING);
 
       case constants(resource).failedToLoad:
-        return fromJS(<ResourceState<T>>{
-          data: {},
-          status: ResourceStatus.ERROR,
-        });
+        return state
+          .set("data", {})
+          .set("status", ResourceStatus.ERROR)
+          .set("toasterKey", action.key);
 
       case constants(resource).loaded:
-        return fromJS(<ResourceState<T>>{
-          data: action.data,
-          status: ResourceStatus.LOADED,
-        });
+        return state
+          .set("data", action.data)
+          .set("status", ResourceStatus.LOADED);
 
       default:
         return state;
@@ -134,7 +143,7 @@ export const singleReducer = <T>(resource: ManagedResource<T>) => (
 export const reducer = (resources: ManagedResource<any>[]) =>
   combineReducers(_.object(_.map(resources, r => [r.shortName, singleReducer(r)])) as {});
 
-export interface ManagedResource<T> {
+export class ManagedResource<T> {
   name: string;
   shortName: string;
   endpoint: (...args: any[]) => Promise<T>;
