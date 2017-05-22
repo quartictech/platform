@@ -83,7 +83,7 @@ function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
 function* fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   yield race({
     fetch: call(fetch, resource, action),
-    cancel: take(constants(resource).clear)
+    cancel: take(constants(resource).clear),
   });
 }
 

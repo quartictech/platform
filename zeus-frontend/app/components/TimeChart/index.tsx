@@ -27,7 +27,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
       timeSeriesPlot: null,
       timeSeriesScatterPlot: null,
       eventsPlot: null,
-      chart: null
+      chart: null,
     };
   }
 
@@ -79,7 +79,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
       ]),
       eventsPlot,
       timeSeriesPlot,
-       timeSeriesScatterPlot
+      timeSeriesScatterPlot,
     };
   }
 

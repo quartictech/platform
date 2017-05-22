@@ -41,8 +41,8 @@ class RealMap  extends React.Component<IMapProps, any> {
         source: "geojson",
         paint: {
           "line-width": 5,
-          "line-color": "#0f9960"
-        }
+          "line-color": "#0f9960",
+        },
       });
     });
   }
