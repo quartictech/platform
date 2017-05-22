@@ -74,9 +74,15 @@ class AssetView extends React.Component<IProps, IState> {
   }
 
   computeEvents(asset): MaintenanceEvent[] {
-    return asset._jobs
+    const treatments = asset._treatments
+      .filter(job => job["Estimated Completion Date"] != null)
+      .map(job => ({ type: "maintenance", timestamp: new Date(job["Estimated Completion Date"]) }));
+
+    const jobs = asset._jobs
       .filter(job => job["Start Date"] != null)
-      .map(job => ({ type: "maintenance", timestamp: new Date(job["Start Date"]) }));
+      .map(job => ({ type: "other", timestamp: new Date(job["Start Date"]) }));
+
+    return treatments.concat(jobs);
   }
 
   renderDefectsChart(asset) {
@@ -89,7 +95,7 @@ class AssetView extends React.Component<IProps, IState> {
         extraHeaderContent={this.renderChartButtons(asset)}
       >
         <TimeChart
-          yLabel="Road Quality"
+          yLabel={this.state.defectChartSelection}
           events={events}
           timeSeries={timeSeries}
          />
@@ -192,6 +198,52 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
+  renderTreatmentsTable(asset) {
+    return (
+      <Pane title="Treatments" iconName="tint">
+        <table
+          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+          style={{ width: "100%" }}
+        >
+          <thead>
+            <tr>
+              <th>Confirm Number</th>
+              <th>Est. Completion Date</th>
+              <th>Treatment Type</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {asset._treatments
+              .filter(job => job["Confirm Number"] ||
+                job["Estimated Completion Date"] ||
+                job["Treatment"] || job["Notes"])
+              .map((job, idx) =>
+              <tr key={idx}>
+                <td>
+                  {job["Confirm Number"]}
+                </td>
+
+                <td>
+                  {job["Estimated Completion Date"] ?
+                    moment(job["Estimated Completion Date"]).format("Do MMMM YYYY") : null}
+                </td>
+
+                <td>
+                  {job["Treatment"]}
+                </td>
+
+                <td>
+                  {job["Notes"]}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Pane>
+    );
+  }
+
   componentWillReceiveProps(nextProps) {
     if (!this.state.defectChartSelection &&
       nextProps.asset.data &&
@@ -220,6 +272,7 @@ class AssetView extends React.Component<IProps, IState> {
             </div>
             {this.renderDefectsChart(asset.data)}
             {this.renderJobsTable(asset.data)}
+            {this.renderTreatmentsTable(asset.data)}
           </div>
         );
 
