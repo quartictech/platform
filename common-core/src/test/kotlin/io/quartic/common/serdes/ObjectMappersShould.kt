@@ -26,4 +26,9 @@ class ObjectMappersShould {
     fun naughtily_allow_null_primitives_inside_collections() {
         assertThat(OBJECT_MAPPER.readValue<Bar>("""{ "x": [null] }""").x[0], nullValue())   // Subverts Kotlin type system!
     }
+
+    @Test
+    fun allow_non_numerics() {
+        OBJECT_MAPPER.readValue<Foo>("""{ "x": Infinity }""")
+    }
 }
