@@ -27,8 +27,13 @@ class DatasetResourceShould {
 
     private val resource = DatasetResource(mapOf(
             DatasetName("yeah") to providerOf(simpleData),
-            mock<DatasetName>() to mock<DataProvider>()
+            DatasetName("oh no") to mock<DataProvider>()
     ))
+
+    @Test
+    fun get_dataset_names() {
+        assertThat(resource.datasetList, equalTo(setOf(DatasetName("yeah"), DatasetName("oh no"))))
+    }
 
     @Test
     fun get_all_items_from_provider() {

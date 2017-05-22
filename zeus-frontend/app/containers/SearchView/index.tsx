@@ -6,7 +6,7 @@ import {
 import { createStructuredSelector } from "reselect";
 import * as _ from "underscore";
 import * as classNames from "classnames";
-import PredictingPicker, { PredictingPickerEntry } from "../../components/PredictingPicker";
+import Picker, { PickerEntry } from "../../components/Picker";
 import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
 import { toTitleCase } from "../../helpers/Utils";
@@ -72,7 +72,7 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
   render() {
     return (
       <div className={s.container}>
-        <PredictingPicker
+        <Picker
           className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
           iconName="search"
           defaultEntryIconName="person"
@@ -98,7 +98,7 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
         extra: toTitleCase(entry["Section Description"] || ""),
         category: "RSLs",
         iconName: "drive-time", // A car :)
-      } as PredictingPickerEntry)
+      } as PickerEntry)
     );
   }
 

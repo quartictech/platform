@@ -9,6 +9,10 @@ import javax.ws.rs.core.MediaType
 @Path("/datasets")
 class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
 
+    @get:GET
+    @get:Produces(MediaType.APPLICATION_JSON)
+    val datasetList = providers.keys
+
     // TODO: should potentially do the filtering via a lazy sequence to avoid memory footprint
     @GET
     @Path("/{dataset-name}")
@@ -17,15 +21,13 @@ class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
             @PathParam("dataset-name") name: DatasetName,
             @QueryParam("term") terms: Set<String> = emptySet(),
             @QueryParam("limit") limit: Int = 0
-    ): Map<ItemId, Map<String, Any>> {
-        return with(getProviderOrThrow(name)) {
-            if (terms.isEmpty()) {
-                data
-            } else {
-                matcher(terms, limit)
-            }
-        }.mapValues { it.value.filterKeys { !it.startsWith("_") } }
-    }
+    ) = with(getProviderOrThrow(name)) {
+        if (terms.isEmpty()) {
+            data
+        } else {
+            matcher(terms, limit)
+        }
+    }.mapValues { it.value.filterKeys { !it.startsWith("_") } }
     
     @GET
     @Path("/{dataset-name}/{item-id}")

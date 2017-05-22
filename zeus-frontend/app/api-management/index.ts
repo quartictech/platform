@@ -1,4 +1,4 @@
-import { Action } from "redux";
+import { Action, combineReducers } from "redux";
 import { SagaIterator } from "redux-saga";
 import {
   call,
@@ -9,6 +9,7 @@ import {
 } from "redux-saga/effects";
 import { fromJS } from "immutable";
 import { Intent } from "@blueprintjs/core";
+import * as _ from "underscore";
 import { toaster } from "../containers/App/toaster";
 
 interface ApiConstants {
@@ -69,15 +70,17 @@ function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   }
 }
 
-function *fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): SagaIterator {
+function* fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): SagaIterator {
   yield race({
     fetch: call(fetch, resource, action),
     cancel: take(constants(resource).clear)
   });
 }
 
-export function* watchAndFetch<T>(resource: ManagedResource<T>): SagaIterator {
-    yield takeLatest(constants(resource).required, fetchAndWatchForClear, resource);
+export function* watchAndFetch(resources: ManagedResource<any>[]): SagaIterator {
+  for (let i = 0; i < resources.length; i++) {
+    yield takeLatest(constants(resources[i]).required, fetchAndWatchForClear, resources[i]);
+  }
 }
 
 export const enum ResourceStatus {
@@ -92,7 +95,7 @@ export interface ResourceState<T> {
   status: ResourceStatus;
 }
 
-export const reducer = <T>(resource: ManagedResource<T>) => (
+export const singleReducer = <T>(resource: ManagedResource<T>) => (
   state = fromJS(<ResourceState<T>>{
     data: {},
     status: ResourceStatus.NOT_LOADED,
@@ -127,6 +130,9 @@ export const reducer = <T>(resource: ManagedResource<T>) => (
         return state;
     }
   };
+
+export const reducer = (resources: ManagedResource<any>[]) =>
+  combineReducers(_.object(_.map(resources, r => [r.shortName, singleReducer(r)])) as {});
 
 export interface ManagedResource<T> {
   name: string;

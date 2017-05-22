@@ -5,7 +5,7 @@ import { combineReducers } from "redux-immutable";
 import { fromJS } from "immutable";
 
 import { reducer } from "../../api-management";
-import { assets, asset, noobs } from "../../api";
+import * as api from "../../api";
 
 // Initial routing state
 const routeInitialState = fromJS({
@@ -30,9 +30,7 @@ function routeReducer(state = routeInitialState, action) {
 // TODO: Fix type!
 const rootReducer: Redux.Reducer<any> = combineReducers({
   route: routeReducer,
-  assets: reducer(assets),
-  asset: reducer(asset),
-  noobs: reducer(noobs),
+  managed: reducer(api.managedResources),
   insights: insightsReducer,
   ui: uiReducer,
 });
