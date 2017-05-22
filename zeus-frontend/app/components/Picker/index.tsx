@@ -14,12 +14,13 @@ import {
   PopoverInteractionKind,
   Position,
   Spinner,
+  Utils as BlueprintUtils,
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
 const s = require("./style.css");
 
-export interface PredictingPickerEntry {
+export interface PickerEntry {
   key: string;
   name: string;
   description?: string;
@@ -30,37 +31,38 @@ export interface PredictingPickerEntry {
 
 interface NumberedEntry {
   idx: number;
-  entry: PredictingPickerEntry;
+  entry: PickerEntry;
 }
 
 interface CategorisedEntries {
   [index: string] : NumberedEntry[];
 }
 
-interface PredictingPickerProps {
+export interface PickerProps {
   className?: string;
   type?: string;
   iconName?: string;
   defaultEntryIconName?: string;
   placeholder?: string;
-  entries: PredictingPickerEntry[];
+  entries: PickerEntry[];
   selectedKey: string;
   disabled?: boolean;
   errorDisabled?: boolean;
   working?: boolean;
   onEntrySelect?: (key: string) => void;
   onQueryChange?: (text: string) => void;
+  manageFilter?: boolean; // If true, then onQueryChange is ignored
 }
 
-interface PredictingPickerState {
+interface PickerState {
   text: string;
   menuVisible: boolean;
   idxHighlighted: number;
   categorisedEntries: CategorisedEntries;  // Cached to avoid recompute during render
 }
 
-export default class PredictingPicker extends React.Component<PredictingPickerProps, PredictingPickerState> {
-  public static defaultProps: Partial<PredictingPickerProps> = {
+export default class Picker extends React.Component<PickerProps, PickerState> {
+  public static defaultProps: Partial<PickerProps> = {
     errorDisabled: false,
     disabled: false,
   };
@@ -80,10 +82,10 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 
   public componentWillMount() {
-    this.recalculateCategorisedEntries(this.props.entries);
+    this.recalculateCategorisedEntries(this.props.entries, this.state.text);
   }
 
-  public componentWillReceiveProps(nextProps: PredictingPickerProps) {
+  public componentWillReceiveProps(nextProps: PickerProps) {
     // TODO: controlled selection
 
     // // The selection can be affected either by either (1) what the user types into the search box, or (2) by
@@ -97,15 +99,16 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
 
     // Note: this is a shallow check
     if (this.props.entries !== nextProps.entries) {
-      this.recalculateCategorisedEntries(nextProps.entries);
+      this.recalculateCategorisedEntries(nextProps.entries, this.state.text);
       this.resetHighlight();
     }
   }
 
-  private recalculateCategorisedEntries(entries: PredictingPickerEntry[]) {
+  private recalculateCategorisedEntries(entries: PickerEntry[], text: string) {
     let idx = 0;
     // TODO: make types work properly
     const categorisedEntries: {} = _.chain(entries)
+      .filter(x => (this.props.manageFilter ? matches(x, text) : true))
       .groupBy(entry => entry.category)
       .map((entries, category: string) => [category, _.map(entries, entry => ({idx: idx++, entry} as NumberedEntry))])
       .object()
@@ -149,7 +152,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
 
   private onSelectEntry(key: string) {
     this.hideMenu();
-    this.props.onEntrySelect(key);
+    BlueprintUtils.safeInvoke(this.props.onEntrySelect, key);
   }
 
   private onInteraction(nextOpenState: boolean) {
@@ -162,10 +165,11 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     this.showMenu();
     this.resetHighlight();
 
-    this.props.onQueryChange(text);
-
-    // const matchingEntry = _.find(this.props.entries, entry => stringInString(text, entry.name));
-    // this.props.onChange(matchingEntry ? matchingEntry.key : undefined); // TODO: is this nice?
+    if (this.props.manageFilter) {
+      this.recalculateCategorisedEntries(this.props.entries, text);
+    } else {
+      BlueprintUtils.safeInvoke(this.props.onQueryChange, text);
+    }
   }
 
   private resetHighlight() {
@@ -185,7 +189,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
     this.setState({ menuVisible: false });
   }
 
-  private getHighlightedEntry(): PredictingPickerEntry {
+  private getHighlightedEntry(): PickerEntry {
     return _.chain(this.state.categorisedEntries)
           .values()
           .flatten()
@@ -246,7 +250,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   private renderCategory(category: string, entries: NumberedEntry[]) {
     return (
       <div key={category}>
-        {(category !== undefined) && <MenuDivider title={category} />}
+        {(category !== "undefined") && <MenuDivider title={category} />}
         {_.map(entries, entry => this.renderEntry(entry.entry, entry.idx))}
       </div>
     );
@@ -255,7 +259,7 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   // marginLeft is a hack - compensates for hardcoded ::before size in Blueprint CSS.
   // Note that the MenuItem behaviour is not very controllable, so we completely override it - we've disabled 
   // pointer-events, and use a wrapper div to capture events and do colouring.
-  private renderEntry(entry: PredictingPickerEntry, idx: number) {
+  private renderEntry(entry: PickerEntry, idx: number) {
     const isHighlighted = (idx === this.state.idxHighlighted);
     return (
       <div
@@ -300,6 +304,10 @@ export default class PredictingPicker extends React.Component<PredictingPickerPr
   }
 }
 
-// function stringInString(needle: string, haystack: string) {
-//   return haystack.toLowerCase().includes(needle.toLowerCase());
-// }
+const matches = (entry: PickerEntry, text: string) =>
+  stringInString(text, entry.name) || stringInString(text, entry.description) || stringInString(text, entry.extra);
+
+
+const stringInString = (needle: string, haystack: string) =>
+  haystack && (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
+
