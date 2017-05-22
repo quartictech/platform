@@ -1,13 +1,10 @@
 import * as React from "react";
 import { connect } from "react-redux";
-
 import { createStructuredSelector } from "reselect";
-
 import * as moment from "moment";
 import * as numeral from "numeraljs";
-
 import * as classNames from "classnames";
-
+import * as _ from "underscore";
 import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
 
 import {
@@ -160,47 +157,15 @@ class AssetView extends React.Component<IProps, IState> {
         <h1>{asset.RSL}</h1>
         <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
           <tbody>
-            <tr>
-              <td>
-                <b>Road Name</b>
-              </td>
-              <td>
-                {toTitleCase(asset["Road Name"])}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Section Description</b>
-              </td>
-              <td>
-                {toTitleCase(asset["Section Description"])}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Link Place</b>
-              </td>
-              <td>
-                {asset["Link"]} {asset["Place"]}
-              </td>
-            </tr>
-                       <tr>
-              <td>
-                <b>Length (m)</b>
-              </td>
-              <td>
-                { numeral(asset["Length"]).format("0.00") }
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Speed Limit</b>
-              </td>
-              <td>
-                {asset["Speed Limit"]}
-              </td>
-            </tr>
-
+            {
+              _.map({
+                "Road name": toTitleCase(asset["Road Name"]),
+                "Section description": toTitleCase(asset["Section Description"]),
+                "Link place": `${asset["Link"]} ${asset["Place"]}`,
+                "Length (m)": numeral(asset["Length"]).format("0.00"),
+                "Speed limit (mph)": asset["Speed Limit"],
+              }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
+            }
           </tbody>
         </table>
       </div>
