@@ -38,7 +38,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
     const xAxis = new Plottable.Axes.Time(xScale, "bottom");
     const colorScale = new Plottable.Scales.Color();
     colorScale.domain(["maintenance", "failure", "other"]);
-    colorScale.range(["#0f9960", "#db1e7b", "#d3d3d3"]);
+    colorScale.range(["#0f9960", "#db1e7b", "#ff6600"]);
     const gridLines = new Plottable.Components.Gridlines(xScale, null);
 
     const yLabel = new Plottable.Components.AxisLabel(this.props.yLabel, 270);
