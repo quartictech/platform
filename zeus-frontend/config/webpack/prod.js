@@ -12,7 +12,8 @@ var config = Object.assign({}, baseConfig, {
   plugins: [
     new webpack.DefinePlugin({
       'process.env':{
-        'NODE_ENV': JSON.stringify('production')
+        'NODE_ENV': JSON.stringify('production'),
+        'BUILD_VERSION': JSON.stringify(process.env.BUILD_VERSION),
       }
     }),
     // TODO: This was failing due to sourceMap issues so I've disabled
