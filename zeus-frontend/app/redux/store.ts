@@ -30,8 +30,8 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
     rootReducer,
     initialState,
     composeWithDevTools(
-      applyMiddleware(...middlewares)
-    )
+      applyMiddleware(...middlewares),
+    ),
   );
 
   /** Adds Hot Reloading Capability to Reducers in Dev. Mode */

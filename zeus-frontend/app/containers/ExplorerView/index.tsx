@@ -156,7 +156,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
 
   private renderData() {
     const filteredItems = this.filterData(
-      this.props.datasetContent.data, this.state.filterColumn, this.state.filterValue, this.state.filterInvert
+      this.props.datasetContent.data, this.state.filterColumn, this.state.filterValue, this.state.filterInvert,
     );
 
     return (

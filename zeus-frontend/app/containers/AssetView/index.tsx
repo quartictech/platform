@@ -155,9 +155,9 @@ class AssetView extends React.Component<IProps, IState> {
         {
           type: "Feature",
           geometry: asset._geometry,
-          properties: {}
-        }
-      ]
+          properties: {},
+        },
+      ],
     };
     return (
       <Pane>
@@ -360,5 +360,5 @@ const mapStateToProps = createStructuredSelector({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(AssetView);

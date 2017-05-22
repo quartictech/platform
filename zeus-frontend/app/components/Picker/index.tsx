@@ -267,9 +267,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       <div
         key={entry.key}
         className={isHighlighted ? s.highlighted : null}
-        style={{
-          cursor: "pointer"
-        }}
+        style={{ cursor: "pointer" }}
         onMouseEnter={() => this.onMouseEnter(idx)}
         onClick={() => this.onSelectEntry(entry.key)}
       >
