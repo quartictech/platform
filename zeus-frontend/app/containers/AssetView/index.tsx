@@ -98,8 +98,9 @@ class AssetView extends React.Component<IProps, IState> {
       .filter(job => job["Estimated Completion Date"] != null)
       .map(job => ({ type: "maintenance", timestamp: new Date(job["Estimated Completion Date"]) }));
 
-    const jobs = asset._jobs
+    const jobs = asset._jobs.concat(asset._jobs_geo)
       .filter(job => job["Start Date"] != null)
+      .filter(job => job["Type"] != "Street Cleansing - Reactive Response")
       .map(job => ({ type: "other", timestamp: new Date(job["Start Date"]) }));
 
     return treatments.concat(jobs);

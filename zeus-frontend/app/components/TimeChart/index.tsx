@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import * as Plottable from "plottable";
+
 const s = require("./style.css");
 
 import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
