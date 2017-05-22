@@ -214,7 +214,10 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           disabled={this.props.disabled}
           type={this.props.type}
           leftIconName={this.props.iconName || this.props.defaultEntryIconName}
-          rightElement={(this.props.working && this.state.menuVisible) ? <Spinner className={Classes.SMALL} /> : undefined}
+          rightElement={(this.props.working && this.state.menuVisible)
+            ? <Spinner className={Classes.SMALL} />
+            : undefined
+          }
           placeholder={this.props.placeholder}
           value={this.state.text}
           onKeyDown={(e) => this.onKeyDown(e)}

@@ -116,7 +116,9 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         extra: entry["Type"],
         category: "Jobs",
         iconName: "wrench",
-        onSelect: () => entry["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(entry["RSLs"].split(",")[0])}`),  // TODO: what about the other RSLs?
+        // TODO: what about the other RSLs?
+        onSelect: () =>
+          entry["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(entry["RSLs"].split(",")[0])}`),
       } as PickerEntry)
     );
   }
