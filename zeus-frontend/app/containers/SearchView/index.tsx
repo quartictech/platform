@@ -4,12 +4,9 @@ import {
   Classes,
 } from "@blueprintjs/core";
 import { createStructuredSelector } from "reselect";
-import * as _ from "underscore";
 import * as classNames from "classnames";
-import Picker, { PickerEntry } from "../../components/Picker";
+import Search from "../../components/Search";
 import * as selectors from "../../redux/selectors";
-import { appHistory } from "../../routes";
-import { toTitleCase } from "../../helpers/Utils";
 import {
   resourceActions,
   ResourceState,
@@ -24,44 +21,13 @@ import {
 
 const s = require("./style.css");
 
-/*-----------------------------------------------------*
-  TODO
-
-  - Appearance
-    - vertical center
-    - fix inverse colouring
-    - boldness
-    - scrolling (see https://github.com/palantir/blueprint/pull/1049)
-
-  - Behaviour
-    - debouncing
-    - order by relevance
-    - handle backend errors nicely
-    - controlled selection
-
- *-----------------------------------------------------*/
-
 interface SearchViewProps {
   entriesClear: () => void;
   entriesRequired: (string, int) => void;
   entries: ResourceState<{ [id: string] : Asset }>;
 }
 
-interface SearchViewState {
-  entries: { [id: string] : Asset };
-}
-
-class SearchView extends React.Component<SearchViewProps, SearchViewState> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      entries: {}
-    };
-
-    this.onEntrySelect = this.onEntrySelect.bind(this);
-    this.onQueryChange = this.onQueryChange.bind(this);
-  }
-
+class SearchView extends React.Component<SearchViewProps, {}> {
   public componentWillReceiveProps(nextProps: SearchViewProps) {
     // Cache current results whilst working
     if (nextProps.entries.status !== ResourceStatus.LOADING) {
@@ -72,47 +38,14 @@ class SearchView extends React.Component<SearchViewProps, SearchViewState> {
   render() {
     return (
       <div className={s.container} style={{ marginTop: "25%" }}>
-        <Picker
+        <Search
           className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
-          iconName="search"
-          defaultEntryIconName="person"
-          placeholder="What do you want to know?"
-          
-          entries={this.results()}
-          selectedKey={null}
-          onEntrySelect={this.onEntrySelect}
-          errorDisabled={true}
-          onQueryChange={this.onQueryChange}
-          working={this.props.entries.status === ResourceStatus.LOADING}
+          entriesClear={this.props.entriesClear}
+          entriesRequired={this.props.entriesRequired}
+          entries={this.props.entries}
         />
       </div>
     );
-  }
-
-  private results() {
-    return _.map(this.state.entries,
-      (entry, id: string) => ({
-        key: id,
-        name: toTitleCase(entry["Road Name"] || ""),
-        description: entry["RSL"],
-        extra: toTitleCase(entry["Section Description"] || ""),
-        category: "RSLs",
-        iconName: "drive-time", // A car :)
-      } as PickerEntry)
-    );
-  }
-
-  // TODO: find a better way to construct routes
-  private onEntrySelect(key: string) {
-    appHistory.push(`/assets/${encodeURIComponent(key)}`);
-  }
-
-  private onQueryChange(query: string) {
-    if (query.length > 0) {
-      this.props.entriesRequired(query, 5); // Limit results to keep things responsive
-    } else {
-      this.props.entriesClear();
-    }
   }
 }
 
