@@ -99,7 +99,7 @@ class AssetView extends React.Component<IProps, IState> {
       .map(job => ({
         type: "maintenance",
         detail: job["Treatment"],
-        timestamp: new Date(job["Estimated Completion Date"])
+        timestamp: new Date(job["Estimated Completion Date"]),
       }));
 
     const jobs = asset._jobs.concat(asset._jobs_geo)
@@ -111,7 +111,7 @@ class AssetView extends React.Component<IProps, IState> {
       .map(job => ({
         type: "other",
         detail: `${job["Type"]} (${job["Number"]})`,
-        timestamp: new Date(job["Start Date"])
+        timestamp: new Date(job["Start Date"]),
       }));
 
     return treatments.concat(jobs);

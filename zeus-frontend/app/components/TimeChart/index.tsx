@@ -90,7 +90,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
             x: closest.position.x,
             y: closest.position.y,
             value: closest.datum.detail,
-          }
+          },
         });
       }
     });
