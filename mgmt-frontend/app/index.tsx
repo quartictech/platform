@@ -2,10 +2,10 @@ import "whatwg-fetch";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { Router, hashHistory } from "react-router";
+import { Router } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
 import { configureStore } from "./redux/store";
-import { getRoutes } from "./routes";
+import { getRoutes, appHistory } from "./routes";
 
 import "@blueprintjs/core/dist/blueprint.css";
 
@@ -13,7 +13,7 @@ import "@blueprintjs/core/dist/blueprint.css";
 const store: Redux.Store<any> = configureStore();
 
 import { selectLocationState } from "./redux/selectors";
-const history = syncHistoryWithStore(hashHistory, store,
+const history = syncHistoryWithStore(appHistory, store,
   {
     selectLocationState: selectLocationState(),
   });

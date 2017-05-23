@@ -1,9 +1,9 @@
 import { createStore, applyMiddleware, compose } from "redux";
 import { routerMiddleware } from "react-router-redux";
-import { hashHistory } from "react-router";
+import { appHistory } from "../routes";
 import { rootReducer } from "./reducers";
 const logger = require("redux-logger")();
-const router = routerMiddleware(hashHistory);
+const router = routerMiddleware(appHistory);
 
 import { sagas } from "./sagas";
 
