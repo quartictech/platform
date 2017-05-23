@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
         JsonSubTypes.Type(value = DatasetLocator.PostgresDatasetLocator::class, name = "postgres"),
         JsonSubTypes.Type(value = DatasetLocator.GeoJsonDatasetLocator::class, name = "geojson"),
         JsonSubTypes.Type(value = DatasetLocator.WebsocketDatasetLocator::class, name = "websocket"),
-        JsonSubTypes.Type(value = DatasetLocator.CloudGeoJsonDatasetLocator::class, name = "cloud-geojson"),
         JsonSubTypes.Type(value = DatasetLocator.CloudDatasetLocator::class, name = "cloud"),
         JsonSubTypes.Type(value = DatasetLocator.GooglePubSubDatasetLocator::class, name = "google-pubsub")
 )
@@ -24,12 +23,6 @@ interface DatasetLocator {
 
     data class WebsocketDatasetLocator(val url: String) : DatasetLocator
 
-
-    @Deprecated("replaced by CloudDatasetLocator")
-    data class CloudGeoJsonDatasetLocator(
-            val path: String,
-            val streaming: Boolean = false
-    ) : DatasetLocator
 
     data class GooglePubSubDatasetLocator(val topic: String) : DatasetLocator
 

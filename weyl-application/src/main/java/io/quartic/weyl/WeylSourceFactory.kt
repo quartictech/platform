@@ -55,9 +55,6 @@ data class WeylSourceFactory(
             is DatasetLocator.GeoJsonDatasetLocator -> geojsonSource(dataset, locator.url)
             is DatasetLocator.WebsocketDatasetLocator -> websocketSource(dataset,
                     WebsocketListener.Factory(locator.url, websocketFactory), false)
-            is DatasetLocator.CloudGeoJsonDatasetLocator ->
-                // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-                liveOrStaticGeojson(dataset, locator.path, locator.streaming)
             is DatasetLocator.CloudDatasetLocator ->
                 if (locator.mimeType == MimeType.GEOJSON) {
                     liveOrStaticGeojson(dataset, locator.path, locator.streaming)

@@ -30,8 +30,6 @@ public class CatalogueApplication extends ApplicationBase<CatalogueConfiguration
     public void runApplication(CatalogueConfiguration configuration, Environment environment) {
         StorageBackend storageBackend = configuration.getBackend();
 
-        new Migration().migrate(storageBackend);
-
         final CatalogueResource catalogue = new CatalogueResource(storageBackend, didGenerator, Clock.systemUTC(), environment.getObjectMapper());
         environment.healthChecks().register("storageBackend", new StorageBackendHealthCheck(storageBackend));
         environment.jersey().register(catalogue);

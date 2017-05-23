@@ -5,6 +5,7 @@ import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
 import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
+import io.quartic.catalogue.api.model.MimeType;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -95,7 +96,7 @@ public abstract class StorageBackendTests {
                 "attribution",
                 Instant.now());
         Map<String, Object> extensions = ImmutableMap.of("A", "B");
-        DatasetLocator locator = new DatasetLocator.CloudGeoJsonDatasetLocator("WAT", false);
+        DatasetLocator locator = new DatasetLocator.CloudDatasetLocator("WAT", false, MimeType.RAW);
         return new DatasetConfig(metadata, locator, extensions);
     }
 
