@@ -85,17 +85,21 @@ class Header extends React.Component<HeaderProps, void> {
 
           <span className={Classes.NAVBAR_DIVIDER} />
 
-          <Button className={Classes.MINIMAL} disabled={true} iconName="envelope" text="Messages" />
-
           <Popover content={this.renderInsightsMenu()} position={Position.BOTTOM} >
-            <Button className={Classes.MINIMAL} iconName="layout-auto" text="Insights..." />
+            <Button
+              className={Classes.MINIMAL}
+              iconName="layout-auto"
+              rightIconName="chevron-down"
+              text="Insights"
+            />
           </Popover>
 
           <Popover content={this.renderExplorerMenu()} position={Position.BOTTOM} >
             <Button
               className={Classes.MINIMAL}
               iconName="database"
-              text="Raw data explorer..."
+              rightIconName="chevron-down"
+              text="Raw data explorer"
               disabled={this.props.datasetList.status !== ResourceStatus.LOADED}
             />
           </Popover>
