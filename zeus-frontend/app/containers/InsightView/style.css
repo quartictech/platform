@@ -14,36 +14,16 @@
   width: 75%;
 }
 
-.right {
+.splitRow {
+  flex-direction: row;
+  flex: 1;
   display: flex;
-  background-color: #f5f8fa;
-  flex-direction: column;
-  width: 25%;
-  padding-left: 20px;
 }
 
-.card {
-  flex: 1;
-  margin-bottom: 20px;
-  width: 100%;
+.splitLeft {
+  flex: 0.5;
 }
 
-.subCard {
-  margin-left: 50px;
-  flex: 1;
-  margin-bottom: 20px;
-  padding-bottom: 0px;
-}
-
-.subInsight {
-  margin: 5px;
-}
-
-.subInsightContainer {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.plotControls {
-
+.splitRight {
+  flex: 0.5;
 }

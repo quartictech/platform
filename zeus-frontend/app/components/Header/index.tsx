@@ -125,20 +125,14 @@ class Header extends React.Component<HeaderProps, void> {
   private renderInsightsMenu() {
     return (
       <Menu>
-        <MenuItem iconName="layout-auto" text="All" href={appHistory.createHref({
+        <MenuItem iconName="layout-auto" text="Highest / lowest defects (2016)" href={appHistory.createHref({
           pathname: "/insights",
         })} />
-        <MenuItem iconName="layout-auto" text="Failure predictions" href={appHistory.createHref({
+        <MenuItem disabled={true} iconName="layout-auto" text="Predictions (2017)" href={appHistory.createHref({
           pathname: "/insights",
-          query: { insightType: "failure" },
         })} />
-        <MenuItem iconName="layout-auto" text="Incident clusters" href={appHistory.createHref({
+        <MenuItem disabled={true} iconName="layout-auto" text="SmartOps" href={appHistory.createHref({
           pathname: "/insights",
-          query: { insightType: "cluster" },
-        })} />
-        <MenuItem iconName="layout-auto" text="SmartOps" href={appHistory.createHref({
-          pathname: "/insights",
-          query: { insightType: "smartops" },
         })} />
       </Menu>
     );
