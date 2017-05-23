@@ -10,6 +10,7 @@ import {
   Classes,
 } from "@blueprintjs/core";
 import Pane from "../../components/Pane";
+import { toTitleCase } from "../../helpers/Utils";
 
 interface Entry {
   rank: number;
@@ -119,9 +120,9 @@ class InsightView extends React.Component<{}, {}> {
     return (
       <tr style={style} onClick={() => appHistory.push(`/assets/${encodeURIComponent(entry.rsl)}`)}>
         <td>{entry.rank}</td>
-        <td>{entry.name}</td>
+        <td>{toTitleCase(entry.name)}</td>
         <td>{entry.rsl}</td>
-        <td>{entry.description}</td>
+        <td>{toTitleCase(entry.description)}</td>
         <td>{numeral(entry.score).format("0.00")}</td>
         <td>{entry.length ? numeral(entry.length).format("0.00") : null}</td>
       </tr>
