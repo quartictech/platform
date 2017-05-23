@@ -116,7 +116,7 @@ class Header extends React.Component<HeaderProps, void> {
           </Popover>
 
           <Tooltip content="Map" position={Position.BOTTOM}>
-            <AnchorButton className={Classes.MINIMAL} iconName="globe" href="/map" />
+            <AnchorButton disabled={true} className={Classes.MINIMAL} iconName="globe" href="/map" />
           </Tooltip>
         </div>
       </nav>);
