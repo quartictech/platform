@@ -1,132 +1,134 @@
 import * as React from "react";
-import { connect } from "react-redux";
 
-import { createStructuredSelector } from "reselect";
-import * as selectors from "../../redux/selectors";
 import * as classNames from "classnames";
-const s = require("./style.css");
+import * as _ from "underscore";
+import { appHistory } from "../../routes";
 
-import { Link } from "react-router";
+import * as numeral from "numeraljs";
 
-import { TimeChart } from "../../components";
-import { InsightSummary } from "../../components";
-// import { Classes } from "@blueprintjs/core";
-import { Insight,  Asset } from "../../models";
+import {
+  Classes,
+} from "@blueprintjs/core";
+import Pane from "../../components/Pane";
+import { toTitleCase } from "../../helpers/Utils";
 
-// import { Map } from "../../components";
-
-interface IProps {
-  ui: any;
-  insights: [Insight];
-  assets: { [id: string]: Asset };
-  params: {
-    insightId: string;
-  };
+interface Entry {
+  rank: number;
+  name: string;
+  rsl: string;
+  description: string;
+  length?: number;
+  score: number;
 }
 
-interface IState {
-  datasetId: string;
-}
+const HIGHEST_DEFECT_ROADS: Entry[] = [
+  {
+    "rank": 1, "rsl": "D244/010_5E_01", "score": 11.044694762716798,
+    "description": "HAMPTON LN TO RIVERDALE RD (MILLBOURNE RD)", "name": "MILLBOURNE ROAD",
+    "length": 198.9099787,
+  },
+  {
+    "rank": 2, "rsl": "D758/005_5E_01", "score": 10.984039245395659,
+    "description": "JERSEY RD TO PEVENSEY CL (S)", "name": "PEVENSEY CLOSE",
+    "length": 161.0227313,
+  },
+  {
+    "rank": 3, "rsl": "D1181/050_5E_01", "score": 10.655653212181992,
+    "description": "STAVELEY GRDS TO END OF RD (STAVELEY GRDS EB)", "name": "STAVELEY GARDENS",
+    "length": 114.0014578,
+  },
+  {
+    "rank": 4, "rsl": "D666/005_5E_01", "score": 10.323185274237224,
+    "description": "MONTAGUE RD TO END OF RD", "name": "YORK ROAD",
+    "length": 76.40083744,
+  },
+  {
+    "rank": 5, "rsl": "D852/010_5E_01", "score": 10.270034203090121,
+    "description": "RBT TREVOR CL TO RBT TREVOR CL", "name": "TREVOR CLOSE",
+    "length":  30.54517578,
+  },
+  ];
+const LOWEST_DEFECT_ROADS: Entry[] = [
+    {
+      "rsl": "D2027/015_3E_01", "score": 0.0,
+      "description": "COUNTRY WAY TO JCT SUNBURY RD", "name": "FELTHAMHILL ROAD/SNAKEY LANE",
+      "length": 1125.785353, "rank": 1,
+    },
+    {
+      "rsl": "B3003/020_3E_01", "score": 0.0,
+      "description": "BOUNDARY TO ASCOT RD", "name": "CLOCKHOUSE LANE",
+      "length": 824.9326788, "rank": 2,
+    },
+    {
+      "rsl": "B454/065_3D_01", "score": 0.0,
+      "description": "JCT JERSEY RD TO BOUNDARY", "name": "WINDMILL LANE",
+      "length": 788.9269841, "rank": 3,
+    },
+    {
+      "rsl": "D440/505_4E_01", "score": 0.0,
+      "description": "JOHNSON RD TO CRANFORD LN", "name": "BRABAZON ROAD",
+      "length": 748.9370139, "rank": 4,
+    },
+    {
+      "rsl": "D085/005_5E_01", "score": 0.0,
+      "description": "BEDFONT LN TO JCT SVILLE CRES", "name": "SOUTHVILLE ROAD",
+      "length": 614.6817878, "rank": 5,
+    },
+];
 
-const joinAssets = (insight: Insight, assets: {[id: string]: Asset}) => {
-  return insight.assetIds.map(assetId => assets[assetId]);
-};
-
-const Asset = ({ insight, asset }) => {
-  const failed = insight.unfailedAssetIds.indexOf(asset.id) === -1;
-    // HACK: I'm filtering out failures here because the data is all fake
-    return (
-    <div key={asset.id} className={classNames(s.subCard, "pt-card", "pt-elevation-2")}>
-            <h5>
-              <Link to={`/assets/${asset.id}`}>
-                {asset.clazz}-{asset.model.manufacturer}{asset.model.name}-{asset.serial}
-              </Link>
-            </h5>
-              { failed ? <span className="pt-tag pt-intent-danger" style={{float: "right"}}>Failed</span> :
-          <span className="pt-tag pt-intent-success" style={{ float: "right" }}>No failure</span> }
-            <TimeChart
-              yLabel="Voltage"
-              events={failed ? asset.events : asset.events.filter(ev => ev.type !== "failure")}
-              timeSeries={[]}
-            />
-          </div>);
-};
-
-class InsightView extends React.Component<IProps, IState> {
-  public state : IState = {
-    datasetId: null,
-  };
+class InsightView extends React.Component<{}, {}> {
 
   render() {
-    const insight = this.props.insights.filter(i => i.id === this.props.params.insightId)[0];
-    const assets = joinAssets(insight, this.props.assets);
     return (
-<div className={s.container}>
-  <div className={s.main}>
-    <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-      <h2>{insight.title} <small>#{this.props.params.insightId}</small></h2>
-      <div className={s.subInsightContainer}>
-        { insight.subInsights ? insight.subInsights.map((sub, idx) =>
-        <div key={idx} className={classNames(s.subInsight, "pt-callout", "pt-intent-danger", sub.icon)}>
-          {sub.text}
-        </div>) : null }
+      <div>
+        {this.renderPane("Highest defects (2016)", HIGHEST_DEFECT_ROADS,
+          { backgroundColor: "rgba(219, 55, 55, 0.15)" })
+        }
+        {this.renderPane("Lowest defects (2016)", LOWEST_DEFECT_ROADS,
+          { backgroundColor: "rgba(15, 153, 96, 0.15)" })
+        }
       </div>
+    );
+  }
 
-      <InsightSummary insight={insight} assets={this.props.assets}/>
-        {/*<div className={s.plotControls}>
-        <label className="pt-label pt-inline" style={{marginBottom: 0}}>
-              Time Series
-              <div className={Classes.SELECT}>
-                  <select>
-                    <option key={0} value="temperature">Temperature</option>
-                    <option key={1} value="pressure">Pressure</option>
-                  </select>
-              </div>
-         </label>
-         </div>*/}
-        </div>
+  private renderPane(title: string, entries: Entry[], style: any) {
+    return (
+      <Pane title={title} iconName="error">
+        <table
+          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+          style={{ width: "100%", tableLayout: "fixed" }}
+        >
+          <thead>
+            <tr>
+              <th>Ranking</th>
+              <th>Road name</th>
+              <th>RSL</th>
+              <th>Section description</th>
+              <th>Defect score</th>
+              <th>Length (m)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {_.map(entries, entry => this.renderRow(style, entry))}
+          </tbody>
+        </table>
+      </Pane>
+    );
+  }
 
-     <div className={classNames(s.card, "pt-card", "pt-elevation-2")}>
-      {/*<Map
-        height={100}
-        locations={assets.map((asset) => asset.location)}
-        colors={assets.map(asset => insight.unfailedAssetIds.indexOf(asset.id) > -1 ? 1 : 0)}
-      />*/}
-      </div>
-
-        { assets.map(asset => <Asset key={asset.id} asset={asset} insight={insight} /> )}
-      </div>
-
-      <div className={s.right}>
-        <div className="pt-card pt-elevation-2">
-          <h2>Actions</h2>
-          <p>
-          4 / 10 of similar assets have not yet failed.
-          </p>
-          <p><b>Consider scheduling proactive maintenance.</b></p>
-          <Link
-            className="pt-button pt-intent-primary"
-            to={{ pathname: "/inventory", query: {clazz: "Signal"}}}
-          >
-            View
-          </Link>
-        </div>
-      </div>
-    </div>
+  private renderRow(style, entry: Entry) {
+    return (
+      <tr style={style} onClick={() => appHistory.push(`/assets/${encodeURIComponent(entry.rsl)}`)}>
+        <td>{entry.rank}</td>
+        <td>{toTitleCase(entry.name)}</td>
+        <td>{entry.rsl}</td>
+        <td>{toTitleCase(entry.description)}</td>
+        <td>{numeral(entry.score).format("0.00")}</td>
+        <td>{entry.length ? numeral(entry.length).format("0.00") : null}</td>
+      </tr>
     );
   }
 }
 
-const mapDispatchToProps = {
-};
 
-const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi,
-  insights: selectors.selectInsights,
-  assets: selectors.selectAssets,
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(InsightView);
+export default InsightView;

@@ -182,7 +182,7 @@ class AssetView extends React.Component<IProps, IState> {
       color = "rgba(217, 130, 43, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
       tag = <Tag style={{ float: "right" }} intent={Intent.WARNING}>Top 33% offender</Tag>;
     } else if (quartile < 0.25) {
-      color = "rgba(15, 153, 96, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
+      color = "rgba(15, 153, 96, 0.4)";  // Alpha-modified version of callout with INTENT_SUCCESS
       tag = <Tag style={{ float: "right" }} intent={Intent.SUCCESS}>Bottom 25% offender</Tag>;
     }
     return (
