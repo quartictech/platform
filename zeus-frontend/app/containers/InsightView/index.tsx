@@ -14,6 +14,7 @@ interface Entry {
   name: string;
   rsl: string;
   description: string;
+  length?: number;
   score: number;
 }
 
@@ -40,27 +41,32 @@ const HIGHEST_DEFECT_ROADS: Entry[] = [
   },
   ];
 const LOWEST_DEFECT_ROADS: Entry[] = [
-  {
-    "rsl": "D2016/010_5E_01", "score": 0.0,
-    "description": "WORTON RD TO END OF RD (FLEMING WAY)", "name": "FLEMING WAY", "rank": 2533,
-  },
-  {
-    "rsl": "C013/525_3D_01", "score": 0.0,
-    "description": "ROSTREVOR GRDS TO THORNCLIFFE RD", "name": "NORTH HYDE LANE", "rank": 2532,
-  },
-  {
-    "rsl": "C014/515_3E_01", "score": 0.0,
-    "description": "JCT SPRINGWELL RD TO BERKELEY WAYE", "name": "CRANFORD LANE", "rank": 2531,
-  },
-  {
-    "rsl": "C014/515_3E_02", "score": 0.0,
-    "description": "FAIRMEAD CL TO END OF SLIP (CRANFORD LN)", "name": "CRANFORD LANE", "rank": 2530,
-  },
-  {
-    "rsl": "D757/005_5E_01", "score": 0.0,
-    "description": "JERSEY RD TO GREAT W RD (STUCLEY RD)", "name": "STUCLEY ROAD", "rank": 2529,
-  },
-  ];
+    {
+      "rsl": "D2027/015_3E_01", "score": 0.0,
+      "description": "COUNTRY WAY TO JCT SUNBURY RD", "name": "FELTHAMHILL ROAD/SNAKEY LANE",
+      "length": 1125.785353, "rank": 0.09218318199763127,
+    },
+    {
+      "rsl": "B3003/020_3E_01", "score": 0.0,
+      "description": "BOUNDARY TO ASCOT RD", "name": "CLOCKHOUSE LANE",
+      "length": 824.9326788, "rank": 0.09218318199763127,
+    },
+    {
+      "rsl": "B454/065_3D_01", "score": 0.0,
+      "description": "JCT JERSEY RD TO BOUNDARY", "name": "WINDMILL LANE",
+      "length": 788.9269841, "rank": 0.09218318199763127,
+    },
+    {
+      "rsl": "D440/505_4E_01", "score": 0.0,
+      "description": "JOHNSON RD TO CRANFORD LN", "name": "BRABAZON ROAD",
+      "length": 748.9370139, "rank": 0.09218318199763127,
+    },
+    {
+      "rsl": "D085/005_5E_01", "score": 0.0,
+      "description": "BEDFONT LN TO JCT SVILLE CRES", "name": "SOUTHVILLE ROAD",
+      "length": 614.6817878, "rank": 0.09218318199763127,
+    },
+    ];
 
 class InsightView extends React.Component<{}, {}> {
 
