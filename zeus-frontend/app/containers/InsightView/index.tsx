@@ -67,8 +67,8 @@ class InsightView extends React.Component<{}, {}> {
   render() {
     return (
       <div>
-        {this.renderPane("Highest defects (2016)", HIGHEST_DEFECT_ROADS, { backgroundColor: "rgba(219, 55, 55, 0.4)" })}
-        {this.renderPane("Lowest defects (2016)", LOWEST_DEFECT_ROADS, { backgroundColor: "rgba(15, 153, 96, 0.4)" })}
+        {this.renderPane("Highest defects (2016)", HIGHEST_DEFECT_ROADS, { backgroundColor: "rgba(219, 55, 55, 0.15)" })}
+        {this.renderPane("Lowest defects (2016)", LOWEST_DEFECT_ROADS, { backgroundColor: "rgba(15, 153, 96, 0.15)" })}
       </div>
     );
   }
