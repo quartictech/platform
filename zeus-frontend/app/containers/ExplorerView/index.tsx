@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import { connect } from "react-redux";
 import {
   Classes,
@@ -29,6 +30,7 @@ import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 import * as _ from "underscore";
+import { toTitleCase } from "../../helpers/Utils";
 const s = require("./style.css");
 
 interface ExplorerViewProps {
@@ -78,7 +80,6 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
 
   public componentDidMount() {
     this.props.datasetContentRequired(this.props.params.datasetName);
-    document.title = `Quartic - ${this.props.params.datasetName}`;
   }
 
   public render() {
@@ -160,21 +161,23 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     );
 
     return (
-      <Table
-        isRowResizable={true}
-        numRows={filteredItems.length}
-        selectionModes={SelectionModes.ROWS_AND_CELLS}
-        onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
-        selectedRegionTransform={cellToRow}
-      >
-        {
-          this.columns().map(col => <Column
-            key={col}
-            name={col}
-            renderCell={(row: number) => <Cell>{_.values(filteredItems)[row][col]}</Cell>}
-          />)
-        }
-      </Table>
+      <DocumentTitle title={`Quartic - ${toTitleCase(this.props.params.datasetName)}`}>
+        <Table
+          isRowResizable={true}
+          numRows={filteredItems.length}
+          selectionModes={SelectionModes.ROWS_AND_CELLS}
+          onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
+          selectedRegionTransform={cellToRow}
+        >
+          {
+            this.columns().map(col => <Column
+              key={col}
+              name={col}
+              renderCell={(row: number) => <Cell>{_.values(filteredItems)[row][col]}</Cell>}
+            />)
+          }
+        </Table>
+      </DocumentTitle>
     );
   }
 

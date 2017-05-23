@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as moment from "moment";
@@ -81,7 +82,6 @@ class AssetView extends React.Component<IProps, IState> {
   private onNewAsset(assetId: string) {
     this.props.assetRequired(assetId);
     this.setState({ defectChartSelection: null });
-    document.title = `Quartic - ${assetId}`;
   }
 
 
@@ -337,9 +337,11 @@ class AssetView extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div className={s.container}>
-      {this.renderData()}
-      </div>
+      <DocumentTitle title={`Quartic - ${this.props.params.assetId}`}>
+        <div className={s.container}>
+          {this.renderData()}
+        </div>
+      </DocumentTitle>
     );
   }
 }
