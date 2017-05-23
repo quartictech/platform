@@ -52,27 +52,27 @@ const LOWEST_DEFECT_ROADS: Entry[] = [
     {
       "rsl": "D2027/015_3E_01", "score": 0.0,
       "description": "COUNTRY WAY TO JCT SUNBURY RD", "name": "FELTHAMHILL ROAD/SNAKEY LANE",
-      "length": 1125.785353, "rank": 2533,
+      "length": 1125.785353, "rank": 1,
     },
     {
       "rsl": "B3003/020_3E_01", "score": 0.0,
       "description": "BOUNDARY TO ASCOT RD", "name": "CLOCKHOUSE LANE",
-      "length": 824.9326788, "rank": 2532,
+      "length": 824.9326788, "rank": 2,
     },
     {
       "rsl": "B454/065_3D_01", "score": 0.0,
       "description": "JCT JERSEY RD TO BOUNDARY", "name": "WINDMILL LANE",
-      "length": 788.9269841, "rank": 2531,
+      "length": 788.9269841, "rank": 3,
     },
     {
       "rsl": "D440/505_4E_01", "score": 0.0,
       "description": "JOHNSON RD TO CRANFORD LN", "name": "BRABAZON ROAD",
-      "length": 748.9370139, "rank": 2530,
+      "length": 748.9370139, "rank": 4,
     },
     {
       "rsl": "D085/005_5E_01", "score": 0.0,
       "description": "BEDFONT LN TO JCT SVILLE CRES", "name": "SOUTHVILLE ROAD",
-      "length": 614.6817878, "rank": 2529,
+      "length": 614.6817878, "rank": 5,
     },
 ];
 
