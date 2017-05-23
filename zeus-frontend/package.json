@@ -102,6 +102,7 @@
     "prop-types": "15.5.10",
     "react": "15.4.2",
     "react-addons-css-transition-group": "15.4.0",
+    "react-document-title": "^2.0.3",
     "react-dom": "15.4.2",
     "react-dropzone": "3.7.3",
     "react-redux": "5.0.2",
