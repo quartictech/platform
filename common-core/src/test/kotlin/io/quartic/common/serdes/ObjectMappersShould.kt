@@ -3,6 +3,7 @@ package io.quartic.common.serdes
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.test.assertThrows
+import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -29,6 +30,8 @@ class ObjectMappersShould {
 
     @Test
     fun allow_non_numerics() {
-        OBJECT_MAPPER.readValue<Foo>("""{ "x": Infinity }""")
+        assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": Infinity }""").x, equalTo(Double.POSITIVE_INFINITY))
+        assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": -Infinity }""").x, equalTo(Double.NEGATIVE_INFINITY))
+        assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": NaN }""").x, equalTo(Double.NaN))
     }
 }
