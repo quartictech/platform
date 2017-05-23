@@ -1,5 +1,5 @@
 import * as React from "react";
-
+const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import * as classNames from "classnames";
 import * as _ from "underscore";
 import { appHistory } from "../../routes";
@@ -73,14 +73,16 @@ class InsightView extends React.Component<{}, {}> {
 
   render() {
     return (
-      <div>
-        {this.renderPane("Highest defects (2016)", HIGHEST_DEFECT_ROADS,
-          { backgroundColor: "rgba(219, 55, 55, 0.15)" })
-        }
-        {this.renderPane("Lowest defects (2016)", LOWEST_DEFECT_ROADS,
-          { backgroundColor: "rgba(15, 153, 96, 0.15)" })
-        }
-      </div>
+      <DocumentTitle title="Quartic - Highest / lowest defects (2016)">
+        <div>
+          {this.renderPane("Highest defects (2016)", HIGHEST_DEFECT_ROADS,
+            { backgroundColor: "rgba(219, 55, 55, 0.15)" })
+          }
+          {this.renderPane("Lowest defects (2016)", LOWEST_DEFECT_ROADS,
+            { backgroundColor: "rgba(15, 153, 96, 0.15)" })
+          }
+        </div>
+      </DocumentTitle>
     );
   }
 
@@ -110,7 +112,7 @@ class InsightView extends React.Component<{}, {}> {
 
   private renderRow(style, entry: Entry) {
     return (
-      <tr style={style} onClick={() => appHistory.push(`/assets/${encodeURIComponent(entry.rsl)}`)}>
+      <tr key={entry.rsl} style={style} onClick={() => appHistory.push(`/assets/${encodeURIComponent(entry.rsl)}`)}>
         <td>{entry.rank}</td>
         <td>{toTitleCase(entry.name)}</td>
         <td>{entry.rsl}</td>

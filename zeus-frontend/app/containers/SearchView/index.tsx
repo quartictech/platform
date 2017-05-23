@@ -1,10 +1,12 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {
   Classes,
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
+
 import Search from "../../components/Search";
 import * as selectors from "../../redux/selectors";
 import {
@@ -35,18 +37,20 @@ interface SearchViewProps {
 class SearchView extends React.Component<SearchViewProps, {}> {
   render() {
     return (
-      <div className={s.container} style={{ marginTop: "10%" }}>
-        <Search
-          className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
-          assetsClear={this.props.assetsClear}
-          assetsRequired={this.props.assetsRequired}
-          assets={this.props.assets}
-          jobsClear={this.props.jobsClear}
-          jobsRequired={this.props.jobsRequired}
-          jobs={this.props.jobs}
-          placeholder="What do you want to know?"
-        />
-      </div>
+      <DocumentTitle title="Quartic - Search">
+        <div className={s.container} style={{ marginTop: "10%" }}>
+          <Search
+            className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
+            assetsClear={this.props.assetsClear}
+            assetsRequired={this.props.assetsRequired}
+            assets={this.props.assets}
+            jobsClear={this.props.jobsClear}
+            jobsRequired={this.props.jobsRequired}
+            jobs={this.props.jobs}
+            placeholder="What do you want to know?"
+          />
+        </div>
+      </DocumentTitle>
     );
   }
 }
