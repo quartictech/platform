@@ -4,6 +4,8 @@ import * as classNames from "classnames";
 import * as _ from "underscore";
 import { appHistory } from "../../routes";
 
+import * as numeral from "numeraljs";
+
 import {
   Classes,
 } from "@blueprintjs/core";
@@ -22,51 +24,56 @@ const HIGHEST_DEFECT_ROADS: Entry[] = [
   {
     "rank": 1, "rsl": "D244/010_5E_01", "score": 11.044694762716798,
     "description": "HAMPTON LN TO RIVERDALE RD (MILLBOURNE RD)", "name": "MILLBOURNE ROAD",
+    "length": 198.9099787,
   },
   {
     "rank": 2, "rsl": "D758/005_5E_01", "score": 10.984039245395659,
     "description": "JERSEY RD TO PEVENSEY CL (S)", "name": "PEVENSEY CLOSE",
+    "length": 161.0227313,
   },
   {
     "rank": 3, "rsl": "D1181/050_5E_01", "score": 10.655653212181992,
     "description": "STAVELEY GRDS TO END OF RD (STAVELEY GRDS EB)", "name": "STAVELEY GARDENS",
+    "length": 114.0014578,
   },
   {
     "rank": 4, "rsl": "D666/005_5E_01", "score": 10.323185274237224,
     "description": "MONTAGUE RD TO END OF RD", "name": "YORK ROAD",
+    "length": 76.40083744,
   },
   {
     "rank": 5, "rsl": "D852/010_5E_01", "score": 10.270034203090121,
     "description": "RBT TREVOR CL TO RBT TREVOR CL", "name": "TREVOR CLOSE",
+    "length":  30.54517578,
   },
   ];
 const LOWEST_DEFECT_ROADS: Entry[] = [
     {
       "rsl": "D2027/015_3E_01", "score": 0.0,
       "description": "COUNTRY WAY TO JCT SUNBURY RD", "name": "FELTHAMHILL ROAD/SNAKEY LANE",
-      "length": 1125.785353, "rank": 0.09218318199763127,
+      "length": 1125.785353, "rank": 2533,
     },
     {
       "rsl": "B3003/020_3E_01", "score": 0.0,
       "description": "BOUNDARY TO ASCOT RD", "name": "CLOCKHOUSE LANE",
-      "length": 824.9326788, "rank": 0.09218318199763127,
+      "length": 824.9326788, "rank": 2532,
     },
     {
       "rsl": "B454/065_3D_01", "score": 0.0,
       "description": "JCT JERSEY RD TO BOUNDARY", "name": "WINDMILL LANE",
-      "length": 788.9269841, "rank": 0.09218318199763127,
+      "length": 788.9269841, "rank": 2531,
     },
     {
       "rsl": "D440/505_4E_01", "score": 0.0,
       "description": "JOHNSON RD TO CRANFORD LN", "name": "BRABAZON ROAD",
-      "length": 748.9370139, "rank": 0.09218318199763127,
+      "length": 748.9370139, "rank": 2530,
     },
     {
       "rsl": "D085/005_5E_01", "score": 0.0,
       "description": "BEDFONT LN TO JCT SVILLE CRES", "name": "SOUTHVILLE ROAD",
-      "length": 614.6817878, "rank": 0.09218318199763127,
+      "length": 614.6817878, "rank": 2529,
     },
-    ];
+];
 
 class InsightView extends React.Component<{}, {}> {
 
@@ -97,6 +104,7 @@ class InsightView extends React.Component<{}, {}> {
               <th>RSL</th>
               <th>Section description</th>
               <th>Defect score</th>
+              <th>Length (m)</th>
             </tr>
           </thead>
           <tbody>
@@ -114,7 +122,8 @@ class InsightView extends React.Component<{}, {}> {
         <td>{entry.name}</td>
         <td>{entry.rsl}</td>
         <td>{entry.description}</td>
-        <td>{entry.score}</td>
+        <td>{numeral(entry.score).format("0.00")}</td>
+        <td>{entry.length ? numeral(entry.length).format("0.00") : null}</td>
       </tr>
     );
   }
