@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { IDataset } from "../../models";
+import { IDatasetCoords, DatasetMap, Ui } from "../../models";
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
@@ -13,8 +13,8 @@ import { DatasetInfo } from "../../components/DatasetInfo";
 import { NewDataset } from "../../components/NewDataset";
 
 interface IProps {
-  datasets: { [id: string]: IDataset };
-  ui: any;
+  datasets: DatasetMap;
+  ui: Ui;
   createDataset: (any) => any;
   fetchDatasets: any;
   closeNewDatasetModal: any;
@@ -22,12 +22,12 @@ interface IProps {
 }
 
 interface IState {
-  datasetId: string;
+  datasetCoords: IDatasetCoords;
 };
 
 class Home extends React.Component<IProps, IState> {
   public state : IState = {
-    datasetId: null,
+    datasetCoords: null,
   };
 
   componentDidMount() {
@@ -35,9 +35,13 @@ class Home extends React.Component<IProps, IState> {
   }
 
   componentWillReceiveProps(props: IProps) {
-      if (! (this.state.datasetId in props.datasets)) {
-          this.setState({ datasetId: null });
+    if (this.state.datasetCoords) {
+      const ns = this.state.datasetCoords.namespace;
+      const id = this.state.datasetCoords.id;
+      if (!(ns in props.datasets) || !(id in props.datasets[ns])) {
+        this.setState({ datasetCoords: null });
       }
+    }
   }
 
   render() {
@@ -52,19 +56,20 @@ class Home extends React.Component<IProps, IState> {
           <DatasetList
             searchString={this.props.ui.searchString}
             datasets={this.props.datasets}
-            selectedId={this.state.datasetId}
             onSelect={this.selectDataset}
+            selected={this.state.datasetCoords}
+            selectedNamespace={this.props.ui.namespace}
           />
         </div>
 
         {
-          (this.state.datasetId === null)
+          (this.state.datasetCoords === null)
             ? null
             : (
               <div className={s.right}>
                 <DatasetInfo
-                  id={this.state.datasetId}
-                  dataset={this.props.datasets[this.state.datasetId]}
+                  coords={this.state.datasetCoords}
+                  dataset={this.props.datasets[this.state.datasetCoords.namespace][this.state.datasetCoords.id]}
                   deleteClick={this.props.deleteDataset}
                 />
               </div>
@@ -74,8 +79,8 @@ class Home extends React.Component<IProps, IState> {
     );
   }
 
-  private selectDataset = (id: string) => {
-    this.setState({datasetId: id});
+  private selectDataset = (coords: IDatasetCoords) => {
+    this.setState({datasetCoords: coords});
   }
 }
 

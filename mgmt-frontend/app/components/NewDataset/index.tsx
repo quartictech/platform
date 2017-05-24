@@ -13,7 +13,7 @@ interface IFile {
 }
 
 interface INewDatasetProps {
-  createDataset: (metadata: IDatasetMetadata, files: IFiles) => any;
+  createDataset: (namespace: string, metadata: IDatasetMetadata, files: IFiles) => any;
   visible: boolean;
   closeNewDatasetClick: any;
 };
@@ -21,6 +21,7 @@ interface INewDatasetProps {
 // NOTE: These are optional to make setState easier to call
 interface IState {
     files?: IFile[];
+    namespace: string;
     name?: string;
     description?: string;
     fileType?: string;
@@ -68,6 +69,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
   constructor() {
     super();
     this.state = {
+      namespace: "production",
       name: "",
       description: "",
       files: [],
@@ -76,19 +78,24 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
   }
 
   public onSave() {
-    this.props.createDataset({
-      name: this.state.name,
-      description: this.state.description,
-      attribution: "User data"
-    },
-    {
-      files: this.state.files,
-      fileType: this.state.fileType
-    });
+    this.props.createDataset(this.state.namespace,
+      {
+        name: this.state.name,
+        description: this.state.description,
+        attribution: "User data"
+      },
+      {
+        files: this.state.files,
+        fileType: this.state.fileType
+      });
   }
 
   onDrop(files) {
     this.setState({ files });
+  }
+
+  onChangeNamespace(e) {
+    this.setState( { namespace: e.target.value });
   }
 
   onChangeName(e) {
@@ -101,6 +108,10 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
   toggleDialog() {
     this.props.closeNewDatasetClick();
+  }
+
+  isNamespaceValid() {
+    return this.state.namespace.length !== 0;
   }
 
   isNameValid() {
@@ -122,10 +133,22 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
         isOpen={this.props.visible}
         onClose={this.toggleDialog.bind(this)}
         title="New Dataset"
-        style={{backgroundColor:"#293742", width:"30%"}}
+        style={{backgroundColor:"#293742", minWidth: 400, width:"30%", bottom: "calc(100vh-50)"}}
       >
         <div className="pt-dialog-body pt-dark">
-          <label className="pt-label .modifier">
+          <label className="pt-label">
+            Namespace
+            <input
+              className={classNames("pt-input", "pt-fill", {"pt-intent-danger": !this.isNamespaceValid()})}
+              type="text"
+              placeholder="Namespace"
+              dir="auto"
+              value={this.state.namespace}
+              onChange={this.onChangeNamespace.bind(this)}
+            />
+          </label>
+
+          <label className="pt-label">
             Name
             <input
               className={classNames("pt-input", "pt-fill", {"pt-intent-danger": !this.isNameValid()})}
@@ -136,7 +159,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
             />
           </label>
 
-          <label className="pt-label .modifier">
+          <label className="pt-label">
           Description
             <textarea
               className={classNames("pt-input", "pt-fill", {"pt-intent-danger": !this.isDescriptionValid()})}
@@ -153,7 +176,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
               disableClick
               onDrop={this.onDrop.bind(this)}
               className="pt-card"
-              style={{height: "150px", width: "100%"}}
+              style={{height: 100, width: "100%"}}
             >
                {
                  this.state.files.length === 0 ?

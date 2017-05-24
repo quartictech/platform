@@ -1,5 +1,5 @@
 import * as constants from "./constants";
-import { IDatasetMetadata, IFiles } from "../models";
+import { IDatasetMetadata, IDatasetCoords, IFiles } from "../models";
 
 export function fetchDatasets() {
   return {
@@ -21,20 +21,28 @@ export function searchDatasets(search) {
   };
 }
 
-export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
+export function selectNamespace(namespace) {
+  return {
+    type: constants.SELECT_NAMESPACE,
+    namespace: namespace,
+  };
+}
+
+export function createDataset(namespace: string, metadata: IDatasetMetadata, files: IFiles) {
     return {
       type: constants.CREATE_DATASET,
       data: {
+        namespace,
         metadata,
         files,
       }
     };
 }
 
-export function deleteDataset(datasetId: string) {
+export function deleteDataset(coords: IDatasetCoords) {
     return {
       type: constants.DELETE_DATASET,
-      datasetId,
+      coords,
     };
 }
 

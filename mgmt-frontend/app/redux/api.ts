@@ -1,6 +1,6 @@
 const apiRootUrl = `${location.origin}${location.pathname}api`;
 
-import { IDatasetMetadata } from "../models";
+import { IDatasetMetadata, IDatasetCoords } from "../models";
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -28,13 +28,13 @@ export function fetchUtil(url, options?) {
 }
 
 export function fetchDatasets() {
-  return fetchUtil(`${apiRootUrl}/dataset`);
+  return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
 const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
 
-export function uploadFile(files: any[]) {
-  return fetchUtil("/api/file", {
+export function uploadFile(namespace: string, files: any[]) {
+  return fetchUtil(`${apiRootUrl}/file/${namespace}`, {
     headers: {
       "Content-Type": validContentType(files[0].type),
     },
@@ -43,8 +43,9 @@ export function uploadFile(files: any[]) {
   });
 }
 
-export function createDataset(metadata: IDatasetMetadata, fileName: string, fileType: string) {
-  return fetchUtil("/api/dataset", {
+// TODO: wire through namespace
+export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string, fileType: string) {
+  return fetchUtil(`${apiRootUrl}/datasets/${namespace}`, {
     headers: {
       "Content-Type": "application/json"
     },
@@ -58,8 +59,9 @@ export function createDataset(metadata: IDatasetMetadata, fileName: string, file
   });
 }
 
-export function deleteDataset(id: string) {
-  return fetchUtil(`/api/dataset/${id}`, {
+// TODO: wire through namespace
+export function deleteDataset(coords: IDatasetCoords) {
+  return fetchUtil(`${apiRootUrl}/datasets/${coords.namespace}/${coords.id}`, {
     method: "DELETE",
   });
 }
