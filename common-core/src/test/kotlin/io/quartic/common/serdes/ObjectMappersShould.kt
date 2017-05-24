@@ -3,6 +3,7 @@ package io.quartic.common.serdes
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.test.assertThrows
+import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -25,5 +26,12 @@ class ObjectMappersShould {
     @Test
     fun naughtily_allow_null_primitives_inside_collections() {
         assertThat(OBJECT_MAPPER.readValue<Bar>("""{ "x": [null] }""").x[0], nullValue())   // Subverts Kotlin type system!
+    }
+
+    @Test
+    fun allow_non_numerics() {
+        assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": Infinity }""").x, equalTo(Double.POSITIVE_INFINITY))
+        assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": -Infinity }""").x, equalTo(Double.NEGATIVE_INFINITY))
+        assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": NaN }""").x, equalTo(Double.NaN))
     }
 }
