@@ -20,10 +20,14 @@ var config = {
     noParse: /node_modules\/mapbox-gl\/dist\/mapbox-gl.js/, // See https://github.com/mapbox/mapbox-gl-js/issues/2742#issuecomment-267001402
     loaders: [
       // See (for TS -> Babel): http://www.jbrantly.com/es6-modules-with-typescript-and-webpack/
+      // See http://jamesknelson.com/using-es6-in-the-browser-with-babel-6-and-webpack/
       {
         test: /\.tsx?$/,
-        loader: 'react-hot!babel-loader!ts-loader',
-        include: path.join(__dirname, '../../app')
+        loaders: ['react-hot', 'babel-loader?' + JSON.stringify({
+          plugins: ['transform-runtime'],
+          presets: ['es2015'],
+        }), 'ts-loader'],
+        include: path.join(__dirname, '../../app'),
       },
       {
         test: /\.json$/,
