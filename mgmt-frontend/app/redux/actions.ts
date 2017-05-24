@@ -21,10 +21,11 @@ export function searchDatasets(search) {
   };
 }
 
-export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
+export function createDataset(namespace: string, metadata: IDatasetMetadata, files: IFiles) {
     return {
       type: constants.CREATE_DATASET,
       data: {
+        namespace,
         metadata,
         files,
       }

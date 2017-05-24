@@ -33,8 +33,8 @@ export function fetchDatasets() {
 
 const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
 
-export function uploadFile(files: any[]) {
-  return fetchUtil("/api/file", {
+export function uploadFile(namespace: string, files: any[]) {
+  return fetchUtil(`/api/file/${namespace}`, {
     headers: {
       "Content-Type": validContentType(files[0].type),
     },
@@ -44,7 +44,7 @@ export function uploadFile(files: any[]) {
 }
 
 // TODO: wire through namespace
-export function createDataset(metadata: IDatasetMetadata, fileName: string, fileType: string) {
+export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string, fileType: string) {
   return fetchUtil(`/api/datasets/${namespace}`, {
     headers: {
       "Content-Type": "application/json"

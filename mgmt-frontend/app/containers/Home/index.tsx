@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { IDataset, IDatasetCoords, DatasetMap } from "../../models";
+import { IDatasetCoords, DatasetMap } from "../../models";
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
@@ -35,10 +35,12 @@ class Home extends React.Component<IProps, IState> {
   }
 
   componentWillReceiveProps(props: IProps) {
-    const ns = this.state.datasetCoords.namespace;
-    const id = this.state.datasetCoords.id;
-    if (!(ns in props.datasets) || !(id in props.datasets[ns])) {
+    if (this.state.datasetCoords) {
+      const ns = this.state.datasetCoords.namespace;
+      const id = this.state.datasetCoords.id;
+      if (!(ns in props.datasets) || !(id in props.datasets[ns])) {
         this.setState({ datasetCoords: null });
+      }
     }
   }
 
@@ -54,8 +56,8 @@ class Home extends React.Component<IProps, IState> {
           <DatasetList
             searchString={this.props.ui.searchString}
             datasets={this.props.datasets}
-            selectedCoords={this.state.datasetCoords}
             onSelect={this.selectDataset}
+            selected={this.state.datasetCoords}
           />
         </div>
 
