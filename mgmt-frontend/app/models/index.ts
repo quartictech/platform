@@ -40,4 +40,11 @@ export interface UiAction {
   type: string;
   activeModal?: string;
   search?: string;
+  namespace?: string;
+}
+
+export interface Ui {
+  namespace: string;
+  searchString: string;
+  activeModal: string;
 }

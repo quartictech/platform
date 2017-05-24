@@ -21,6 +21,13 @@ export function searchDatasets(search) {
   };
 }
 
+export function selectNamespace(namespace) {
+  return {
+    type: constants.SELECT_NAMESPACE,
+    namespace: namespace,
+  };
+}
+
 export function createDataset(namespace: string, metadata: IDatasetMetadata, files: IFiles) {
     return {
       type: constants.CREATE_DATASET,

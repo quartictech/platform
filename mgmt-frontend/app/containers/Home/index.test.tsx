@@ -7,7 +7,11 @@ import { Home } from "./";
 /** Data */
 const props = {
   datasets: {},
-  ui: {},
+  ui: {
+    namespace: null,
+    searchString: null,
+    activeModal: null,
+  },
   createDataset: () => null,
   fetchDatasets: () => null,
   closeNewDatasetModal: () => null,

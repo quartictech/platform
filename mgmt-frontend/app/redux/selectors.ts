@@ -16,4 +16,5 @@ export const selectLocationState = () => {
 };
 
 export const selectDatasets = (state) => state.get("datasets").toJS();
+export const selectNamespaces = (state) => Object.keys(state.get("datasets").toJS());
 export const selectUi = (state) => state.get("ui").toJS();

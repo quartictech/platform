@@ -14,6 +14,9 @@ const props = {
   },
   showNewDatasetModal: () => null,
   searchDatasets: () => null,
+  namespaces: [],
+  selectNamespace: () => null,
+  ui: null,
 };
 
 /** Case 1 */

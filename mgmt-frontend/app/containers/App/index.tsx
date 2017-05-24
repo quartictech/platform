@@ -1,6 +1,10 @@
 import * as React from "react";
 import { Header } from "../../components";
 
+import { Ui } from "../../models";
+
+import { selectNamespaces, selectUi } from "../../redux/selectors";
+
 import { createStructuredSelector } from "reselect";
 import * as actions from "../../redux/actions";
 import { connect } from "react-redux";
@@ -15,8 +19,11 @@ interface IProps {
   params?: {
     node: string
   };
+  ui: Ui;
   showNewDatasetModal: any;
   searchDatasets: any;
+  selectNamespace: (string) => any;
+  namespaces: string[];
 }
 
 export class App extends React.Component<IProps, void> {
@@ -28,6 +35,9 @@ export class App extends React.Component<IProps, void> {
         <Header
           newDatasetClick={this.props.showNewDatasetModal}
           searchBoxChange={this.props.searchDatasets}
+          selectedNamespace={this.props.ui.namespace}
+          namespaceSelectChange={this.props.selectNamespace}
+          namespaces={this.props.namespaces}
         />
           {children}
       </section>
@@ -39,9 +49,12 @@ export class App extends React.Component<IProps, void> {
 const mapDispatchToProps = {
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),
   searchDatasets: (s) => actions.searchDatasets(s),
+  selectNamespace: (s) => actions.selectNamespace(s),
 };
 
 const mapStateToProps = createStructuredSelector({
+  ui: selectUi,
+  namespaces: selectNamespaces,
 });
 
 export default connect(

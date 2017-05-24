@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { IDatasetCoords, DatasetMap } from "../../models";
+import { IDatasetCoords, DatasetMap, Ui } from "../../models";
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
@@ -14,7 +14,7 @@ import { NewDataset } from "../../components/NewDataset";
 
 interface IProps {
   datasets: DatasetMap;
-  ui: any;
+  ui: Ui;
   createDataset: (any) => any;
   fetchDatasets: any;
   closeNewDatasetModal: any;
@@ -58,6 +58,7 @@ class Home extends React.Component<IProps, IState> {
             datasets={this.props.datasets}
             onSelect={this.selectDataset}
             selected={this.state.datasetCoords}
+            selectedNamespace={this.props.ui.namespace}
           />
         </div>
 

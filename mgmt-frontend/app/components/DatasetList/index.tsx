@@ -8,6 +8,7 @@ interface IDatasetListProps {
   selected: IDatasetCoords;
   onSelect: (string) => void;
   searchString: string;
+  selectedNamespace: string;
 };
 
 const comparison = (a: IDataset, b: IDataset) => {
@@ -39,7 +40,7 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
       <div className="pt-card pt-elevation-4">
         <h3>Datasets</h3>
 
-        <table className="pt-table pt-interactive pt-striped" style={{ width: "100%" }}>
+        <table className="pt-table pt-interactive pt-striped pt-condensed" style={{ width: "100%" }}>
           <thead>
             <tr>
             <th>Coords</th>
@@ -50,7 +51,9 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
           </thead>
           <tbody>
           {
-            _.map(this.props.datasets, (datasets, namespace) => this.renderDatasetsInNamespace(namespace, datasets))
+              _.map(this.props.datasets,
+                (datasets, namespace) => !this.props.selectedNamespace || this.props.selectedNamespace === namespace ?
+                  this.renderDatasetsInNamespace(namespace, datasets) : null)
           }
           </tbody>
         </table>
@@ -62,7 +65,7 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
     return _
       .map(datasets, (dataset, id) => [id, dataset] as [string, IDataset])
       .filter(([id, dataset]) => this.datasetVisible(namespace, id, dataset))
-      .sort(([,a], [,b]) => comparison(a, b))
+      .sort(([, a], [, b]) => comparison(a, b))
       .map(([id, dataset]) => <DatasetRow
         key={id}
         namespace={namespace}

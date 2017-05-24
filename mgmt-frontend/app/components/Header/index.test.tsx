@@ -8,7 +8,13 @@ const s = require("./style.css");
 
 /** Case 1 */
 describe("Header Component", () => {
-  const component = mount(<Header newDatasetClick={null} searchBoxChange={null} />);
+  const component = mount(<Header
+    newDatasetClick={null}
+    searchBoxChange={null}
+    namespaceSelectChange={null}
+    namespaces={[]}
+    selectedNamespace={null}
+  />);
 
   it("renders with correct styles", () => {
     expect(component).to.exist;
