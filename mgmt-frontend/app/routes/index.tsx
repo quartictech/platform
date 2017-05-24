@@ -1,6 +1,9 @@
 import * as React from "react";
-import { IndexRedirect, Route } from "react-router";
+import { IndexRedirect, Route, useRouterHistory } from "react-router";
+import { createHashHistory } from "history";
 import { App, Home } from "../containers";
+
+const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 
 function getRoutes() { return (
     <Route path="/" component={App}>
@@ -10,4 +13,4 @@ function getRoutes() { return (
   );
 };
 
-export { getRoutes }
+export { getRoutes, appHistory }
