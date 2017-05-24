@@ -31,7 +31,7 @@ class CatalogueWatcher(
 
     val events: Observable<CatalogueEvent>
         get() = listener.observable
-                .doOnNext { x -> LOG.info("Received catalogue update") }
+                .doOnNext { _ -> LOG.info("Received catalogue update") }
                 .map { map -> map.getOrElse(namespace) { -> emptyMap<DatasetId, DatasetConfig>() } }
                 .compose(pairWithPrevious(emptyMap<DatasetId, DatasetConfig>()))
                 .concatMap { extractEvents(it) }

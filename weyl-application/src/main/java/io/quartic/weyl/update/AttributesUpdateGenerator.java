@@ -19,11 +19,11 @@ public class AttributesUpdateGenerator implements SelectionDrivenUpdateGenerator
 
     @Override
     public Map<EntityId, Attributes> generate(Collection<Feature> entities) {
-        return entities.stream().collect(toMap(Feature::entityId, this::externalAttributes));
+        return entities.stream().collect(toMap(Feature::getEntityId, this::externalAttributes));
     }
 
     private Attributes externalAttributes(Feature feature) {
-        return () -> feature.attributes().attributes().entrySet().stream()
+        return () -> feature.getAttributes().getAttributes().entrySet().stream()
                 .filter(e -> isSimple(e.getValue()))
                 .collect(toMap(Entry::getKey, Entry::getValue));
     }

@@ -49,7 +49,7 @@ export class DateRangePicker extends React.Component { // eslint-disable-line re
     return (
       <div>
         <div style={{ display: "flex", flexDirection: "row" }}>
-          <div style={{ padding: 10, width: 300 }}>
+          <div style={{ padding: 10, minHeight: 250, width: 300 }}>
             <Checkbox
               checked={this.state.startTime != null}
               label="Start Time"

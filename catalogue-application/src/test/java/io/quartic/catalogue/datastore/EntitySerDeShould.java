@@ -5,8 +5,8 @@ import com.google.cloud.datastore.Key;
 import com.google.common.collect.ImmutableMap;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
+import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
-import io.quartic.catalogue.api.model.GeoJsonDatasetLocator;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ public class EntitySerDeShould {
                         "attribution",
                         Instant.now()
                 ),
-                new GeoJsonDatasetLocator("wat"),
+                new DatasetLocator.GeoJsonDatasetLocator("wat"),
                 ImmutableMap.of("foo", "bar", "wat", ImmutableMap.of("ladispute", 1337))
         );
 

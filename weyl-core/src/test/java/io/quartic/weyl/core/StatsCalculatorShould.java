@@ -4,12 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import io.quartic.weyl.core.feature.FeatureCollection;
 import io.quartic.weyl.core.model.Attribute;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.DynamicSchema;
-import io.quartic.weyl.core.model.AttributeStatsImpl;
+import io.quartic.weyl.core.model.AttributeStats;
 import io.quartic.weyl.core.model.AttributeType;
+import io.quartic.weyl.core.model.DynamicSchema;
 import io.quartic.weyl.core.model.Feature;
 import io.quartic.weyl.core.model.LayerStats;
-import io.quartic.weyl.core.model.LayerStatsImpl;
 import org.junit.Test;
 
 import java.util.Map;
@@ -49,9 +48,9 @@ public class StatsCalculatorShould {
 
         final LayerStats stats = calculate(attributes, features);
 
-        assertThat(stats, equalTo(LayerStatsImpl.of(map(
-                entry(HEIGHT, AttributeStatsImpl.of(120.0, 140.0)),
-                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
+        assertThat(stats, equalTo(new LayerStats(map(
+                entry(HEIGHT, new AttributeStats(120.0, 140.0)),
+                entry(WEIGHT, new AttributeStats(50.0, 70.0))
                 )
         )));
     }
@@ -69,9 +68,9 @@ public class StatsCalculatorShould {
                 feature(map(entry(WEIGHT, 60.0), entry(HEIGHT, 130.0)))
         ));
 
-        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
-                entry(HEIGHT, AttributeStatsImpl.of(120.0, 130.0)),
-                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
+        assertThat(calculate(attributes, features), equalTo(new LayerStats(map(
+                entry(HEIGHT, new AttributeStats(120.0, 130.0)),
+                entry(WEIGHT, new AttributeStats(50.0, 70.0))
                 )
         )));
     }
@@ -89,8 +88,8 @@ public class StatsCalculatorShould {
                 feature(map(entry(WEIGHT, 60.0)))
         ));
 
-        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
-                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
+        assertThat(calculate(attributes, features), equalTo(new LayerStats(map(
+                entry(WEIGHT, new AttributeStats(50.0, 70.0))
                 )
         )));
     }
@@ -108,28 +107,28 @@ public class StatsCalculatorShould {
                 feature(map(entry(NAME, "Charles"), entry(WEIGHT, 60.0)))
         ));
 
-        assertThat(calculate(attributes, features), equalTo(LayerStatsImpl.of(map(
-                entry(WEIGHT, AttributeStatsImpl.of(50.0, 70.0))
+        assertThat(calculate(attributes, features), equalTo(new LayerStats(map(
+                entry(WEIGHT, new AttributeStats(50.0, 70.0))
                 )
         )));
     }
 
     private LayerStats calculate(Map<AttributeName, Attribute> attributes, FeatureCollection features) {
         final DynamicSchema schema = mock(DynamicSchema.class);
-        when(schema.attributes()).thenReturn(attributes);
+        when(schema.getAttributes()).thenReturn(attributes);
 
         return StatsCalculator.calculateStats(schema, features);
     }
 
     private Feature feature(Map<AttributeName, Object> attributes) {
         final Feature feature = mock(Feature.class);
-        when(feature.attributes()).thenReturn(() -> attributes);
+        when(feature.getAttributes()).thenReturn(() -> attributes);
         return feature;
     }
 
     private Attribute attribute(AttributeType type) {
         final Attribute attribute = mock(Attribute.class);
-        when(attribute.type()).thenReturn(type);
+        when(attribute.getType()).thenReturn(type);
         return attribute;
     }
 }

@@ -5,9 +5,9 @@ import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetCoordinates;
 import io.quartic.catalogue.api.model.DatasetId;
+import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.catalogue.api.model.DatasetNamespace;
-import io.quartic.catalogue.api.model.PostgresDatasetLocator;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -30,7 +30,7 @@ public class CatalogueApplicationShould {
 
         final DatasetConfig config = new DatasetConfig(
                 new DatasetMetadata("Foo", "Bar", "Arlo", null),
-                new PostgresDatasetLocator("a", "b", "c", "d"),
+                new DatasetLocator.PostgresDatasetLocator("a", "b", "c", "d"),
                 emptyMap()
         );
 

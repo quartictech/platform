@@ -5,15 +5,12 @@ import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
-import io.quartic.catalogue.api.model.PostgresDatasetLocator;
+import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.attributes.ComplexAttribute;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
-import org.immutables.value.Value;
 import org.postgresql.util.PGobject;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -30,12 +27,7 @@ import java.util.Set;
 
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
 
-@Value.Immutable
-public abstract class PostgresSource implements Source {
-    public static ImmutablePostgresSource.Builder builder() {
-        return ImmutablePostgresSource.builder();
-    }
-
+public class PostgresSource implements Source {
     private static final Logger LOG = LoggerFactory.getLogger(PostgresSource.class);
     private static final String GEOM_WKB_FIELD = "geom_wkb";
     private static final String GEOM_FIELD = "geom";
@@ -43,19 +35,26 @@ public abstract class PostgresSource implements Source {
     private static final Set<String> RESERVED_KEYS = ImmutableSet.of(GEOM_FIELD, GEOM_WKB_FIELD, ID_FIELD);
 
     private final WKBReader wkbReader = new WKBReader();
-    protected abstract String name();
-    protected abstract PostgresDatasetLocator locator();
-    protected abstract AttributesFactory attributesFactory();
+    private final String name;
+    private final DatasetLocator.PostgresDatasetLocator locator;
+    private final AttributesFactory attributesFactory;
+    private final DBI dbi;
 
-    @Value.Default
-    protected DBI dbi() {
-        return new DBI(locator().getUrl(), locator().getUser(), locator().getPassword());
+    public PostgresSource(String name, DatasetLocator.PostgresDatasetLocator locator, AttributesFactory attributesFactory) {
+        this(name, locator, attributesFactory, new DBI(locator.getUrl(), locator.getUser(), locator.getPassword()));
+    }
+
+    public PostgresSource(String name, DatasetLocator.PostgresDatasetLocator locator, AttributesFactory attributesFactory, DBI dbi) {
+        this.name = name;
+        this.locator = locator;
+        this.attributesFactory = attributesFactory;
+        this.dbi = dbi;
     }
 
     @Override
     public Observable<LayerUpdate> observable() {
         return Observable.create(sub -> {
-            sub.onNext(LayerUpdateImpl.of(LayerUpdateType.REPLACE, importAllFeatures()));
+            sub.onNext(new LayerUpdate(LayerUpdateType.REPLACE, importAllFeatures()));
             // Don't complete, because downstream uses that to indicate layer completion (TODO: maybe we should concat with never())
         });
     }
@@ -66,10 +65,10 @@ public abstract class PostgresSource implements Source {
     }
 
     private Collection<NakedFeature> importAllFeatures() {
-        try (final Handle h = dbi().open()) {
-            LOG.info("[{}] Connection established", name());
+        try (final Handle h = dbi.open()) {
+            LOG.info("[{}] Connection established", name);
 
-            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator().getQuery());
+            final String query = String.format("SELECT ST_AsBinary(ST_Transform(geom, 900913)) as geom_wkb, * FROM (%s) as data WHERE geom IS NOT NULL", locator.getQuery());
             final ResultIterator<Map<String, Object>> iterator = h.createQuery(query).iterator();
 
             Collection<NakedFeature> features = Lists.newArrayList();
@@ -77,7 +76,7 @@ public abstract class PostgresSource implements Source {
             while (iterator.hasNext()) {
                 count += 1;
                 if (count % 10000 == 0) {
-                    LOG.info("[{}] Importing feature: {}", name(), count);
+                    LOG.info("[{}] Importing feature: {}", name, count);
                 }
                 Optional<NakedFeature> feature = rowToFeature(iterator.next());
 
@@ -92,12 +91,12 @@ public abstract class PostgresSource implements Source {
         byte[] wkb = (byte[]) row.get(GEOM_WKB_FIELD);
 
         if (wkb == null) {
-            LOG.error("[{}] Missing required geometry field: " + GEOM_WKB_FIELD, name());
+            LOG.error("[{}] Missing required geometry field: " + GEOM_WKB_FIELD, name);
             return Optional.empty();
         }
 
         return parseGeometry(wkb).map(geometry -> {
-            final AttributesFactory.AttributesBuilder builder = attributesFactory().builder();
+            final AttributesFactory.AttributesBuilder builder = attributesFactory.builder();
 
             for(Map.Entry<String, Object> entry : row.entrySet()) {
                 if (!RESERVED_KEYS.contains(entry.getKey()) && entry.getValue() != null) {
@@ -111,9 +110,7 @@ public abstract class PostgresSource implements Source {
                 }
             }
 
-            Optional<String> id = Optional.ofNullable((String) row.get(ID_FIELD));
-
-            return NakedFeatureImpl.of(id, geometry, builder.build());
+            return new NakedFeature((String) row.get(ID_FIELD), geometry, builder.build());
         });
     }
 
@@ -133,7 +130,7 @@ public abstract class PostgresSource implements Source {
             try {
                 return Optional.of(objectMapper().readValue(pgObject.getValue(), ComplexAttribute.class));
             } catch (IOException e) {
-                LOG.warn("[{}] Exception parsing json to attribute: {}", name(), e.toString());
+                LOG.warn("[{}] Exception parsing json to attribute: {}", name, e.toString());
                 return Optional.empty();
             }
         }

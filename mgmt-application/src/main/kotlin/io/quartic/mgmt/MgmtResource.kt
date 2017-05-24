@@ -61,9 +61,13 @@ class MgmtResource(
             is CreateStaticDatasetRequest -> {
                 try {
                     val name = preprocessFile(request.fileName, request.fileType)
+                    val locator = DatasetLocator.CloudDatasetLocator(
+                            "/%s/%s".format(HOWL_NAMESPACE, name),
+                            false,
+                            request.mimeType())
                     DatasetConfig(
                             request.metadata,
-                            CloudGeoJsonDatasetLocator("/%s/%s".format(HOWL_NAMESPACE, name), false),
+                            locator,
                             emptyMap()
                     )
                 } catch (e: IOException) {

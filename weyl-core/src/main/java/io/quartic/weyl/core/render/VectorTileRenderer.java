@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.model.IndexedFeature;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
@@ -17,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static io.quartic.weyl.core.feature.FeatureConverter.getRawProperties;
+import static io.quartic.weyl.core.feature.FeatureConverter.frontendManipulatorFor;
+import static io.quartic.weyl.core.feature.FeatureConverter.getRawAttributes;
 
 public class VectorTileRenderer {
     private static final Logger LOG = LoggerFactory.getLogger(VectorTileRenderer.class);
@@ -54,14 +56,15 @@ public class VectorTileRenderer {
 
         VectorTileEncoder encoder = new VectorTileEncoder(4096, 8, false);
 
-        final LayerId layerId = layer.spec().id();
+        final LayerId layerId = layer.getSpec().getId();
         LOG.info("Encoding layer {}", layerId);
         final AtomicInteger featureCount = new AtomicInteger();
+        final FeatureConverter.AttributeManipulator manipulator = frontendManipulatorFor(layer.getDynamicSchema());
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-        layerIntersection(layer, envelope).map( (feature) -> VectorTileFeature.of(
-                scaleGeometry(feature.feature().geometry(), envelope),
-                getRawProperties(feature.feature()))
+        layerIntersection(layer, envelope).map((feature) -> VectorTileFeature.of(
+                scaleGeometry(feature.getFeature().getGeometry(), envelope),
+                getRawAttributes(manipulator, feature.getFeature()))
         ).sequential().forEach(vectorTileFeature -> {
                 featureCount.incrementAndGet();
                 encoder.addFeature(layerId.getUid(), vectorTileFeature.getAttributes(), vectorTileFeature.getGeometry());
@@ -73,17 +76,14 @@ public class VectorTileRenderer {
 
     @SuppressWarnings("unchecked")
     private Stream<IndexedFeature> layerIntersection(Layer layer, Envelope envelope) {
-        return layer.spatialIndex().query(envelope).stream();
+        return layer.getSpatialIndex().query(envelope).stream();
     }
 
     private static Geometry scaleGeometry(Geometry geometry, Envelope envelope) {
         Geometry transformed = (Geometry) geometry.clone();
-        transformed.apply(new CoordinateFilter() {
-            @Override
-            public void filter(Coordinate coord) {
-                coord.x = 4096.0 * (coord.x - envelope.getMinX()) / (envelope.getWidth());
-                coord.y = 4096.0 * (1 - (coord.y - envelope.getMinY()) / (envelope.getHeight()));
-            }
+        transformed.apply((CoordinateFilter) coord -> {
+            coord.x = 4096.0 * (coord.x - envelope.getMinX()) / (envelope.getWidth());
+            coord.y = 4096.0 * (1 - (coord.y - envelope.getMinY()) / (envelope.getHeight()));
         });
         transformed.geometryChanged();
         return transformed;

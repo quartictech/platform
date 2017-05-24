@@ -3,27 +3,19 @@ package io.quartic.weyl.core.source;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import io.quartic.common.geojson.Feature;
 import io.quartic.common.geojson.FeatureCollection;
 import io.quartic.common.geojson.Point;
-import io.quartic.weyl.api.LayerUpdateType;
 import io.quartic.weyl.core.feature.FeatureConverter;
-import io.quartic.weyl.core.model.Attributes;
-import io.quartic.weyl.core.model.FeatureImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
-import io.quartic.weyl.core.model.LayerUpdateImpl;
 import io.quartic.weyl.core.model.NakedFeature;
-import io.quartic.weyl.core.model.NakedFeatureImpl;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import rx.observers.TestSubscriber;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -34,6 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.serdes.ObjectMappersKt.objectMapper;
+import static io.quartic.weyl.api.LayerUpdateType.REPLACE;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.equalTo;
@@ -68,30 +61,28 @@ public class GeoJsonSourceShould {
     public void import_things() throws Exception {
         TestSubscriber<LayerUpdate> subscriber = TestSubscriber.create();
 
-        GeoJsonSource.builder()
-                .name("Budgie")
-                .url("http://localhost:" + wireMockRule.port())
-                .userAgent("MyUserAgent")
-                .converter(converter)
-                .build()
-                .observable().subscribe(subscriber);
+        source().observable().subscribe(subscriber);
 
         verify(converter).featuresToModel(original.getFeatures());
-        subscriber.assertValue(LayerUpdateImpl.of(LayerUpdateType.REPLACE, modelFeatures));
+        subscriber.assertValue(new LayerUpdate(REPLACE, modelFeatures));
     }
 
     @Test
     public void set_the_correct_user_agent_header() throws Exception {
-        GeoJsonSource.builder()
-                .name("Budgie")
-                .url("http://localhost:" + wireMockRule.port())
-                .userAgent("MyUserAgent")
-                .converter(converter)
-                .build()
-                .observable().subscribe();
+        source().observable().subscribe();
 
         final LoggedRequest request = findAll(getRequestedFor(urlMatching("/.*"))).get(0);
 
         assertThat(request.header("User-Agent").firstValue(), equalTo("MyUserAgent"));
+    }
+
+    @NotNull
+    private GeoJsonSource source() {
+        return new GeoJsonSource(
+                "Budgie",
+                "http://localhost:" + wireMockRule.port(),
+                "MyUserAgent",
+                converter
+        );
     }
 }

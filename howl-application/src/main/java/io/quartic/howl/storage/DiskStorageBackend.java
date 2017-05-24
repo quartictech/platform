@@ -75,7 +75,7 @@ public class DiskStorageBackend implements StorageBackend {
                 File file = path.get().toFile();
 
                 if (file.exists()) {
-                    return Optional.of(InputStreamWithContentTypeImpl.of(contentType, new FileInputStream(file)));
+                    return Optional.of(new InputStreamWithContentType(contentType, new FileInputStream(file)));
                 }
             }
         }

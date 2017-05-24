@@ -58,9 +58,9 @@ public class HowlResource {
 
         return file.map( f ->
             Response.ok()
-                .header(CONTENT_TYPE, f.contentType())
+                .header(CONTENT_TYPE, f.getContentType())
                 .entity(((StreamingOutput) output -> {
-                    try (InputStream inputStream = f.inputStream()) {
+                    try (InputStream inputStream = f.getInputStream()) {
                         IOUtils.copy(inputStream, output);
                     }
                 }))

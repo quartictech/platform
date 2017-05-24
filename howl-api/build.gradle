@@ -1,12 +1,9 @@
 plugins {
-    id "java"
+    id "nebula.kotlin" version "1.1.0"
     id "idea"
-    id "org.inferred.processors" version "1.2.3"
 }
 
 dependencies {
-    processor libraries.immutables
-
     compile project(":common-core")
 
     compile "javax.ws.rs:javax.ws.rs-api:2.0.1"

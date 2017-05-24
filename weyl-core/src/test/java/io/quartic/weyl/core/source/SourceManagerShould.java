@@ -9,16 +9,13 @@ import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.common.test.rx.Interceptor;
 import io.quartic.weyl.core.model.AttributeName;
-import io.quartic.weyl.core.model.AttributeNameImpl;
 import io.quartic.weyl.core.model.LayerId;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
+import io.quartic.weyl.core.model.LayerMetadata;
 import io.quartic.weyl.core.model.LayerPopulator;
 import io.quartic.weyl.core.model.LayerSpec;
-import io.quartic.weyl.core.model.LayerSpecImpl;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
-import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
-import io.quartic.weyl.core.model.StaticSchemaImpl;
+import io.quartic.weyl.core.model.StaticSchema;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -29,12 +26,13 @@ import rx.subjects.PublishSubject;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
 import static io.quartic.catalogue.CatalogueEvent.Type.DELETE;
 import static io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK;
-import static io.quartic.weyl.core.source.ExtensionCodec.EXTENSION_KEY;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
@@ -48,9 +46,9 @@ import static org.mockito.Mockito.when;
 
 public class SourceManagerShould {
 
-    private static final AttributeName TITLE_ATTRIBUTE = AttributeNameImpl.of("title_attr");
-    private static final AttributeName IMAGE_ATTRIBUTE = AttributeNameImpl.of("image_attr");
-    private static final AttributeName[] BLESSED_ATTRIBUTES = { AttributeNameImpl.of("cool_attr"), AttributeNameImpl.of("slick_attr") };
+    private static final AttributeName TITLE_ATTRIBUTE = new AttributeName("title_attr");
+    private static final AttributeName IMAGE_ATTRIBUTE = new AttributeName("image_attr");
+    private static final AttributeName[] BLESSED_ATTRIBUTES = { new AttributeName("cool_attr"), new AttributeName("slick_attr") };
 
     private static class LocatorA implements DatasetLocator {}
     private static class LocatorB implements DatasetLocator {}
@@ -60,19 +58,24 @@ public class SourceManagerShould {
     private final PublishSubject<LayerUpdate> layerUpdatesB = PublishSubject.create();
     private final Interceptor<LayerUpdate> interceptor = new Interceptor<>();
 
-    private final Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories = ImmutableMap.of(
-            LocatorA.class, config -> sourceOf(layerUpdatesA.compose(interceptor), true),
-            LocatorB.class, config -> sourceOf(layerUpdatesB, false)
-    );
+    private final Function<DatasetConfig, Optional<Source>> sourceFactory = (config) -> {
+        Source source = null;
+        if (config.getLocator() instanceof LocatorA) {
+            source = sourceOf(layerUpdatesA.compose(interceptor), true);
+        } else if (config.getLocator() instanceof LocatorB) {
+            source = sourceOf(layerUpdatesB, false);
+        }
+        return Optional.ofNullable(source);
+    };
 
     private final ExtensionCodec extensionCodec = mock(ExtensionCodec.class);
 
-    private final SourceManager manager = SourceManagerImpl.builder()
-            .catalogueEvents(catalogueEvents)
-            .sourceFactories(sourceFactories)
-            .extensionCodec(extensionCodec)
-            .scheduler(Schedulers.immediate()) // Force onto same thread for synchronous behaviour
-            .build();
+    private final SourceManager manager = new SourceManager(
+            catalogueEvents,
+            sourceFactory,
+            Schedulers.immediate(), // Force onto same thread for synchronous behaviour
+            extensionCodec
+    );
 
     private final TestSubscriber<LayerPopulator> sub = TestSubscriber.create();
     private final Map<LayerId, TestSubscriber<LayerUpdate>> updateSubscribers = Maps.newHashMap();
@@ -86,7 +89,7 @@ public class SourceManagerShould {
                     final TestSubscriber<LayerUpdate> updateSubscriber = TestSubscriber.create();
                     final LayerSpec spec = populator.spec(emptyList());
                     populator.updates(emptyList()).subscribe(updateSubscriber);
-                    updateSubscribers.put(spec.id(), updateSubscriber);
+                    updateSubscribers.put(spec.getId(), updateSubscriber);
                 })
                 .subscribe(sub);
     }
@@ -101,9 +104,9 @@ public class SourceManagerShould {
         catalogueEvents.onCompleted();
 
         final LayerPopulator populator = collectedLayerPopulators().get(0);
-        assertThat(populator.spec(emptyList()), equalTo(LayerSpecImpl.of(
+        assertThat(populator.spec(emptyList()), equalTo(new LayerSpec(
                 new LayerId("123"),
-                LayerMetadataImpl.of("foo", "blah", "quartic", Instant.EPOCH),
+                new LayerMetadata("foo", "blah", "quartic", Instant.EPOCH),
                 LOCATION_AND_TRACK.getLayerView(),
                 staticSchema(),
                 true
@@ -141,7 +144,7 @@ public class SourceManagerShould {
         catalogueEvents.onNext(event(CREATE, "456", "foo", new LocatorB()));
         catalogueEvents.onCompleted();
 
-        assertThat(collectedLayerPopulators().stream().map(p -> p.spec(emptyList()).id()).collect(toList()),
+        assertThat(collectedLayerPopulators().stream().map(p -> p.spec(emptyList()).getId()).collect(toList()),
                 contains(new LayerId("123"), new LayerId("456")));
     }
 
@@ -152,7 +155,7 @@ public class SourceManagerShould {
 
         collectedLayerPopulators();
 
-        verify(extensionCodec).decode("foo", ImmutableMap.of(EXTENSION_KEY, "raw"));
+        verify(extensionCodec).decode("foo", ImmutableMap.of(ExtensionCodec.Companion.getEXTENSION_KEY(), "raw"));
     }
 
     private List<LayerUpdate> collectedUpdateSequenceFor(String layerId) {
@@ -172,23 +175,21 @@ public class SourceManagerShould {
         return new DatasetConfig(
                 new DatasetMetadata(name, "blah", "quartic", Instant.EPOCH),
                 source,
-                ImmutableMap.of(EXTENSION_KEY, "raw")
+                ImmutableMap.of(ExtensionCodec.Companion.getEXTENSION_KEY(), "raw")
         );
     }
 
     private MapDatasetExtension extension() {
-        return MapDatasetExtensionImpl.builder()
-                .viewType(LOCATION_AND_TRACK)
-                .staticSchema(staticSchema())
-                .build();
+        return new MapDatasetExtension(staticSchema(), LOCATION_AND_TRACK);
     }
 
-    private StaticSchemaImpl staticSchema() {
-        return StaticSchemaImpl.builder()
-                .titleAttribute(TITLE_ATTRIBUTE)
-                .imageAttribute(IMAGE_ATTRIBUTE)
-                .blessedAttribute(BLESSED_ATTRIBUTES)
-                .build();
+    private StaticSchema staticSchema() {
+        return new StaticSchema(
+                TITLE_ATTRIBUTE,
+                null,
+                IMAGE_ATTRIBUTE,
+                newArrayList(BLESSED_ATTRIBUTES)
+        );
     }
 
     private Source sourceOf(Observable<LayerUpdate> updates, boolean indexable) {

@@ -2,32 +2,29 @@ import * as chroma from "chroma-js";
 
 import { customStyles, liveLayerStyle } from "./customStyles.js";
 
-function computeCategoricalStops(colorScale, categories) {
-  const nStops = categories.length;
-  const result = [];
-  const colors = chroma.scale(colorScale).colors(nStops);
-
-  for (let i = 0; i < nStops; i++) {
-    result.push([categories[i], colors[i].toString(0)]);
-  }
-  return result;
+function computeCategoricalStops(categories) {
+  // Mapbox seems to complain if the categories are not sorted.
+  return categories.sort()
+    .map((c, i) => [c, chroma.hsl((360 * i) / categories.length, 0.8, 0.5).toString(0)]);
 }
 
-function computeNumericStops(colorScale, nStops, minValue, maxValue) {
-  const categories = [];
-  for (let i = 0; i < nStops; i++) {
-    categories.push(minValue + ((i * (maxValue - minValue)) / nStops));
-  }
-  return computeCategoricalStops(colorScale, categories);
+function computeNumericStops(colorScale, numStops, minValue, maxValue) {
+  return chroma.scale(colorScale).colors(numStops)
+    .map((c, i) => [minValue + ((i * (maxValue - minValue)) / numStops), c.toString(0)]);
 }
 
+ // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully in various places
 function colorStyle(attribute, style, attributes, attributeStats) {
-  if (attribute == null) {
+  if (!attribute) {
     return style.color;
   }
 
-  if (attributes[attribute].categories === null) {
-    // Dynamic info may arrive later (i.e. asynchronously wrt the static info), so account for this by bombing out gracefully
+  const attributeInfo = attributes[attribute];
+  if (!attributeInfo) {
+    return style.color;
+  }
+
+  if (!attributeInfo.categories) {
     if (!(attribute in attributeStats)) {
       return style.color;
     }
@@ -41,7 +38,7 @@ function colorStyle(attribute, style, attributes, attributeStats) {
   return {
     "property": attribute,
     "type": "categorical",
-    "stops": computeCategoricalStops(style.colorScale, attributes[attribute].categories),
+    "stops": computeCategoricalStops(attributes[attribute].categories),
   };
 }
 
@@ -88,7 +85,7 @@ export function buildStyleLayers(layer) {
         "line-color": colorStyle(style.attribute, style.line, attributes, attributeStats),
         "line-width": 5,
       },
-      filter: ["==", "$type", "LineString"],
+      filter: filter(style.attribute, "LineString"),
     },
   };
 }
@@ -96,7 +93,7 @@ export function buildStyleLayers(layer) {
 const polygonSpec = (style, attributes, attributeStats) => ({
   type: "fill",
   paint: {
-    "fill-color": colorStyle(style.attribute, style.polygon, attributes, attributeStats),
+    "fill-color": style.isTransparent ? "rgba(0, 0, 0, 0)" : colorStyle(style.attribute, style.polygon, attributes, attributeStats),
     "fill-outline-color": style.polygon["fill-outline-color"],
     "fill-opacity": style.opacity,
   },

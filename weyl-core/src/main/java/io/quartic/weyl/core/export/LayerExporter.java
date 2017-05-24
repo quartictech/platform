@@ -1,15 +1,14 @@
 package io.quartic.weyl.core.export;
 
-import io.quartic.catalogue.api.*;
+import io.quartic.catalogue.api.CatalogueService;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
 import io.quartic.catalogue.api.model.DatasetNamespace;
-import io.quartic.weyl.core.live.LayerViewType;
 import io.quartic.weyl.core.model.Layer;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.model.MapDatasetExtensionImpl;
+import io.quartic.weyl.core.model.MapDatasetExtension;
 import io.quartic.weyl.core.source.ExtensionCodec;
 import rx.Observable;
 
@@ -19,7 +18,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.quartic.common.rx.RxUtilsKt.*;
+import static io.quartic.common.rx.RxUtilsKt.accumulateMap;
+import static io.quartic.common.rx.RxUtilsKt.latest;
+import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
+import static io.quartic.weyl.core.live.LayerViewType.MOST_RECENT;
 
 public class LayerExporter {
     private final Observable<Map<LayerId, LayerSnapshotSequence>> layers;
@@ -34,7 +36,7 @@ public class LayerExporter {
             DatasetNamespace defaultCatalogueNamespace
     ) {
         this.layers = snapshotSequences
-                .compose(accumulateMap(snapshot -> snapshot.spec().id(), snapshot -> snapshot))
+                .compose(accumulateMap(snapshot -> snapshot.getSpec().getId(), snapshot -> snapshot))
                 .compose(likeBehavior());
         this.layerWriter = layerWriter;
         this.catalogue = catalogue;
@@ -47,8 +49,8 @@ public class LayerExporter {
     }
 
     private Optional<Layer> fetchLayer(Map<LayerId, LayerSnapshotSequence> layers, LayerExportRequest exportRequest) {
-        return Optional.ofNullable(layers.get(exportRequest.layerId()))
-                .map(snapshotSequence -> latest(snapshotSequence.snapshots()).absolute());
+        return Optional.ofNullable(layers.get(exportRequest.getLayerId()))
+                .map(snapshotSequence -> latest(snapshotSequence.getSnapshots()).getAbsolute());
     }
 
     private Optional<LayerExportResult> fetchLayerAndExport(Map<LayerId, LayerSnapshotSequence> layers,
@@ -57,7 +59,7 @@ public class LayerExporter {
                 .map(layer -> {
                     try {
                         LayerExportResult exportResult = layerWriter.write(layer);
-                        catalogue.registerDataset(defaultCatalogueNamespace, datasetConfig(layer, exportResult.locator()));
+                        catalogue.registerDataset(defaultCatalogueNamespace, datasetConfig(layer, exportResult.getLocator()));
                         return exportResult;
                     }
                     catch (IOException e) {
@@ -69,14 +71,14 @@ public class LayerExporter {
     private DatasetConfig datasetConfig(Layer layer, DatasetLocator locator) {
         return new DatasetConfig(
                 new DatasetMetadata(
-                        String.format("%s (exported %s)", layer.spec().metadata().name(),
+                        String.format("%s (exported %s)", layer.getSpec().getMetadata().getName(),
                                 DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now())),
-                        layer.spec().metadata().description(),
-                        layer.spec().metadata().attribution(),
+                        layer.getSpec().getMetadata().getDescription(),
+                        layer.getSpec().getMetadata().getAttribution(),
                         null
                 ),
                 locator,
-                new ExtensionCodec().encode(MapDatasetExtensionImpl.of(LayerViewType.MOST_RECENT, layer.spec().staticSchema()))
+                new ExtensionCodec().encode(new MapDatasetExtension(layer.getSpec().getStaticSchema(), MOST_RECENT))
         );
     }
 }

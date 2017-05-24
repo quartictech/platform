@@ -5,6 +5,7 @@ const initialState = fromJS({
   style: "basic",
   ready: false,
   mouseLocation: null, // Will be {lng,lat} when known
+  targetLocation: null, // Will be { center: [lng, lat], zoom: zoom } when known
 });
 
 export default (state = initialState, action) => {
@@ -15,6 +16,11 @@ export default (state = initialState, action) => {
       return state.set("ready", true);
     case constants.MAP_MOUSE_MOVE:
       return state.set("mouseLocation", action.mouseLocation);
+    case constants.MAP_SET_TARGET_LOCATION:
+      return state.update("targetLocation", loc => loc || {
+        center: [action.lng, action.lat],
+        zoom: action.zoom,
+      });
     default:
       return state;
   }

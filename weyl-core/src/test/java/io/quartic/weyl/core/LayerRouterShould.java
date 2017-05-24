@@ -35,16 +35,13 @@ import static rx.Observable.empty;
 
 @RunWith(HierarchicalContextRunner.class)
 public class LayerRouterShould {
-    private static final LayerId LAYER_ID = LayerId.fromString("666");
-    private static final LayerId OTHER_LAYER_ID = LayerId.fromString("777");
+    private static final LayerId LAYER_ID = new LayerId("666");
+    private static final LayerId OTHER_LAYER_ID = new LayerId("777");
 
     private final SnapshotReducer snapshotReducer = mock(SnapshotReducer.class);
     private final PublishSubject<LayerPopulator> populators = PublishSubject.create();
     private final Interceptor<LayerPopulator> interceptor = new Interceptor<>();
-    private final LayerRouter router = LayerRouterImpl.builder()
-            .populators(populators.compose(interceptor))
-            .snapshotReducer(snapshotReducer)
-            .build();
+    private final LayerRouter router = new LayerRouter(populators.compose(interceptor), snapshotReducer);
 
     public class UpstreamConsumption {
         @Test
@@ -90,7 +87,7 @@ public class LayerRouterShould {
             createLayer(specA);
             createLayer(specB);
 
-            assertThat(transform(subscriber.getOnNextEvents(), LayerSnapshotSequence::spec), contains(specA, specB));
+            assertThat(transform(subscriber.getOnNextEvents(), LayerSnapshotSequence::getSpec), contains(specA, specB));
         }
 
         @Test
@@ -100,7 +97,7 @@ public class LayerRouterShould {
 
             final TestSubscriber<LayerSnapshotSequence> subscriber = subscribeToSequences();
 
-            assertThat(transform(subscriber.getOnNextEvents(), LayerSnapshotSequence::spec), contains(specA, specB));
+            assertThat(transform(subscriber.getOnNextEvents(), LayerSnapshotSequence::getSpec), contains(specA, specB));
         }
     }
 
@@ -259,8 +256,8 @@ public class LayerRouterShould {
 
             populators.onNext(populatorForDependent);
 
-            verify(populatorForDependent).spec(singletonList(dependency.absolute()));
-            verify(populatorForDependent).updates(singletonList(dependency.absolute()));
+            verify(populatorForDependent).spec(singletonList(dependency.getAbsolute()));
+            verify(populatorForDependent).updates(singletonList(dependency.getAbsolute()));
             verify(snapshotReducer).empty(specDependency);
             verify(snapshotReducer).empty(specDependent);
         }
@@ -296,15 +293,15 @@ public class LayerRouterShould {
 
     private Snapshot mockSnapshotCreationFor(LayerSpec spec) {
         final Snapshot snapshot = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        when(snapshot.absolute().spec()).thenReturn(spec);
+        when(snapshot.getAbsolute().getSpec()).thenReturn(spec);
         when(snapshotReducer.empty(spec)).thenReturn(snapshot);
         return snapshot;
     }
 
     private Snapshot mockSnapshotReductionFor(Snapshot snapshot) {
-        final LayerSpec originalSpec = snapshot.absolute().spec();
+        final LayerSpec originalSpec = snapshot.getAbsolute().getSpec();
         final Snapshot next = mock(Snapshot.class, RETURNS_DEEP_STUBS);
-        when(next.absolute().spec()).thenReturn(originalSpec);
+        when(next.getAbsolute().getSpec()).thenReturn(originalSpec);
         when(snapshotReducer.next(eq(snapshot), any())).thenReturn(next);
         return next;
     }
@@ -318,8 +315,8 @@ public class LayerRouterShould {
     private TestSubscriber<Snapshot> subscribeToSnapshotsFor(LayerSpec spec) {
         TestSubscriber<Snapshot> sub = TestSubscriber.create();
         router.snapshotSequences()
-                .first(s -> s.spec().equals(spec))
-                .subscribe(s -> s.snapshots().subscribe(sub));
+                .first(s -> s.getSpec().equals(spec))
+                .subscribe(s -> s.getSnapshots().subscribe(sub));
         return sub;
     }
 
@@ -335,8 +332,8 @@ public class LayerRouterShould {
 
     private LayerSpec spec(LayerId id) {
         final LayerSpec spec = mock(LayerSpec.class, RETURNS_DEEP_STUBS);
-        when(spec.id()).thenReturn(id);
-        when(spec.metadata().name()).thenReturn("foo");
+        when(spec.getId()).thenReturn(id);
+        when(spec.getMetadata().getName()).thenReturn("foo");
         return spec;
     }
 

@@ -3,24 +3,20 @@ package io.quartic.weyl.core.source;
 import io.quartic.catalogue.CatalogueEvent;
 import io.quartic.catalogue.api.model.DatasetConfig;
 import io.quartic.catalogue.api.model.DatasetId;
-import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetMetadata;
-import io.quartic.common.SweetStyle;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerMetadata;
-import io.quartic.weyl.core.model.LayerMetadataImpl;
 import io.quartic.weyl.core.model.LayerPopulator;
-import io.quartic.weyl.core.model.LayerSpecImpl;
+import io.quartic.weyl.core.model.LayerSpec;
 import io.quartic.weyl.core.model.LayerUpdate;
 import io.quartic.weyl.core.model.MapDatasetExtension;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Scheduler;
 import rx.observables.GroupedObservable;
 
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static io.quartic.catalogue.CatalogueEvent.Type.CREATE;
@@ -29,24 +25,42 @@ import static java.lang.String.format;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
-@SweetStyle
-@Value.Immutable
-public abstract class SourceManager {
+public class SourceManager {
     private static final Logger LOG = LoggerFactory.getLogger(SourceManager.class);
-    protected abstract Observable<CatalogueEvent> catalogueEvents();
-    protected abstract Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> sourceFactories();
-    protected abstract Scheduler scheduler();
-    @Value.Default
-    protected ExtensionCodec extensionCodec() {
-        return new ExtensionCodec();
+    private final Observable<CatalogueEvent> catalogueEvents;
+    private final Function<DatasetConfig, Optional<Source>> sourceFactory;
+    private final Scheduler scheduler;
+    private final ExtensionCodec extensionCodec;
+    private Observable<LayerPopulator> layerPopulators = null;  // TODO - eliminate grossness to emulate lazy evaluation
+
+    public SourceManager(
+            Observable<CatalogueEvent> catalogueEvents,
+            Function<DatasetConfig, Optional<Source>> sourceFactory,
+            Scheduler scheduler
+    ) {
+        this(catalogueEvents, sourceFactory, scheduler, new ExtensionCodec());
     }
 
-    @Value.Lazy
+    public SourceManager(
+            Observable<CatalogueEvent> catalogueEvents,
+            Function<DatasetConfig, Optional<Source>> sourceFactory,
+            Scheduler scheduler,
+            ExtensionCodec extensionCodec
+    ) {
+        this.catalogueEvents = catalogueEvents;
+        this.sourceFactory = sourceFactory;
+        this.scheduler = scheduler;
+        this.extensionCodec = extensionCodec;
+    }
+
     public Observable<LayerPopulator> layerPopulators() {
-        return catalogueEvents()
-                .groupBy(CatalogueEvent::getId)
-                .flatMap(this::processEventsForId)
-                .share();
+        if (layerPopulators == null) {
+            layerPopulators = catalogueEvents
+                    .groupBy(CatalogueEvent::getId)
+                    .flatMap(this::processEventsForId)
+                    .share();
+        }
+        return layerPopulators;
     }
 
     private Observable<LayerPopulator> processEventsForId(GroupedObservable<DatasetId, CatalogueEvent> group) {
@@ -66,31 +80,31 @@ public abstract class SourceManager {
 
     private LayerPopulator createPopulator(DatasetId id, DatasetConfig config, Source source) {
         final String name = config.getMetadata().getName();
-        final MapDatasetExtension extension = extensionCodec().decode(name, config.getExtensions());
+        final MapDatasetExtension extension = extensionCodec.decode(name, config.getExtensions());
 
         LOG.info(format("[%s] Created layer", name));
 
         return LayerPopulator.withoutDependencies(
-                LayerSpecImpl.of(
+                new LayerSpec(
                         new LayerId(id.getUid()),
                         datasetMetadataFrom(config.getMetadata()),
-                        extension.viewType().getLayerView(),
-                        extension.staticSchema(),
+                        extension.getViewType().getLayerView(),
+                        extension.getStaticSchema(),
                         source.indexable()
                 ),
-                source.observable().subscribeOn(scheduler())     // TODO: the scheduler should be chosen by the specific source;
+                source.observable().subscribeOn(scheduler)     // TODO: the scheduler should be chosen by the specific source;
         );
     }
 
     private Observable<Source> createSource(DatasetId id, DatasetConfig config) {
-        final Function<DatasetConfig, Source> func = sourceFactories().get(config.getLocator().getClass());
-        if (func == null) {
-            LOG.error(format("[%s] Unrecognised config type: %s", id, config.getLocator().getClass()));
-            return empty();
-        }
-
         try {
-            return just(func.apply(config));
+            Optional<Source> source = sourceFactory.apply(config);
+            if (!source.isPresent()) {
+                LOG.error(format("[%s] Unhandled config : %s", id, config.getLocator()));
+                return empty();
+            }
+
+            return just(source.get());
         } catch (Exception e) {
             LOG.error(format("[%s] Error creating layer for dataset", id), e);
             return empty();
@@ -120,11 +134,11 @@ public abstract class SourceManager {
 
     // TODO: do we really need LayerMetadata to be distinct from DatasetMetadata?
     private LayerMetadata datasetMetadataFrom(DatasetMetadata metadata) {
-        return LayerMetadataImpl.builder()
-                .name(metadata.getName())
-                .description(metadata.getDescription())
-                .attribution(metadata.getAttribution())
-                .registered(metadata.getRegistered())    // Should always be non-null
-                .build();
+        return new LayerMetadata(
+                metadata.getName(),
+                metadata.getDescription(),
+                metadata.getAttribution(),
+                metadata.getRegistered()    // Should always be non-null
+        );
     }
 }

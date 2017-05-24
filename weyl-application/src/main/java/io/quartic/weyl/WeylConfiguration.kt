@@ -8,6 +8,12 @@ import javax.validation.Valid
 import javax.validation.constraints.NotNull
 
 class WeylConfiguration : Configuration() {
+    data class MapConfig(
+            val lat: Double,
+            val lng: Double,
+            val zoom: Double    // Mapbox-specific (0-20)
+    )
+
     @Valid
     @NotNull
     var catalogue: CatalogueClientConfiguration? = null
@@ -23,4 +29,12 @@ class WeylConfiguration : Configuration() {
     @Valid
     @NotNull
     var defaultCatalogueNamespace: DatasetNamespace? = null
+
+    @Valid
+    @NotNull
+    var exportCatalogueNamespace: DatasetNamespace? = null
+
+    @Valid
+    @NotNull
+    var map: MapConfig? = null
 }
