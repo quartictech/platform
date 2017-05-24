@@ -63,7 +63,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
 
     return _.filter(
       _.values(datasetContent),
-      item => stringInString(value, item[column]) !== invert,
+      item => stringInString(value, item[column].toString()) !== invert,
     );
   }
 
