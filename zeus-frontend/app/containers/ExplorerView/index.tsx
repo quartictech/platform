@@ -156,6 +156,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
   }
 
   private renderData() {
+    // TODO: should cache this
     const filteredItems = this.filterData(
       this.props.datasetContent.data, this.state.filterColumn, this.state.filterValue, this.state.filterInvert,
     );
@@ -195,8 +196,10 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
       .value()
 }
 
-const cellToRow = (region) => Regions.row(region.rows[0], region.rows[1]);
-
+const cellToRow = (region) => ((region.rows)
+    ? Regions.row(region.rows[0], region.rows[1])
+    : Regions.row(0, -1)  // This is a bit of a hack to support column selections
+);
 
 const mapDispatchToProps = {
   datasetContentRequired: resourceActions(datasetContent).required,
