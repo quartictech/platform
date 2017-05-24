@@ -27,7 +27,8 @@ interface IDatasetRowProps {
 
 const DatasetRow = (props: IDatasetRowProps) => (
   <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
-    <td>{props.namespace} / {props.id}</td>
+    <td>{props.namespace}</td>
+    <td>{props.id}</td>
     <td>{props.dataset.locator.type}</td>
     <td>{props.dataset.metadata.name}</td>
     <td>{props.dataset.metadata.description}</td>
@@ -43,7 +44,8 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
         <table className="pt-table pt-interactive pt-striped pt-condensed" style={{ width: "100%" }}>
           <thead>
             <tr>
-            <th>Coords</th>
+            <th>Namespace</th>
+            <th>Id</th>
             <th>Type</th>
             <th>Name</th>
             <th>Description</th>
