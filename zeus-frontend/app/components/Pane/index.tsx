@@ -19,7 +19,7 @@ export default class Pane extends React.Component<PaneProps, {}> {
     return (
       <div
         className={classNames(Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-        style={{ overflow: "auto", height: "500px", width: "100%", display: /*this.props.visible*/ true ? "flex" : "none", flexDirection: "column" }}
+        style={{ overflow: "auto", display: /*this.props.visible*/ true ? "flex" : "none", flexDirection: "column" }}
       >
         {this.maybeHeader()}
         
