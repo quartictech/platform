@@ -4,11 +4,16 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import * as _ from "underscore";
 import Pane from "../../components/Pane";
-import RoadSchematic from "../../components/RoadSchematic";
+import RoadSchematic, { RoadSchematicSection } from "../../components/RoadSchematic";
 
 
-const DATA = _.flatten(
-  _.range(40).map(x => _.range(4).map(y => ({x, y, val: (Math.random() < 0.25) ? Math.random() : 0})))
+const DATA: RoadSchematicSection[] = _.flatten(
+  _.range(40).map(x => _.range(4).map(y => ({
+    xMin: x * 20,
+    xMax: (x + 1) * 20,
+    lane: y,
+    value: (Math.random() < 0.25) ? Math.random() : 0
+  } as RoadSchematicSection)))
 );
 
 interface State {
@@ -29,7 +34,7 @@ class SchematicView extends React.Component<{}, State> {
         <div style={{ width: "100%" }}>
           <h1>Oh hello</h1>
           <Pane title="Roads are noob" iconName="drive-time">
-            <RoadSchematic data={DATA} />
+            <RoadSchematic sections={DATA} />
           </Pane>
         </div>
       </DocumentTitle>
