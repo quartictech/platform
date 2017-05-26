@@ -8,17 +8,10 @@ import {
 import Pane from "../../components/Pane";
 import NormalPicker from "../../components/NormalPicker";
 import RoadSchematic, { RoadSchematicSection } from "../../components/RoadSchematic";
-
-import {
-  ResourceState,
-  ResourceStatus,
-} from "../../api-management";
-
 import { Asset } from "../../models";
 
-
 interface SchematicProps {
-  asset: ResourceState<Asset>;
+  asset: Asset;
 }
 
 interface State {
@@ -60,23 +53,15 @@ class Schematic extends React.Component<SchematicProps, State> {
   }
 
   private getSurveySections(): RoadSchematicSection[] {
-    const asset = this.props.asset;
-    switch (asset.status) {
-      case ResourceStatus.LOADED:
-        console.log("surveys", asset.data["_surveys"]);
-        return _.chain(asset.data["_surveys"])
-          .filter(s => moment(s["start_date"]).year().toString() === this.state.yearSelection)
-          .map(s => ({
-            xMin: s["schain"],
-            xMax: s["echain"],
-            value: _.size(s["defects"]),
-            lane: s["xsect"],
-          }))
-          .value();
-
-      default:
-        return [];
-    }
+    return _.chain(this.props.asset["_surveys"])
+      .filter(s => moment(s["start_date"]).year().toString() === this.state.yearSelection)
+      .map(s => ({
+        xMin: s["schain"],
+        xMax: s["echain"],
+        value: _.size(s["defects"]),
+        lane: s["xsect"],
+      }))
+      .value();
   }
 }
 
