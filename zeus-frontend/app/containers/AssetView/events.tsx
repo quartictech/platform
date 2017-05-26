@@ -49,46 +49,46 @@ const EventsTable: React.SFC<EventsTableProps> = (props) => {
 };
 
 function renderEventRow(idx, event) {
-    if (event.type === "job" || event.type === "job_geo") {
-      return (
-        <tr key={idx}>
-          <td>
-              { event.type === "job" ? <span className="pt-icon-standard pt-icon-person"></span> :
-                <span className="pt-icon-standard pt-icon-geosearch"></span> } {event["Number"]}
-          </td>
+  if (event.type === "job" || event.type === "job_geo") {
+    return (
+      <tr key={idx}>
+        <td>
+            { event.type === "job" ? <span className="pt-icon-standard pt-icon-person"></span> :
+              <span className="pt-icon-standard pt-icon-geosearch"></span> } {event["Number"]}
+        </td>
 
-          <td>
-            {event._date ? moment(event._date).format("Do MMM YYYY") : null}
-          </td>
+        <td>
+          {event._date ? moment(event._date).format("Do MMM YYYY") : null}
+        </td>
 
-          <td>
-            { event["Type"] }
-          </td>
+        <td>
+          { event["Type"] }
+        </td>
 
-          <td>
-            {event["Notes"]}
-          </td>
-        </tr>);
-    } else if (event.type === "treatment") {
-      return (
-        <tr key={idx}>
-          <td>
-            <span className="pt-icon-standard pt-icon-tint"></span> {event["Confirm Number"]}
-          </td>
+        <td>
+          {event["Notes"]}
+        </td>
+      </tr>);
+  } else if (event.type === "treatment") {
+    return (
+      <tr key={idx}>
+        <td>
+          <span className="pt-icon-standard pt-icon-tint"></span> {event["Confirm Number"]}
+        </td>
 
-          <td>
-            {event._date ? moment(event._date).format("Do MMM YYYY") : null}
-          </td>
+        <td>
+          {event._date ? moment(event._date).format("Do MMM YYYY") : null}
+        </td>
 
-          <td>
-            {event["Treatment"]} <br />
-          </td>
+        <td>
+          {event["Treatment"]} <br />
+        </td>
 
-          <td>
-            {event["Notes"]}
-          </td>
-        </tr>);
-    }
+        <td>
+          {event["Notes"]}
+        </td>
+      </tr>);
   }
+}
 
-  export default EventsTable;
+export default EventsTable;

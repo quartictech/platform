@@ -2,10 +2,8 @@ import * as React from "react";
 const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import * as numeral from "numeraljs";
-import * as classNames from "classnames";
-import * as _ from "underscore";
 import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
+import Attributes from "./attributes";
 import Schematic from "./schematic";
 import EventsTable from "./events";
 
@@ -17,11 +15,9 @@ import {
 
 import {
   Classes,
-  Intent,
   NonIdealState,
   Position,
   Spinner,
-  Tag,
 } from "@blueprintjs/core";
 
 import {
@@ -33,7 +29,6 @@ import * as actions from "../../redux/actions";
 import { Asset } from "../../models";
 const s = require("./style.css");
 
-import { toTitleCase } from "../../helpers/Utils";
 import { TimeChart } from "../../components/TimeChart";
 import { Map } from "../../components/Map";
 import NormalPicker from "../../components/NormalPicker";
@@ -173,53 +168,6 @@ class AssetView extends React.Component<IProps, IState> {
     );
   }
 
-  private renderStat(key, value, quartile) {
-    let color = null;
-    let tag = null;
-    if (quartile > 0.9) {
-      color = "rgba(219, 55, 55, 0.4)";   // Alpha-modified version of callout with INTENT_DANGER
-      tag = <Tag style={{ float: "right" }} intent={Intent.DANGER}>Top 10% offender</Tag>;
-    } else if (quartile > 0.67) {
-      color = "rgba(217, 130, 43, 0.4)";  // Alpha-modified version of callout with INTENT_WARNING
-      tag = <Tag style={{ float: "right" }} intent={Intent.WARNING}>Top 33% offender</Tag>;
-    } else if (quartile < 0.25) {
-      color = "rgba(15, 153, 96, 0.4)";  // Alpha-modified version of callout with INTENT_SUCCESS
-      tag = <Tag style={{ float: "right" }} intent={Intent.SUCCESS}>Bottom 25% offender</Tag>;
-    }
-    return (
-      <tr className={classNames(Classes.CALLOUT)} style={{ backgroundColor: color }}>
-        <td className={s["attribute-name"]}>{key}</td>
-        <td>{value} {tag}</td>
-      </tr>
-    );
-  }
-
-  private renderAttributes(asset) {
-    return (
-      <div>
-        <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
-          <h1>{asset.RSL}</h1>
-          <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
-            <tbody>
-              {
-                _.map({
-                  "Road name": toTitleCase(asset["Road Name"]),
-                  "Section description": toTitleCase(asset["Section Description"]),
-                  "Link place": `${asset["Link"]} ${asset["Place"]}`,
-                  "Length (m)": numeral(asset["Length"]).format("0.00"),
-                  "Speed limit (mph)": asset["Speed Limit"],
-                }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
-              }
-              {_.map(asset._stats, (v, k) => this.renderStat(k, numeral(v[0]).format("0.00"), v[1]))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
-
-
-
   private renderData() {
     const asset = this.props.asset;
     switch (asset.status) {
@@ -228,7 +176,7 @@ class AssetView extends React.Component<IProps, IState> {
           <div style={{flex: 1}}>
             <div className={s.splitRow}>
               <div className={s.splitLeft}>
-                {this.renderAttributes(asset.data)}
+                <Attributes asset={asset.data} />
               </div>
               <div className={s.splitRight}>
                 {this.renderMap(asset.data)}
