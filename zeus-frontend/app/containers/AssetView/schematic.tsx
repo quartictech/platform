@@ -33,7 +33,7 @@ class Schematic extends React.Component<SchematicProps, State> {
           title="Defects schematic"
           iconName="error"
           extraHeaderContent={this.yearPicker()}>
-          <RoadSchematic sections={this.getSurveySections()} />
+          <RoadSchematic sections={this.getSurveySections()} maxValue={this.getMaxValue()} />
         </Pane>
       </div>
     );
@@ -50,6 +50,10 @@ class Schematic extends React.Component<SchematicProps, State> {
         onChange={id => this.setState({ yearSelection: id })}
       />
     );
+  }
+
+  private getMaxValue(): number {
+    return _.max(_.map(this.props.asset["_surveys"], s => _.size(s["defects"])));
   }
 
   private getSurveySections(): RoadSchematicSection[] {

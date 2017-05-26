@@ -15,10 +15,12 @@ export interface RoadSchematicSection {
 
 interface RoadSchematicProps {
   sections: RoadSchematicSection[];
+  maxValue: number;
 }
 
 interface State {
   dataset: Plottable.Dataset,
+  colorScale: Plottable.Scales.InterpolatedColor,
   xScale: Plottable.Scales.Linear,
   yScale: Plottable.Scales.Category,
   plottableComponent: Plottable.Component;
@@ -46,13 +48,14 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   }
 
   componentWillUpdate(nextProps: RoadSchematicProps) {
-    if (nextProps.sections !== this.props.sections) {
+    if (nextProps.sections !== this.props.sections || nextProps.maxValue !== this.props.maxValue) {
       this.setPlotData(nextProps.sections);
       this.state.plottableComponent.redraw();
     }
   }
 
   private setPlotData(sections: RoadSchematicSection[]) {
+    this.state.colorScale.domain([0, this.props.maxValue]);
     this.state.xScale
       .domainMin(_.min(sections, s => s.xMin).xMin || 0)
       .domainMax(_.max(sections, s => s.xMax).xMax || 0);
@@ -110,7 +113,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       [null, null,  xAxis]
     ]);
 
-    return { dataset, xScale, yScale, plottableComponent };
+    return { dataset, colorScale, xScale, yScale, plottableComponent };
   } 
 }
 
