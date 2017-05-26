@@ -7,6 +7,7 @@ import * as numeral from "numeraljs";
 import * as classNames from "classnames";
 import * as _ from "underscore";
 import { TimeSeriesPoint, MaintenanceEvent } from "../../models";
+import Schematic from "./schematic";
 
 import {
   resourceActions,
@@ -122,7 +123,7 @@ class AssetView extends React.Component<IProps, IState> {
     const events = this.computeEvents(asset);
     return (
       <Pane
-        title="Defects"
+        title="Defects vs. time"
         iconName="error"
         extraHeaderContent={asset._defect_time_series ? this.renderChartButtons(asset) : null}
       >
@@ -311,6 +312,7 @@ class AssetView extends React.Component<IProps, IState> {
               </div>
             </div>
             {this.renderDefectsChart(asset.data)}
+            <Schematic asset={asset} />
             {this.renderEventsTable(asset.data)}
           </div>
         );

@@ -1,7 +1,4 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
-import { connect } from "react-redux";
-import { createStructuredSelector } from "reselect";
 import * as moment from "moment";
 import * as _ from "underscore";
 import {
@@ -13,55 +10,39 @@ import NormalPicker from "../../components/NormalPicker";
 import RoadSchematic, { RoadSchematicSection } from "../../components/RoadSchematic";
 
 import {
-  resourceActions,
   ResourceState,
   ResourceStatus,
 } from "../../api-management";
 
-import {
-  asset,
-} from "../../api";
-
 import { Asset } from "../../models";
-import * as selectors from "../../redux/selectors";
 
 
-interface Props {
-  params: {
-    assetId: string;
-  };
-
+interface SchematicProps {
   asset: ResourceState<Asset>;
-  assetRequired: (string) => void;
 }
 
 interface State {
-  plot: any;
   yearSelection: string;
 }
 
-class SchematicView extends React.Component<Props, State> {
-  constructor(props: Props) {
+class Schematic extends React.Component<SchematicProps, State> {
+  constructor(props: SchematicProps) {
     super(props);
     this.state = {
-      plot: null,
       yearSelection: "2016",
     };
   }
 
   render() {
     return (
-      <DocumentTitle title="Quartic - Road schematic">
-        <div style={{ width: "100%" }}>
-          <h1>Oh hello</h1>
-          <Pane
-            title="Roads are noob"
-            iconName="drive-time"
-            extraHeaderContent={this.yearPicker()}>
-            <RoadSchematic sections={this.getSurveySections()} />
-          </Pane>
-        </div>
-      </DocumentTitle>
+      <div style={{ width: "100%" }}>
+        <Pane
+          title="Defects schematic"
+          iconName="error"
+          extraHeaderContent={this.yearPicker()}>
+          <RoadSchematic sections={this.getSurveySections()} />
+        </Pane>
+      </div>
     );
   }
 
@@ -76,20 +57,6 @@ class SchematicView extends React.Component<Props, State> {
         onChange={id => this.setState({ yearSelection: id })}
       />
     );
-  }
-
-  componentWillMount() {
-    this.onNewAsset(this.props.params.assetId);
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.params.assetId !== nextProps.params.assetId) {
-      this.onNewAsset(nextProps.params.assetId);
-    }
-  }
-
-  private onNewAsset(assetId: string) {
-    this.props.assetRequired(assetId);
   }
 
   private getSurveySections(): RoadSchematicSection[] {
@@ -113,15 +80,4 @@ class SchematicView extends React.Component<Props, State> {
   }
 }
 
-const mapDispatchToProps = {
-  assetRequired: resourceActions(asset).required,
-};
-
-const mapStateToProps = createStructuredSelector({
-  asset: selectors.selectAsset,
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SchematicView);
+export default Schematic;
