@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as moment from "moment";
+import * as numeral from "numeraljs";
 import * as _ from "underscore";
 import {
   Position,
@@ -64,8 +65,8 @@ class Schematic extends React.Component<SchematicProps, State> {
     return _.chain(this.props.asset["_surveys"])
       .filter(s => moment(s["start_date"]).year().toString() === this.state.yearSelection)
       .map(s => ({
-        xMin: s["schain"],
-        xMax: s["echain"],
+        xMin: numeral(s["schain"]),
+        xMax: numeral(s["echain"]),
         value: _.size(s["defects"]),
         lane: s["xsect"],
       }))
