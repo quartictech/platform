@@ -24,11 +24,17 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
     };
   }
 
+  public componentWillMount() {
+    this.onNewStuff(this.props);
+  }
+
   componentWillReceiveProps(nextProps: DefectsChartProps) {
-    if (!this.state.seriesSelection &&
-      nextProps.asset &&
-      nextProps.asset._defect_time_series) {
-      const timeSeriesKeys = Object.keys(nextProps.asset._defect_time_series);
+    this.onNewStuff(nextProps);
+  }
+
+  private onNewStuff(props: DefectsChartProps) {
+    if (!this.state.seriesSelection && props.asset && props.asset._defect_time_series) {
+      const timeSeriesKeys = Object.keys(props.asset._defect_time_series);
       if (timeSeriesKeys.length > 0) {
         this.setState({ seriesSelection: timeSeriesKeys[0] });
       }
