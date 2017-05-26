@@ -33,7 +33,11 @@ class Schematic extends React.Component<SchematicProps, State> {
           title="Defects schematic"
           iconName="error"
           extraHeaderContent={this.yearPicker()}>
-          <RoadSchematic sections={this.getSurveySections()} maxValue={this.getMaxValue()} />
+          <RoadSchematic
+            sections={this.getSurveySections()}
+            maxValue={this.getMaxValue()}
+            hoverText={s => <span><b>Defect count:</b> {s.value}</span>}
+          />
         </Pane>
       </div>
     );

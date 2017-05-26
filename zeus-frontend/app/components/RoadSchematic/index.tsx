@@ -1,8 +1,11 @@
 import * as React from "react";
 import * as Plottable from "plottable";
 import {
+  Classes,
   Colors,
+  Utils as BlueprintUtils,
 } from "@blueprintjs/core";
+import * as classNames from "classnames";
 import * as _ from "underscore";
 
 
@@ -16,6 +19,7 @@ export interface RoadSchematicSection {
 interface RoadSchematicProps {
   sections: RoadSchematicSection[];
   maxValue: number;
+  hoverText?: (RoadSchematicSection) => string | JSX.Element;
 }
 
 interface State {
@@ -24,6 +28,7 @@ interface State {
   xScale: Plottable.Scales.Linear;
   yScale: Plottable.Scales.Category;
   plottableComponent: Plottable.Component;
+  hoveredSection: RoadSchematicSection;
 }
 
 class RoadSchematic extends React.Component<RoadSchematicProps, State> {
@@ -38,6 +43,15 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     return (
         <div style={{padding: "10px", width: "99%"}}>
           <svg style={{ width: "100%", height: 175 }} ref="svg" />
+          <span
+            style={{ visibility: this.state.hoveredSection ? "visible" : "hidden" }}
+            className={classNames(Classes.CALLOUT, Classes.TEXT_MUTED)}
+          >
+            {this.state.hoveredSection
+              ? BlueprintUtils.safeInvoke(this.props.hoverText, this.state.hoveredSection)
+              : ""
+            }
+          </span>
         </div>
     );
   }
@@ -103,17 +117,40 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       .attr("stroke", Colors.LIGHT_GRAY5)
       .attr("stroke-width", 1);
 
+    const plotHighlighter = new Plottable.Plots.Rectangle()
+      .addDataset(dataset)
+      .x((s: RoadSchematicSection) => s.xMin, xScale)
+      .x2((s: RoadSchematicSection) => s.xMax)
+      .y((s: RoadSchematicSection) => s.lane, yScale)
+      .attr("fill", "black")
+      .attr("fill-opacity", 0);
+
+    const interaction = new Plottable.Interactions.Pointer();
+    interaction.onPointerMove((p) => {
+      const nearestEntity = plotHighlighter.entityNearest(p);
+      this.setState({ hoveredSection: nearestEntity.datum });
+      plotHighlighter.entities().forEach(entity =>
+        entity.selection.attr("fill-opacity", (entity.index === nearestEntity.index) ? 0.5 : 0));
+    });
+    interaction.onPointerExit(() => {
+      this.setState({ hoveredSection: null });
+      plotHighlighter.entities().forEach(entity => entity.selection.attr("fill-opacity", 0));
+    });
+    interaction.attachTo(plot);
+
     const xAxis = new Plottable.Axes.Numeric(xScale, "bottom");
     const yAxis = new Plottable.Axes.Category(yScale, "left");
 
     const yLabel = new Plottable.Components.AxisLabel("Lane", 270);
 
+    const group = new Plottable.Components.Group([plot, plotHighlighter]);
+
     const plottableComponent = new Plottable.Components.Table([
-      [yLabel, yAxis, plot],
+      [yLabel, yAxis, group],
       [null, null,  xAxis],
     ]);
 
-    return { dataset, colorScale, xScale, yScale, plottableComponent };
+    return { dataset, colorScale, xScale, yScale, plottableComponent, hoveredSection: null };
   } 
 }
 
