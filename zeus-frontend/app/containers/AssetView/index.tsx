@@ -346,8 +346,6 @@ class AssetView extends React.Component<IProps, IState> {
   }
 }
 
-export { AssetView };
-
 const mapDispatchToProps = {
   closeNewDatasetModal: () => actions.setActiveModal(null as string),
   assetRequired: resourceActions(asset).required,

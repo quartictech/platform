@@ -9,7 +9,7 @@ import * as _ from "underscore";
 export interface RoadSchematicSection {
   xMin: number;
   xMax: number;
-  lane: number;
+  lane: string;
   value: number;
 }
 
@@ -20,6 +20,7 @@ interface RoadSchematicProps {
 interface State {
   dataset: Plottable.Dataset,
   xScale: Plottable.Scales.Linear,
+  yScale: Plottable.Scales.Category,
   plottableComponent: Plottable.Component;
 }
 
@@ -53,9 +54,32 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
   private setPlotData(sections: RoadSchematicSection[]) {
     this.state.xScale
-      .domainMin(_.min(sections, s => s.xMin).xMin)
-      .domainMax(_.max(sections, s => s.xMax).xMax);
+      .domainMin(_.min(sections, s => s.xMin).xMin || 0)
+      .domainMax(_.max(sections, s => s.xMax).xMax || 0);
+    this.state.yScale.domain(this.createLaneDomain(sections));
     this.state.dataset.data(sections);
+  }
+
+  private createLaneDomain(sections: RoadSchematicSection[]) {
+    const currentLanes = _.chain(sections)
+      .map(s => s.lane)
+      .uniq()
+      .value();
+
+    // TODO: what about off-road features?  And more lanes
+    const allLanes = ([
+      "LE",
+      "-L3", "-L2", "-L1",
+      "CL1", "CL2", "CL3",
+      "+L1", "+L2", "+L3",
+      "CC",
+      "+R3", "+R2", "+R1",
+      "CR3", "CR2", "CR1",
+      "-R1", "-R2", "-R3",
+      "RE",
+    ]);
+
+    return _.filter(allLanes, l => _.contains(currentLanes, l));
   }
 
   private createInitialState(): State {
@@ -63,6 +87,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
     const xScale = new Plottable.Scales.Linear();
     const yScale = new Plottable.Scales.Category();
+
     const colorScale = new Plottable.Scales.InterpolatedColor()
       .range([Colors.GRAY1, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1]);
 
@@ -85,8 +110,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       [null, null,  xAxis]
     ]);
 
-
-    return { dataset, xScale, plottableComponent };
+    return { dataset, xScale, yScale, plottableComponent };
   } 
 }
 

@@ -12,7 +12,7 @@ function getRoutes() { return (
       <Route path="/explorer/:datasetName" component={ExplorerView} />
       <Route path="/assets/:assetId" component={AssetView} />
       <Route path="/insights/:insightId" component={InsightView} />
-      <Route path="/schematic" component={SchematicView} />
+      <Route path="/schematic/:assetId" component={SchematicView} />
       <IndexRedirect to="/search" />
     </Route>
   );
