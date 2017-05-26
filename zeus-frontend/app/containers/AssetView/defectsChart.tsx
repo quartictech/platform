@@ -103,6 +103,6 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
       />
     );
   }
-};
+}
 
 export default DefectsChart;

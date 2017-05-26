@@ -19,10 +19,10 @@ interface RoadSchematicProps {
 }
 
 interface State {
-  dataset: Plottable.Dataset,
-  colorScale: Plottable.Scales.InterpolatedColor,
-  xScale: Plottable.Scales.Linear,
-  yScale: Plottable.Scales.Category,
+  dataset: Plottable.Dataset;
+  colorScale: Plottable.Scales.InterpolatedColor;
+  xScale: Plottable.Scales.Linear;
+  yScale: Plottable.Scales.Category;
   plottableComponent: Plottable.Component;
 }
 
@@ -110,7 +110,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
     const plottableComponent = new Plottable.Components.Table([
       [yLabel, yAxis, plot],
-      [null, null,  xAxis]
+      [null, null,  xAxis],
     ]);
 
     return { dataset, colorScale, xScale, yScale, plottableComponent };
