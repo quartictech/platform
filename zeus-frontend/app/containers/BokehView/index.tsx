@@ -38,7 +38,7 @@ class BokehView extends React.Component<BokehViewProps, {}> {
     const bokeh = (window as any).bokeh;
 
 
-    bokeh.client.pull_session("wss://core.quartic.io/dashboards/flytipping/ws", sessionId)
+    bokeh.client.pull_session("ws://localhost:5006/dashboards/flytipping/ws", sessionId)
       .then(
         (session) => {
             const roots = session.document.roots();
@@ -54,7 +54,7 @@ class BokehView extends React.Component<BokehViewProps, {}> {
               itemFor("map", "bokeh-map"),
             ];
 
-            bokeh.embed.embed_items(null, items, "/dashboards/flytipping", "wss://core.quartic.io");
+            bokeh.embed.embed_items(null, items, "/dashboards/flytipping", "ws://localhost:5006");
         },
         (error) => console.error(error),
       );
