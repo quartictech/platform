@@ -11,9 +11,9 @@ interface BokehViewProps {
 class BokehView extends React.Component<BokehViewProps, {}> {
   public render() {
     return (
-      <DocumentTitle title="Quartic - Bokeh weirdness">
+      <DocumentTitle title="Quartic - Flytipping">
         <div className={styles.container}>
-          <Pane title="Some weirdness" iconName="help">
+          <Pane title="Flytipping over time" iconName="help">
             <div className="bk-root" style={{ width: "100%" }}>
               <div className="bk-plotdiv" style={{ position: "relative" }}>
                 <div id="bokeh-plot" />
@@ -21,7 +21,7 @@ class BokehView extends React.Component<BokehViewProps, {}> {
             </div>
           </Pane>
 
-          <Pane title="Some other weirdness" iconName="help">
+          <Pane title="Flytipping map" iconName="help">
             <div className="bk-root" style={{ width: "100%" }}>
               <div className="bk-plotdiv" style={{ position: "relative", height: "500px" }}>
                 <div id="bokeh-map" />

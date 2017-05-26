@@ -128,7 +128,7 @@ class Header extends React.Component<HeaderProps, void> {
         <MenuItem iconName="layout-auto" text="Highest / lowest defects (2016)" href={appHistory.createHref({
           pathname: "/insights",
         })} />
-        <MenuItem iconName="layout-auto" text="Bokeh weirdness" href={appHistory.createHref({
+        <MenuItem iconName="layout-auto" text="Flytipping" href={appHistory.createHref({
           pathname: "/bokeh",
         })} />
         <MenuItem disabled={true} iconName="layout-auto" text="Predictions (2017)" href={appHistory.createHref({
@@ -184,4 +184,3 @@ const mapStateToProps = createStructuredSelector({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Header);
-
