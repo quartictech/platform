@@ -24,17 +24,17 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
     };
   }
 
-  public componentWillReceiveProps(nextProps: DefectsChartProps) {
+  componentWillReceiveProps(nextProps: DefectsChartProps) {
     if (!this.state.seriesSelection &&
-      nextProps.asset.data &&
-      nextProps.asset.data._defect_time_series) {
-      const timeSeriesKeys = Object.keys(nextProps.asset.data._defect_time_series);
+      nextProps.asset &&
+      nextProps.asset._defect_time_series) {
+      const timeSeriesKeys = Object.keys(nextProps.asset._defect_time_series);
       if (timeSeriesKeys.length > 0) {
         this.setState({ seriesSelection: timeSeriesKeys[0] });
       }
     }
   }
-
+  
   render() {
     const timeSeries = this.computeTimeSeries(this.props.asset);
     const events = this.computeEvents(this.props.asset);
@@ -44,7 +44,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
         iconName="error"
         extraHeaderContent={this.props.asset._defect_time_series ? this.renderChartButtons(this.props.asset) : null}
       >
-        { this.props.asset._defect_time_series ?
+        { (this.props.asset._defect_time_series && this.state.seriesSelection) ?
           <TimeChart
             yLabel={this.state.seriesSelection}
             events={events}
