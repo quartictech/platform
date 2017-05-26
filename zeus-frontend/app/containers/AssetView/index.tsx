@@ -3,6 +3,7 @@ const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't w
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import Attributes from "./attributes";
+import PreviewMap from "./previewMap";
 import DefectsChart from "./defectsChart";
 import Schematic from "./schematic";
 import EventsTable from "./eventsTable";
@@ -27,9 +28,6 @@ import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 import { Asset } from "../../models";
 const s = require("./style.css");
-
-import { Map } from "../../components/Map";
-import Pane from "../../components/Pane";
 
 interface IProps {
   ui: any;
@@ -61,24 +59,6 @@ class AssetView extends React.Component<IProps, {}> {
     this.setState({ defectChartSelection: null });
   }
 
-  private renderMap(asset) {
-    const fc: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: asset._geometry,
-          properties: {},
-        },
-      ],
-    };
-    return (
-      <Pane>
-        <Map height={100} width={500} featureCollection={fc}/>
-      </Pane>
-    );
-  }
-
   private renderData() {
     const asset = this.props.asset;
     switch (asset.status) {
@@ -90,7 +70,7 @@ class AssetView extends React.Component<IProps, {}> {
                 <Attributes asset={asset.data} />
               </div>
               <div className={s.splitRight}>
-                {this.renderMap(asset.data)}
+                <PreviewMap asset={asset.data} />
               </div>
             </div>
             <DefectsChart asset={asset.data} />
