@@ -8,8 +8,6 @@ import {
 import * as classNames from "classnames";
 import * as _ from "underscore";
 
-// TODO: error for 2015 for B3003/020_3E_01
-
 // See http://www.ukpms.com/owner_forum/shared_files/UKPMS_Manual_02_Chapter4_XSP_v04.pdf
 // TODO: what about off-road features?  And more lanes
 const ALL_LANES = ([
@@ -54,18 +52,21 @@ interface PlotBits {
 interface State {
   plot: PlotBits;
   hoveredSection: RoadSchematicSection;
-  intervalMap: XspToInterval;
 }
 
 
 class RoadSchematic extends React.Component<RoadSchematicProps, State> {
+  // Managed outside of React state to avoid setState not actually updating intervalMap before Plottable redraw
+  // requires it.
+  private intervalMap: XspToInterval;
+
   constructor(props: RoadSchematicProps) {
     super(props);
     this.state = {
       plot: this.createInitialPlotState(),
       hoveredSection: null,
-      intervalMap: intervalMap(props.sections),
     };
+    this.intervalMap = intervalMap(props.sections);
     this.setPlotData(props.sections); // Attach initial data to plot
   }
 
@@ -94,8 +95,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
   componentWillUpdate(nextProps: RoadSchematicProps) {
     if (nextProps.sections !== this.props.sections || nextProps.maxValue !== this.props.maxValue) {
+      this.intervalMap = intervalMap(nextProps.sections);
       this.setPlotData(nextProps.sections);
-      this.setState({ intervalMap: intervalMap(nextProps.sections) });
       this.state.plot.outer.redraw();
     }
   }
@@ -106,8 +107,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       .domainMin(_.min(sections, s => s.xMin).xMin || 0)
       .domainMax(_.max(sections, s => s.xMax).xMax || 0);
     this.state.plot.yScale
-      .domain([0, _.max(this.state.intervalMap, i => i[1])[1]])
-      .tickGenerator(() => _.map(this.state.intervalMap, i => (i[1] + i[0]) / 2));  // Ticks at interval midpoints
+      .domain([0, _.max(this.intervalMap, i => i[1])[1]])
+      .tickGenerator(() => _.map(this.intervalMap, i => (i[1] + i[0]) / 2));  // Ticks at interval midpoints
     this.state.plot.dataset.data(sections);
   }
 
@@ -124,8 +125,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       .addDataset(dataset)
       .x((s: RoadSchematicSection) => s.xMin, xScale)
       .x2((s: RoadSchematicSection) => s.xMax)
-      .y((s: RoadSchematicSection) => this.state.intervalMap[s.lane][0], yScale)
-      .y2((s: RoadSchematicSection) => this.state.intervalMap[s.lane][1]);
+      .y((s: RoadSchematicSection) => this.intervalMap[s.lane][0], yScale)
+      .y2((s: RoadSchematicSection) => this.intervalMap[s.lane][1]);
 
     const plot = newPlot()
       .attr("fill", (s: RoadSchematicSection) => s.value, colorScale)
@@ -144,7 +145,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     // Convert tick numeric positions to corresponding XSP names
     yAxis
       .tickLabelPadding(5)
-      .formatter(label => _.findKey(this.state.intervalMap, i => i[0] < label && label < i[1]).toString());
+      .formatter(label => _.findKey(this.intervalMap, i => i[0] < label && label < i[1]).toString());
 
     const yLabel = new Plottable.Components.AxisLabel("Lane", 270);
 
@@ -189,9 +190,9 @@ const intervalMap = (sections: RoadSchematicSection[]) => _.chain(sections)
     (memo: [number, XspToInterval], lane) => {
       const nextMax = memo[0] + laneWidth(lane);
       const nextInterval = [memo[0], nextMax];
-      return [nextMax, { ...(memo[1]), [lane]: nextInterval}] as [number, XspToInterval]
+      return [nextMax, { ...(memo[1]), [lane]: nextInterval}] as [number, XspToInterval];
     },
-    [0, {}] as [number, XspToInterval]
+    [0, {}] as [number, XspToInterval],
   )
   .value()[1];
 
@@ -204,6 +205,6 @@ const laneWidth = (lane: string) => {
     default:
       return 1.0;
   }
-}
+};
 
 export default RoadSchematic;
