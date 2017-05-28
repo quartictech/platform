@@ -36,6 +36,8 @@ import {
 
  *-----------------------------------------------------*/
 
+// TODO - eliminate assets/jobs as named props params
+
 interface StateProps {
   assets: ResourceState<{ [id: string] : Asset }>;
   jobs: ResourceState<{ [id: string] : Job }>;
@@ -51,6 +53,12 @@ interface DispatchProps {
 interface OwnProps {
   className?: string;
   placeholder?: string;
+}
+
+type AllProps = StateProps & DispatchProps & OwnProps;
+
+interface State {
+  cache: { [ id: string ] : PickerEntry[] };
 }
 
 interface SearchProvider {
@@ -71,11 +79,18 @@ const mapDispatchToProps = {
   jobsRequired: resourceActions(jobs).required,
 };
 
-class SearchContainer extends React.Component<StateProps & DispatchProps & OwnProps, {}> {
-  constructor(props: StateProps & DispatchProps & OwnProps) {
+class SearchContainer extends React.Component<AllProps, State> {
+  constructor(props: AllProps) {
     super(props);
+    this.state = { cache: {} };
     this.onEntrySelect = this.onEntrySelect.bind(this);
     this.onQueryChange = this.onQueryChange.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps: AllProps) {
+    const cache = _.mapObject(this.providers(nextProps), (provider, name) =>
+      provider.loaded ? provider.results : this.state.cache[name]);
+    this.setState({ cache });
   }
 
   render() {
@@ -85,12 +100,12 @@ class SearchContainer extends React.Component<StateProps & DispatchProps & OwnPr
         iconName="search"
         defaultEntryIconName="person"
         placeholder={this.props.placeholder}
-        entries={this.results()}
+        entries={_.flatten(_.values(this.state.cache))}
         selectedKey={null}
         onEntrySelect={this.onEntrySelect}
         errorDisabled={true}
         onQueryChange={this.onQueryChange}
-        working={_.any(this.providers(), p => !p.loaded)}
+        working={_.any(this.providers(this.props), p => !p.loaded)}
       />
     );
   }
@@ -101,17 +116,13 @@ class SearchContainer extends React.Component<StateProps & DispatchProps & OwnPr
   }
 
   private onQueryChange(query: string) {
-    _.forEach(this.providers(), p => p.required(query));
+    _.forEach(this.providers(this.props), p => p.required(query));
   }
 
-  private results() {
-    return _.flatten(_.map(this.providers(), p => p.results));
-  }
-
-  private providers(): { [id: string] : SearchProvider } {
+  private providers(props: AllProps): { [id: string] : SearchProvider } {
     return {
-      "RSLs": managedResourceProvider(this.props.assetsClear, this.props.assetsRequired, this.props.assets, assetResults),
-      "Jobs": managedResourceProvider(this.props.jobsClear, this.props.jobsRequired, this.props.jobs, jobResults),
+      "RSLs": managedResourceProvider(props.assetsClear, props.assetsRequired, props.assets, assetResults),
+      "Jobs": managedResourceProvider(props.jobsClear, props.jobsRequired, props.jobs, jobResults),
     };
   }
 }
