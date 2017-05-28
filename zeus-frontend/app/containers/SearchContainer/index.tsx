@@ -2,11 +2,7 @@ import * as React from "react";
 import * as Redux from "redux";
 import { connect } from "react-redux";
 import * as _ from "underscore";
-
 import Picker, { PickerEntry } from "../../components/Picker";
-import {
-  ResourceState,
-} from "../../api-management";
 
 /*-----------------------------------------------------*
   TODO
@@ -23,10 +19,22 @@ import {
 
  *-----------------------------------------------------*/
 
-// TODO - eliminate assets/jobs as named props params
+export interface SearchContext {
+  required: (string) => void;
+  results: PickerEntry[],
+  loaded: boolean;  
+}
+
+export interface SearchContextMapper {
+  (dispatch: Redux.Dispatch<any>): SearchContext
+}
+
+export interface SearchProvider {
+  (reduxState: any): SearchContextMapper;
+}
 
 interface StateProps {
-  states: { [id: string] : ResourceState<any> };
+  mappers: { [id: string] : SearchContextMapper };
 }
 
 interface DispatchProps {
@@ -36,21 +44,13 @@ interface DispatchProps {
 interface OwnProps {
   className?: string;
   placeholder?: string;
-  providers: { [id: string] : SearchProvider<any> };
+  providers: { [id: string] : SearchProvider };
 }
 
 export type AllProps = StateProps & DispatchProps & OwnProps;
 
 interface State {
   cache: { [ id: string ] : PickerEntry[] };
-}
-
-// TODO - get rid of props currying
-export interface SearchProvider<TStore> {
-  selector: (state) => TStore;
-  required: (dispatch: Redux.Dispatch<any>, fromStore: TStore) => (string) => void;
-  results: (dispatch: Redux.Dispatch<any>, fromStore: TStore) => PickerEntry[],
-  loaded: (dispatch: Redux.Dispatch<any>, fromStore: TStore) => boolean;
 }
 
 class SearchContainer extends React.Component<AllProps, State> {
@@ -60,12 +60,9 @@ class SearchContainer extends React.Component<AllProps, State> {
     this.state = { cache: {} };
   }
 
+  // TODO - optimise for no change in data
   componentWillReceiveProps(nextProps: AllProps) {
-    const cache = _.mapObject(nextProps.providers, (provider: SearchProvider<any>, name) =>
-      provider.loaded(nextProps.dispatch, nextProps.states[name])
-      ? provider.results(nextProps.dispatch, nextProps.states[name])
-      : this.state.cache[name]
-    );
+    const cache = _.mapObject(contexts(nextProps), (ctx, name) => ctx.loaded ? ctx.results : this.state.cache[name]);
     this.setState({ cache });
   }
 
@@ -80,15 +77,17 @@ class SearchContainer extends React.Component<AllProps, State> {
         selectedKey={null}
         onEntrySelect={entry => (entry as any).onSelect()}
         errorDisabled={true}
-        onQueryChange={query => _.forEach(this.props.providers, (p, name) => p.required(this.props.dispatch, this.props.states[name])(query))}
-        working={_.any(this.props.providers, (p, name) => !p.loaded(this.props.dispatch, this.props.states[name]))}
+        onQueryChange={query => _.forEach(contexts(this.props), ctx => ctx.required(query))}
+        working={_.any(contexts(this.props), ctx => !ctx.loaded)}
       />
     );
   }
 }
 
+const contexts = (props: AllProps) => _.mapObject(props.mappers, m => m(props.dispatch));
+
 const mapStateToProps = (state: any, ownProps: OwnProps) => ({
-  states: _.mapObject(ownProps.providers, p => p.selector(state)),
+  mappers: _.mapObject(ownProps.providers, provider => provider(state)),
 });
 
 export default connect<StateProps, DispatchProps, OwnProps>(mapStateToProps, null)(SearchContainer);

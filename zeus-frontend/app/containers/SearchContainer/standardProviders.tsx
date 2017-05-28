@@ -20,28 +20,26 @@ import {
 } from "../../models";
 
 
-type SearchResourceState<T> = ResourceState<{ [id: string] : T }>;
-
 function managedResourceProvider<T>(
   resource: ManagedResource<{ [id: string] : T }>,
   mapper: (id: string, item: T) => PickerEntry,
-  selector: (state: any) => SearchResourceState<T>
+  selector: (state: any) => ResourceState<{ [id: string] : T }>
 ) {
-  return {
-    required: (dispatch: Redux.Dispatch<any>, _fromStore: SearchResourceState<T>) => (query: string) => {
-      if (query.length > 0) {
-        dispatch(resourceActions(resource).required(query, 5));
-      } else {
-        dispatch(resourceActions(resource).clear());
-      }
-    },
-    results: (_dispatch: Redux.Dispatch<any>, fromStore: SearchResourceState<T>) =>
-        _.map(fromStore.data, (item, id) => mapper(id, item)),
-    loaded: (_dispatch: Redux.Dispatch<any>, fromStore: SearchResourceState<T>) =>
-        fromStore.status !== ResourceStatus.LOADING,
-    selector,
-  } as SearchProvider<SearchResourceState<T>>;
-};
+  return (reduxState: any) => {
+    const resourceState = selector(reduxState);
+    return (dispatch: Redux.Dispatch<any>) => ({
+      required: (query: string) => {
+        if (query.length > 0) {
+            dispatch(resourceActions(resource).required(query, 5));
+        } else {
+            dispatch(resourceActions(resource).clear());
+        }
+      },
+      results: _.map(resourceState.data, (item, id) => mapper(id, item)),
+      loaded: resourceState.status !== ResourceStatus.LOADING,
+    });
+  };
+}
 
 
 const assetResults = (id: string, item: Asset) => ({
@@ -68,7 +66,7 @@ const jobResults = (id: string, item: Job) => ({
 });
 
 
-const standardProviders: { [id: string] : SearchProvider<any> } = {
+const standardProviders: { [id: string] : SearchProvider } = {
   assets: managedResourceProvider(
     assets,
     assetResults,
