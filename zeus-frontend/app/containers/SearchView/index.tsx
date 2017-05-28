@@ -7,7 +7,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 
-import Search from "../../components/Search";
+import SearchContainer from "../../containers/SearchContainer";
 import * as selectors from "../../redux/selectors";
 import {
   resourceActions,
@@ -39,14 +39,8 @@ class SearchView extends React.Component<SearchViewProps, {}> {
     return (
       <DocumentTitle title="Quartic - Search">
         <div className={s.container} style={{ marginTop: "10%" }}>
-          <Search
+          <SearchContainer
             className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
-            assetsClear={this.props.assetsClear}
-            assetsRequired={this.props.assetsRequired}
-            assets={this.props.assets}
-            jobsClear={this.props.jobsClear}
-            jobsRequired={this.props.jobsRequired}
-            jobs={this.props.jobs}
             placeholder="What do you want to know?"
           />
         </div>

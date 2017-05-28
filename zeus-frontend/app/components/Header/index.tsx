@@ -14,7 +14,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
-import Search from "../../components/Search";
+import SearchContainer from "../../containers/SearchContainer";
 import * as selectors from "../../redux/selectors";
 import {
   resourceActions,
@@ -22,8 +22,6 @@ import {
   ResourceStatus,
 } from "../../api-management";
 import {
-  assets,
-  jobs,
   datasetList,
 } from "../../api";
 import {
@@ -72,14 +70,8 @@ class Header extends React.Component<HeaderProps, void> {
             >
             </img>
           </Link>
-          <Search
+          <SearchContainer
             className={classNames(Classes.ROUND, styles.myPicker)}
-            assetsClear={this.props.assetsClear}
-            assetsRequired={this.props.assetsRequired}
-            assets={this.props.assets}
-            jobsClear={this.props.jobsClear}
-            jobsRequired={this.props.jobsRequired}
-            jobs={this.props.jobs}
             placeholder="Search..."
           />
 
@@ -167,16 +159,10 @@ class Header extends React.Component<HeaderProps, void> {
 }
 
 const mapDispatchToProps = {
-  assetsClear: resourceActions(assets).clear,
-  assetsRequired: resourceActions(assets).required,
-  jobsClear: resourceActions(jobs).clear,
-  jobsRequired: resourceActions(jobs).required,
   datasetListRequired: resourceActions(datasetList).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  assets: selectors.selectAssets,
-  jobs: selectors.selectJobs,
   datasetList: selectors.selectDatasetList,
 });
 
