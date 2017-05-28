@@ -1,6 +1,6 @@
 import * as React from "react";
+import * as Redux from "redux";
 import { connect } from "react-redux";
-import { createStructuredSelector } from "reselect";
 import * as _ from "underscore";
 
 import Picker, { PickerEntry } from "../../components/Picker";
@@ -8,6 +8,7 @@ import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
 import { toTitleCase } from "../../helpers/Utils";
 import {
+  ManagedResource,
   resourceActions,
   ResourceState,
   ResourceStatus,
@@ -39,15 +40,11 @@ import {
 // TODO - eliminate assets/jobs as named props params
 
 interface StateProps {
-  assets: ResourceState<{ [id: string] : Asset }>;
-  jobs: ResourceState<{ [id: string] : Job }>;
+  states: { [id: string] : ResourceState<any> };
 }
 
 interface DispatchProps {
-  assetsClear: () => void;
-  assetsRequired: (string, int) => void;
-  jobsClear: () => void;
-  jobsRequired: (string, int) => void;  
+  dispatch: Redux.Dispatch<any>;
 }
 
 interface OwnProps {
@@ -61,35 +58,24 @@ interface State {
   cache: { [ id: string ] : PickerEntry[] };
 }
 
-interface SearchProvider {
-  required: (string) => void;
-  results: PickerEntry[],
-  loaded: boolean;
+// TODO - get rid of props currying
+interface SearchProvider<T> {
+  selector: (state) => ResourceState<{ [id: string] : T }>;
+  required: (props: AllProps) => (string) => void;
+  results: (props: AllProps) => PickerEntry[],
+  loaded: (props: AllProps) => boolean;
 }
-
-const mapStateToProps = createStructuredSelector({
-  assets: selectors.selectAssets,
-  jobs: selectors.selectJobs,
-});
-
-const mapDispatchToProps = {
-  assetsClear: resourceActions(assets).clear,
-  assetsRequired: resourceActions(assets).required,
-  jobsClear: resourceActions(jobs).clear,
-  jobsRequired: resourceActions(jobs).required,
-};
 
 class SearchContainer extends React.Component<AllProps, State> {
   constructor(props: AllProps) {
     super(props);
+    console.log(props);
     this.state = { cache: {} };
-    this.onEntrySelect = this.onEntrySelect.bind(this);
-    this.onQueryChange = this.onQueryChange.bind(this);
   }
 
   componentWillReceiveProps(nextProps: AllProps) {
-    const cache = _.mapObject(this.providers(nextProps), (provider, name) =>
-      provider.loaded ? provider.results : this.state.cache[name]);
+    const cache = _.mapObject(providers, (provider, name) =>
+      provider.loaded(nextProps) ? provider.results(nextProps) : this.state.cache[name]);
     this.setState({ cache });
   }
 
@@ -102,47 +88,32 @@ class SearchContainer extends React.Component<AllProps, State> {
         placeholder={this.props.placeholder}
         entries={_.flatten(_.values(this.state.cache))}
         selectedKey={null}
-        onEntrySelect={this.onEntrySelect}
+        onEntrySelect={entry => (entry as any).onSelect()}
         errorDisabled={true}
-        onQueryChange={this.onQueryChange}
-        working={_.any(this.providers(this.props), p => !p.loaded)}
+        onQueryChange={query => _.forEach(providers, p => p.required(this.props)(query))}
+        working={_.any(providers, p => !p.loaded(this.props))}
       />
     );
-  }
-
-  // TODO: find a better way to construct routes
-  private onEntrySelect(entry: PickerEntry) {
-    (entry as any).onSelect();  // Slightly gross abuse
-  }
-
-  private onQueryChange(query: string) {
-    _.forEach(this.providers(this.props), p => p.required(query));
-  }
-
-  private providers(props: AllProps): { [id: string] : SearchProvider } {
-    return {
-      "RSLs": managedResourceProvider(props.assetsClear, props.assetsRequired, props.assets, assetResults),
-      "Jobs": managedResourceProvider(props.jobsClear, props.jobsRequired, props.jobs, jobResults),
-    };
   }
 }
 
 function managedResourceProvider<T>(
-  clear: () => void,
-  required: (string, int) => void,
-  state: ResourceState<{ [id: string] : T }>,
-  mapper: (id: string, item: T) => PickerEntry
+  resource: ManagedResource<{ [id: string] : T }>,
+  state: (props: AllProps) => ResourceState<{ [id: string] : T }>,
+  mapper: (id: string, item: T) => PickerEntry,
+  selector
 ) {
   return {
-    required: (query: string) => {
+    required: (props: AllProps) => (query: string) => {
       if (query.length > 0) {
-        required(query, 5);
+        props.dispatch(resourceActions(resource).required(query, 5));
       } else {
-        clear();
+        props.dispatch(resourceActions(resource).clear());
       }
     },
-    results: _.map(state.data, (item, id) => mapper(id, item)),
-    loaded: state.status !== ResourceStatus.LOADING,
+    results: (props) => _.map(state(props).data, (item, id) => mapper(id, item)),
+    loaded: (props) => state(props).status !== ResourceStatus.LOADING,
+    selector,
   };
 };
 
@@ -168,4 +139,23 @@ const jobResults = (id: string, item: Job) => ({
     item["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(item["RSLs"].split(",")[0])}`),
 });
 
-export default connect<StateProps, DispatchProps, OwnProps>(mapStateToProps, mapDispatchToProps)(SearchContainer);
+const providers: { [id: string] : SearchProvider<any> } = {
+  assets: managedResourceProvider(
+    assets,
+    null,
+    assetResults,
+    selectors.selectAssets
+  ),
+  jobs: managedResourceProvider(
+    jobs,
+    null,
+    jobResults,
+    selectors.selectJobs
+  ),
+};
+
+const mapStateToProps = (state) => ({
+  states: _.mapObject(providers, p => p.selector(state)),
+});
+
+export default connect<StateProps, DispatchProps, OwnProps>(mapStateToProps, null)(SearchContainer);
