@@ -16,6 +16,7 @@ import {
 import * as classNames from "classnames";
 import * as _ from "underscore";
 import SearchContainer from "../../containers/SearchContainer";
+import standardProviders from "../../containers/SearchContainer/standardProviders";
 import * as selectors from "../../redux/selectors";
 import {
   resourceActions,
@@ -74,6 +75,7 @@ class Header extends React.Component<HeaderProps, void> {
           <SearchContainer
             className={classNames(Classes.ROUND, styles.myPicker)}
             placeholder="Search..."
+            providers={standardProviders}
           />
 
           <span className={Classes.NAVBAR_DIVIDER} />
