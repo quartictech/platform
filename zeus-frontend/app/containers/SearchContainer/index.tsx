@@ -78,7 +78,7 @@ class SearchContainer extends React.Component<AllProps, State> {
       const contexts = this.bindContexts(nextProps);
       this.setState({
         contexts,
-        cache: _.mapObject(contexts, ctx => ctx.result.loaded ? ctx.result.entries : []),
+        cache: _.mapObject(contexts, (ctx, name) => this.cachedOrNewEntries(name, ctx)),
       });
     }
   }
@@ -94,9 +94,13 @@ class SearchContainer extends React.Component<AllProps, State> {
     const ctx = this.state.contexts[name];
     this.setState({
       cache: Object.assign({}, this.state.cache, {
-        [name]: ctx.result.loaded ? ctx.result.entries : this.state.cache[name],
+        [name]: this.cachedOrNewEntries(name, ctx),
       }),
     });
+  }
+
+  private cachedOrNewEntries(name: string, ctx: SearchContext) {
+    return ctx.result.loaded ? ctx.result.entries : (this.state.cache[name] || []);
   }
 
   render() {
