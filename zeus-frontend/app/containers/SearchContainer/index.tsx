@@ -48,12 +48,9 @@ interface DispatchProps {
   dispatch: Redux.Dispatch<any>;
 }
 
-interface BasicOwnProps {
+interface OwnProps {
   className?: string;
   placeholder?: string;
-}
-
-type OwnProps = BasicOwnProps & {
   providers: { [id: string] : SearchProvider };
 };
 
