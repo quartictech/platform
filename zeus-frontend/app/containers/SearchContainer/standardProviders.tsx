@@ -26,27 +26,30 @@ function managedResourceProvider<T>(
   resource: ManagedResource<{ [id: string] : T }>,
   mapper: (id: string, item: T) => SearchResultEntry
 ) {
-  return (reduxState: any, dispatch: Redux.Dispatch<any>) => {
+  return (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: (SearchResult) => void) => {
+    // TODO: this is pretty weird - we're relying on Redux connect to invoke this on every state change, and we're then
+    // invoking a callback in order to cause a state change into the SearchContainer component.
     const resourceState = selector(reduxState);
+    onResultChange({
+      entries: _.map(resourceState.data, (item, id) => mapper(id, item)),
+      loaded: resourceState.status !== ResourceStatus.LOADING,
+    });
+
     return {
       required: (query: string) => (dispatch((query.length > 0)
         ? resourceActions(resource).required(query, 5)
         : resourceActions(resource).clear()
       )),
-      results: _.map(resourceState.data, (item, id) => mapper(id, item)),
-      loaded: resourceState.status !== ResourceStatus.LOADING,
     };
   };
 }
 
 function staticProvider(entries: SearchResultEntry[]) {
-  let myQuery = "";
-  return (_reduxState, _dispatch) => ({
-    required: (query: string) => {
-      myQuery = query;
-    },
-    results: _.filter(entries, e => stringInString(myQuery, e.name)),
-    loaded: true,
+  return (_reduxState, _dispatch, onResultChange: (SearchResult) => void) => ({
+    required: (query: string) => onResultChange({
+      entries: _.filter(entries, e => stringInString(query, e.name)),
+      loaded: true,
+    }),
   });
 }
 

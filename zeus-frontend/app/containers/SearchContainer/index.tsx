@@ -25,14 +25,17 @@ export type SearchResultEntry = PickerEntry & {
   onSelect: () => void;
 };
 
+export interface SearchResult {
+  entries: SearchResultEntry[];
+  loaded: boolean;
+}
+
 export interface SearchContext {
   required: (string) => void;
-  results: SearchResultEntry[],
-  loaded: boolean;  
 }
 
 export interface SearchProvider {
-  (reduxState: any, dispatch: Redux.Dispatch<any>): SearchContext;
+  (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: (SearchResult) => void): SearchContext;
 }
 
 interface StateProps {
@@ -52,25 +55,42 @@ type OwnProps = BasicOwnProps & {
   providers: { [id: string] : SearchProvider };
 }
 
-type MergedProps = BasicOwnProps & {
-  contexts: { [id: string] : SearchContext };
-}
+type AllProps = StateProps & DispatchProps & OwnProps;
 
 interface State {
-  cache: { [ id: string ] : SearchResultEntry[] };
+  contexts: { [id: string ] : SearchContext };
+  cache: { [ id: string ] : SearchResult };
 }
 
-class SearchContainer extends React.Component<MergedProps, State> {
-  constructor(props: MergedProps) {
+class SearchContainer extends React.Component<AllProps, State> {
+  constructor(props: AllProps) {
     super(props);
-    console.log(props);
-    this.state = { cache: {} };
+    this.state = {
+      contexts: this.bindContexts(props),
+      cache: {}
+    };
   }
 
-  // TODO - optimise for no change in data
-  componentWillReceiveProps(nextProps: MergedProps) {
-    const cache = _.mapObject(nextProps.contexts, (ctx, name) => ctx.loaded ? ctx.results : this.state.cache[name]);
-    this.setState({ cache });
+  // TODO - rebuild cache if list of datasets changes
+  componentWillReceiveProps(nextProps: AllProps) {
+    if (nextProps !== this.props) {
+      this.setState({ contexts: this.bindContexts(nextProps) });
+    }
+  }
+
+  private bindContexts(props: AllProps) {
+    return _.mapObject(
+      props.providers,
+      (p, name) => p(props.state, props.dispatch, (result) => this.onResultChange(name, result))
+    );
+  }
+
+  private onResultChange(name: string, result: SearchResult) {
+    this.setState({
+      cache: Object.assign({}, this.state.cache, {
+        [name]: result.loaded ? result : { loaded: false, entries: this.state.cache[name].entries } as SearchResult
+      }),
+    });
   }
 
   render() {
@@ -80,25 +100,17 @@ class SearchContainer extends React.Component<MergedProps, State> {
         iconName="search"
         defaultEntryIconName="person"
         placeholder={this.props.placeholder}
-        entries={_.flatten(_.values(this.state.cache))}
+        entries={_.flatten(_.map(_.values(this.state.cache), result => result.entries))}
         selectedKey={null}
         onEntrySelect={entry => (entry as any).onSelect()}
         errorDisabled={true}
-        onQueryChange={query => _.forEach(this.props.contexts, ctx => ctx.required(query))}
-        working={_.any(this.props.contexts, ctx => !ctx.loaded)}
+        onQueryChange={query => _.forEach(this.state.contexts, ctx => ctx.required(query))}
+        working={_.any(this.state.cache, result => !result.loaded)}
       />
     );
   }
 }
 
+// We're capturing Redux state and dispatch as props, in order to be able to pass to SearchProviders
 const mapStateToProps = (state: any) => ({ state });
-
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps): MergedProps => {
-  return {
-    className: ownProps.className,
-    placeholder: ownProps.placeholder,
-    contexts: _.mapObject(ownProps.providers, p => p(stateProps.state, dispatchProps.dispatch))
-  };
-}
-
-export default connect(mapStateToProps, null, mergeProps)(SearchContainer);
+export default connect<StateProps, DispatchProps, OwnProps>(mapStateToProps, null)(SearchContainer);
