@@ -3,6 +3,8 @@ import { SearchProvider, SearchResultEntry } from "./index";
 import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
 import { stringInString, toTitleCase } from "../../helpers/Utils";
+import { Intent } from "@blueprintjs/core";
+import { toaster } from "../../containers/App/toaster";
 import {
   ManagedResource,
   resourceActions,
@@ -51,14 +53,14 @@ const staticProviderEngine = () => {
       loaded: true,
     },
   });
-}
+};
 
 const staticProvider = (entries: SearchResultEntry[]) => {
   const engine = staticProviderEngine();  // Create upfront so that its state isn't lost every time Redux updates
   return (_reduxState, _dispatch, onResultChange: () => void) => {
     return engine(entries, onResultChange);
   };
-}
+};
 
 const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
   const state = selectors.selectDatasetList(reduxState);
@@ -66,7 +68,7 @@ const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
     dispatch(resourceActions(datasetList).required());
   }
   return state.data;
-}
+};
 
 const datasetProvider = () => {
   const engine = staticProviderEngine();
@@ -76,11 +78,10 @@ const datasetProvider = () => {
       key: d,
       name: toTitleCase(d),
       iconName: "database",
-      category: "Raw data",
-      onSelect: () => {},
+      onSelect: () => appHistory.push(`/explorer/${encodeURIComponent(d)}`),
     })), onResultChange);
   };
-}
+};
 
 const standardProviders: { [id: string] : SearchProvider } = {
   assets: managedResourceProvider(
@@ -91,7 +92,6 @@ const standardProviders: { [id: string] : SearchProvider } = {
       name: toTitleCase(item["Road Name"] || ""),
       description: item["RSL"],
       extra: toTitleCase(item["Section Description"] || ""),
-      category: "RSLs",
       iconName: "drive-time", // A car :)
       onSelect: () => appHistory.push(`/assets/${encodeURIComponent(id)}`),
     }),
@@ -104,19 +104,18 @@ const standardProviders: { [id: string] : SearchProvider } = {
       name: toTitleCase(item["Number"] || ""),
       description: item["RSLs"] || "<< No associated RSLs >>",
       extra: item["Type"],
-      category: "Jobs",
       iconName: "wrench",
       // TODO: what about the other RSLs?
       onSelect: () =>
         item["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(item["RSLs"].split(",")[0])}`),
     }),
   ),
+  // TODO: eliminate this
   people: staticProvider(_.map(["Arlo", "Alex", "Oliver"], p => ({
     key: p,
     name: p,
-    category: "People",
     iconName: "person",
-    onSelect: () => {},
+    onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: `${p} clicked` }),
   }))),
   data: datasetProvider(),
 };
