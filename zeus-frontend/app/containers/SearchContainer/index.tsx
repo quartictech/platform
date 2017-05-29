@@ -31,44 +31,45 @@ export interface SearchContext {
   loaded: boolean;  
 }
 
-export interface SearchContextMapper {
-  (dispatch: Redux.Dispatch<any>): SearchContext
-}
-
 export interface SearchProvider {
-  (reduxState: any): SearchContextMapper;
+  (reduxState: any, dispatch: Redux.Dispatch<any>): SearchContext;
 }
 
 interface StateProps {
-  mappers: { [id: string] : SearchContextMapper };
+  state: any;
 }
 
 interface DispatchProps {
   dispatch: Redux.Dispatch<any>;
 }
 
-interface OwnProps {
+interface BasicOwnProps {
   className?: string;
   placeholder?: string;
+}
+
+type OwnProps = BasicOwnProps & {
   providers: { [id: string] : SearchProvider };
 }
 
-export type AllProps = StateProps & DispatchProps & OwnProps;
+type MergedProps = BasicOwnProps & {
+  contexts: { [id: string] : SearchContext };
+}
 
 interface State {
   cache: { [ id: string ] : SearchResultEntry[] };
 }
 
-class SearchContainer extends React.Component<AllProps, State> {
-  constructor(props: AllProps) {
+class SearchContainer extends React.Component<MergedProps, State> {
+  constructor(props: MergedProps) {
     super(props);
     console.log(props);
     this.state = { cache: {} };
   }
 
   // TODO - optimise for no change in data
-  componentWillReceiveProps(nextProps: AllProps) {
-    const cache = _.mapObject(contexts(nextProps), (ctx, name) => ctx.loaded ? ctx.results : this.state.cache[name]);
+  componentWillReceiveProps(nextProps: MergedProps) {
+    const cache = _.mapObject(nextProps.contexts, (ctx, name) => ctx.loaded ? ctx.results : this.state.cache[name]);
     this.setState({ cache });
   }
 
@@ -83,17 +84,21 @@ class SearchContainer extends React.Component<AllProps, State> {
         selectedKey={null}
         onEntrySelect={entry => (entry as any).onSelect()}
         errorDisabled={true}
-        onQueryChange={query => _.forEach(contexts(this.props), ctx => ctx.required(query))}
-        working={_.any(contexts(this.props), ctx => !ctx.loaded)}
+        onQueryChange={query => _.forEach(this.props.contexts, ctx => ctx.required(query))}
+        working={_.any(this.props.contexts, ctx => !ctx.loaded)}
       />
     );
   }
 }
 
-const contexts = (props: AllProps) => _.mapObject(props.mappers, m => m(props.dispatch));
+const mapStateToProps = (state: any) => ({ state });
 
-const mapStateToProps = (state: any, ownProps: OwnProps) => ({
-  mappers: _.mapObject(ownProps.providers, provider => provider(state)),
-});
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps): MergedProps => {
+  return {
+    className: ownProps.className,
+    placeholder: ownProps.placeholder,
+    contexts: _.mapObject(ownProps.providers, p => p(stateProps.state, dispatchProps.dispatch))
+  };
+}
 
-export default connect<StateProps, DispatchProps, OwnProps>(mapStateToProps, null)(SearchContainer);
+export default connect(mapStateToProps, null, mergeProps)(SearchContainer);

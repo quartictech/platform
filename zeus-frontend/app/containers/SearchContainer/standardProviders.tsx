@@ -26,22 +26,22 @@ function managedResourceProvider<T>(
   resource: ManagedResource<{ [id: string] : T }>,
   mapper: (id: string, item: T) => SearchResultEntry
 ) {
-  return (reduxState: any) => {
+  return (reduxState: any, dispatch: Redux.Dispatch<any>) => {
     const resourceState = selector(reduxState);
-    return (dispatch: Redux.Dispatch<any>) => ({
+    return {
       required: (query: string) => (dispatch((query.length > 0)
         ? resourceActions(resource).required(query, 5)
         : resourceActions(resource).clear()
       )),
       results: _.map(resourceState.data, (item, id) => mapper(id, item)),
       loaded: resourceState.status !== ResourceStatus.LOADING,
-    });
+    };
   };
 }
 
 function staticProvider(entries: SearchResultEntry[]) {
   let myQuery = "";
-  return (_reduxState) => (_dispatch) => ({
+  return (_reduxState, _dispatch) => ({
     required: (query: string) => {
       myQuery = query;
     },
