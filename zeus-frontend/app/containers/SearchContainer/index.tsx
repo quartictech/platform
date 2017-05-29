@@ -17,11 +17,17 @@ import Picker, { PickerEntry } from "../../components/Picker";
     - handle backend errors nicely
     - controlled selection
 
+  - Correctness
+    - need to handle non-unique keys across categories
  *-----------------------------------------------------*/
+
+export type SearchResultEntry = PickerEntry & {
+  onSelect: () => void;
+};
 
 export interface SearchContext {
   required: (string) => void;
-  results: PickerEntry[],
+  results: SearchResultEntry[],
   loaded: boolean;  
 }
 
@@ -50,7 +56,7 @@ interface OwnProps {
 export type AllProps = StateProps & DispatchProps & OwnProps;
 
 interface State {
-  cache: { [ id: string ] : PickerEntry[] };
+  cache: { [ id: string ] : SearchResultEntry[] };
 }
 
 class SearchContainer extends React.Component<AllProps, State> {

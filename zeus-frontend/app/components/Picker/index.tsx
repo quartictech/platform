@@ -17,6 +17,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
+import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
 export interface PickerEntry {
@@ -305,9 +306,5 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 }
 
 const matches = (entry: PickerEntry, text: string) =>
-  stringInString(text, entry.name) || stringInString(text, entry.description) || stringInString(text, entry.extra);
-
-
-const stringInString = (needle: string, haystack: string) =>
-  haystack && (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
+  _.any([entry.name, entry.description, entry.extra], s => s && stringInString(text, s));
 
