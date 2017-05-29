@@ -55,7 +55,7 @@ interface BasicOwnProps {
 
 type OwnProps = BasicOwnProps & {
   providers: { [id: string] : SearchProvider };
-}
+};
 
 type AllProps = StateProps & DispatchProps & OwnProps;
 
@@ -69,7 +69,7 @@ class SearchContainer extends React.Component<AllProps, State> {
     super(props);
     this.state = {
       contexts: this.bindContexts(props),
-      cache: {}
+      cache: {},
     };
   }
 
@@ -86,7 +86,7 @@ class SearchContainer extends React.Component<AllProps, State> {
   private bindContexts(props: AllProps) {
     return _.mapObject(
       props.providers,
-      (p, name) => p(props.state, props.dispatch, () => this.onResultChange(name))
+      (p, name) => p(props.state, props.dispatch, () => this.onResultChange(name)),
     );
   }
 
@@ -94,7 +94,7 @@ class SearchContainer extends React.Component<AllProps, State> {
     const ctx = this.state.contexts[name];
     this.setState({
       cache: Object.assign({}, this.state.cache, {
-        [name]: ctx.result.loaded ? ctx.result.entries : this.state.cache[name]
+        [name]: ctx.result.loaded ? ctx.result.entries : this.state.cache[name],
       }),
     });
   }

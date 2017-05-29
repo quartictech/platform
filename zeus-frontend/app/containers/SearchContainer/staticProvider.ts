@@ -24,7 +24,8 @@ export const staticProviderEngine = (globalAliases: string[]) => {
 };
 
 export const staticProvider = (globalAliases: string[], entries: SearchResultEntry[]) => {
-  const engine = staticProviderEngine(globalAliases);  // Create upfront so that its state isn't lost every time Redux updates
+  // Create engine upfront so that its state isn't lost every time Redux updates
+  const engine = staticProviderEngine(globalAliases);
   return (_reduxState, _dispatch, onResultChange: () => void) => {
     return engine(entries, onResultChange);
   };
