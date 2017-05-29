@@ -1,5 +1,5 @@
 import * as _ from "underscore";
-import { SearchProvider } from "./index";
+import { SearchProvider, SearchResultEntry } from "./index";
 import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
 import { toTitleCase } from "../../helpers/Utils";
@@ -43,6 +43,23 @@ const datasetProvider = () => {
   };
 };
 
+// TODO - eliminate duplication with menu in Header
+const insightEntries: SearchResultEntry[] = [
+  {
+    key: "high/low",
+    name: "Highest / lowest defects (2016)",
+    iconName: "layout-auto",
+    onSelect: () => appHistory.push(`/insights`),
+  },
+  {
+    key: "predictions",
+    name: "Predictions (2017)",
+    iconName: "layout-auto",
+    onSelect: () => appHistory.push(`/insights`),
+    disabled: true,
+  },
+];
+
 const standardProviders: { [id: string] : SearchProvider } = {
   assets: managedResourceProvider(
     selectors.selectAssets,
@@ -77,6 +94,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
     iconName: "person",
     onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: `${p} clicked` }),
   }))),
+  insights: staticProvider(insightEntries),
   datasets: datasetProvider(),
 };
 
