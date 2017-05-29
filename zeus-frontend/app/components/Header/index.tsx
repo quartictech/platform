@@ -18,6 +18,7 @@ import * as _ from "underscore";
 import SearchContainer from "../../containers/SearchContainer";
 import standardProviders from "../../containers/SearchContainer/standardProviders";
 import * as selectors from "../../redux/selectors";
+import { toTitleCase } from "../../helpers/Utils";
 import {
   resourceActions,
   ResourceState,
@@ -138,7 +139,7 @@ class Header extends React.Component<HeaderProps, void> {
       <Menu>
         {
           _.map(this.props.datasetList.data, d => (
-            <MenuItem key={d} iconName="database" text={d} href={appHistory.createHref({
+            <MenuItem key={d} iconName="database" text={toTitleCase(d)} href={appHistory.createHref({
               pathname: `/explorer/${encodeURIComponent(d)}`,
             })} />
           ))
