@@ -1,14 +1,12 @@
 import * as _ from "underscore";
-import { SearchProvider, SearchResultEntry } from "./index";
+import { SearchProvider } from "./index";
 import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
-import { stringInString, toTitleCase } from "../../helpers/Utils";
+import { toTitleCase } from "../../helpers/Utils";
 import { Intent } from "@blueprintjs/core";
 import { toaster } from "../../containers/App/toaster";
 import {
-  ManagedResource,
   resourceActions,
-  ResourceState,
   ResourceStatus,
 } from "../../api-management";
 import {
@@ -20,47 +18,9 @@ import {
   Asset,
   Job,
 } from "../../models";
+import { managedResourceProvider } from "./managedResourceProvider";
+import { staticProvider, staticProviderEngine } from "./staticProvider";
 
-
-const managedResourceProvider = <T>(
-  selector: (state: any) => ResourceState<{ [id: string] : T }>,
-  resource: ManagedResource<{ [id: string] : T }>,
-  mapper: (id: string, item: T) => SearchResultEntry
-) => (reduxState: any, dispatch: Redux.Dispatch<any>, _onResultChange: () => void) => {
-  const resourceState = selector(reduxState);
-  return {
-    required: (query: string) => (dispatch((query.length > 0)
-      ? resourceActions(resource).required(query, 5)
-      : resourceActions(resource).clear()
-    )),
-    result: {
-      entries: _.map(resourceState.data, (item, id) => mapper(id, item)),
-      loaded: resourceState.status !== ResourceStatus.LOADING,
-    },
-  };
-};
-
-const staticProviderEngine = () => {
-  let myQuery = "";
-  
-  return (entries: SearchResultEntry[], onResultChange: () => void) => ({
-    required: (query: string) => {
-      myQuery = query;
-      onResultChange();
-    },
-    result: {
-      entries: (myQuery.length > 0) ? _.filter(entries, e => stringInString(myQuery, e.name)) : [],
-      loaded: true,
-    },
-  });
-};
-
-const staticProvider = (entries: SearchResultEntry[]) => {
-  const engine = staticProviderEngine();  // Create upfront so that its state isn't lost every time Redux updates
-  return (_reduxState, _dispatch, onResultChange: () => void) => {
-    return engine(entries, onResultChange);
-  };
-};
 
 const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
   const state = selectors.selectDatasetList(reduxState);
@@ -117,7 +77,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
     iconName: "person",
     onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: `${p} clicked` }),
   }))),
-  data: datasetProvider(),
+  datasets: datasetProvider(),
 };
 
 export default standardProviders;
