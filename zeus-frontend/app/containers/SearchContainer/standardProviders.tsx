@@ -26,30 +26,32 @@ function managedResourceProvider<T>(
   resource: ManagedResource<{ [id: string] : T }>,
   mapper: (id: string, item: T) => SearchResultEntry
 ) {
-  return (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: (SearchResult) => void) => {
-    // TODO: this is pretty weird - we're relying on Redux connect to invoke this on every state change, and we're then
-    // invoking a callback in order to cause a state change into the SearchContainer component.
+  return (reduxState: any, dispatch: Redux.Dispatch<any>, _onResultChange: () => void) => {
     const resourceState = selector(reduxState);
-    onResultChange({
-      entries: _.map(resourceState.data, (item, id) => mapper(id, item)),
-      loaded: resourceState.status !== ResourceStatus.LOADING,
-    });
-
     return {
       required: (query: string) => (dispatch((query.length > 0)
         ? resourceActions(resource).required(query, 5)
         : resourceActions(resource).clear()
       )),
+      result: {
+        entries: _.map(resourceState.data, (item, id) => mapper(id, item)),
+        loaded: resourceState.status !== ResourceStatus.LOADING,
+      },
     };
   };
 }
 
 function staticProvider(entries: SearchResultEntry[]) {
-  return (_reduxState, _dispatch, onResultChange: (SearchResult) => void) => ({
-    required: (query: string) => onResultChange({
-      entries: _.filter(entries, e => stringInString(query, e.name)),
-      loaded: true,
-    }),
+  let result = { entries: [], loaded: true };
+  return (_reduxState, _dispatch, onResultChange: () => void) => ({
+    required: (query: string) => {
+      result = {
+        entries: (query.length > 0) ? _.filter(entries, e => stringInString(query, e.name)) : [],
+        loaded: true,
+      };
+      onResultChange();
+    },
+    result,
   });
 }
 
@@ -86,6 +88,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
     key: name,
     name,
     iconName: "person",
+    category: "Gimps",
     onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: name }),
   }))),
 };

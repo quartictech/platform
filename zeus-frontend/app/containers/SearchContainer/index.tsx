@@ -32,10 +32,12 @@ export interface SearchResult {
 
 export interface SearchContext {
   required: (string) => void;
+  result: SearchResult;
 }
 
 export interface SearchProvider {
-  (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: (SearchResult) => void): SearchContext;
+  // Bindings to Redux, along with a callback to trigger update if the provider isn't injecting results via Redux store
+  (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: () => void): SearchContext;
 }
 
 interface StateProps {
@@ -59,7 +61,7 @@ type AllProps = StateProps & DispatchProps & OwnProps;
 
 interface State {
   contexts: { [id: string ] : SearchContext };
-  cache: { [ id: string ] : SearchResult };
+  cache: { [ id: string ] : SearchResultEntry[] };
 }
 
 class SearchContainer extends React.Component<AllProps, State> {
@@ -71,24 +73,28 @@ class SearchContainer extends React.Component<AllProps, State> {
     };
   }
 
-  // TODO - rebuild cache if list of datasets changes
   componentWillReceiveProps(nextProps: AllProps) {
     if (nextProps !== this.props) {
-      this.setState({ contexts: this.bindContexts(nextProps) });
+      const contexts = this.bindContexts(nextProps);
+      this.setState({
+        contexts,
+        cache: _.mapObject(contexts, ctx => ctx.result.loaded ? ctx.result.entries : []),
+      });
     }
   }
 
   private bindContexts(props: AllProps) {
     return _.mapObject(
       props.providers,
-      (p, name) => p(props.state, props.dispatch, (result) => this.onResultChange(name, result))
+      (p, name) => p(props.state, props.dispatch, () => this.onResultChange(name))
     );
   }
 
-  private onResultChange(name: string, result: SearchResult) {
+  private onResultChange(name: string) {
+    const ctx = this.state.contexts[name];
     this.setState({
       cache: Object.assign({}, this.state.cache, {
-        [name]: result.loaded ? result : { loaded: false, entries: this.state.cache[name].entries } as SearchResult
+        [name]: ctx.result.loaded ? ctx.result.entries : this.state.cache[name]
       }),
     });
   }
@@ -100,12 +106,12 @@ class SearchContainer extends React.Component<AllProps, State> {
         iconName="search"
         defaultEntryIconName="person"
         placeholder={this.props.placeholder}
-        entries={_.flatten(_.map(_.values(this.state.cache), result => result.entries))}
+        entries={_.flatten(_.values(this.state.cache))}
         selectedKey={null}
         onEntrySelect={entry => (entry as any).onSelect()}
         errorDisabled={true}
         onQueryChange={query => _.forEach(this.state.contexts, ctx => ctx.required(query))}
-        working={_.any(this.state.cache, result => !result.loaded)}
+        working={_.any(this.state.contexts, ctx => !ctx.result.loaded)}
       />
     );
   }
