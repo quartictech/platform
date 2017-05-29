@@ -52,7 +52,7 @@ interface OwnProps {
   className?: string;
   placeholder?: string;
   providers: { [id: string] : SearchProvider };
-};
+}
 
 type AllProps = StateProps & DispatchProps & OwnProps;
 
@@ -105,7 +105,7 @@ class SearchContainer extends React.Component<AllProps, State> {
       <Picker
         className={this.props.className}
         iconName="search"
-        defaultEntryIconName="person"
+        defaultEntryIconName="symbol-circle"
         placeholder={this.props.placeholder}
         entries={_.flatten(_.values(this.state.cache))}
         selectedKey={null}
