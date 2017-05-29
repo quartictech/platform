@@ -31,7 +31,7 @@ const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
 };
 
 const datasetProvider = () => {
-  const engine = staticProviderEngine();
+  const engine = staticProviderEngine(["datasets", "raw", "explorer"]);
   return (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: () => void) => {
     const datasets = getDatasetList(reduxState, dispatch);
     return engine(_.map(datasets, d => ({
@@ -88,13 +88,13 @@ const standardProviders: { [id: string] : SearchProvider } = {
     }),
   ),
   // TODO: eliminate this
-  people: staticProvider(_.map(["Arlo", "Alex", "Oliver"], p => ({
+  people: staticProvider(["people"], _.map(["Arlo", "Alex", "Oliver"], p => ({
     key: p,
     name: p,
     iconName: "person",
     onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: `${p} clicked` }),
   }))),
-  insights: staticProvider(insightEntries),
+  insights: staticProvider(["insights"], insightEntries),
   datasets: datasetProvider(),
 };
 
