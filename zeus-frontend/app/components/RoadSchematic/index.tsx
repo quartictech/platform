@@ -75,7 +75,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   render() {
     return (
         <div style={{padding: "10px", width: "99%"}}>
-          <svg style={{ width: "100%", height: 175 }} ref="svg" />
+          <div style={{ width: "100%", height: 175, overflow: "hidden" }} ref="svg" />
           <span
             style={{ visibility: this.state.hoveredSection ? "visible" : "hidden" }}
             className={classNames(Classes.CALLOUT, Classes.TEXT_MUTED)}

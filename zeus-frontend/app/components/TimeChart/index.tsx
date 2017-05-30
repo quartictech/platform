@@ -151,7 +151,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
     }
     return (
       <div style={{padding: "10px", width: "99%"}}>
-        <div className={s.chart} style={{ width: "100%", height: 175 }} ref="svg" />
+        <div className={s.chart} style={{ width: "100%", height: 175, overflow: "hidden" }} ref="svg"/>
         <span
           style={{ visibility: this.state.tooltip ? "visible" : "hidden" }}
           className="pt-callout pt-text-muted">
