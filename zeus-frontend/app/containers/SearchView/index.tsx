@@ -1,70 +1,25 @@
 import * as React from "react";
 const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
-import { connect } from "react-redux";
-import { createStructuredSelector } from "reselect";
 import {
   Classes,
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 
-import Search from "../../components/Search";
-import * as selectors from "../../redux/selectors";
-import {
-  resourceActions,
-  ResourceState,
-} from "../../api-management";
-import {
-  assets,
-  jobs,
-} from "../../api";
-import {
-  Asset,
-  Job,
-} from "../../models";
+import SearchContainer from "../../containers/SearchContainer";
+import standardProviders from "../../containers/SearchContainer/standardProviders";
 
 const s = require("./style.css");
 
-interface SearchViewProps {
-  assetsClear: () => void;
-  assetsRequired: (string, int) => void;
-  assets: ResourceState<{ [id: string] : Asset }>;
+const SearchView: React.SFC<{}> = () => (
+  <DocumentTitle title="Quartic - Search">
+    <div className={s.container} style={{ marginTop: "10%" }}>
+      <SearchContainer
+        className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
+        placeholder="What do you want to know?"
+        providers={standardProviders}
+      />
+    </div>
+  </DocumentTitle>
+);
 
-  jobsClear: () => void;
-  jobsRequired: (string, int) => void;
-  jobs: ResourceState<{ [id: string] : Job }>;
-}
-
-class SearchView extends React.Component<SearchViewProps, {}> {
-  render() {
-    return (
-      <DocumentTitle title="Quartic - Search">
-        <div className={s.container} style={{ marginTop: "10%" }}>
-          <Search
-            className={classNames(Classes.LARGE, Classes.ROUND, s.myPicker)}
-            assetsClear={this.props.assetsClear}
-            assetsRequired={this.props.assetsRequired}
-            assets={this.props.assets}
-            jobsClear={this.props.jobsClear}
-            jobsRequired={this.props.jobsRequired}
-            jobs={this.props.jobs}
-            placeholder="What do you want to know?"
-          />
-        </div>
-      </DocumentTitle>
-    );
-  }
-}
-
-const mapDispatchToProps = {
-  assetsClear: resourceActions(assets).clear,
-  assetsRequired: resourceActions(assets).required,
-  jobsClear: resourceActions(jobs).clear,
-  jobsRequired: resourceActions(jobs).required,
-};
-
-const mapStateToProps = createStructuredSelector({
-  assets: selectors.selectAssets,
-  jobs: selectors.selectJobs,
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(SearchView);
+export default SearchView;

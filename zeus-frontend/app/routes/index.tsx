@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IndexRedirect, Route, useRouterHistory } from "react-router";
 import { createHashHistory } from "history";
-import { App, AssetView, ExplorerView, InsightView, SearchView} from "../containers";
+import { App, AssetView, ExplorerView, InsightView, SearchView } from "../containers";
 
 const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 
