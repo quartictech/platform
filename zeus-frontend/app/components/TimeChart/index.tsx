@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import * as Plottable from "plottable";
+import * as _ from "underscore";
 
 const s = require("./style.css");
 
@@ -10,13 +11,14 @@ import SizeMe from "react-sizeme";
 
 interface IProps {
   events: MaintenanceEvent[];
-  timeSeries: TimeSeriesPoint[];
+  timeSeries: { [id: string]: TimeSeriesPoint[]};
+  colors: { [id: string]: string};
   yLabel: string;
 }
 
 interface IState {
-  timeSeriesPlot: Plottable.Plots.Line<{}>;
-  timeSeriesScatterPlot: Plottable.Plots.Scatter<{}, {}>;
+  timeSeriesPlots: { [id: string]: Plottable.Plots.Line<{}>};
+  timeSeriesScatterPlots: { [id: string]: Plottable.Plots.Scatter<{}, {}>};
   eventsPlot: Plottable.Plots.Segment<{}, {}>;
   chart: any;
   yAxisLabel: Plottable.Components.AxisLabel;
@@ -31,8 +33,8 @@ class RealTimeChart extends React.Component<IProps, IState> {
   constructor() {
     super();
     this.state = {
-      timeSeriesPlot: null,
-      timeSeriesScatterPlot: null,
+      timeSeriesPlots: null,
+      timeSeriesScatterPlots: null,
       eventsPlot: null,
       chart: null,
       tooltip: null,
@@ -62,21 +64,32 @@ class RealTimeChart extends React.Component<IProps, IState> {
        .x2((d: MaintenanceEvent) => d.timestamp)
        .y2( _ => 1);
 
-    const timeSeriesPlot = new Plottable.Plots.Line()
-      .attr("stroke", _ => "#1f77b4")
-      .x(d => d.x, xScale)
-      .y(d => d.y, yScaleTimeSeries);
-    const timeSeriesScatterPlot = new Plottable.Plots.Scatter()
-      .attr("stroke", _ => "#1f77b4")
-      .x(d => d.x, xScale)
-      .y(d => d.y, yScaleTimeSeries);
+    const timeSeriesPlots: { [id: string]: Plottable.Plots.Line<{}>} = Object.keys(this.props.timeSeries)
+    .reduce((obj, k) =>
+      Object.assign(obj, {
+       [k] : new Plottable.Plots.Line()
+          .attr("stroke", _ => this.props.colors[k])
+          .x(d => d.x, xScale)
+          .y(d => d.y, yScaleTimeSeries),
+      }), {});
+    const timeSeriesScatterPlots: { [id: string]: Plottable.Plots.Scatter<{}, {}> } =
+      Object.keys(this.props.timeSeries).reduce((obj, k) =>
+        Object.assign(obj, {
+          [k]: new Plottable.Plots.Scatter()
+            .attr("stroke", _ => this.props.colors[k])
+            .x(d => d.x, xScale)
+            .y(d => d.y, yScaleTimeSeries),
+        }), {});
 
-
-    const chart = new Plottable.Components.Group([timeSeriesPlot, timeSeriesScatterPlot, eventsPlot, gridLines]);
+    let plots: Plottable.Component[] = _.values(timeSeriesPlots);
+    plots = plots.concat(_.values(timeSeriesScatterPlots));
+    plots = plots.concat(eventsPlot, gridLines);
+    const chart = new Plottable.Components.Group(plots);
     let pzi = new Plottable.Interactions.PanZoom();
     pzi.addXScale(xScale);
     pzi.attachTo(eventsPlot);
-    pzi.attachTo(timeSeriesPlot);
+    _.values(timeSeriesPlots).forEach(p => pzi.attachTo(p));
+    _.values(timeSeriesScatterPlots).forEach(p => pzi.attachTo(p));
     window.addEventListener("resize", function() {
       eventsPlot.redraw();
     });
@@ -105,8 +118,8 @@ class RealTimeChart extends React.Component<IProps, IState> {
       ]),
       tooltip: null,
       eventsPlot,
-      timeSeriesPlot,
-      timeSeriesScatterPlot,
+      timeSeriesPlots,
+      timeSeriesScatterPlots,
       yAxisLabel: yLabel,
     };
   }
@@ -132,10 +145,13 @@ class RealTimeChart extends React.Component<IProps, IState> {
     this.state.chart.renderTo(this.refs["svg"]);
   }
 
-  componentWillUpdate(nextProps: IProps, _) {
-    if (this.state.timeSeriesPlot != null) {
-      this.state.timeSeriesPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
-      this.state.timeSeriesScatterPlot.datasets([new Plottable.Dataset(nextProps.timeSeries)]);
+  componentWillUpdate(nextProps: IProps) {
+    if (this.state.timeSeriesPlots != null) {
+      _.each(this.state.timeSeriesPlots, (p, k) => {
+        p.datasets([new Plottable.Dataset(nextProps.timeSeries[k])]);
+      });
+      _.each(this.state.timeSeriesScatterPlots, (p, k) =>
+        p.datasets([new Plottable.Dataset(nextProps.timeSeries[k])]));
     }
 
     if (this.state.yAxisLabel) {

@@ -85,9 +85,9 @@ class AssetView extends React.Component<IProps, IState> {
   }
 
 
-  private computeTimeSeries(asset): TimeSeriesPoint[] {
-    if (this.state.defectChartSelection) {
-      return asset._defect_time_series[this.state.defectChartSelection]
+  private computeTimeSeries(ts): TimeSeriesPoint[] {
+    if (ts) {
+      return ts
         .series.map( ({ timestamp, value }) => ({x: new Date(timestamp), y: value }));
     }
     return [];
@@ -118,7 +118,9 @@ class AssetView extends React.Component<IProps, IState> {
   }
 
   private renderDefectsChart(asset) {
-    const timeSeries = this.computeTimeSeries(asset);
+    const defectTimeSeries = this.computeTimeSeries(asset._defect_time_series[this.state.defectChartSelection]);
+    const predictionTimeSeries = this.computeTimeSeries(asset._defect_predictions);
+
     const events = this.computeEvents(asset);
     return (
       <Pane
@@ -130,7 +132,8 @@ class AssetView extends React.Component<IProps, IState> {
           <TimeChart
             yLabel={this.state.defectChartSelection}
             events={events}
-            timeSeries={timeSeries}
+            timeSeries={{predictions: predictionTimeSeries, defects: defectTimeSeries}}
+            colors={{defects: "#1f77b4", predictions: "#00FF00"}}
           /> :
           <NonIdealState
             visual="info"
