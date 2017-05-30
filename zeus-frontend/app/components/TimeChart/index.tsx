@@ -103,6 +103,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     this.yAxisLabel = new Plottable.Components.AxisLabel("", 270);
     this.yScaleTimeSeries = new Plottable.Scales.Linear();
+    this.yScaleTimeSeries.domainMin(-0.1);
     const yAxis = new Plottable.Axes.Numeric(this.yScaleTimeSeries, "left");
 
     const eventsPlot = new Plottable.Plots.Segment()
