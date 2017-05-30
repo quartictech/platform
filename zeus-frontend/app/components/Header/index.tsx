@@ -1,3 +1,4 @@
+// TODO - this is really a container
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
@@ -14,16 +15,16 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
-import Search from "../../components/Search";
+import SearchContainer from "../../containers/SearchContainer";
+import standardProviders from "../../containers/SearchContainer/standardProviders";
 import * as selectors from "../../redux/selectors";
+import { toTitleCase } from "../../helpers/Utils";
 import {
   resourceActions,
   ResourceState,
   ResourceStatus,
 } from "../../api-management";
 import {
-  assets,
-  jobs,
   datasetList,
 } from "../../api";
 import {
@@ -72,15 +73,10 @@ class Header extends React.Component<HeaderProps, void> {
             >
             </img>
           </Link>
-          <Search
+          <SearchContainer
             className={classNames(Classes.ROUND, styles.myPicker)}
-            assetsClear={this.props.assetsClear}
-            assetsRequired={this.props.assetsRequired}
-            assets={this.props.assets}
-            jobsClear={this.props.jobsClear}
-            jobsRequired={this.props.jobsRequired}
-            jobs={this.props.jobs}
             placeholder="Search..."
+            providers={standardProviders}
           />
 
           <span className={Classes.NAVBAR_DIVIDER} />
@@ -143,7 +139,7 @@ class Header extends React.Component<HeaderProps, void> {
       <Menu>
         {
           _.map(this.props.datasetList.data, d => (
-            <MenuItem key={d} iconName="database" text={d} href={appHistory.createHref({
+            <MenuItem key={d} iconName="database" text={toTitleCase(d)} href={appHistory.createHref({
               pathname: `/explorer/${encodeURIComponent(d)}`,
             })} />
           ))
@@ -167,16 +163,10 @@ class Header extends React.Component<HeaderProps, void> {
 }
 
 const mapDispatchToProps = {
-  assetsClear: resourceActions(assets).clear,
-  assetsRequired: resourceActions(assets).required,
-  jobsClear: resourceActions(jobs).clear,
-  jobsRequired: resourceActions(jobs).required,
   datasetListRequired: resourceActions(datasetList).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  assets: selectors.selectAssets,
-  jobs: selectors.selectJobs,
   datasetList: selectors.selectDatasetList,
 });
 
