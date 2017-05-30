@@ -125,6 +125,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
         <Button
           className={Classes.MINIMAL}
           text="Predictions"
+          iconName="chart"
           active={this.state.predictions}
           onClick={() => this.setState({ predictions: !this.state.predictions })}
         />
