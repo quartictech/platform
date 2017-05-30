@@ -119,8 +119,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     const xScale = new Plottable.Scales.Linear();
     const yScale = new Plottable.Scales.Linear();
 
-    const colorScale = new Plottable.Scales.InterpolatedColor()
-      .range([Colors.GRAY1, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1]);
+    const colorScale = new Plottable.Scales.InterpolatedColor("sqrt")
+      .range([Colors.GRAY1, Colors.RED5, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1]);
 
     const newPlot = () => new Plottable.Plots.Rectangle()
       .addDataset(dataset)
