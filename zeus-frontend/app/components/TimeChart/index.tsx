@@ -172,8 +172,6 @@ class RealTimeChart extends React.Component<IProps, IState> {
     Object.keys(nextProps.timeSeries).forEach(k =>
       this.timeSeriesDatasets[k].data(nextProps.timeSeries[k]));
 
-    this.plots.forEach(p => p.render());
-
     if (this.yAxisLabel) {
       this.yAxisLabel.text(nextProps.yLabel);
     }
