@@ -37,15 +37,15 @@ function setEq(a: any[], b: any[]) {
 
 
 class RealTimeChart extends React.Component<IProps, IState> {
-  timeSeriesDatasets: { [id: string]: Plottable.Dataset};
-  eventsDatasets: { [id: string]: Plottable.Dataset};
-  plots: Plottable.Plot[];
-  chart: Plottable.Component;
-  pzi: Plottable.Interactions.PanZoom;
-  group: Plottable.Components.Group;
-  xScale: Plottable.Scales.Time;
-  yAxisLabel: Plottable.Components.AxisLabel;
-  yScaleTimeSeries: Plottable.Scales.Linear;
+  private timeSeriesDatasets: { [id: string]: Plottable.Dataset};
+  private eventsDatasets: { [id: string]: Plottable.Dataset};
+  private plots: Plottable.Plot[];
+  private chart: Plottable.Component;
+  private pzi: Plottable.Interactions.PanZoom;
+  private group: Plottable.Components.Group;
+  private xScale: Plottable.Scales.Time;
+  private yAxisLabel: Plottable.Components.AxisLabel;
+  private yScaleTimeSeries: Plottable.Scales.Linear;
 
   constructor() {
     super();
