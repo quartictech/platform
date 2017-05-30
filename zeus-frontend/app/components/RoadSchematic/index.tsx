@@ -91,7 +91,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
   componentDidMount() {
     window.addEventListener("resize", () => this.state.plot.outer.redraw());
-    this.state.plot.outer.renderTo(this.refs["svg"]);
+    this.state.plot.outer.renderTo(this.refs["svg"] as HTMLElement);
   }
 
   componentWillUpdate(nextProps: RoadSchematicProps) {

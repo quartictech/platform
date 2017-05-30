@@ -2,6 +2,8 @@ import * as React from "react";
 import {
   NonIdealState,
   Position,
+  Button,
+  Classes,
 } from "@blueprintjs/core";
 import { TimeChart } from "../../components/TimeChart";
 import NormalPicker from "../../components/NormalPicker";
@@ -14,6 +16,7 @@ interface DefectsChartProps {
 
 interface State {
   seriesSelection: string;
+  predictions: boolean;
 }
 
 const DEFECT_CHART_DEFAULT_SELECTION = "Defects - CW / m";
@@ -23,6 +26,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
     super(props);
     this.state = {
       seriesSelection: null,
+      predictions: false,
     };
   }
 
@@ -39,7 +43,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
       if (DEFECT_CHART_DEFAULT_SELECTION in props.asset._defect_time_series) {
         this.setState({ seriesSelection: DEFECT_CHART_DEFAULT_SELECTION });
       } else {
-        const timeSeriesKeys = Object.keys(props.asset.data._defect_time_series);
+        const timeSeriesKeys = Object.keys(props.asset._defect_time_series);
         if (timeSeriesKeys.length > 0) {
           this.setState({ seriesSelection: timeSeriesKeys[0] });
         }
@@ -48,10 +52,18 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
   }
 
   render() {
-    const defectTimeSeries = this.computeTimeSeries(
-      this.props.asset._defect_time_series[this.state.seriesSelection]);
-    const predictionTimeSeries = this.computeTimeSeries(this.props.asset._defect_predictions);
     const events = this.computeEvents(this.props.asset);
+
+    const timeSeries = Object.assign(
+      {
+      defects:
+        this.computeTimeSeries(this.props.asset._defect_time_series[this.state.seriesSelection]),
+      },
+      this.state.predictions ? {
+        predictions: this.computeTimeSeries(this.props.asset._defect_predictions),
+      } : {},
+    );
+
     return (
       <Pane
         title="Defects vs. time"
@@ -62,8 +74,8 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
           <TimeChart
             yLabel={this.state.seriesSelection}
             events={events}
-            timeSeries={{predictions: predictionTimeSeries, defects: defectTimeSeries}}
-            colors={{defects: "#1f77b4", predictions: "#00FF00"}}
+            timeSeries={timeSeries}
+            colors={{ defects: "#1f77b4", predictions: "#00FF00" }}
           /> :
           <NonIdealState
             visual="info"
@@ -109,13 +121,21 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
   private renderChartButtons(asset) {
     const charts = Object.keys(asset._defect_time_series);
     return (
-      <NormalPicker
-        iconName="timeline-line-chart"
-        position={Position.TOP}
-        selected={this.state.seriesSelection}
-        entries={charts}
-        onChange={id => this.setState({ seriesSelection: id })}
-      />
+      <div>
+        <Button
+          className={Classes.MINIMAL}
+          text="Predictions"
+          active={this.state.predictions}
+          onClick={() => this.setState({ predictions: !this.state.predictions })}
+        />
+        <NormalPicker
+          iconName="timeline-line-chart"
+          position={Position.TOP}
+          selected={this.state.seriesSelection}
+          entries={charts}
+          onChange={id => this.setState({ seriesSelection: id })}
+        />
+      </div>
     );
   }
 }
