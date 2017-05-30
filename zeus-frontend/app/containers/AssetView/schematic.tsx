@@ -41,7 +41,7 @@ class Schematic extends React.Component<SchematicProps, State> {
               <RoadSchematic
                 sections={sections}
                 maxValue={this.getMaxValue()}
-                hoverText={s => <span><b>Defect count:</b> {s.value}</span>}
+                hoverText={s => <span><b>Defect score:</b> {numeral(s.value).format("0.0")}</span>}
               />
             )
             : (
@@ -70,7 +70,7 @@ class Schematic extends React.Component<SchematicProps, State> {
   }
 
   private getMaxValue(): number {
-    return _.max(_.map(this.props.asset["_surveys"], s => _.size(s["defects"])));
+    return _.max(_.map(this.props.asset["_surveys"], (s: RoadSchematicSection) => this.getDefectScore(s)));
   }
 
   private getSurveySections(): RoadSchematicSection[] {
@@ -79,10 +79,14 @@ class Schematic extends React.Component<SchematicProps, State> {
       .map(s => ({
         xMin: numeral(s["schain"]),
         xMax: numeral(s["echain"]),
-        value: _.size(s["defects"]),
+        value: this.getDefectScore(s),
         lane: s["xsect"],
       }))
       .value();
+  }
+
+  private getDefectScore(section: RoadSchematicSection) {
+    return _.reduce(section["defects"], (d: number, sum: number) => sum + d, 0);
   }
 }
 
