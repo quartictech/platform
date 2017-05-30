@@ -3,6 +3,7 @@ import * as moment from "moment";
 import * as numeral from "numeraljs";
 import * as _ from "underscore";
 import {
+  NonIdealState,
   Position,
 } from "@blueprintjs/core";
 
@@ -28,17 +29,28 @@ class Schematic extends React.Component<SchematicProps, State> {
   }
 
   render() {
+    const sections = this.getSurveySections();
     return (
       <div style={{ width: "100%" }}>
         <Pane
           title="Defects schematic"
           iconName="error"
           extraHeaderContent={this.yearPicker()}>
-          <RoadSchematic
-            sections={this.getSurveySections()}
-            maxValue={this.getMaxValue()}
-            hoverText={s => <span><b>Defect count:</b> {s.value}</span>}
-          />
+          { (_.size(sections) > 0)
+            ? (
+              <RoadSchematic
+                sections={sections}
+                maxValue={this.getMaxValue()}
+                hoverText={s => <span><b>Defect count:</b> {s.value}</span>}
+              />
+            )
+            : (
+              <NonIdealState
+                visual="info"
+                title="No survey data available"
+              />
+            )
+          }
         </Pane>
       </div>
     );

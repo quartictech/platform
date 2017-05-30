@@ -9,17 +9,18 @@ import * as classNames from "classnames";
 import * as _ from "underscore";
 
 // See http://www.ukpms.com/owner_forum/shared_files/UKPMS_Manual_02_Chapter4_XSP_v04.pdf
+// We specify right-to-left, so that right-most roads get lower y values, thus appearing at the bottom.
 // TODO: what about off-road features?  And more lanes
 const ALL_LANES = ([
-  "LE",
-  "-L3", "-L2", "-L1",
-  "CL1", "CL2", "CL3",
-  "+L1", "+L2", "+L3",
-  "CC",
-  "+R3", "+R2", "+R1",
-  "CR3", "CR2", "CR1",
-  "-R1", "-R2", "-R3",
   "RE",
+  "-R3", "-R2", "-R1",
+  "CR1", "CR2", "CR3",
+  "+R1", "+R2", "+R3",
+  "CC",
+  "+L3", "+L2", "+L1",
+  "CL3", "CL2", "CL1",
+  "-L1", "-L2", "-L3",
+  "LE",
 ]);
 
 export interface RoadSchematicSection {
