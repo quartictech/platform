@@ -166,10 +166,11 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     this.showMenu();
     this.resetHighlight();
 
+    // Trim because whitespace shouldn't affect searching, etc.s
     if (this.props.manageFilter) {
-      this.recalculateCategorisedEntries(this.props.entries, text);
+      this.recalculateCategorisedEntries(this.props.entries, text.trim());
     } else {
-      BlueprintUtils.safeInvoke(this.props.onQueryChange, text);
+      BlueprintUtils.safeInvoke(this.props.onQueryChange, text.trim());
     }
   }
 
