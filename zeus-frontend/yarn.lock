@@ -141,12 +141,12 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-redux@4.4.32":
-  version "4.4.32"
-  resolved "https://registry.yarnpkg.com/@types/react-redux/-/react-redux-4.4.32.tgz#7df8dc2f6429e31cc782020bf41ae5911b24e214"
+"@types/react-redux@4.4.40":
+  version "4.4.40"
+  resolved "https://registry.yarnpkg.com/@types/react-redux/-/react-redux-4.4.40.tgz#268d1a9b9a42e52562450e2c306630fa38db36ad"
   dependencies:
     "@types/react" "*"
-    "@types/redux" "*"
+    redux "^3.6.0"
 
 "@types/react-router-redux@4.0.39":
   version "4.0.39"

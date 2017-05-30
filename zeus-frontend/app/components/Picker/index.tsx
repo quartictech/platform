@@ -17,6 +17,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
+import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
 export interface PickerEntry {
@@ -26,6 +27,7 @@ export interface PickerEntry {
   extra?: string;
   category?: string;
   iconName?: string;
+  disabled?: boolean;
 }
 
 interface NumberedEntry {
@@ -267,13 +269,14 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       <div
         key={entry.key}
         className={isHighlighted ? s.highlighted : null}
-        style={{ cursor: "pointer" }}
+        style={{ cursor: (entry.disabled ? "not-allowed" : "pointer") }}
         onMouseEnter={() => this.onMouseEnter(idx)}
-        onClick={() => this.onSelectEntry(entry.key)}
+        onClick={() => entry.disabled || this.onSelectEntry(entry.key)}
       >
         <MenuItem
           key={entry.key}
           className={s.bad}
+          disabled={entry.disabled}
           text={(
             <div style={{ marginLeft: "30px" }}>
               <div><b>{entry.name}</b></div>
@@ -305,9 +308,5 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 }
 
 const matches = (entry: PickerEntry, text: string) =>
-  stringInString(text, entry.name) || stringInString(text, entry.description) || stringInString(text, entry.extra);
-
-
-const stringInString = (needle: string, haystack: string) =>
-  haystack && (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
+  _.any([entry.name, entry.description, entry.extra], s => s && stringInString(text, s));
 
