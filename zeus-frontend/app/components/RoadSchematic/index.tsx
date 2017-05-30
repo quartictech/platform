@@ -73,6 +73,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
   // TODO - get the initial size to be regular (currently too big on the right)
   render() {
+    // overflow:hidden required due to https://github.com/palantir/plottable/issues/3298
     return (
         <div style={{padding: "10px", width: "99%"}}>
           <div style={{ width: "100%", height: 175, overflow: "hidden" }} ref="svg" />
