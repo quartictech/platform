@@ -76,7 +76,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     // overflow:hidden required due to https://github.com/palantir/plottable/issues/3298
     return (
         <div style={{padding: "10px", width: "99%"}}>
-          <svg style={{ width: "100%", height: 250, overflow: "hidden" }} ref="svg" />
+          <div style={{ width: "100%", height: 250, overflow: "hidden" }} ref="svg" />
           <span
             style={{ visibility: this.state.hoveredSection ? "visible" : "hidden" }}
             className={classNames(Classes.CALLOUT, Classes.TEXT_MUTED)}
