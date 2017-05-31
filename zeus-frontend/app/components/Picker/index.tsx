@@ -136,7 +136,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       case Keys.ENTER: {
         const highlighted = this.getHighlightedEntry();
         if (highlighted) {
-          this.onSelectEntry(highlighted.key);
+          this.onSelectEntry(highlighted);
         }
         break;
       }
@@ -153,9 +153,13 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     e.preventDefault();
   }
 
-  private onSelectEntry(key: string) {
+  private onSelectEntry(entry: PickerEntry) {
     this.hideMenu();
-    BlueprintUtils.safeInvoke(this.props.onEntrySelect, _.find(this.props.entries, e => e.key === key));
+    if (entry.href) {
+      appHistory.push(entry.href);
+    } else {
+      BlueprintUtils.safeInvoke(this.props.onEntrySelect, entry);
+    }
   }
 
   private onInteraction(nextOpenState: boolean) {
@@ -277,7 +281,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       >
         <MenuItem
           href={entry.href && appHistory.createHref(entry.href)}
-          onClick={() => entry.disabled || this.onSelectEntry(entry.key)}
+          onClick={() => entry.disabled || entry.href || this.onSelectEntry(entry)}
           disabled={entry.disabled}
           text={(
             <div style={{ marginLeft: "30px" }}>
