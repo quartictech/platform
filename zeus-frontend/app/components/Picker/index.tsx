@@ -17,6 +17,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
+import { appHistory } from "../../routes";
 import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
@@ -28,6 +29,7 @@ export interface PickerEntry {
   category?: string;
   iconName?: string;
   disabled?: boolean;
+  href?: string;
 }
 
 interface NumberedEntry {
@@ -117,7 +119,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     this.setState({ categorisedEntries });
   }
 
-  private onMouseEnter(idx: number) {
+  private onMouseOver(idx: number) {
     this.setHighlightIndex(idx);
   }
 
@@ -262,21 +264,20 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   // marginLeft is a hack - compensates for hardcoded ::before size in Blueprint CSS.
-  // Note that the MenuItem behaviour is not very controllable, so we completely override it - we've disabled 
-  // pointer-events, and use a wrapper div to capture events and do colouring.  This is gross.
+  // Note that one can't control the colour of MenuItems independent of mouse hover, which is not what we want (given
+  // we also do keyboard-based highlighting.  So we disable its ::hover behaviour via CSS, and wrap in a div that
+  // provides new colouring behaviour (along with onMouseOver).
   private renderEntry(entry: PickerEntry, idx: number) {
     const isHighlighted = (idx === this.state.idxHighlighted);
     return (
       <div
         key={entry.key}
         className={isHighlighted ? s.highlighted : null}
-        style={{ cursor: (entry.disabled ? "not-allowed" : "pointer") }}
-        onMouseEnter={() => this.onMouseEnter(idx)}
-        onClick={() => entry.disabled || this.onSelectEntry(entry.key)}
+        onMouseOver={() => this.onMouseOver(idx)}
       >
         <MenuItem
-          key={entry.key}
-          className={s.bad}
+          href={entry.href && appHistory.createHref(entry.href)}
+          onClick={() => entry.disabled || this.onSelectEntry(entry.key)}
           disabled={entry.disabled}
           text={(
             <div style={{ marginLeft: "30px" }}>

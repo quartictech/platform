@@ -1,7 +1,6 @@
 import * as _ from "underscore";
 import { SearchProvider } from "./index";
 import * as selectors from "../../redux/selectors";
-import { appHistory } from "../../routes";
 import { toTitleCase } from "../../helpers/Utils";
 import { Intent } from "@blueprintjs/core";
 import { toaster } from "../../containers/App/toaster";
@@ -39,7 +38,7 @@ const datasetProvider = () => {
       key: d,
       name: toTitleCase(d),
       iconName: "database",
-      onSelect: () => appHistory.push(`/explorer/${encodeURIComponent(d)}`),
+      href: `/explorer/${encodeURIComponent(d)}`,
     })), onResultChange);
   };
 };
@@ -54,7 +53,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
       description: item["RSL"],
       extra: toTitleCase(item["Section Description"] || ""),
       iconName: "drive-time", // A car :)
-      onSelect: () => appHistory.push(`/assets/${encodeURIComponent(id)}`),
+      href: `/assets/${encodeURIComponent(id)}`,
     }),
   ),
 
@@ -68,8 +67,8 @@ const standardProviders: { [id: string] : SearchProvider } = {
       extra: item["Type"],
       iconName: "wrench",
       // TODO: what about the other RSLs?
-      onSelect: () =>
-        item["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(item["RSLs"].split(",")[0])}`),
+      href: 
+        item["RSLs"] && `/assets/${encodeURIComponent(item["RSLs"].split(",")[0])}`,
     }),
   ),
 
@@ -86,7 +85,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
     name: insight.title,
     iconName: "layout-auto",
     disabled: insight.disabled,
-    onSelect: () => appHistory.push(`/insights/${encodeURIComponent(name)}`),
+    href: `/insights/${encodeURIComponent(name)}`,
   }))),
 
   datasets: datasetProvider(),
