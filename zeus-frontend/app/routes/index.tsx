@@ -8,10 +8,9 @@ const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 function getRoutes() { return (
     <Route path="/" component={App}>
       <Route path="/search" component={SearchView} />
-      <Route path="/insights" component={InsightView} />
+      <Route path="/insights/:insightName" component={InsightView} />
       <Route path="/explorer/:datasetName" component={ExplorerView} />
       <Route path="/assets/:assetId" component={AssetView} />
-      <Route path="/insights/:insightId" component={InsightView} />
       <IndexRedirect to="/search" />
     </Route>
   );
