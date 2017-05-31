@@ -76,7 +76,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     // overflow:hidden required due to https://github.com/palantir/plottable/issues/3298
     return (
         <div style={{padding: "10px", width: "99%"}}>
-          <div style={{ width: "100%", height: 175, overflow: "hidden" }} ref="svg" />
+          <div style={{ width: "100%", height: 250, overflow: "hidden" }} ref="svg" />
           <span
             style={{ visibility: this.state.hoveredSection ? "visible" : "hidden" }}
             className={classNames(Classes.CALLOUT, Classes.TEXT_MUTED)}
@@ -144,10 +144,10 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     const xAxis = new Plottable.Axes.Numeric(xScale, "bottom");
     const yAxis = new Plottable.Axes.Numeric(yScale, "left");
 
-    // Convert tick numeric positions to corresponding XSP names
+    
     yAxis
-      .tickLabelPadding(5)
-      .formatter(label => _.findKey(this.intervalMap, i => i[0] < label && label < i[1]).toString());
+      .tickLabelPadding(0)
+      .formatter(label => this.getXspNameFromYPosition(label));
 
     const yLabel = new Plottable.Components.AxisLabel("Lane", 270);
 
@@ -180,6 +180,10 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       plotHighlighter.entities().forEach(entity => entity.selection.attr("fill-opacity", 0));
     });
     interaction.attachTo(plot);
+  }
+  
+  private getXspNameFromYPosition(y: number) {
+    return _.findKey(this.intervalMap, i => i[0] < y && y < i[1]).toString();
   }
 }
 
