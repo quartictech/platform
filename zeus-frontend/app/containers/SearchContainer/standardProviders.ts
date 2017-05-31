@@ -1,5 +1,5 @@
 import * as _ from "underscore";
-import { SearchProvider, SearchResultEntry } from "./index";
+import { SearchProvider } from "./index";
 import * as selectors from "../../redux/selectors";
 import { appHistory } from "../../routes";
 import { toTitleCase } from "../../helpers/Utils";
@@ -20,6 +20,7 @@ import {
 } from "../../models";
 import { managedResourceProvider } from "./managedResourceProvider";
 import { staticProvider, staticProviderEngine } from "./staticProvider";
+import insights from "../../containers/InsightView/insights";
 
 
 const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
@@ -43,23 +44,6 @@ const datasetProvider = () => {
   };
 };
 
-// TODO - eliminate duplication with menu in Header
-const insightEntries: SearchResultEntry[] = [
-  {
-    key: "high/low",
-    name: "Highest / lowest defects (2016)",
-    iconName: "layout-auto",
-    onSelect: () => appHistory.push(`/insights`),
-  },
-  {
-    key: "predictions",
-    name: "Predictions (2017)",
-    iconName: "layout-auto",
-    onSelect: () => appHistory.push(`/insights`),
-    disabled: true,
-  },
-];
-
 const standardProviders: { [id: string] : SearchProvider } = {
   assets: managedResourceProvider(
     selectors.selectAssets,
@@ -73,6 +57,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
       onSelect: () => appHistory.push(`/assets/${encodeURIComponent(id)}`),
     }),
   ),
+
   jobs: managedResourceProvider(
     selectors.selectJobs,
     jobs,
@@ -87,6 +72,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
         item["RSLs"] && appHistory.push(`/assets/${encodeURIComponent(item["RSLs"].split(",")[0])}`),
     }),
   ),
+
   // TODO: eliminate this
   people: staticProvider(["people"], _.map(["Arlo", "Alex", "Oliver"], p => ({
     key: p,
@@ -94,7 +80,15 @@ const standardProviders: { [id: string] : SearchProvider } = {
     iconName: "person",
     onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: `${p} clicked` }),
   }))),
-  insights: staticProvider(["insights"], insightEntries),
+
+  insights: staticProvider(["insights"], _.map(insights, (insight, name) => ({
+    key: name,
+    name: insight.title,
+    iconName: "layout-auto",
+    disabled: insight.disabled,
+    onSelect: () => appHistory.push(`/insights/${encodeURIComponent(name)}`),
+  }))),
+
   datasets: datasetProvider(),
 };
 
