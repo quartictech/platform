@@ -49,8 +49,8 @@ class RealMap  extends React.Component<IMapProps, any> {
 
   render() {
     return (
-      <div className={s.map}>
-        <div id="map-inner" className={s.mapViewport} style={{width: this.props.width, height: 200}}>
+      <div className={s.map} style={{ height: this.props.height }}>
+        <div id="map-inner" className={s.mapViewport} style={{width: "100%", height: "100%"}}>
         </div>
       </div>
     );
