@@ -17,6 +17,7 @@ import * as classNames from "classnames";
 import * as _ from "underscore";
 import SearchContainer from "../../containers/SearchContainer";
 import standardProviders from "../../containers/SearchContainer/standardProviders";
+import insights from "../../containers/InsightView/insights";
 import * as selectors from "../../redux/selectors";
 import { toTitleCase } from "../../helpers/Utils";
 import {
@@ -121,15 +122,15 @@ class Header extends React.Component<HeaderProps, void> {
   private renderInsightsMenu() {
     return (
       <Menu>
-        <MenuItem iconName="layout-auto" text="Highest / lowest defects (2016)" href={appHistory.createHref({
-          pathname: "/insights",
-        })} />
-        <MenuItem disabled={true} iconName="layout-auto" text="Predictions (2017)" href={appHistory.createHref({
-          pathname: "/insights",
-        })} />
-        <MenuItem disabled={true} iconName="layout-auto" text="SmartOps" href={appHistory.createHref({
-          pathname: "/insights",
-        })} />
+        {_.map(insights, (insight, name) => (
+          <MenuItem
+            key={name}
+            iconName="layout-auto"
+            text={insight.title}
+            disabled={insight.disabled}
+            href={appHistory.createHref({ pathname: `/insights/${encodeURIComponent(name)}` })}
+          />
+        ))}
       </Menu>
     );
   }

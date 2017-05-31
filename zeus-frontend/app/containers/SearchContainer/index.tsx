@@ -22,7 +22,7 @@ import Picker, { PickerEntry } from "../../components/Picker";
  *-----------------------------------------------------*/
 
 export type SearchResultEntry = PickerEntry & {
-  onSelect: () => void;
+  onSelect?: () => void;
 };
 
 export interface SearchResult {
