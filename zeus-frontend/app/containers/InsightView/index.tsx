@@ -1,8 +1,10 @@
 import * as React from "react";
 const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import {
+  Classes,
   NonIdealState,
 } from "@blueprintjs/core";
+import * as classNames from "classnames";
 import insights, { Insight } from "./insights";
 
 interface Props {
@@ -28,8 +30,24 @@ class InsightView extends React.Component<Props, {}> {
 
     return (
       <DocumentTitle title={`Quartic - ${insight.title}`}>
-        {React.createElement(insight.componentClass)}
+        <div>
+          {this.maybeDescription(insight)}
+          {React.createElement(insight.componentClass)}
+        </div>
       </DocumentTitle>
+    );
+  }
+
+  private maybeDescription(insight: Insight) {
+    if (!insight.description) {
+      return null;
+    }
+
+    return (
+      <div className={classNames(Classes.CALLOUT, Classes.iconClass("info-sign"), Classes.INTENT_PRIMARY)}>
+        <h5>{insight.title}</h5>
+        {insight.description || null}
+      </div>
     );
   }
 }

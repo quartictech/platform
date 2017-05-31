@@ -128,7 +128,7 @@ class Header extends React.Component<HeaderProps, void> {
             iconName="layout-auto"
             text={insight.title}
             disabled={insight.disabled}
-            href={appHistory.createHref({ pathname: `/${encodeURIComponent(name)}` })}
+            href={appHistory.createHref({ pathname: `/insights/${encodeURIComponent(name)}` })}
           />
         ))}
       </Menu>

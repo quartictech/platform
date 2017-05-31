@@ -1,9 +1,7 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+import { Link } from "react-router";
 import * as classNames from "classnames";
 import * as _ from "underscore";
-import { appHistory } from "../../routes";
-
 import * as numeral from "numeraljs";
 
 import {
@@ -80,50 +78,49 @@ class HighestLowest2016 extends React.Component<{}, {}> {
 
   render() {
     return (
-      <DocumentTitle title="Quartic - Highest / lowest defects (2016)">
-        <div>
-          {this.renderPane("Highest defects (2016)", HIGHEST_DEFECT_ROADS,
-            { backgroundColor: "rgba(219, 55, 55, 0.15)" })
-          }
-          {this.renderPane("Lowest defects (2016)", LOWEST_DEFECT_ROADS,
-            { backgroundColor: "rgba(15, 153, 96, 0.15)" })
-          }
-        </div>
-      </DocumentTitle>
+      <div>
+        {this.pane("Highest defects (2016)", HIGHEST_DEFECT_ROADS,
+          { backgroundColor: "rgba(219, 55, 55, 0.15)" })
+        }
+        {this.pane("Lowest defects (2016)", LOWEST_DEFECT_ROADS,
+          { backgroundColor: "rgba(15, 153, 96, 0.15)" })
+        }
+      </div>
     );
   }
 
-  private renderPane(title: string, entries: Entry[], style: any) {
+  private pane(title: string, entries: Entry[], style: any) {
     return (
       <Pane title={title} iconName="error">
         <table
-          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+          className={classNames(Classes.TABLE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
           style={{ width: "100%", tableLayout: "fixed" }}
         >
           <thead>
             <tr>
               <th>Ranking</th>
-              <th>Road name</th>
               <th>RSL</th>
+              <th>Road name</th>
               <th>Section description</th>
               <th>Defect score</th>
               <th>Length (m)</th>
             </tr>
           </thead>
           <tbody>
-            {_.map(entries, entry => this.renderRow(style, entry))}
+            {_.map(entries, entry => this.row(style, entry))}
           </tbody>
         </table>
       </Pane>
     );
   }
 
-  private renderRow(style, entry: Entry) {
+  private row(style, entry: Entry) {
     return (
-      <tr key={entry.rsl} style={style} onClick={() => appHistory.push(`/assets/${encodeURIComponent(entry.rsl)}`)}>
+      <tr key={entry.rsl} style={style}>
         <td>{entry.rank}</td>
+        <td><Link to={`/assets/${encodeURIComponent(entry.rsl)}`}><b>{entry.rsl}</b></Link></td>
         <td>{toTitleCase(entry.name)}</td>
-        <td>{entry.rsl}</td>
+        
         <td>{toTitleCase(entry.description)}</td>
         <td>{numeral(entry.score).format("0.00")}</td>
         <td>{entry.length ? numeral(entry.length).format("0.00") : null}</td>
