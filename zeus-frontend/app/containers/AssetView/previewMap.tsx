@@ -20,7 +20,7 @@ const PreviewMap: React.SFC<PreviewMapProps> = (props) => {
   };
   return (
     <Pane>
-      <Map height={100} width={500} featureCollection={fc}/>
+      <Map height={300} width={500} featureCollection={fc}/>
     </Pane>
   );
 };
