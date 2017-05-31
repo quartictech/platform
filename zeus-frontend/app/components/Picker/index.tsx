@@ -211,7 +211,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       <Popover
         autoFocus={false}
         enforceFocus={false}
-        popoverClassName={Classes.MINIMAL}
+        popoverClassName={classNames(Classes.MINIMAL, s.picker)}
         content={this.renderMenu()}
         isOpen={!this.props.disabled && this.state.menuVisible}
         onInteraction={this.onInteraction}
