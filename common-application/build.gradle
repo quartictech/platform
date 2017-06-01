@@ -8,6 +8,7 @@ dependencies {
     compile project(":common-core")
 
     compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
+    compile "io.dropwizard:dropwizard-auth:${versions.dropwizard}"
     compile "de.thomaskrille:dropwizard-template-config:1.4.0"
 
     runtime libraries.dropwizardMetricsInfluxdb

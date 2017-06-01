@@ -7,7 +7,7 @@ import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.mgmt.auth.NamespaceAuthoriser
-import io.quartic.mgmt.auth.User
+import io.quartic.common.auth.User
 import io.quartic.mgmt.conversion.CsvConverter
 import org.apache.commons.io.IOUtils
 import java.io.IOException

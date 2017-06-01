@@ -8,7 +8,7 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.test.assertThrows
 import io.quartic.howl.api.HowlService
 import io.quartic.mgmt.auth.NamespaceAuthoriser
-import io.quartic.mgmt.auth.User
+import io.quartic.common.auth.User
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before

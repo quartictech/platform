@@ -12,8 +12,8 @@ import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
 import io.quartic.mgmt.auth.NamespaceAuthoriser
-import io.quartic.mgmt.auth.NoobAuthFilter
-import io.quartic.mgmt.auth.User
+import io.quartic.common.auth.NoobAuthFilter
+import io.quartic.common.auth.User
 
 
 class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
