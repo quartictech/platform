@@ -9,7 +9,7 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.common.ApplicationDetails
-import io.quartic.common.auth.NoobAuthFilter
+import io.quartic.common.auth.QuarticAuthFilter
 import io.quartic.common.auth.User
 import io.quartic.common.logging.logger
 import io.quartic.common.pingpong.PingPongResource
@@ -48,7 +48,7 @@ abstract class ApplicationBase<T : Configuration> : Application<T>() {
             urlPattern = "/api/*"
             register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response
             register(PingPongResource())
-            register(AuthDynamicFeature(NoobAuthFilter.create()))
+            register(AuthDynamicFeature(QuarticAuthFilter.create()))
             register(AuthValueFactoryProvider.Binder(User::class.java))
         }
 
