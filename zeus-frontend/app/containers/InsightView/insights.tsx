@@ -1,6 +1,7 @@
 import * as React from "react";
 import HighestLowest2016 from "./highestLowest2016";
 import HighestConcentration2016 from "./highestConcentration2016";
+import Flytipping from "./flytipping";
 
 export interface Insight {
   componentClass: any;
@@ -42,6 +43,12 @@ const insights: { [name: string] : Insight } = {
         </p>
       </div>
     ),
+  },
+  "flytipping": {
+    componentClass: Flytipping,
+    title: "Flytipping",
+    disabled: false,
+    description: (<div>Flytipping trends in Hounslow.</div>),
   },
   "predictions2017": {
     componentClass: null,

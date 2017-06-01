@@ -30,7 +30,7 @@ class InsightView extends React.Component<Props, {}> {
 
     return (
       <DocumentTitle title={`Quartic - ${insight.title}`}>
-        <div>
+        <div style={{ width: "100%" }}>
           {this.maybeDescription(insight)}
           {React.createElement(insight.componentClass)}
         </div>
