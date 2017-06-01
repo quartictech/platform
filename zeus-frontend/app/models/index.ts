@@ -9,6 +9,10 @@ export interface LatLon {
   lon: number;
 }
 
+export interface SessionInfo {
+  username: string;
+}
+
 export type DatasetName = string;
 
 export type Asset = any;
