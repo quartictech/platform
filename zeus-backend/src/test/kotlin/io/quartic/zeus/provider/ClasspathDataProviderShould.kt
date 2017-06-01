@@ -17,5 +17,11 @@ class ClasspathDataProviderShould {
         )))
     }
 
+    @Test
+    fun maintain_key_order() {
+        val provider = ClasspathDataProvider(ClasspathDataProviderConfiguration("/sorted.json", emptySet()))
+        assertThat(provider.data[ItemId("123")]!!.keys.toList(), equalTo(listOf("foo", "bar", "baz")))
+    }
+
     // TODO: test filtering
 }

@@ -9,6 +9,11 @@ export interface LatLon {
   lon: number;
 }
 
+export interface Dataset<T> {
+  schema: string[];
+  content: { [id: string] : T };
+}
+
 export interface SessionInfo {
   username: string;
 }
