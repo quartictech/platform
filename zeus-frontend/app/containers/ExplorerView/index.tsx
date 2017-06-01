@@ -30,7 +30,7 @@ import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 import * as _ from "underscore";
-import { toTitleCase } from "../../helpers/Utils";
+import { stringInString, toTitleCase } from "../../helpers/Utils";
 const s = require("./style.css");
 
 interface ExplorerViewProps {
@@ -57,9 +57,6 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     if (column === "" || value === "") {
       return _.values(datasetContent);
     }
-
-    const stringInString = (needle: string, haystack: string) =>
-      (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
 
     return _.filter(
       _.values(datasetContent),

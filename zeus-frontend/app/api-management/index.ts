@@ -143,6 +143,9 @@ export const singleReducer = <T>(resource: ManagedResource<T>) => (
 export const reducer = (resources: ManagedResource<any>[]) =>
   combineReducers(_.object(_.map(resources, r => [r.shortName, singleReducer(r)])) as {});
 
+export const selector = <T>(resource: ManagedResource<T>) =>
+  (state) => state.get("managed")[resource.shortName].toJS() as ResourceState<T>;
+
 export class ManagedResource<T> {
   name: string;
   shortName: string;
