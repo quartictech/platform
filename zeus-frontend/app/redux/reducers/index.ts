@@ -1,5 +1,4 @@
 import { LOCATION_CHANGE } from "react-router-redux";
-import { uiReducer } from "./ui";
 import { combineReducers } from "redux-immutable";
 import { fromJS } from "immutable";
 
@@ -30,7 +29,6 @@ function routeReducer(state = routeInitialState, action) {
 const rootReducer: Redux.Reducer<any> = combineReducers({
   route: routeReducer,
   managed: reducer(api.managedResources),
-  ui: uiReducer,
 });
 
 export { rootReducer };

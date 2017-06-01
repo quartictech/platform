@@ -1,5 +1,6 @@
 package io.quartic.zeus.resource
 
+import io.quartic.zeus.model.Dataset
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
 import io.quartic.zeus.provider.DataProvider
@@ -22,13 +23,18 @@ class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
             @QueryParam("term") terms: Set<String> = emptySet(),
             @QueryParam("limit") limit: Int = 0
     ) = with(getProviderOrThrow(name)) {
-        if (terms.isEmpty()) {
-            data
-        } else {
-            matcher(terms, limit)
-        }
-    }.mapValues { it.value.filterKeys { !it.startsWith("_") } }
-    
+        Dataset(
+                schema(),
+                (if (terms.isEmpty()) data else matcher(terms, limit))
+                        .mapValues { it.value.filterKeys { !it.startsWith("_") } }
+        )
+    }
+
+    private fun DataProvider.schema() = (data.values.firstOrNull() ?: emptyMap())
+            .keys
+            .filter { !it.startsWith("_") }
+            .toList()
+
     @GET
     @Path("/{dataset-name}/{item-id}")
     @Produces(MediaType.APPLICATION_JSON)

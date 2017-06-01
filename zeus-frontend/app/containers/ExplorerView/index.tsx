@@ -24,18 +24,18 @@ import {
   datasetContent,
 } from "../../api";
 import {
+  Dataset,
   DatasetName,
 } from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
-import * as actions from "../../redux/actions";
 import * as _ from "underscore";
 import { stringInString, toTitleCase } from "../../helpers/Utils";
 const s = require("./style.css");
 
 interface ExplorerViewProps {
   datasetContentRequired: (dataset: DatasetName) => void;
-  datasetContent: ResourceState<{ [id: string] : any }>;
+  datasetContent: ResourceState<Dataset<any>>;
   params: {
     datasetName: DatasetName;
   };
@@ -50,17 +50,17 @@ interface ExplorerViewState {
 
 class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState> {
   private filterData = (
-    datasetContent: { [id: string] : any },
+    datasetContent: Dataset<any>,
     column: string,
     value: string,
     invert: boolean) => {
     if (column === "" || value === "") {
-      return _.values(datasetContent);
+      return _.values(datasetContent.content);
     }
 
     return _.filter(
-      _.values(datasetContent),
-      item => stringInString(value, item[column].toString()) !== invert,
+      _.values(datasetContent.content),
+      item => stringInString(value, stringify(item[column])) !== invert,
     );
   }
 
@@ -77,6 +77,12 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
 
   public componentDidMount() {
     this.props.datasetContentRequired(this.props.params.datasetName);
+  }
+
+  public componentWillReceiveProps(nextProps: ExplorerViewProps) {
+    if (nextProps.params.datasetName !== this.props.params.datasetName) {
+      this.props.datasetContentRequired(nextProps.params.datasetName);
+    }
   }
 
   public render() {
@@ -171,7 +177,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
             this.columns().map(col => <Column
               key={col}
               name={col}
-              renderCell={(row: number) => <Cell>{_.values(filteredItems)[row][col]}</Cell>}
+              renderCell={(row: number) => <Cell>{stringify(_.values(filteredItems)[row][col])}</Cell>}
             />)
           }
         </Table>
@@ -179,11 +185,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     );
   }
 
-  private columns = () => {
-    // TODO: assumption is that schema of first item is representative
-    const data = this.props.datasetContent.data;
-    return _.keys(data[_.keys(data)[0]]);
-  }
+  private columns = () => this.props.datasetContent.data.schema;
 
   private calculateSelectedRows = (regions: IRegion[]) => 
     _.chain(regions)
@@ -193,6 +195,8 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
       .value()
 }
 
+const stringify = (obj: any) => (obj === null) ? "" : obj.toString();
+
 const cellToRow = (region) => ((region.rows)
     ? Regions.row(region.rows[0], region.rows[1])
     : Regions.row(0, -1)  // This is a bit of a hack to support column selections
@@ -200,7 +204,6 @@ const cellToRow = (region) => ((region.rows)
 
 const mapDispatchToProps = {
   datasetContentRequired: resourceActions(datasetContent).required,
-  createNote: actions.createNote,
 };
 
 const mapStateToProps = createStructuredSelector({

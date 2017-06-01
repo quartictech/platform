@@ -1,4 +1,3 @@
-// TODO - this is really a container
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
@@ -26,25 +25,20 @@ import {
   ResourceStatus,
 } from "../../api-management";
 import {
+  sessionInfo,
   datasetList,
 } from "../../api";
 import {
-  Asset,
-  Job,
   DatasetName,
+  SessionInfo,
 } from "../../models";
 import { appHistory } from "../../routes";
 const styles = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface HeaderProps {
-  assetsClear: () => void;
-  assetsRequired: (string, int) => void;
-  assets: ResourceState<{ [id: string] : Asset }>;
-
-  jobsClear: () => void;
-  jobsRequired: (string, int) => void;
-  jobs: ResourceState<{ [id: string] : Job }>;
+  sessionInfoRequired: () => void;
+  sessionInfo: ResourceState<SessionInfo>;
 
   datasetListRequired: () => void;
   datasetList: ResourceState<DatasetName[]>;
@@ -52,6 +46,7 @@ interface HeaderProps {
 
 class Header extends React.Component<HeaderProps, void> {
   componentDidMount() {
+    this.props.sessionInfoRequired();
     this.props.datasetListRequired();
   }
 
@@ -104,6 +99,9 @@ class Header extends React.Component<HeaderProps, void> {
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
+          
+          {this.renderUser()}
+
           <span className={Classes.NAVBAR_DIVIDER} />
 
           <Popover content={this.renderSettings()} position={Position.BOTTOM}>
@@ -117,6 +115,18 @@ class Header extends React.Component<HeaderProps, void> {
           </Tooltip>
         </div>
       </nav>);
+  }
+
+  private renderUser() {
+    // A button is somewhat weird as it does nothing currently, but at least it renders in a nice way
+    return (
+      <Button
+        className={Classes.MINIMAL}
+        iconName="user"
+        text={this.props.sessionInfo.data.username}
+        loading={this.props.sessionInfo.status === ResourceStatus.LOADING}
+      />
+    );
   }
 
   private renderInsightsMenu() {
@@ -164,10 +174,12 @@ class Header extends React.Component<HeaderProps, void> {
 }
 
 const mapDispatchToProps = {
+  sessionInfoRequired: resourceActions(sessionInfo).required,
   datasetListRequired: resourceActions(datasetList).required,
 };
 
 const mapStateToProps = createStructuredSelector({
+  sessionInfo: selectors.selectSessionInfo,
   datasetList: selectors.selectDatasetList,
 });
 

@@ -37,7 +37,7 @@ class DatasetResourceShould {
 
     @Test
     fun get_all_items_from_provider() {
-        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")), equalTo(simpleData))
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).content, equalTo(simpleData))
     }
 
     @Test
@@ -63,7 +63,7 @@ class DatasetResourceShould {
     fun filter_out_keys_beginning_with_underscore_if_getting_all_items() {
         val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(filterableData)))
 
-        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")),
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).content,
                 equalTo(mapOf(ItemId("789") to mapOf("a" to "b", "e_" to "f") as Map<String, Any>)))
     }
 
@@ -87,7 +87,19 @@ class DatasetResourceShould {
         val results = resource.getAllItemsInDataset(DatasetName("yeah"), setOf("hello", "goodbye"), 5)
 
         verify(myMatcher).invoke(setOf("hello", "goodbye"), 5)
-        assertThat(results, equalTo(simpleData))
+        assertThat(results.content, equalTo(simpleData))
+    }
+
+    @Test
+    fun extract_schema_from_dataset() {
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).schema, equalTo(listOf("a", "c")))
+    }
+
+    @Test
+    fun extract_empty_schema_if_dataset_is_empty() {
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(emptyMap())))
+
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).schema, equalTo(emptyList()))
     }
 
     private fun providerOf(myData: Map<ItemId, Map<String, Any>>) = mock<DataProvider> {

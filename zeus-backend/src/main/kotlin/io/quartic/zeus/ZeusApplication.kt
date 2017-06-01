@@ -9,6 +9,7 @@ import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.provider.ClasspathDataProvider
 import io.quartic.zeus.provider.UrlDataProvider
 import io.quartic.zeus.resource.DatasetResource
+import io.quartic.zeus.resource.SessionInfoResource
 
 class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     private val LOG by logger()
@@ -18,7 +19,10 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
     }
 
     override fun runApplication(configuration: ZeusConfiguration, environment: Environment) {
-        environment.jersey().register(DatasetResource(createDatasetMap(configuration.datasets)))
+        with (environment.jersey()) {
+            register(SessionInfoResource())
+            register(DatasetResource(createDatasetMap(configuration.datasets)))
+        }
     }
 
     private fun createDatasetMap(config: Map<DatasetName, DataProviderConfiguration>) = config
