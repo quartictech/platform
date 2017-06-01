@@ -25,12 +25,10 @@ import {
 } from "../../api";
 
 import * as selectors from "../../redux/selectors";
-import * as actions from "../../redux/actions";
 import { Asset } from "../../models";
 const s = require("./style.css");
 
 interface IProps {
-  ui: any;
   params: {
     assetId: string;
   };
@@ -111,12 +109,10 @@ class AssetView extends React.Component<IProps, {}> {
 }
 
 const mapDispatchToProps = {
-  closeNewDatasetModal: () => actions.setActiveModal(null as string),
   assetRequired: resourceActions(asset).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi,
   asset: selectors.selectAsset,
 });
 

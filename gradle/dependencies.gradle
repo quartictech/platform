@@ -5,7 +5,7 @@ ext {
 
 versions.dropwizard = "1.1.0"
 versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard currently pulls in
-versions.platform = "1284"
+versions.platform = "1322"
 
 libraries.wiremock = "com.github.tomakehurst:wiremock:2.6.0"
 

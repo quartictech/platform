@@ -29,7 +29,6 @@ import {
 } from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
-import * as actions from "../../redux/actions";
 import * as _ from "underscore";
 import { stringInString, toTitleCase } from "../../helpers/Utils";
 const s = require("./style.css");
@@ -205,7 +204,6 @@ const cellToRow = (region) => ((region.rows)
 
 const mapDispatchToProps = {
   datasetContentRequired: resourceActions(datasetContent).required,
-  createNote: actions.createNote,
 };
 
 const mapStateToProps = createStructuredSelector({
