@@ -60,7 +60,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
 
     return _.filter(
       _.values(datasetContent),
-      item => stringInString(value, item[column].toString()) !== invert,
+      item => stringInString(value, stringify(item[column])) !== invert,
     );
   }
 
@@ -171,7 +171,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
             this.columns().map(col => <Column
               key={col}
               name={col}
-              renderCell={(row: number) => <Cell>{_.values(filteredItems)[row][col]}</Cell>}
+              renderCell={(row: number) => <Cell>{stringify(_.values(filteredItems)[row][col])}</Cell>}
             />)
           }
         </Table>
@@ -192,6 +192,8 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
       .uniq()
       .value()
 }
+
+const stringify = (obj: any) => (obj === null) ? "" : obj.toString();
 
 const cellToRow = (region) => ((region.rows)
     ? Regions.row(region.rows[0], region.rows[1])
