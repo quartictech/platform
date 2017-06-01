@@ -80,6 +80,12 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     this.props.datasetContentRequired(this.props.params.datasetName);
   }
 
+  public componentWillReceiveProps(nextProps: ExplorerViewProps) {
+    if (nextProps.params.datasetName !== this.props.params.datasetName) {
+      this.props.datasetContentRequired(nextProps.params.datasetName);
+    }
+  }
+
   public render() {
     return (
         <div className={s.container}>
