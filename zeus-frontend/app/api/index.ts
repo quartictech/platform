@@ -1,4 +1,4 @@
-import { Asset, Job, DatasetName } from "../models";
+import { Asset, Job, DatasetName, SessionInfo } from "../models";
 import { ManagedResource } from "../api-management";
 
 export const apiRootUrl = `${location.origin}${location.pathname}api`;
@@ -13,7 +13,8 @@ const checkStatus = (response) => {
 // NOTE: we may  want to switch representations to seconds since the epoch here for better Java compatibility
 const dateInferringReviver = (key, value) => (key.toLowerCase().endsWith("timestamp") ? new Date(value) : value);
 
-const fetchUtil = <T>(url, options?) => fetch(url, Object.assign({}, options, { credentials: "same-origin" }))
+const fetchUtil = <T>(url, options?) => fetch(
+  `${apiRootUrl}${url}`, Object.assign({}, options, { credentials: "same-origin" }))
   .then(checkStatus)
   .then((response: Response) => response.text() )
   .then<T>(r => JSON.parse(r, dateInferringReviver));
@@ -22,7 +23,7 @@ const searchableResource = <T>(name: string) => ({
   name,
   shortName: name,
   endpoint: (term, limit) =>
-    fetchUtil<Map<string, T>>(`${apiRootUrl}/datasets/${name}`
+    fetchUtil<Map<string, T>>(`/datasets/${name}`
       + (term ? `?term=${encodeURIComponent(term)}` : "")
       + (limit ? `&limit=${encodeURIComponent(limit)}` : "")),
 });
@@ -30,25 +31,32 @@ const searchableResource = <T>(name: string) => ({
 export const jobs = searchableResource<Job>("jobs");
 export const assets = searchableResource<Asset>("assets");
 
+export const sessionInfo = <ManagedResource<SessionInfo>>{
+  name: "Session info",
+  shortName: "sessionInfo",
+  endpoint: () => fetchUtil<SessionInfo>(`/session-info`),
+};
+
 export const asset = <ManagedResource<Asset>>{
   name: "asset",
   shortName: "asset",
-  endpoint: (id) => fetchUtil<Asset>(`${apiRootUrl}/datasets/assets/${encodeURIComponent(id)}`),
+  endpoint: (id) => fetchUtil<Asset>(`/datasets/assets/${encodeURIComponent(id)}`),
 };
 
 export const datasetList = <ManagedResource<DatasetName[]>>{
   name: "dataset list",
   shortName: "datasetList",
-  endpoint: () => fetchUtil(`${apiRootUrl}/datasets`),
+  endpoint: () => fetchUtil(`/datasets`),
 };
 
 export const datasetContent = <ManagedResource<{ [id: string] : any }>>{
   name: "dataset content",
   shortName: "datasetContent",
-  endpoint: (dataset: DatasetName) => fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(dataset)}`),
+  endpoint: (dataset: DatasetName) => fetchUtil(`/datasets/${encodeURIComponent(dataset)}`),
 };
 
 export const managedResources: ManagedResource<any>[] = [
+  sessionInfo,
   jobs,
   assets,
   asset,
