@@ -9,6 +9,11 @@ export interface LatLon {
   lon: number;
 }
 
+export interface Dataset<T> {
+  schema: string[];
+  content: { [id: string] : T };
+}
+
 export type DatasetName = string;
 
 export type Asset = any;

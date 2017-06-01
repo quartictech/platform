@@ -24,6 +24,7 @@ import {
   datasetContent,
 } from "../../api";
 import {
+  Dataset,
   DatasetName,
 } from "../../models";
 import { createStructuredSelector } from "reselect";
@@ -35,7 +36,7 @@ const s = require("./style.css");
 
 interface ExplorerViewProps {
   datasetContentRequired: (dataset: DatasetName) => void;
-  datasetContent: ResourceState<{ [id: string] : any }>;
+  datasetContent: ResourceState<Dataset<any>>;
   params: {
     datasetName: DatasetName;
   };
@@ -50,16 +51,16 @@ interface ExplorerViewState {
 
 class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState> {
   private filterData = (
-    datasetContent: { [id: string] : any },
+    datasetContent: Dataset<any>,
     column: string,
     value: string,
     invert: boolean) => {
     if (column === "" || value === "") {
-      return _.values(datasetContent);
+      return _.values(datasetContent.content);
     }
 
     return _.filter(
-      _.values(datasetContent),
+      _.values(datasetContent.content),
       item => stringInString(value, stringify(item[column])) !== invert,
     );
   }
@@ -179,11 +180,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     );
   }
 
-  private columns = () => {
-    // TODO: assumption is that schema of first item is representative
-    const data = this.props.datasetContent.data;
-    return _.keys(data[_.keys(data)[0]]);
-  }
+  private columns = () => this.props.datasetContent.data.schema;
 
   private calculateSelectedRows = (regions: IRegion[]) => 
     _.chain(regions)
