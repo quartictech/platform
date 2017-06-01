@@ -21,7 +21,6 @@ dependencies {
 
     compile "org.apache.commons:commons-csv:1.3"
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
-    compile "io.dropwizard:dropwizard-auth:${versions.dropwizard}"
 
     testCompile project(":common-test")
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
