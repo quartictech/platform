@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.zeus.UrlDataProviderConfiguration
 import io.quartic.zeus.model.ItemId
-import java.net.URL
 
 class UrlDataProvider(config: UrlDataProviderConfiguration) : DataProvider {
     override val data by lazy {
