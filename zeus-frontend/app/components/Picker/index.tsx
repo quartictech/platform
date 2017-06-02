@@ -154,6 +154,10 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   private onSelectEntry(entry: PickerEntry) {
+    if (entry.disabled) {
+      return;
+    }
+    
     this.hideMenu();
     if (entry.href) {
       appHistory.push(entry.href);
