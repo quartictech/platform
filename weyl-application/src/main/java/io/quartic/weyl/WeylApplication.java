@@ -48,7 +48,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static io.quartic.common.client.ClientUtilsKt.jaxClient;
+import static io.quartic.common.client.ClientUtilsKt.client;
 import static io.quartic.common.client.ClientUtilsKt.userAgentFor;
 import static io.quartic.common.rx.RxUtilsKt.likeBehavior;
 import static io.quartic.common.uid.UidUtilsKt.randomGenerator;
@@ -97,7 +97,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final AlertResource alertResource = new AlertResource();
 
         HowlClient howlClient = new HowlClient(userAgentFor(getClass()), configuration.getHowlStorageUrl());
-        CatalogueService catalogueService = jaxClient(CatalogueService.class, getClass(),
+        CatalogueService catalogueService = client(CatalogueService.class, getClass(),
                 configuration.getCatalogue().getRestUrl());
         environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(snapshotSequences));

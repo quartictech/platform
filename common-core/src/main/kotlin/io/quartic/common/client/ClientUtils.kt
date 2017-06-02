@@ -9,7 +9,6 @@ import feign.codec.EncodeException
 import feign.codec.Encoder
 import feign.jackson.JacksonDecoder
 import feign.jackson.JacksonEncoder
-import feign.jaxrs.JAXRSContract
 import feign.slf4j.Slf4jLogger
 import io.quartic.common.ApplicationDetails
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -20,11 +19,9 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 
-inline fun <reified T : Any> jaxClient(owner: Class<*>, url: String): T = jaxClient(T::class.java, owner, url)
 inline fun <reified T : Any> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
 
 // TODO: eliminate overloads once everything ported to Kotlin
-fun <T> jaxClient(target: Class<T>, owner: Class<*>, url: String): T = client(target, owner, url, JAXRSContract())
 @JvmOverloads
 fun <T> client(target: Class<T>, owner: Class<*>, url: String, contract: Contract = Contract.Default()): T = Feign.builder()
             .contract(contract)
