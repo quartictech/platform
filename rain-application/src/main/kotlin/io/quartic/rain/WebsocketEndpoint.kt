@@ -43,7 +43,7 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
                                 try {
                                     sendData(session, parser)
                                 } catch (e: Exception) {
-                                    LOG.error("[{}/{}] exception while sending data to client", namespace, objectName, e)
+                                    LOG.error("[{}/{}] exception while sending data to jaxClient", namespace, objectName, e)
                                 }
                                 LOG.info("[{}/{}] took {}ms to send data", namespace, objectName,
                                         stop.elapsed(TimeUnit.MILLISECONDS))

@@ -1,6 +1,7 @@
 package io.quartic.common.client
 
 import com.google.common.net.HttpHeaders.USER_AGENT
+import feign.Contract
 import feign.Feign
 import feign.Logger.Level.BASIC
 import feign.Retryer
@@ -19,18 +20,21 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 
+inline fun <reified T : Any> jaxClient(owner: Class<*>, url: String): T = jaxClient(T::class.java, owner, url)
 inline fun <reified T : Any> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
 
-// TODO: eliminate overload once everything ported to Kotlin
-fun <T> client(target: Class<T>, owner: Class<*>, url: String): T = Feign.builder()
-        .contract(JAXRSContract())
-        .encoder(inputStreamEncoder(JacksonEncoder(OBJECT_MAPPER)))
-        .decoder(JacksonDecoder(OBJECT_MAPPER))
-        .retryer(Retryer.Default(0, 0, 1))
-        .requestInterceptor { template -> template.header(USER_AGENT, userAgentFor(owner)) }
-        .logger(Slf4jLogger())
-        .logLevel(BASIC)
-        .target(target, url)
+// TODO: eliminate overloads once everything ported to Kotlin
+fun <T> jaxClient(target: Class<T>, owner: Class<*>, url: String): T = client(target, owner, url, JAXRSContract())
+@JvmOverloads
+fun <T> client(target: Class<T>, owner: Class<*>, url: String, contract: Contract = Contract.Default()): T = Feign.builder()
+            .contract(contract)
+            .encoder(inputStreamEncoder(JacksonEncoder(OBJECT_MAPPER)))
+            .decoder(JacksonDecoder(OBJECT_MAPPER))
+            .retryer(Retryer.Default(0, 0, 1))
+            .requestInterceptor { template -> template.header(USER_AGENT, userAgentFor(owner)) }
+            .logger(Slf4jLogger())
+            .logLevel(BASIC)
+            .target(target, url)
 
 private fun inputStreamEncoder(delegate: Encoder) = Encoder { obj, bodyType, template ->
     // Adapted from: http://www.monkeypatch.io/2016/08/10/MKTD-1-feign-vs-retrofit-&-58;-2-going-further.html
