@@ -4,11 +4,11 @@ import * as numeral from "numeraljs";
 import * as _ from "underscore";
 import {
   NonIdealState,
-  Position,
+  Tab2,
+  Tabs2,
 } from "@blueprintjs/core";
 
 import Pane from "../../components/Pane";
-import NormalPicker from "../../components/NormalPicker";
 import RoadSchematic, { RoadSchematicSection } from "../../components/RoadSchematic";
 import { Asset } from "../../models";
 
@@ -59,13 +59,16 @@ class Schematic extends React.Component<SchematicProps, State> {
   private yearPicker() {
     // TODO: have this populated from data
     return (
-      <NormalPicker
-        iconName="calendar"
-        position={Position.TOP}
-        selected={this.state.yearSelection}
-        entries={["2013", "2014", "2015", "2016"]}
-        onChange={id => this.setState({ yearSelection: id })}
-      />
+      <Tabs2
+        id="year-picker"
+        onChange={id => this.setState({ yearSelection: id.toString() })}
+        selectedTabId={this.state.yearSelection}
+      >
+        <Tab2 id="2013" title="2013" />
+        <Tab2 id="2014" title="2014" />
+        <Tab2 id="2015" title="2015" />
+        <Tab2 id="2016" title="2016" />
+      </Tabs2>
     );
   }
 
