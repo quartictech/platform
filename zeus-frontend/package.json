@@ -86,7 +86,7 @@
     "webpack-hot-middleware": "2.10.0"
   },
   "dependencies": {
-    "@blueprintjs/core": "1.17.1",
+    "@blueprintjs/core": "1.18.0",
     "@blueprintjs/table": "1.14.0",
     "@mapbox/geojson-extent": "0.3.2",
     "@types/redux-immutable": "3.0.31",
