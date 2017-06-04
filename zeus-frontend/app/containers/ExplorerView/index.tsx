@@ -3,6 +3,7 @@ const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't w
 import { connect } from "react-redux";
 import {
   Classes,
+  InputGroup,
   NonIdealState,
   Spinner,
 } from "@blueprintjs/core";
@@ -14,6 +15,7 @@ import {
   SelectionModes,
   Table,
 } from "@blueprintjs/table";
+import * as classNames from "classnames";
 import {
   resourceActions,
   ResourceState,
@@ -120,15 +122,13 @@ class ExplorerView extends React.Component<Props, State> {
 
   private renderControls() {
     return (
-      <div className={Classes.CONTROL_GROUP}>
-        <input
-          type="text"
-          className={Classes.INPUT}
-          placeholder="Value"
-          value={this.state.filterTerm}
-          onChange={e => this.updateFilter(e.target.value, this.props.datasetContent.data)}
-        />
-      </div>
+      <InputGroup
+        className={classNames(Classes.ROUND, Classes.LARGE)}
+        leftIconName="filter"
+        placeholder="Filter..."
+        value={this.state.filterTerm}
+        onChange={e => this.updateFilter(e.target.value, this.props.datasetContent.data)}
+      />
     );
   }
 
