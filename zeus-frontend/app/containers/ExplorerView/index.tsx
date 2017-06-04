@@ -210,7 +210,7 @@ const cellToRow = (region) => ((region.rows)
 
 const mapDispatchToProps = {
   datasetInfoRequired: resourceActions(datasetInfo).required,
-  datasetContentRequired: resourceActions(datasetContent).required,
+  datasetContentRequired: resourceActions(datasetContent).requiredFresh,
 };
 
 const mapStateToProps = createStructuredSelector({
