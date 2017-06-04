@@ -85,13 +85,6 @@ function* fetch<T>(resource: ManagedResource<T>, action: any): SagaIterator {
 }
 
 function* fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): SagaIterator {
-  // if (action.type === constants(resource).required) {
-  //   const myState = (yield select(selector(resource))) as ResourceState<T>;
-  //   if (myState.status !== ResourceStatus.NOT_LOADED) {
-  //     return;
-  //   }
-  // } 
-
   yield race({
     fetch: call(fetch, resource, action),
     cancel: take(constants(resource).clear),
