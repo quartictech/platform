@@ -17,6 +17,8 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
+import { appHistory } from "../../routes";
+import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
 export interface PickerEntry {
@@ -26,6 +28,8 @@ export interface PickerEntry {
   extra?: string;
   category?: string;
   iconName?: string;
+  disabled?: boolean;
+  href?: string;
 }
 
 interface NumberedEntry {
@@ -39,7 +43,6 @@ interface CategorisedEntries {
 
 export interface PickerProps {
   className?: string;
-  type?: string;
   iconName?: string;
   defaultEntryIconName?: string;
   placeholder?: string;
@@ -115,7 +118,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     this.setState({ categorisedEntries });
   }
 
-  private onMouseEnter(idx: number) {
+  private onMouseOver(idx: number) {
     this.setHighlightIndex(idx);
   }
 
@@ -132,7 +135,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       case Keys.ENTER: {
         const highlighted = this.getHighlightedEntry();
         if (highlighted) {
-          this.onSelectEntry(highlighted.key);
+          this.onSelectEntry(highlighted);
         }
         break;
       }
@@ -149,9 +152,17 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     e.preventDefault();
   }
 
-  private onSelectEntry(key: string) {
+  private onSelectEntry(entry: PickerEntry) {
+    if (entry.disabled) {
+      return;
+    }
+    
     this.hideMenu();
-    BlueprintUtils.safeInvoke(this.props.onEntrySelect, _.find(this.props.entries, e => e.key === key));
+    if (entry.href) {
+      appHistory.push(entry.href);
+    } else {
+      BlueprintUtils.safeInvoke(this.props.onEntrySelect, entry);
+    }
   }
 
   private onInteraction(nextOpenState: boolean) {
@@ -164,10 +175,11 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     this.showMenu();
     this.resetHighlight();
 
+    // Trim because whitespace shouldn't affect searching, etc.s
     if (this.props.manageFilter) {
-      this.recalculateCategorisedEntries(this.props.entries, text);
+      this.recalculateCategorisedEntries(this.props.entries, text.trim());
     } else {
-      BlueprintUtils.safeInvoke(this.props.onQueryChange, text);
+      BlueprintUtils.safeInvoke(this.props.onQueryChange, text.trim());
     }
   }
 
@@ -202,7 +214,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
       <Popover
         autoFocus={false}
         enforceFocus={false}
-        popoverClassName={Classes.MINIMAL}
+        popoverClassName={classNames(Classes.MINIMAL, s.picker)}
         content={this.renderMenu()}
         isOpen={!this.props.disabled && this.state.menuVisible}
         onInteraction={this.onInteraction}
@@ -212,7 +224,6 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
         <InputGroup
           className={this.props.className}
           disabled={this.props.disabled}
-          type={this.props.type}
           leftIconName={this.props.iconName || this.props.defaultEntryIconName}
           rightElement={(this.props.working && this.state.menuVisible)
             ? <Spinner className={Classes.SMALL} />
@@ -259,21 +270,21 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   // marginLeft is a hack - compensates for hardcoded ::before size in Blueprint CSS.
-  // Note that the MenuItem behaviour is not very controllable, so we completely override it - we've disabled 
-  // pointer-events, and use a wrapper div to capture events and do colouring.  This is gross.
+  // Note that one can't control the colour of MenuItems independent of mouse hover, which is not what we want (given
+  // we also do keyboard-based highlighting.  So we disable its ::hover behaviour via CSS, and wrap in a div that
+  // provides new colouring behaviour (along with onMouseOver).
   private renderEntry(entry: PickerEntry, idx: number) {
     const isHighlighted = (idx === this.state.idxHighlighted);
     return (
       <div
         key={entry.key}
         className={isHighlighted ? s.highlighted : null}
-        style={{ cursor: "pointer" }}
-        onMouseEnter={() => this.onMouseEnter(idx)}
-        onClick={() => this.onSelectEntry(entry.key)}
+        onMouseOver={() => this.onMouseOver(idx)}
       >
         <MenuItem
-          key={entry.key}
-          className={s.bad}
+          href={entry.href && appHistory.createHref(entry.href)}
+          onClick={() => entry.disabled || entry.href || this.onSelectEntry(entry)}
+          disabled={entry.disabled}
           text={(
             <div style={{ marginLeft: "30px" }}>
               <div><b>{entry.name}</b></div>
@@ -305,9 +316,5 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 }
 
 const matches = (entry: PickerEntry, text: string) =>
-  stringInString(text, entry.name) || stringInString(text, entry.description) || stringInString(text, entry.extra);
-
-
-const stringInString = (needle: string, haystack: string) =>
-  haystack && (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
+  _.any([entry.name, entry.description, entry.extra], s => s && stringInString(text, s));
 

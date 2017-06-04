@@ -6,7 +6,7 @@ out
 build/
 generated_src
 generated_testSrc
-
+classes/
 
 # Cruft
 .DS_Store

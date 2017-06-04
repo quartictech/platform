@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import { createStructuredSelector } from "reselect";
 import {
-  AnchorButton,
   Button,
   Classes,
   Menu,
@@ -14,7 +13,9 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
-import Search from "../../components/Search";
+import SearchContainer from "../../containers/SearchContainer";
+import standardProviders from "../../containers/SearchContainer/standardProviders";
+import insights from "../../containers/InsightView/insights";
 import * as selectors from "../../redux/selectors";
 import {
   resourceActions,
@@ -22,35 +23,28 @@ import {
   ResourceStatus,
 } from "../../api-management";
 import {
-  assets,
-  jobs,
-  datasetList,
+  sessionInfo,
+  datasetInfo,
 } from "../../api";
 import {
-  Asset,
-  Job,
-  DatasetName,
+  DatasetInfo,
+  SessionInfo,
 } from "../../models";
 import { appHistory } from "../../routes";
 const styles = require("./style.css");
 const logo = require("./quartic.svg");
 
-interface HeaderProps {
-  assetsClear: () => void;
-  assetsRequired: (string, int) => void;
-  assets: ResourceState<{ [id: string] : Asset }>;
-
-  jobsClear: () => void;
-  jobsRequired: (string, int) => void;
-  jobs: ResourceState<{ [id: string] : Job }>;
-
-  datasetListRequired: () => void;
-  datasetList: ResourceState<DatasetName[]>;
+interface Props {
+  sessionInfoRequired: () => void;
+  sessionInfo: ResourceState<SessionInfo>;
+  datasetInfoRequired: () => void;
+  datasetInfo: ResourceState<{ [id: string] : DatasetInfo}>;
 }
 
-class Header extends React.Component<HeaderProps, void> {
+class Header extends React.Component<Props, void> {
   componentDidMount() {
-    this.props.datasetListRequired();
+    this.props.sessionInfoRequired();
+    this.props.datasetInfoRequired();
   }
 
   render() {
@@ -72,15 +66,10 @@ class Header extends React.Component<HeaderProps, void> {
             >
             </img>
           </Link>
-          <Search
+          <SearchContainer
             className={classNames(Classes.ROUND, styles.myPicker)}
-            assetsClear={this.props.assetsClear}
-            assetsRequired={this.props.assetsRequired}
-            assets={this.props.assets}
-            jobsClear={this.props.jobsClear}
-            jobsRequired={this.props.jobsRequired}
-            jobs={this.props.jobs}
             placeholder="Search..."
+            providers={standardProviders}
           />
 
           <span className={Classes.NAVBAR_DIVIDER} />
@@ -99,41 +88,53 @@ class Header extends React.Component<HeaderProps, void> {
               className={Classes.MINIMAL}
               iconName="database"
               rightIconName="chevron-down"
-              text="Raw data explorer"
-              disabled={this.props.datasetList.status !== ResourceStatus.LOADED}
+              text="Data explorer"
+              disabled={this.props.datasetInfo.status !== ResourceStatus.LOADED}
             />
           </Popover>
 
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
+
+          {this.renderUser()}
+
           <span className={Classes.NAVBAR_DIVIDER} />
 
-          <Popover content={this.renderSettings()} position={Position.BOTTOM}>
+          <Popover content={this.renderSettings()} position={Position.BOTTOM_RIGHT}>
             <Tooltip content="Settings" position={Position.BOTTOM}>
               <Button className={Classes.MINIMAL} iconName="settings" />
             </Tooltip>
           </Popover>
 
-          <Tooltip content="Map" position={Position.BOTTOM}>
-            <AnchorButton disabled={true} className={Classes.MINIMAL} iconName="globe" href="/map" />
-          </Tooltip>
         </div>
       </nav>);
+  }
+
+  private renderUser() {
+    // A button is somewhat weird as it does nothing currently, but at least it renders in a nice way
+    return (
+      <Button
+        className={Classes.MINIMAL}
+        iconName="user"
+        text={this.props.sessionInfo.data.username}
+        loading={this.props.sessionInfo.status === ResourceStatus.LOADING}
+      />
+    );
   }
 
   private renderInsightsMenu() {
     return (
       <Menu>
-        <MenuItem iconName="layout-auto" text="Highest / lowest defects (2016)" href={appHistory.createHref({
-          pathname: "/insights",
-        })} />
-        <MenuItem disabled={true} iconName="layout-auto" text="Predictions (2017)" href={appHistory.createHref({
-          pathname: "/insights",
-        })} />
-        <MenuItem disabled={true} iconName="layout-auto" text="SmartOps" href={appHistory.createHref({
-          pathname: "/insights",
-        })} />
+        {_.map(insights, (insight, name) => (
+          <MenuItem
+            key={name}
+            iconName="layout-auto"
+            text={insight.title}
+            disabled={insight.disabled}
+            href={appHistory.createHref({ pathname: `/insights/${encodeURIComponent(name)}` })}
+          />
+        ))}
       </Menu>
     );
   }
@@ -142,9 +143,9 @@ class Header extends React.Component<HeaderProps, void> {
     return (
       <Menu>
         {
-          _.map(this.props.datasetList.data, d => (
-            <MenuItem key={d} iconName="database" text={d} href={appHistory.createHref({
-              pathname: `/explorer/${encodeURIComponent(d)}`,
+          _.map(this.props.datasetInfo.data, (v, k) => (
+            <MenuItem key={k} iconName="database" text={v.prettyName} href={appHistory.createHref({
+              pathname: `/explorer/${encodeURIComponent(k)}`,
             })} />
           ))
         }
@@ -157,7 +158,7 @@ class Header extends React.Component<HeaderProps, void> {
       <Menu>
         <MenuItem
           key={"info"}
-          text={`Quartic Inbox (version: ${process.env.BUILD_VERSION || "unknown"})`}
+          text={`Quartic version: ${process.env.BUILD_VERSION || "unknown"}`}
           iconName="info-sign"
           disabled
         />
@@ -167,18 +168,13 @@ class Header extends React.Component<HeaderProps, void> {
 }
 
 const mapDispatchToProps = {
-  assetsClear: resourceActions(assets).clear,
-  assetsRequired: resourceActions(assets).required,
-  jobsClear: resourceActions(jobs).clear,
-  jobsRequired: resourceActions(jobs).required,
-  datasetListRequired: resourceActions(datasetList).required,
+  sessionInfoRequired: resourceActions(sessionInfo).required,
+  datasetInfoRequired: resourceActions(datasetInfo).required,
 };
 
 const mapStateToProps = createStructuredSelector({
-  assets: selectors.selectAssets,
-  jobs: selectors.selectJobs,
-  datasetList: selectors.selectDatasetList,
+  sessionInfo: selectors.selectSessionInfo,
+  datasetInfo: selectors.selectDatasetInfo,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Header);
-

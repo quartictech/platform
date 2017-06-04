@@ -21,6 +21,15 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
   <link href='https://fonts.googleapis.com/css?family=Roboto:100,300,100italic,300italic' rel='stylesheet' type='text/css'>
 
+  <!-- TODO: remove this gross hack -->
+  <link href="https://tools.quartic.io/bokehjs/css/bokeh.min.css" rel="stylesheet" type="text/css">
+  <script src="https://tools.quartic.io/bokehjs/js/bokeh.min.js"></script>
+  <script src="https://tools.quartic.io/bokehjs/js/bokeh-api.min.js"></script>
+
+  <script>
+    window.bokeh = Bokeh;
+  </script>
+
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

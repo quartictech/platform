@@ -3,9 +3,9 @@ const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't w
 import { connect } from "react-redux";
 import {
   Classes,
+  InputGroup,
   NonIdealState,
   Spinner,
-  Switch,
 } from "@blueprintjs/core";
 import {
   Cell,
@@ -15,74 +15,72 @@ import {
   SelectionModes,
   Table,
 } from "@blueprintjs/table";
+import * as classNames from "classnames";
 import {
   resourceActions,
   ResourceState,
   ResourceStatus,
+  ifLoaded,
 } from "../../api-management";
 import {
   datasetContent,
+  datasetInfo,
 } from "../../api";
 import {
+  Dataset,
+  DatasetInfo,
   DatasetName,
 } from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
-import * as actions from "../../redux/actions";
 import * as _ from "underscore";
-import { toTitleCase } from "../../helpers/Utils";
+import Pane from "../../components/Pane";
+import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
-interface ExplorerViewProps {
+interface Props {
+  datasetInfoRequired: () => void;
+  datasetInfo: ResourceState<{ [id: string] : DatasetInfo}>;
   datasetContentRequired: (dataset: DatasetName) => void;
-  datasetContent: ResourceState<{ [id: string] : any }>;
+  datasetContent: ResourceState<Dataset<any>>;
   params: {
     datasetName: DatasetName;
   };
 }
 
-interface ExplorerViewState {
-  filterColumn: string;
-  filterValue: string;
-  filterInvert: boolean;
+interface State {
+  filteredItems: any[];
+  filterTerm: string;
   selectedRows: number[];
 }
 
-class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState> {
-  private filterData = (
-    datasetContent: { [id: string] : any },
-    column: string,
-    value: string,
-    invert: boolean) => {
-    if (column === "" || value === "") {
-      return _.values(datasetContent);
-    }
-
-    const stringInString = (needle: string, haystack: string) =>
-      (haystack.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) !== -1);
-
-    return _.filter(
-      _.values(datasetContent),
-      item => stringInString(value, item[column].toString()) !== invert,
-    );
-  }
-
-  state : ExplorerViewState = this.initialState();
-
-  initialState(): ExplorerViewState {
-    return {
-      filterColumn: "",
-      filterValue: "",
-      filterInvert: false,
+class ExplorerView extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      filteredItems: [],
+      filterTerm: "",
       selectedRows: [],
     };
   }
 
-  public componentDidMount() {
+  componentDidMount() {
+    this.props.datasetInfoRequired();
     this.props.datasetContentRequired(this.props.params.datasetName);
   }
 
-  public render() {
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.params.datasetName !== this.props.params.datasetName) {
+      this.props.datasetContentRequired(nextProps.params.datasetName);
+    }
+
+    if (nextProps.datasetContent.status === ResourceStatus.LOADED &&
+      this.props.datasetContent.status !== ResourceStatus.LOADED) {
+      this.updateFilter(this.state.filterTerm, nextProps.datasetContent.data);
+    }
+  }
+
+  render() {
     return (
         <div className={s.container}>
           <div className={s.main}>
@@ -95,13 +93,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
   private maybeRender() {
     switch (this.props.datasetContent.status) {
       case ResourceStatus.LOADED:
-        return (
-          <div>
-            <h1>{this.props.params.datasetName}</h1>
-            {this.renderControls()}
-            {this.renderData()}
-          </div>
-        );
+        return this.renderData();
 
       case ResourceStatus.NOT_LOADED:
         return <NonIdealState
@@ -123,70 +115,72 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     }
   }
 
+  private renderData() {
+    return (
+      <DocumentTitle title={`Quartic - ${this.maybePrettyName()}`}>
+        <Pane
+          title={this.maybePrettyName()}
+          iconName="database"
+          extraHeaderContent={this.renderControls()}
+        >
+          <div style={{ height: "600px" }}>
+            <Table
+              isRowResizable={true}
+              numRows={this.state.filteredItems.length}
+              selectionModes={SelectionModes.ROWS_AND_CELLS}
+              onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
+              selectedRegionTransform={cellToRow}
+            >
+              {
+                this.columns().map(col => <Column
+                  key={col}
+                  name={col}
+                  renderCell={(row: number) => <Cell>{stringify(_.values(this.state.filteredItems)[row][col])}</Cell>}
+                />)
+              }
+            </Table>
+          </div>
+        </Pane>
+      </DocumentTitle>
+    );
+  }
+
   private renderControls() {
     return (
-      <div className={Classes.CONTROL_GROUP}>
-        <div className={Classes.SELECT}>
-          <select
-            value={this.state.filterColumn}
-            onChange={e => this.setState({ filterColumn: e.target.value })}
-          >
-            <option value="">Filter...</option>
-            { this.columns().map(col => <option key={col} value={col}>{col}</option>) }
-          </select>
-        </div>
-
-        <input
-          type="text"
-          className={Classes.INPUT}
-          placeholder="Value"
-          disabled={this.state.filterColumn === ""}
-          value={this.state.filterValue}
-          onChange={e => this.setState({ filterValue: e.target.value })}
-        />
-
-        <Switch
-          label="Invert"
-          disabled={this.state.filterColumn === ""}
-          checked={this.state.filterInvert}
-          onChange={() => this.setState({ filterInvert: !this.state.filterInvert })}
+      <div style={{ width: "20%" }}>
+        <InputGroup
+          className={classNames(Classes.ROUND)}
+          leftIconName="filter"
+          placeholder="Filter..."
+          value={this.state.filterTerm}
+          onChange={e => this.updateFilter(e.target.value, this.props.datasetContent.data)}
         />
       </div>
     );
   }
 
-  private renderData() {
-    // TODO: should cache this
-    const filteredItems = this.filterData(
-      this.props.datasetContent.data, this.state.filterColumn, this.state.filterValue, this.state.filterInvert,
-    );
-
-    return (
-      <DocumentTitle title={`Quartic - ${toTitleCase(this.props.params.datasetName)}`}>
-        <Table
-          isRowResizable={true}
-          numRows={filteredItems.length}
-          selectionModes={SelectionModes.ROWS_AND_CELLS}
-          onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
-          selectedRegionTransform={cellToRow}
-        >
-          {
-            this.columns().map(col => <Column
-              key={col}
-              name={col}
-              renderCell={(row: number) => <Cell>{_.values(filteredItems)[row][col]}</Cell>}
-            />)
-          }
-        </Table>
-      </DocumentTitle>
-    );
+  private updateFilter(term: string, dataset: Dataset<any>) {
+    this.setState({
+      filterTerm: term,
+      filteredItems: this.filterData(term.trim(), dataset),
+    });
   }
 
-  private columns = () => {
-    // TODO: assumption is that schema of first item is representative
-    const data = this.props.datasetContent.data;
-    return _.keys(data[_.keys(data)[0]]);
+  private filterData = (term: string, dataset: Dataset<any>) => {
+    const items = _.values(dataset.content);
+
+    if (term === "") {
+      return items;
+    }
+
+    return _.filter(items, item => _.any(item, v => stringInString(term, stringify(v))));
   }
+
+  private maybePrettyName() {
+    return ifLoaded(this.props.datasetInfo, info => info[this.props.params.datasetName].prettyName, "<< unknown >>");
+  }
+
+  private columns = () => this.props.datasetContent.data.schema;
 
   private calculateSelectedRows = (regions: IRegion[]) => 
     _.chain(regions)
@@ -196,17 +190,20 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
       .value()
 }
 
+const stringify = (obj: any) => (obj === null) ? "" : obj.toString();
+
 const cellToRow = (region) => ((region.rows)
     ? Regions.row(region.rows[0], region.rows[1])
     : Regions.row(0, -1)  // This is a bit of a hack to support column selections
 );
 
 const mapDispatchToProps = {
-  datasetContentRequired: resourceActions(datasetContent).required,
-  createNote: actions.createNote,
+  datasetInfoRequired: resourceActions(datasetInfo).required,
+  datasetContentRequired: resourceActions(datasetContent).requiredFresh,
 };
 
 const mapStateToProps = createStructuredSelector({
+  datasetInfo: selectors.selectDatasetInfo,
   datasetContent: selectors.selectDatasetContent,
 });
 

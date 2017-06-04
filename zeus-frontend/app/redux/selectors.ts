@@ -1,3 +1,5 @@
+import { selector } from "../api-management";
+import * as api from "../api";
 
 // selectLocationState expects a plain JS object for the routing state
 export const selectLocationState = () => {
@@ -17,10 +19,9 @@ export const selectLocationState = () => {
 };
 
 export const selectManaged = (state) => state.get("managed");
-export const selectDatasetList = (state) => state.get("managed").datasetList.toJS();
-export const selectDatasetContent = (state) => state.get("managed").datasetContent.toJS();
-export const selectJobs = (state) => state.get("managed").jobs.toJS();
-export const selectAssets = (state) => state.get("managed").assets.toJS();
-export const selectAsset = (state) => state.get("managed").asset.toJS();
-export const selectInsights = (state) => state.get("insights").toJS();
-export const selectUi = (state) => state.get("ui").toJS();
+export const selectSessionInfo = selector(api.sessionInfo);
+export const selectDatasetInfo = selector(api.datasetInfo);
+export const selectDatasetContent = selector(api.datasetContent);
+export const selectJobs = selector(api.jobs);
+export const selectAssets = selector(api.assets);
+export const selectAsset = selector(api.asset);

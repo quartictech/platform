@@ -5,6 +5,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.common.test.assertThrows
+import io.quartic.zeus.model.DatasetInfo
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
 import io.quartic.zeus.provider.DataProvider
@@ -26,18 +27,21 @@ class DatasetResourceShould {
     )
 
     private val resource = DatasetResource(mapOf(
-            DatasetName("yeah") to providerOf(simpleData),
-            DatasetName("oh no") to mock<DataProvider>()
+            DatasetName("yeah") to providerOf("Positive Polly", simpleData),
+            DatasetName("oh no") to providerOf("Negative Nancy", mock())
     ))
 
     @Test
     fun get_dataset_names() {
-        assertThat(resource.datasetList, equalTo(setOf(DatasetName("yeah"), DatasetName("oh no"))))
+        assertThat(resource.datasets, equalTo(mapOf(
+                DatasetName("yeah") to DatasetInfo("Positive Polly"),
+                DatasetName("oh no") to DatasetInfo("Negative Nancy")
+        )))
     }
 
     @Test
     fun get_all_items_from_provider() {
-        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")), equalTo(simpleData))
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).content, equalTo(simpleData))
     }
 
     @Test
@@ -61,15 +65,15 @@ class DatasetResourceShould {
 
     @Test
     fun filter_out_keys_beginning_with_underscore_if_getting_all_items() {
-        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(filterableData)))
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf("", filterableData)))
 
-        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")),
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).content,
                 equalTo(mapOf(ItemId("789") to mapOf("a" to "b", "e_" to "f") as Map<String, Any>)))
     }
 
     @Test
     fun not_filter_out_keys_if_getting_specific_item() {
-        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf(filterableData)))
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf("", filterableData)))
 
         assertThat(resource.getItemInDataset(DatasetName("yeah"), ItemId("789")), equalTo(filterableData[ItemId("789")]))
     }
@@ -80,6 +84,7 @@ class DatasetResourceShould {
             on { invoke(any(), any()) } doReturn simpleData
         }
         val provider = mock<DataProvider> {
+            on { prettyName } doReturn ""
             on { matcher } doReturn myMatcher
         }
         val resource = DatasetResource(mapOf(DatasetName("yeah") to provider))
@@ -87,10 +92,23 @@ class DatasetResourceShould {
         val results = resource.getAllItemsInDataset(DatasetName("yeah"), setOf("hello", "goodbye"), 5)
 
         verify(myMatcher).invoke(setOf("hello", "goodbye"), 5)
-        assertThat(results, equalTo(simpleData))
+        assertThat(results.content, equalTo(simpleData))
     }
 
-    private fun providerOf(myData: Map<ItemId, Map<String, Any>>) = mock<DataProvider> {
+    @Test
+    fun extract_schema_from_dataset() {
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).schema, equalTo(listOf("a", "c")))
+    }
+
+    @Test
+    fun extract_empty_schema_if_dataset_is_empty() {
+        val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf("", emptyMap())))
+
+        assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).schema, equalTo(emptyList()))
+    }
+
+    private fun providerOf(myPrettyName: String, myData: Map<ItemId, Map<String, Any>>) = mock<DataProvider> {
+        on { prettyName } doReturn myPrettyName
         on { data } doReturn myData
     }
 }
