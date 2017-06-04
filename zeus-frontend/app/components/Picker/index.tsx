@@ -43,7 +43,6 @@ interface CategorisedEntries {
 
 export interface PickerProps {
   className?: string;
-  type?: string;
   iconName?: string;
   defaultEntryIconName?: string;
   placeholder?: string;
@@ -225,7 +224,6 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
         <InputGroup
           className={this.props.className}
           disabled={this.props.disabled}
-          type={this.props.type}
           leftIconName={this.props.iconName || this.props.defaultEntryIconName}
           rightElement={(this.props.working && this.state.menuVisible)
             ? <Spinner className={Classes.SMALL} />

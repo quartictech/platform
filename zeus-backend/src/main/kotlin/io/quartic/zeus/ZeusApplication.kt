@@ -6,7 +6,6 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.zeus.model.DatasetName
-import io.quartic.zeus.provider.ClasspathDataProvider
 import io.quartic.zeus.provider.UrlDataProvider
 import io.quartic.zeus.resource.DatasetResource
 import io.quartic.zeus.resource.SessionInfoResource
@@ -27,13 +26,7 @@ class ZeusApplication : ApplicationBase<ZeusConfiguration>() {
 
     private fun createDatasetMap(config: Map<DatasetName, DataProviderConfiguration>) = config
             .onEach { LOG.info("Registered data provider: ${it.key} -> ${it.value}") }
-            .mapValues {
-                val providerConfig = it.value
-                when (providerConfig) {
-                    is ClasspathDataProviderConfiguration -> ClasspathDataProvider(providerConfig)
-                    is UrlDataProviderConfiguration -> UrlDataProvider(providerConfig)
-                }
-            }
+            .mapValues { UrlDataProvider(it.value) }
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = ZeusApplication().run(*args)

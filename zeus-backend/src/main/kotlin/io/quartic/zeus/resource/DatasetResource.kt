@@ -1,6 +1,7 @@
 package io.quartic.zeus.resource
 
 import io.quartic.zeus.model.Dataset
+import io.quartic.zeus.model.DatasetInfo
 import io.quartic.zeus.model.DatasetName
 import io.quartic.zeus.model.ItemId
 import io.quartic.zeus.provider.DataProvider
@@ -12,7 +13,7 @@ class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
 
     @get:GET
     @get:Produces(MediaType.APPLICATION_JSON)
-    val datasetList = providers.keys
+    val datasets = providers.mapValues { e -> DatasetInfo(e.value.prettyName) }
 
     // TODO: should potentially do the filtering via a lazy sequence to avoid memory footprint
     @GET

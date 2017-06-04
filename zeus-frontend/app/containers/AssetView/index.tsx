@@ -109,7 +109,7 @@ class AssetView extends React.Component<IProps, {}> {
 }
 
 const mapDispatchToProps = {
-  assetRequired: resourceActions(asset).required,
+  assetRequired: resourceActions(asset).requiredFresh,
 };
 
 const mapStateToProps = createStructuredSelector({
