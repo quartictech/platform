@@ -13,7 +13,7 @@ export interface Insight {
 const insights: { [name: string] : Insight } = {
   "highestLowest2016": {
     componentClass: HighestLowest2016,
-    title: "Highest / lowest defects (2016)",    
+    title: "Best / worst roads",
     disabled: false,
     description: (
       <div>
@@ -23,12 +23,12 @@ const insights: { [name: string] : Insight } = {
   },
   "highestConcentration2016": {
     componentClass: HighestConcentration2016,
-    title: "Upcoming treatments with highest defect concentration (2016)",
+    title: "Panel patching opportunities",
     disabled: false,
     description: (
       <div>
         <p>
-          RSLs due to be treated in 2017-2018 (according to AOM model output), with anomalous defect concentration.
+          RSLs due to be treated in 2017-2018 (according to AOM model output), with concentrated defects.
         </p>
         <p>
           Defect concentration is a measure of how defects are distributed across the RSL surface:

@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import { createStructuredSelector } from "reselect";
 import {
-  AnchorButton,
   Button,
   Classes,
   Menu,
@@ -89,7 +88,7 @@ class Header extends React.Component<Props, void> {
               className={Classes.MINIMAL}
               iconName="database"
               rightIconName="chevron-down"
-              text="Raw data explorer"
+              text="Data explorer"
               disabled={this.props.datasetInfo.status !== ResourceStatus.LOADED}
             />
           </Popover>
@@ -97,20 +96,17 @@ class Header extends React.Component<Props, void> {
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
-          
+
           {this.renderUser()}
 
           <span className={Classes.NAVBAR_DIVIDER} />
 
-          <Popover content={this.renderSettings()} position={Position.BOTTOM}>
+          <Popover content={this.renderSettings()} position={Position.BOTTOM_RIGHT}>
             <Tooltip content="Settings" position={Position.BOTTOM}>
               <Button className={Classes.MINIMAL} iconName="settings" />
             </Tooltip>
           </Popover>
 
-          <Tooltip content="Map" position={Position.BOTTOM}>
-            <AnchorButton disabled={true} className={Classes.MINIMAL} iconName="globe" href="/map" />
-          </Tooltip>
         </div>
       </nav>);
   }
@@ -162,7 +158,7 @@ class Header extends React.Component<Props, void> {
       <Menu>
         <MenuItem
           key={"info"}
-          text={`Quartic Inbox (version: ${process.env.BUILD_VERSION || "unknown"})`}
+          text={`Quartic version: ${process.env.BUILD_VERSION || "unknown"}`}
           iconName="info-sign"
           disabled
         />
