@@ -5,7 +5,6 @@ import {
   Classes,
   NonIdealState,
   Spinner,
-  Switch,
 } from "@blueprintjs/core";
 import {
   Cell,
@@ -33,10 +32,11 @@ import {
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as _ from "underscore";
+import Pane from "../../components/Pane";
 import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
-interface ExplorerViewProps {
+interface Props {
   datasetInfoRequired: () => void;
   datasetInfo: ResourceState<{ [id: string] : DatasetInfo}>;
   datasetContentRequired: (dataset: DatasetName) => void;
@@ -46,48 +46,39 @@ interface ExplorerViewProps {
   };
 }
 
-interface ExplorerViewState {
-  filterColumn: string;
-  filterValue: string;
-  filterInvert: boolean;
+interface State {
+  filteredItems: any[];
+  filterTerm: string;
   selectedRows: number[];
 }
 
-class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState> {
-  private filterData = (datasetContent: Dataset<any>, column: string, value: string, invert: boolean) => {
-    if (column === "" || value === "") {
-      return _.values(datasetContent.content);
-    }
-
-    return _.filter(
-      _.values(datasetContent.content),
-      item => stringInString(value, stringify(item[column])) !== invert,
-    );
-  }
-
-  state : ExplorerViewState = this.initialState();
-
-  initialState(): ExplorerViewState {
-    return {
-      filterColumn: "",
-      filterValue: "",
-      filterInvert: false,
+class ExplorerView extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      filteredItems: [],
+      filterTerm: "",
       selectedRows: [],
     };
   }
 
-  public componentDidMount() {
+  componentDidMount() {
     this.props.datasetInfoRequired();
     this.props.datasetContentRequired(this.props.params.datasetName);
   }
 
-  public componentWillReceiveProps(nextProps: ExplorerViewProps) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.params.datasetName !== this.props.params.datasetName) {
       this.props.datasetContentRequired(nextProps.params.datasetName);
     }
+
+    if (nextProps.datasetContent.status === ResourceStatus.LOADED &&
+      this.props.datasetContent.status !== ResourceStatus.LOADED) {
+      this.updateFilter(this.state.filterTerm, nextProps.datasetContent.data);
+    }
   }
 
-  public render() {
+  render() {
     return (
         <div className={s.container}>
           <div className={s.main}>
@@ -102,7 +93,6 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
       case ResourceStatus.LOADED:
         return (
           <div>
-            <h1>{this.maybePrettyName()}</h1>
             {this.renderControls()}
             {this.renderData()}
           </div>
@@ -131,60 +121,58 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
   private renderControls() {
     return (
       <div className={Classes.CONTROL_GROUP}>
-        <div className={Classes.SELECT}>
-          <select
-            value={this.state.filterColumn}
-            onChange={e => this.setState({ filterColumn: e.target.value })}
-          >
-            <option value="">Filter...</option>
-            { this.columns().map(col => <option key={col} value={col}>{col}</option>) }
-          </select>
-        </div>
-
         <input
           type="text"
           className={Classes.INPUT}
           placeholder="Value"
-          disabled={this.state.filterColumn === ""}
-          value={this.state.filterValue}
-          onChange={e => this.setState({ filterValue: e.target.value })}
-        />
-
-        <Switch
-          label="Invert"
-          disabled={this.state.filterColumn === ""}
-          checked={this.state.filterInvert}
-          onChange={() => this.setState({ filterInvert: !this.state.filterInvert })}
+          value={this.state.filterTerm}
+          onChange={e => this.updateFilter(e.target.value, this.props.datasetContent.data)}
         />
       </div>
     );
   }
 
   private renderData() {
-    // TODO: should cache this
-    const filteredItems = this.filterData(
-      this.props.datasetContent.data, this.state.filterColumn, this.state.filterValue, this.state.filterInvert,
-    );
-
     return (
       <DocumentTitle title={`Quartic - ${this.maybePrettyName()}`}>
-        <Table
-          isRowResizable={true}
-          numRows={filteredItems.length}
-          selectionModes={SelectionModes.ROWS_AND_CELLS}
-          onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
-          selectedRegionTransform={cellToRow}
-        >
-          {
-            this.columns().map(col => <Column
-              key={col}
-              name={col}
-              renderCell={(row: number) => <Cell>{stringify(_.values(filteredItems)[row][col])}</Cell>}
-            />)
-          }
-        </Table>
+        <Pane title={this.maybePrettyName()} iconName="database">
+          <div style={{ height: "600px" }}>
+            <Table
+              isRowResizable={true}
+              numRows={this.state.filteredItems.length}
+              selectionModes={SelectionModes.ROWS_AND_CELLS}
+              onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
+              selectedRegionTransform={cellToRow}
+            >
+              {
+                this.columns().map(col => <Column
+                  key={col}
+                  name={col}
+                  renderCell={(row: number) => <Cell>{stringify(_.values(this.state.filteredItems)[row][col])}</Cell>}
+                />)
+              }
+            </Table>
+          </div>
+        </Pane>
       </DocumentTitle>
     );
+  }
+
+  private updateFilter(term: string, dataset: Dataset<any>) {
+    this.setState({
+      filterTerm: term,
+      filteredItems: this.filterData(term.trim(), dataset),
+    });
+  }
+
+  private filterData = (term: string, dataset: Dataset<any>) => {
+    const items = _.values(dataset.content);
+
+    if (term === "") {
+      return items;
+    }
+
+    return _.filter(items, item => _.any(item, v => stringInString(term, stringify(v))));
   }
 
   private maybePrettyName() {
