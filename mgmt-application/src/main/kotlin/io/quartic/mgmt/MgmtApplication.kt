@@ -20,7 +20,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
         val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
-        val catalogueService = client(CatalogueService::class.java, javaClass, configuration.catalogueUrl!!)
+        val catalogueService = client<CatalogueService>(javaClass, configuration.catalogueUrl!!)
 
         with (environment.jersey()) {
             register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(configuration.authorisedNamespaces)))
