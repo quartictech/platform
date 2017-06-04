@@ -17,7 +17,6 @@ import SearchContainer from "../../containers/SearchContainer";
 import standardProviders from "../../containers/SearchContainer/standardProviders";
 import insights from "../../containers/InsightView/insights";
 import * as selectors from "../../redux/selectors";
-import { toTitleCase } from "../../helpers/Utils";
 import {
   resourceActions,
   ResourceState,
@@ -25,28 +24,27 @@ import {
 } from "../../api-management";
 import {
   sessionInfo,
-  datasetList,
+  datasetInfo,
 } from "../../api";
 import {
-  DatasetName,
+  DatasetInfo,
   SessionInfo,
 } from "../../models";
 import { appHistory } from "../../routes";
 const styles = require("./style.css");
 const logo = require("./quartic.svg");
 
-interface HeaderProps {
+interface Props {
   sessionInfoRequired: () => void;
   sessionInfo: ResourceState<SessionInfo>;
-
-  datasetListRequired: () => void;
-  datasetList: ResourceState<DatasetName[]>;
+  datasetInfoRequired: () => void;
+  datasetInfo: ResourceState<{ [id: string] : DatasetInfo}>;
 }
 
-class Header extends React.Component<HeaderProps, void> {
+class Header extends React.Component<Props, void> {
   componentDidMount() {
     this.props.sessionInfoRequired();
-    this.props.datasetListRequired();
+    this.props.datasetInfoRequired();
   }
 
   render() {
@@ -91,7 +89,7 @@ class Header extends React.Component<HeaderProps, void> {
               iconName="database"
               rightIconName="chevron-down"
               text="Data explorer"
-              disabled={this.props.datasetList.status !== ResourceStatus.LOADED}
+              disabled={this.props.datasetInfo.status !== ResourceStatus.LOADED}
             />
           </Popover>
 
@@ -145,9 +143,9 @@ class Header extends React.Component<HeaderProps, void> {
     return (
       <Menu>
         {
-          _.map(this.props.datasetList.data, d => (
-            <MenuItem key={d} iconName="database" text={toTitleCase(d)} href={appHistory.createHref({
-              pathname: `/explorer/${encodeURIComponent(d)}`,
+          _.map(this.props.datasetInfo.data, (v, k) => (
+            <MenuItem key={k} iconName="database" text={v.prettyName} href={appHistory.createHref({
+              pathname: `/explorer/${encodeURIComponent(k)}`,
             })} />
           ))
         }
@@ -171,12 +169,12 @@ class Header extends React.Component<HeaderProps, void> {
 
 const mapDispatchToProps = {
   sessionInfoRequired: resourceActions(sessionInfo).required,
-  datasetListRequired: resourceActions(datasetList).required,
+  datasetInfoRequired: resourceActions(datasetInfo).required,
 };
 
 const mapStateToProps = createStructuredSelector({
   sessionInfo: selectors.selectSessionInfo,
-  datasetList: selectors.selectDatasetList,
+  datasetInfo: selectors.selectDatasetInfo,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Header);

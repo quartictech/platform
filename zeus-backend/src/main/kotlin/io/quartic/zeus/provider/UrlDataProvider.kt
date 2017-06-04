@@ -2,10 +2,12 @@ package io.quartic.zeus.provider
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.zeus.UrlDataProviderConfiguration
+import io.quartic.zeus.DataProviderConfiguration
 import io.quartic.zeus.model.ItemId
 
-class UrlDataProvider(config: UrlDataProviderConfiguration) : DataProvider {
+class UrlDataProvider(config: DataProviderConfiguration) : DataProvider {
+    override val prettyName = config.prettyName
+
     override val data by lazy {
         OBJECT_MAPPER.readValue<Map<ItemId, Map<String, Any>>>(config.url)
     }

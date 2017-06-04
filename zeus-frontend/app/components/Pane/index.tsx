@@ -8,7 +8,6 @@ const styles = require("./style.css");
 interface PaneProps {
   title?: string;
   iconName?: string;
-  // visible: boolean;
   extraHeaderContent?: JSX.Element;
   onClose?: () => void;
   children?: any;
@@ -19,14 +18,11 @@ export default class Pane extends React.Component<PaneProps, {}> {
     return (
       <div
         className={classNames(Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-        style={{ overflow: "auto", display: /*this.props.visible*/ true ? "flex" : "none", flexDirection: "column" }}
+        style={{ overflow: "auto", display: "flex", flexDirection: "column" }}
       >
         {this.maybeHeader()}
         
-        <div
-          className={Classes.DIALOG_BODY}
-          style={{ margin: "10px", flex: 1 }}
-        >
+        <div className={Classes.DIALOG_BODY} style={{ margin: "10px", flex: 1 }}>
           <div style={{ height: "100%", flex: 1 }} >
             {this.props.children}
           </div>
@@ -41,7 +37,7 @@ export default class Pane extends React.Component<PaneProps, {}> {
     }
 
     return (
-      <div className={Classes.DIALOG_HEADER}>
+      <div className={Classes.DIALOG_HEADER} style={{ paddingRight: "10px" }}>
         <span
           className={classNames(Classes.ICON_STANDARD, Classes.iconClass(this.props.iconName))}
           style={{ paddingRight: 10 }}

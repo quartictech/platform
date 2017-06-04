@@ -18,7 +18,7 @@ export const managedResourceProvider = <T>(
   const resourceState = selector(reduxState);
   return {
     required: (query: string) => (dispatch((query.length > 0)
-      ? resourceActions(resource).required(query, 5)
+      ? resourceActions(resource).requiredFresh(query, 5)
       : resourceActions(resource).clear())),
     result: {
       entries: _.map(resourceState.data.content, (item, id) => mapper(id, item)),
