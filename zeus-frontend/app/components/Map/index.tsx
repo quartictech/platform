@@ -1,5 +1,7 @@
 import * as React from "react";
-
+import {
+  Colors,
+} from "@blueprintjs/core";
 const s = require("./style.css");
 
 // import mapboxgl from "./mapbox-gl-helper";
@@ -66,7 +68,7 @@ class Map extends React.Component<Props, any> {
       source: "geojson",
       paint: {
         "line-width": 5,
-        "line-color": "#0f9960",
+        "line-color": (this.props.style === "satellite") ? Colors.GOLD3 : Colors.GREEN3,
       },
     });
     this.updateData(this.props.featureCollection);
