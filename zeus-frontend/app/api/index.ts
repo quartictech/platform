@@ -1,4 +1,4 @@
-import { Asset, Job, Dataset, DatasetName, SessionInfo } from "../models";
+import { Asset, Job, Dataset, DatasetInfo, DatasetName, SessionInfo } from "../models";
 import { ManagedResource } from "../api-management";
 
 export const apiRootUrl = `${location.origin}${location.pathname}api`;
@@ -43,9 +43,9 @@ export const asset = <ManagedResource<Asset>>{
   endpoint: (id) => fetchUtil(`/datasets/assets/${encodeURIComponent(id)}`),
 };
 
-export const datasetList = <ManagedResource<DatasetName[]>>{
-  name: "dataset list",
-  shortName: "datasetList",
+export const datasetInfo = <ManagedResource<{ [id: string] : DatasetInfo }>>{
+  name: "dataset info",
+  shortName: "datasetInfo",
   endpoint: () => fetchUtil(`/datasets`),
 };
 
@@ -60,6 +60,6 @@ export const managedResources: ManagedResource<any>[] = [
   jobs,
   assets,
   asset,
-  datasetList,
+  datasetInfo,
   datasetContent,
 ];

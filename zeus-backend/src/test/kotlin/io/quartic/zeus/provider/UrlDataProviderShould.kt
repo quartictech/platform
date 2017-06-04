@@ -55,7 +55,7 @@ class UrlDataProviderShould {
         )
     }
 
-    private fun provider() = UrlDataProvider(DataProviderConfiguration(URL("http://localhost:${wireMockRule.port()}/weird.json"), emptySet()))
+    private fun provider() = UrlDataProvider(DataProviderConfiguration("", URL("http://localhost:${wireMockRule.port()}/weird.json"), emptySet()))
 
     // TODO: test filtering
 }

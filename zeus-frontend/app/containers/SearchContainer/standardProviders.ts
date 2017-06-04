@@ -11,7 +11,7 @@ import {
 import {
   assets,
   jobs,
-  datasetList,
+  datasetInfo,
 } from "../../api";
 import {
   Asset,
@@ -22,10 +22,10 @@ import { staticProvider, staticProviderEngine } from "./staticProvider";
 import insights from "../../containers/InsightView/insights";
 
 
-const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
-  const state = selectors.selectDatasetList(reduxState);
+const getDatasetInfo = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
+  const state = selectors.selectDatasetInfo(reduxState);
   if (state.status === ResourceStatus.NOT_LOADED) {
-    dispatch(resourceActions(datasetList).required());
+    dispatch(resourceActions(datasetInfo).required());
   }
   return state.data;
 };
@@ -33,12 +33,12 @@ const getDatasetList = (reduxState: any, dispatch: Redux.Dispatch<any>) => {
 const datasetProvider = () => {
   const engine = staticProviderEngine(["datasets", "raw", "explorer"]);
   return (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: () => void) => {
-    const datasets = getDatasetList(reduxState, dispatch);
-    return engine(_.map(datasets, d => ({
-      key: d,
-      name: toTitleCase(d),
+    const datasets = getDatasetInfo(reduxState, dispatch);
+    return engine(_.map(datasets, (v, k) => ({
+      key: k,
+      name: v.prettyName,
       iconName: "database",
-      href: `/explorer/${encodeURIComponent(d)}`,
+      href: `/explorer/${encodeURIComponent(k)}`,
     })), onResultChange);
   };
 };

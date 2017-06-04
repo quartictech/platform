@@ -6,6 +6,8 @@ import io.quartic.zeus.DataProviderConfiguration
 import io.quartic.zeus.model.ItemId
 
 class UrlDataProvider(config: DataProviderConfiguration) : DataProvider {
+    override val prettyName = config.prettyName
+
     override val data by lazy {
         OBJECT_MAPPER.readValue<Map<ItemId, Map<String, Any>>>(config.url)
     }

@@ -146,6 +146,9 @@ export const reducer = (resources: ManagedResource<any>[]) =>
 export const selector = <T>(resource: ManagedResource<T>) =>
   (state) => state.get("managed")[resource.shortName].toJS() as ResourceState<T>;
 
+export const ifLoaded = <T, R>(resource: ResourceState<T>, func: (T) => R, defaultValue: R) =>
+  ((resource.status === ResourceStatus.LOADED) ? func(resource.data) : defaultValue);
+
 export class ManagedResource<T> {
   name: string;
   shortName: string;

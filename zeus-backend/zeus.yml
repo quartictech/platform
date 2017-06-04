@@ -1,7 +1,8 @@
 datasets:
-#  assets:
-#    url: "http://localhost:8120/api/zeus/roads"
-#    indexedAttributes: [ "RSL", "Road Name" ]
+  assets:
+    prettyName: "RSL assets"
+    url: "http://localhost:8120/api/zeus/roads"
+    indexedAttributes: [ "RSL", "Road Name" ]
 
 server:
   applicationContextPath: /

@@ -19,21 +19,26 @@ import {
   resourceActions,
   ResourceState,
   ResourceStatus,
+  ifLoaded,
 } from "../../api-management";
 import {
   datasetContent,
+  datasetInfo,
 } from "../../api";
 import {
   Dataset,
+  DatasetInfo,
   DatasetName,
 } from "../../models";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as _ from "underscore";
-import { stringInString, toTitleCase } from "../../helpers/Utils";
+import { stringInString } from "../../helpers/Utils";
 const s = require("./style.css");
 
 interface ExplorerViewProps {
+  datasetInfoRequired: () => void;
+  datasetInfo: ResourceState<{ [id: string] : DatasetInfo}>;
   datasetContentRequired: (dataset: DatasetName) => void;
   datasetContent: ResourceState<Dataset<any>>;
   params: {
@@ -49,11 +54,7 @@ interface ExplorerViewState {
 }
 
 class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState> {
-  private filterData = (
-    datasetContent: Dataset<any>,
-    column: string,
-    value: string,
-    invert: boolean) => {
+  private filterData = (datasetContent: Dataset<any>, column: string, value: string, invert: boolean) => {
     if (column === "" || value === "") {
       return _.values(datasetContent.content);
     }
@@ -76,6 +77,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
   }
 
   public componentDidMount() {
+    this.props.datasetInfoRequired();
     this.props.datasetContentRequired(this.props.params.datasetName);
   }
 
@@ -100,7 +102,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
       case ResourceStatus.LOADED:
         return (
           <div>
-            <h1>{this.props.params.datasetName}</h1>
+            <h1>{this.maybePrettyName()}</h1>
             {this.renderControls()}
             {this.renderData()}
           </div>
@@ -165,7 +167,7 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
     );
 
     return (
-      <DocumentTitle title={`Quartic - ${toTitleCase(this.props.params.datasetName)}`}>
+      <DocumentTitle title={`Quartic - ${this.maybePrettyName()}`}>
         <Table
           isRowResizable={true}
           numRows={filteredItems.length}
@@ -183,6 +185,10 @@ class ExplorerView extends React.Component<ExplorerViewProps, ExplorerViewState>
         </Table>
       </DocumentTitle>
     );
+  }
+
+  private maybePrettyName() {
+    return ifLoaded(this.props.datasetInfo, info => info[this.props.params.datasetName].prettyName, "<< unknown >>");
   }
 
   private columns = () => this.props.datasetContent.data.schema;
@@ -203,10 +209,12 @@ const cellToRow = (region) => ((region.rows)
 );
 
 const mapDispatchToProps = {
+  datasetInfoRequired: resourceActions(datasetInfo).required,
   datasetContentRequired: resourceActions(datasetContent).required,
 };
 
 const mapStateToProps = createStructuredSelector({
+  datasetInfo: selectors.selectDatasetInfo,
   datasetContent: selectors.selectDatasetContent,
 });
 

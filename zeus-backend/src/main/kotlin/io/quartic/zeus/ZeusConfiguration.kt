@@ -9,6 +9,7 @@ data class ZeusConfiguration(
 ) : Configuration()
 
 data class DataProviderConfiguration(
+        val prettyName: String,
         val url: URL,
         val indexedAttributes: Set<String> = emptySet()
 )

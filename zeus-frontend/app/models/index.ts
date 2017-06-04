@@ -14,6 +14,10 @@ export interface Dataset<T> {
   content: { [id: string] : T };
 }
 
+export interface DatasetInfo {
+  prettyName: string;
+}
+
 export interface SessionInfo {
   username: string;
 }
