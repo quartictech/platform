@@ -22,10 +22,7 @@ export default class Pane extends React.Component<PaneProps, {}> {
       >
         {this.maybeHeader()}
         
-        <div
-          className={Classes.DIALOG_BODY}
-          style={{ margin: "10px", flex: 1 }}
-        >
+        <div className={Classes.DIALOG_BODY} style={{ margin: "10px", flex: 1 }}>
           <div style={{ height: "100%", flex: 1 }} >
             {this.props.children}
           </div>
@@ -40,7 +37,7 @@ export default class Pane extends React.Component<PaneProps, {}> {
     }
 
     return (
-      <div className={Classes.DIALOG_HEADER}>
+      <div className={Classes.DIALOG_HEADER} style={{ paddingRight: "10px" }}>
         <span
           className={classNames(Classes.ICON_STANDARD, Classes.iconClass(this.props.iconName))}
           style={{ paddingRight: 10 }}

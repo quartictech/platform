@@ -93,12 +93,7 @@ class ExplorerView extends React.Component<Props, State> {
   private maybeRender() {
     switch (this.props.datasetContent.status) {
       case ResourceStatus.LOADED:
-        return (
-          <div>
-            {this.renderControls()}
-            {this.renderData()}
-          </div>
-        );
+        return this.renderData();
 
       case ResourceStatus.NOT_LOADED:
         return <NonIdealState
@@ -120,22 +115,14 @@ class ExplorerView extends React.Component<Props, State> {
     }
   }
 
-  private renderControls() {
-    return (
-      <InputGroup
-        className={classNames(Classes.ROUND, Classes.LARGE)}
-        leftIconName="filter"
-        placeholder="Filter..."
-        value={this.state.filterTerm}
-        onChange={e => this.updateFilter(e.target.value, this.props.datasetContent.data)}
-      />
-    );
-  }
-
   private renderData() {
     return (
       <DocumentTitle title={`Quartic - ${this.maybePrettyName()}`}>
-        <Pane title={this.maybePrettyName()} iconName="database">
+        <Pane
+          title={this.maybePrettyName()}
+          iconName="database"
+          extraHeaderContent={this.renderControls()}
+        >
           <div style={{ height: "600px" }}>
             <Table
               isRowResizable={true}
@@ -155,6 +142,20 @@ class ExplorerView extends React.Component<Props, State> {
           </div>
         </Pane>
       </DocumentTitle>
+    );
+  }
+
+  private renderControls() {
+    return (
+      <div style={{ width: "20%" }}>
+        <InputGroup
+          className={classNames(Classes.ROUND)}
+          leftIconName="filter"
+          placeholder="Filter..."
+          value={this.state.filterTerm}
+          onChange={e => this.updateFilter(e.target.value, this.props.datasetContent.data)}
+        />
+      </div>
     );
   }
 
