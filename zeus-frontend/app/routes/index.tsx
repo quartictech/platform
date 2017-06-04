@@ -9,7 +9,8 @@ import SearchView from "../containers/SearchView";
 
 const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 
-function getRoutes() { return (
+function getRoutes() {
+  return (
     <Route path="/" component={App}>
       <Route path="/search" component={SearchView} />
       <Route path="/insights/:insightName" component={InsightView} />
