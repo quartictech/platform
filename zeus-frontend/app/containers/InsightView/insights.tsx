@@ -1,4 +1,8 @@
 import * as React from "react";
+import {
+  Classes,
+} from "@blueprintjs/core";
+import * as classNames from "classnames";
 import HighestLowest2016 from "./highestLowest2016";
 import HighestConcentration2016 from "./highestConcentration2016";
 import Flytipping from "./flytipping";
@@ -48,7 +52,14 @@ const insights: { [name: string] : Insight } = {
     componentClass: Flytipping,
     title: "Flytipping",
     disabled: false,
-    description: (<div>Flytipping trends in Hounslow.</div>),
+    description: (
+      <div>
+        Flytipping trends in Hounslow.
+        <div className={classNames(Classes.CALLOUT, Classes.iconClass("warning-sign"), Classes.INTENT_DANGER)}>
+          This insight requires a high-bandwidth network connection, and may fail to display otherwise.
+        </div>
+      </div>
+    ),
   },
   "predictions2017": {
     componentClass: null,
