@@ -32,7 +32,7 @@ class Flytipping extends React.Component<{}, {}> {
     const sessionId = Math.random().toString(36).slice(2);
     const bokeh = (window as any).bokeh;
 
-    bokeh.client.pull_session(`wss://${location.origin}/dashboards/flytipping/ws`, sessionId)
+    bokeh.client.pull_session(`wss://${location.host}/dashboards/flytipping/ws`, sessionId)
       .then(
           (session) => {
             const roots = session.document.roots();
@@ -48,7 +48,7 @@ class Flytipping extends React.Component<{}, {}> {
               itemFor("map", "bokeh-map"),
           ];
 
-          bokeh.embed.embed_items(null, items, "/dashboards/flytipping", `wss://${location.origin}`);
+          bokeh.embed.embed_items(null, items, "/dashboards/flytipping", `wss://${location.host}`);
         },
         (error) => console.error(error),
       );
