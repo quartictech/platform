@@ -12,6 +12,7 @@ import { Asset, TimeSeriesPoint, MaintenanceEvent } from "../../models";
 
 interface DefectsChartProps {
   asset: Asset;
+  onSelectYear: (year: string) => void;
 }
 
 interface State {
@@ -76,6 +77,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
             events={events}
             timeSeries={timeSeries}
             colors={{ defects: "#1f77b4", predictions: "#00FF00" }}
+            onSelectYear={this.props.onSelectYear}
           /> :
           <NonIdealState
             visual="info"
