@@ -40,7 +40,7 @@ class Schematic extends React.Component<SchematicProps, State> {
             ? (
               <RoadSchematic
                 sections={sections}
-                maxValue={this.getMaxValue()}
+                filterPredicate={s => s.year === this.state.yearSelection}
                 hoverText={s => <span><b>Defect score:</b> {numeral(s.value).format("0.0")}</span>}
               />
             )
@@ -71,19 +71,15 @@ class Schematic extends React.Component<SchematicProps, State> {
       </Tabs2>
     );
   }
-
-  private getMaxValue(): number {
-    return _.max(_.map(this.props.asset["_surveys"], (s: RoadSchematicSection) => this.getDefectScore(s)));
-  }
-
+  
   private getSurveySections(): RoadSchematicSection[] {
     return _.chain(this.props.asset["_surveys"])
-      .filter(s => moment(s["start_date"]).year().toString() === this.state.yearSelection)
       .map(s => ({
         xMin: numeral(s["schain"]),
         xMax: numeral(s["echain"]),
         value: this.getDefectScore(s),
         lane: s["xsect"],
+        year: moment(s["start_date"]).year().toString(),  // Extra information used by filterPredicate
       }))
       .value();
   }

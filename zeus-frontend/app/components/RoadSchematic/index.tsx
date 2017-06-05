@@ -32,7 +32,7 @@ export interface RoadSchematicSection {
 
 interface RoadSchematicProps {
   sections: RoadSchematicSection[];
-  maxValue: number;
+  filterPredicate?: (RoadSchematicSection) => boolean;
   hoverText?: (RoadSchematicSection) => string | JSX.Element;
 }
 
@@ -68,7 +68,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       hoveredEntity: null,
     };
     this.intervalMap = intervalMap(props.sections);
-    this.setPlotData(props.sections); // Attach initial data to plot
+    this.setPlotData(props); // Attach initial data to plot
   }
 
   // TODO - get the initial size to be regular (currently too big on the right)
@@ -96,21 +96,27 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   }
 
   componentWillUpdate(nextProps: RoadSchematicProps) {
-    if (nextProps.sections !== this.props.sections || nextProps.maxValue !== this.props.maxValue) {
+    if (nextProps !== this.props) {
       this.intervalMap = intervalMap(nextProps.sections);
-      this.setPlotData(nextProps.sections);
+      this.setPlotData(nextProps);
       this.state.plot.outer.redraw();
     }
   }
 
-  private setPlotData(sections: RoadSchematicSection[]) {
-    this.state.plot.colorScale.domain([0, this.props.maxValue]);
+  private setPlotData(props: RoadSchematicProps) {
+    const maxValue = _.max(_.map(props.sections, (s: RoadSchematicSection) => s.value));
+    this.state.plot.colorScale.domain([0, maxValue]);
     this.state.plot.xScale
-      .domainMin(_.min(sections, s => s.xMin).xMin || 0)
-      .domainMax(_.max(sections, s => s.xMax).xMax || 0);
+      .domainMin(_.min(props.sections, s => s.xMin).xMin || 0)
+      .domainMax(_.max(props.sections, s => s.xMax).xMax || 0);
     this.state.plot.yScale
       .domain([0, _.max(this.intervalMap, i => i[1])[1]])
       .tickGenerator(() => _.map(this.intervalMap, i => (i[1] + i[0]) / 2));  // Ticks at interval midpoints
+
+    const sections = this.props.filterPredicate
+      ? _.filter(props.sections, this.props.filterPredicate)
+      : props.sections;
+
     this.state.plot.dataset.data(sections);
   }
 
