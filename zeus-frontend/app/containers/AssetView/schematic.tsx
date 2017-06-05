@@ -63,7 +63,7 @@ class Schematic extends React.Component<SchematicProps, State> {
     return (
       <span>
         {_.map(defects, (v, k: string) => (
-          <span style={{ paddingRight: "10px" }}>
+          <span key={k} style={{ paddingRight: "10px" }}>
             <b>{_.last(k.split("-"))}:</b>&nbsp;{v}
           </span>
         ))}
