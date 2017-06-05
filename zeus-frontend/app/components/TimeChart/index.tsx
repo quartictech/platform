@@ -5,12 +5,10 @@ import {
 import * as Plottable from "plottable";
 import * as _ from "underscore";
 import * as classNames from "classnames";
-
-const s = require("./style.css");
-
-import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
-
 import SizeMe from "react-sizeme";
+import { registerPointerHandler } from "../../helpers/plottable";
+import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
+const s = require("./style.css");
 
 interface IProps {
   events: MaintenanceEvent[];
@@ -145,23 +143,11 @@ class RealTimeChart extends React.Component<IProps, IState> {
   }
 
   private configureTooltip(plot: Plottable.Plot) {
-    const clear = () => this.setState({ tooltip: null });
-
-    // Because Segment plot just uses entityNearest, which isn't what we want
-    const entitiesActuallyAt = (p: Plottable.Point) =>
-      _.filter(plot.entitiesAt(p), entity => Math.abs(entity.position.x - p.x) < 5);
-
-    const pointer = new Plottable.Interactions.Pointer();
-    pointer.onPointerMove((p: Plottable.Point) => {
-      const entities = entitiesActuallyAt(p);
-      if (entities.length === 1) {
-        this.setState({ tooltip: { value: entities[0].datum.detail } });
-      } else {
-        clear();
-      }
-    });
-    pointer.onPointerExit(clear);
-    pointer.attachTo(plot);
+    registerPointerHandler(
+      plot,
+      entity => this.setState({ tooltip: entity ? { value: entity.datum.detail } : null }),
+      (point, entity) => Math.abs(point.x - entity.position.x) < 5, // Because Segment plot uses entityNearest
+    );
   }
 
   render() {
