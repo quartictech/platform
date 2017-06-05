@@ -104,8 +104,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   }
 
   private setPlotData(props: RoadSchematicProps) {
-    const maxValue = _.max(_.map(props.sections, (s: RoadSchematicSection) => s.value));
-    this.state.plot.colorScale.domain([0, maxValue]);
+    this.state.plot.colorScale
+      .domain([0, _.max(props.sections, s => s.value).value]);
     this.state.plot.xScale
       .domainMin(_.min(props.sections, s => s.xMin).xMin || 0)
       .domainMax(_.max(props.sections, s => s.xMax).xMax || 0);
