@@ -2,6 +2,7 @@ package io.quartic.howl.storage;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
@@ -57,10 +58,18 @@ public class GcsStorageBackend implements StorageBackend {
         Storage.Objects.Get get = storage.objects().get(bucketName, getObjectName(namespace, objectName));
         get.setGeneration(version);
 
-        HttpResponse httpResponse = get.executeMedia();
-        return Optional.ofNullable(httpResponse.getContent())
-                .map(inputStream -> new InputStreamWithContentType(httpResponse.getContentType(), inputStream));
-    }
+        try {
+            HttpResponse httpResponse = get.executeMedia();
+            return Optional.ofNullable(httpResponse.getContent())
+                    .map(inputStream -> new InputStreamWithContentType(httpResponse.getContentType(), inputStream));
+        }
+        catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() == 404) {
+                return Optional.empty();
+            }
+            throw  e;
+        }
+   }
 
     @Override
     public Long put(String contentType, String namespace, String objectName, InputStream inputStream) throws IOException {
