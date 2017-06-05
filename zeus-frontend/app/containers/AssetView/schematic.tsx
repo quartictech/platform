@@ -51,13 +51,16 @@ class Schematic extends React.Component<SchematicProps, {}> {
     );
   }
 
-  private defectsCallout(defects: any) {
-    if (_.size(defects) === 0) {
+  private defectsCallout(section: RoadSchematicSection) {
+    if (!section["assessed"]) {
+      return <span>Not assessed</span>;
+    }
+    if (_.size(section["defects"]) === 0) {
       return <span>No defects</span>;
     }
     return (
       <span>
-        {_.map(defects, (v, k: string) => (
+        {_.map(section["defects"], (v, k: string) => (
           <span key={k} style={{ paddingRight: "10px" }}>
             <b>{_.last(k.split("-"))}:</b>&nbsp;{v}
           </span>
@@ -84,13 +87,14 @@ class Schematic extends React.Component<SchematicProps, {}> {
   
   private getSurveySections(): RoadSchematicSection[] {
     return _.chain(this.props.asset["_surveys"])
-      .map(s => ({
-        xMin: numeral(s["schain"]),
-        xMax: numeral(s["echain"]),
-        value: this.getDefectScore(s),
-        lane: s["xsect"],
-        year: moment(s["start_date"]).year().toString(),  // Extra information used by filterPredicate
-        raw: s["defects"],
+      .map(section => ({
+        xMin: numeral(section["schain"]),
+        xMax: numeral(section["echain"]),
+        value: this.getDefectScore(section),
+        lane: section["xsect"],
+        faded: !section["assessed"],
+        year: moment(section["start_date"]).year().toString(),  // Extra information used by filterPredicate
+        raw: section,
       }))
       .value();
   }

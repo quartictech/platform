@@ -29,6 +29,7 @@ export interface RoadSchematicSection {
   xMax: number;
   lane: string;
   value: number;
+  faded?: boolean;
 }
 
 interface RoadSchematicProps {
@@ -133,7 +134,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       .x((s: RoadSchematicSection) => s.xMin, this.xScale)
       .x2((s: RoadSchematicSection) => s.xMax)
       .y((s: RoadSchematicSection) => this.intervalMap[s.lane][0], this.yScale)
-      .y2((s: RoadSchematicSection) => this.intervalMap[s.lane][1]);
+      .y2((s: RoadSchematicSection) => this.intervalMap[s.lane][1])
+      .attr("fill-opacity", (s: RoadSchematicSection) => s.faded ? 0.3 : 1.0);
 
     const plot = newPlot()
       .attr("fill", (s: RoadSchematicSection) => s.value, this.colorScale)
