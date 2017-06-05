@@ -40,8 +40,8 @@ class Schematic extends React.Component<SchematicProps, State> {
             ? (
               <RoadSchematic
                 sections={sections}
-                maxValue={this.getMaxValue()}
-                hoverText={s => <span><b>Defect score:</b> {numeral(s.value).format("0.0")}</span>}
+                filterPredicate={s => s.year === this.state.yearSelection}
+                hoverText={s => this.defectsCallout(s.raw)}
               />
             )
             : (
@@ -53,6 +53,21 @@ class Schematic extends React.Component<SchematicProps, State> {
           }
         </Pane>
       </div>
+    );
+  }
+
+  private defectsCallout(defects: any) {
+    if (_.size(defects) === 0) {
+      return <span>No defects</span>;
+    }
+    return (
+      <span>
+        {_.map(defects, (v, k: string) => (
+          <span key={k} style={{ paddingRight: "10px" }}>
+            <b>{_.last(k.split("-"))}:</b>&nbsp;{v}
+          </span>
+        ))}
+      </span>
     );
   }
 
@@ -71,19 +86,16 @@ class Schematic extends React.Component<SchematicProps, State> {
       </Tabs2>
     );
   }
-
-  private getMaxValue(): number {
-    return _.max(_.map(this.props.asset["_surveys"], (s: RoadSchematicSection) => this.getDefectScore(s)));
-  }
-
+  
   private getSurveySections(): RoadSchematicSection[] {
     return _.chain(this.props.asset["_surveys"])
-      .filter(s => moment(s["start_date"]).year().toString() === this.state.yearSelection)
       .map(s => ({
         xMin: numeral(s["schain"]),
         xMax: numeral(s["echain"]),
         value: this.getDefectScore(s),
         lane: s["xsect"],
+        year: moment(s["start_date"]).year().toString(),  // Extra information used by filterPredicate
+        raw: s["defects"],
       }))
       .value();
   }

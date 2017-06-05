@@ -1,7 +1,10 @@
 import * as React from "react";
-
+import {
+  Classes,
+} from "@blueprintjs/core";
 import * as Plottable from "plottable";
 import * as _ from "underscore";
+import * as classNames from "classnames";
 
 const s = require("./style.css");
 
@@ -149,10 +152,12 @@ class RealTimeChart extends React.Component<IProps, IState> {
     return (
       <div style={{padding: "10px", width: "99%"}}>
         <div className={s.chart} style={{ width: "100%", height: 175, overflow: "hidden" }} ref="svg"/>
-        <span
-          style={{ visibility: this.state.tooltip ? "visible" : "hidden" }}
-          className="pt-callout pt-text-muted">
-          <b>Selection:</b> {this.state.tooltip ? this.state.tooltip.value : "\u00A0"}</span>
+        <div
+          style={{ visibility: this.state.tooltip ? "visible" : "hidden", display: "inline-block" }}
+          className={classNames(Classes.CALLOUT, Classes.INTENT_PRIMARY)}
+        >
+          <b>Selection:</b> {this.state.tooltip ? this.state.tooltip.value : "\u00A0"}
+        </div>
       </div>
     );
   }

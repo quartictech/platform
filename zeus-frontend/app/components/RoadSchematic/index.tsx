@@ -32,7 +32,7 @@ export interface RoadSchematicSection {
 
 interface RoadSchematicProps {
   sections: RoadSchematicSection[];
-  maxValue: number;
+  filterPredicate?: (RoadSchematicSection) => boolean;
   hoverText?: (RoadSchematicSection) => string | JSX.Element;
 }
 
@@ -52,7 +52,7 @@ interface PlotBits {
 
 interface State {
   plot: PlotBits;
-  hoveredSection: RoadSchematicSection;
+  hoveredEntity: Plottable.Plots.IPlotEntity;
 }
 
 
@@ -65,10 +65,10 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     super(props);
     this.state = {
       plot: this.createInitialPlotState(),
-      hoveredSection: null,
+      hoveredEntity: null,
     };
     this.intervalMap = intervalMap(props.sections);
-    this.setPlotData(props.sections); // Attach initial data to plot
+    this.setPlotData(props); // Attach initial data to plot
   }
 
   // TODO - get the initial size to be regular (currently too big on the right)
@@ -77,15 +77,15 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     return (
         <div style={{padding: "10px", width: "99%"}}>
           <div style={{ width: "100%", height: 250, overflow: "hidden" }} ref="svg" />
-          <span
-            style={{ visibility: this.state.hoveredSection ? "visible" : "hidden" }}
-            className={classNames(Classes.CALLOUT, Classes.TEXT_MUTED)}
+          <div
+            style={{ visibility: this.state.hoveredEntity ? "visible" : "hidden", display: "inline-block" }}
+            className={classNames(Classes.CALLOUT, Classes.INTENT_PRIMARY)}
           >
-            {this.state.hoveredSection
-              ? BlueprintUtils.safeInvoke(this.props.hoverText, this.state.hoveredSection)
-              : ""
+            {this.state.hoveredEntity
+              ? BlueprintUtils.safeInvoke(this.props.hoverText, this.state.hoveredEntity.datum)
+              : "&nbsp;"
             }
-          </span>
+          </div>
         </div>
     );
   }
@@ -96,21 +96,27 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   }
 
   componentWillUpdate(nextProps: RoadSchematicProps) {
-    if (nextProps.sections !== this.props.sections || nextProps.maxValue !== this.props.maxValue) {
+    if (nextProps !== this.props) {
       this.intervalMap = intervalMap(nextProps.sections);
-      this.setPlotData(nextProps.sections);
+      this.setPlotData(nextProps);
       this.state.plot.outer.redraw();
     }
   }
 
-  private setPlotData(sections: RoadSchematicSection[]) {
-    this.state.plot.colorScale.domain([0, this.props.maxValue]);
+  private setPlotData(props: RoadSchematicProps) {
+    this.state.plot.colorScale
+      .domain([0, _.max(props.sections, s => s.value).value]);
     this.state.plot.xScale
-      .domainMin(_.min(sections, s => s.xMin).xMin || 0)
-      .domainMax(_.max(sections, s => s.xMax).xMax || 0);
+      .domainMin(_.min(props.sections, s => s.xMin).xMin || 0)
+      .domainMax(_.max(props.sections, s => s.xMax).xMax || 0);
     this.state.plot.yScale
       .domain([0, _.max(this.intervalMap, i => i[1])[1]])
       .tickGenerator(() => _.map(this.intervalMap, i => (i[1] + i[0]) / 2));  // Ticks at interval midpoints
+
+    const sections = this.props.filterPredicate
+      ? _.filter(props.sections, this.props.filterPredicate)
+      : props.sections;
+
     this.state.plot.dataset.data(sections);
   }
 
@@ -168,17 +174,27 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   }
 
   private configureInteraction(plot: Plottable.Plot, plotHighlighter: Plottable.Plot) {
+    const set = (entity: Plottable.Plots.IPlotEntity) => {
+      entity.selection.attr("fill-opacity", 0.5);
+      this.setState({ hoveredEntity: entity });
+    };
+
+    const clear = () => {
+      if (this.state.hoveredEntity) {
+        this.state.hoveredEntity.selection.attr("fill-opacity", 0);
+        this.setState({ hoveredEntity: null });
+      }
+    };
+
     const interaction = new Plottable.Interactions.Pointer();
     interaction.onPointerMove((p) => {
-      const nearestEntity = plotHighlighter.entityNearest(p);
-      this.setState({ hoveredSection: nearestEntity.datum });
-      plotHighlighter.entities().forEach(entity =>
-        entity.selection.attr("fill-opacity", (entity.index === nearestEntity.index) ? 0.5 : 0));
+      clear();
+      const selected = plotHighlighter.entitiesAt(p);
+      if (selected.length === 1) {
+        set(selected[0]);
+      }
     });
-    interaction.onPointerExit(() => {
-      this.setState({ hoveredSection: null });
-      plotHighlighter.entities().forEach(entity => entity.selection.attr("fill-opacity", 0));
-    });
+    interaction.onPointerExit(clear);
     interaction.attachTo(plot);
   }
   
