@@ -43,31 +43,29 @@ interface XspToInterval {
   [xsp: string] : [number, number];
 }
 
-interface PlotBits {
-  dataset: Plottable.Dataset;
-  colorScale: Plottable.Scales.InterpolatedColor;
-  xScale: Plottable.Scales.Linear;
-  yScale: Plottable.Scales.Linear;
-  outer: Plottable.Component;
-}
-
 interface State {
-  plot: PlotBits;
   hoveredEntity: Plottable.Plots.IPlotEntity;
 }
 
 
 class RoadSchematic extends React.Component<RoadSchematicProps, State> {
+  private dataset: Plottable.Dataset;
+  private colorScale: Plottable.Scales.InterpolatedColor;
+  private xScale: Plottable.Scales.Linear;
+  private yScale: Plottable.Scales.Linear;
+  private outer: Plottable.Component;
+
   // Managed outside of React state to avoid setState not actually updating intervalMap before Plottable redraw
   // requires it.
   private intervalMap: XspToInterval;
 
+
   constructor(props: RoadSchematicProps) {
     super(props);
     this.state = {
-      plot: this.createInitialPlotState(),
       hoveredEntity: null,
     };
+    this.createInitialPlotState(),
     this.intervalMap = intervalMap(props.sections);
     this.setPlotData(props); // Attach initial data to plot
   }
@@ -92,25 +90,25 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   }
 
   componentDidMount() {
-    window.addEventListener("resize", () => this.state.plot.outer.redraw());
-    this.state.plot.outer.renderTo(this.refs["svg"] as HTMLElement);
+    window.addEventListener("resize", () => this.outer.redraw());
+    this.outer.renderTo(this.refs["svg"] as HTMLElement);
   }
 
   componentWillUpdate(nextProps: RoadSchematicProps) {
     if (nextProps !== this.props) {
       this.intervalMap = intervalMap(nextProps.sections);
       this.setPlotData(nextProps);
-      this.state.plot.outer.redraw();
+      this.outer.redraw();
     }
   }
 
   private setPlotData(props: RoadSchematicProps) {
-    this.state.plot.colorScale
+    this.colorScale
       .domain([0, _.max(props.sections, s => s.value).value]);
-    this.state.plot.xScale
+    this.xScale
       .domainMin(_.min(props.sections, s => s.xMin).xMin || 0)
       .domainMax(_.max(props.sections, s => s.xMax).xMax || 0);
-    this.state.plot.yScale
+    this.yScale
       .domain([0, _.max(this.intervalMap, i => i[1])[1]])
       .tickGenerator(() => _.map(this.intervalMap, i => (i[1] + i[0]) / 2));  // Ticks at interval midpoints
 
@@ -118,27 +116,27 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       ? _.filter(props.sections, this.props.filterPredicate)
       : props.sections;
 
-    this.state.plot.dataset.data(sections);
+    this.dataset.data(sections);
   }
 
-  private createInitialPlotState(): PlotBits {
-    const dataset = new Plottable.Dataset();
+  private createInitialPlotState() {
+    this.dataset = new Plottable.Dataset();
 
-    const xScale = new Plottable.Scales.Linear();
-    const yScale = new Plottable.Scales.Linear();
+    this.xScale = new Plottable.Scales.Linear();
+    this.yScale = new Plottable.Scales.Linear();
 
-    const colorScale = new Plottable.Scales.InterpolatedColor("sqrt")
+    this.colorScale = new Plottable.Scales.InterpolatedColor("sqrt")
       .range([Colors.GRAY1, Colors.RED5, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1]);
 
     const newPlot = () => new Plottable.Plots.Rectangle()
-      .addDataset(dataset)
-      .x((s: RoadSchematicSection) => s.xMin, xScale)
+      .addDataset(this.dataset)
+      .x((s: RoadSchematicSection) => s.xMin, this.xScale)
       .x2((s: RoadSchematicSection) => s.xMax)
-      .y((s: RoadSchematicSection) => this.intervalMap[s.lane][0], yScale)
+      .y((s: RoadSchematicSection) => this.intervalMap[s.lane][0], this.yScale)
       .y2((s: RoadSchematicSection) => this.intervalMap[s.lane][1]);
 
     const plot = newPlot()
-      .attr("fill", (s: RoadSchematicSection) => s.value, colorScale)
+      .attr("fill", (s: RoadSchematicSection) => s.value, this.colorScale)
       .attr("stroke", Colors.LIGHT_GRAY5)
       .attr("stroke-width", 1);
 
@@ -148,8 +146,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
     this.configureInteraction(plotHighlighter);
 
-    const xAxis = new Plottable.Axes.Numeric(xScale, "bottom");
-    const yAxis = new Plottable.Axes.Numeric(yScale, "left");
+    const xAxis = new Plottable.Axes.Numeric(this.xScale, "bottom");
+    const yAxis = new Plottable.Axes.Numeric(this.yScale, "left");
 
     
     yAxis
@@ -160,18 +158,10 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
     const group = new Plottable.Components.Group([plot, plotHighlighter]);
 
-    const outer = new Plottable.Components.Table([
+    this.outer = new Plottable.Components.Table([
       [yLabel, yAxis, group],
       [null, null,  xAxis],
     ]);
-
-    return {
-      dataset,
-      colorScale,
-      xScale,
-      yScale,
-      outer,
-    };
   }
 
   private configureInteraction(plotHighlighter: Plottable.Plot) {
