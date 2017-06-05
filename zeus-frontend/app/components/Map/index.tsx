@@ -1,8 +1,8 @@
 import * as React from "react";
-
+import {
+  Colors,
+} from "@blueprintjs/core";
 const s = require("./style.css");
-
-import SizeMe from "react-sizeme";
 
 // import mapboxgl from "./mapbox-gl-helper";
 import mapbox = require("mapbox-gl/dist/mapbox-gl.js");
@@ -12,14 +12,21 @@ mapbox.accessToken = "pk.eyJ1IjoiYWxzcGFyIiwiYSI6ImNpcXhybzVnZTAwNTBpNW5uaXAzbTh
 
 import geojsonExtent = require("@mapbox/geojson-extent");
 
-interface IMapProps {
+export type MapStyle = "basic" | "streets" | "bright" | "light" | "dark" | "satellite";
+
+interface Props {
   featureCollection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
   width?: number;
   height: number;
+  style?: MapStyle;
 }
 
-class RealMap  extends React.Component<IMapProps, any> {
-  map: mapboxgl.Map;
+class Map extends React.Component<Props, any> {
+  static defaultProps: Partial<Props> = {
+    style: "bright",
+  };
+
+  private map: mapboxgl.Map;
 
   constructor() {
     super();
@@ -28,22 +35,12 @@ class RealMap  extends React.Component<IMapProps, any> {
   componentDidMount() {
     this.map = new mapboxgl.Map({
       container: "map-inner",
-      style: "mapbox://styles/mapbox/bright-v9",
+      style: mapboxStyleUri(this.props.style),
       zoom: 9.7,
     });
 
-    this.map.on("load", () => {
-      this.map.addSource("geojson", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      this.updateData(this.props.featureCollection);
-      this.map.addLayer({
-        id: "line",
-        type: "line",
-        source: "geojson",
-        paint: {
-          "line-width": 5,
-          "line-color": "#0f9960",
-        },
-      });
+    this.map.on("style.load", () => {
+      this.configureMap();
     });
   }
 
@@ -56,11 +53,28 @@ class RealMap  extends React.Component<IMapProps, any> {
     );
   }
 
-  componentWillUpdate(nextProps: IMapProps) {
+  componentWillUpdate(nextProps: Props) {
     this.updateData(nextProps.featureCollection);
+    if (nextProps.style !== this.props.style) {
+      this.map.setStyle(mapboxStyleUri(nextProps.style));
+    }
   }
 
-  updateData(featureCollection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>) {
+  private configureMap() {
+    this.map.addSource("geojson", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    this.map.addLayer({
+      id: "line",
+      type: "line",
+      source: "geojson",
+      paint: {
+        "line-width": 5,
+        "line-color": (this.props.style === "satellite") ? Colors.GOLD3 : Colors.GREEN3,
+      },
+    });
+    this.updateData(this.props.featureCollection);
+  }
+
+  private updateData(featureCollection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>) {
     const source: mapboxgl.GeoJSONSource = this.map.getSource("geojson") as mapboxgl.GeoJSONSource;
     if (source != null) {
       source.setData(featureCollection);
@@ -72,4 +86,6 @@ class RealMap  extends React.Component<IMapProps, any> {
   }
 }
 
-export const Map = SizeMe<IMapProps>()(RealMap); // tslint:disable-line:variable-name
+const mapboxStyleUri = (style: MapStyle) => `mapbox://styles/mapbox/${style}-v9`;
+
+export default Map;
