@@ -185,7 +185,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
           entity.selection.attr("fill-opacity", 0.5);
         }
         this.setState({ hoveredEntity: entity });
-      }
+      },
     );
   }
   

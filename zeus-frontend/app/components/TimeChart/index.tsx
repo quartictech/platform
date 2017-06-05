@@ -6,7 +6,7 @@ import * as Plottable from "plottable";
 import * as _ from "underscore";
 import * as classNames from "classnames";
 import SizeMe from "react-sizeme";
-import { registerPointerHandler } from "../../helpers/plottable";
+import { registerPointerHandler, registerClickHandler } from "../../helpers/plottable";
 import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
 const s = require("./style.css");
 
@@ -131,14 +131,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
   }
 
   private configureClicking(plot: Plottable.Plot) {
-    const interaction = new Plottable.Interactions.Click();
-    interaction.onClick((p) => {
-      const entities = plot.entitiesAt(p);
-      if (entities.length === 1) {
-        this.props.onSelectYear((entities[0].datum.x as Date).getFullYear().toString());
-      } 
-    });
-    interaction.attachTo(plot);
+    registerClickHandler(plot, entity => this.props.onSelectYear((entity.datum.x as Date).getFullYear().toString()));
     return plot;
   }
 
