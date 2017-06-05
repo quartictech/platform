@@ -53,8 +53,8 @@ class HighestConcentration2016 extends React.Component<{}, {}> {
         <td><Link to={`/assets/${encodeURIComponent(entry.rsl)}`}><b>{entry.rsl}</b></Link></td>
         <td>{toTitleCase(entry.name)}</td>
         <td>{toTitleCase(entry.description)}</td>
-        <td>{numeral(entry.concentration).format("0.00")}</td>
-        <td>{entry.length ? numeral(entry.length).format("0.00") : null}</td>
+        <td>{numeral(entry.concentration).format("0.0")}</td>
+        <td>{entry.length ? numeral(entry.length).format("0") : null}</td>
       </tr>
     );
   }

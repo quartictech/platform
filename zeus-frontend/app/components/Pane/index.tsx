@@ -11,6 +11,7 @@ interface PaneProps {
   extraHeaderContent?: JSX.Element;
   onClose?: () => void;
   children?: any;
+  style?: React.CSSProperties;
 }
 
 export default class Pane extends React.Component<PaneProps, {}> {
@@ -18,7 +19,7 @@ export default class Pane extends React.Component<PaneProps, {}> {
     return (
       <div
         className={classNames(Classes.CARD, Classes.ELEVATION_3, styles.pane)}
-        style={{ overflow: "auto", display: "flex", flexDirection: "column" }}
+        style={{ ...this.props.style, overflow: "auto", display: "flex", flexDirection: "column" }}
       >
         {this.maybeHeader()}
         

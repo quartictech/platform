@@ -49,8 +49,8 @@ const standardProviders: { [id: string] : SearchProvider } = {
     assets,
     (id: string, item: Asset) => ({
       key: id,
-      name: toTitleCase(item["Road Name"] || ""),
-      description: item["RSL"],
+      name: item["RSL"],
+      description: toTitleCase(item["Road Name"] || ""),
       extra: toTitleCase(item["Section Description"] || ""),
       iconName: "drive-time", // A car :)
       href: `/assets/${encodeURIComponent(id)}`,
