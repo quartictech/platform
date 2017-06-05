@@ -28,8 +28,10 @@ dependencies {
 
     testCompile project(":common-test")
     testCompile libraries.testCommon
+    testCompile libraries.wiremock
     testCompile libraries.tyrus.server
     testCompile libraries.tyrus.containerServer
+    testCompile "io.dropwizard:dropwizard-core:${versions.dropwizard}"  // For correct JAX-RS headers
 }
 
 

@@ -34,7 +34,7 @@ export function fetchDatasets() {
 const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
 
 export function uploadFile(namespace: string, files: any[]) {
-  return fetchUtil(`${apiRootUrl}/file/${namespace}`, {
+  return fetchUtil(`${apiRootUrl}/file/${encodeURIComponent(namespace)}`, {
     headers: {
       "Content-Type": validContentType(files[0].type),
     },
@@ -45,7 +45,7 @@ export function uploadFile(namespace: string, files: any[]) {
 
 // TODO: wire through namespace
 export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string, fileType: string) {
-  return fetchUtil(`${apiRootUrl}/datasets/${namespace}`, {
+  return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(namespace)}`, {
     headers: {
       "Content-Type": "application/json"
     },
@@ -61,7 +61,7 @@ export function createDataset(namespace: string, metadata: IDatasetMetadata, fil
 
 // TODO: wire through namespace
 export function deleteDataset(coords: IDatasetCoords) {
-  return fetchUtil(`${apiRootUrl}/datasets/${coords.namespace}/${coords.id}`, {
+  return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(coords.namespace)}/${encodeURIComponent(coords.id)}`, {
     method: "DELETE",
   });
 }

@@ -1,4 +1,4 @@
-package io.quartic.mgmt.auth
+package io.quartic.common.auth
 
 import java.security.Principal
 

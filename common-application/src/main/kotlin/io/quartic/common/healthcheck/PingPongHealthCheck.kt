@@ -6,11 +6,7 @@ import io.quartic.common.client.client
 import io.quartic.common.pingpong.PingPongService
 
 class PingPongHealthCheck(owner: Class<*>, url: String) : HealthCheck() {
-    private val pingPong: PingPongService
-
-    init {
-        this.pingPong = client(owner, url)
-    }
+    private val pingPong: PingPongService = client(owner, url)
 
     override fun check(): Result = healthy(pingPong.ping().version)
 }
