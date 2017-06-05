@@ -133,7 +133,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
         />
         <NormalPicker
           iconName="timeline-line-chart"
-          position={Position.TOP}
+          position={Position.TOP_RIGHT}
           selected={this.state.seriesSelection}
           entries={charts}
           onChange={id => this.setState({ seriesSelection: id })}
