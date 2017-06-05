@@ -41,7 +41,6 @@ class RealTimeChart extends React.Component<IProps, IState> {
   private eventsDatasets: { [id: string]: Plottable.Dataset};
   private plots: Plottable.Plot[];
   private chart: Plottable.Component;
-  private pzi: Plottable.Interactions.PanZoom;
   private group: Plottable.Components.Group;
   private xScale: Plottable.Scales.Time;
   private yAxisLabel: Plottable.Components.AxisLabel;
@@ -84,7 +83,6 @@ class RealTimeChart extends React.Component<IProps, IState> {
     let plots: Plottable.Plot[] = timeSeriesPlots;
     plots = plots.concat(timeSeriesScatterPlots);
     plots.forEach(p => {
-      this.pzi.attachTo(p);
       this.group.append(p);
     });
 
@@ -116,9 +114,6 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     let plots: Plottable.Component[] = [gridLines, eventsPlot];
     this.group = new Plottable.Components.Group(plots);
-    this.pzi = new Plottable.Interactions.PanZoom();
-    this.pzi.addXScale(this.xScale);
-    this.pzi.attachTo(eventsPlot);
     window.addEventListener("resize", function () {
       eventsPlot.redraw();
     });
