@@ -7,6 +7,7 @@ import {
 import * as _ from "underscore";
 import * as numeral from "numeraljs";
 import * as classNames from "classnames";
+import Pane from "../../components/Pane";
 import { Asset } from "../../models";
 import { toTitleCase } from "../../helpers/Utils";
 const s = require("./style.css");
@@ -16,25 +17,23 @@ interface AttributesProps {
 }
 
 const Attributes: React.SFC<AttributesProps> = (props) => (
-  <div>
-    <div className={classNames(Classes.CALLOUT)} style={{ margin: "10px" }}>
+  <Pane style={{ backgroundColor: "rgba(138, 155, 168, 0.15)" }}>
+    <div style={{ height: "300px", padding: "10px" }}>
       <h1>{props.asset.RSL}</h1>
-      <table className={classNames(Classes.TABLE, Classes.TABLE_CONDENSED)} style={{ width: "100%"}}>
+      <table className={classNames(Classes.TABLE)} style={{ width: "100%"}}>
         <tbody>
           {
             _.map({
               "Road name": toTitleCase(props.asset["Road Name"]),
               "Section description": toTitleCase(props.asset["Section Description"]),
-              "Link place": `${props.asset["Link"]} ${props.asset["Place"]}`,
-              "Length (m)": numeral(props.asset["Length"]).format("0.00"),
-              "Speed limit (mph)": props.asset["Speed Limit"],
+              "Length (m)": numeral(props.asset["Length"]).format("0"),
             }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
           }
           {_.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.00"), v[1]))}
         </tbody>
       </table>
     </div>
-  </div>
+  </Pane>
 );
 
 function renderStat(key, value, quartile) {

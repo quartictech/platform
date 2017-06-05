@@ -122,8 +122,8 @@ class HighestLowest2016 extends React.Component<{}, {}> {
         <td>{toTitleCase(entry.name)}</td>
         
         <td>{toTitleCase(entry.description)}</td>
-        <td>{numeral(entry.score).format("0.00")}</td>
-        <td>{entry.length ? numeral(entry.length).format("0.00") : null}</td>
+        <td>{numeral(entry.score).format("0.0")}</td>
+        <td>{entry.length ? numeral(entry.length).format("0") : null}</td>
       </tr>
     );
   }

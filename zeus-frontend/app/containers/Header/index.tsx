@@ -49,7 +49,7 @@ class Header extends React.Component<Props, void> {
 
   render() {
     return (
-      <nav className={classNames(Classes.NAVBAR, Classes.DARK)}>
+      <nav className={classNames(Classes.NAVBAR, Classes.FIXED_TOP, Classes.DARK)}>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_LEFT)}>
           <Link to="/" style={{ height: "100%", display: "inline-block" }}>
