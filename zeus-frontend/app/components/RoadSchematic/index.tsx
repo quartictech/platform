@@ -77,15 +77,15 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     return (
         <div style={{padding: "10px", width: "99%"}}>
           <div style={{ width: "100%", height: 250, overflow: "hidden" }} ref="svg" />
-          <span
-            style={{ visibility: this.state.hoveredEntity ? "visible" : "hidden" }}
-            className={classNames(Classes.CALLOUT, Classes.TEXT_MUTED)}
+          <div
+            style={{ visibility: this.state.hoveredEntity ? "visible" : "hidden", display: "inline-block" }}
+            className={classNames(Classes.CALLOUT, Classes.INTENT_PRIMARY)}
           >
             {this.state.hoveredEntity
               ? BlueprintUtils.safeInvoke(this.props.hoverText, this.state.hoveredEntity.datum)
-              : ""
+              : "&nbsp;"
             }
-          </span>
+          </div>
         </div>
     );
   }

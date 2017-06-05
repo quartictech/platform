@@ -41,7 +41,7 @@ class Schematic extends React.Component<SchematicProps, State> {
               <RoadSchematic
                 sections={sections}
                 filterPredicate={s => s.year === this.state.yearSelection}
-                hoverText={s => <span><b>Defect score:</b> {numeral(s.value).format("0.0")}</span>}
+                hoverText={s => this.defectsCallout(s.raw)}
               />
             )
             : (
@@ -53,6 +53,21 @@ class Schematic extends React.Component<SchematicProps, State> {
           }
         </Pane>
       </div>
+    );
+  }
+
+  private defectsCallout(defects: any) {
+    if (_.size(defects) === 0) {
+      return <span>No defects</span>;
+    }
+    return (
+      <span>
+        {_.map(defects, (v, k: string) => (
+          <span style={{ paddingRight: "10px" }}>
+            <b>{_.last(k.split("-"))}:</b>&nbsp;{v}
+          </span>
+        ))}
+      </span>
     );
   }
 
@@ -80,6 +95,7 @@ class Schematic extends React.Component<SchematicProps, State> {
         value: this.getDefectScore(s),
         lane: s["xsect"],
         year: moment(s["start_date"]).year().toString(),  // Extra information used by filterPredicate
+        raw: s["defects"],
       }))
       .value();
   }
