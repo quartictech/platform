@@ -5,12 +5,10 @@ import {
 import * as Plottable from "plottable";
 import * as _ from "underscore";
 import * as classNames from "classnames";
-
-const s = require("./style.css");
-
-import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
-
 import SizeMe from "react-sizeme";
+import { registerPointerHandler, registerClickHandler } from "../../helpers/plottable";
+import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
+const s = require("./style.css");
 
 interface IProps {
   events: MaintenanceEvent[];
@@ -22,8 +20,6 @@ interface IProps {
 
 interface IState {
   tooltip: {
-    x: number;
-    y: number;
     value: string;
   };
   hoveredEntity: Plottable.Plots.IPlotEntity;
@@ -108,10 +104,10 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     const eventsPlot = new Plottable.Plots.Segment()
        .attr("stroke", function(_d, _i, dataset) { return dataset.metadata(); }, colorScale)
-       .x(function(d: MaintenanceEvent) { return d.timestamp; }, this.xScale)
-       .y(function(_) { return 0; }, yScale)
+       .x((d: MaintenanceEvent) => d.timestamp, this.xScale)
+       .y(_ => 0, yScale)
        .x2((d: MaintenanceEvent) => d.timestamp)
-       .y2( _ => 1)
+       .y2(_ => 1)
        .datasets(_.values(this.eventsDatasets));
 
     let plots: Plottable.Component[] = [gridLines, eventsPlot];
@@ -128,33 +124,16 @@ class RealTimeChart extends React.Component<IProps, IState> {
   }
 
   private configureClicking(plot: Plottable.Plot) {
-    const interaction = new Plottable.Interactions.Click();
-    interaction.onClick((p) => {
-      const selection = plot.entitiesAt(p);
-      if (selection.length === 1) {
-        this.props.onSelectYear((selection[0].datum.x as Date).getFullYear().toString());
-      } 
-    });
-    interaction.attachTo(plot);
+    registerClickHandler(plot, entity => this.props.onSelectYear((entity.datum.x as Date).getFullYear().toString()));
     return plot;
   }
 
   private configureTooltip(plot: Plottable.Plot) {
-    const pointer = new Plottable.Interactions.Pointer();
-    pointer.onPointerMove(p => {
-      const closest = plot.entityNearest(p);
-      if (closest) {
-        this.setState({
-          tooltip: {
-            x: closest.position.x,
-            y: closest.position.y,
-            value: closest.datum.detail,
-          },
-        });
-      }
-    });
-    pointer.onPointerExit(() => this.setState({ tooltip: null }));
-    pointer.attachTo(plot);
+    registerPointerHandler(
+      plot,
+      entity => this.setState({ tooltip: entity ? { value: entity.datum.detail } : null }),
+      (point, entity) => Math.abs(point.x - entity.position.x) < 5, // Because Segment plot uses entityNearest
+    );
   }
 
   render() {
