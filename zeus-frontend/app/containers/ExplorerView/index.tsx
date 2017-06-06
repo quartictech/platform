@@ -2,8 +2,10 @@ import * as React from "react";
 const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
 import { connect } from "react-redux";
 import {
+  AnchorButton,
   Classes,
   InputGroup,
+  Intent,
   NonIdealState,
   Spinner,
 } from "@blueprintjs/core";
@@ -25,6 +27,7 @@ import {
 import {
   datasetContent,
   datasetInfo,
+  downloadLinkFor,
 } from "../../api";
 import {
   Dataset,
@@ -118,29 +121,40 @@ class ExplorerView extends React.Component<Props, State> {
   private renderData() {
     return (
       <DocumentTitle title={`Quartic - ${this.maybePrettyName()}`}>
-        <Pane
-          title={this.maybePrettyName()}
-          iconName="database"
-          extraHeaderContent={this.renderControls()}
-        >
-          <div style={{ height: "600px" }}>
-            <Table
-              isRowResizable={true}
-              numRows={this.state.filteredItems.length}
-              selectionModes={SelectionModes.ROWS_AND_CELLS}
-              onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
-              selectedRegionTransform={cellToRow}
-            >
-              {
-                this.columns().map(col => <Column
-                  key={col}
-                  name={col}
-                  renderCell={(row: number) => <Cell>{stringify(_.values(this.state.filteredItems)[row][col])}</Cell>}
-                />)
-              }
-            </Table>
+        <div>
+          <Pane
+            title={this.maybePrettyName()}
+            iconName="database"
+            extraHeaderContent={this.renderControls()}
+          >
+            <div style={{ height: "600px" }}>
+              <Table
+                isRowResizable={true}
+                numRows={this.state.filteredItems.length}
+                selectionModes={SelectionModes.ROWS_AND_CELLS}
+                onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
+                selectedRegionTransform={cellToRow}
+              >
+                {
+                  this.columns().map(col => <Column
+                    key={col}
+                    name={col}
+                    renderCell={(row: number) => <Cell>{stringify(_.values(this.state.filteredItems)[row][col])}</Cell>}
+                  />)
+                }
+              </Table>
+            </div>
+          </Pane>
+
+          <div style={{ float: "right", margin: "10px" }}>
+            <AnchorButton
+              href={downloadLinkFor(this.props.params.datasetName)}
+              intent={Intent.PRIMARY}
+              iconName="download"
+              text={`Download all ${this.maybePrettyName()} as CSV`}
+            />
           </div>
-        </Pane>
+        </div>
       </DocumentTitle>
     );
   }
