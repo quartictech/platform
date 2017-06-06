@@ -1,5 +1,6 @@
 package io.quartic.zeus.resource
 
+import io.quartic.zeus.csv.CsvGenerator
 import io.quartic.zeus.model.Dataset
 import io.quartic.zeus.model.DatasetInfo
 import io.quartic.zeus.model.DatasetName
@@ -14,6 +15,13 @@ class DatasetResource(private val providers: Map<DatasetName, DataProvider>) {
     @get:GET
     @get:Produces(MediaType.APPLICATION_JSON)
     val datasets = providers.mapValues { e -> DatasetInfo(e.value.prettyName) }
+
+    // TODO: merge into /{dataset-name}?type=csv
+    @GET
+    @Path("/csv/{dataset-name}")
+    @Produces("text/csv")
+    fun getAllItemsInDatasetAsCsv(@PathParam("dataset-name") name: DatasetName)
+            = CsvGenerator().generateFor(getAllItemsInDataset(name).content.values)
 
     // TODO: should potentially do the filtering via a lazy sequence to avoid memory footprint
     @GET

@@ -16,6 +16,7 @@ dependencies {
     }
     compile "io.quartic.platform:common-application:${versions.platform}"
     compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:${versions.jackson}"
 
     testCompile libraries.testCommon
     testCompile libraries.wiremock
