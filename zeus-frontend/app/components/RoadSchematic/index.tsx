@@ -7,6 +7,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import * as _ from "underscore";
+import { registerPointerHandler } from "../../helpers/plottable";
 
 // See http://www.ukpms.com/owner_forum/shared_files/UKPMS_Manual_02_Chapter4_XSP_v04.pdf
 // We specify right-to-left, so that right-most roads get lower y values, thus appearing at the bottom.
@@ -145,7 +146,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       .attr("fill", "black")
       .attr("fill-opacity", 0);
 
-    this.configureInteraction(plot, plotHighlighter);
+    this.configureInteraction(plotHighlighter);
 
     const xAxis = new Plottable.Axes.Numeric(xScale, "bottom");
     const yAxis = new Plottable.Axes.Numeric(yScale, "left");
@@ -173,29 +174,19 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     };
   }
 
-  private configureInteraction(plot: Plottable.Plot, plotHighlighter: Plottable.Plot) {
-    const set = (entity: Plottable.Plots.IPlotEntity) => {
-      entity.selection.attr("fill-opacity", 0.5);
-      this.setState({ hoveredEntity: entity });
-    };
-
-    const clear = () => {
-      if (this.state.hoveredEntity) {
-        this.state.hoveredEntity.selection.attr("fill-opacity", 0);
-        this.setState({ hoveredEntity: null });
-      }
-    };
-
-    const interaction = new Plottable.Interactions.Pointer();
-    interaction.onPointerMove((p) => {
-      clear();
-      const selected = plotHighlighter.entitiesAt(p);
-      if (selected.length === 1) {
-        set(selected[0]);
-      }
-    });
-    interaction.onPointerExit(clear);
-    interaction.attachTo(plot);
+  private configureInteraction(plotHighlighter: Plottable.Plot) {
+    registerPointerHandler(
+      plotHighlighter,
+      entity => {
+        if (this.state.hoveredEntity) {
+          this.state.hoveredEntity.selection.attr("fill-opacity", 0);
+        }
+        if (entity) {
+          entity.selection.attr("fill-opacity", 0.5);
+        }
+        this.setState({ hoveredEntity: entity });
+      },
+    );
   }
   
   private getXspNameFromYPosition(y: number) {
