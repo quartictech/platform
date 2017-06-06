@@ -28,7 +28,7 @@ import * as selectors from "../../redux/selectors";
 import { Asset } from "../../models";
 const s = require("./style.css");
 
-interface IProps {
+interface Props {
   params: {
     assetId: string;
   };
@@ -37,16 +37,23 @@ interface IProps {
   assetRequired: (string) => void;
 }
 
-class AssetView extends React.Component<IProps, {}> {
-  constructor() {
-    super();
+interface State {
+  yearSelection: string;
+}
+
+class AssetView extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      yearSelection: "2016",
+    };
   }
 
   public componentWillMount() {
     this.onNewAsset(this.props.params.assetId);
   }
 
-  public componentWillReceiveProps(nextProps: IProps) {
+  public componentWillReceiveProps(nextProps: Props) {
     if (this.props.params.assetId !== nextProps.params.assetId) {
       this.onNewAsset(nextProps.params.assetId);
     }
@@ -54,7 +61,6 @@ class AssetView extends React.Component<IProps, {}> {
 
   private onNewAsset(assetId: string) {
     this.props.assetRequired(assetId);
-    this.setState({ defectChartSelection: null });
   }
 
   private renderData() {
@@ -71,8 +77,15 @@ class AssetView extends React.Component<IProps, {}> {
                 <PreviewMap asset={asset.data} />
               </div>
             </div>
-            <DefectsChart asset={asset.data} />
-            <Schematic asset={asset.data} />
+            <DefectsChart
+              asset={asset.data}
+              onSelectYear={year => this.setState({ yearSelection: year })}
+            />
+            <Schematic
+              asset={asset.data}
+              yearSelection={this.state.yearSelection}
+              onSelectYear={year => this.setState({ yearSelection: year })}
+            />
             <EventsTable asset={asset.data} />
           </div>
         );

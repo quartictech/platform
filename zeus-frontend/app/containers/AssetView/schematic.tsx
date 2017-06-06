@@ -14,18 +14,13 @@ import { Asset } from "../../models";
 
 interface SchematicProps {
   asset: Asset;
-}
-
-interface State {
   yearSelection: string;
+  onSelectYear: (year: string) => void;
 }
 
-class Schematic extends React.Component<SchematicProps, State> {
+class Schematic extends React.Component<SchematicProps, {}> {
   constructor(props: SchematicProps) {
     super(props);
-    this.state = {
-      yearSelection: "2016",
-    };
   }
 
   render() {
@@ -40,7 +35,7 @@ class Schematic extends React.Component<SchematicProps, State> {
             ? (
               <RoadSchematic
                 sections={sections}
-                filterPredicate={s => s.year === this.state.yearSelection}
+                filterPredicate={s => s.year === this.props.yearSelection}
                 hoverText={s => this.defectsCallout(s.raw)}
               />
             )
@@ -76,8 +71,8 @@ class Schematic extends React.Component<SchematicProps, State> {
     return (
       <Tabs2
         id="year-picker"
-        onChange={id => this.setState({ yearSelection: id.toString() })}
-        selectedTabId={this.state.yearSelection}
+        onChange={id => this.props.onSelectYear(id.toString())}
+        selectedTabId={this.props.yearSelection}
       >
         <Tab2 id="2013" title="2013" />
         <Tab2 id="2014" title="2014" />

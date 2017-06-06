@@ -14,9 +14,10 @@ import SizeMe from "react-sizeme";
 
 interface IProps {
   events: MaintenanceEvent[];
-  timeSeries: { [id: string]: TimeSeriesPoint[]};
+  timeSeries: { [id: string]: TimeSeriesPoint[] };
   colors: { [id: string]: string};
   yLabel: string;
+  onSelectYear: (year: string) => void;
 }
 
 interface IState {
@@ -25,6 +26,7 @@ interface IState {
     y: number;
     value: string;
   };
+  hoveredEntity: Plottable.Plots.IPlotEntity;
 }
 
 const EVENT_TYPES = ["maintenance", "failure", "other"];
@@ -40,8 +42,8 @@ function setEq(a: any[], b: any[]) {
 
 
 class RealTimeChart extends React.Component<IProps, IState> {
-  private timeSeriesDatasets: { [id: string]: Plottable.Dataset};
-  private eventsDatasets: { [id: string]: Plottable.Dataset};
+  private timeSeriesDatasets: { [id: string]: Plottable.Dataset };
+  private eventsDatasets: { [id: string]: Plottable.Dataset };
   private plots: Plottable.Plot[];
   private chart: Plottable.Component;
   private group: Plottable.Components.Group;
@@ -60,39 +62,36 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     this.state = {
       tooltip: null,
+      hoveredEntity: null,
     };
   }
 
-  updateChart(timeSeries) {
+  private updateChart(timeSeries: { [id: string]: TimeSeriesPoint[] }) {
     _.each(this.plots, p => this.group.remove(p));
 
-    this.timeSeriesDatasets = Object.keys(timeSeries).reduce((obj, k) =>
-      Object.assign(obj, {[k]: new Plottable.Dataset()}), {});
+    this.timeSeriesDatasets = _.mapObject(timeSeries, () => new Plottable.Dataset());
 
-    const timeSeriesPlots = Object.keys(timeSeries)
-      .map(k => new Plottable.Plots.Line()
-        .attr("stroke", _ => this.props.colors[k])
-        .x(d => d.x, this.xScale)
-        .y(d => d.y, this.yScaleTimeSeries)
-        .addDataset(this.timeSeriesDatasets[k]));
+    const configurePlot = (plot, key, dataset) => plot
+      .attr("stroke", _ => this.props.colors[key])
+      .attr("fill", _ => this.props.colors[key])
+      .x(d => d.x, this.xScale)
+      .y(d => d.y, this.yScaleTimeSeries)
+      .addDataset(dataset);
 
-    const timeSeriesScatterPlots = Object.keys(timeSeries)
-      .map(k => new Plottable.Plots.Scatter()
-        .attr("stroke", _ => this.props.colors[k])
-        .x(d => d.x, this.xScale)
-        .y(d => d.y, this.yScaleTimeSeries)
-        .addDataset(this.timeSeriesDatasets[k]));
+    this.plots = _.chain(this.timeSeriesDatasets)
+      .map((dataset, k) => [
+        configurePlot(new Plottable.Plots.Line(), k, dataset),
+        this.configureClicking(configurePlot(new Plottable.Plots.Scatter().size(10), k, dataset)),
+      ])
+      .flatten()
+      .value();
 
-    let plots: Plottable.Plot[] = timeSeriesPlots;
-    plots = plots.concat(timeSeriesScatterPlots);
-    plots.forEach(p => {
+    this.plots.forEach(p => {
       this.group.append(p);
     });
-
-    this.plots = plots;
   }
 
-  createChart() {
+  private createChart() {
     this.xScale = new Plottable.Scales.Time();
     const yScale = new Plottable.Scales.Linear();
     yScale.range([0, 1]);
@@ -117,13 +116,33 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     let plots: Plottable.Component[] = [gridLines, eventsPlot];
     this.group = new Plottable.Components.Group(plots);
+    this.configureTooltip(eventsPlot);
     window.addEventListener("resize", function () {
       eventsPlot.redraw();
     });
 
+    this.chart = new Plottable.Components.Table([
+      [this.yAxisLabel, yAxis, this.group],
+      [null, null, xAxis],
+    ]);
+  }
+
+  private configureClicking(plot: Plottable.Plot) {
+    const interaction = new Plottable.Interactions.Click();
+    interaction.onClick((p) => {
+      const selection = plot.entitiesAt(p);
+      if (selection.length === 1) {
+        this.props.onSelectYear((selection[0].datum.x as Date).getFullYear().toString());
+      } 
+    });
+    interaction.attachTo(plot);
+    return plot;
+  }
+
+  private configureTooltip(plot: Plottable.Plot) {
     const pointer = new Plottable.Interactions.Pointer();
     pointer.onPointerMove(p => {
-      const closest = eventsPlot.entityNearest(p);
+      const closest = plot.entityNearest(p);
       if (closest) {
         this.setState({
           tooltip: {
@@ -135,19 +154,10 @@ class RealTimeChart extends React.Component<IProps, IState> {
       }
     });
     pointer.onPointerExit(() => this.setState({ tooltip: null }));
-
-    pointer.attachTo(eventsPlot);
-
-    this.chart = new Plottable.Components.Table([
-      [this.yAxisLabel, yAxis, this.group],
-      [null, null, xAxis],
-    ]);
+    pointer.attachTo(plot);
   }
 
   render() {
-    if (this.chart) {
-      this.chart.redraw();
-    }
     // overflow:hidden required due to https://github.com/palantir/plottable/issues/3298
     return (
       <div style={{padding: "10px", width: "99%"}}>
@@ -167,10 +177,12 @@ class RealTimeChart extends React.Component<IProps, IState> {
   }
 
   componentWillUpdate(nextProps: IProps) {
+    // Only change the datasets that exist if the timeseries keys change
     if (!setEq(Object.keys(nextProps.timeSeries), Object.keys(this.timeSeriesDatasets))) {
       this.updateChart(nextProps.timeSeries);
     }
 
+    // Always update dataset data
     Object.keys(nextProps.timeSeries).forEach(k =>
       this.timeSeriesDatasets[k].data(nextProps.timeSeries[k]));
 
@@ -180,6 +192,8 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     EVENT_TYPES.forEach(k =>
       this.eventsDatasets[k].data(nextProps.events.filter(e => e.type === k)).metadata(k));
+
+    this.chart.redraw();
   }
 }
 
