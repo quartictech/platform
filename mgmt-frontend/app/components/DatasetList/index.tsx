@@ -1,5 +1,7 @@
 import * as React from "react";
+import { Classes } from "@blueprintjs/core";
 import { IDataset, IDatasetCoords, DatasetMap } from "../../models";
+import * as classNames from "classnames";
 import _ = require("underscore");
 
 
@@ -27,28 +29,31 @@ interface IDatasetRowProps {
 
 const DatasetRow = (props: IDatasetRowProps) => (
   <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
-    <td>{props.namespace}</td>
-    <td>{props.id}</td>
-    <td>{props.dataset.locator.type}</td>
-    <td>{props.dataset.metadata.name}</td>
-    <td>{props.dataset.metadata.description}</td>
+    <td style={{ wordWrap: "break-word" }}>{props.namespace}</td>
+    <td style={{ wordWrap: "break-word" }}>{props.id}</td>
+    <td style={{ wordWrap: "break-word" }}>{props.dataset.locator.type}</td>
+    <td style={{ wordWrap: "break-word" }}>{props.dataset.metadata.name}</td>
+    <td style={{ wordWrap: "break-word" }}>{props.dataset.metadata.description}</td>
   </tr>
 );
 
 export class DatasetList extends React.Component<IDatasetListProps, void> {
   render() {
     return (
-      <div className="pt-card pt-elevation-4">
+      <div className={classNames(Classes.CARD, Classes.ELEVATION_4)}>
         <h3>Datasets</h3>
 
-        <table className="pt-table pt-interactive pt-striped pt-condensed" style={{ width: "100%" }}>
+        <table
+          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+          style={{ width: "100%", tableLayout: "fixed" }}
+        >
           <thead>
             <tr>
-            <th>Namespace</th>
-            <th>Id</th>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Description</th>
+            <th width="10%">Namespace</th>
+            <th width="20%">Id</th>
+            <th width="10%">Type</th>
+            <th width="30%">Name</th>
+            <th width="30%">Description</th>
             </tr>
           </thead>
           <tbody>
