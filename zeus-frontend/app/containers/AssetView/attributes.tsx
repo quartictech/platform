@@ -24,13 +24,13 @@ const Attributes: React.SFC<AttributesProps> = (props) => (
   <Pane style={{ backgroundColor: "rgba(138, 155, 168, 0.15)" }}>
     <div style={{ height: "340px", padding: "10px" }}>
       <h1>{props.asset.RSL}</h1>
+      <h2>{toTitleCase(props.asset["Road Name"])}</h2>
+      <h5>({toTitleCase(props.asset["Section Description"])})</h5>
       <table className={classNames(Classes.TABLE)} style={{ width: "100%"}}>
         <tbody>
           {
             _.map({
-              "Road name": toTitleCase(props.asset["Road Name"]),
-              "Section description": toTitleCase(props.asset["Section Description"]),
-              "Length (m)": numeral(props.asset["Length"]).format("0"),
+              "Length": `${numeral(props.asset["Length"]).format("0")} m`,
               "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
             }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
           }
