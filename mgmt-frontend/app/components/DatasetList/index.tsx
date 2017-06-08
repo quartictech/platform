@@ -1,5 +1,7 @@
 import * as React from "react";
+import { Classes } from "@blueprintjs/core";
 import { IDataset, IDatasetCoords, DatasetMap } from "../../models";
+import * as classNames from "classnames";
 import _ = require("underscore");
 
 
@@ -38,10 +40,13 @@ const DatasetRow = (props: IDatasetRowProps) => (
 export class DatasetList extends React.Component<IDatasetListProps, void> {
   render() {
     return (
-      <div className="pt-card pt-elevation-4">
+      <div className={classNames(Classes.CARD, Classes.ELEVATION_4)}>
         <h3>Datasets</h3>
 
-        <table className="pt-table pt-interactive pt-striped pt-condensed" style={{ width: "100%", tableLayout: "fixed" }}>
+        <table
+          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+          style={{ width: "100%", tableLayout: "fixed" }}
+        >
           <thead>
             <tr>
             <th width="10%">Namespace</th>
