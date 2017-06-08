@@ -16,9 +16,10 @@ interface AttributesProps {
   asset: Asset;
 }
 
+// Add an extra 40px because no title
 const Attributes: React.SFC<AttributesProps> = (props) => (
   <Pane style={{ backgroundColor: "rgba(138, 155, 168, 0.15)" }}>
-    <div style={{ height: "300px", padding: "10px" }}>
+    <div style={{ height: "340px", padding: "10px" }}>
       <h1>{props.asset.RSL}</h1>
       <table className={classNames(Classes.TABLE)} style={{ width: "100%"}}>
         <tbody>
@@ -29,7 +30,7 @@ const Attributes: React.SFC<AttributesProps> = (props) => (
               "Length (m)": numeral(props.asset["Length"]).format("0"),
             }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
           }
-          {_.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.00"), v[1]))}
+          {_.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.0"), v[1]))}
         </tbody>
       </table>
     </div>
