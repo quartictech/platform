@@ -21,15 +21,11 @@
 }
 
 .splitLeft {
-  flex: 0.3;
-}
-
-.splitMiddle {
-  flex: 0.3;
+  flex: 0.5;
 }
 
 .splitRight {
-  flex: 0.4;
+  flex: 0.5;
 }
 
 .attribute-name {

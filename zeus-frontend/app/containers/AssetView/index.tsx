@@ -3,7 +3,6 @@ const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't w
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import Attributes from "./attributes";
-import TreatmentSchedule from "./treatmentSchedule";
 import PreviewMap from "./previewMap";
 import DefectsChart from "./defectsChart";
 import Schematic from "./schematic";
@@ -73,9 +72,6 @@ class AssetView extends React.Component<Props, State> {
             <div className={s.splitRow}>
               <div className={s.splitLeft}>
                 <Attributes asset={asset.data} />
-              </div>
-              <div className={s.splitMiddle}>
-                <TreatmentSchedule asset={asset.data} />
               </div>
               <div className={s.splitRight}>
                 <PreviewMap asset={asset.data} />
