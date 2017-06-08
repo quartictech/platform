@@ -55,6 +55,8 @@ export const datasetContent = <ManagedResource<Dataset<any>>>{
   endpoint: (dataset: DatasetName) => fetchUtil(`/datasets/${encodeURIComponent(dataset)}`),
 };
 
+export const downloadLinkFor = (dataset: DatasetName) => `${apiRootUrl}/datasets/csv/${encodeURIComponent(dataset)}`;
+
 export const managedResources: ManagedResource<any>[] = [
   sessionInfo,
   jobs,

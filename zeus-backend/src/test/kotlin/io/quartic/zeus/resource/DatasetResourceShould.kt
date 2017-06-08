@@ -15,6 +15,8 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 import javax.ws.rs.NotFoundException
 
+
+
 class DatasetResourceShould {
 
     private val simpleData = mapOf(
@@ -105,6 +107,11 @@ class DatasetResourceShould {
         val resource = DatasetResource(mapOf(DatasetName("yeah") to providerOf("", emptyMap())))
 
         assertThat(resource.getAllItemsInDataset(DatasetName("yeah")).schema, equalTo(emptyList()))
+    }
+
+    @Test
+    fun get_all_items_as_csv() {
+        assertThat(resource.getAllItemsInDatasetAsCsv(DatasetName("yeah")), equalTo("a,c\nb,d\n"))
     }
 
     private fun providerOf(myPrettyName: String, myData: Map<ItemId, Map<String, Any>>) = mock<DataProvider> {
