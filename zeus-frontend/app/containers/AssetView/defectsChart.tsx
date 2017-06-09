@@ -5,6 +5,9 @@ import {
   Button,
   Classes,
 } from "@blueprintjs/core";
+
+import * as naturalsort from "javascript-natural-sort";
+
 import { TimeChart } from "../../components/TimeChart";
 import NormalPicker from "../../components/NormalPicker";
 import Pane from "../../components/Pane";
@@ -121,7 +124,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
   }
 
   private renderChartButtons(asset) {
-    const charts = Object.keys(asset._defect_time_series);
+    const charts = Object.keys(asset._defect_time_series).sort(naturalsort);
     return (
       <div>
         <Button

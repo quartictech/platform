@@ -9,6 +9,8 @@ import {
   Position,
 } from "@blueprintjs/core";
 
+const s = require("./style.css");
+
 interface NormalPickerProps {
   iconName?: string;
   position?: Position;
@@ -21,6 +23,7 @@ export default class NormalPicker extends React.Component<NormalPickerProps, {}>
   render() {
     return (
       <Popover
+        className={s.normalPicker}
         content={this.renderMenu()}
         position={this.props.position}
         popoverClassName={Classes.MINIMAL}
@@ -36,7 +39,7 @@ export default class NormalPicker extends React.Component<NormalPickerProps, {}>
 
   private renderMenu() {
     return (
-      <Menu>
+      <Menu className={s.normalPickerMenu}>
         {this.props.entries.map(entry =>
           <MenuItem
             key={entry}
