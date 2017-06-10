@@ -4,10 +4,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.catalogue.CatalogueEvent
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
-import io.quartic.catalogue.api.model.DatasetConfig
-import io.quartic.catalogue.api.model.DatasetId
-import io.quartic.catalogue.api.model.DatasetLocator
-import io.quartic.catalogue.api.model.DatasetMetadata
+import io.quartic.catalogue.api.model.*
 import io.quartic.common.test.rx.Interceptor
 import io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK
 import io.quartic.weyl.core.model.*
@@ -21,9 +18,7 @@ import rx.observers.TestSubscriber
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import java.time.Instant
-import java.util.*
 import java.util.Collections.emptyList
-import java.util.function.Function
 
 class SourceManagerShould {
 
@@ -35,19 +30,21 @@ class SourceManagerShould {
     private val layerUpdatesB = PublishSubject.create<LayerUpdate>()
     private val interceptor = Interceptor<LayerUpdate>()
 
-    private val sourceFactory = Function { config: DatasetConfig ->
+    private val sourceFactory = { config: DatasetConfig ->
         when (config.locator) {
-            is LocatorA -> Optional.of(sourceOf(layerUpdatesA.compose(interceptor), true))
-            is LocatorB -> Optional.of(sourceOf(layerUpdatesB, false))
-            else -> Optional.empty()
+            is LocatorA -> sourceOf(layerUpdatesA.compose(interceptor), true)
+            is LocatorB -> sourceOf(layerUpdatesB, false)
+            else -> null
         }
     }
 
     private val extensionCodec = mock<ExtensionCodec>()
+    private val datasetAllowed = mock<(DatasetCoordinates, DatasetConfig) -> Boolean>()
 
     private val manager = SourceManager(
             catalogueEvents,
             sourceFactory,
+            datasetAllowed,
             Schedulers.immediate(), // Force onto same thread for synchronous behaviour
             extensionCodec
     )
@@ -57,6 +54,7 @@ class SourceManagerShould {
 
     @Before
     fun before() {
+        whenever(datasetAllowed(any(), any())).thenReturn(true)
         whenever(extensionCodec.decode(any(), any())).thenReturn(extension())
         manager.layerPopulators
                 .doOnNext { populator ->
@@ -73,7 +71,7 @@ class SourceManagerShould {
     fun create_layer_on_create_event() {
         val layerUpdate = mock<LayerUpdate>()
 
-        catalogueEvents.onNext(event(CREATE, DatasetId("123"), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         layerUpdatesA.onNext(layerUpdate)
         layerUpdatesA.onCompleted()
         catalogueEvents.onCompleted()
@@ -95,9 +93,9 @@ class SourceManagerShould {
         val beforeDeletion = mock<LayerUpdate>()
         val afterDeletion = mock<LayerUpdate>()
 
-        catalogueEvents.onNext(event(CREATE, DatasetId("123"), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         layerUpdatesA.onNext(beforeDeletion)
-        catalogueEvents.onNext(event(DELETE, DatasetId("123"), "foo", LocatorA()))
+        catalogueEvents.onNext(event(DELETE, coords(DatasetId("123")), "foo", LocatorA()))
         layerUpdatesA.onNext(afterDeletion)
         layerUpdatesA.onCompleted()
         catalogueEvents.onCompleted()
@@ -107,16 +105,16 @@ class SourceManagerShould {
 
     @Test
     fun unsubscribe_from_upstream_source_on_delete_event() {
-        catalogueEvents.onNext(event(CREATE, DatasetId("123"), "foo", LocatorA()))
-        catalogueEvents.onNext(event(DELETE, DatasetId("123"), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(DELETE, coords(DatasetId("123")), "foo", LocatorA()))
 
         assertThat(interceptor.unsubscribed, equalTo(true))
     }
 
     @Test
     fun process_datasets_appearing_later() {
-        catalogueEvents.onNext(event(CREATE, DatasetId("123"), "foo", LocatorA()))
-        catalogueEvents.onNext(event(CREATE, DatasetId("456"), "foo", LocatorB()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("456")), "foo", LocatorB()))
         catalogueEvents.onCompleted()
 
         assertThat(collectedLayerPopulators().map { p -> p.spec(emptyList()).id },
@@ -125,7 +123,7 @@ class SourceManagerShould {
 
     @Test
     fun pass_config_fields_to_extension_parser() {
-        catalogueEvents.onNext(event(CREATE, DatasetId("123"), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         catalogueEvents.onCompleted()
 
         collectedLayerPopulators()
@@ -137,11 +135,25 @@ class SourceManagerShould {
     fun ignore_entries_without_parsable_extensions() {
         whenever(extensionCodec.decode(any(), any())).thenReturn(null)
 
-        catalogueEvents.onNext(event(CREATE, DatasetId("123"), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         catalogueEvents.onCompleted()
 
         assertThat(collectedLayerPopulators(), empty())
     }
+
+    @Test
+    fun ignore_disallowed_entries() {
+        whenever(datasetAllowed(eq(coords(DatasetId("456"))), any())).thenReturn(false)
+
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("456")), "foo", LocatorA()))
+        catalogueEvents.onCompleted()
+
+        assertThat(collectedLayerPopulators().map { p -> p.spec(emptyList()).id },
+                contains(layerIdFor("123")))
+    }
+
+    private fun coords(id: DatasetId) = DatasetCoordinates(NAMESPACE, id)
 
     private fun collectedUpdateSequenceFor(datasetId: String) = updateSubscribers[layerIdFor(datasetId)]!!.onNextEvents
 
@@ -150,9 +162,9 @@ class SourceManagerShould {
         return sub.onNextEvents
     }
 
-    private fun event(type: CatalogueEvent.Type, id: DatasetId, name: String, locator: DatasetLocator) = CatalogueEvent(
+    private fun event(type: CatalogueEvent.Type, coords: DatasetCoordinates, name: String, locator: DatasetLocator) = CatalogueEvent(
             type,
-            id,
+            coords,
             datasetConfig(name, locator)
     )
 
@@ -171,11 +183,12 @@ class SourceManagerShould {
         on { indexable() } doReturn(indexable)
     }
 
-    private fun layerIdFor(datasetId: String) = LayerId(datasetId)
+    private fun layerIdFor(datasetId: String) = LayerId("(${NAMESPACE.namespace},$datasetId)")
 
     companion object {
         private val TITLE_ATTRIBUTE = AttributeName("title_attr")
         private val IMAGE_ATTRIBUTE = AttributeName("image_attr")
         private val BLESSED_ATTRIBUTES = listOf(AttributeName("cool_attr"), AttributeName("slick_attr"))
+        private val NAMESPACE = DatasetNamespace("my-namespace")
     }
 }

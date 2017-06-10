@@ -12,7 +12,6 @@ import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
 import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.howl.api.HowlClient;
-import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
@@ -22,6 +21,7 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.source.DatasetAuthoriser;
 import io.quartic.weyl.core.source.SourceManager;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
@@ -44,7 +44,6 @@ import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -74,14 +73,15 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = new CatalogueWatcher(
-                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory),
-                configuration.getDefaultCatalogueNamespace()
+                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
         );
 
         WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);
+        final DatasetAuthoriser authoriser = new DatasetAuthoriser(configuration.getImportNamespaceRules());
         final SourceManager sourceManager = new SourceManager(
                 catalogueWatcher.getEvents(),
-                (config) -> Optional.ofNullable(sourceFactory.createSource(config)),
+                sourceFactory::createSource,
+                authoriser::isAllowed,
                 Schedulers.from(Executors.newScheduledThreadPool(2))
         );
 
@@ -102,7 +102,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportCatalogueNamespace()));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportNamespace()));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws",
                 createWebsocketEndpoint(snapshotSequences, alertResource, configuration.getMap())));

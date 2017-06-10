@@ -4,7 +4,7 @@ import io.quartic.catalogue.CatalogueEvent
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
 import io.quartic.catalogue.api.model.DatasetConfig
-import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.common.logging.logger
 import io.quartic.weyl.core.model.LayerId
@@ -16,12 +16,11 @@ import rx.Observable.empty
 import rx.Observable.just
 import rx.Scheduler
 import rx.observables.GroupedObservable
-import java.util.*
-import java.util.function.Function
 
 class SourceManager @JvmOverloads constructor(
         private val catalogueEvents: Observable<CatalogueEvent>,
-        private val sourceFactory: Function<DatasetConfig, Optional<Source>>,
+        private val sourceFactory: (DatasetConfig) -> Source?,
+        private val datasetAllowed: (DatasetCoordinates, DatasetConfig) -> Boolean,
         private val scheduler: Scheduler,
         private val extensionCodec: ExtensionCodec = ExtensionCodec()
 ) {
@@ -29,51 +28,57 @@ class SourceManager @JvmOverloads constructor(
 
     val layerPopulators by lazy {
         catalogueEvents
-                .groupBy { it.id }
-                .flatMap { this.processEventsForId(it) }
+                .filter { datasetAllowed(it.coords, it.config) }
+                .groupBy { it.coords }
+                .flatMap { this.processEventsForCoords(it) }
                 .share()
     }
 
-    private fun processEventsForId(group: GroupedObservable<DatasetId, CatalogueEvent>): Observable<LayerPopulator> {
+    private fun processEventsForCoords(group: GroupedObservable<DatasetCoordinates, CatalogueEvent>): Observable<LayerPopulator> {
         val events = group.cache()    // Because groupBy can only have one subscriber per group
         return events
                 .filter { it.type === CREATE }
                 .flatMap {
-                    createSource(it.id, it.config)
+                    createSource(it.coords, it.config)
                             .map { source -> createPopulator(
-                                    it.id,
+                                    it.coords,
                                     it.config,
                                     sourceUntil(source, deletionEventFrom(events))
                             )}
+                            .flatMap { s -> s }
                 }
     }
 
-    private fun createPopulator(id: DatasetId, config: DatasetConfig, source: Source): LayerPopulator {
+    private fun createPopulator(coords: DatasetCoordinates, config: DatasetConfig, source: Source): Observable<LayerPopulator> {
         val name = config.metadata.name
         val extension = extensionCodec.decode(name, config.extensions)
 
-        LOG.info("[$name] Created layer")
-        return LayerPopulator.withoutDependencies(
-                LayerSpec(
-                        LayerId(id.uid),
-                        datasetMetadataFrom(config.metadata),
-                        extension.viewType.layerView,
-                        extension.staticSchema,
-                        source.indexable()
-                ),
-                source.observable().subscribeOn(scheduler)     // TODO: the scheduler should be chosen by the specific source;
-        );
+        return if (extension == null) {
+            empty()
+        } else {
+            LOG.info("[$name] Created layer")
+            just(LayerPopulator.withoutDependencies(
+                    LayerSpec(
+                            LayerId(coords.toString()), // // TODO - deal with DatasetCoords properly
+                            datasetMetadataFrom(config.metadata),
+                            extension.viewType.layerView,
+                            extension.staticSchema,
+                            source.indexable()
+                    ),
+                    source.observable().subscribeOn(scheduler)     // TODO: the scheduler should be chosen by the specific source;
+            ))
+        }
     }
 
-    private fun createSource(id: DatasetId, config: DatasetConfig): Observable<Source> {
+    private fun createSource(coords: DatasetCoordinates, config: DatasetConfig): Observable<Source> {
         try {
-            val source = sourceFactory.apply(config)
-            if (source.isPresent) {
-                return just(source.get())
+            val source = sourceFactory(config)
+            if (source != null) {
+                return just(source)
             }
-            LOG.error("[$id] Unhandled config : ${config.locator}")
+            LOG.error("[$coords] Unhandled config : ${config.locator}")
         } catch (e: Exception) {
-            LOG.error("[$id] Error creating layer for dataset", e)
+            LOG.error("[$coords] Error creating layer for dataset", e)
         }
         return empty()
     }

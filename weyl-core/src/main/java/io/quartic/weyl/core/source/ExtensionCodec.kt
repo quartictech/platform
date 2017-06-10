@@ -25,7 +25,7 @@ class ExtensionCodec {
             val viewType: LayerViewType = LayerViewType.MOST_RECENT
     )
 
-    fun decode(name: String, extensions: Map<String, Any>): MapDatasetExtension {
+    fun decode(name: String, extensions: Map<String, Any>): MapDatasetExtension? {
         val extension = extensions[EXTENSION_KEY]
         if (extension != null) {
             try {
@@ -42,13 +42,11 @@ class ExtensionCodec {
                         raw.viewType
                 )
             } catch (e: IllegalArgumentException) {
-                LOG.warn("[$name] Unable to interpret extension, so using default", e)
+                LOG.warn("[$name] Unable to interpret extension", e)
+                return null
             }
-
-        } else {
-            LOG.info("[$name] No extension found, so using default")
         }
-        return DEFAULT_EXTENSION
+        return null
     }
 
     fun encode(extension: MapDatasetExtension): Map<String, Any> {
@@ -57,7 +55,6 @@ class ExtensionCodec {
 
     companion object {
         val EXTENSION_KEY = "map"
-        val DEFAULT_EXTENSION = MapDatasetExtension(StaticSchema())
     }
 
 }

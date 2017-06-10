@@ -7,6 +7,7 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
 import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.rx.all
@@ -20,9 +21,9 @@ import rx.Observable.just
 class CatalogueWatcherShould {
     private val listener = mock<WebsocketListener<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>>()
     private val listenerFactory = mock<WebsocketListener.Factory>()
-    private val namespace = mock<DatasetNamespace>()
+    private val ns = mock<DatasetNamespace>()
 
-    private val watcher = CatalogueWatcher(listenerFactory, namespace)
+    private val watcher = CatalogueWatcher(listenerFactory)
 
     @Before
     fun before() {
@@ -35,9 +36,9 @@ class CatalogueWatcherShould {
         val id = mock<DatasetId>()
         val config = mock<DatasetConfig>()
 
-        whenever(listener.observable).thenReturn(just(mapOf(namespace to mapOf(id to config))))
+        whenever(listener.observable).thenReturn(just(mapOf(ns to mapOf(id to config))))
 
-        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, id, config)))
+        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, coords(ns, id), config)))
     }
 
     @Test
@@ -46,13 +47,13 @@ class CatalogueWatcherShould {
         val config = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(namespace to mapOf(id to config)),
+                mapOf(ns to mapOf(id to config)),
                 emptyMap()   // Gone!
         ))
 
         assertThat(all(watcher.events), contains(
-                CatalogueEvent(CREATE, id, config),
-                CatalogueEvent(DELETE, id, config)
+                CatalogueEvent(CREATE, coords(ns, id), config),
+                CatalogueEvent(DELETE, coords(ns, id), config)
         ))
     }
 
@@ -62,11 +63,11 @@ class CatalogueWatcherShould {
         val config = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(namespace to mapOf(id to config)),
-                mapOf(namespace to mapOf(id to config))  // Again
+                mapOf(ns to mapOf(id to config)),
+                mapOf(ns to mapOf(id to config))  // Again
         ))
 
-        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, id, config)))
+        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, coords(ns, id), config)))
     }
 
     @Test
@@ -77,29 +78,16 @@ class CatalogueWatcherShould {
         val configB = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(namespace to mapOf(idA to configA)),
-                mapOf(namespace to mapOf(idA to configA, idB to configB)),
-                mapOf(namespace to mapOf(idB to configB))
+                mapOf(ns to mapOf(idA to configA)),
+                mapOf(ns to mapOf(idA to configA, idB to configB)),
+                mapOf(ns to mapOf(idB to configB))
         ))
 
         assertThat(all(watcher.events), contains(
-                CatalogueEvent(CREATE, idA, configA),
-                CatalogueEvent(CREATE, idB, configB),
-                CatalogueEvent(DELETE, idA, configA)
+                CatalogueEvent(CREATE, coords(ns, idA), configA),
+                CatalogueEvent(CREATE, coords(ns, idB), configB),
+                CatalogueEvent(DELETE, coords(ns, idA), configA)
         ))
-    }
-
-    @Test
-    fun filter_out_unspecified_namespaces() {
-        val id = mock<DatasetId>()
-        val config = mock<DatasetConfig>()
-
-        whenever(listener.observable).thenReturn(just(mapOf(
-                namespace to mapOf(id to config),
-                mock<DatasetNamespace>() to mapOf(mock<DatasetId>() to mock<DatasetConfig>())   // Should get filtered out
-        )))
-
-        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, id, config)))
     }
 
     @Test
@@ -110,4 +98,6 @@ class CatalogueWatcherShould {
 
         all(watcher.events) // Ensure there's a subscriber
     }
+
+    private fun coords(namespace: DatasetNamespace, id: DatasetId) = DatasetCoordinates(namespace, id)
 }
