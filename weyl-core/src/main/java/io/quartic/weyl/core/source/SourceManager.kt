@@ -6,7 +6,6 @@ import io.quartic.catalogue.CatalogueEvent.Type.DELETE
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetMetadata
-import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.logging.logger
 import io.quartic.weyl.core.model.LayerId
 import io.quartic.weyl.core.model.LayerMetadata
@@ -21,7 +20,7 @@ import rx.observables.GroupedObservable
 class SourceManager @JvmOverloads constructor(
         private val catalogueEvents: Observable<CatalogueEvent>,
         private val sourceFactory: (DatasetConfig) -> Source?,
-        private val allowedNamespaces: Set<DatasetNamespace>,
+        private val datasetAllowed: (DatasetCoordinates, DatasetConfig) -> Boolean,
         private val scheduler: Scheduler,
         private val extensionCodec: ExtensionCodec = ExtensionCodec()
 ) {
@@ -29,6 +28,7 @@ class SourceManager @JvmOverloads constructor(
 
     val layerPopulators by lazy {
         catalogueEvents
+                .filter { datasetAllowed(it.coords, it.config) }
                 .groupBy { it.coords }
                 .flatMap { this.processEventsForCoords(it) }
                 .share()
@@ -37,7 +37,7 @@ class SourceManager @JvmOverloads constructor(
     private fun processEventsForCoords(group: GroupedObservable<DatasetCoordinates, CatalogueEvent>): Observable<LayerPopulator> {
         val events = group.cache()    // Because groupBy can only have one subscriber per group
         return events
-                .filter { it.type === CREATE && allowedNamespaces.contains(it.coords.namespace) }
+                .filter { it.type === CREATE }
                 .flatMap {
                     createSource(it.coords, it.config)
                             .map { source -> createPopulator(

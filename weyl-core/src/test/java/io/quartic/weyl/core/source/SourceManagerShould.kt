@@ -39,11 +39,12 @@ class SourceManagerShould {
     }
 
     private val extensionCodec = mock<ExtensionCodec>()
+    private val datasetAllowed = mock<(DatasetCoordinates, DatasetConfig) -> Boolean>()
 
     private val manager = SourceManager(
             catalogueEvents,
             sourceFactory,
-            ALLOWED_NAMESPACES,
+            datasetAllowed,
             Schedulers.immediate(), // Force onto same thread for synchronous behaviour
             extensionCodec
     )
@@ -53,6 +54,7 @@ class SourceManagerShould {
 
     @Before
     fun before() {
+        whenever(datasetAllowed(any(), any())).thenReturn(true)
         whenever(extensionCodec.decode(any(), any())).thenReturn(extension())
         manager.layerPopulators
                 .doOnNext { populator ->
@@ -69,7 +71,7 @@ class SourceManagerShould {
     fun create_layer_on_create_event() {
         val layerUpdate = mock<LayerUpdate>()
 
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         layerUpdatesA.onNext(layerUpdate)
         layerUpdatesA.onCompleted()
         catalogueEvents.onCompleted()
@@ -91,9 +93,9 @@ class SourceManagerShould {
         val beforeDeletion = mock<LayerUpdate>()
         val afterDeletion = mock<LayerUpdate>()
 
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         layerUpdatesA.onNext(beforeDeletion)
-        catalogueEvents.onNext(event(DELETE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(DELETE, coords(DatasetId("123")), "foo", LocatorA()))
         layerUpdatesA.onNext(afterDeletion)
         layerUpdatesA.onCompleted()
         catalogueEvents.onCompleted()
@@ -103,16 +105,16 @@ class SourceManagerShould {
 
     @Test
     fun unsubscribe_from_upstream_source_on_delete_event() {
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
-        catalogueEvents.onNext(event(DELETE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(DELETE, coords(DatasetId("123")), "foo", LocatorA()))
 
         assertThat(interceptor.unsubscribed, equalTo(true))
     }
 
     @Test
     fun process_datasets_appearing_later() {
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("456")), "foo", LocatorB()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("456")), "foo", LocatorB()))
         catalogueEvents.onCompleted()
 
         assertThat(collectedLayerPopulators().map { p -> p.spec(emptyList()).id },
@@ -121,7 +123,7 @@ class SourceManagerShould {
 
     @Test
     fun pass_config_fields_to_extension_parser() {
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         catalogueEvents.onCompleted()
 
         collectedLayerPopulators()
@@ -133,23 +135,25 @@ class SourceManagerShould {
     fun ignore_entries_without_parsable_extensions() {
         whenever(extensionCodec.decode(any(), any())).thenReturn(null)
 
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
         catalogueEvents.onCompleted()
 
         assertThat(collectedLayerPopulators(), empty())
     }
 
     @Test
-    fun ignore_entries_from_disallowed_namespaces() {
-        catalogueEvents.onNext(event(CREATE, coords(NAMESPACE, DatasetId("123")), "foo", LocatorA()))
-        catalogueEvents.onNext(event(CREATE, coords(OTHER_NAMESPACE, DatasetId("456")), "foo", LocatorA()))
+    fun ignore_disallowed_entries() {
+        whenever(datasetAllowed(eq(coords(DatasetId("456"))), any())).thenReturn(false)
+
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("123")), "foo", LocatorA()))
+        catalogueEvents.onNext(event(CREATE, coords(DatasetId("456")), "foo", LocatorA()))
         catalogueEvents.onCompleted()
 
         assertThat(collectedLayerPopulators().map { p -> p.spec(emptyList()).id },
                 contains(layerIdFor("123")))
     }
 
-    private fun coords(namespace: DatasetNamespace, id: DatasetId) = DatasetCoordinates(namespace, id)
+    private fun coords(id: DatasetId) = DatasetCoordinates(NAMESPACE, id)
 
     private fun collectedUpdateSequenceFor(datasetId: String) = updateSubscribers[layerIdFor(datasetId)]!!.onNextEvents
 
@@ -186,7 +190,5 @@ class SourceManagerShould {
         private val IMAGE_ATTRIBUTE = AttributeName("image_attr")
         private val BLESSED_ATTRIBUTES = listOf(AttributeName("cool_attr"), AttributeName("slick_attr"))
         private val NAMESPACE = DatasetNamespace("my-namespace")
-        private val OTHER_NAMESPACE = DatasetNamespace("other-namespace")
-        private val ALLOWED_NAMESPACES = setOf(NAMESPACE)
     }
 }

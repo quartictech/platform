@@ -21,6 +21,7 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
+import io.quartic.weyl.core.source.DatasetAuthoriser;
 import io.quartic.weyl.core.source.SourceManager;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
@@ -76,10 +77,11 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         );
 
         WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);
+        final DatasetAuthoriser authoriser = new DatasetAuthoriser(configuration.getImportNamespaceRules());
         final SourceManager sourceManager = new SourceManager(
                 catalogueWatcher.getEvents(),
                 sourceFactory::createSource,
-                configuration.getImportCatalogueNamespaces(),
+                authoriser::isAllowed,
                 Schedulers.from(Executors.newScheduledThreadPool(2))
         );
 
@@ -100,7 +102,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportCatalogueNamespace()));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportNamespace()));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws",
                 createWebsocketEndpoint(snapshotSequences, alertResource, configuration.getMap())));
