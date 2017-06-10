@@ -31,7 +31,6 @@ class CatalogueWatcher(
         )
     }
 
-    // TODO - what about colliding IDs?
     val events: Observable<CatalogueEvent>
         get() = listener.observable
                 .doOnNext { _ -> LOG.info("Received catalogue update") }

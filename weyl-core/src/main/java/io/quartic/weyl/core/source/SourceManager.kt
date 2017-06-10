@@ -16,6 +16,7 @@ import rx.Observable.empty
 import rx.Observable.just
 import rx.Scheduler
 import rx.observables.GroupedObservable
+import java.lang.String.format
 import java.util.*
 import java.util.function.Function
 
@@ -45,24 +46,29 @@ class SourceManager @JvmOverloads constructor(
                                     it.config,
                                     sourceUntil(source, deletionEventFrom(events))
                             )}
+                            .flatMap { s -> s }
                 }
     }
 
-    private fun createPopulator(coords: DatasetCoordinates, config: DatasetConfig, source: Source): LayerPopulator {
+    private fun createPopulator(coords: DatasetCoordinates, config: DatasetConfig, source: Source): Observable<LayerPopulator> {
         val name = config.metadata.name
         val extension = extensionCodec.decode(name, config.extensions)
 
-        LOG.info("[$name] Created layer")
-        return LayerPopulator.withoutDependencies(
-                LayerSpec(
-                        LayerId(coords.toString()),
-                        datasetMetadataFrom(config.metadata),
-                        extension.viewType.layerView,
-                        extension.staticSchema,
-                        source.indexable()
-                ),
-                source.observable().subscribeOn(scheduler)     // TODO: the scheduler should be chosen by the specific source;
-        );
+        return if (extension == null) {
+            empty()
+        } else {
+            LOG.info(format("[%s] Created layer", name))
+            just(LayerPopulator.withoutDependencies(
+                    LayerSpec(
+                            LayerId(coords.toString()), // // TODO - deal with DatasetCoords properly
+                            datasetMetadataFrom(config.metadata),
+                            extension.viewType.layerView,
+                            extension.staticSchema,
+                            source.indexable()
+                    ),
+                    source.observable().subscribeOn(scheduler)     // TODO: the scheduler should be chosen by the specific source;
+            ))
+        }
     }
 
     private fun createSource(coords: DatasetCoordinates, config: DatasetConfig): Observable<Source> {
