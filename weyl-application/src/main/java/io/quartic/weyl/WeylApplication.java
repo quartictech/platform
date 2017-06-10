@@ -43,7 +43,6 @@ import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -80,7 +79,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);
         final SourceManager sourceManager = new SourceManager(
                 catalogueWatcher.getEvents(),
-                (config) -> Optional.ofNullable(sourceFactory.createSource(config)),
+                sourceFactory::createSource,
                 Schedulers.from(Executors.newScheduledThreadPool(2))
         );
 

@@ -17,12 +17,10 @@ import rx.Observable.just
 import rx.Scheduler
 import rx.observables.GroupedObservable
 import java.lang.String.format
-import java.util.*
-import java.util.function.Function
 
 class SourceManager @JvmOverloads constructor(
         private val catalogueEvents: Observable<CatalogueEvent>,
-        private val sourceFactory: Function<DatasetConfig, Optional<Source>>,
+        private val sourceFactory: (DatasetConfig) -> Source?,
         private val scheduler: Scheduler,
         private val extensionCodec: ExtensionCodec = ExtensionCodec()
 ) {
@@ -73,9 +71,9 @@ class SourceManager @JvmOverloads constructor(
 
     private fun createSource(coords: DatasetCoordinates, config: DatasetConfig): Observable<Source> {
         try {
-            val source = sourceFactory.apply(config)
-            if (source.isPresent) {
-                return just(source.get())
+            val source = sourceFactory(config)
+            if (source != null) {
+                return just(source)
             }
             LOG.error("[$coords] Unhandled config : ${config.locator}")
         } catch (e: Exception) {

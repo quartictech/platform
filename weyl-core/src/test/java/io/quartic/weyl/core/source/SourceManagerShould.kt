@@ -18,9 +18,7 @@ import rx.observers.TestSubscriber
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import java.time.Instant
-import java.util.*
 import java.util.Collections.emptyList
-import java.util.function.Function
 
 class SourceManagerShould {
 
@@ -32,11 +30,11 @@ class SourceManagerShould {
     private val layerUpdatesB = PublishSubject.create<LayerUpdate>()
     private val interceptor = Interceptor<LayerUpdate>()
 
-    private val sourceFactory = Function { config: DatasetConfig ->
+    private val sourceFactory = { config: DatasetConfig ->
         when (config.locator) {
-            is LocatorA -> Optional.of(sourceOf(layerUpdatesA.compose(interceptor), true))
-            is LocatorB -> Optional.of(sourceOf(layerUpdatesB, false))
-            else -> Optional.empty()
+            is LocatorA -> sourceOf(layerUpdatesA.compose(interceptor), true)
+            is LocatorB -> sourceOf(layerUpdatesB, false)
+            else -> null
         }
     }
 
