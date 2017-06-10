@@ -21,7 +21,7 @@ class WebsocketListener<T>(
 
     class Factory(private val url: String, private val websocketFactory: WebsocketClientSessionFactory) {
         fun <T> create(type: Class<T>): WebsocketListener<T> {
-            return create(OBJECT_MAPPER.typeFactory.uncheckedSimpleType(type))
+            return create(OBJECT_MAPPER.typeFactory.constructType(type))
         }
 
         fun <T> create(type: JavaType): WebsocketListener<T> {

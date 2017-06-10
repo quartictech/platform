@@ -11,7 +11,8 @@ abstract class DatasetLocatorTests<out T : DatasetLocator> {
 
     @Test
     fun deserialize_as_expected() {
-        val datasetLocator = OBJECT_MAPPER.readValue(json(), DatasetLocator::class.java as Class<T>)
+        @Suppress("UNCHECKED_CAST")
+        val datasetLocator = OBJECT_MAPPER.readValue(json(), DatasetLocator::class.java as Class<*>) as T
         assertThat(datasetLocator, equalTo(locator()))
     }
 }
