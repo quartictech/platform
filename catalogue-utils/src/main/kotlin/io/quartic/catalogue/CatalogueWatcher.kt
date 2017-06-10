@@ -4,6 +4,7 @@ import com.google.common.collect.Maps.difference
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
 import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.logging.logger
@@ -14,6 +15,7 @@ import io.quartic.common.websocket.WebsocketListener
 import rx.Observable
 import rx.Observable.from
 import rx.Observable.merge
+import kotlin.collections.Map.Entry
 
 class CatalogueWatcher(
         listenerFactory: WebsocketListener.Factory,
@@ -35,15 +37,18 @@ class CatalogueWatcher(
                 .doOnNext { _ -> LOG.info("Received catalogue update") }
                 .map { update -> update
                         .filterKeys { namespaces.contains(it) }
+                        .mapValues { qualifyKeys(it).entries }
                         .values
-                        .map { it.entries }
                         .flatten()
                         .associateBy({ it.key }, { it.value })
                 }
-                .compose(pairWithPrevious(emptyMap<DatasetId, DatasetConfig>()))
+                .compose(pairWithPrevious(emptyMap<DatasetCoordinates, DatasetConfig>()))
                 .concatMap { extractEvents(it) }
 
-    private fun extractEvents(pair: WithPrevious<Map<DatasetId, DatasetConfig>>): Observable<CatalogueEvent> {
+    private fun qualifyKeys(nsEntry: Entry<DatasetNamespace, Map<DatasetId, DatasetConfig>>)
+            = nsEntry.value.mapKeys { dsEntry -> DatasetCoordinates(nsEntry.key, dsEntry.key) }
+
+    private fun extractEvents(pair: WithPrevious<Map<DatasetCoordinates, DatasetConfig>>): Observable<CatalogueEvent> {
         val diff = difference(pair.prev!!, pair.current!!)
         return merge(
                 from(diff.entriesOnlyOnLeft().entries).map({ e -> CatalogueEvent(DELETE, e.key, e.value) }),

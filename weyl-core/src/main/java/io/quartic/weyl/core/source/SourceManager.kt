@@ -4,7 +4,7 @@ import io.quartic.catalogue.CatalogueEvent
 import io.quartic.catalogue.CatalogueEvent.Type.CREATE
 import io.quartic.catalogue.CatalogueEvent.Type.DELETE
 import io.quartic.catalogue.api.model.DatasetConfig
-import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.common.logging.logger
 import io.quartic.weyl.core.model.LayerId
@@ -29,33 +29,33 @@ class SourceManager @JvmOverloads constructor(
 
     val layerPopulators by lazy {
         catalogueEvents
-                .groupBy { it.id }
-                .flatMap { this.processEventsForId(it) }
+                .groupBy { it.coords }
+                .flatMap { this.processEventsForCoords(it) }
                 .share()
     }
 
-    private fun processEventsForId(group: GroupedObservable<DatasetId, CatalogueEvent>): Observable<LayerPopulator> {
+    private fun processEventsForCoords(group: GroupedObservable<DatasetCoordinates, CatalogueEvent>): Observable<LayerPopulator> {
         val events = group.cache()    // Because groupBy can only have one subscriber per group
         return events
                 .filter { it.type === CREATE }
                 .flatMap {
-                    createSource(it.id, it.config)
+                    createSource(it.coords, it.config)
                             .map { source -> createPopulator(
-                                    it.id,
+                                    it.coords,
                                     it.config,
                                     sourceUntil(source, deletionEventFrom(events))
                             )}
                 }
     }
 
-    private fun createPopulator(id: DatasetId, config: DatasetConfig, source: Source): LayerPopulator {
+    private fun createPopulator(coords: DatasetCoordinates, config: DatasetConfig, source: Source): LayerPopulator {
         val name = config.metadata.name
         val extension = extensionCodec.decode(name, config.extensions)
 
         LOG.info("[$name] Created layer")
         return LayerPopulator.withoutDependencies(
                 LayerSpec(
-                        LayerId(id.uid),
+                        LayerId(coords.toString()),
                         datasetMetadataFrom(config.metadata),
                         extension.viewType.layerView,
                         extension.staticSchema,
@@ -65,15 +65,15 @@ class SourceManager @JvmOverloads constructor(
         );
     }
 
-    private fun createSource(id: DatasetId, config: DatasetConfig): Observable<Source> {
+    private fun createSource(coords: DatasetCoordinates, config: DatasetConfig): Observable<Source> {
         try {
             val source = sourceFactory.apply(config)
             if (source.isPresent) {
                 return just(source.get())
             }
-            LOG.error("[$id] Unhandled config : ${config.locator}")
+            LOG.error("[$coords] Unhandled config : ${config.locator}")
         } catch (e: Exception) {
-            LOG.error("[$id] Error creating layer for dataset", e)
+            LOG.error("[$coords] Error creating layer for dataset", e)
         }
         return empty()
     }
