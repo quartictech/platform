@@ -21,7 +21,6 @@ class CatalogueWatcher(
 ) {
     private val listener by lazy {
         val tf = OBJECT_MAPPER.typeFactory
-        @Suppress("DEPRECATION")
         listenerFactory.create<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>(
                 tf.constructMapType(Map::class.java,
                         tf.constructType(DatasetNamespace::class.java),
