@@ -26,7 +26,7 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
         val namespace = session.pathParameters["namespace"]!!
         val objectName = session.pathParameters["objectName"]!!
         val listener = WebsocketListener<StorageBackendChange>(
-                OBJECT_MAPPER.typeFactory.uncheckedSimpleType(StorageBackendChange::class.java),
+                OBJECT_MAPPER.typeFactory.constructType(StorageBackendChange::class.java),
                 String.format("%s/%s/%s", howlWatchUrl, namespace, objectName),
                 websocketClientSessionFactory)
 
