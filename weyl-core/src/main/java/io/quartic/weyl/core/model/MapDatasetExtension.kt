@@ -5,6 +5,6 @@ import io.quartic.weyl.core.live.LayerViewType
 import io.quartic.weyl.core.live.LayerViewType.MOST_RECENT
 
 data class MapDatasetExtension @JvmOverloads constructor(
-        @get:JsonUnwrapped val staticSchema: StaticSchema?,
+        @get:JsonUnwrapped val staticSchema: StaticSchema,
         val viewType: LayerViewType = MOST_RECENT
 )

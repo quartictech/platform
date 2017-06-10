@@ -88,7 +88,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final ComputeResource computeResource = new ComputeResource(lidGenerator);
 
         final LayerRouter router = new LayerRouter(merge(
-                sourceManager.layerPopulators(),
+                sourceManager.getLayerPopulators(),
                 computeResource.layerPopulators()
         ));
 
