@@ -72,14 +72,14 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = new CatalogueWatcher(
-                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory),
-                configuration.getImportCatalogueNamespaces()
+                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
         );
 
         WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);
         final SourceManager sourceManager = new SourceManager(
                 catalogueWatcher.getEvents(),
                 sourceFactory::createSource,
+                configuration.getImportCatalogueNamespaces(),
                 Schedulers.from(Executors.newScheduledThreadPool(2))
         );
 

@@ -21,10 +21,9 @@ import rx.Observable.just
 class CatalogueWatcherShould {
     private val listener = mock<WebsocketListener<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>>()
     private val listenerFactory = mock<WebsocketListener.Factory>()
-    private val nsX = mock<DatasetNamespace>()
-    private val nsY = mock<DatasetNamespace>()
+    private val ns = mock<DatasetNamespace>()
 
-    private val watcher = CatalogueWatcher(listenerFactory, setOf(nsX, nsY))
+    private val watcher = CatalogueWatcher(listenerFactory)
 
     @Before
     fun before() {
@@ -37,9 +36,9 @@ class CatalogueWatcherShould {
         val id = mock<DatasetId>()
         val config = mock<DatasetConfig>()
 
-        whenever(listener.observable).thenReturn(just(mapOf(nsX to mapOf(id to config))))
+        whenever(listener.observable).thenReturn(just(mapOf(ns to mapOf(id to config))))
 
-        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, coords(nsX, id), config)))
+        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, coords(ns, id), config)))
     }
 
     @Test
@@ -48,13 +47,13 @@ class CatalogueWatcherShould {
         val config = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(nsX to mapOf(id to config)),
+                mapOf(ns to mapOf(id to config)),
                 emptyMap()   // Gone!
         ))
 
         assertThat(all(watcher.events), contains(
-                CatalogueEvent(CREATE, coords(nsX, id), config),
-                CatalogueEvent(DELETE, coords(nsX, id), config)
+                CatalogueEvent(CREATE, coords(ns, id), config),
+                CatalogueEvent(DELETE, coords(ns, id), config)
         ))
     }
 
@@ -64,11 +63,11 @@ class CatalogueWatcherShould {
         val config = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(nsX to mapOf(id to config)),
-                mapOf(nsX to mapOf(id to config))  // Again
+                mapOf(ns to mapOf(id to config)),
+                mapOf(ns to mapOf(id to config))  // Again
         ))
 
-        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, coords(nsX, id), config)))
+        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, coords(ns, id), config)))
     }
 
     @Test
@@ -79,34 +78,15 @@ class CatalogueWatcherShould {
         val configB = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(nsX to mapOf(idA to configA)),
-                mapOf(nsX to mapOf(idA to configA, idB to configB)),
-                mapOf(nsX to mapOf(idB to configB))
+                mapOf(ns to mapOf(idA to configA)),
+                mapOf(ns to mapOf(idA to configA, idB to configB)),
+                mapOf(ns to mapOf(idB to configB))
         ))
 
         assertThat(all(watcher.events), contains(
-                CatalogueEvent(CREATE, coords(nsX, idA), configA),
-                CatalogueEvent(CREATE, coords(nsX, idB), configB),
-                CatalogueEvent(DELETE, coords(nsX, idA), configA)
-        ))
-    }
-
-    @Test
-    fun filter_out_unspecified_namespaces() {
-        val idA = mock<DatasetId>()
-        val idB = mock<DatasetId>()
-        val configA = mock<DatasetConfig>()
-        val configB = mock<DatasetConfig>()
-
-        whenever(listener.observable).thenReturn(just(mapOf(
-                nsX to mapOf(idA to configA),
-                nsY to mapOf(idB to configB),
-                mock<DatasetNamespace>() to mapOf(mock<DatasetId>() to mock<DatasetConfig>())   // Should get filtered out
-        )))
-
-        assertThat(all(watcher.events), contains(
-                CatalogueEvent(CREATE, coords(nsX, idA), configA),
-                CatalogueEvent(CREATE, coords(nsY, idB), configB)
+                CatalogueEvent(CREATE, coords(ns, idA), configA),
+                CatalogueEvent(CREATE, coords(ns, idB), configB),
+                CatalogueEvent(DELETE, coords(ns, idA), configA)
         ))
     }
 

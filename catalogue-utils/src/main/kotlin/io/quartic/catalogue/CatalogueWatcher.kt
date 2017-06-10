@@ -17,10 +17,7 @@ import rx.Observable.from
 import rx.Observable.merge
 import kotlin.collections.Map.Entry
 
-class CatalogueWatcher(
-        listenerFactory: WebsocketListener.Factory,
-        private val namespaces: Set<DatasetNamespace>
-) {
+class CatalogueWatcher(listenerFactory: WebsocketListener.Factory) {
     private val listener by lazy {
         val tf = OBJECT_MAPPER.typeFactory
         listenerFactory.create<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>(
@@ -35,7 +32,6 @@ class CatalogueWatcher(
         get() = listener.observable
                 .doOnNext { _ -> LOG.info("Received catalogue update") }
                 .map { update -> update
-                        .filterKeys { namespaces.contains(it) }
                         .mapValues { qualifyKeys(it).entries }
                         .values
                         .flatten()
