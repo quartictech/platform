@@ -55,7 +55,7 @@ class SourceManager @JvmOverloads constructor(
         return if (extension == null) {
             empty()
         } else {
-            LOG.info(format("[%s] Created layer", name))
+            LOG.info("[$name] Created layer")
             just(LayerPopulator.withoutDependencies(
                     LayerSpec(
                             LayerId(coords.toString()), // // TODO - deal with DatasetCoords properly
