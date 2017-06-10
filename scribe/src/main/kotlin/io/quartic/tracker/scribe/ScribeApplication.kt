@@ -40,7 +40,7 @@ class ScribeApplication : ApplicationBase<ScribeConfiguration>() {
 
     private fun createCatalogue(configuration: ScribeConfiguration) = CatalogueWatcher(
             WebsocketListener.Factory(configuration.catalogue.watchUrl, WebsocketClientSessionFactory(javaClass)),
-            configuration.defaultCatalogueNamespace!!
+            setOf(configuration.defaultCatalogueNamespace!!)
     )
 
     private fun createPipelineRunnable(

@@ -17,7 +17,7 @@ import rx.Observable.merge
 
 class CatalogueWatcher(
         listenerFactory: WebsocketListener.Factory,
-        private val namespace: DatasetNamespace
+        private val namespaces: Set<DatasetNamespace>
 ) {
     private val listener by lazy {
         val tf = OBJECT_MAPPER.typeFactory
@@ -29,10 +29,17 @@ class CatalogueWatcher(
         )
     }
 
+    // TODO - what about colliding IDs?
     val events: Observable<CatalogueEvent>
         get() = listener.observable
                 .doOnNext { _ -> LOG.info("Received catalogue update") }
-                .map { map -> map.getOrElse(namespace) { -> emptyMap<DatasetId, DatasetConfig>() } }
+                .map { update -> update
+                        .filterKeys { namespaces.contains(it) }
+                        .values
+                        .map { it.entries }
+                        .flatten()
+                        .associateBy({ it.key }, { it.value })
+                }
                 .compose(pairWithPrevious(emptyMap<DatasetId, DatasetConfig>()))
                 .concatMap { extractEvents(it) }
 

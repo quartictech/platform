@@ -8,7 +8,7 @@ data class WeylConfiguration(
         val catalogue: CatalogueClientConfiguration,
         val howlStorageUrl: String,
         val rainWsUrlRoot: String,
-        val defaultCatalogueNamespace: DatasetNamespace,
+        val importCtalogueNamespaces: Set<DatasetNamespace>,
         val exportCatalogueNamespace: DatasetNamespace,
         val map: MapConfig
 ) : Configuration()

@@ -74,7 +74,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
 
         final CatalogueWatcher catalogueWatcher = new CatalogueWatcher(
                 new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory),
-                configuration.getDefaultCatalogueNamespace()
+                configuration.getImportCtalogueNamespaces()
         );
 
         WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);

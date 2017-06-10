@@ -20,9 +20,10 @@ import rx.Observable.just
 class CatalogueWatcherShould {
     private val listener = mock<WebsocketListener<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>>()
     private val listenerFactory = mock<WebsocketListener.Factory>()
-    private val namespace = mock<DatasetNamespace>()
+    private val namespaceA = mock<DatasetNamespace>()
+    private val namespaceB = mock<DatasetNamespace>()
 
-    private val watcher = CatalogueWatcher(listenerFactory, namespace)
+    private val watcher = CatalogueWatcher(listenerFactory, setOf(namespaceA, namespaceB))
 
     @Before
     fun before() {
@@ -35,7 +36,7 @@ class CatalogueWatcherShould {
         val id = mock<DatasetId>()
         val config = mock<DatasetConfig>()
 
-        whenever(listener.observable).thenReturn(just(mapOf(namespace to mapOf(id to config))))
+        whenever(listener.observable).thenReturn(just(mapOf(namespaceA to mapOf(id to config))))
 
         assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, id, config)))
     }
@@ -46,7 +47,7 @@ class CatalogueWatcherShould {
         val config = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(namespace to mapOf(id to config)),
+                mapOf(namespaceA to mapOf(id to config)),
                 emptyMap()   // Gone!
         ))
 
@@ -62,8 +63,8 @@ class CatalogueWatcherShould {
         val config = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(namespace to mapOf(id to config)),
-                mapOf(namespace to mapOf(id to config))  // Again
+                mapOf(namespaceA to mapOf(id to config)),
+                mapOf(namespaceA to mapOf(id to config))  // Again
         ))
 
         assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, id, config)))
@@ -77,9 +78,9 @@ class CatalogueWatcherShould {
         val configB = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(
-                mapOf(namespace to mapOf(idA to configA)),
-                mapOf(namespace to mapOf(idA to configA, idB to configB)),
-                mapOf(namespace to mapOf(idB to configB))
+                mapOf(namespaceA to mapOf(idA to configA)),
+                mapOf(namespaceA to mapOf(idA to configA, idB to configB)),
+                mapOf(namespaceA to mapOf(idB to configB))
         ))
 
         assertThat(all(watcher.events), contains(
@@ -91,15 +92,21 @@ class CatalogueWatcherShould {
 
     @Test
     fun filter_out_unspecified_namespaces() {
-        val id = mock<DatasetId>()
-        val config = mock<DatasetConfig>()
+        val idA = mock<DatasetId>()
+        val idB = mock<DatasetId>()
+        val configA = mock<DatasetConfig>()
+        val configB = mock<DatasetConfig>()
 
         whenever(listener.observable).thenReturn(just(mapOf(
-                namespace to mapOf(id to config),
+                namespaceA to mapOf(idA to configA),
+                namespaceB to mapOf(idB to configB),
                 mock<DatasetNamespace>() to mapOf(mock<DatasetId>() to mock<DatasetConfig>())   // Should get filtered out
         )))
 
-        assertThat(all(watcher.events), contains(CatalogueEvent(CREATE, id, config)))
+        assertThat(all(watcher.events), contains(
+                CatalogueEvent(CREATE, idA, configA),
+                CatalogueEvent(CREATE, idB, configB)
+        ))
     }
 
     @Test
