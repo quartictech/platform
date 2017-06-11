@@ -1,6 +1,5 @@
-package io.quartic.howl
+package io.quartic.howl.storage
 
-import io.quartic.howl.storage.DiskStorageBackend
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
