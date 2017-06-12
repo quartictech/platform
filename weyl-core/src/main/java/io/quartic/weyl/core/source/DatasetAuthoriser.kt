@@ -13,7 +13,7 @@ class DatasetAuthoriser(private val rules: Map<DatasetNamespace, List<Tag>>) {
             return true
         }
 
-        val tags = config.extensions["tags"] as? Set<*> ?: return false
+        val tags = config.extensions["tags"] as? Collection<*> ?: return false
 
         return !tags.intersect(rule).isEmpty()
     }
