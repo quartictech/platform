@@ -63,9 +63,9 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
           >
             <thead>
               <tr>
-              <th width="40%">Namespace / Id</th>
-              <th width="10%">Type</th>
-              <th width="50%">Name / Description</th>
+                <th width="40%">Namespace / Id</th>
+                <th width="10%">Type</th>
+                <th width="50%">Name / Description</th>
               </tr>
             </thead>
             <tbody>
