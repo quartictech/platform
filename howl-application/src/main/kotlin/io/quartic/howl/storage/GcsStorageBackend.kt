@@ -50,7 +50,7 @@ class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
 
     }
 
-    override fun putData(contentType: String, namespace: String, objectName: String, inputStream: InputStream): Long? {
+    override fun putData(contentType: String?, namespace: String, objectName: String, inputStream: InputStream): Long? {
         return storage.objects().insert(
                 "$namespace.$bucketSuffix",
                 StorageObject().setName(getObjectName(namespace, objectName)),
