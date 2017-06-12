@@ -36,7 +36,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
     return (
       <div className="pt-card pt-elevation-4">
         <h3>{this.props.dataset.metadata.name}</h3>
-        <h5 className="pt-monospace-text">{this.props.coords.namespace} / {this.props.coords.id}</h5>
+        <h5 className="pt-monospace-text">{this.props.coords.namespace} : {this.props.coords.id}</h5>
         <Tabs>
           <TabList>
             <Tab>Metadata</Tab>
