@@ -38,7 +38,11 @@ const DatasetRow = (props: IDatasetRowProps) => (
     </td>
     <td style={{ wordWrap: "break-word" }}>
       <b>{props.dataset.metadata.name}</b>
-      <p>{props.dataset.metadata.description}</p>
+      {
+        (props.dataset.metadata.name === props.dataset.metadata.description)
+        ? null
+        : <p>{props.dataset.metadata.description}</p>
+      }      
     </td>
   </tr>
 );
