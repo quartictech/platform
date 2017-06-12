@@ -10,7 +10,7 @@ import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
 import java.io.InputStream
 
-class GcsStorageBackend(private val bucketName: String) : StorageBackend {
+class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
     private val storage = buildService()
 
     private fun buildService(): Storage {
@@ -27,12 +27,12 @@ class GcsStorageBackend(private val bucketName: String) : StorageBackend {
         }
 
         return Storage.Builder(transport, jsonFactory, credential)
-                .setApplicationName("Jester Management Service")
+                .setApplicationName("Quartic platform")
                 .build()
     }
 
     override fun getData(namespace: String, objectName: String, version: Long?): InputStreamWithContentType? {
-        val get = storage.objects().get(bucketName, getObjectName(namespace, objectName))
+        val get = storage.objects().get("$namespace.$bucketSuffix", getObjectName(namespace, objectName))
         get.generation = version
 
         try {
@@ -52,7 +52,7 @@ class GcsStorageBackend(private val bucketName: String) : StorageBackend {
 
     override fun putData(contentType: String, namespace: String, objectName: String, inputStream: InputStream): Long? {
         return storage.objects().insert(
-                bucketName,
+                "$namespace.$bucketSuffix",
                 StorageObject().setName(getObjectName(namespace, objectName)),
                 InputStreamContent(contentType, inputStream)
         ).execute().generation
