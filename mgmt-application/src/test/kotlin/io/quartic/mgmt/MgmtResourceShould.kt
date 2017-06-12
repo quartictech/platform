@@ -5,15 +5,14 @@ import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
+import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
 import io.quartic.howl.api.HowlService
 import io.quartic.mgmt.auth.NamespaceAuthoriser
-import io.quartic.common.auth.User
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 import javax.ws.rs.NotFoundException
 
 class MgmtResourceShould {
@@ -55,7 +54,7 @@ class MgmtResourceShould {
     fun create_dataset_if_namespace_authorised() {
         whenever(authoriser.authorisedFor(arlo, foo)).thenReturn(true)
         whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
-        whenever(howl.downloadFile(any(), any())).thenReturn(Optional.of("blah".byteInputStream()))
+        whenever(howl.downloadFile(any(), any())).thenReturn("blah".byteInputStream())
 
         resource.createDataset(arlo, foo, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
 

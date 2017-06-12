@@ -3,14 +3,15 @@ package io.quartic.mgmt
 import io.dropwizard.auth.Auth
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.*
+import io.quartic.common.auth.User
 import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.mgmt.auth.NamespaceAuthoriser
-import io.quartic.common.auth.User
 import io.quartic.mgmt.conversion.CsvConverter
 import org.apache.commons.io.IOUtils
 import java.io.IOException
+import java.io.InputStream
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -80,33 +81,35 @@ class MgmtResource(
         return catalogue.registerDataset(namespace, datasetConfig).id
     }
 
-    private fun preprocessFile(fileName: String, fileType: FileType) = howl
-            .downloadFile(HOWL_NAMESPACE, fileName)
-            .orElseThrow { NotFoundException("File not found: " + fileName) }
-            .use { inputStream ->
-                when (fileType) {
-                    FileType.GEOJSON -> {
-                        try {
-                            GeoJsonParser(inputStream).validate()
-                        } catch (e: Exception) {
-                            throw BadRequestException("Exception while validating GeoJSON", e)
-                        }
-                        fileName
+    private fun preprocessFile(fileName: String, fileType: FileType): String {
+        val stream: InputStream = howl.downloadFile(HOWL_NAMESPACE, fileName)
+                ?: throw NotFoundException("File not found: " + fileName)
+
+        return stream.use { s ->
+            when (fileType) {
+                FileType.GEOJSON -> {
+                    try {
+                        GeoJsonParser(s).validate()
+                    } catch (e: Exception) {
+                        throw BadRequestException("Exception while validating GeoJSON", e)
                     }
-                    FileType.CSV -> {
-                        val storageId = howl.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE) { outputStream ->
-                            try {
-                                CsvConverter().convert(inputStream, outputStream)
-                            } catch (e: IOException) {
-                                throw BadRequestException("Exception while converting CSV to GeoJSON", e)
-                            }
-                        }
-                        storageId.uid
-                    }
-                    FileType.RAW -> fileName
-                    else -> fileName
+                    fileName
                 }
+                FileType.CSV -> {
+                    val storageId = howl.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE) { outputStream ->
+                        try {
+                            CsvConverter().convert(s, outputStream)
+                        } catch (e: IOException) {
+                            throw BadRequestException("Exception while converting CSV to GeoJSON", e)
+                        }
+                    }
+                    storageId.uid
+                }
+                FileType.RAW -> fileName
+                else -> fileName
             }
+        }
+    }
 
     // No need for auth injection here, as there's no interaction with dataset namespaces
     @POST
@@ -128,9 +131,7 @@ class MgmtResource(
         val datasets = getDatasets(user)    // These will already be filtered to those that the user is authorised for
 
         val datasetsInNamespace = datasets[coords.namespace]
-        if (datasetsInNamespace == null) {
-            throw notFoundException("Namespace", coords.namespace.namespace)
-        }
+                ?: throw notFoundException("Namespace", coords.namespace.namespace)
         if (!datasetsInNamespace.contains(coords.id)) {
             throw notFoundException("Dataset", coords.id.uid)
         }

@@ -19,7 +19,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
     }
 
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
-        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
+        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl!!)
         val catalogueService = client<CatalogueService>(javaClass, configuration.catalogueUrl!!)
 
         with (environment.jersey()) {

@@ -29,6 +29,7 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
 
             featureCount[0] = geoJsonGenerator.writeFeatures(
                     layer.getFeatures().stream().map((f) -> featureConverter.toGeojson(FeatureConverter.DEFAULT_MANIPULATOR, f)));
+            return null;
         });
         return new LayerExportResult(
                 new DatasetLocator.CloudDatasetLocator(
