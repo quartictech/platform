@@ -32,38 +32,44 @@ const DatasetRow = (props: IDatasetRowProps) => (
     <td style={{ wordWrap: "break-word" }}>{props.namespace}</td>
     <td style={{ wordWrap: "break-word" }}>{props.id}</td>
     <td style={{ wordWrap: "break-word" }}>{props.dataset.locator.type}</td>
-    <td style={{ wordWrap: "break-word" }}>{props.dataset.metadata.name}</td>
-    <td style={{ wordWrap: "break-word" }}>{props.dataset.metadata.description}</td>
+    <td style={{ wordWrap: "break-word" }}>
+      <b>{props.dataset.metadata.name}</b>
+      <p>{props.dataset.metadata.description}</p>
+    </td>
   </tr>
 );
 
 export class DatasetList extends React.Component<IDatasetListProps, void> {
   render() {
     return (
-      <div className={classNames(Classes.CARD, Classes.ELEVATION_4)}>
+      <div
+        className={classNames(Classes.CARD, Classes.ELEVATION_4)}
+        style={{ height: "100%" }}
+      >
         <h3>Datasets</h3>
 
-        <table
-          className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
-          style={{ width: "100%", tableLayout: "fixed" }}
-        >
-          <thead>
-            <tr>
-            <th width="10%">Namespace</th>
-            <th width="20%">Id</th>
-            <th width="10%">Type</th>
-            <th width="30%">Name</th>
-            <th width="30%">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-          {
-              _.map(this.props.datasets,
-                (datasets, namespace) => !this.props.selectedNamespace || this.props.selectedNamespace === namespace ?
-                  this.renderDatasetsInNamespace(namespace, datasets) : null)
-          }
-          </tbody>
-        </table>
+        <div style={{ height: "100%", overflow: "scroll" }}>
+          <table
+            className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+            style={{ width: "100%", tableLayout: "fixed" }}
+          >
+            <thead>
+              <tr>
+              <th width="20%">Namespace</th>
+              <th width="20%">Id</th>
+              <th width="10%">Type</th>
+              <th width="50%">Name / Description</th>
+              </tr>
+            </thead>
+            <tbody>
+            {
+                _.map(this.props.datasets,
+                  (datasets, namespace) => !this.props.selectedNamespace || this.props.selectedNamespace === namespace ?
+                    this.renderDatasetsInNamespace(namespace, datasets) : null)
+            }
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
