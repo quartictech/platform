@@ -29,9 +29,13 @@ interface IDatasetRowProps {
 
 const DatasetRow = (props: IDatasetRowProps) => (
   <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
-    <td style={{ wordWrap: "break-word" }}>{props.namespace}</td>
-    <td style={{ wordWrap: "break-word" }}>{props.id}</td>
-    <td style={{ wordWrap: "break-word" }}>{props.dataset.locator.type}</td>
+    <td style={{ wordWrap: "break-word" }}>
+      <b>{props.namespace}</b>
+      <p>{props.id}</p>
+    </td>
+    <td style={{ wordWrap: "break-word" }}>
+      <b>{props.dataset.locator.type}</b>
+    </td>
     <td style={{ wordWrap: "break-word" }}>
       <b>{props.dataset.metadata.name}</b>
       <p>{props.dataset.metadata.description}</p>
@@ -48,15 +52,14 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
       >
         <h3>Datasets</h3>
 
-        <div style={{ height: "100%", overflow: "scroll" }}>
+        <div style={{ height: "98%", overflow: "scroll" }}>
           <table
             className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
             style={{ width: "100%", tableLayout: "fixed" }}
           >
             <thead>
               <tr>
-              <th width="20%">Namespace</th>
-              <th width="20%">Id</th>
+              <th width="40%">Namespace / Id</th>
               <th width="10%">Type</th>
               <th width="50%">Name / Description</th>
               </tr>
