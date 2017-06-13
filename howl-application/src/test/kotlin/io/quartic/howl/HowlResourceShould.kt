@@ -32,8 +32,8 @@ class HowlResourceShould {
     @Test
     fun store_file_on_post() {
         val data = "wat".toByteArray()
-        val byteArrayOutputStream = ByteArrayOutputStream()
 
+        val byteArrayOutputStream = ByteArrayOutputStream()
         whenever(backend.putData(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
@@ -42,11 +42,30 @@ class HowlResourceShould {
 
         val howlStorageId = resources.jerseyTest.target("/test")
                 .request()
-                .post(Entity.entity(data, MediaType.TEXT_PLAIN_TYPE), HowlStorageId::class.java)
+                .post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, notNullValue())
         verify(backend).putData(eq(MediaType.TEXT_PLAIN), eq("test"), eq(howlStorageId.uid), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
+    }
+
+    // See https://github.com/quartictech/platform/pull/239
+    @Test
+    fun cope_with_missing_content_type() {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        whenever(backend.putData(any(), any(), any(), any())).thenAnswer { invocation ->
+            val inputStream = invocation.getArgument<InputStream>(3)
+            IOUtils.copy(inputStream, byteArrayOutputStream)
+            55L
+        }
+
+        val howlStorageId = resources.jerseyTest.target("/test")
+                .request()
+                .post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
+
+        assertThat(howlStorageId, notNullValue())
+        verify(backend).putData(eq(null), eq("test"), eq(howlStorageId.uid), any())
+        assertThat(byteArrayOutputStream.toByteArray(), equalTo("".toByteArray()))
     }
 
     @Test

@@ -8,5 +8,5 @@ interface StorageBackend {
     fun getData(namespace: String, objectName: String, version: Long?): InputStreamWithContentType?
 
     @Throws(IOException::class)
-    fun putData(contentType: String, namespace: String, objectName: String, inputStream: InputStream): Long?
+    fun putData(contentType: String?, namespace: String, objectName: String, inputStream: InputStream): Long?
 }

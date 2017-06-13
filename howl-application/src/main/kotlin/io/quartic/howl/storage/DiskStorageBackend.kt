@@ -36,7 +36,7 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         return null
     }
 
-    override fun putData(contentType: String, namespace: String, objectName: String, inputStream: InputStream): Long? {
+    override fun putData(contentType: String?, namespace: String, objectName: String, inputStream: InputStream): Long? {
         getObjectPath(namespace, objectName).toFile().mkdirs()
         var tempFile: File? = null
         val version = versionCounter.incrementAndGet()
