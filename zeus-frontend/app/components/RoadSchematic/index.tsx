@@ -45,6 +45,7 @@ interface RoadSchematicProps {
   filterPredicate?: (RoadSchematicSection) => boolean;
   hoverText?: (RoadSchematicSection) => string | JSX.Element;
   colorScheme?: string[];
+  maxValue?: number;
 }
 
 // Categorical scales don't allow heterogeneous width.  Thus we have to use a Linear scale, and manually
@@ -117,7 +118,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
   private setPlotData(props: RoadSchematicProps) {
     this.colorScale
-      .domain([0, _.max(props.sections, s => s.value).value])
+      .domain([0, this.props.maxValue || _.max(props.sections, s => s.value).value])
       .range(props.colorScheme);
     this.xScale
       .domainMin(_.min(props.sections, s => s.xMin).xMin || 0)

@@ -90,7 +90,7 @@ class Schematic extends React.Component<SchematicProps, State> {
           selectedTabId={this.state.surveySelection}
         >
           <Tab2 id="dvi" title="DVI" />
-          <Tab2 id="scanner" title="SCANNER" />
+          <Tab2 id="scanner" title="SCANNER (3m LPV)" disabled={!this.hasScannerData()} />
         </Tabs2>
 
         <span
@@ -114,7 +114,7 @@ class Schematic extends React.Component<SchematicProps, State> {
   }
   
   private getSurveySections(): RoadSchematicSection[] {
-    return _.chain(this.props.asset["_surveys"]["dvi"])
+    return _.chain(this.props.asset["_surveys"][this.state.surveySelection])
       .map(section => ({
         xMin: numeral(section["schain"]),
         xMax: numeral(section["echain"]),
@@ -125,6 +125,10 @@ class Schematic extends React.Component<SchematicProps, State> {
         raw: section,
       }))
       .value();
+  }
+
+  private hasScannerData(): boolean {
+    return "scanner" in this.props.asset["_surveys"];
   }
 
   private getDefectScore(section: RoadSchematicSection) {
