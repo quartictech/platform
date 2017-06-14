@@ -3,7 +3,6 @@ package io.quartic.howl.api
 import io.quartic.common.serdes.decode
 import okhttp3.*
 import okio.BufferedSink
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -70,7 +69,6 @@ class HowlClient(userAgent: String, private val baseUrl: String) : HowlService {
                 return MediaType.parse(contentType)
             }
 
-            @Throws(IOException::class)
             override fun writeTo(sink: BufferedSink) {
                 upload(sink.outputStream())
             }

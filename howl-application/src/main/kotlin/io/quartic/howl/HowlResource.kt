@@ -1,5 +1,6 @@
 package io.quartic.howl
 
+import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.StorageBackend
@@ -13,17 +14,30 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.StreamingOutput
 
+// TODO - get rid of 2D variants, and move {identity-namespace} into Resource path
 @Path("/{target-namespace}")
-class HowlResource(private val storageBackend: StorageBackend) {
-    private val howlStorageIdGenerator = randomGenerator { HowlStorageId(it) }
-
+class HowlResource(
+        private val storageBackend: StorageBackend,
+        private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
+) {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    fun uploadFile(@PathParam("target-namespace") targetNamespace: String,
-                   @Context request: HttpServletRequest): HowlStorageId {
+    fun uploadAnonymousFile(
+            @PathParam("target-namespace") targetNamespace: String,
+            @Context request: HttpServletRequest
+    ) = uploadAnonymousFile(targetNamespace, targetNamespace, request)
+
+    @POST
+    @Path("/{identity-namespace}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun uploadAnonymousFile(
+            @PathParam("target-namespace") targetNamespace: String,
+            @PathParam("identity-namespace") identityNamespace: String,
+            @Context request: HttpServletRequest
+    ): HowlStorageId {
         val howlStorageId = howlStorageIdGenerator.get()
         storageBackend.putData(
-                StorageCoords(targetNamespace, targetNamespace, howlStorageId.uid),
+                StorageCoords(targetNamespace, identityNamespace, howlStorageId.uid),
                 request.contentType,
                 request.inputStream
         )
@@ -31,22 +45,44 @@ class HowlResource(private val storageBackend: StorageBackend) {
     }
 
     @PUT
-    @Path("/{fileName}")
-    fun uploadFile(@PathParam("target-namespace") targetNamespace: String,
-                   @PathParam("fileName") fileName: String,
-                   @Context request: HttpServletRequest) {
+    @Path("/{filename}")
+    fun uploadFile(
+            @PathParam("target-namespace") targetNamespace: String,
+            @PathParam("filename") fileName: String,
+            @Context request: HttpServletRequest
+    ) = uploadFile(targetNamespace, targetNamespace, fileName, request)
+
+    @PUT
+    @Path("/{identity-namespace}/{filename}")
+    fun uploadFile(
+            @PathParam("target-namespace") targetNamespace: String,
+            @PathParam("identity-namespace") identityNamespace: String,
+            @PathParam("filename") fileName: String,
+            @Context request: HttpServletRequest
+    ) {
         storageBackend.putData(
-                StorageCoords(targetNamespace, targetNamespace, fileName),
+                StorageCoords(targetNamespace, identityNamespace, fileName),
                 request.contentType,
                 request.inputStream
         )
     }
 
-    private fun handleDownload(targetNamespace: String, fileName: String, version: Long?): Response {
-        val (contentType, inputStream) = storageBackend.getData(
-                StorageCoords(targetNamespace, targetNamespace, fileName), version
-        ) ?: throw NotFoundException()  // TODO: provide a useful message
+    @GET
+    @Path("/{filename}")
+    fun downloadFile(
+            @PathParam("target-namespace") targetNamespace: String,
+            @PathParam("filename") fileName: String
+    ) = downloadFile(targetNamespace, targetNamespace, fileName)
 
+    @GET
+    @Path("/{identity-namespace}/{filename}")
+    fun downloadFile(
+            @PathParam("target-namespace") targetNamespace: String,
+            @PathParam("identity-namespace") identityNamespace: String,
+            @PathParam("filename") fileName: String
+    ): Response {
+        val coords = StorageCoords(targetNamespace, identityNamespace, fileName)
+        val (contentType, inputStream) = storageBackend.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
         return Response.ok()
                 .header(CONTENT_TYPE, contentType)
                 .entity(StreamingOutput {
@@ -55,14 +91,4 @@ class HowlResource(private val storageBackend: StorageBackend) {
                 .build()
     }
 
-    @GET
-    @Path("/{fileName}")
-    fun downloadFile(@PathParam("target-namespace") targetNamespace: String,
-                     @PathParam("fileName") fileName: String) = handleDownload(targetNamespace, fileName, null)
-
-    @GET
-    @Path("/{fileName}/{version}")
-    fun downloadFile(@PathParam("target-namespace") targetNamespace: String,
-                     @PathParam("fileName") fileName: String,
-                     @PathParam("version") version: Long?) = handleDownload(targetNamespace, fileName, version)
 }
