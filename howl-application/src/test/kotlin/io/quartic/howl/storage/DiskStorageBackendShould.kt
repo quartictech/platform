@@ -37,7 +37,7 @@ class DiskStorageBackendShould {
     }
 
     @Test
-    fun writes_to_separate_objects_are_separate() {
+    fun writes_to_separate_coords_are_separate() {
         storeData("wat", "data".toByteArray())
         storeData("wat2", "data2".toByteArray())
 

@@ -37,7 +37,7 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
     }
 
     override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
-        getObjectPath(coords).toFile().mkdirs()
+        coords.path.toFile().mkdirs()
         var tempFile: File? = null
         val version = versionCounter.incrementAndGet()
         try {
@@ -57,19 +57,18 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         val readVersion = version ?: getLatestVersion(coords)
 
         if (readVersion != null) {
-            return getObjectPath(coords).resolve(readVersion.toString())
+            return coords.path.resolve(readVersion.toString())
         } else {
             return null
         }
     }
 
     private fun getLatestVersion(coords: StorageCoords): Long? {
-        val fileNames = getObjectPath(coords).toFile().list() ?: return null
+        val fileNames = coords.path.toFile().list() ?: return null
         return fileNames.map { it -> parseLong(it) }.max()
     }
 
-    private fun getObjectPath(coords: StorageCoords)
-            = rootPath.resolve(Paths.get(coords.targetNamespace, coords.objectName))
+    private val StorageCoords.path get() = rootPath.resolve(Paths.get(targetNamespace, identityNamespace, objectName))
 
     private fun renameFile(from: Path, to: Path) {
         try {

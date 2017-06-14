@@ -58,9 +58,8 @@ class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
         ).execute().generation
     }
 
-    // TODO - 3-component
     private val StorageCoords.bucket get() = "$targetNamespace.$bucketSuffix"
-    private val StorageCoords.path get() = "$targetNamespace/$objectName"
+    private val StorageCoords.path get() = "$identityNamespace/$objectName"
 }
 
 
