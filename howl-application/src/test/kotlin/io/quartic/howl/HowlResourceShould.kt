@@ -5,6 +5,7 @@ import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.InputStreamWithContentType
 import io.quartic.howl.storage.StorageBackend
+import io.quartic.howl.storage.StorageCoords
 import org.apache.commons.io.IOUtils
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory
 import org.hamcrest.CoreMatchers.equalTo
@@ -34,8 +35,8 @@ class HowlResourceShould {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(backend.putData(any(), any(), any(), any())).thenAnswer { invocation ->
-            val inputStream = invocation.getArgument<InputStream>(3)
+        whenever(backend.putData(any(), any(), any())).thenAnswer { invocation ->
+            val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             55L
         }
@@ -45,7 +46,7 @@ class HowlResourceShould {
                 .post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, notNullValue())
-        verify(backend).putData(eq(MediaType.TEXT_PLAIN), eq("test"), eq(howlStorageId.uid), any())
+        verify(backend).putData(eq(StorageCoords("test", "test", howlStorageId.uid)), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
@@ -53,7 +54,7 @@ class HowlResourceShould {
     @Test
     fun cope_with_missing_content_type() {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(backend.putData(any(), any(), any(), any())).thenAnswer { invocation ->
+        whenever(backend.putData(any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             55L
@@ -64,14 +65,14 @@ class HowlResourceShould {
                 .post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
         assertThat(howlStorageId, notNullValue())
-        verify(backend).putData(eq(null), eq("test"), eq(howlStorageId.uid), any())
+        verify(backend).putData(eq(StorageCoords("test", "test", howlStorageId.uid)), eq(null), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo("".toByteArray()))
     }
 
     @Test
     fun return_file_on_get() {
         val data = "wat".toByteArray()
-        whenever(backend.getData(any(), any(), anyOrNull())).thenReturn(
+        whenever(backend.getData(any(), anyOrNull())).thenReturn(
                 InputStreamWithContentType(MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
         )
 
@@ -80,7 +81,7 @@ class HowlResourceShould {
                 .get()
 
         val responseEntity = response.readEntity(ByteArray::class.java)
-        verify(backend).getData(eq("test"), eq("thing"), eq(null))
+        verify(backend).getData(eq(StorageCoords("test", "test", "thing")), eq(null))
         assertThat(responseEntity, equalTo(data))
     }
 }

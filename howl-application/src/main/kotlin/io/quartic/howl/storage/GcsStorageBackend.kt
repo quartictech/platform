@@ -31,8 +31,8 @@ class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
                 .build()
     }
 
-    override fun getData(namespace: String, objectName: String, version: Long?): InputStreamWithContentType? {
-        val get = storage.objects().get("$namespace.$bucketSuffix", getObjectName(namespace, objectName))
+    override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
+        val get = storage.objects().get(coords.bucket, coords.path)
         get.generation = version
 
         try {
@@ -50,13 +50,17 @@ class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
 
     }
 
-    override fun putData(contentType: String?, namespace: String, objectName: String, inputStream: InputStream): Long? {
+    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
         return storage.objects().insert(
-                "$namespace.$bucketSuffix",
-                StorageObject().setName(getObjectName(namespace, objectName)),
+                coords.bucket,
+                StorageObject().setName(coords.path),
                 InputStreamContent(contentType, inputStream)
         ).execute().generation
     }
 
-    private fun getObjectName(namespace: String, objectName: String) = "$namespace/$objectName"
+    // TODO - 3-component
+    private val StorageCoords.bucket get() = "$targetNamespace.$bucketSuffix"
+    private val StorageCoords.path get() = "$targetNamespace/$objectName"
 }
+
+
