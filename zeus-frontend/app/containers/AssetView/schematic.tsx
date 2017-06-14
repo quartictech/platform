@@ -95,7 +95,7 @@ class Schematic extends React.Component<SchematicProps, State> {
 
         <span
           className={Classes.NAVBAR_DIVIDER}
-          style={{ paddingLeft: "10px", paddingRight: "10px" }}
+          style={{ marginLeft: "20px", marginRight: "20px" }}
         />
 
         <Tabs2
@@ -114,14 +114,14 @@ class Schematic extends React.Component<SchematicProps, State> {
   }
   
   private getSurveySections(): RoadSchematicSection[] {
-    return _.chain(this.props.asset["_surveys"])
+    return _.chain(this.props.asset["_surveys"]["dvi"])
       .map(section => ({
         xMin: numeral(section["schain"]),
         xMax: numeral(section["echain"]),
         value: this.getDefectScore(section),
         lane: section["xsect"],
         faded: !section["assessed"],
-        year: moment(section["start_date"]).year().toString(),  // Extra information used by filterPredicate
+        year: moment(section["date"]).year().toString(),  // Extra information used by filterPredicate
         raw: section,
       }))
       .value();
