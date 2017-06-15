@@ -9,6 +9,14 @@ import * as classNames from "classnames";
 import * as _ from "underscore";
 import { registerPointerHandler } from "../../helpers/plottable";
 
+
+export const Schemes = {
+  RED: [Colors.GRAY1, Colors.RED5, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1],
+  GOLD: [Colors.GRAY1, Colors.GOLD5, Colors.GOLD4, Colors.GOLD3, Colors.GOLD2, Colors.GOLD1],
+  BLUE: [Colors.GRAY1, Colors.BLUE5, Colors.BLUE4, Colors.BLUE3, Colors.BLUE2, Colors.BLUE1],
+  GREEN: [Colors.GRAY1, Colors.GREEN5, Colors.GREEN4, Colors.GREEN3, Colors.GREEN2, Colors.GREEN1],
+};
+
 // See http://www.ukpms.com/owner_forum/shared_files/UKPMS_Manual_02_Chapter4_XSP_v04.pdf
 // We specify right-to-left, so that right-most roads get lower y values, thus appearing at the bottom.
 // TODO: what about off-road features?  And more lanes
@@ -36,6 +44,8 @@ interface RoadSchematicProps {
   sections: RoadSchematicSection[];
   filterPredicate?: (RoadSchematicSection) => boolean;
   hoverText?: (RoadSchematicSection) => string | JSX.Element;
+  colorScheme?: string[];
+  maxValue?: number;
 }
 
 // Categorical scales don't allow heterogeneous width.  Thus we have to use a Linear scale, and manually
@@ -50,6 +60,10 @@ interface State {
 
 
 class RoadSchematic extends React.Component<RoadSchematicProps, State> {
+  public static defaultProps: Partial<RoadSchematicProps> = {
+    colorScheme: Schemes.RED,
+  };
+
   private dataset: Plottable.Dataset;
   private colorScale: Plottable.Scales.InterpolatedColor;
   private xScale: Plottable.Scales.Linear;
@@ -59,7 +73,6 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   // Managed outside of React state to avoid setState not actually updating intervalMap before Plottable redraw
   // requires it.
   private intervalMap: XspToInterval;
-
 
   constructor(props: RoadSchematicProps) {
     super(props);
@@ -105,7 +118,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
 
   private setPlotData(props: RoadSchematicProps) {
     this.colorScale
-      .domain([0, _.max(props.sections, s => s.value).value]);
+      .domain([0, this.props.maxValue || _.max(props.sections, s => s.value).value])
+      .range(props.colorScheme);
     this.xScale
       .domainMin(_.min(props.sections, s => s.xMin).xMin || 0)
       .domainMax(_.max(props.sections, s => s.xMax).xMax || 0);
@@ -113,8 +127,8 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       .domain([0, _.max(this.intervalMap, i => i[1])[1]])
       .tickGenerator(() => _.map(this.intervalMap, i => (i[1] + i[0]) / 2));  // Ticks at interval midpoints
 
-    const sections = this.props.filterPredicate
-      ? _.filter(props.sections, this.props.filterPredicate)
+    const sections = props.filterPredicate
+      ? _.filter(props.sections, props.filterPredicate)
       : props.sections;
 
     this.dataset.data(sections);
@@ -126,8 +140,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     this.xScale = new Plottable.Scales.Linear();
     this.yScale = new Plottable.Scales.Linear();
 
-    this.colorScale = new Plottable.Scales.InterpolatedColor("sqrt")
-      .range([Colors.GRAY1, Colors.RED5, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1]);
+    this.colorScale = new Plottable.Scales.InterpolatedColor("sqrt");
 
     const newPlot = () => new Plottable.Plots.Rectangle()
       .addDataset(this.dataset)
