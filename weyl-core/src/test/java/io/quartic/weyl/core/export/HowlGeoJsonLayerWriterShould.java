@@ -29,7 +29,7 @@ public class HowlGeoJsonLayerWriterShould {
     public void write_to_howl() throws IOException {
         Layer layer = layer("foo", featureCollection(feature("wat")));
         layerWriter.write(layer);
-        verify(howlClient, new Only()).uploadFile(any(), any(), any());
+        verify(howlClient, new Only()).uploadAnonymousFile(any(), any(), any());
     }
 
     private FeatureCollection featureCollection(Feature... features) {

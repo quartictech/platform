@@ -96,7 +96,7 @@ class MgmtResource(
                     fileName
                 }
                 FileType.CSV -> {
-                    val storageId = howl.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE) { outputStream ->
+                    val storageId = howl.uploadAnonymousFile(HOWL_NAMESPACE, MediaType.APPLICATION_JSON) { outputStream ->
                         try {
                             CsvConverter().convert(s, outputStream)
                         } catch (e: IOException) {
@@ -116,7 +116,7 @@ class MgmtResource(
     @Path("/file/{namespace}")
     @Produces(MediaType.APPLICATION_JSON)
     fun uploadFile(@Context request: HttpServletRequest): HowlStorageId {
-        return howl.uploadFile(request.contentType, HOWL_NAMESPACE) { outputStream ->
+        return howl.uploadAnonymousFile(HOWL_NAMESPACE, request.contentType) { outputStream ->
             try {
                 IOUtils.copy(request.inputStream, outputStream)
             } catch (e: Exception) {

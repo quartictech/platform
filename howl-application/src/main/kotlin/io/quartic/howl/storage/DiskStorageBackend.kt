@@ -5,10 +5,10 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.lang.Long.parseLong
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -16,10 +16,10 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
     private val lock = ReentrantReadWriteLock()
     private val versionCounter = AtomicLong(System.currentTimeMillis())
 
-    override fun getData(namespace: String, objectName: String, version: Long?): InputStreamWithContentType? {
+    override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
         try {
             lock.readLock().lock()
-            val path = getVersionPath(namespace, objectName, version)
+            val path = getVersionPath(coords, version)
             if (path != null) {
                 val file = path.toFile()
                 if (file.exists()) {
@@ -36,15 +36,15 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         return null
     }
 
-    override fun putData(contentType: String?, namespace: String, objectName: String, inputStream: InputStream): Long? {
-        getObjectPath(namespace, objectName).toFile().mkdirs()
+    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
+        coords.path.toFile().mkdirs()
         var tempFile: File? = null
         val version = versionCounter.incrementAndGet()
         try {
             tempFile = File.createTempFile("howl", "partial")
             FileOutputStream(tempFile!!).use { fileOutputStream -> IOUtils.copy(inputStream, fileOutputStream) }
 
-            renameFile(tempFile.toPath(), getVersionPath(namespace, objectName, version)!!)
+            renameFile(tempFile.toPath(), getVersionPath(coords, version)!!)
         } finally {
             if (tempFile != null) {
                 tempFile.delete()
@@ -53,35 +53,22 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         return version
     }
 
-    private fun getVersionPath(namespace: String, objectName: String, version: Long?): Path? {
-        val readVersion = version ?: getLatestVersion(namespace, objectName)
+    private fun getVersionPath(coords: StorageCoords, version: Long?): Path? {
+        val readVersion = version ?: getLatestVersion(coords)
 
         if (readVersion != null) {
-            return getObjectPath(namespace, objectName).resolve(readVersion.toString())
+            return coords.path.resolve(readVersion.toString())
         } else {
             return null
         }
     }
 
-    private fun getObjectPath(namespace: String, objectName: String): Path {
-        return rootPath.resolve(Paths.get(namespace, objectName))
+    private fun getLatestVersion(coords: StorageCoords): Long? {
+        val fileNames = coords.path.toFile().list() ?: return null
+        return fileNames.map { it -> parseLong(it) }.max()
     }
 
-    private fun getLatestVersion(namespace: String, objectName: String): Long? {
-        val fileNames = rootPath.resolve(Paths.get(namespace, objectName)).toFile().list()
-
-        if (fileNames != null) {
-            val latestVersion = Arrays.stream(fileNames)
-                    .mapToLong { java.lang.Long.parseLong(it) }
-                    .max()
-
-            if (latestVersion.isPresent) {
-                return latestVersion.asLong
-            }
-        }
-
-        return null
-    }
+    private val StorageCoords.path get() = rootPath.resolve(Paths.get(targetNamespace, identityNamespace, objectName))
 
     private fun renameFile(from: Path, to: Path) {
         try {

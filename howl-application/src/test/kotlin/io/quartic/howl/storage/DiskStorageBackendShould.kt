@@ -37,7 +37,7 @@ class DiskStorageBackendShould {
     }
 
     @Test
-    fun writes_to_separate_objects_are_separate() {
+    fun writes_to_separate_coords_are_separate() {
         storeData("wat", "data".toByteArray())
         storeData("wat2", "data2".toByteArray())
 
@@ -54,10 +54,10 @@ class DiskStorageBackendShould {
     }
 
     private fun storeData(objectName: String, data: ByteArray)
-            = backend.putData(MediaType.TEXT_PLAIN, "test", objectName, ByteArrayInputStream(data))
+            = backend.putData(StorageCoords("foo", "bar", objectName), MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
 
     private fun getData(objectName: String, version: Long?): ByteArray? {
-        val inputStreamWithContentType = backend.getData("test", objectName, version)
+        val inputStreamWithContentType = backend.getData(StorageCoords("foo", "bar", objectName), version)
         return if (inputStreamWithContentType != null) {
             val outputStream = ByteArrayOutputStream()
             IOUtils.copy(inputStreamWithContentType.inputStream, outputStream)

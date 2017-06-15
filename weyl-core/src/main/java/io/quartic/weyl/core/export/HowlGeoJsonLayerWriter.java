@@ -24,7 +24,7 @@ public class HowlGeoJsonLayerWriter implements LayerWriter {
 
     private LayerExportResult storeToHowl(Layer layer) throws IOException {
         final int[] featureCount = new int[1];
-        HowlStorageId howlStorageId = howlClient.uploadFile(MediaType.APPLICATION_JSON, HOWL_NAMESPACE, outputStream -> {
+        HowlStorageId howlStorageId = howlClient.uploadAnonymousFile(HOWL_NAMESPACE, MediaType.APPLICATION_JSON, outputStream -> {
             GeoJsonGenerator geoJsonGenerator = new GeoJsonGenerator(outputStream);
 
             featureCount[0] = geoJsonGenerator.writeFeatures(

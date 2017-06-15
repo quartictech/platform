@@ -9,6 +9,7 @@ import rx.Observable
 import rx.Subscription
 import javax.websocket.Session
 
+// TODO - this will need to change for 2D namespaces
 class WebsocketEndpoint(private val changes: Observable<StorageBackendChange>) : ResourceManagingEndpoint<Subscription>() {
     private val LOG by logger()
 
