@@ -84,7 +84,7 @@ class Schematic extends React.Component<SchematicProps, State> {
     return (
       <div>
         <Tabs2
-          className={styles.yeah}
+          className={styles.tabs}
           id="survey-picker"
           onChange={id => this.setState({ surveySelection: id.toString() })}
           selectedTabId={this.state.surveySelection}
@@ -99,7 +99,7 @@ class Schematic extends React.Component<SchematicProps, State> {
         />
 
         <Tabs2
-          className={styles.yeah}
+          className={styles.tabs}
           id="year-picker"
           onChange={id => this.props.onSelectYear(id.toString())}
           selectedTabId={this.props.yearSelection}
