@@ -5,8 +5,8 @@ import java.io.InputStream
 
 interface StorageBackend {
     @Throws(IOException::class)
-    fun getData(namespace: String, objectName: String, version: Long?): InputStreamWithContentType?
+    fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType?
 
     @Throws(IOException::class)
-    fun putData(contentType: String?, namespace: String, objectName: String, inputStream: InputStream): Long?
+    fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long?
 }
