@@ -89,7 +89,7 @@ class Schematic extends React.Component<SchematicProps, State> {
           onChange={id => this.setState({ surveySelection: id.toString() })}
           selectedTabId={this.state.surveySelection}
         >
-          <Tab2 id="dvi" title="DVI" />
+          <Tab2 id="dvi" title="DVI" disabled={!this.hasDVIData()} />
           <Tab2 id="scanner" title="SCANNER (3m LPV)" disabled={!this.hasScannerData()} />
         </Tabs2>
 
@@ -104,15 +104,15 @@ class Schematic extends React.Component<SchematicProps, State> {
           onChange={id => this.props.onSelectYear(id.toString())}
           selectedTabId={this.props.yearSelection}
         >
-          <Tab2 id="2013" title="2013" />
-          <Tab2 id="2014" title="2014" />
-          <Tab2 id="2015" title="2015" />
-          <Tab2 id="2016" title="2016" />
+          <Tab2 id="2013" title="2013" disabled={!this.hasData()}/>
+          <Tab2 id="2014" title="2014" disabled={!this.hasData()}/>
+          <Tab2 id="2015" title="2015" disabled={!this.hasData()}/>
+          <Tab2 id="2016" title="2016" disabled={!this.hasData()}/>
         </Tabs2>
       </div>
     );
   }
-  
+
   private getSurveySections(): RoadSchematicSection[] {
     return _.chain(this.props.asset["_surveys"][this.state.surveySelection])
       .map(section => ({
@@ -129,6 +129,14 @@ class Schematic extends React.Component<SchematicProps, State> {
 
   private hasScannerData(): boolean {
     return "scanner" in this.props.asset["_surveys"];
+  }
+
+  private hasData(): boolean {
+    return this.hasScannerData() || this.hasDVIData();
+  }
+
+  private hasDVIData(): boolean {
+    return "dvi" in this.props.asset["_surveys"];
   }
 
   private getDefectScore(section: RoadSchematicSection) {
