@@ -57,11 +57,14 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
 
   render() {
     const events = this.computeEvents(this.props.asset);
+    const defectTimeSeries = this.props.asset._defect_time_series ?
+      this.props.asset._defect_time_series[this.state.seriesSelection] :
+      null;
 
     const timeSeries = Object.assign(
       {
       defects:
-        this.computeTimeSeries(this.props.asset._defect_time_series[this.state.seriesSelection]),
+        this.computeTimeSeries(defectTimeSeries),
       },
       this.state.predictions ? {
         predictions: this.computeTimeSeries(this.props.asset._defect_predictions),
