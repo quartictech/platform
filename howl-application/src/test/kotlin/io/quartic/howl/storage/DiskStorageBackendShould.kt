@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.DiskStorageBackendConfig
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -15,7 +16,7 @@ class DiskStorageBackendShould {
     @JvmField
     var folder = TemporaryFolder()
 
-    private val backend by lazy { DiskStorageBackend(folder.root.toPath()) }
+    private val backend by lazy { DiskStorageBackend(DiskStorageBackendConfig(folder.root.toString())) }
 
     @Test
     fun store_data_and_return_it() {

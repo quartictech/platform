@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.DiskStorageBackendConfig
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -12,7 +13,7 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
+class DiskStorageBackend(private val config: DiskStorageBackendConfig) : StorageBackend {
     private val lock = ReentrantReadWriteLock()
     private val versionCounter = AtomicLong(System.currentTimeMillis())
 
@@ -68,7 +69,7 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         return fileNames.map { it -> parseLong(it) }.max()
     }
 
-    private val StorageCoords.path get() = rootPath.resolve(Paths.get(targetNamespace, identityNamespace, objectName))
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(Paths.get(targetNamespace, identityNamespace, objectName))
 
     private fun renameFile(from: Path, to: Path) {
         try {

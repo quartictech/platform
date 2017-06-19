@@ -14,6 +14,7 @@ service {
 dependencies {
     compile project(":common-application")
     compile project(":howl-api")
+    compile "com.amazonaws:aws-java-sdk-s3:1.11.150"
     compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
     compile libraries.dropwizardWebsockets
 

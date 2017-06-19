@@ -9,7 +9,7 @@ import io.quartic.howl.storage.StorageBackend
 
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
-        Type(value = GcsStorageBackendConfig::class, name = "google_cloud_storage"),
+        Type(value = GcsStorageBackendConfig::class, name = "gcs"),
         Type(value = DiskStorageBackendConfig::class, name = "local_disk")
 )
 interface StorageBackendConfig {
