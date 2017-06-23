@@ -2,6 +2,7 @@ package io.quartic.howl
 
 import com.nhaarman.mockito_kotlin.*
 import io.dropwizard.testing.junit.ResourceTestRule
+import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.InputStreamWithContentType
@@ -16,17 +17,18 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.Entity
 import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
-    private val backend = mock<Storage>()
+    private val storage = mock<Storage>()
     private val idGen = mock<UidGenerator<HowlStorageId>>()
 
     @Rule
     @JvmField
     val resources = ResourceTestRule.builder()
-            .addResource(HowlResource(backend, idGen))
+            .addResource(HowlResource(storage, idGen))
             // Needed for injecting HttpServletRequest with @Context to work in the resource
             .setTestContainerFactory(GrizzlyWebTestContainerFactory())
             .build()
@@ -45,17 +47,17 @@ class HowlResourceShould {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(backend.putData(any(), any(), any())).thenAnswer { invocation ->
+        whenever(storage.putData(any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            55L
+            Storage.PutResult(55)
         }
 
         resources.jerseyTest.target(requestPath)
                 .request()
                 .put(Entity.text(data))
 
-        verify(backend).putData(eq(expectedCoords), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putData(eq(expectedCoords), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
@@ -75,10 +77,10 @@ class HowlResourceShould {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(backend.putData(any(), any(), any())).thenAnswer { invocation ->
+        whenever(storage.putData(any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            55L
+            Storage.PutResult(55)
         }
 
         val howlStorageId = resources.jerseyTest.target(requestPath)
@@ -86,20 +88,33 @@ class HowlResourceShould {
                 .post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, equalTo(expectedId))
-        verify(backend).putData(eq(expectedCoords), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putData(eq(expectedCoords), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
+    }
+
+    @Test
+    fun throw_if_storage_returns_null() {
+        whenever(storage.putData(any(), anyOrNull(), any())).thenReturn(null)
+        whenever(idGen.get()).thenReturn(HowlStorageId("69"))
+
+        assertThrows<NotFoundException> {
+            resources.jerseyTest.target("/foo/thing")
+                    .request()
+                    .post(Entity.text("noobs".toByteArray()), HowlStorageId::class.java)
+        }
     }
 
     // See https://github.com/quartictech/platform/pull/239
     @Test
     fun cope_with_missing_content_type() {
+        whenever(storage.putData(any(), anyOrNull(), any())).thenReturn(Storage.PutResult(55))
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         resources.jerseyTest.target("/test")
                 .request()
                 .post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(backend).putData(eq(StorageCoords("test", "test", "69")), eq(null), any())
+        verify(storage).putData(eq(StorageCoords("test", "test", "69")), eq(null), any())
     }
 
     @Test
@@ -114,7 +129,7 @@ class HowlResourceShould {
 
     private fun assertGetBehavesCorrectly(requestPath: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
-        whenever(backend.getData(any(), anyOrNull())).thenReturn(
+        whenever(storage.getData(any(), anyOrNull())).thenReturn(
                 InputStreamWithContentType(MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
         )
 
@@ -123,7 +138,7 @@ class HowlResourceShould {
                 .get()
 
         val responseEntity = response.readEntity(ByteArray::class.java)
-        verify(backend).getData(eq(expectedCoords), eq(null))
+        verify(storage).getData(eq(expectedCoords), eq(null))
         assertThat(responseEntity, equalTo(data))
     }
 }

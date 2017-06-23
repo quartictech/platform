@@ -1,14 +1,6 @@
 namespaces:
-  - cheese:
-      type: gcs
-      bucket: cheese.test.quartic.io
-
-  - doughnuts:
-      type: s3
-      region: eu-west-1
-      bucket: quartic-doughnuts
-      roleArn: arn:aws:iam::123456789012:role/quartic-access
-      externalId: doughnuts
+  - noob:
+      type: local
 
 server:
   applicationContextPath: /

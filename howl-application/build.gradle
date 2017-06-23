@@ -19,7 +19,7 @@ dependencies {
     compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
     compile libraries.dropwizardWebsockets
 
-    testCompile libraries.testCommon
+    testCompile project(":common-test")
     testCompile libraries.dropwizardTesting
     testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25"
 }

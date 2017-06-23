@@ -8,33 +8,36 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
+import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
-class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
-    data class Config(val bucketSuffix: String) : StorageConfig
+class GcsStorage(private val config: Config, private val storage: Storage) : io.quartic.howl.storage.Storage {
+    data class Config(val bucket: String) : StorageConfig
 
-    private val storage = buildService()
+    class Factory {
+        private val storage by lazy {
+            val transport = GoogleNetHttpTransport.newTrustedTransport()
+            val jsonFactory = JacksonFactory()
+            var credential = GoogleCredential.getApplicationDefault(transport, jsonFactory)
 
-    private fun buildService(): Storage {
-        val transport = GoogleNetHttpTransport.newTrustedTransport()
-        val jsonFactory = JacksonFactory()
-        var credential = GoogleCredential.getApplicationDefault(transport, jsonFactory)
+            // Depending on the environment that provides the default credentials (for
+            // example: Compute Engine, App Engine), the credentials may require us to
+            // specify the scopes we need explicitly.  Check for this case, and inject
+            // the Cloud Storage scope if required.
+            if (credential.createScopedRequired()) {
+                credential = credential.createScoped(StorageScopes.all())
+            }
 
-        // Depending on the environment that provides the default credentials (for
-        // example: Compute Engine, App Engine), the credentials may require us to
-        // specify the scopes we need explicitly.  Check for this case, and inject
-        // the Cloud Storage scope if required.
-        if (credential.createScopedRequired()) {
-            credential = credential.createScoped(StorageScopes.all())
+            Storage.Builder(transport, jsonFactory, credential)
+                    .setApplicationName("Quartic platform")
+                    .build()
         }
 
-        return Storage.Builder(transport, jsonFactory, credential)
-                .setApplicationName("Quartic platform")
-                .build()
+        fun create(config: Config) = GcsStorage(config, storage)
     }
 
     override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-        val get = storage.objects().get(coords.bucket, coords.path)
+        val get = storage.objects().get(config.bucket, coords.path)
         get.generation = version
 
         try {
@@ -49,18 +52,15 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
             }
         }
         return null
-
     }
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
-        return storage.objects().insert(
-                coords.bucket,
-                StorageObject().setName(coords.path),
-                InputStreamContent(contentType, inputStream)
-        ).execute().generation
-    }
+    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream) = PutResult(
+            storage.objects().insert(
+                    config.bucket,
+                    StorageObject().setName(coords.path),
+                    InputStreamContent(contentType, inputStream)
+            ).execute().generation)
 
-    private val StorageCoords.bucket get() = "$targetNamespace.${config.bucketSuffix}"
     private val StorageCoords.path get() = "$identityNamespace/$objectName"
 }
 

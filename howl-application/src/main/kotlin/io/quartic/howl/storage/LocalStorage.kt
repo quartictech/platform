@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.storage.Storage.PutResult
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -38,7 +39,7 @@ class LocalStorage(private val config: Config) : Storage {
         return null
     }
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
+    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): PutResult? {
         coords.path.toFile().mkdirs()
         var tempFile: File? = null
         val version = versionCounter.incrementAndGet()
@@ -52,7 +53,7 @@ class LocalStorage(private val config: Config) : Storage {
                 tempFile.delete()
             }
         }
-        return version
+        return PutResult(version)
     }
 
     private fun getVersionPath(coords: StorageCoords, version: Long?): Path? {

@@ -36,11 +36,7 @@ class HowlResource(
             @Context request: HttpServletRequest
     ): HowlStorageId {
         val howlStorageId = howlStorageIdGenerator.get()
-        storage.putData(
-                StorageCoords(targetNamespace, identityNamespace, howlStorageId.uid),
-                request.contentType,
-                request.inputStream
-        )
+        uploadFileOrThrow(targetNamespace, identityNamespace, howlStorageId.uid, request)
         return howlStorageId
     }
 
@@ -60,12 +56,19 @@ class HowlResource(
             @PathParam("filename") fileName: String,
             @Context request: HttpServletRequest
     ) {
-        storage.putData(
-                StorageCoords(targetNamespace, identityNamespace, fileName),
-                request.contentType,
-                request.inputStream
-        )
+        uploadFileOrThrow(targetNamespace, identityNamespace, fileName, request)
     }
+
+    private fun uploadFileOrThrow(
+            targetNamespace: String,
+            identityNamespace: String,
+            fileName: String,
+            request: HttpServletRequest
+    ) = storage.putData(
+            StorageCoords(targetNamespace, identityNamespace, fileName),
+            request.contentType,
+            request.inputStream
+    ) ?: throw NotFoundException()
 
     @GET
     @Path("/{filename}")
