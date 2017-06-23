@@ -1,5 +1,7 @@
-storage:
-  type: local_disk
+localDisk: true
+
+gcs:
+  bucketSuffix: test.quartic.io
 
 server:
   applicationContextPath: /

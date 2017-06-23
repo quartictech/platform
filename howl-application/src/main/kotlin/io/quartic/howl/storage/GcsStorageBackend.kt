@@ -8,10 +8,11 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
-import io.quartic.howl.GcsStorageBackendConfig
 import java.io.InputStream
 
-class GcsStorageBackend(private val config: GcsStorageBackendConfig) : StorageBackend {
+class GcsStorageBackend(private val config: Config) : StorageBackend {
+    data class Config(val bucketSuffix: String)
+
     private val storage = buildService()
 
     private fun buildService(): Storage {

@@ -1,6 +1,5 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.DiskStorageBackendConfig
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -13,7 +12,9 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-class DiskStorageBackend(private val config: DiskStorageBackendConfig) : StorageBackend {
+class DiskStorageBackend(private val config: Config) : StorageBackend {
+    data class Config(val dataDir: String = "./data")
+
     private val lock = ReentrantReadWriteLock()
     private val versionCounter = AtomicLong(System.currentTimeMillis())
 
