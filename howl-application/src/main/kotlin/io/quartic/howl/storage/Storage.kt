@@ -11,5 +11,5 @@ interface Storage {
 
     // Null return indicates NotFound (TODO - wtf does that even mean?)
     @Throws(IOException::class)
-    fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): PutResult?
+    fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult?
 }

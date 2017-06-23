@@ -16,7 +16,7 @@ class S3StorageShould {
         val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putData(coords, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
 
         storage.getData(coords, null).use {
             it!!

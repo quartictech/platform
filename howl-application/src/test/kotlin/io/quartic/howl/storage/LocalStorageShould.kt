@@ -55,7 +55,7 @@ class LocalStorageShould {
     }
 
     private fun storeData(objectName: String, data: ByteArray)
-            = storage.putData(StorageCoords("foo", "bar", objectName), MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+            = storage.putData(StorageCoords("foo", "bar", objectName), null, MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
 
     private fun getData(objectName: String, version: Long?): ByteArray? {
         val inputStreamWithContentType = storage.getData(StorageCoords("foo", "bar", objectName), version)

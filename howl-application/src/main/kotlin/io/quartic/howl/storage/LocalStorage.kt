@@ -39,7 +39,7 @@ class LocalStorage(private val config: Config) : Storage {
         return null
     }
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): PutResult? {
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
         coords.path.toFile().mkdirs()
         var tempFile: File? = null
         val version = versionCounter.incrementAndGet()

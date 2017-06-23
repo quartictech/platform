@@ -66,6 +66,7 @@ class HowlResource(
             request: HttpServletRequest
     ) = storage.putData(
             StorageCoords(targetNamespace, identityNamespace, fileName),
+            request.contentLength,  // TODO: what if this is bigger than MAX_VALUE?
             request.contentType,
             request.inputStream
     ) ?: throw NotFoundException()

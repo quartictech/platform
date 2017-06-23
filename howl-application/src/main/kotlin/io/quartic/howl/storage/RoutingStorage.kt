@@ -1,6 +1,5 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
 class RoutingStorage(configs: Map<String, StorageConfig>) : Storage {
@@ -16,11 +15,9 @@ class RoutingStorage(configs: Map<String, StorageConfig>) : Storage {
         }
     }
 
-    override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-        return dests[coords.targetNamespace]?.getData(coords, version)
-    }
+    override fun getData(coords: StorageCoords, version: Long?)
+            = dests[coords.targetNamespace]?.getData(coords, version)
     
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): PutResult? {
-        return dests[coords.targetNamespace]?.putData(coords, contentType, inputStream)
-    }
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream)
+            = dests[coords.targetNamespace]?.putData(coords, contentLength, contentType, inputStream)
 }

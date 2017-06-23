@@ -51,7 +51,7 @@ class GcsStorageFactory {
             return null
         }
 
-        override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream) = PutResult(
+        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
                 storage.objects().insert(
                         config.bucket,
                         StorageObject().setName(coords.path),

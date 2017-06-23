@@ -10,8 +10,8 @@ class ObservableStorage(private val delegate: Storage) : Storage by delegate {
     private val _changes = PublishSubject.create<StorageChange>()
     val changes: Observable<StorageChange> get() = _changes
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): PutResult? {
-        val result = delegate.putData(coords, contentType, inputStream)
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
+        val result = delegate.putData(coords, contentLength, contentType, inputStream)
         if (result != null) {
             _changes.onNext(StorageChange(coords.targetNamespace, coords.objectName, result.version))    // TODO: how to handle namespaces for change watch?
         }

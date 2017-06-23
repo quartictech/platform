@@ -35,9 +35,12 @@ class S3Storage(private val config: Config) : Storage {
         }
     }
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): PutResult? {
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
         inputStream.use { s ->
             val metadata = ObjectMetadata()
+            if (contentLength != null) {
+                metadata.contentLength = contentLength.toLong()
+            }
             metadata.contentType = contentType
             s3.putObject(config.bucket, coords.objectKey, s, metadata)
         }

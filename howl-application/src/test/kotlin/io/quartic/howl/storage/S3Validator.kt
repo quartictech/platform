@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
     val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")
     val data = "Hello world!"
 
-    storage.putData(coords, MediaType.TEXT_PLAIN, data.byteInputStream())
+    storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
     storage.getData(coords, null).use {
         it!!
         assertThat(it.contentType, equalTo(MediaType.TEXT_PLAIN))

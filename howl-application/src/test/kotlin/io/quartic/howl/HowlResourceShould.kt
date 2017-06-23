@@ -47,8 +47,8 @@ class HowlResourceShould {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(storage.putData(any(), any(), any())).thenAnswer { invocation ->
-            val inputStream = invocation.getArgument<InputStream>(2)
+        whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
+            val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             Storage.PutResult(55)
         }
@@ -57,7 +57,7 @@ class HowlResourceShould {
                 .request()
                 .put(Entity.text(data))
 
-        verify(storage).putData(eq(expectedCoords), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putData(eq(expectedCoords), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
@@ -77,8 +77,8 @@ class HowlResourceShould {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(storage.putData(any(), any(), any())).thenAnswer { invocation ->
-            val inputStream = invocation.getArgument<InputStream>(2)
+        whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
+            val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             Storage.PutResult(55)
         }
@@ -88,13 +88,13 @@ class HowlResourceShould {
                 .post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, equalTo(expectedId))
-        verify(storage).putData(eq(expectedCoords), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putData(eq(expectedCoords), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
     @Test
     fun throw_if_storage_returns_null() {
-        whenever(storage.putData(any(), anyOrNull(), any())).thenReturn(null)
+        whenever(storage.putData(any(), any(), anyOrNull(), any())).thenReturn(null)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         assertThrows<NotFoundException> {
@@ -107,14 +107,14 @@ class HowlResourceShould {
     // See https://github.com/quartictech/platform/pull/239
     @Test
     fun cope_with_missing_content_type() {
-        whenever(storage.putData(any(), anyOrNull(), any())).thenReturn(Storage.PutResult(55))
+        whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(Storage.PutResult(55))
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         resources.jerseyTest.target("/test")
                 .request()
                 .post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(storage).putData(eq(StorageCoords("test", "test", "69")), eq(null), any())
+        verify(storage).putData(eq(StorageCoords("test", "test", "69")), eq(-1), eq(null), any())
     }
 
     @Test

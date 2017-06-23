@@ -16,7 +16,7 @@ class ObservableStorageShould {
 
     @Test
     fun notify_on_put() {
-        whenever(delegate.putData(any(), any(), any())).thenReturn(Storage.PutResult(1L))
+        whenever(delegate.putData(any(), any(), any(), any())).thenReturn(Storage.PutResult(1L))
 
         val subscriber = TestSubscriber.create<StorageChange>()
         storage.changes.subscribe(subscriber)
@@ -27,7 +27,7 @@ class ObservableStorageShould {
 
     @Test
     fun not_notify_if_put_returns_null() {
-        whenever(delegate.putData(any(), any(), any())).thenReturn(null)
+        whenever(delegate.putData(any(), any(), any(), any())).thenReturn(null)
 
         val subscriber = TestSubscriber.create<StorageChange>()
         storage.changes.subscribe(subscriber)
@@ -38,7 +38,7 @@ class ObservableStorageShould {
 
     @Test
     fun not_notify_changes_from_before_subscription() {
-        whenever(delegate.putData(any(), any(), any())).thenReturn(Storage.PutResult(1L))
+        whenever(delegate.putData(any(), any(), any(), any())).thenReturn(Storage.PutResult(1L))
 
         val subscriber = TestSubscriber.create<StorageChange>()
         putData()
@@ -50,6 +50,7 @@ class ObservableStorageShould {
     private fun putData() {
         storage.putData(
                 StorageCoords("foo", "bar", "ladispute"),
+                5,
                 MediaType.TEXT_PLAIN,
                 ByteArrayInputStream("hello".toByteArray())
         )
