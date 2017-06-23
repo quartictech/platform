@@ -1,6 +1,6 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.DiskStorageBackend.Config
+import io.quartic.howl.storage.DiskStorage.Config
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -11,12 +11,12 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.ws.rs.core.MediaType
 
-class DiskStorageBackendShould {
+class DiskStorageShould {
     @Rule
     @JvmField
     var folder = TemporaryFolder()
 
-    private val backend by lazy { DiskStorageBackend(Config(folder.root.toString())) }
+    private val storage by lazy { DiskStorage(Config(folder.root.toString())) }
 
     @Test
     fun store_data_and_return_it() {
@@ -55,10 +55,10 @@ class DiskStorageBackendShould {
     }
 
     private fun storeData(objectName: String, data: ByteArray)
-            = backend.putData(StorageCoords("foo", "bar", objectName), MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+            = storage.putData(StorageCoords("foo", "bar", objectName), MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
 
     private fun getData(objectName: String, version: Long?): ByteArray? {
-        val inputStreamWithContentType = backend.getData(StorageCoords("foo", "bar", objectName), version)
+        val inputStreamWithContentType = storage.getData(StorageCoords("foo", "bar", objectName), version)
         return if (inputStreamWithContentType != null) {
             val outputStream = ByteArrayOutputStream()
             IOUtils.copy(inputStreamWithContentType.inputStream, outputStream)

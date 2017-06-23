@@ -1,9 +1,9 @@
 package io.quartic.howl
 
 import io.dropwizard.Configuration
-import io.quartic.howl.storage.GcsStorageBackend
+import io.quartic.howl.storage.GcsStorage
 
 data class HowlConfiguration(
         val localDisk: Boolean = false,
-        val gcs: GcsStorageBackend.Config
+        val gcs: GcsStorage.Config
 ) : Configuration()

@@ -10,7 +10,7 @@ import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
 import java.io.InputStream
 
-class GcsStorageBackend(private val config: Config) : StorageBackend {
+class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
     data class Config(val bucketSuffix: String)
 
     private val storage = buildService()

@@ -5,9 +5,9 @@ import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.websocket.serverEndpointConfig
-import io.quartic.howl.storage.DiskStorageBackend
-import io.quartic.howl.storage.GcsStorageBackend
-import io.quartic.howl.storage.ObservableStorageBackend
+import io.quartic.howl.storage.DiskStorage
+import io.quartic.howl.storage.GcsStorage
+import io.quartic.howl.storage.ObservableStorage
 import javax.websocket.server.ServerEndpointConfig
 
 class HowlApplication : ApplicationBase<HowlConfiguration>() {
@@ -18,22 +18,22 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
     }
 
     public override fun runApplication(configuration: HowlConfiguration, environment: Environment) {
-        val backend = createBackend(configuration)
-        environment.jersey().register(HowlResource(backend))
+        val storage = createStorage(configuration)
+        environment.jersey().register(HowlResource(storage))
         websocketBundle.addEndpoint(serverEndpointConfig(
                 "/changes/{namespace}/{objectName}",
-                WebsocketEndpoint(backend.changes)
+                WebsocketEndpoint(storage.changes)
         ))
     }
 
-    private fun createBackend(configuration: HowlConfiguration): ObservableStorageBackend {
+    private fun createStorage(configuration: HowlConfiguration): ObservableStorage {
         val delegate = if (configuration.localDisk) {
-            DiskStorageBackend(DiskStorageBackend.Config())
+            DiskStorage(DiskStorage.Config())
         } else {
-            GcsStorageBackend(configuration.gcs)
+            GcsStorage(configuration.gcs)
         }
 
-        return ObservableStorageBackend(delegate)
+        return ObservableStorage(delegate)
     }
 
     companion object {

@@ -3,7 +3,7 @@ package io.quartic.howl
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
-import io.quartic.howl.storage.StorageBackend
+import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
 import org.apache.commons.io.IOUtils
 import javax.servlet.http.HttpServletRequest
@@ -17,7 +17,7 @@ import javax.ws.rs.core.StreamingOutput
 // TODO - get rid of 2D variants, and move {identity-namespace} into Resource path
 @Path("/{target-namespace}")
 class HowlResource(
-        private val storageBackend: StorageBackend,
+        private val storage: Storage,
         private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
 ) {
     @POST
@@ -36,7 +36,7 @@ class HowlResource(
             @Context request: HttpServletRequest
     ): HowlStorageId {
         val howlStorageId = howlStorageIdGenerator.get()
-        storageBackend.putData(
+        storage.putData(
                 StorageCoords(targetNamespace, identityNamespace, howlStorageId.uid),
                 request.contentType,
                 request.inputStream
@@ -60,7 +60,7 @@ class HowlResource(
             @PathParam("filename") fileName: String,
             @Context request: HttpServletRequest
     ) {
-        storageBackend.putData(
+        storage.putData(
                 StorageCoords(targetNamespace, identityNamespace, fileName),
                 request.contentType,
                 request.inputStream
@@ -82,7 +82,7 @@ class HowlResource(
             @PathParam("filename") fileName: String
     ): Response {
         val coords = StorageCoords(targetNamespace, identityNamespace, fileName)
-        val (contentType, inputStream) = storageBackend.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
         return Response.ok()
                 .header(CONTENT_TYPE, contentType)
                 .entity(StreamingOutput {

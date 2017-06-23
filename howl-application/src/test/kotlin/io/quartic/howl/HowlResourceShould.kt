@@ -5,7 +5,7 @@ import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.InputStreamWithContentType
-import io.quartic.howl.storage.StorageBackend
+import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
 import org.apache.commons.io.IOUtils
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory
@@ -20,7 +20,7 @@ import javax.ws.rs.client.Entity
 import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
-    private val backend = mock<StorageBackend>()
+    private val backend = mock<Storage>()
     private val idGen = mock<UidGenerator<HowlStorageId>>()
 
     @Rule
