@@ -11,6 +11,7 @@ class RoutingStorage(configs: Map<String, StorageConfig>) : Storage {
         when (config) {
             is LocalStorage.Config -> LocalStorage(config)
             is GcsStorageFactory.Config -> gcsFactory.create(config)
+            is S3Storage.Config -> S3Storage(config)
             else -> throw RuntimeException("Unrecognised storage type '${config.javaClass}'")
         }
     }
