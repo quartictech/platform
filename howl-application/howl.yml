@@ -1,6 +1,6 @@
 namespaces:
-  - noob:
-      type: local
+  noob:
+    type: local
 
 server:
   applicationContextPath: /

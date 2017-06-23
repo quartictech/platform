@@ -1,6 +1,5 @@
 package io.quartic.howl.storage
 
-import com.amazonaws.regions.Regions
 import io.quartic.howl.storage.S3Storage.Config
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -38,7 +37,7 @@ class S3StorageShould {
 
     companion object {
         private val storage = S3Storage(Config(
-                Regions.EU_WEST_1,
+                "eu-west-1",
                 "test-howl",
                 "arn:aws:iam::555071496850:role/Test-Bucket-Accessor",
                 "696969"

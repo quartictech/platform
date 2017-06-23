@@ -1,7 +1,6 @@
 package io.quartic.howl.storage
 
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectMetadata
@@ -10,7 +9,7 @@ import java.io.InputStream
 
 class S3Storage(private val config: Config) : Storage {
     data class Config(
-            val region: Regions,
+            val region: String,
             val bucket: String,
             val roleArn: String,
             val externalId: String

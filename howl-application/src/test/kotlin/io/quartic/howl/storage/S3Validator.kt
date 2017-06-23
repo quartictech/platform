@@ -1,6 +1,5 @@
 package io.quartic.howl.storage
 
-import com.amazonaws.regions.Regions
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import java.io.InputStream
@@ -10,7 +9,7 @@ import javax.ws.rs.core.MediaType
 
 fun main(args: Array<String>) {
     val storage = S3Storage(S3Storage.Config(
-            region = Regions.fromName(args[0]),
+            region = args[0],
             bucket = args[1],
             roleArn = args[2],
             externalId = args[3]
