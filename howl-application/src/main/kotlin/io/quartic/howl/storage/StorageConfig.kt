@@ -9,6 +9,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
         Type(value = LocalStorage.Config::class, name = "local"),
-        Type(value = GcsStorage.Config::class, name = "gcs")
+        Type(value = GcsStorageFactory.Config::class, name = "gcs")
 )
 interface StorageConfig
