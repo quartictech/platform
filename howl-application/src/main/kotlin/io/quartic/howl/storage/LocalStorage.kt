@@ -12,8 +12,8 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-class DiskStorage(private val config: Config) : Storage {
-    data class Config(val dataDir: String = "./data")
+class LocalStorage(private val config: Config) : Storage {
+    data class Config(val dataDir: String = "./data") : StorageConfig
 
     private val lock = ReentrantReadWriteLock()
     private val versionCounter = AtomicLong(System.currentTimeMillis())

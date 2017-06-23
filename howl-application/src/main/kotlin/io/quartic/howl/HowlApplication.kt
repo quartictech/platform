@@ -5,8 +5,8 @@ import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.websocket.serverEndpointConfig
-import io.quartic.howl.storage.DiskStorage
 import io.quartic.howl.storage.GcsStorage
+import io.quartic.howl.storage.LocalStorage
 import io.quartic.howl.storage.ObservableStorage
 import javax.websocket.server.ServerEndpointConfig
 
@@ -27,12 +27,13 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
     }
 
     private fun createStorage(configuration: HowlConfiguration): ObservableStorage {
-        val delegate = if (configuration.localDisk) {
-            DiskStorage(DiskStorage.Config())
-        } else {
-            GcsStorage(configuration.gcs)
+        // TODO - make this regular
+        val config = configuration.namespaces.first()
+        val delegate = when (config) {
+            is LocalStorage.Config -> LocalStorage(config)
+            is GcsStorage.Config -> GcsStorage(config)
+            else -> throw RuntimeException("Unrecognised storage type '${config.javaClass}'")
         }
-
         return ObservableStorage(delegate)
     }
 

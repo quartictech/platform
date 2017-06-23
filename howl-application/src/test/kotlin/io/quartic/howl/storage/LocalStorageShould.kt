@@ -1,6 +1,6 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.DiskStorage.Config
+import io.quartic.howl.storage.LocalStorage.Config
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -11,12 +11,12 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.ws.rs.core.MediaType
 
-class DiskStorageShould {
+class LocalStorageShould {
     @Rule
     @JvmField
     var folder = TemporaryFolder()
 
-    private val storage by lazy { DiskStorage(Config(folder.root.toString())) }
+    private val storage by lazy { LocalStorage(Config(folder.root.toString())) }
 
     @Test
     fun store_data_and_return_it() {

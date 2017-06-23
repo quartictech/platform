@@ -11,7 +11,7 @@ import com.google.api.services.storage.model.StorageObject
 import java.io.InputStream
 
 class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
-    data class Config(val bucketSuffix: String)
+    data class Config(val bucketSuffix: String) : StorageConfig
 
     private val storage = buildService()
 
