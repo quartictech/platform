@@ -1,32 +1,55 @@
-machine:
-  java:
-    version: openjdk8
-  services:
-    - docker
+version: 2
 
-dependencies:
-  cache_directories:
-    - .gradle
-    - ~/.cache/yarn
-    - zeus-frontend/.gradle
-  override:
-    - ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+jobs:
+  build:
+    docker:
+      - image: quartic/uber-builder:41
 
-test:
-  override:
-    # We don't run --parallel because of Kotlin compiler bugs (see https://youtrack.jetbrains.com/issue/KT-15562)
-    - ./gradlew check --info --console=plain --profile
-  post:
-    - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
-    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+    working_directory: ~/website
 
-deployment:
-  hub:
-    branch: /.*/
-    commands:
-      - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
-      - ./gradlew dockerPush --parallel --info --console=plain
+    steps:
+      - checkout
 
-general:
-  artifacts:
-    - build/reports/profile
+      - run:
+          name: Run tests
+          command: ./gradlew check --info --console=plain --profile
+
+      - deploy:
+          command: ./gradlew dockerPush --parallel --info --console=plain
+
+
+
+###################################
+
+#machine:
+#  java:
+#    version: openjdk8
+#  services:
+#    - docker
+#
+#dependencies:
+#  cache_directories:
+#    - .gradle
+#    - ~/.cache/yarn
+#    - zeus-frontend/.gradle
+#  override:
+#    - ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+#
+#test:
+#  override:
+#    # We don't run --parallel because of Kotlin compiler bugs (see https://youtrack.jetbrains.com/issue/KT-15562)
+#    - ./gradlew check --info --console=plain --profile
+#  post:
+#    - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
+#    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+#
+#deployment:
+#  hub:
+#    branch: /.*/
+#    commands:
+#      - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
+#      - ./gradlew dockerPush --parallel --info --console=plain
+#
+#general:
+#  artifacts:
+#    - build/reports/profile
