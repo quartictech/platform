@@ -12,14 +12,18 @@ pluginManagement.repositories {
 
 def readFromCredsFile() {
     def fields = [:]
-    new File("${System.properties["user.home"]}/.aws/credentials").eachLine { line ->
-        def matcher = line =~ /^(aws_access_key_id|aws_secret_access_key)\s*=\s(.*)$/
-        if (matcher) {
-            fields[matcher[0][1]] = matcher[0][2]
+    def file = new File("${System.properties["user.home"]}/.aws/credentials")
+    if (file.exists()) {
+        file.eachLine { line ->
+            def matcher = line =~ /^(aws_access_key_id|aws_secret_access_key)\s*=\s(.*)$/
+            if (matcher) {
+                fields[matcher[0][1]] = matcher[0][2]
+            }
         }
     }
     return fields
 }
+
 
 
 include ":zeus-frontend"
