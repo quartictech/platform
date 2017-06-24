@@ -10,6 +10,9 @@ jobs:
     steps:
       - checkout
 
+      - setup_remote_docker:
+          reusable: true
+
       - run:
           name: Install dependencies
           command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
@@ -19,7 +22,9 @@ jobs:
           command: ./gradlew check --info --console=plain --profile
 
       - deploy:
-          command: ./gradlew dockerPush --parallel --info --console=plain
+          command: |
+            gcloud-auth
+            ./gradlew dockerPush --parallel --info --console=plain
 
 
 
