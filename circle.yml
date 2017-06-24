@@ -1,34 +1,74 @@
-machine:
-  java:
-    version: openjdk8
-  services:
-    - docker
+version: 2
 
-dependencies:
-  cache_directories:
-    - .gradle
-    - weyl-frontend/.gradle/nodejs
-    - mgmt-frontend/.gradle/nodejs
-    - weyl-frontend/node_modules
-    - mgmt-frontend/node_modules
-  override:
-    - ./gradlew resolveConfigurations npmInstall --parallel --info --console=plain
+jobs:
+  build:
+    docker:
+      - image: quartic/uber-builder:41
 
-test:
-  override:
-    # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
-    - ./gradlew check --info --console=plain --profile
-  post:
-    - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
-    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+    working_directory: ~/platform
 
-deployment:
-  hub:
-    branch: /.*/
-    commands:
-      - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
-      - ./gradlew publish dockerPush --parallel --info --console=plain
+    steps:
+      - checkout
 
-general:
-  artifacts:
-    - build/reports/profile
+      - restore_cache:
+          keys:
+            - platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
+            - platform-{{ .Branch }}-weyl-yarn
+            - platform-develop-weyl-yarn
+
+      - restore_cache:
+          keys:
+            - platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
+            - platform-{{ .Branch }}-mgmt-yarn
+            - platform-develop-mgmt-yarn
+
+      - restore_cache:
+          keys:
+            # Can't specify an exact match, so hopefully branch + latest is good enough
+            - platform-{{ .Branch }}-gradle
+            - platform-develop-gradle
+
+      - run:
+          name: Install dependencies
+          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+
+      - save_cache:
+          key: platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
+          paths:
+            - weyl-frontend/node_modules
+
+      - save_cache:
+          key: platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
+          paths:
+            - mgmt-frontend/node_modules
+
+      - run:
+          name: Calculate Gradle checksum file
+          command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > /gradle.txt
+
+      - save_cache:
+          key: platform-{{ .Branch }}-gradle-{{ checksum "/gradle.txt" }}
+          paths:
+            - ~/.gradle
+
+      # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
+      - run:
+          name: Run tests
+          command: ./gradlew check --info --console=plain --profile
+
+      - run:
+          name: Collect test results
+          command: |
+            mkdir -p /test-results
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} /test-results/ \;
+
+      - store_test_results:
+          path: /test-results/
+
+      - setup_remote_docker:
+          reusable: true
+
+      - deploy:
+          command: |
+            gcloud-auth --with-docker
+            ./gradlew dockerPush --parallel --info --console=plain

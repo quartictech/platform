@@ -1,7 +1,6 @@
 plugins {
     id "nebula.kotlin" version "1.1.2"
-    id "idea"
-    id "io.quartic.service" version "15"
+    id "io.quartic.service" version "28"
     id "com.palantir.configuration-resolver" version "0.2.0"
 }
 
@@ -22,10 +21,4 @@ dependencies {
     testCompile project(":common-test")
     testCompile libraries.dropwizardTesting
     testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25"
-}
-
-idea {
-    module {
-        excludeDirs += file("data")
-    }
 }

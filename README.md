@@ -11,7 +11,7 @@
 2. Start the front-end:
 
     ```
-    ./gradlew npmStart --parallel
+    ./gradlew yarnStart --parallel
     ```
 
 3. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
