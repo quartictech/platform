@@ -1,6 +1,5 @@
 plugins {
     id "java"
-    id "idea"
 }
 
 allprojects {
@@ -30,24 +29,10 @@ allprojects {
         compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
     }
 
-    idea {
-        project {
-            //if you want to set specific jdk and language level
-            jdkName = '1.8'
-            languageLevel = '1.8'
-        }
-    }
-
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
     group "io.quartic.platform"
     version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
-}
-
-idea {
-    module {
-        excludeDirs += file(".env")
-    }
 }
 

@@ -2,20 +2,28 @@ pluginManagement.repositories {
     maven {
         url "s3://quartictech-repo.s3.eu-west-2.amazonaws.com/maven2"
         credentials(AwsCredentials) {
-            new File("${System.properties["user.home"]}/.aws/credentials").eachLine { line ->
-                def matcher = line =~ /^(aws_access_key_id|aws_secret_access_key)\s*=\s(.*)$/
-                if (matcher) {
-                    if (matcher[0][1] == "aws_access_key_id") {
-                        accessKey matcher[0][2]
-                    } else {
-                        secretKey matcher[0][2]
-                    }
-                }
-            }
+            def fromFile = readFromCredsFile()
+            accessKey System.getenv("AWS_ACCESS_KEY_ID") ?: fromFile["aws_access_key_id"]
+            secretKey System.getenv("AWS_SECRET_ACCESS_KEY") ?: fromFile["aws_secret_access_key"]
         }
     }
     gradlePluginPortal()
 }
+
+def readFromCredsFile() {
+    def fields = [:]
+    def file = new File("${System.properties["user.home"]}/.aws/credentials")
+    if (file.exists()) {
+        file.eachLine { line ->
+            def matcher = line =~ /^(aws_access_key_id|aws_secret_access_key)\s*=\s(.*)$/
+            if (matcher) {
+                fields[matcher[0][1]] = matcher[0][2]
+            }
+        }
+    }
+    return fields
+}
+
 
 include "common-core"
 include "common-application"
