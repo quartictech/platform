@@ -1,32 +1,47 @@
-machine:
-  java:
-    version: openjdk8
-  services:
-    - docker
+version: 2
 
-dependencies:
-  cache_directories:
-    - .gradle
-    - ~/.cache/yarn
-    - zeus-frontend/.gradle
-  override:
-    - ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+jobs:
+  build:
+    docker:
+      - image: quartic/uber-builder:41
 
-test:
-  override:
-    # We don't run --parallel because of Kotlin compiler bugs (see https://youtrack.jetbrains.com/issue/KT-15562)
-    - ./gradlew check --info --console=plain --profile
-  post:
-    - mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
-    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+    working_directory: ~/zeus
 
-deployment:
-  hub:
-    branch: /.*/
-    commands:
-      - curl https://raw.githubusercontent.com/quartictech/circleci-utils/develop/circleci-gcloud-login | bash
-      - ./gradlew dockerPush --parallel --info --console=plain
+    steps:
+      - checkout
 
-general:
-  artifacts:
-    - build/reports/profile
+      # Yarn cache
+      - restore_cache:
+          keys:
+            - zeus-{{ .Branch }}-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+            - zeus-{{ .Branch }}-yarn
+            - zeus-develop-yarn
+
+      # TODO - Gradle cache
+
+      - run:
+          name: Install dependencies
+          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+
+      # Yarn cache
+      - save_cache:
+          key: zeus-{{ .Branch }}-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+          paths:
+            - zeus-frontend/node_modules
+
+      # TODO - Gradle cache
+
+      - run:
+          name: Run tests
+          command: ./gradlew check --info --console=plain --profile
+
+      - store_test_results:
+          path: zeus-backend/build/test-results/
+
+      - setup_remote_docker:
+          reusable: true
+
+      - deploy:
+          command: |
+            gcloud-auth --with-docker
+            ./gradlew dockerPush --parallel --info --console=plain

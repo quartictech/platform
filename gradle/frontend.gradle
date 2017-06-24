@@ -1,10 +1,10 @@
-def env = [BUILD_VERSION: version] + System.getenv()  // See https://github.com/srs/gradle-node-plugin/issues/130
+def env = [BUILD_VERSION: version]
 
-//node {
-//    version = "7.2.0"
-//    yarnVersion = "0.18.1"
-//    download = "true"
-//}
+node {
+//    version = "8.1.2"
+    yarnVersion = "0.24.6"
+    download = "true"
+}
 
 task yarnLint(type: YarnTask, dependsOn: yarn_install) {
     args = ["run", "lint", "--silent"]
