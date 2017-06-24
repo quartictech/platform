@@ -3,7 +3,7 @@ def env = [BUILD_VERSION: version]
 node {
     version = "8.1.2"
     yarnVersion = "0.24.6"
-    download = "false"
+    download = "true"
 }
 
 task yarnLint(type: YarnTask, dependsOn: yarn_install) {
