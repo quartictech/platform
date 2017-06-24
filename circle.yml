@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: quartic/uber-builder:41
 
-    working_directory: ~/website
+    working_directory: ~/zeus
 
     steps:
       - checkout
