@@ -60,7 +60,7 @@ jobs:
           name: Collect test results
           command: |
             mkdir -p /test-results
-            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} /test-results/ \;
 
       - store_test_results:
           path: /test-results/
