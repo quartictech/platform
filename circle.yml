@@ -35,6 +35,9 @@ jobs:
           name: Run tests
           command: ./gradlew check --info --console=plain --profile
 
+      - store_test_results:
+          path: zeus-backend/build/test-results/
+
       - setup_remote_docker:
           reusable: true
 
