@@ -46,8 +46,14 @@ jobs:
           name: Run tests
           command: ./gradlew check --info --console=plain --profile
 
-#      - store_test_results:
-#          path: platform-backend/build/test-results/
+      - run:
+          name: Collect test results
+          command: |
+            mkdir -p ${CIRCLE_TEST_REPORTS}/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ${CIRCLE_TEST_REPORTS}/junit/ \;
+
+      - store_test_results:
+          path: ${CIRCLE_TEST_REPORTS}/junit/
 
       - setup_remote_docker:
           reusable: true
