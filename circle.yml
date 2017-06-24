@@ -13,19 +13,19 @@ jobs:
       # Yarn cache
       - restore_cache:
           keys:
-            - zeus-{{ .Branch }}-npm-{{ checksum "zeus-frontend/package-lock.json" }}
-            - zeus-{{ .Branch }}-npm
-            - zeus-develop-npm
+            - zeus-{{ .Branch }}-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+            - zeus-{{ .Branch }}-yarn
+            - zeus-develop-yarn
 
       # TODO - Gradle cache
 
       - run:
           name: Install dependencies
-          command: ./gradlew resolveConfigurations npm_install --parallel --info --console=plain
+          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
 
       # Yarn cache
       - save_cache:
-          key: zeus-{{ .Branch }}-npm-{{ checksum "zeus-frontend/package-lock.json" }}
+          key: zeus-{{ .Branch }}-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
           paths:
             - zeus-frontend/node_modules
 

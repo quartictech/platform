@@ -1,30 +1,28 @@
 def env = [BUILD_VERSION: version]
 
 node {
-    version = "8.1.2"
-    npmVersion = "5.0.3"
     download = "false"
 }
 
-task npmLint(type: NpmTask, dependsOn: npm_install) {
+task yarnLint(type: YarnTask, dependsOn: yarn_install) {
     args = ["run", "lint", "--silent"]
 }
 
-task npmBuild(type: NpmTask, dependsOn: npm_install) {
+task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
     args = ["run", "build", "--silent"]
     environment = env + [NODE_ENV: "production"]
     // TODO: specify input files
     outputs.dir   "${buildDir}/webpack"
 }
 
-task npmStart(type: NpmTask, dependsOn: npm_install) {
+task yarnStart(type: YarnTask, dependsOn: yarn_install) {
     args = ["start", "--silent"]
     environment = env
     // TODO: specify input files
 }
 
 jar {
-    from npmBuild
+    from yarnBuild
 }
 
-check.dependsOn npmLint
+check.dependsOn yarnLint
