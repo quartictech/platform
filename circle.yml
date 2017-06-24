@@ -10,9 +10,6 @@ jobs:
     steps:
       - checkout
 
-      - setup_remote_docker:
-          reusable: true
-
       # Yarn cache
       - restore_cache:
           keys:
@@ -37,6 +34,9 @@ jobs:
       - run:
           name: Run tests
           command: ./gradlew check --info --console=plain --profile
+
+      - setup_remote_docker:
+          reusable: true
 
       - deploy:
           command: |
