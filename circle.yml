@@ -11,6 +11,10 @@ jobs:
       - checkout
 
       - run:
+          name: Install dependencies
+          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+
+      - run:
           name: Run tests
           command: ./gradlew check --info --console=plain --profile
 
