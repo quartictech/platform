@@ -16,7 +16,7 @@ jobs:
       # Yarn cache
       - restore_cache:
           keys:
-            - zeus-{{ .Branch }}-yarn-{{ checksum "yarn.lock" }}
+            - zeus-{{ .Branch }}-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
             - zeus-{{ .Branch }}-yarn
             - zeus-develop-yarn
 
@@ -28,7 +28,7 @@ jobs:
 
       # Yarn cache
       - save_cache:
-          key: zeus-{{ .Branch }}-yarn-{{ checksum "yarn.lock" }}
+          key: zeus-{{ .Branch }}-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
           paths:
             - zeus-frontend/node_modules
 
