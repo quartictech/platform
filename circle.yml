@@ -13,9 +13,26 @@ jobs:
       - setup_remote_docker:
           reusable: true
 
+      # Yarn cache
+      - restore_cache:
+          keys:
+            - zeus-{{ .Branch }}-yarn-{{ checksum "yarn.lock" }}
+            - zeus-{{ .Branch }}-yarn
+            - zeus-develop-yarn
+
+      # TODO - Gradle cache
+
       - run:
           name: Install dependencies
           command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+
+      # Yarn cache
+      - save_cache:
+          key: zeus-{{ .Branch }}-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - zeus-frontend/node_modules
+
+      # TODO - Gradle cache
 
       - run:
           name: Run tests
@@ -23,7 +40,7 @@ jobs:
 
       - deploy:
           command: |
-            gcloud-auth
+            gcloud-auth --with-docker
             ./gradlew dockerPush --parallel --info --console=plain
 
 
