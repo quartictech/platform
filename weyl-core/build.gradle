@@ -24,6 +24,8 @@ dependencies {
     compile "org.geotools:gt-referencing:${versions.geoTools}"
     compile "org.geotools:gt-geometry:${versions.geoTools}"
 
+    compile "org.apache.arrow:arrow-vector:0.3.0"
+
     testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile libraries.wiremock

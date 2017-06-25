@@ -21,6 +21,7 @@ export default (state = new OrderedMap(), action) => {
 };
 
 const layerReducer = (state, action) => {
+  const attributeRange = state.getIn(["stats", "attributeStats", action.value]);
   switch (action.type) {
     case constants.LAYER_TOGGLE_VISIBLE:
       return state.set("visible", !state.get("visible"));
@@ -28,7 +29,10 @@ const layerReducer = (state, action) => {
     case constants.LAYER_SET_STYLE:
       switch (action.key) {
         case "ATTRIBUTE":
-          return state.setIn(["style", "attribute"], action.value);
+          return state.setIn(["style", "attribute"], action.value)
+            .setIn(["style", "attributeRange"], attributeRange);
+        case "ATTRIBUTE_RANGE":
+          return state.setIn(["style", "attributeRange"], action.value);
         case "TRANSPARENCY":
           return state.setIn(["style", "isTransparent"], action.value);
         case "THEME":
@@ -107,6 +111,7 @@ const defaultAttributeFilter = () => fromJS({
 const defaultLayerStyle = (attribute, themeIdx, isTransparent) => ({
   type: "DEFAULT",
   attribute,
+  attributeRange: null,
   opacity: 0.8,
   isTransparent,
   point: {
