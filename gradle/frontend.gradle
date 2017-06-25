@@ -1,3 +1,5 @@
+apply plugin: "idea"
+
 def env = [BUILD_VERSION: version]
 
 node {
@@ -56,3 +58,9 @@ jar {
 }
 
 check.dependsOn yarnLint
+
+idea {
+    module {
+        excludeDirs += file("node_modules")
+    }
+}
