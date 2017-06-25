@@ -2,7 +2,7 @@
   "name": "weyl-frontend",
   "description": "Quartic Map Frontend",
   "scripts": {
-    "build": "NODE_ENV=production webpack --config src/config/webpack/webpack.prod.babel.js --color -p",
+    "build": "NODE_ENV=production webpack --config config/webpack/webpack.prod.babel.js --color -p",
     "start": "NODE_ENV=development node src/server",
     "lint": "set -o pipefail && eslint --ignore-path .gitignore --ignore-pattern config -- . | tee build/lint/eslint.txt && stylelint src/app/**/*.css | tee build/lint/stylelint.txt"
   },
