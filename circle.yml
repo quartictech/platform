@@ -7,8 +7,6 @@ jobs:
 
     working_directory: ~/platform
 
-    shell: /bin/bash  # Because of use of pipefail in package.json for lint capture pipeline
-
     steps:
       - checkout
 

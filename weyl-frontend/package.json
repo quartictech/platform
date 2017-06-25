@@ -4,7 +4,7 @@
   "scripts": {
     "build": "NODE_ENV=production webpack --config config/webpack/webpack.prod.babel.js --color -p",
     "start": "NODE_ENV=development node src/server",
-    "lint": "set -o pipefail && eslint --ignore-path .gitignore --ignore-pattern config -- . | tee build/lint/eslint.txt && stylelint src/app/**/*.css | tee build/lint/stylelint.txt"
+    "lint": "bash -c 'set -o pipefail && eslint --ignore-path .gitignore --ignore-pattern config -- . | tee build/lint/eslint.txt && stylelint src/app/**/*.css | tee build/lint/stylelint.txt'"
   },
   "babel": {
     "presets": [
