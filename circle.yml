@@ -65,7 +65,9 @@ jobs:
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
           name: Run tests
-          command: ./gradlew check --info --console=plain --profile
+          command: |
+            ./gradlew yarnBuild --parallel --info --console=plain
+            ./gradlew check --info --console=plain
 
       - run:
           name: Collect test results
