@@ -6,10 +6,9 @@ node {
     download = "true"
 }
 
-// This isn't perfect - technically yarn.lock is also a task output.  But this *should* work as is.
 yarn_install {
     inputs.file     "${projectDir}/package.json"
-    inputs.file     "${projectDir}/yarn.lock"
+    inputs.file     "${projectDir}/yarn.lock"       // This isn't perfect - technically yarn.lock is also a task output.  But this *should* work as is.
     outputs.dir     "${projectDir}/node_modules"
 
     // In a perfect world, we'd just put this in .yarnrc
@@ -18,6 +17,10 @@ yarn_install {
 }
 
 task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
+    inputs.file     "${projectDir}/package.json"    // In case the NPM build script changed
+    inputs.file     "${projectDir}/tsconfig.json"
+    inputs.dir      "${projectDir}/config"
+    inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/webpack"
 
     args =          ["run", "build", "--silent"]
@@ -25,12 +28,27 @@ task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
 }
 
 task yarnStart(type: YarnTask, dependsOn: yarn_install) {
+    inputs.file     "${projectDir}/package.json"    // In case the NPM start script changed
+    inputs.file     "${projectDir}/tsconfig.json"
+    inputs.dir      "${projectDir}/config"
+    inputs.dir      "${projectDir}/src"
+    // No outputs because this should always run
+
     args =          ["start", "--silent"]
     environment     env
 }
 
 task yarnLint(type: YarnTask, dependsOn: yarn_install) {
+    inputs.file     "${projectDir}/package.json"    // In case the NPM lint script changed
+    inputs.file     "${projectDir}/tslint.json"
+    inputs.dir      "${projectDir}/src"
+    outputs.dir     "${buildDir}/lint"
+
     args =          ["run", "lint", "--silent"]
+
+    doFirst {
+        file("${buildDir}/lint").mkdirs()
+    }
 }
 
 jar {
