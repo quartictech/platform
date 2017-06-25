@@ -12,62 +12,18 @@ jobs:
 
       - restore_cache:
           keys:
-            - platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
-            - platform-{{ .Branch }}-weyl-yarn
-            - platform-develop-weyl-yarn
-
-      - restore_cache:
-          keys:
-            - platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
-            - platform-{{ .Branch }}-mgmt-yarn
-            - platform-develop-mgmt-yarn
-
-      - restore_cache:
-          keys:
-            - platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
-            - platform-{{ .Branch }}-zeus-yarn
-            - platform-develop-zeus-yarn
-
-      - restore_cache:
-          keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
             - platform-{{ .Branch }}-gradle
             - platform-develop-gradle
 
       - run:
           name: Install dependencies
-          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
-
-      - save_cache:
-          key: platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
-          paths:
-            - weyl-frontend/node_modules
-
-      - save_cache:
-          key: platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
-          paths:
-            - mgmt-frontend/node_modules
-
-      - save_cache:
-          key: platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
-          paths:
-            - zeus-frontend/node_modules
+          command: ./gradlew resolveConfigurations yarn --parallel --console=plain
 
       - run:
-          name: Calculate Gradle checksum file
-          command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > /gradle.txt
-
-      - save_cache:
-          key: platform-{{ .Branch }}-gradle-{{ checksum "/gradle.txt" }}
-          paths:
-            - ~/.gradle
-
-      # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
-      - run:
-          name: Run tests
+          name: Build artifacts and run tests
           command: |
-            ./gradlew yarnBuild --parallel --info --console=plain
-            ./gradlew check --info --console=plain
+            ./gradlew build --parallel --console=plain
 
       - run:
           name: Collect test results
@@ -78,10 +34,22 @@ jobs:
       - store_test_results:
           path: /test-results/
 
+      - store_artifacts:
+          path: /test-results/
+
       - setup_remote_docker:
           reusable: true
 
       - deploy:
           command: |
             gcloud-auth --with-docker
-            ./gradlew dockerPush --parallel --info --console=plain
+            ./gradlew dockerPush --parallel --console=plain
+      - run:
+          name: Calculate Gradle checksum file
+          command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > /gradle.txt
+
+      - save_cache:
+          key: platform-{{ .Branch }}-gradle-{{ checksum "/gradle.txt" }}
+          paths:
+            - ~/.gradle
+

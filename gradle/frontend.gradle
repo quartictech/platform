@@ -8,28 +8,37 @@ node {
     download = "true"
 }
 
-yarn_install {
-    inputs.file     "${projectDir}/package.json"
-    inputs.file     "${projectDir}/yarn.lock"       // This isn't perfect - technically yarn.lock is also a task output.  But this *should* work as is.
-    outputs.dir     "${projectDir}/node_modules"
+nodeSetup {
+    outputs.cacheIf { true }
+}
+
+yarnSetup {
+    outputs.cacheIf { true }
+}
+
+yarn {
+    outputs.cacheIf { true }
 
     // In a perfect world, we'd just put this in .yarnrc
     // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
     args =          ["--mutex", "network"]
 }
 
-task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
+
+task yarnBuild(type: YarnTask, dependsOn: yarn) {
     inputs.file     "${projectDir}/package.json"    // In case the NPM build script changed
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/webpack"
+    outputs.cacheIf { true }
+
 
     args =          ["run", "build", "--silent"]
     environment     env + [NODE_ENV: "production"]
 }
 
-task yarnStart(type: YarnTask, dependsOn: yarn_install) {
+task yarnStart(type: YarnTask, dependsOn: yarn) {
     inputs.file     "${projectDir}/package.json"    // In case the NPM start script changed
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
@@ -40,11 +49,12 @@ task yarnStart(type: YarnTask, dependsOn: yarn_install) {
     environment     env
 }
 
-task yarnLint(type: YarnTask, dependsOn: yarn_install) {
+task yarnLint(type: YarnTask, dependsOn: yarn) {
     inputs.file     "${projectDir}/package.json"    // In case the NPM lint script changed
     inputs.file     "${projectDir}/tslint.json"
     inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/lint"
+    outputs.cacheIf { true }
 
     args =          ["run", "lint", "--silent"]
 
