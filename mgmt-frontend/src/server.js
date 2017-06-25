@@ -1,21 +1,27 @@
 var path = require('path');
 var express = require('express');
 var webpack = require('webpack');
-var config = require('./config/webpack/dev');
+var config = require('../config/webpack/dev');
 
 var app = express();
 var compiler = webpack(config);
 
 // Stuff to proxy to backend during dev
 const proxy = require("http-proxy-middleware");
-const apiProxy = proxy("/api", { target: "http://localhost:8100" });
-const wsProxy = proxy("/ws", { target: "ws://localhost:8100" });
-app.use(apiProxy);
-app.use(wsProxy);
+app.use(proxy("/api", { target: "http://localhost:8100" }));
+app.use(proxy("/ws", { target: "ws://localhost:8100" }));
 
 app.use(require('webpack-dev-middleware')(compiler, {
 	noInfo: true,
-	publicPath: config.output.publicPath
+	publicPath: config.output.publicPath,
+	stats: {
+		timings: false,
+		hash: false,
+		version: false,
+		assets: false,
+		chunks: false,
+		colors: true,
+	},
 }));
 
 app.use(require('webpack-hot-middleware')(compiler));
