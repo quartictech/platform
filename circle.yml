@@ -36,7 +36,7 @@ jobs:
 
       - run:
           name: Install dependencies
-          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+          command: ./gradlew resolveConfigurations yarn_install --parallel --console=plain
 
       - save_cache:
           key: platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
@@ -57,8 +57,8 @@ jobs:
       - run:
           name: Run tests
           command: |
-            ./gradlew yarnBuild --parallel --info --console=plain
-            ./gradlew check --info --console=plain
+            ./gradlew yarnBuild --parallel --console=plain
+            ./gradlew check --console=plain
 
       - run:
           name: Collect test results
@@ -69,13 +69,16 @@ jobs:
       - store_test_results:
           path: /test-results/
 
+      - store_artifacts:
+          path: /test-results/
+
       - setup_remote_docker:
           reusable: true
 
       - deploy:
           command: |
             gcloud-auth --with-docker
-            ./gradlew dockerPush --parallel --info --console=plain
+            ./gradlew dockerPush --parallel --console=plain
       - run:
           name: Calculate Gradle checksum file
           command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > /gradle.txt
