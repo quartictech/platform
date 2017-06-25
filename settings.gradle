@@ -46,3 +46,6 @@ include "weyl-api"
 include "weyl-core"
 include "weyl-application"
 include "weyl-frontend"
+
+include "zeus-frontend"
+include "zeus-backend"

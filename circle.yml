@@ -24,6 +24,12 @@ jobs:
 
       - restore_cache:
           keys:
+            - platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+            - platform-{{ .Branch }}-zeus-yarn
+            - platform-develop-zeus-yarn
+
+      - restore_cache:
+          keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
             - platform-{{ .Branch }}-gradle
             - platform-develop-gradle
@@ -41,6 +47,11 @@ jobs:
           key: platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
           paths:
             - mgmt-frontend/node_modules
+
+      - save_cache:
+          key: platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+          paths:
+            - zeus-frontend/node_modules
 
       - run:
           name: Calculate Gradle checksum file

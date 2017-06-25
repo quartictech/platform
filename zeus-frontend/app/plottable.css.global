@@ -1,0 +1,5 @@
+.plottable .axis-label text, .tick-label, .tick-label text {
+  font-family: Roboto !important;
+  text-transform: none !important;
+  font-weight: bold !important;
+}

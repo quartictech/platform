@@ -28,4 +28,3 @@ jar {
 }
 
 check.dependsOn yarnLint
-

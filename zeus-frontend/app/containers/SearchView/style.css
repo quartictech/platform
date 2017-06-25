@@ -1,0 +1,11 @@
+
+.container {
+  display: table;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* TODO: figure out responsive width */
+.myPicker {
+  width: 500px;
+}

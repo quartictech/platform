@@ -1,0 +1,38 @@
+
+.container {
+  flex: 1;
+}
+
+.main {
+  width: 50%;
+  padding: 10px;
+}
+
+.right {
+  width: 50%;
+  /*padding: 10px;*/
+  align-self: flex-start;
+}
+
+.splitRow {
+  flex-direction: row;
+  flex: 1;
+  display: flex;
+}
+
+.splitLeft {
+  flex: 0.5;
+}
+
+.splitRight {
+  flex: 0.5;
+}
+
+.attribute-name {
+  width: 25%;
+  font-weight: bold;
+}
+
+.tabs {
+  display: inline-block;
+}
