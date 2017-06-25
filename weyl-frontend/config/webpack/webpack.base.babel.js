@@ -81,6 +81,7 @@ module.exports = (options) => ({
   ]),
   postcss: () => options.postcssPlugins,
   resolve: {
+    root: [ path.resolve(process.cwd(), "src") ],
     modules: ['app', 'node_modules'],
     extensions: [
       '',
