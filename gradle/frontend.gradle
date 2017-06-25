@@ -8,6 +8,10 @@ node {
     download = "true"
 }
 
+nodeSetup {
+    outputs.cacheIf { true }
+}
+
 yarnSetup {
     outputs.cacheIf { true }
 }
