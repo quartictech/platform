@@ -7,7 +7,7 @@ var baseConfig = require('./base');
 var config = Object.assign({}, baseConfig, {
   bail: true,
 
-  entry: [ './app/index.tsx' ],
+  entry: [ 'app/index.tsx' ],
 
   plugins: [
     new webpack.DefinePlugin({
@@ -21,7 +21,7 @@ var config = Object.assign({}, baseConfig, {
     //     warnings: false,
     //   }
     // }),
-		new CopyWebpackPlugin([{from: "public"}]),
+		new CopyWebpackPlugin([{from: "src/public"}]),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.optimize.DedupePlugin()
   ]

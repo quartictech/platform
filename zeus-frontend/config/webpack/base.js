@@ -13,6 +13,7 @@ var config = {
   },
 
   resolve: {
+    root: [ path.resolve(process.cwd(), "src") ],
     extensions: ['', '.ts', '.tsx', '.js', '.jsx' ,'.json'],
   },
 
@@ -27,7 +28,7 @@ var config = {
           plugins: ['transform-runtime'],
           presets: ['es2015'],
         }), 'ts-loader'],
-        include: path.join(__dirname, '../../app'),
+        include: /app/,
       },
       {
         test: /\.json$/,

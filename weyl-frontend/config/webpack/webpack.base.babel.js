@@ -73,7 +73,7 @@ module.exports = (options) => ({
       },
     }),
 
-    new CopyWebpackPlugin([{ from: 'static' }]),
+    new CopyWebpackPlugin([{ from: 'src/static' }]),
 
     // Some BS for moment.js (see https://github.com/moment/moment/issues/2979)
     // If you ever remove this line, also remove the devDependency on empty-module
@@ -81,7 +81,8 @@ module.exports = (options) => ({
   ]),
   postcss: () => options.postcssPlugins,
   resolve: {
-    modules: ['app', 'node_modules'],
+    root: path.resolve(__dirname, "src"),
+    modules: ["app", "node_modules"],
     extensions: [
       '',
       '.js',
@@ -102,6 +103,11 @@ module.exports = (options) => ({
   },
   devtool: options.devtool,
   target: 'web', // Make web variables accessible to webpack, e.g. window
-  stats: false, // Don't show stats in the console
+  stats: {
+    assets: false,
+    chunks: false,
+    errorDetails: true,
+    colors: true,
+  },
   progress: true,
 });

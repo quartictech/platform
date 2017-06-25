@@ -9,7 +9,7 @@ var config = Object.assign({}, baseConfig, {
 
 	entry: [
 		'webpack-hot-middleware/client?reload=true',
-		'./app/index.tsx'
+		'app/index.tsx'
 	],
 
 	plugins: [
