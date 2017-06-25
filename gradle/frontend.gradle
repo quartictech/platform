@@ -6,15 +6,23 @@ node {
     download = "true"
 }
 
-task yarnLint(type: YarnTask, dependsOn: yarn_install) {
-    args = ["run", "lint", "--silent"]
+// This isn't perfect - technically yarn.lock is also a task output.  But this *should* work as is.
+yarn_install {
+    inputs.file     "${projectDir}/package.json"
+    inputs.file     "${projectDir}/yarn.lock"
+    outputs.dir     "${projectDir}/node_modules"
+
+    // In a perfect world, we'd just put this in .yarnrc
+    // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
+    args =          ["--mutex", "network"]
 }
 
 task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
-    args = ["run", "build", "--silent"]
-    environment = env + [NODE_ENV: "production"]
-    // TODO: specify input files
-    outputs.dir   "${buildDir}/webpack"
+
+    outputs.dir     "${buildDir}/webpack"
+
+    args =          ["run", "build", "--silent"]
+    environment     env + [NODE_ENV: "production"]
 }
 
 task yarnStart(type: YarnTask, dependsOn: yarn_install) {
@@ -23,10 +31,8 @@ task yarnStart(type: YarnTask, dependsOn: yarn_install) {
     // TODO: specify input files
 }
 
-// In a perfect world, we'd just put this in .yarnrc
-// However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-yarn_install {
-    args = ["--mutex", "network"]
+task yarnLint(type: YarnTask, dependsOn: yarn_install) {
+    args = ["run", "lint", "--silent"]
 }
 
 jar {
