@@ -20,12 +20,10 @@ jobs:
           name: Install dependencies
           command: ./gradlew resolveConfigurations yarn --parallel --console=plain
 
-      # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
-          name: Run tests
+          name: Build artifacts and run tests
           command: |
-            ./gradlew yarnBuild --parallel --console=plain
-            ./gradlew check --console=plain
+            ./gradlew build --parallel --console=plain
 
       - run:
           name: Collect test results
