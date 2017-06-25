@@ -1,0 +1,25 @@
+/* Reset pt-menu-item hover behaviour */
+
+.picker :global(.pt-menu-item):hover {
+    color: inherit !important;
+    background-color: inherit !important;
+}
+
+.picker :global(.pt-menu-item):hover::before {
+    color: #5c7080 !important;    /* Colors.GRAY1 from Blueprint */
+}
+
+.picker :global(.pt-dark.pt-menu-item):hover::before {
+    color: #bfccd6 !important;    /* Colors.GRAY5 from Blueprint */
+}
+
+/* Overlay our own behaviour */
+
+.picker .highlighted {
+    color: white;
+    background-color: #137CBD;    /* Colors.BLUE3 from Blueprint */
+}
+
+.picker .highlighted :global(.pt-menu-item::before) {
+    color: white !important;
+}

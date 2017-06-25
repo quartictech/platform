@@ -24,6 +24,12 @@ jobs:
 
       - restore_cache:
           keys:
+            - platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+            - platform-{{ .Branch }}-zeus-yarn
+            - platform-develop-zeus-yarn
+
+      - restore_cache:
+          keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
             - platform-{{ .Branch }}-gradle
             - platform-develop-gradle
@@ -42,6 +48,11 @@ jobs:
           paths:
             - mgmt-frontend/node_modules
 
+      - save_cache:
+          key: platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
+          paths:
+            - zeus-frontend/node_modules
+
       - run:
           name: Calculate Gradle checksum file
           command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > /gradle.txt
@@ -54,7 +65,9 @@ jobs:
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
           name: Run tests
-          command: ./gradlew check --info --console=plain --profile
+          command: |
+            ./gradlew yarnBuild --parallel --info --console=plain
+            ./gradlew check --info --console=plain
 
       - run:
           name: Collect test results

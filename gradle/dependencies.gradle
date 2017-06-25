@@ -20,7 +20,7 @@ libraries.dropwizardWebsockets = "com.liveperson:dropwizard-websockets:${version
 libraries.dropwizardTesting = "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1.1.8"
 libraries.junit = "junit:junit:4.12"
-libraries.wiremock = "com.github.tomakehurst:wiremock:2.2.2"
+libraries.wiremock = "com.github.tomakehurst:wiremock:2.6.0"
 
 libraries.tyrus = [
         client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
@@ -33,5 +33,6 @@ libraries.testCommon = [
         libraries.junit,
         "de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1",
         "org.hamcrest:hamcrest-all:1.3",
-        "com.nhaarman:mockito-kotlin:1.0.1",
+        "com.nhaarman:mockito-kotlin:1.1.0",
 ]
+

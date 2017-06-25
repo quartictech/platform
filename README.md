@@ -51,4 +51,4 @@ Howl           | 8120 / 8121      |                      |
 ~~Terminator~~ | ~~8130 / 8131~~  |                      |
 Scribe         | 8140 / 8141      |                      |
 Rain           | 8150 / 8151      |                      |
-Zeus           | 8160 / 8161      | 3020                 | Hosted in separate repo
+Zeus           | 8160 / 8161      | 3020                 |

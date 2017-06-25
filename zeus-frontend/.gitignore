@@ -1,0 +1,21 @@
+# OS X - DS_Store
+.DS_Store
+
+# Typings Lib
+typings
+
+# Bundles
+public/*
+!public/index.html
+!public/favicon.ico
+
+
+# Logs
+logs
+*.log
+
+# Dependency directory
+node_modules
+
+# Coverage Directory and Coveralls Configuration
+coverage
