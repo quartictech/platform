@@ -9,6 +9,7 @@ node {
 }
 
 yarn_install {
+    cacheIf         { true }
     inputs.file     "${projectDir}/package.json"
     inputs.file     "${projectDir}/yarn.lock"       // This isn't perfect - technically yarn.lock is also a task output.  But this *should* work as is.
     outputs.dir     "${projectDir}/node_modules"
@@ -18,7 +19,9 @@ yarn_install {
     args =          ["--mutex", "network"]
 }
 
+
 task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
+    cacheIf         { true }
     inputs.file     "${projectDir}/package.json"    // In case the NPM build script changed
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
@@ -41,6 +44,7 @@ task yarnStart(type: YarnTask, dependsOn: yarn_install) {
 }
 
 task yarnLint(type: YarnTask, dependsOn: yarn_install) {
+    cacheIf         { true }
     inputs.file     "${projectDir}/package.json"    // In case the NPM lint script changed
     inputs.file     "${projectDir}/tslint.json"
     inputs.dir      "${projectDir}/src"
