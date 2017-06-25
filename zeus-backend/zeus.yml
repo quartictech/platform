@@ -1,0 +1,14 @@
+datasets:
+  assets:
+    prettyName: "RSL assets"
+    url: "http://localhost:8120/api/magnolia/zeus%2Froads"
+    indexedAttributes: [ "RSL", "Road Name" ]
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8160
+  adminConnectors:
+    - type: http
+      port: 8161

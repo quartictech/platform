@@ -23,9 +23,14 @@ task yarnStart(type: YarnTask, dependsOn: yarn_install) {
     // TODO: specify input files
 }
 
+// In a perfect world, we'd just put this in .yarnrc
+// However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
+yarn_install {
+    args = ["--mutex", "network"]
+}
+
 jar {
     from yarnBuild
 }
 
 check.dependsOn yarnLint
-

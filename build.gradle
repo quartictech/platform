@@ -21,7 +21,7 @@ allprojects {
     // NOTE: this needs to be applied before the test block below due to some strange ordering issues
     apply plugin: "java"
     test {
-    	maxHeapSize = "2048m"
+        maxHeapSize = "2048m"
     }
 
     // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
