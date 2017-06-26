@@ -2,12 +2,11 @@
   "name": "zeus-frontend",
   "version": "1.0.1",
   "description": "Quartic Zeus Frontend",
-  "main": "server.js",
   "scripts": {
-    "start": "NODE_ENV=development node server.js",
-    "build": "NODE_ENV=production webpack --config ./config/webpack/prod.js",
-    "test": "karma start ./config/test/karma.js",
-    "lint": "tslint -t verbose -c tslint.json \"app/**/*.ts{,x}\""
+    "start": "NODE_ENV=development node src/server.js",
+    "build": "NODE_ENV=production webpack --config config/webpack/prod.js",
+    "test": "karma start config/test/karma.js",
+    "lint": "bash -c 'set -o pipefail && tslint -t stylish -c tslint.json \"src/app/**/*.ts{,x}\" | tee build/lint/tslint.txt'"
   },
   "keywords": [
     "react",

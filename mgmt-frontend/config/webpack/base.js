@@ -9,6 +9,7 @@ var config = {
   },
 
   resolve: {
+    root: [ path.resolve(process.cwd(), "src") ],
     extensions: ['', '.ts', '.tsx', '.js', '.jsx' ,'.json'],
   },
 
@@ -18,7 +19,7 @@ var config = {
       {
         test: /\.tsx?$/,
         loader: 'react-hot!babel-loader!ts-loader',
-        include: path.join(__dirname, '../../app')
+        include: /app/,
       },
       {
         test: /\.json$/,
