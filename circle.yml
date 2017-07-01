@@ -66,8 +66,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            ./gradlew yarnBuild --parallel --info --console=plain
-            ./gradlew check --info --console=plain
+            ./gradlew build --parallel --info --console=plain
 
       - run:
           name: Collect test results
