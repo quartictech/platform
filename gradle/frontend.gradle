@@ -26,7 +26,7 @@ task bundle(type: Exec) {
     commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
                     "--config", "${projectDir}/config/webpack/prod.js",
                     "--env.node_modules_dir", yarn.nodeModulesDir,
-                    "--progress", "--profile", "--colors"
+                    "--profile", "--colors"
 }
 
 task run(type: NodeTask) {
