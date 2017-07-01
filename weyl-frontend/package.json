@@ -2,7 +2,6 @@
   "name": "weyl-frontend",
   "description": "Quartic Map Frontend",
   "scripts": {
-    "start": "NODE_ENV=development node src/server",
     "lint": "bash -c 'set -o pipefail && eslint --ignore-path .gitignore --ignore-pattern config -- . | tee build/lint/eslint.txt && stylelint src/app/**/*.css | tee build/lint/stylelint.txt'"
   },
   "babel": {
@@ -201,9 +200,9 @@
     "json-loader": "0.5.4",
     "minimist": "1.2.0",
     "null-loader": "0.1.1",
-    "postcss-cssnext": "2.7.0",
+    "postcss-cssnext": "2.9.0",
     "postcss-focus": "1.0.0",
-    "postcss-loader": "0.9.1",
+    "postcss-loader": "2.0.6",
     "postcss-reporter": "1.4.1",
     "style-loader": "0.13.1",
     "stylelint": "7.1.0",

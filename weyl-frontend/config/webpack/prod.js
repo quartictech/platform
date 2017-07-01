@@ -25,19 +25,32 @@ module.exports = require("./base")({
   // of the CSS being in the JS and injected as a style tag
   cssLoaders: ExtractTextPlugin.extract({
     fallback: "style-loader",
-    use: "css-loader?modules&-autoprefixer&importLoaders=1!postcss-loader",
+    use: [
+      {
+        loader: "css-loader",
+        options: {
+          modules: true,
+          importLoaders: 1,
+        },
+      },
+      {
+        loader: "postcss-loader",
+        options: {
+          // In production, we minify our CSS with cssnano
+          plugins: () => [
+            postcssFocus(),
+            cssnext({
+              browsers: ["last 2 versions", "IE > 10"],
+            }),
+            postcssReporter({
+              clearMessages: true,
+            }),
+          ],
+        },
+      },
+    ],
   }),
 
-  // In production, we minify our CSS with cssnano
-  postcssPlugins: [
-    postcssFocus(),
-    cssnext({
-      browsers: ["last 2 versions", "IE > 10"],
-    }),
-    postcssReporter({
-      clearMessages: true,
-    }),
-  ],
   plugins: [
     new webpack.optimize.CommonsChunkPlugin({
       name: "vendor",

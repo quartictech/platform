@@ -95,13 +95,6 @@ module.exports = (options) => ({
   },
 
   plugins: options.plugins.concat([
-    // TODO - eliminate this
-    new webpack.LoaderOptionsPlugin({
-      options: {
-        postcss: () => options.postcssPlugins,
-      }
-    }),
-
     new webpack.ProvidePlugin({
       // make fetch available
       fetch: "exports-loader?self.fetch!whatwg-fetch",

@@ -29,16 +29,15 @@ task bundle(type: Exec) {
                     "--progress", "--profile", "--colors"
 }
 
-task yarnStart(type: YarnTask, dependsOn: yarn) {
+task run(type: NodeTask) {
     inputs.files    yarn.outputs
-    inputs.file     "${projectDir}/package.json"    // In case the NPM start script changed
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
     // No outputs because this should always run
 
-    args =          ["start", "--silent"]
-    environment     env
+    // TODO - how to inject cached node_modules dir?
+    script        = file("${projectDir}/src/server")
 }
 
 task lint(type: Exec) {

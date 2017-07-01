@@ -2,9 +2,6 @@
   "name": "zeus-frontend",
   "version": "1.0.1",
   "description": "Quartic Zeus Frontend",
-  "scripts": {
-    "start": "node src/server.js"
-  },
   "author": "Alex Sparrow <alex@quartic.io>",
   "license": "ISC",
   "devDependencies": {
