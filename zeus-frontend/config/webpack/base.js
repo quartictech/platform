@@ -12,10 +12,7 @@ var config = {
   },
 
   resolve: {
-    // modules: [
-    //   path.join(__dirname, "src"),
-    //   "node_modules",
-    // ],
+    modules: ["node_modules"],
     extensions: [".ts", ".tsx", ".js", ".jsx" ,".json"],
   },
 
