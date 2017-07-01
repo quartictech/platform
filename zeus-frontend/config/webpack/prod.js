@@ -16,12 +16,9 @@ var config = Object.assign({}, baseConfig, {
         "BUILD_VERSION": JSON.stringify(process.env.BUILD_VERSION),
       }
     }),
-    // TODO: This was failing due to sourceMap issues so I"ve disabled
-    // new webpack.optimize.UglifyJsPlugin({
-    //   compressor: {
-    //     warnings: false,
-    //   }
-    // }),
+    new webpack.optimize.UglifyJsPlugin({
+      minimize: true,
+    }),
 		new CopyWebpackPlugin([{from: "src/public"}]),
   ]
 });
