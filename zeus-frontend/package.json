@@ -62,8 +62,6 @@
     "@types/underscore": "1.7.33",
     "babel-polyfill": "^6.23.0",
     "babel-runtime": "^6.23.0",
-    "caniuse-api": "^2.0.0",
-    "caniuse-db": "^1.0.30000696",
     "classnames": "2.2.5",
     "immutable": "3.8.1",
     "javascript-natural-sort": "^0.7.1",

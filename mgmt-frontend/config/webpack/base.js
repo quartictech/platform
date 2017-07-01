@@ -1,79 +1,149 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require("path");
+const webpack = require("webpack");
 
-var config = {
-
+module.exports = {
   output: {
-    path: path.resolve(process.cwd(), 'build', 'webpack', 'assets'),
-    filename: 'bundle.js'
+    path: path.resolve(process.cwd(), "build", "webpack", "assets"),
+    filename: "bundle.js"
+  },
+
+  node: {
+    fs: "empty"
   },
 
   resolve: {
-    root: [ path.resolve(process.cwd(), "src") ],
-    extensions: ['', '.ts', '.tsx', '.js', '.jsx' ,'.json'],
+    modules: ["node_modules"],  // TODO - replace with env.node_modules_dir
+    extensions: [".ts", ".tsx", ".js", ".jsx" ,".json"],
   },
 
   module: {
-    loaders: [
+    noParse: /node_modules\/mapbox-gl\/dist\/mapbox-gl.js/, // See https://github.com/mapbox/mapbox-gl-js/issues/2742#issuecomment-267001402
+    rules: [
+      {
+        test: /\.js$/,
+        enforce: "pre",
+        use: [
+          "source-map-loader",
+        ],
+      },
       // See (for TS -> Babel): http://www.jbrantly.com/es6-modules-with-typescript-and-webpack/
+      // See http://jamesknelson.com/using-es6-in-the-browser-with-babel-6-and-webpack/
       {
         test: /\.tsx?$/,
-        loader: 'react-hot!babel-loader!ts-loader',
         include: /app/,
+        use: [
+          "react-hot-loader",
+          {
+            loader: "babel-loader",
+            options: {
+              plugins: ["transform-runtime"],
+              presets: ["es2015"],
+            },
+          },
+          "ts-loader",
+        ],
       },
       {
-        test: /\.json$/,
-        loader: 'json'
+        // CSS files named appropriately get loaded into global scope (for plottable)
+        test: /\.css.global$/,
+        exclude: /node_modules/,
+        use: [
+          "style-loader",
+          "css-loader",
+        ],
       },
       {
         test: /\.css$/,
         include: /app/,
-        loaders: [
-          'style',
-          'css?modules&importLoaders=2&sourceMap&localIdentName=[local]__[hash:base64:5]',
-          'postcss'
-        ]
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              modules: true,
+              importLoaders: 1,
+              sourceMap: true,
+              localIdentName: "[local]__[hash:base64:5]",
+            },
+          },
+          {
+            loader: "postcss-loader",
+            options: {
+              plugins: () => require("postcss-cssnext")(),
+            },
+          },
+        ],
       },
       {
         test: /\.css$/,
         exclude: /app/,
-        loader: 'style!css'
+        use: [
+          "style-loader",
+          "css-loader",
+        ],
       },
       {
         test: /\.eot(\?.*)?$/,
-        loader: "file?name=fonts/[hash].[ext]",
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "fonts/[hash].[ext]",
+            },
+          },
+        ],
       },
       {
         test: /\.(woff|woff2)(\?.*)?$/,
-        loader:"file-loader?name=fonts/[hash].[ext]",
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "fonts/[hash].[ext]",
+            },
+          },
+        ],
       },
       {
         test: /\.ttf(\?.*)?$/,
-        loader: "url?limit=10000&mimetype=application/octet-stream&name=fonts/[hash].[ext]",
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 10000,
+              mimetype: "application/octet-stream",
+              name: "fonts/[hash].[ext]",
+            },
+          },
+        ],
       },
       {
         test: /\.svg(\?.*)?$/,
-        loader: "url?limit=10000&mimetype=image/svg+xml&name=fonts/[hash].[ext]",
-        include: /app/
+        include: /app/,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 10000,
+              mimetype: "image/svg+xml",
+              name: "images/[hash].[ext]",
+            },
+          },
+        ],
       },
       {
         test: /\.(jpe?g|png|gif)$/i,
-        loader: 'url?limit=1000&name=images/[hash].[ext]',
-        include: /app/
+        include: /app/,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 10000,
+              name: "images/[hash].[ext]",
+            },
+          },
+        ],
       },
     ],
-
-    preLoaders: [
-      { test: /\.js$/, loader: "source-map-loader" }
-    ]
   },
-
-  postcss: function () {
-    return [
-      require("postcss-cssnext")(),
-    ];
-  }
-
-}
-
-module.exports = config;
+};
