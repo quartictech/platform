@@ -34,12 +34,9 @@ jobs:
             - platform-{{ .Branch }}-gradle
             - platform-develop-gradle
 
-      # Yarn is a total clusterfuck (thus non-parallel)
       - run:
           name: Install dependencies
-          command: |
-            ./gradlew resolveConfigurations yarnSetup --parallel --info --console=plain
-            ./gradlew yarn --info --console=plain
+          command: ./gradlew resolveConfigurations yarn --parallel --info --console=plain
 
       - save_cache:
           key: platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
@@ -65,10 +62,11 @@ jobs:
           paths:
             - ~/.gradle
 
+      # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
           name: Run tests
           command: |
-            ./gradlew build --parallel --info --console=plain
+            ./gradlew build --info --console=plain
 
       - run:
           name: Collect test results
