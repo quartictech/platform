@@ -40,27 +40,36 @@ task run(type: NodeTask) {
     script        = file("${projectDir}/src/server")
 }
 
-task lint(type: Exec) {
-    inputs.files    yarn.outputs
-    inputs.file     "${projectDir}/tslint.json"
-    inputs.dir      "${projectDir}/src"
-    outputs.dir     "${buildDir}/lint"
+def createLintTask(def name, def pattern, Object... extraArgs) {
+    task "${name}"(type: Exec) {
+        inputs.files    yarn.outputs
+        inputs.file     "${projectDir}/${name}.json"
+        inputs.dir      "${projectDir}/src"
+        outputs.dir     "${buildDir}/lint"
 
-    commandLine     "${yarn.nodeModulesDir}/.bin/tslint",
-                    "-t", "stylish",
-                    "-c", "${projectDir}/tslint.json",
-                    "'${projectDir}/src/app/**/*.ts{,x}'"
+        commandLine     (
+                ["${yarn.nodeModulesDir}/.bin/${name}", "--config", "${projectDir}/${name}.json"] +
+                extraArgs.toList() +
+                ["${projectDir}/src/**/${pattern}"]
+        )
 
-    doFirst {
-        file("${buildDir}/lint").mkdirs()
+        onlyIf          { file("${projectDir}/${name}.json").exists() }
     }
 }
+
+createLintTask("tslint", "*.ts{,x}", "-t", "stylish")
+createLintTask("eslint", "*.js{,x}")
+createLintTask("stylelint", "*.css")
+
+task lint {
+    dependsOn   tslint, eslint, stylelint
+}
+
+check.dependsOn lint
 
 jar {
     from bundle
 }
-
-check.dependsOn lint
 
 idea {
     module {
