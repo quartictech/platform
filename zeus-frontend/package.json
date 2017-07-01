@@ -4,7 +4,6 @@
   "description": "Quartic Zeus Frontend",
   "scripts": {
     "start": "node src/server.js",
-    "build": "webpack --config config/webpack/prod.js --progress --profile --colors",
     "lint": "bash -c 'set -o pipefail && tslint -t stylish -c tslint.json \"src/app/**/*.ts{,x}\" | tee build/lint/tslint.txt'"
   },
   "keywords": [

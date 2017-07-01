@@ -12,7 +12,7 @@ var config = {
   },
 
   resolve: {
-    modules: ["node_modules"],
+    modules: ["node_modules"],  // TODO - replace with env.node_modules_dir
     extensions: [".ts", ".tsx", ".js", ".jsx" ,".json"],
   },
 

@@ -14,18 +14,21 @@ yarn {
     args =          ["--mutex", "network"]
 }
 
-task yarnBuild(type: YarnTask, dependsOn: yarn) {
-    inputs.file     "${projectDir}/package.json"    // In case the NPM build script changed
+task bundle(type: Exec) {
+    inputs.files    yarn.outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/webpack"
 
-    args =          ["run", "build", "--silent"]
-    environment     env + [NODE_ENV: "production"]
+    commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
+                    "--config", "${projectDir}/config/webpack/prod.js",
+                    "--env.node_modules_dir", yarn.nodeModulesDir,
+                    "--progress", "--profile", "--colors"
 }
 
 task yarnStart(type: YarnTask, dependsOn: yarn) {
+    inputs.files    yarn.outputs
     inputs.file     "${projectDir}/package.json"    // In case the NPM start script changed
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
@@ -37,6 +40,7 @@ task yarnStart(type: YarnTask, dependsOn: yarn) {
 }
 
 task yarnLint(type: YarnTask, dependsOn: yarn) {
+    inputs.files    yarn.outputs
     inputs.file     "${projectDir}/package.json"    // In case the NPM lint script changed
     inputs.file     "${projectDir}/tslint.json"
     inputs.dir      "${projectDir}/src"
@@ -50,7 +54,7 @@ task yarnLint(type: YarnTask, dependsOn: yarn) {
 }
 
 jar {
-    from yarnBuild
+    from bundle
 }
 
 check.dependsOn yarnLint
