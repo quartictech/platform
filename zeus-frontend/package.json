@@ -2,6 +2,7 @@
   "name": "zeus-frontend",
   "version": "1.0.1",
   "description": "Quartic Zeus Frontend",
+
   "author": "Alex Sparrow <alex@quartic.io>",
   "license": "ISC",
   "devDependencies": {
