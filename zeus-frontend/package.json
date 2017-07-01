@@ -3,8 +3,7 @@
   "version": "1.0.1",
   "description": "Quartic Zeus Frontend",
   "scripts": {
-    "start": "node src/server.js",
-    "lint": "bash -c 'set -o pipefail && tslint -t stylish -c tslint.json \"src/app/**/*.ts{,x}\" | tee build/lint/tslint.txt'"
+    "start": "node src/server.js"
   },
   "keywords": [
     "react",

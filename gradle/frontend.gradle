@@ -39,14 +39,16 @@ task yarnStart(type: YarnTask, dependsOn: yarn) {
     environment     env
 }
 
-task yarnLint(type: YarnTask, dependsOn: yarn) {
+task lint(type: Exec) {
     inputs.files    yarn.outputs
-    inputs.file     "${projectDir}/package.json"    // In case the NPM lint script changed
     inputs.file     "${projectDir}/tslint.json"
     inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/lint"
 
-    args =          ["run", "lint", "--silent"]
+    commandLine     "${yarn.nodeModulesDir}/.bin/tslint",
+                    "-t", "stylish",
+                    "-c", "${projectDir}/tslint.json",
+                    "'${projectDir}/src/app/**/*.ts{,x}'"
 
     doFirst {
         file("${buildDir}/lint").mkdirs()
@@ -57,10 +59,10 @@ jar {
     from bundle
 }
 
-check.dependsOn yarnLint
+check.dependsOn lint
 
 idea {
     module {
-        excludeDirs += file("node_modules")
+        excludeDirs += file("node_modules") // TODO - replace with param
     }
 }
