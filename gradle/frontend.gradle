@@ -21,6 +21,8 @@ task bundle(type: Exec) {
     inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/webpack"
 
+    environment  += ["NODE_ENV": "production"]      // TODO: this can probably be handled inside Webpack configuration
+
     commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
                     "--config", "${projectDir}/config/webpack/prod.js",
                     "--env.node_modules_dir", yarn.nodeModulesDir,

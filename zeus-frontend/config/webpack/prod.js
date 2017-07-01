@@ -1,10 +1,10 @@
-var path = require("path");
-var webpack = require("webpack");
-var CopyWebpackPlugin = require("copy-webpack-plugin");
+const path = require("path");
+const webpack = require("webpack");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-var baseConfig = require("./base");
+const baseConfig = require("./base");
 
-var config = Object.assign({}, baseConfig, {
+const config = Object.assign({}, baseConfig, {
   bail: true,
 
   entry: [ "./src/app/index.tsx" ],

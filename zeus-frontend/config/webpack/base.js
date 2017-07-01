@@ -1,7 +1,7 @@
-var path = require("path");
-var webpack = require("webpack");
+const path = require("path");
+const webpack = require("webpack");
 
-var config = {
+module.exports = {
   output: {
     path: path.resolve(process.cwd(), "build", "webpack", "assets"),
     filename: "bundle.js"
@@ -147,5 +147,3 @@ var config = {
     ],
   },
 };
-
-module.exports = config;

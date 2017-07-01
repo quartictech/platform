@@ -2,7 +2,6 @@
   "name": "weyl-frontend",
   "description": "Quartic Map Frontend",
   "scripts": {
-    "build": "NODE_ENV=production webpack --config config/webpack/webpack.prod.babel.js --color -p",
     "start": "NODE_ENV=development node src/server",
     "lint": "bash -c 'set -o pipefail && eslint --ignore-path .gitignore --ignore-pattern config -- . | tee build/lint/eslint.txt && stylelint src/app/**/*.css | tee build/lint/stylelint.txt'"
   },
@@ -192,7 +191,7 @@
     "eslint-plugin-react": "6.0.0",
     "eventsource-polyfill": "0.9.6",
     "exports-loader": "0.6.3",
-    "extract-text-webpack-plugin": "1.0.1",
+    "extract-text-webpack-plugin": "2.1.2",
     "file-loader": "0.9.0",
     "html-loader": "0.4.3",
     "html-webpack-plugin": "2.22.0",
@@ -210,8 +209,8 @@
     "stylelint": "7.1.0",
     "stylelint-config-standard": "12.0.0",
     "url-loader": "0.5.7",
-    "webpack": "2.1.0-beta.15",
-    "webpack-dev-middleware": "1.6.1",
-    "webpack-hot-middleware": "2.12.2"
+    "webpack": "2.6.1",
+    "webpack-dev-middleware": "1.11.0",
+    "webpack-hot-middleware": "2.18.0"
   }
 }
