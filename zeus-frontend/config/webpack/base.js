@@ -3,7 +3,7 @@ const webpack = require("webpack");
 
 module.exports = {
   output: {
-    path: path.resolve(process.cwd(), "build", "webpack", "assets"),
+    path: path.resolve("build", "webpack", "assets"),
     filename: "bundle.js"
   },
 
@@ -32,7 +32,7 @@ module.exports = {
         test: /\.tsx?$/,
         include: /app/,
         use: [
-          "react-hot-loader",
+          "react-hot-loader", // TODO - should only need this for prod builds, and should switch to react-hmre
           {
             loader: "babel-loader",
             options: {

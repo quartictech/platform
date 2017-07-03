@@ -20,7 +20,7 @@ const config = Object.assign({}, baseConfig, {
       minimize: true,
     }),
 		new CopyWebpackPlugin([{from: "src/public"}]),
-  ]
+  ],
 });
 
 module.exports = config;
