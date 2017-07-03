@@ -1,11 +1,6 @@
 {
   "name": "weyl-frontend",
   "description": "Quartic Map Frontend",
-  "scripts": {
-    "build": "NODE_ENV=production webpack --config config/webpack/webpack.prod.babel.js --color -p",
-    "start": "NODE_ENV=development node src/server",
-    "lint": "bash -c 'set -o pipefail && eslint --ignore-path .gitignore --ignore-pattern config -- . | tee build/lint/eslint.txt && stylelint src/app/**/*.css | tee build/lint/stylelint.txt'"
-  },
   "babel": {
     "presets": [
       [
@@ -28,110 +23,6 @@
           "transform-react-inline-elements"
         ]
       }
-    }
-  },
-  "eslintConfig": {
-    "parser": "babel-eslint",
-    "extends": "airbnb",
-    "env": {
-      "browser": true,
-      "node": true,
-      "mocha": true,
-      "es6": true
-    },
-    "plugins": [
-      "react",
-      "jsx-a11y"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 6,
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "jsx": true
-      }
-    },
-    "rules": {
-      "arrow-body-style": [
-        2,
-        "as-needed"
-      ],
-      "comma-dangle": [
-        2,
-        "always-multiline"
-      ],
-      "func-names": 0,
-      "import/imports-first": 0,
-      "import/newline-after-import": 0,
-      "import/no-extraneous-dependencies": 0,
-      "import/no-named-as-default": 0,
-      "import/no-unresolved": 2,
-      "import/prefer-default-export": 0,
-      "indent": [
-        2,
-        2,
-        {
-          "SwitchCase": 1
-        }
-      ],
-      "jsx-a11y/aria-props": 2,
-      "jsx-a11y/heading-has-content": 0,
-      "jsx-a11y/href-no-hash": 2,
-      "jsx-a11y/label-has-for": 0,
-      "jsx-a11y/mouse-events-have-key-events": 2,
-      "jsx-a11y/role-has-required-aria-props": 2,
-      "jsx-a11y/role-supports-aria-props": 2,
-      "max-len": 0,
-      "newline-per-chained-call": 0,
-      "no-console": [
-        2,
-        {
-          "allow": [
-            "warn",
-            "error"
-          ]
-        }
-      ],
-      "no-use-before-define": 0,
-      "prefer-template": 2,
-      "quote-props": [
-        2,
-        "consistent"
-      ],
-      "quotes": [
-        2,
-        "double"
-      ],
-      "react/prop-types": 0,
-      "react/jsx-filename-extension": 0,
-      "react/jsx-no-target-blank": 0,
-      "react/require-extension": 0,
-      "react/self-closing-comp": 0,
-      "react/sort-comp": 0,
-      "require-yield": 0
-    },
-    "settings": {
-      "import/resolver": {
-        "webpack": {
-          "config": "./config/webpack/webpack.test.babel.js"
-        }
-      }
-    }
-  },
-  "stylelint": {
-    "extends": "stylelint-config-standard",
-    "rules": {
-      "color-hex-case": "upper",
-      "string-quotes": "single",
-      "font-family-name-quotes": "always-where-recommended",
-      "selector-pseudo-class-no-unknown": [
-        true,
-        {
-          "ignorePseudoClasses": [
-            "global"
-          ]
-        }
-      ],
-      "indentation": 2
     }
   },
   "dependencies": {
@@ -192,7 +83,7 @@
     "eslint-plugin-react": "6.0.0",
     "eventsource-polyfill": "0.9.6",
     "exports-loader": "0.6.3",
-    "extract-text-webpack-plugin": "1.0.1",
+    "extract-text-webpack-plugin": "2.1.2",
     "file-loader": "0.9.0",
     "html-loader": "0.4.3",
     "html-webpack-plugin": "2.22.0",
@@ -202,16 +93,16 @@
     "json-loader": "0.5.4",
     "minimist": "1.2.0",
     "null-loader": "0.1.1",
-    "postcss-cssnext": "2.7.0",
+    "postcss-cssnext": "2.9.0",
     "postcss-focus": "1.0.0",
-    "postcss-loader": "0.9.1",
+    "postcss-loader": "2.0.6",
     "postcss-reporter": "1.4.1",
     "style-loader": "0.13.1",
     "stylelint": "7.1.0",
     "stylelint-config-standard": "12.0.0",
     "url-loader": "0.5.7",
-    "webpack": "2.1.0-beta.15",
-    "webpack-dev-middleware": "1.6.1",
-    "webpack-hot-middleware": "2.12.2"
+    "webpack": "2.6.1",
+    "webpack-dev-middleware": "1.11.0",
+    "webpack-hot-middleware": "2.18.0"
   }
 }

@@ -2,19 +2,13 @@
 
 **Note:** The Scribe service writes to a real cloud bucket, even when running locally.
 
-1. Start the back-end:
+1. Start the services (backend and frontend):
 
    ```
    SKIP_FRONTEND= ./gradlew run --parallel
    ```
 
-2. Start the front-end:
-
-    ```
-    ./gradlew yarnStart --parallel
-    ```
-
-3. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
+2. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
 
 ## Variations
 

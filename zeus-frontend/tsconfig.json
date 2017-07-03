@@ -14,7 +14,7 @@
 		"noUnusedParameters": true,
     "removeComments": true,
     "jsx": "react",
-		"types": ["node", "jasmine", "redux", "geojson", "mapbox-gl"]
+		"types": ["node", "redux", "geojson", "mapbox-gl"]
   },
   "exclude": [
     "node_modules",
