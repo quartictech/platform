@@ -5,8 +5,6 @@ const cssnext = require("postcss-cssnext");
 const postcssFocus = require("postcss-focus");
 const postcssReporter = require("postcss-reporter");
 
-// module.rules ... babel-loader ... options.babelOptions
-
 module.exports = {
   output: {
     path: path.resolve("build", "webpack", "assets"),
@@ -150,9 +148,5 @@ module.exports = {
     }),
 
     new CopyWebpackPlugin([{ from: "src/static" }]),
-
-    // Some BS for moment.js (see https://github.com/moment/moment/issues/2979)
-    // If you ever remove this line, also remove the devDependency on empty-module
-    new webpack.ContextReplacementPlugin(/\.\/locale$/, "empty-module", false, /js$/),
   ],
 };
