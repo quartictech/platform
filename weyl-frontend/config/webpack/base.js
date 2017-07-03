@@ -11,14 +11,6 @@ module.exports = {
     publicPath: "",
   },
 
-  // This is needed to make geojsonhint (imported via mapbox-gl-draw) happy
-  // See e.g. https://github.com/pugjs/pug-loader/issues/8
-  node: {
-    fs: "empty",
-    net: "empty",
-    debug: "empty",
-  },
-
   resolve: {
     modules: [
       "node_modules",                       // TODO - replace with env.node_modules_dir

@@ -7,10 +7,6 @@ module.exports = {
     filename: "bundle.js"
   },
 
-  node: {
-    fs: "empty"
-  },
-
   resolve: {
     modules: ["node_modules"],  // TODO - replace with env.node_modules_dir
     extensions: [".ts", ".tsx", ".js", ".jsx" ,".json"],
