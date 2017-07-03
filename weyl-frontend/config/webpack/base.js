@@ -36,6 +36,7 @@ module.exports = {
   },
 
   module: {
+    noParse: /(mapbox-gl)\.js$/, // Just because (see https://github.com/mapbox/mapbox-gl-js/issues/4359#issuecomment-288001933)
     rules: [
       {
         test: /\.js$/, // Transform all .js files required somewhere with Babel
