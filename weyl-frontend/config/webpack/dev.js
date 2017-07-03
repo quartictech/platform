@@ -33,7 +33,6 @@ module.exports = merge.smart(require("./base"), {
     }),
   ],
 
-  // Emit a source map for easier debugging
   devtool: "source-map",
 
   // TODO - find a better way to set react-hmre
