@@ -1,9 +1,4 @@
-/* eslint consistent-return:0 */
-
 const express = require("express");
-const logger = require("./logger");
-
-const argv = require("minimist")(process.argv.slice(2));
 const setup = require("./middlewares/frontendMiddleware");
 const resolve = require("path").resolve;
 const app = express();
@@ -21,14 +16,13 @@ setup(app, {
   publicPath: "",
 });
 
-// get the intended port number, use port 3000 if not provided
-const port = argv.port || process.env.PORT || 3000;
-
-// Start your app.
-const server = app.listen(port, (err) => {
+const server = app.listen(3000, (err) => {
   if (err) {
-    return logger.error(err.message);
+    console.error(err);
+    return;
   }
+
+  console.log("Listening at http://localhost:3000"); // eslint-disable-line no-console
 });
 
 server.on("upgrade", wsProxy.upgrade);

@@ -32,7 +32,7 @@ app.get('*', function (req, res) {
 
 app.listen(3010, 'localhost', function (err) {
 	if (err) {
-		console.log(err);
+		console.error(err);
 		return;
 	}
 
