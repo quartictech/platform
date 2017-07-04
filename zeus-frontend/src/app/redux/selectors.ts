@@ -25,3 +25,4 @@ export const selectDatasetContent = selector(api.datasetContent);
 export const selectJobs = selector(api.jobs);
 export const selectAssets = selector(api.assets);
 export const selectAsset = selector(api.asset);
+export const selectInsight = selector(api.insight);
