@@ -31,7 +31,31 @@ module.exports = {
       {
         test: /\.js$/, // Transform all .js files required somewhere with Babel
         exclude: /node_modules/,
-        use: "babel-loader",
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: [
+              [
+                "es2015",
+                {
+                  modules: false,
+                },
+              ],
+              "react",
+              "stage-0",
+            ],
+            env: {
+              production: {
+                only: ["app"],
+                plugins: [
+                  "transform-react-remove-prop-types",
+                  "transform-react-constant-elements",
+                  "transform-react-inline-elements",
+                ],
+              },
+            },
+          },
+        },
       },
       {
         // Transform our own .css files with PostCSS and CSS-modules
