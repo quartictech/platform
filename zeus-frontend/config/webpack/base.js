@@ -3,12 +3,8 @@ const webpack = require("webpack");
 
 module.exports = {
   output: {
-    path: path.resolve(process.cwd(), "build", "webpack", "assets"),
+    path: path.resolve("build", "webpack", "assets"),
     filename: "bundle.js"
-  },
-
-  node: {
-    fs: "empty"
   },
 
   resolve: {
@@ -17,7 +13,7 @@ module.exports = {
   },
 
   module: {
-    noParse: /node_modules\/mapbox-gl\/dist\/mapbox-gl.js/, // See https://github.com/mapbox/mapbox-gl-js/issues/2742#issuecomment-267001402
+    noParse: /(mapbox-gl)\.js$/, // Just because (see https://github.com/mapbox/mapbox-gl-js/issues/4359#issuecomment-288001933)
     rules: [
       {
         test: /\.js$/,
@@ -32,7 +28,7 @@ module.exports = {
         test: /\.tsx?$/,
         include: /app/,
         use: [
-          "react-hot-loader",
+          "react-hot-loader", // TODO - should only need this for prod builds, and should switch to react-hmre
           {
             loader: "babel-loader",
             options: {
