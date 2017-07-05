@@ -61,7 +61,7 @@ class MgmtResource(
         val datasetConfig = when (request) {
             is CreateStaticDatasetRequest -> {
                 try {
-                    val name = preprocessFile(request.fileName, request.fileType)
+                    val name = preprocessFile(namespace.namespace, request.fileName, request.fileType)
                     val locator = DatasetLocator.CloudDatasetLocator(
                             "/%s/%s".format(namespace, name),
                             false,
@@ -81,8 +81,8 @@ class MgmtResource(
         return catalogue.registerDataset(namespace, datasetConfig).id
     }
 
-    private fun preprocessFile(fileName: String, fileType: FileType): String {
-        val stream: InputStream = howl.downloadFile(HOWL_NAMESPACE, fileName)
+    private fun preprocessFile(namespace: String, fileName: String, fileType: FileType): String {
+        val stream: InputStream = howl.downloadFile(namespace, fileName)
                 ?: throw NotFoundException("File not found: " + fileName)
 
         return stream.use { s ->
@@ -96,7 +96,7 @@ class MgmtResource(
                     fileName
                 }
                 FileType.CSV -> {
-                    val storageId = howl.uploadAnonymousFile(HOWL_NAMESPACE, MediaType.APPLICATION_JSON) { outputStream ->
+                    val storageId = howl.uploadAnonymousFile(namespace, MediaType.APPLICATION_JSON) { outputStream ->
                         try {
                             CsvConverter().convert(s, outputStream)
                         } catch (e: IOException) {
@@ -115,8 +115,10 @@ class MgmtResource(
     @POST
     @Path("/file/{namespace}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun uploadFile(@Context request: HttpServletRequest): HowlStorageId {
-        return howl.uploadAnonymousFile(HOWL_NAMESPACE, request.contentType) { outputStream ->
+    fun uploadFile(
+            @PathParam("namespace") namespace: DatasetNamespace,
+            @Context request: HttpServletRequest): HowlStorageId {
+        return howl.uploadAnonymousFile(namespace.namespace, request.contentType) { outputStream ->
             try {
                 IOUtils.copy(request.inputStream, outputStream)
             } catch (e: Exception) {
