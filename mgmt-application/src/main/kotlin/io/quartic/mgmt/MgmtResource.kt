@@ -69,7 +69,7 @@ class MgmtResource(
                     DatasetConfig(
                             request.metadata,
                             locator,
-                            emptyMap()
+                            request.extensions()
                     )
                 } catch (e: IOException) {
                     throw RuntimeException("Exception while preprocessing file", e)
