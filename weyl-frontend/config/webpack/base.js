@@ -1,32 +1,92 @@
 const path = require("path");
 const webpack = require("webpack");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const cssnext = require("postcss-cssnext");
+const postcssFocus = require("postcss-focus");
+const postcssReporter = require("postcss-reporter");
 
-module.exports = (options) => ({
-  entry: options.entry,
-
-  output: Object.assign({ // Compile into js/build.js
-    path: path.resolve(process.cwd(), "build", "webpack", "assets"),
+module.exports = {
+  output: {
+    path: path.resolve("build", "webpack", "assets"),
     publicPath: "",
-  }, options.output), // Merge with env dependent settings
+  },
+
+  resolve: {
+    modules: [
+      "node_modules",                       // TODO - replace with env.node_modules_dir
+      path.resolve("./src/app"),
+    ],
+    extensions: [".ts", ".tsx", ".js", ".jsx" ,".json"],
+  },
+
+  stats: {
+    assets: false,
+    chunks: false,
+    errorDetails: true,
+  },
 
   module: {
+    noParse: /(mapbox-gl)\.js$/, // Just because (see https://github.com/mapbox/mapbox-gl-js/issues/4359#issuecomment-288001933)
     rules: [
       {
         test: /\.js$/, // Transform all .js files required somewhere with Babel
         exclude: /node_modules/,
-        use: [
-          {
-            loader: "babel-loader",
-            options: options.babelOptions,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: [
+              [
+                "es2015",
+                {
+                  modules: false,
+                },
+              ],
+              "react",
+              "stage-0",
+            ],
+            env: {
+              production: {
+                only: ["app"],
+                plugins: [
+                  "transform-react-remove-prop-types",
+                  "transform-react-constant-elements",
+                  "transform-react-inline-elements",
+                ],
+              },
+            },
           },
-        ],
+        },
       },
       {
         // Transform our own .css files with PostCSS and CSS-modules
         test: /\.css$/,
         exclude: /node_modules/,
-        use: options.cssLoaders,
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              localIdentName: "[local]__[hash:base64:5]",
+              modules: true,
+              importLoaders: 1,
+              sourceMap: true,
+            },
+          },
+          {
+            loader: "postcss-loader",
+            options: {
+              plugins: () => [
+                postcssFocus(), // Add a :focus to every :hover
+                cssnext({ // Allow future CSS features to be used, also auto-prefixes the CSS...
+                  browsers: ["last 2 versions", "IE > 10"], // ...based on this browser list
+                }),
+                postcssReporter({ // Posts messages from plugins to the terminal
+                  clearMessages: true,
+                }),
+              ],
+            },
+          },
+        ],
       },
       {
         // Do not transform vendor's CSS with CSS-modules
@@ -52,9 +112,7 @@ module.exports = (options) => ({
       },
       {
         test: /\.(eot|svg|ttf|woff|woff2)$/,
-        use: [
-          "file-loader",
-        ],
+        use: "file-loader",
       },
       {
         test: /\.(jpg|png|gif)$/,
@@ -76,30 +134,21 @@ module.exports = (options) => ({
       },
       {
         test: /\.html$/,
-        use: [
-          "html-loader",
-        ],
+        use: "html-loader",
       },
       {
         test: /\.(mp4|webm)$/,
-        use: [
-          {
-            loader: "url-loader",
-            options: {
-              limit: 10000,
-            },
+        use: {
+          loader: "url-loader",
+          options: {
+            limit: 10000,
           },
-        ],
+        },
       },
     ],
   },
 
-  plugins: options.plugins.concat([
-    new webpack.ProvidePlugin({
-      // make fetch available
-      fetch: "exports-loader?self.fetch!whatwg-fetch",
-    }),
-
+  plugins: [
     // Always expose NODE_ENV to webpack, in order to use `process.env.NODE_ENV`
     // inside your code for any environment checks; UglifyJS will automatically
     // drop any unreachable code.
@@ -111,35 +160,5 @@ module.exports = (options) => ({
     }),
 
     new CopyWebpackPlugin([{ from: "src/static" }]),
-
-    // Some BS for moment.js (see https://github.com/moment/moment/issues/2979)
-    // If you ever remove this line, also remove the devDependency on empty-module
-    new webpack.ContextReplacementPlugin(/\.\/locale$/, "empty-module", false, /js$/),
-  ]),
-
-  resolve: {
-    modules: [
-      "node_modules",                       // TODO - replace with env.node_modules_dir
-      path.resolve("./src/app"),
-    ],
-    extensions: [".ts", ".tsx", ".js", ".jsx" ,".json"],
-  },
-
-  // This is needed to make geojsonhint (imported via mapbox-gl-draw) happy
-  // See e.g. https://github.com/pugjs/pug-loader/issues/8
-  node: {
-    fs: "empty",
-    net: "empty",
-    debug: "empty",
-  },
-
-  devtool: options.devtool,
-
-  target: "web", // Make web variables accessible to webpack, e.g. window
-
-  stats: {
-    assets: false,
-    chunks: false,
-    errorDetails: true,
-  },
-});
+  ],
+};

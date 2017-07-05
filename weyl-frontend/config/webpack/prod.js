@@ -1,15 +1,11 @@
-// Important modules this config uses
-const path = require("path");
 const webpack = require("webpack");
+const merge = require("webpack-merge");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
-// PostCSS plugins
-const cssnext = require("postcss-cssnext");
-const postcssFocus = require("postcss-focus");
-const postcssReporter = require("postcss-reporter");
+module.exports = merge(require("./base"), {
+  bail: true,
 
-module.exports = require("./base")({
   // In production, we skip all hot-reloading stuff
   entry: [
     "./src/app/app.js",
@@ -20,36 +16,6 @@ module.exports = require("./base")({
     filename: "[name].[chunkhash].js",
     chunkFilename: "[name].[chunkhash].chunk.js",
   },
-
-  // We use ExtractTextPlugin so we get a seperate CSS file instead
-  // of the CSS being in the JS and injected as a style tag
-  cssLoaders: ExtractTextPlugin.extract({
-    fallback: "style-loader",
-    use: [
-      {
-        loader: "css-loader",
-        options: {
-          modules: true,
-          importLoaders: 1,
-        },
-      },
-      {
-        loader: "postcss-loader",
-        options: {
-          // In production, we minify our CSS with cssnano
-          plugins: () => [
-            postcssFocus(),
-            cssnext({
-              browsers: ["last 2 versions", "IE > 10"],
-            }),
-            postcssReporter({
-              clearMessages: true,
-            }),
-          ],
-        },
-      },
-    ],
-  }),
 
   plugins: [
     new webpack.optimize.CommonsChunkPlugin({
