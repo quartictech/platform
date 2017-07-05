@@ -1,11 +1,11 @@
 import * as React from "react";
-import {
-  Classes,
-} from "@blueprintjs/core";
-import * as classNames from "classnames";
+// import {
+//   Classes,
+// } from "@blueprintjs/core";
+// import * as classNames from "classnames";
 import HighestLowest2016 from "./highestLowest2016";
 import HighestConcentration2016 from "./highestConcentration2016";
-import Flytipping from "./flytipping";
+// import Flytipping from "./flytipping";
 
 export interface InsightType {
   componentClass: any;
