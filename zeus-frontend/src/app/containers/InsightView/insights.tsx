@@ -48,19 +48,20 @@ const insights: { [name: string] : InsightType } = {
       </div>
     ),
   },
-  "flytipping": {
-    componentClass: Flytipping,
-    title: "Flytipping",
-    disabled: false,
-    description: (
-      <div>
-        Flytipping trends in Hounslow.
-        <div className={classNames(Classes.CALLOUT, Classes.iconClass("warning-sign"), Classes.INTENT_DANGER)}>
-          This insight requires a high-bandwidth network connection, and may fail to display otherwise.
-        </div>
-      </div>
-    ),
-  },
+  // TODO: this is temporary!
+  // "flytipping": {
+  //   componentClass: Flytipping,
+  //   title: "Flytipping",
+  //   disabled: false,
+  //   description: (
+  //     <div>
+  //       Flytipping trends in Hounslow.
+  //       <div className={classNames(Classes.CALLOUT, Classes.iconClass("warning-sign"), Classes.INTENT_DANGER)}>
+  //         This insight requires a high-bandwidth network connection, and may fail to display otherwise.
+  //       </div>
+  //     </div>
+  //   ),
+  // },
   "predictions2017": {
     componentClass: null,
     title: "Predictions (2017)",
