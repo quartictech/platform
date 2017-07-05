@@ -63,7 +63,7 @@ class MgmtResource(
                 try {
                     val name = preprocessFile(request.fileName, request.fileType)
                     val locator = DatasetLocator.CloudDatasetLocator(
-                            "/%s/%s".format(HOWL_NAMESPACE, name),
+                            "/%s/%s".format(namespace, name),
                             false,
                             request.mimeType())
                     DatasetConfig(
@@ -141,9 +141,5 @@ class MgmtResource(
         if (!authoriser.authorisedFor(user, namespace)) {
             throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
         }
-    }
-
-    companion object {
-        private val HOWL_NAMESPACE = "mgmt"
     }
 }
