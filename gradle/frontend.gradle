@@ -14,7 +14,8 @@ node {
 yarn {
     dependsOn       FrontendPlugin.CREATE_PACKAGE_JSON  // TODO - link task I/O
 
-    // In a perfect world, we'd just put this in .yarnrc
+    // --frozen-lockfile -> CI catches cases where we forot to regenerate/commit yarn.lock
+    // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
     // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
     args =          ["--mutex", "network"] + ((System.env.CI != null) ? ["--frozen-lockfile"] : [])
 }
