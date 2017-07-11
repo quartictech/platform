@@ -24,6 +24,11 @@ To run a service with reduced memory (example):
 SKIP_FRONTEND= WEYL_MEMORY=4g ./gradlew run --parallel
 ```
 
+## Frontend dependencies
+
+Frontend dependencies aren't directly managed in `package.json`, because they're lame.  Instead, add `prod` and `dev`
+entries to the `build.gradle` file for the relevant subproject.  `package.json` files are explicitly Git-ignored!
+
 ## Building Docker images
 
 ```
