@@ -16,7 +16,7 @@ yarn {
 
     // In a perfect world, we'd just put this in .yarnrc
     // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-    args =          ["--mutex", "network"]
+    args =          ["--mutex", "network"] + ((System.env.CI != null) ? ["--frozen-lockfile"] : [])
 }
 
 task bundle(type: Exec) {
