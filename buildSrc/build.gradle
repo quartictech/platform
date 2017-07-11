@@ -12,5 +12,10 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7" // Hardcode this version due to needing support for default values (see https://github.com/FasterXML/jackson-module-kotlin)
 
+    // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
+    }
+
     testCompile "junit:junit:4.12"
 }
