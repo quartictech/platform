@@ -1,7 +1,5 @@
-var path = require("path");
-var webpack = require("webpack");
-
-var baseConfig = require("./base");
+import * as webpack from "webpack"
+import * as baseConfig from "./base";
 
 var config = Object.assign({}, baseConfig, {
 	devtool: "source-map",

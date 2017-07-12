@@ -30,12 +30,12 @@ task bundle(type: Exec) {
     environment  += ["NODE_ENV": "production"]      // TODO: this can probably be handled inside Webpack configuration
 
     commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
-                    "--config", "${projectDir}/config/webpack/prod.js",
+                    "--config", "${projectDir}/config/webpack/prod.ts",
                     "--env.node_modules_dir", yarn.nodeModulesDir,
                     "--profile", "--colors"
 }
 
-task run(type: NodeTask) {
+task run(type: Exec) {
     inputs.files    yarn.outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
@@ -43,7 +43,7 @@ task run(type: NodeTask) {
     // No outputs because this should always run
 
     // TODO - how to inject cached node_modules dir?
-    script        = file("${projectDir}/src/server")
+    commandLine     "${yarn.nodeModulesDir}/.bin/ts-node", "${projectDir}/src/server"
 }
 
 def createLintTask(def name, def pattern, Object... extraArgs) {
