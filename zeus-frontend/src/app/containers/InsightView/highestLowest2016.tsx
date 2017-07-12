@@ -19,70 +19,19 @@ interface Entry {
   score: number;
 }
 
-const HIGHEST_DEFECT_ROADS: Entry[] = [
-  {
-    "rank": 1, "rsl": "D244/010_5E_01", "score": 11.044694762716798,
-    "description": "HAMPTON LN TO RIVERDALE RD (MILLBOURNE RD)", "name": "MILLBOURNE ROAD",
-    "length": 198.9099787,
-  },
-  {
-    "rank": 2, "rsl": "D758/005_5E_01", "score": 10.984039245395659,
-    "description": "JERSEY RD TO PEVENSEY CL (S)", "name": "PEVENSEY CLOSE",
-    "length": 161.0227313,
-  },
-  {
-    "rank": 3, "rsl": "D1181/050_5E_01", "score": 10.655653212181992,
-    "description": "STAVELEY GRDS TO END OF RD (STAVELEY GRDS EB)", "name": "STAVELEY GARDENS",
-    "length": 114.0014578,
-  },
-  {
-    "rank": 4, "rsl": "D666/005_5E_01", "score": 10.323185274237224,
-    "description": "MONTAGUE RD TO END OF RD", "name": "YORK ROAD",
-    "length": 76.40083744,
-  },
-  {
-    "rank": 5, "rsl": "D852/010_5E_01", "score": 10.270034203090121,
-    "description": "RBT TREVOR CL TO RBT TREVOR CL", "name": "TREVOR CLOSE",
-    "length":  30.54517578,
-  },
-  ];
-const LOWEST_DEFECT_ROADS: Entry[] = [
-    {
-      "rsl": "D2027/015_3E_01", "score": 0.0,
-      "description": "COUNTRY WAY TO JCT SUNBURY RD", "name": "FELTHAMHILL ROAD/SNAKEY LANE",
-      "length": 1125.785353, "rank": 1,
-    },
-    {
-      "rsl": "B3003/020_3E_01", "score": 0.0,
-      "description": "BOUNDARY TO ASCOT RD", "name": "CLOCKHOUSE LANE",
-      "length": 824.9326788, "rank": 2,
-    },
-    {
-      "rsl": "B454/065_3D_01", "score": 0.0,
-      "description": "JCT JERSEY RD TO BOUNDARY", "name": "WINDMILL LANE",
-      "length": 788.9269841, "rank": 3,
-    },
-    {
-      "rsl": "D440/505_4E_01", "score": 0.0,
-      "description": "JOHNSON RD TO CRANFORD LN", "name": "BRABAZON ROAD",
-      "length": 748.9370139, "rank": 4,
-    },
-    {
-      "rsl": "D085/005_5E_01", "score": 0.0,
-      "description": "BEDFONT LN TO JCT SVILLE CRES", "name": "SOUTHVILLE ROAD",
-      "length": 614.6817878, "rank": 5,
-    },
-];
+interface Props {
+  highest: Entry[];
+  lowest: Entry[];
+}
 
-class HighestLowest2016 extends React.Component<{}, {}> {
-
+class HighestLowest2016 extends React.Component<Props, {}> {
   render() {
     return (
       <div>
-        {this.pane("Highest defects (2016)", HIGHEST_DEFECT_ROADS,
+        {this.pane("Highest defects (2016)", this.props.highest,
           { backgroundColor: "rgba(219, 55, 55, 0.15)" })
         }
-        {this.pane("Lowest defects (2016)", LOWEST_DEFECT_ROADS,
+        {this.pane("Lowest defects (2016)", this.props.lowest,
           { backgroundColor: "rgba(15, 153, 96, 0.15)" })
         }
       </div>
@@ -120,7 +69,7 @@ class HighestLowest2016 extends React.Component<{}, {}> {
         <td>{entry.rank}</td>
         <td><Link to={`/assets/${encodeURIComponent(entry.rsl)}`}><b>{entry.rsl}</b></Link></td>
         <td>{toTitleCase(entry.name)}</td>
-        
+
         <td>{toTitleCase(entry.description)}</td>
         <td>{numeral(entry.score).format("0.0")}</td>
         <td>{entry.length ? numeral(entry.length).format("0") : null}</td>

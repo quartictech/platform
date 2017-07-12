@@ -7,14 +7,14 @@ import HighestLowest2016 from "./highestLowest2016";
 import HighestConcentration2016 from "./highestConcentration2016";
 import Flytipping from "./flytipping";
 
-export interface Insight {
+export interface InsightType {
   componentClass: any;
   title: string;
   description?: JSX.Element;
   disabled: boolean;
 }
 
-const insights: { [name: string] : Insight } = {
+const insights: { [name: string] : InsightType } = {
   "highestLowest2016": {
     componentClass: HighestLowest2016,
     title: "Best / worst roads",
