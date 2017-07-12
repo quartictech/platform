@@ -18,11 +18,11 @@ interface IDatasetInfoProps {
   coords: IDatasetCoords;
   dataset: IDataset;
   deleteClick: Function;
-};
+}
 
 interface IDatasetInfoState {
   isDeleteDialogOpen: boolean;
-};
+}
 
 export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfoState> {
   constructor() {
@@ -103,7 +103,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
     this.setState({ isDeleteDialogOpen: false });
     this.props.deleteClick(this.props.coords);
   }
-};
+}
 
 interface IPropertiesTableProps {
   props: {[key: string]: any};

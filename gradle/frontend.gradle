@@ -64,7 +64,7 @@ def createLintTask(def name, def configFile, def pattern, Object... extraArgs) {
     }
 }
 
-createLintTask("tslint", "${projectDir}/tslint.json", "*.ts{,x}", "-t", "stylish")
+createLintTask("tslint", "${rootDir}/tslint.json", "*.ts{,x}", "-t", "stylish")
 createLintTask("eslint", "${rootDir}/eslint.json", "*.js{,x}")
 createLintTask("stylelint", "${projectDir}/stylelint.json", "*.css")
 

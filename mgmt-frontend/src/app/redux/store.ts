@@ -24,7 +24,7 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
   }
 
 	const finalCreateStore = compose(
-		applyMiddleware(...middlewares)
+		applyMiddleware(...middlewares),
 	)(createStore);
 
   /** Final Redux Store!!! */
@@ -41,5 +41,4 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
 	sagaMiddleware.run(sagas);
 
 	return store;
-
-};
+}

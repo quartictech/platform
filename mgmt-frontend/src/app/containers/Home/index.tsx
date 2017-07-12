@@ -23,7 +23,7 @@ interface IProps {
 
 interface IState {
   datasetCoords: IDatasetCoords;
-};
+}
 
 class Home extends React.Component<IProps, IState> {
   public state : IState = {
@@ -90,15 +90,15 @@ const mapDispatchToProps = {
   fetchDatasets: actions.fetchDatasets,
   createDataset: actions.createDataset,
   deleteDataset: actions.deleteDataset,
-  closeNewDatasetModal: () => actions.setActiveModal(null as string)
+  closeNewDatasetModal: () => actions.setActiveModal(null as string),
 };
 
 const mapStateToProps = createStructuredSelector({
   datasets: selectors.selectDatasets,
-  ui: selectors.selectUi
+  ui: selectors.selectUi,
 });
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(Home);
