@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
         Type(value = Polygon::class),
         Type(value = MultiPoint::class),
         Type(value = MultiLineString::class),
-        Type(value = MultiPolygon::class)
+        Type(value = MultiPolygon::class),
+        Type(value = GeometryCollection::class)
 )
 interface Geometry : GeoJsonObject

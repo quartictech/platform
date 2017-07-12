@@ -25,8 +25,22 @@ class GeoJsonShould {
                                 listOf(101.0, 1.0),
                                 listOf(100.0, 1.0),
                                 listOf(100.0, 0.0)
-                        ))))
-        ))
+                        )))),
+                Feature(geometry = GeometryCollection(listOf(
+                        Polygon(listOf(listOf(
+                                listOf(100.0, 0.0),
+                                listOf(101.0, 0.0),
+                                listOf(101.0, 1.0),
+                                listOf(100.0, 1.0),
+                                listOf(100.0, 0.0)
+                        ))),
+                        LineString(listOf(
+                                listOf(102.0, 0.0),
+                                listOf(103.0, 1.0),
+                                listOf(104.0, 0.0),
+                                listOf(105.0, 1.0)
+                        ))
+                )))))
 
         OBJECT_MAPPER.enable(SerializationFeature.INDENT_OUTPUT)
 
