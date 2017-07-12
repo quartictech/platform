@@ -1,0 +1,23 @@
+{
+	"compileOnSave": false,
+	"buildOnSave": false,
+  "compilerOptions": {
+    "outDir": "./public/",
+    "module": "commonjs",
+    "target": "es6",
+    "noEmitHelpers": false,
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": false,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+    "removeComments": true,
+    "jsx": "react",
+		"types": ["node"]
+  },
+  "exclude": [
+    "node_modules",
+    "static"
+  ]
+}

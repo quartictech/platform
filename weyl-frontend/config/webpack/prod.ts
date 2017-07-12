@@ -1,9 +1,10 @@
-const webpack = require("webpack");
-const merge = require("webpack-merge");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
+import * as webpack from "webpack";
+import * as merge from "webpack-merge";
+import * as HtmlWebpackPlugin from "html-webpack-plugin";
+import * as ExtractTextPlugin from "extract-text-webpack-plugin";
+import * as baseConfig from "./base";
 
-module.exports = merge(require("./base"), {
+module.exports = merge(baseConfig, {
   bail: true,
 
   // In production, we skip all hot-reloading stuff

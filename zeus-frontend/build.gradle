@@ -78,6 +78,7 @@ frontend {
     dev "source-map-loader", "0.1.5"
     dev "style-loader", "0.13.1"
     dev "ts-loader", "0.8.2"
+    dev "ts-node", "3.2.0"
     dev "tslint", "5.4.3"
     dev "typescript", "2.1.5"
     dev "url-loader", "0.5.7"

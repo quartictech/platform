@@ -40,6 +40,7 @@ frontend {
     prod "warning", "3.0.0"
     prod "whatwg-fetch", "1.0.0"
 
+    dev "@types/node", "6.0.48"
     dev "babel-core", "6.13.2"
     dev "babel-eslint", "6.1.2"
     dev "babel-loader", "6.2.4"
@@ -78,6 +79,8 @@ frontend {
     dev "style-loader", "0.13.1"
     dev "stylelint", "7.1.0"
     dev "stylelint-config-standard", "12.0.0"
+    dev "ts-node", "3.2.0"
+    dev "typescript", "2.1.5"
     dev "url-loader", "0.5.7"
     dev "webpack", "2.6.1"
     dev "webpack-dev-middleware", "1.11.0"
