@@ -1,25 +1,17 @@
 package io.quartic.weyl;
 
-import com.google.common.collect.ImmutableMap;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 import io.quartic.catalogue.CatalogueWatcher;
 import io.quartic.catalogue.api.CatalogueService;
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator;
-import io.quartic.catalogue.api.model.DatasetConfig;
-import io.quartic.catalogue.api.model.DatasetLocator;
 import io.quartic.catalogue.api.model.DatasetNamespace;
-import io.quartic.catalogue.api.model.GeoJsonDatasetLocator;
-import io.quartic.catalogue.api.model.PostgresDatasetLocator;
-import io.quartic.catalogue.api.model.WebsocketDatasetLocator;
 import io.quartic.common.application.ApplicationBase;
 import io.quartic.common.uid.UidGenerator;
 import io.quartic.common.websocket.WebsocketClientSessionFactory;
 import io.quartic.common.websocket.WebsocketListener;
 import io.quartic.howl.api.HowlClient;
-import io.quartic.weyl.WeylConfiguration.MapConfig;
 import io.quartic.weyl.core.LayerRouter;
 import io.quartic.weyl.core.attributes.AttributesFactory;
 import io.quartic.weyl.core.compute.HistogramCalculator;
@@ -29,11 +21,8 @@ import io.quartic.weyl.core.feature.FeatureConverter;
 import io.quartic.weyl.core.geofence.GeofenceViolationDetector;
 import io.quartic.weyl.core.model.LayerId;
 import io.quartic.weyl.core.model.LayerSnapshotSequence;
-import io.quartic.weyl.core.source.GeoJsonSource;
-import io.quartic.weyl.core.source.PostgresSource;
-import io.quartic.weyl.core.source.Source;
+import io.quartic.weyl.core.source.DatasetAuthoriser;
 import io.quartic.weyl.core.source.SourceManager;
-import io.quartic.weyl.core.source.WebsocketSource;
 import io.quartic.weyl.resource.AlertResource;
 import io.quartic.weyl.resource.ComputeResource;
 import io.quartic.weyl.resource.LayerExportResource;
@@ -55,9 +44,7 @@ import rx.schedulers.Schedulers;
 
 import javax.websocket.server.ServerEndpointConfig;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static io.quartic.common.client.ClientUtilsKt.client;
@@ -86,20 +73,22 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         final WebsocketClientSessionFactory websocketFactory = new WebsocketClientSessionFactory(getClass());
 
         final CatalogueWatcher catalogueWatcher = new CatalogueWatcher(
-                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory),
-                configuration.getDefaultCatalogueNamespace()
+                new WebsocketListener.Factory(configuration.getCatalogue().getWatchUrl(), websocketFactory)
         );
 
+        WeylSourceFactory sourceFactory = new WeylSourceFactory(configuration, environment, websocketFactory);
+        final DatasetAuthoriser authoriser = new DatasetAuthoriser(configuration.getImportNamespaceRules());
         final SourceManager sourceManager = new SourceManager(
                 catalogueWatcher.getEvents(),
-                createSourceFactories(configuration, environment, websocketFactory),
+                sourceFactory::createSource,
+                authoriser::isAllowed,
                 Schedulers.from(Executors.newScheduledThreadPool(2))
         );
 
         final ComputeResource computeResource = new ComputeResource(lidGenerator);
 
         final LayerRouter router = new LayerRouter(merge(
-                sourceManager.layerPopulators(),
+                sourceManager.getLayerPopulators(),
                 computeResource.layerPopulators()
         ));
 
@@ -113,7 +102,7 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         environment.jersey().register(computeResource);
         environment.jersey().register(new TileResource(snapshotSequences));
         environment.jersey().register(alertResource);
-        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportCatalogueNamespace()));
+        environment.jersey().register(createLayerExportResource(snapshotSequences, howlClient, catalogueService, configuration.getExportNamespace()));
 
         websocketBundle.addEndpoint(serverEndpointConfig("/ws",
                 createWebsocketEndpoint(snapshotSequences, alertResource, configuration.getMap())));
@@ -177,50 +166,6 @@ public class WeylApplication extends ApplicationBase<WeylConfiguration> {
         return new LayerExportResource(layerExporter);
     }
 
-    private Map<Class<? extends DatasetLocator>, Function<DatasetConfig, Source>> createSourceFactories(
-            WeylConfiguration configuration,
-            Environment environment,
-            WebsocketClientSessionFactory websocketFactory
-    ) {
-        return ImmutableMap.of(
-                PostgresDatasetLocator.class, config -> new PostgresSource(
-                        config.getMetadata().getName(),
-                        (PostgresDatasetLocator) config.getLocator(),
-                        attributesFactory()
-                ),
-                GeoJsonDatasetLocator.class, config -> geojsonSource(config, ((GeoJsonDatasetLocator) config.getLocator()).getUrl()),
-                WebsocketDatasetLocator.class, config -> websocketSource(environment, config,
-                        new WebsocketListener.Factory(((WebsocketDatasetLocator) config.getLocator()).getUrl(), websocketFactory),
-                                false),
-                CloudGeoJsonDatasetLocator.class, config -> {
-                    // TODO: can remove the geojsonSource variant once we've regularised the Rain path
-                    final CloudGeoJsonDatasetLocator cgjLocator = (CloudGeoJsonDatasetLocator) config.getLocator();
-                    return cgjLocator.getStreaming()
-                            ? websocketSource(environment, config,
-                            new WebsocketListener.Factory(configuration.getRainWsUrlRoot() + cgjLocator.getPath(), websocketFactory), true)
-                            : geojsonSource(config, configuration.getHowlStorageUrl() + cgjLocator.getPath());
-                }
-        );
-    }
-
-    private GeoJsonSource geojsonSource(DatasetConfig config, String url) {
-        return new GeoJsonSource(
-                config.getMetadata().getName(),
-                url,
-                userAgentFor(getClass()),
-                featureConverter()
-        );
-    }
-
-    private WebsocketSource websocketSource(Environment environment, DatasetConfig config, WebsocketListener.Factory listenerFactory, boolean indexable) {
-        return new WebsocketSource(
-                config.getMetadata().getName(),
-                featureConverter(),
-                environment.metrics(),
-                listenerFactory,
-                indexable
-        );
-    }
 
     private FeatureConverter featureConverter() {
         return new FeatureConverter(attributesFactory());

@@ -3,10 +3,13 @@ out
 *.iml
 *.ipr
 *.iws
+classes/
 build/
 generated_src
 generated_testSrc
 
+# Generate by Gradle
+package.json
 
 # Cruft
 .DS_Store
@@ -15,7 +18,3 @@ npm-debug.log
 *.gc
 .env
 _detritus
-.vscode
-
-# Config files
-weyl-frontend/weylConfig.js

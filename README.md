@@ -2,19 +2,13 @@
 
 **Note:** The Scribe service writes to a real cloud bucket, even when running locally.
 
-1. Start the back-end:
+1. Start the services (backend and frontend):
 
    ```
    SKIP_FRONTEND= ./gradlew run --parallel
    ```
 
-2. Start the front-end:
-
-    ```
-    ./gradlew npmStart --parallel
-    ```
-
-3. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
+2. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
 
 ## Variations
 
@@ -30,6 +24,11 @@ To run a service with reduced memory (example):
 SKIP_FRONTEND= WEYL_MEMORY=4g ./gradlew run --parallel
 ```
 
+## Frontend dependencies
+
+Frontend dependencies aren't directly managed in `package.json`, because they're lame.  Instead, add `prod` and `dev`
+entries to the `build.gradle` file for the relevant subproject.  `package.json` files are explicitly Git-ignored!
+
 ## Building Docker images
 
 ```
@@ -42,11 +41,13 @@ Note that this will build the images with a registry name of `null` and a tag of
 
 ## Services
 
-Service    | Port (app/admin) | Port (frontend dev)
------------|------------------|----------------------
-Weyl       | 8080 / 8081      | 3000
-Catalogue  | 8090 / 8091      |
-Mgmt       | 8100 / 8101      | 3010
-Howl       | 8120 / 8121      |
-Scribe     | 8140 / 8141      |
-Rain       | 8150 / 8151      |
+Service        | Port (app/admin) | Port (frontend dev)  | Notes
+---------------|------------------|----------------------|-----------------
+Weyl           | 8080 / 8081      | 3000                 |
+Catalogue      | 8090 / 8091      |                      |
+Mgmt           | 8100 / 8101      | 3010                 |
+Howl           | 8120 / 8121      |                      |
+~~Terminator~~ | ~~8130 / 8131~~  |                      |
+Scribe         | 8140 / 8141      |                      |
+Rain           | 8150 / 8151      |                      |
+Zeus           | 8160 / 8161      | 3020                 |

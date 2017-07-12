@@ -9,6 +9,8 @@ import io.quartic.common.client.client
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
+import io.quartic.mgmt.auth.NamespaceAuthoriser
+
 
 class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
@@ -17,10 +19,12 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
     }
 
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
-        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
-        val catalogueService = client(CatalogueService::class.java, javaClass, configuration.catalogueUrl!!)
+        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl!!)
+        val catalogueService = client<CatalogueService>(javaClass, configuration.catalogueUrl!!)
 
-        environment.jersey().register(MgmtResource(catalogueService, howlService, configuration.defaultCatalogueNamespace!!))
+        with (environment.jersey()) {
+            register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(configuration.authorisedNamespaces)))
+        }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl!!))
     }
 

@@ -1,36 +1,84 @@
-def env = [BUILD_VERSION: version] + System.getenv()  // See https://github.com/srs/gradle-node-plugin/issues/130
+import io.quartic.gradle.frontend.FrontendPlugin
+
+apply plugin: FrontendPlugin
+apply plugin: "idea"
+
+def env = [BUILD_VERSION: version]
 
 node {
-    version = "7.2.0"
+//    version = "8.1.2"
+    yarnVersion = "0.27.5"
     download = "true"
 }
 
-task npmLint(type: NpmTask, dependsOn: npmInstall) {
-    args = ["run", "lint", "--silent"]
+yarn {
+    dependsOn       FrontendPlugin.CREATE_PACKAGE_JSON  // TODO - link task I/O
+
+    // --frozen-lockfile -> CI catches cases where we forot to regenerate/commit yarn.lock
+    // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
+    // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
+    args =          ["--mutex", "network"] + ((System.env.CI != null) ? ["--frozen-lockfile"] : [])
 }
 
-task npmBuild(type: NpmTask, dependsOn: npmInstall) {
-    args = ["run", "build", "--silent"]
-    environment = env + [NODE_ENV: "production"]
-    // TODO: specify input files
-    outputs.dir   "${buildDir}/webpack"
+task bundle(type: Exec) {
+    inputs.files    yarn.outputs
+    inputs.file     "${projectDir}/tsconfig.json"
+    inputs.dir      "${projectDir}/config"
+    inputs.dir      "${projectDir}/src"
+    outputs.dir     "${buildDir}/webpack"
+
+    environment  += ["NODE_ENV": "production"]      // TODO: this can probably be handled inside Webpack configuration
+
+    commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
+                    "--config", "${projectDir}/config/webpack/prod.ts",
+                    "--env.node_modules_dir", yarn.nodeModulesDir,
+                    "--profile", "--colors"
 }
 
-task npmStart(type: NpmTask, dependsOn: npmInstall) {
-    args = ["start", "--silent"]
-    environment = env
-    // TODO: specify input files
+task run(type: Exec) {
+    inputs.files    yarn.outputs
+    inputs.file     "${projectDir}/tsconfig.json"
+    inputs.dir      "${projectDir}/config"
+    inputs.dir      "${projectDir}/src"
+    // No outputs because this should always run
+
+    // TODO - how to inject cached node_modules dir?
+    commandLine     "${yarn.nodeModulesDir}/.bin/ts-node", "${projectDir}/src/server"
 }
 
-jar {
-    from npmBuild
-}
+def createLintTask(def name, def pattern, Object... extraArgs) {
+    task "${name}"(type: Exec) {
+        inputs.files    yarn.outputs
+        inputs.file     "${projectDir}/${name}.json"
+        inputs.dir      "${projectDir}/src"
+        outputs.dir     "${buildDir}/lint"
 
-check.dependsOn npmLint
+        commandLine     (
+                ["${yarn.nodeModulesDir}/.bin/${name}", "--config", "${projectDir}/${name}.json"] +
+                extraArgs.toList() +
+                ["${projectDir}/src/**/${pattern}"]
+        )
 
-idea {
-    module {
-        excludeDirs += file("node_modules")
+        onlyIf          { file("${projectDir}/${name}.json").exists() }
     }
 }
 
+createLintTask("tslint", "*.ts{,x}", "-t", "stylish")
+createLintTask("eslint", "*.js{,x}")
+createLintTask("stylelint", "*.css")
+
+task lint {
+    dependsOn   tslint, eslint, stylelint
+}
+
+check.dependsOn lint
+
+jar {
+    from bundle
+}
+
+idea {
+    module {
+        excludeDirs += file("node_modules") // TODO - replace with param
+    }
+}

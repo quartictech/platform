@@ -2,7 +2,7 @@ package io.quartic.weyl.update;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.common.test.rx.Interceptor;
-import io.quartic.weyl.WeylConfiguration.MapConfig;
+import io.quartic.weyl.MapConfig;
 import io.quartic.weyl.core.geofence.GeofenceType;
 import io.quartic.weyl.core.model.Alert;
 import io.quartic.weyl.core.model.EntityId;

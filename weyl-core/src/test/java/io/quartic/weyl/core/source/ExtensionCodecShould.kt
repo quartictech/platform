@@ -1,18 +1,19 @@
 package io.quartic.weyl.core.source
 
 import com.google.common.collect.ImmutableMap
-import io.quartic.catalogue.api.model.CloudGeoJsonDatasetLocator
 import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
+import io.quartic.catalogue.api.model.MimeType
 import io.quartic.common.serdes.objectMapper
 import io.quartic.weyl.core.live.LayerViewType.LOCATION_AND_TRACK
 import io.quartic.weyl.core.model.AttributeName
 import io.quartic.weyl.core.model.AttributeType
 import io.quartic.weyl.core.model.MapDatasetExtension
 import io.quartic.weyl.core.model.StaticSchema
-import io.quartic.weyl.core.source.ExtensionCodec.Companion.DEFAULT_EXTENSION
 import io.quartic.weyl.core.source.ExtensionCodec.Companion.EXTENSION_KEY
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.io.IOException
@@ -22,13 +23,13 @@ class ExtensionCodecShould {
     private val codec = ExtensionCodec()
 
     @Test
-    fun return_default_extension_when_not_present() {
-        assertThat(codec.decode("foo", emptyMap()), equalTo(DEFAULT_EXTENSION))
+    fun return_null_when_not_present() {
+        assertThat(codec.decode("foo", emptyMap()), nullValue())
     }
 
     @Test
-    fun return_default_extension_when_unparseable() {
-        assertThat(codec.decode("foo", mapOf(EXTENSION_KEY to "stuff")), equalTo(DEFAULT_EXTENSION))
+    fun return_null_when_unparseable() {
+        assertThat(codec.decode("foo", mapOf(EXTENSION_KEY to "stuff")), nullValue())
     }
 
     @Test
@@ -75,7 +76,7 @@ class ExtensionCodecShould {
                 LOCATION_AND_TRACK)
         val datasetConfig = DatasetConfig(
                 DatasetMetadata("foo", "wat", "nope", null),
-                CloudGeoJsonDatasetLocator("test", false),
+                DatasetLocator.CloudDatasetLocator("test", false, MimeType.RAW),
                 codec.encode(extension))
 
         val json = objectMapper().writeValueAsString(datasetConfig)

@@ -5,7 +5,7 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quartic.common.websocket.ResourceManagingEndpoint;
-import io.quartic.weyl.WeylConfiguration.MapConfig;
+import io.quartic.weyl.MapConfig;
 import io.quartic.weyl.websocket.ClientStatusMessageHandler;
 import io.quartic.weyl.websocket.message.ClientStatusMessage;
 import io.quartic.weyl.websocket.message.OnOpenMessage;
