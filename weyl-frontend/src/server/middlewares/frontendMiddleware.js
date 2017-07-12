@@ -57,7 +57,7 @@ module.exports = (app, options) => {
   if (isProd) {
     addProdMiddlewares(app, options);
   } else {
-    const webpackConfig = require("../../../config/webpack/dev");
+    const webpackConfig = require("../../../config/webpack/dev");  // eslint-disable-line import/no-unresolved
     addDevMiddlewares(app, webpackConfig);
   }
 

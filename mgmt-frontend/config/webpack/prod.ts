@@ -1,8 +1,6 @@
-const path = require("path");
-const webpack = require("webpack");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-
-const baseConfig = require("./base");
+import * as webpack from "webpack";
+import CopyWebpackPlugin from "copy-webpack-plugin";
+import * as baseConfig from "./base";
 
 const config = Object.assign({}, baseConfig, {
   bail: true,
@@ -20,7 +18,7 @@ const config = Object.assign({}, baseConfig, {
       minimize: true,
     }),
 		new CopyWebpackPlugin([{from: "src/public"}]),
-  ]
+  ],
 });
 
 module.exports = config;
