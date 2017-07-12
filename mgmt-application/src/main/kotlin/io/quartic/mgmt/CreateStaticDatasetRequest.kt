@@ -13,4 +13,9 @@ data class CreateStaticDatasetRequest(
         FileType.GEOJSON -> MimeType.GEOJSON
         FileType.RAW -> MimeType.RAW
     }
+
+    fun extensions() = when (fileType) {
+        FileType.GEOJSON -> mapOf<String, Any>(Pair("map", emptyMap<String, Any>()))
+        else -> emptyMap()
+    }
 }

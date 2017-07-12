@@ -14,10 +14,10 @@
 		"noUnusedParameters": true,
     "removeComments": true,
     "jsx": "react",
-		"types": ["node", "redux"]
+		"types": ["node"]
   },
   "exclude": [
     "node_modules",
-    "public"
+    "static"
   ]
 }

@@ -1,66 +1,84 @@
+import io.quartic.gradle.frontend.FrontendPlugin
+
+apply plugin: FrontendPlugin
 apply plugin: "idea"
 
 def env = [BUILD_VERSION: version]
 
 node {
 //    version = "8.1.2"
-    yarnVersion = "0.27.0"
+    yarnVersion = "0.27.5"
     download = "true"
 }
 
-yarn_install {
-    inputs.file     "${projectDir}/package.json"
-    inputs.file     "${projectDir}/yarn.lock"       // This isn't perfect - technically yarn.lock is also a task output.  But this *should* work as is.
-    outputs.dir     "${projectDir}/node_modules"
+yarn {
+    dependsOn       FrontendPlugin.CREATE_PACKAGE_JSON  // TODO - link task I/O
 
-    // In a perfect world, we'd just put this in .yarnrc
+    // --frozen-lockfile -> CI catches cases where we forot to regenerate/commit yarn.lock
+    // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
     // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-    args =          ["--mutex", "network"]
+    args =          ["--mutex", "network"] + ((System.env.CI != null) ? ["--frozen-lockfile"] : [])
 }
 
-task yarnBuild(type: YarnTask, dependsOn: yarn_install) {
-    inputs.file     "${projectDir}/package.json"    // In case the NPM build script changed
+task bundle(type: Exec) {
+    inputs.files    yarn.outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
     outputs.dir     "${buildDir}/webpack"
 
-    args =          ["run", "build", "--silent"]
-    environment     env + [NODE_ENV: "production"]
+    environment  += ["NODE_ENV": "production"]      // TODO: this can probably be handled inside Webpack configuration
+
+    commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
+                    "--config", "${projectDir}/config/webpack/prod.ts",
+                    "--env.node_modules_dir", yarn.nodeModulesDir,
+                    "--profile", "--colors"
 }
 
-task yarnStart(type: YarnTask, dependsOn: yarn_install) {
-    inputs.file     "${projectDir}/package.json"    // In case the NPM start script changed
+task run(type: Exec) {
+    inputs.files    yarn.outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
     // No outputs because this should always run
 
-    args =          ["start", "--silent"]
-    environment     env
+    // TODO - how to inject cached node_modules dir?
+    commandLine     "${yarn.nodeModulesDir}/.bin/ts-node", "${projectDir}/src/server"
 }
 
-task yarnLint(type: YarnTask, dependsOn: yarn_install) {
-    inputs.file     "${projectDir}/package.json"    // In case the NPM lint script changed
-    inputs.file     "${projectDir}/tslint.json"
-    inputs.dir      "${projectDir}/src"
-    outputs.dir     "${buildDir}/lint"
+def createLintTask(def name, def pattern, Object... extraArgs) {
+    task "${name}"(type: Exec) {
+        inputs.files    yarn.outputs
+        inputs.file     "${projectDir}/${name}.json"
+        inputs.dir      "${projectDir}/src"
+        outputs.dir     "${buildDir}/lint"
 
-    args =          ["run", "lint", "--silent"]
+        commandLine     (
+                ["${yarn.nodeModulesDir}/.bin/${name}", "--config", "${projectDir}/${name}.json"] +
+                extraArgs.toList() +
+                ["${projectDir}/src/**/${pattern}"]
+        )
 
-    doFirst {
-        file("${buildDir}/lint").mkdirs()
+        onlyIf          { file("${projectDir}/${name}.json").exists() }
     }
 }
 
-jar {
-    from yarnBuild
+createLintTask("tslint", "*.ts{,x}", "-t", "stylish")
+createLintTask("eslint", "*.js{,x}")
+createLintTask("stylelint", "*.css")
+
+task lint {
+    dependsOn   tslint, eslint, stylelint
 }
 
-check.dependsOn yarnLint
+check.dependsOn lint
+
+jar {
+    from bundle
+}
 
 idea {
     module {
-        excludeDirs += file("node_modules")
+        excludeDirs += file("node_modules") // TODO - replace with param
     }
 }

@@ -38,20 +38,7 @@ export interface SubInsight {
   text: string;
 }
 
-export interface Insight {
-  id: string;
-  title: string;
-  insightType: string;
-  barChart?: {
-    data: Bar[];
-    xLabel: string;
-    yLabel: string;
-  };
-  assetIds?: string[];
-  unfailedAssetIds?: string[];
-  subInsights: SubInsight[];
-  assetClass?: string;
-}
+export type Insight = any;
 
 // TODO: remove this
 export interface UiAction {

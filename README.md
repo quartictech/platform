@@ -2,19 +2,13 @@
 
 **Note:** The Scribe service writes to a real cloud bucket, even when running locally.
 
-1. Start the back-end:
+1. Start the services (backend and frontend):
 
    ```
    SKIP_FRONTEND= ./gradlew run --parallel
    ```
 
-2. Start the front-end:
-
-    ```
-    ./gradlew yarnStart --parallel
-    ```
-
-3. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
+2. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
 
 ## Variations
 
@@ -29,6 +23,11 @@ To run a service with reduced memory (example):
 ```
 SKIP_FRONTEND= WEYL_MEMORY=4g ./gradlew run --parallel
 ```
+
+## Frontend dependencies
+
+Frontend dependencies aren't directly managed in `package.json`, because they're lame.  Instead, add `prod` and `dev`
+entries to the `build.gradle` file for the relevant subproject.  `package.json` files are explicitly Git-ignored!
 
 ## Building Docker images
 

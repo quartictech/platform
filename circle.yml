@@ -36,7 +36,7 @@ jobs:
 
       - run:
           name: Install dependencies
-          command: ./gradlew resolveConfigurations yarn_install --parallel --info --console=plain
+          command: ./gradlew resolveConfigurations yarn --info --console=plain
 
       - save_cache:
           key: platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
@@ -66,8 +66,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            ./gradlew yarnBuild --parallel --info --console=plain
-            ./gradlew check --info --console=plain
+            ./gradlew build --info --console=plain
 
       - run:
           name: Collect test results
