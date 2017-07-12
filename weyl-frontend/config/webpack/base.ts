@@ -1,9 +1,9 @@
-const path = require("path");
-const webpack = require("webpack");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const cssnext = require("postcss-cssnext");
-const postcssFocus = require("postcss-focus");
-const postcssReporter = require("postcss-reporter");
+import * as path from "path";
+import * as webpack from "webpack";
+import * as CopyWebpackPlugin from "copy-webpack-plugin";
+import * as cssnext from "postcss-cssnext";
+import * as postcssFocus from "postcss-focus";
+import * as postcssReporter from "postcss-reporter";
 
 module.exports = {
   output: {

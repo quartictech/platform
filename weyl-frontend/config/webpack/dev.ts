@@ -1,9 +1,9 @@
-const webpack = require("webpack");
-const merge = require("webpack-merge");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const _ = require("underscore");
+import * as webpack from "webpack";
+import * as merge from "webpack-merge";
+import * as HtmlWebpackPlugin from "html-webpack-plugin";
+import * as baseConfig from "./base";
 
-module.exports = merge.smart(require("./base"), {
+module.exports = merge.smart(baseConfig, {
   // Add hot reloading in development
   entry: [
     "eventsource-polyfill", // Necessary for hot reloading with IE
