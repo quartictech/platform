@@ -1,11 +1,11 @@
 import * as React from "react";
-// import {
-//   Classes,
-// } from "@blueprintjs/core";
-// import * as classNames from "classnames";
+import {
+  Classes,
+} from "@blueprintjs/core";
+import * as classNames from "classnames";
 import HighestLowest2016 from "./highestLowest2016";
 import HighestConcentration2016 from "./highestConcentration2016";
-// import Flytipping from "./flytipping";
+import Flytipping from "./flytipping";
 
 export interface InsightType {
   componentClass: any;
@@ -48,20 +48,19 @@ const insights: { [name: string] : InsightType } = {
       </div>
     ),
   },
-  // TODO: this is temporary!
-  // "flytipping": {
-  //   componentClass: Flytipping,
-  //   title: "Flytipping",
-  //   disabled: false,
-  //   description: (
-  //     <div>
-  //       Flytipping trends in Hounslow.
-  //       <div className={classNames(Classes.CALLOUT, Classes.iconClass("warning-sign"), Classes.INTENT_DANGER)}>
-  //         This insight requires a high-bandwidth network connection, and may fail to display otherwise.
-  //       </div>
-  //     </div>
-  //   ),
-  // },
+  "flytipping": {
+    componentClass: Flytipping,
+    title: "Flytipping",
+    disabled: false,
+    description: (
+      <div>
+        Flytipping trends in Hounslow.
+        <div className={classNames(Classes.CALLOUT, Classes.iconClass("warning-sign"), Classes.INTENT_DANGER)}>
+          This insight requires a high-bandwidth network connection, and may fail to display otherwise.
+        </div>
+      </div>
+    ),
+  },
   "predictions2017": {
     componentClass: null,
     title: "Predictions (2017)",
