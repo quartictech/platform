@@ -1,3 +1,6 @@
+import io.quartic.gradle.frontend.FrontendPlugin
+
+apply plugin: FrontendPlugin
 apply plugin: "idea"
 
 def env = [BUILD_VERSION: version]
@@ -9,9 +12,12 @@ node {
 }
 
 yarn {
-    // In a perfect world, we'd just put this in .yarnrc
+    dependsOn       FrontendPlugin.CREATE_PACKAGE_JSON  // TODO - link task I/O
+
+    // --frozen-lockfile -> CI catches cases where we forot to regenerate/commit yarn.lock
+    // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
     // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-    args =          ["--mutex", "network"]
+    args =          ["--mutex", "network"] + ((System.env.CI != null) ? ["--frozen-lockfile"] : [])
 }
 
 task bundle(type: Exec) {
