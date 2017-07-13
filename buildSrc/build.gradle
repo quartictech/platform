@@ -4,18 +4,23 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 
 dependencies {
     compile gradleApi()
     compile "com.fasterxml.jackson.core:jackson-annotations:2.8.7"
+
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7" // Hardcode this version due to needing support for default values (see https://github.com/FasterXML/jackson-module-kotlin)
 
     // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
-    dependencies {
-        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
-    }
+    compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
+
+    compile "com.moowork.gradle:gradle-node-plugin:1.2.0"
+
 
     testCompile "junit:junit:4.12"
 }

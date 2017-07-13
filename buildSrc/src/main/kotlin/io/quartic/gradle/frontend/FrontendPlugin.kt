@@ -1,46 +1,71 @@
 package io.quartic.gradle.frontend
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import java.io.File
+import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 
 @Suppress("unused")
 class FrontendPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val ext = project.extensions.create("frontend", FrontendExtension::class.java)
-        configurePackageJsonGenerationTask(project, ext)
+        Applier(project)
     }
 
-    private fun configurePackageJsonGenerationTask(project: Project, ext: FrontendExtension) {
-        project.afterEvaluate {
-            with(project.tasks.create(CREATE_PACKAGE_JSON, PackageJsonGenerationTask::class.java)) {
-                prod = ext.prod
-                dev = ext.dev
-                packageJson = project.file("package.json")
+    private class Applier(val project: Project) {
+        val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
+
+        init {
+            createPackageJsonGenerationTask()
+            configureNodePlugin()
+            createBundleTask()
+            createRunTask()
+            createLintTasks()
+            configureIdeaPlugin()
+        }
+
+        private fun createPackageJsonGenerationTask() {
+            project.afterEvaluate {
+                with(project.tasks.create(CREATE_PACKAGE_JSON, PackageJsonGenerationTask::class.java)) {
+                    prod = ext.prod
+                    dev = ext.dev
+                    packageJson = project.file("package.json")
+                }
             }
         }
-    }
 
-    open class PackageJsonGenerationTask : DefaultTask() {
-        @Input lateinit var prod: Map<String, String>
-        @Input lateinit var dev: Map<String, String>
-        @OutputFile lateinit var packageJson: File
+        private fun configureNodePlugin() {
+            project.plugins.apply(NodePlugin::class.java)
+            throw UnsupportedOperationException("not implemented")
+        }
 
-        @Suppress("unused")
-        @TaskAction
-        fun generatePackageJson() {
-            val mapper = jacksonObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
-            mapper.writeValue(packageJson, NpmDependencies(prod, dev))
+        private fun createBundleTask() {
+            throw UnsupportedOperationException("not implemented")
+        }
+
+        private fun createRunTask() {
+//            project.tasks.create(RUN, object : ExecTask() {
+//
+//            })
+            throw UnsupportedOperationException("not implemented")
+        }
+
+        private fun createLintTasks() {
+            throw UnsupportedOperationException("not implemented")
+        }
+
+        private fun configureIdeaPlugin() {
+            project.plugins.apply(IdeaPlugin::class.java)
+            val ext = project.extensions.getByType(IdeaModel::class.java)
+            ext.module.excludeDirs.add(project.file("node_modules"))
         }
     }
 
+
+
     companion object {
+        val EXTENSION = "frontend"
         val CREATE_PACKAGE_JSON = "createPackageJson"
+        val BUNDLE = "bundle"
+        val RUN = "run"
     }
 }
