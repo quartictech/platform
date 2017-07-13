@@ -11,7 +11,7 @@ interface IDatasetListProps {
   onSelect: (string) => void;
   searchString: string;
   selectedNamespace: string;
-};
+}
 
 const comparison = (a: IDataset, b: IDataset) => {
   const x = a.metadata.name.toLowerCase();

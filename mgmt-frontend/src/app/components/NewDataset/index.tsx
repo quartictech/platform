@@ -16,7 +16,7 @@ interface INewDatasetProps {
   createDataset: (namespace: string, metadata: IDatasetMetadata, files: IFiles) => any;
   visible: boolean;
   closeNewDatasetClick: any;
-};
+}
 
 // NOTE: These are optional to make setState easier to call
 interface IState {
@@ -25,7 +25,7 @@ interface IState {
     name?: string;
     description?: string;
     fileType?: string;
-};
+}
 
 const FileRow = ({ file }) => (
   <tr>
@@ -37,7 +37,7 @@ const FileRow = ({ file }) => (
 const FilesList = ({ files }) => (
   <table className="pt-table pt-striped" style={{width: "100%", tableLayout: "fixed"}}>
     <tbody>
-      { _.map(files, (file:IFile) => <FileRow key={file.name} file={file}/>) }
+      { _.map(files, (file: IFile) => <FileRow key={file.name} file={file} />) }
     </tbody>
   </table>
 );
@@ -82,11 +82,11 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       {
         name: this.state.name,
         description: this.state.description,
-        attribution: "User data"
+        attribution: "User data",
       },
       {
         files: this.state.files,
-        fileType: this.state.fileType
+        fileType: this.state.fileType,
       });
   }
 
@@ -133,7 +133,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
         isOpen={this.props.visible}
         onClose={this.toggleDialog.bind(this)}
         title="New Dataset"
-        style={{backgroundColor:"#293742", minWidth: 400, width:"30%", bottom: "calc(100vh-50)"}}
+        style={{ backgroundColor: "#293742", minWidth: 400, width: "30%", bottom: "calc(100vh-50)" }}
       >
         <div className="pt-dialog-body pt-dark">
           <label className="pt-label">
@@ -207,4 +207,4 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       </Dialog>
     );
   }
-};
+}

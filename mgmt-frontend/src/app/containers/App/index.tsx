@@ -14,10 +14,10 @@ const s = require("./style.css");
 interface IProps {
   children?: any;
   location?: {
-    pathname: string
+    pathname: string,
   };
   params?: {
-    node: string
+    node: string,
   };
   ui: Ui;
   showNewDatasetModal: any;
@@ -59,5 +59,5 @@ const mapStateToProps = createStructuredSelector({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(App);

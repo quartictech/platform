@@ -11,6 +11,6 @@ function getRoutes() { return (
       <IndexRedirect to="/datasets" />
     </Route>
   );
-};
+}
 
-export { getRoutes, appHistory }
+export { getRoutes, appHistory };

@@ -17,7 +17,7 @@ export function fetchDatasetsSuccess(data) {
 export function searchDatasets(search) {
   return {
     type: constants.SEARCH_DATASETS,
-    search: search.toLowerCase()
+    search: search.toLowerCase(),
   };
 }
 
@@ -35,7 +35,7 @@ export function createDataset(namespace: string, metadata: IDatasetMetadata, fil
         namespace,
         metadata,
         files,
-      }
+      },
     };
 }
 
@@ -49,13 +49,13 @@ export function deleteDataset(coords: IDatasetCoords) {
 export function createDatasetError(error: string) {
   return {
     type: constants.CREATE_DATASET_ERROR,
-    error
+    error,
   };
 }
 
 export function setActiveModal(activeModal) {
   return {
     type: constants.UI_SET_ACTIVE_MODAL,
-    activeModal
+    activeModal,
   };
 }

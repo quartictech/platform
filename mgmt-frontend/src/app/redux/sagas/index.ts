@@ -13,7 +13,7 @@ function showError(message) {
   toaster.show({
     iconName: "warning-sign",
     intent: Intent.DANGER,
-    message
+    message,
   });
 }
 

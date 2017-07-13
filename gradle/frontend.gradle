@@ -46,26 +46,27 @@ task run(type: Exec) {
     commandLine     "${yarn.nodeModulesDir}/.bin/ts-node", "${projectDir}/src/server"
 }
 
-def createLintTask(def name, def pattern, Object... extraArgs) {
+def createLintTask(def name, def configFile, def pattern, Object... extraArgs) {
+    def exec = "${yarn.nodeModulesDir}/.bin/${name}"
     task "${name}"(type: Exec) {
         inputs.files    yarn.outputs
-        inputs.file     "${projectDir}/${name}.json"
+        inputs.file     configFile
         inputs.dir      "${projectDir}/src"
         outputs.dir     "${buildDir}/lint"
 
         commandLine     (
-                ["${yarn.nodeModulesDir}/.bin/${name}", "--config", "${projectDir}/${name}.json"] +
+                [exec, "--config", configFile] +
                 extraArgs.toList() +
                 ["${projectDir}/src/**/${pattern}"]
         )
 
-        onlyIf          { file("${projectDir}/${name}.json").exists() }
+        onlyIf          { file(exec).exists() }
     }
 }
 
-createLintTask("tslint", "*.ts{,x}", "-t", "stylish")
-createLintTask("eslint", "*.js{,x}")
-createLintTask("stylelint", "*.css")
+createLintTask("tslint", "${rootDir}/tslint.json", "*.ts{,x}", "-t", "stylish")
+createLintTask("eslint", "${rootDir}/eslint.json", "*.js{,x}")
+createLintTask("stylelint", "${projectDir}/stylelint.json", "*.css")
 
 task lint {
     dependsOn   tslint, eslint, stylelint

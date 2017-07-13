@@ -39,7 +39,7 @@ export function uploadFile(namespace: string, files: any[]) {
       "Content-Type": validContentType(files[0].type),
     },
     method: "POST",
-    body: files[0]
+    body: files[0],
   });
 }
 
@@ -47,15 +47,15 @@ export function uploadFile(namespace: string, files: any[]) {
 export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string, fileType: string) {
   return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(namespace)}`, {
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     method: "POST",
     body: JSON.stringify({
       type: "static",
       metadata,
       fileName,
-      fileType
-    })
+      fileType,
+    }),
   });
 }
 

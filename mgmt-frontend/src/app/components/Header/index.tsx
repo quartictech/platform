@@ -19,7 +19,7 @@ interface INamespaceListProps {
   namespaces: string[];
   selectedNamespace: string;
   onChange: any;
-};
+}
 
 class NamespaceList extends React.Component<INamespaceListProps, {}> {
   constructor() {
@@ -27,9 +27,7 @@ class NamespaceList extends React.Component<INamespaceListProps, {}> {
   }
 
   renderNamespaceMenu() {
-    return this.props.namespaces.map(ns =>
-      <MenuItem key={ns} onClick={() => this.props.onChange(ns)} text={ns} />
-      );
+    return this.props.namespaces.map(ns => <MenuItem key={ns} onClick={() => this.props.onChange(ns)} text={ns} />);
   }
 
   public render() {
@@ -44,8 +42,7 @@ class NamespaceList extends React.Component<INamespaceListProps, {}> {
       </Popover>
     );
   }
-
-};
+}
 
 class Header extends React.Component<IProps, void> {
   onSearch(e) {
@@ -97,4 +94,4 @@ class Header extends React.Component<IProps, void> {
   }
 }
 
-export { Header }
+export { Header };
