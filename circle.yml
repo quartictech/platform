@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: quartic/uber-builder:41
+      - image: quartic/uber-builder:53
 
     working_directory: ~/platform
 
@@ -18,9 +18,7 @@ jobs:
 
       - run:
           name: Install dependencies
-          command: |
-            npm install -g npm@4.6.1
-            ./gradlew resolveConfigurations installDependencies --build-cache --parallel --info --console=plain
+          command: ./gradlew resolveConfigurations installDependencies --build-cache --parallel --console=plain
 
       - run:
           name: Calculate Gradle checksum file
@@ -34,8 +32,7 @@ jobs:
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
           name: Run tests
-          command: |
-            ./gradlew build --info --console=plain
+          command: ./gradlew build --console=plain
 
       - run:
           name: Collect test results
@@ -53,4 +50,4 @@ jobs:
       - deploy:
           command: |
             gcloud-auth --with-docker
-            ./gradlew dockerPush --parallel --info --console=plain
+            ./gradlew dockerPush --parallel --console=plain
