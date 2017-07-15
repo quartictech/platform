@@ -1,3 +1,5 @@
+import io.quartic.gradle.frontend.FrontendPlugin
+
 apply plugin: FrontendPlugin
 
 def env = [BUILD_VERSION: version]
