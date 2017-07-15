@@ -1,8 +1,10 @@
 package io.quartic.gradle.frontend
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.tasks.Exec
@@ -16,7 +18,6 @@ class FrontendPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         Applier(project)
     }
-
     private class Applier(val project: Project) {
         private val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
 
@@ -36,9 +37,9 @@ class FrontendPlugin : Plugin<Project> {
             val installDeps = createInstallDependenciesTask(installYarn, packageJson)
             val bundle = createBundleTask(installDeps)
             createRunTask(installDeps)
-            // TODO - lint tasks
+            val lint = createLintTasks(installDeps)
             configureIdeaPlugin()
-            configureJavaPlugin(bundle)
+            configureJavaPlugin(bundle, lint)
         }
 
         private fun createPackageJsonGenerationTask() = task<PackageJsonGenerationTask>(
@@ -113,11 +114,58 @@ class FrontendPlugin : Plugin<Project> {
             commandLine = listOf(tsNodeExecutable, File(srcDir, "server"))
         }
 
+        private fun createLintTasks(installDeps: Task) = task<DefaultTask>(
+            LINT,
+            "Runs linting checks."
+        ) {
+            dependsOn(createLintTask(installDeps,
+                "tslint",
+                File(nodeModulesDir, "tslint/bin/tslint"),
+                File(project.rootDir, "tslint.json"),
+                "*.ts{,x}",
+                "-t", "stylish"))
+            dependsOn(createLintTask(installDeps,
+                "eslint",
+                File(nodeModulesDir, "eslint/bin/eslint.js"),
+                File(project.rootDir, "eslint.json"),
+                "*.js{,x}"))
+            dependsOn(createLintTask(installDeps,
+                "stylelint",
+                File(nodeModulesDir, "stylelint/dist/cli.js"),
+                File(project.projectDir, "stylelint.json"),  // TODO - get this moved to rootDir
+                "*.css"))
+        }
+
+        private fun createLintTask(
+            installDeps: Task,
+            name: String,
+            executable: File,
+            configFile: File,
+            pattern: String,
+            vararg args: String
+        ) = task<Exec>(
+            name,
+            "Runs $name linting check."
+        ) {
+            inputs.files(installDeps.outputs)
+            inputs.file(configFile)
+            inputs.dir(srcDir)
+
+            outputs.dir(File(project.buildDir, "lint"))
+
+            commandLine = listOf(executable, "--config", configFile) +
+                    args.toList() +
+                    File(srcDir, "**/$pattern")
+
+            // TODO - this isn't quite right - this is only created when dependency is executed
+            onlyIf { executable.exists() }
+        }
+
         private fun Exec.configureCommonInputs(installDeps: Task) {
             inputs.files(installDeps.outputs)
             inputs.file(project.file("tsconfig.json"))
-            inputs.dir(project.file("config"))
-            inputs.dir(project.file("src"))
+            inputs.dir(configDir)
+            inputs.dir(srcDir)
         }
 
         private fun configureIdeaPlugin() {
@@ -126,10 +174,11 @@ class FrontendPlugin : Plugin<Project> {
             ext.module.excludeDirs.add(nodeModulesDir)
         }
 
-        private fun configureJavaPlugin(bundle: Task) {
+        private fun configureJavaPlugin(bundle: Task, lint: Task) {
             project.plugins.apply(JavaPlugin::class.java)
 
             (project.tasks.getByName(JAR_TASK_NAME) as Jar).from(bundle)
+            project.tasks.getByName(CHECK_TASK_NAME).dependsOn(lint)
         }
 
         private inline fun <reified T : Task> task(name: String, description: String, block: T.() -> Unit): T {
@@ -143,6 +192,7 @@ class FrontendPlugin : Plugin<Project> {
 
 
 
+
     companion object {
         val YARN_VERSION = "0.27.5"
 
@@ -153,5 +203,6 @@ class FrontendPlugin : Plugin<Project> {
         val INSTALL_DEPENDENCIES = "installDependencies"
         val BUNDLE = "bundle"
         val RUN = "run"
+        val LINT = "lint"
     }
 }

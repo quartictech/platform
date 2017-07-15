@@ -1,4 +1,6 @@
-apply from: "${rootDir}/gradle/frontend.gradle"
+import io.quartic.gradle.frontend.FrontendPlugin
+
+apply plugin: FrontendPlugin
 
 frontend {
     prod "@blueprintjs/core", "1.16.0"
