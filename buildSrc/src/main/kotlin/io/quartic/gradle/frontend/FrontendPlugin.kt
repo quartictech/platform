@@ -14,7 +14,10 @@ class FrontendPlugin : Plugin<Project> {
     }
 
     private class Applier(val project: Project) {
-        val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
+        private val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
+
+        // TODO - switch to yarn/bin/yarn once Gradle build cache supports symlinks
+        val yarnExecutable = "${project.buildDir}/yarn/lib/node_modules/yarn/bin/yarn.js"
 
         init {
             val packageJsonTask = createPackageJsonGenerationTask()
@@ -86,9 +89,6 @@ class FrontendPlugin : Plugin<Project> {
             val ext = project.extensions.getByType(IdeaModel::class.java)
             ext.module.excludeDirs.add(project.file("node_modules"))
         }
-
-        // TODO - switch to yarn/bin/yarn once Gradle build-cache supports symlinks
-        val yarnExecutable = "${project.buildDir}/yarn/lib/node_modules/yarn/bin/yarn.js"
     }
 
 

@@ -5,7 +5,7 @@ apply plugin: FrontendPlugin
 def env = [BUILD_VERSION: version]
 
 task bundle(type: Exec) {
-    inputs.files    installDependencies.outputs
+    inputs.files    tasks["installDependencies"].outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
@@ -19,36 +19,37 @@ task bundle(type: Exec) {
 }
 
 task run(type: Exec) {
-    inputs.files    installDependencies.outputs
+    inputs.files    tasks["installDependencies"].outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
-    // No outputs because this should always run
 
-    commandLine     "${projectDir}/node_modules/.bin/ts-node", "${projectDir}/src/server"
+    // TODO - switch to .bin once Gradle build cache supports symlinks
+    commandLine     "${projectDir}/node_modules/ts-node/dist/bin.js", "${projectDir}/src/server"
 }
 
-def createLintTask(def name, def configFile, def pattern, Object... extraArgs) {
-    def exec = "${projectDir}/node_modules/.bin/${name}"
+def createLintTask(def name, def exec, def configFile, def pattern, Object... extraArgs) {
+    def absoluteExec = "${projectDir}/node_modules/${exec}"
     task "${name}"(type: Exec) {
-        inputs.files    installDependencies.outputs
+        inputs.files    tasks["installDependencies"].outputs
         inputs.file     configFile
         inputs.dir      "${projectDir}/src"
         outputs.dir     "${buildDir}/lint"
 
         commandLine     (
-                [exec, "--config", configFile] +
+                [absoluteExec, "--config", configFile] +
                 extraArgs.toList() +
                 ["${projectDir}/src/**/${pattern}"]
         )
 
-        onlyIf          { file(exec).exists() }
+        // TODO - this isn't quite right - this is only created when dependency is executed
+        onlyIf          { file(absoluteExec).exists() }
     }
 }
 
-createLintTask("tslint", "${rootDir}/tslint.json", "*.ts{,x}", "-t", "stylish")
-createLintTask("eslint", "${rootDir}/eslint.json", "*.js{,x}")
-createLintTask("stylelint", "${projectDir}/stylelint.json", "*.css")
+createLintTask("tslint", "tslint/bin/tslint.js", "${rootDir}/tslint.json", "*.ts{,x}", "-t", "stylish")
+createLintTask("eslint", "eslint/bin/eslint.js", "${rootDir}/eslint.json", "*.js{,x}")
+createLintTask("stylelint", "stylelint/dist/cli.js", "${projectDir}/stylelint.json", "*.css")
 
 task lint {
     dependsOn   tslint, eslint, stylelint
