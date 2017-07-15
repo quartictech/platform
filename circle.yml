@@ -12,46 +12,13 @@ jobs:
 
       - restore_cache:
           keys:
-            - platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
-            - platform-{{ .Branch }}-weyl-yarn
-            - platform-develop-weyl-yarn
-
-      - restore_cache:
-          keys:
-            - platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
-            - platform-{{ .Branch }}-mgmt-yarn
-            - platform-develop-mgmt-yarn
-
-      - restore_cache:
-          keys:
-            - platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
-            - platform-{{ .Branch }}-zeus-yarn
-            - platform-develop-zeus-yarn
-
-      - restore_cache:
-          keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
             - platform-{{ .Branch }}-gradle
             - platform-develop-gradle
 
       - run:
           name: Install dependencies
-          command: ./gradlew resolveConfigurations yarn --info --console=plain
-
-      - save_cache:
-          key: platform-{{ .Branch }}-weyl-yarn-{{ checksum "weyl-frontend/yarn.lock" }}
-          paths:
-            - weyl-frontend/node_modules
-
-      - save_cache:
-          key: platform-{{ .Branch }}-mgmt-yarn-{{ checksum "mgmt-frontend/yarn.lock" }}
-          paths:
-            - mgmt-frontend/node_modules
-
-      - save_cache:
-          key: platform-{{ .Branch }}-zeus-yarn-{{ checksum "zeus-frontend/yarn.lock" }}
-          paths:
-            - zeus-frontend/node_modules
+          command: ./gradlew resolveConfigurations installDependencies --build-cache --info --console=plain
 
       - run:
           name: Calculate Gradle checksum file
