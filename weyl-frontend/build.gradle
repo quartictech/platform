@@ -1,7 +1,3 @@
-plugins {
-    id "java"
-}
-
 apply from: "${rootDir}/gradle/frontend.gradle"
 
 frontend {

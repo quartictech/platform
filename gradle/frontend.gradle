@@ -2,32 +2,6 @@ import io.quartic.gradle.frontend.FrontendPlugin
 
 apply plugin: FrontendPlugin
 
-def env = [BUILD_VERSION: version]
-
-task bundle(type: Exec) {
-    inputs.files    tasks["installDependencies"].outputs
-    inputs.file     "${projectDir}/tsconfig.json"
-    inputs.dir      "${projectDir}/config"
-    inputs.dir      "${projectDir}/src"
-    outputs.dir     "${buildDir}/webpack"
-
-    environment  += ["NODE_ENV": "production"]      // TODO: this can probably be handled inside Webpack configuration
-
-    commandLine     "${projectDir}/node_modules/.bin/webpack",
-                    "--config", "${projectDir}/config/webpack/prod.ts",
-                    "--profile", "--colors"
-}
-
-task run(type: Exec) {
-    inputs.files    tasks["installDependencies"].outputs
-    inputs.file     "${projectDir}/tsconfig.json"
-    inputs.dir      "${projectDir}/config"
-    inputs.dir      "${projectDir}/src"
-
-    // TODO - switch to .bin once Gradle build cache supports symlinks
-    commandLine     "${projectDir}/node_modules/ts-node/dist/bin.js", "${projectDir}/src/server"
-}
-
 def createLintTask(def name, def exec, def configFile, def pattern, Object... extraArgs) {
     def absoluteExec = "${projectDir}/node_modules/${exec}"
     task "${name}"(type: Exec) {
@@ -56,7 +30,3 @@ task lint {
 }
 
 check.dependsOn lint
-
-jar {
-    from bundle
-}
