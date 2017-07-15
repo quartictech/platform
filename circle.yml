@@ -20,7 +20,7 @@ jobs:
           name: Install dependencies
           command: |
             npm install -g npm@4.6.1
-            ./gradlew resolveConfigurations installDependencies --build-cache --info --console=plain
+            ./gradlew resolveConfigurations installDependencies --build-cache --parallel --info --console=plain
 
       - run:
           name: Calculate Gradle checksum file
