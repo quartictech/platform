@@ -16,9 +16,12 @@ jobs:
             - platform-{{ .Branch }}-gradle
             - platform-develop-gradle
 
+      # We don't install Yarn in parallel because NPM is raging
       - run:
           name: Install dependencies
-          command: ./gradlew resolveConfigurations installDependencies --build-cache --parallel --console=plain
+          command: |
+            ./gradlew installYarn --build-cache --console=plain
+            ./gradlew resolveConfigurations installDependencies --build-cache --parallel --console=plain
 
       - run:
           name: Calculate Gradle checksum file
