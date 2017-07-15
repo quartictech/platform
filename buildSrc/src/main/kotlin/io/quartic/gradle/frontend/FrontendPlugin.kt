@@ -1,5 +1,6 @@
 package io.quartic.gradle.frontend
 
+import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -12,6 +13,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.io.File
+import java.io.FileOutputStream
 
 @Suppress("unused")
 class FrontendPlugin : Plugin<Project> {
@@ -22,6 +24,7 @@ class FrontendPlugin : Plugin<Project> {
         private val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
 
         val yarnDir = File(project.buildDir, "yarn")
+        val lintDir = File(project.buildDir, "lint")
         val nodeModulesDir = project.file("node_modules")
         val srcDir = project.file("src")
         val configDir = project.file("config")
@@ -147,15 +150,24 @@ class FrontendPlugin : Plugin<Project> {
             name,
             "Runs $name linting check."
         ) {
+            val outputLog = File(lintDir, "$name.out")
+
             inputs.files(installDeps.outputs)
             inputs.file(configFile)
             inputs.dir(srcDir)
 
-            outputs.dir(File(project.buildDir, "lint"))
+            outputs.file(outputLog)
+            outputs.cacheIf { true }
 
             commandLine = listOf(executable, "--config", configFile) +
                     args.toList() +
                     File(srcDir, "**/$pattern")
+
+            // See https://stackoverflow.com/a/27053294/129570
+            doFirst {
+                lintDir.mkdirs()
+                standardOutput = TeeOutputStream(FileOutputStream(outputLog), System.out);
+            }
 
             // TODO - this isn't quite right - this is only created when dependency is executed
             onlyIf { executable.exists() }
