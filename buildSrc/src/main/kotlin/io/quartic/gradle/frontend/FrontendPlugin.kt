@@ -6,6 +6,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Exec
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
+import java.io.File
 
 @Suppress("unused")
 class FrontendPlugin : Plugin<Project> {
@@ -17,7 +18,9 @@ class FrontendPlugin : Plugin<Project> {
         private val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
 
         // TODO - switch to yarn/bin/yarn once Gradle build cache supports symlinks
-        val yarnExecutable = "${project.buildDir}/yarn/lib/node_modules/yarn/bin/yarn.js"
+        val yarnDir = File(project.buildDir, "yarn")
+        val yarnExecutable = File(yarnDir, "lib/node_modules/yarn/bin/yarn.js")
+        val nodeModulesDir = project.file("node_modules")
 
         init {
             val packageJsonTask = createPackageJsonGenerationTask()
@@ -42,14 +45,12 @@ class FrontendPlugin : Plugin<Project> {
             INSTALL_YARN,
             "Installs local Yarn."
         ) {
-            val outputDir = "${project.buildDir}/yarn"
-
             inputs.property("version", YARN_VERSION)
 
-            outputs.dir(outputDir)
+            outputs.dir(yarnDir)
             outputs.cacheIf { true }
 
-            commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", outputDir, "yarn@$YARN_VERSION")
+            commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", yarnDir, "yarn@$YARN_VERSION")
         }
 
         private fun createInstallDependenciesTask(installYarnTask: Task, packageJsonTask: Task) = task<Exec>(
@@ -60,7 +61,7 @@ class FrontendPlugin : Plugin<Project> {
             inputs.files(packageJsonTask.outputs)
             inputs.file(project.file("yarn.lock"))
 
-            outputs.dir(project.file("node_modules"))
+            outputs.dir(nodeModulesDir)
             outputs.cacheIf { true }
 
             // --frozen-lockfile -> CI catches cases where we forget to regenerate/commit yarn.lock
@@ -75,7 +76,7 @@ class FrontendPlugin : Plugin<Project> {
         private fun configureIdeaPlugin() {
             project.plugins.apply(IdeaPlugin::class.java)
             val ext = project.extensions.getByType(IdeaModel::class.java)
-            ext.module.excludeDirs.add(project.file("node_modules"))
+            ext.module.excludeDirs.add(nodeModulesDir)
         }
 
         private inline fun <reified T : Task> task(name: String, description: String, block: T.() -> Unit): T {
