@@ -11,8 +11,6 @@ import "babel-polyfill";
 import "!file-loader?name=[name].[ext]!./manifest.json";
 /* eslint-enable import/no-unresolved */
 
-bum
-
 // Import all the third party stuff
 import React from "react";
 import ReactDOM from "react-dom";
