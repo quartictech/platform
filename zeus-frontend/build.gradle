@@ -1,9 +1,6 @@
-plugins {
-    id "com.moowork.node" version "1.2.0"
-    id "java"
-}
+import io.quartic.gradle.frontend.FrontendPlugin
 
-apply from: "${rootDir}/gradle/frontend.gradle"
+apply plugin: FrontendPlugin
 
 frontend {
     prod "@blueprintjs/core", "1.18.0"
