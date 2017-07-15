@@ -27,67 +27,63 @@ class FrontendPlugin : Plugin<Project> {
             configureIdeaPlugin()
         }
 
-        private fun createPackageJsonGenerationTask(): Task {
-            val task = project.tasks.create(CREATE_PACKAGE_JSON, PackageJsonGenerationTask::class.java)
+        private fun createPackageJsonGenerationTask() = task<PackageJsonGenerationTask>(
+            CREATE_PACKAGE_JSON,
+            "Generates package.json."
+        ) {
             project.afterEvaluate {
-                with(task) {
-                    group = GROUP
-                    description = "Generates package.json."
-
-                    prod = ext.prod
-                    dev = ext.dev
-                    packageJson = project.file("package.json")
-                }
+                prod = ext.prod
+                dev = ext.dev
             }
-            return task
+            packageJson = project.file("package.json")
         }
 
-        private fun createInstallYarnTask(): Task {
+        private fun createInstallYarnTask() = task<Exec>(
+            INSTALL_YARN,
+            "Installs local Yarn."
+        ) {
             val outputDir = "${project.buildDir}/yarn"
 
-            val task = project.tasks.create(INSTALL_YARN, Exec::class.java)
-            with(task) {
-                group = GROUP
-                description = "Installs local Yarn."
+            inputs.property("version", YARN_VERSION)
 
-                inputs.property("version", YARN_VERSION)
+            outputs.dir(outputDir)
+            outputs.cacheIf { true }
 
-                outputs.dir(outputDir)
-                outputs.cacheIf { true }
-
-                commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", outputDir, "yarn@$YARN_VERSION")
-            }
-            return task
+            commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", outputDir, "yarn@$YARN_VERSION")
         }
 
-        private fun createInstallDependenciesTask(installYarnTask: Task, packageJsonTask: Task): Task {
-            val task = project.tasks.create(INSTALL_DEPENDENCIES, Exec::class.java)
-            with(task) {
-                group = GROUP
-                description = "Installs node_modules dependencies."
+        private fun createInstallDependenciesTask(installYarnTask: Task, packageJsonTask: Task) = task<Exec>(
+            INSTALL_DEPENDENCIES,
+            "Installs node_modules dependencies."
+        ) {
+            inputs.files(installYarnTask.outputs)
+            inputs.files(packageJsonTask.outputs)
+            inputs.file(project.file("yarn.lock"))
 
-                inputs.files(installYarnTask.outputs)
-                inputs.files(packageJsonTask.outputs)
-                inputs.file(project.file("yarn.lock"))
+            outputs.dir(project.file("node_modules"))
+            outputs.cacheIf { true }
 
-                outputs.dir(project.file("node_modules"))
-                outputs.cacheIf { true }
-
-                // --frozen-lockfile -> CI catches cases where we forget to regenerate/commit yarn.lock
-                // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
-                // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-                commandLine = listOf(
-                    yarnExecutable,
-                    "--mutex", "network"
-                ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
-            }
-            return task
+            // --frozen-lockfile -> CI catches cases where we forget to regenerate/commit yarn.lock
+            // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
+            // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
+            commandLine = listOf(
+                yarnExecutable,
+                "--mutex", "network"
+            ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
         }
 
         private fun configureIdeaPlugin() {
             project.plugins.apply(IdeaPlugin::class.java)
             val ext = project.extensions.getByType(IdeaModel::class.java)
             ext.module.excludeDirs.add(project.file("node_modules"))
+        }
+
+        private inline fun <reified T : Task> task(name: String, description: String, block: T.() -> Unit): T {
+            val task = project.tasks.create(name, T::class.java)
+            task.group = GROUP
+            task.description = description
+            block.invoke(task)
+            return task
         }
     }
 
