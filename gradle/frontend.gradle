@@ -1,27 +1,9 @@
-import io.quartic.gradle.frontend.FrontendPlugin
-
 apply plugin: FrontendPlugin
-apply plugin: "idea"
 
 def env = [BUILD_VERSION: version]
 
-node {
-//    version = "8.1.2"
-    yarnVersion = "0.27.5"
-    download = "true"
-}
-
-yarn {
-    dependsOn       FrontendPlugin.CREATE_PACKAGE_JSON  // TODO - link task I/O
-
-    // --frozen-lockfile -> CI catches cases where we forot to regenerate/commit yarn.lock
-    // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
-    // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-    args =          ["--mutex", "network"] + ((System.env.CI != null) ? ["--frozen-lockfile"] : [])
-}
-
 task bundle(type: Exec) {
-    inputs.files    yarn.outputs
+    inputs.files    installDependencies.outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
@@ -29,27 +11,25 @@ task bundle(type: Exec) {
 
     environment  += ["NODE_ENV": "production"]      // TODO: this can probably be handled inside Webpack configuration
 
-    commandLine     "${yarn.nodeModulesDir}/.bin/webpack",
+    commandLine     "${projectDir}/node_modules/.bin/webpack",
                     "--config", "${projectDir}/config/webpack/prod.ts",
-                    "--env.node_modules_dir", yarn.nodeModulesDir,
                     "--profile", "--colors"
 }
 
 task run(type: Exec) {
-    inputs.files    yarn.outputs
+    inputs.files    installDependencies.outputs
     inputs.file     "${projectDir}/tsconfig.json"
     inputs.dir      "${projectDir}/config"
     inputs.dir      "${projectDir}/src"
     // No outputs because this should always run
 
-    // TODO - how to inject cached node_modules dir?
-    commandLine     "${yarn.nodeModulesDir}/.bin/ts-node", "${projectDir}/src/server"
+    commandLine     "${projectDir}/node_modules/.bin/ts-node", "${projectDir}/src/server"
 }
 
 def createLintTask(def name, def configFile, def pattern, Object... extraArgs) {
-    def exec = "${yarn.nodeModulesDir}/.bin/${name}"
+    def exec = "${projectDir}/node_modules/.bin/${name}"
     task "${name}"(type: Exec) {
-        inputs.files    yarn.outputs
+        inputs.files    installDependencies.outputs
         inputs.file     configFile
         inputs.dir      "${projectDir}/src"
         outputs.dir     "${buildDir}/lint"
@@ -76,10 +56,4 @@ check.dependsOn lint
 
 jar {
     from bundle
-}
-
-idea {
-    module {
-        excludeDirs += file("node_modules") // TODO - replace with param
-    }
 }

@@ -17,26 +17,11 @@ class FrontendPlugin : Plugin<Project> {
         val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
 
         init {
-            val installYarnTask = createInstallYarnTask()
             val packageJsonTask = createPackageJsonGenerationTask()
+            val installYarnTask = createInstallYarnTask()
             createInstallDependenciesTask(installYarnTask, packageJsonTask)
-            createBundleTask()
-            createRunTask()
-            createLintTasks()
+            // TODO - bundle / run / lint tasks
             configureIdeaPlugin()
-        }
-
-        private fun createInstallYarnTask() {
-            val outputDir = "${project.buildDir}/yarn"
-
-            with(project.tasks.create(INSTALL_YARN, Exec::class.java)) {
-                group = GROUP
-                description = "Installs local Yarn."
-
-                inputs.property("version", YARN_VERSION)
-                outputs.dir(outputDir)
-                commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", outputDir, "yarn@$YARN_VERSION")
-            }
         }
 
         private fun createPackageJsonGenerationTask(): Task {
@@ -54,6 +39,24 @@ class FrontendPlugin : Plugin<Project> {
             return task
         }
 
+        private fun createInstallYarnTask(): Task {
+            val outputDir = "${project.buildDir}/yarn"
+
+            val task = project.tasks.create(INSTALL_YARN, Exec::class.java)
+            with(task) {
+                group = GROUP
+                description = "Installs local Yarn."
+
+                inputs.property("version", YARN_VERSION)
+
+                outputs.dir(outputDir)
+                outputs.cacheIf { true }
+
+                commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", outputDir, "yarn@$YARN_VERSION")
+            }
+            return task
+        }
+
         private fun createInstallDependenciesTask(installYarnTask: Task, packageJsonTask: Task): Task {
             val task = project.tasks.create(INSTALL_DEPENDENCIES, Exec::class.java)
             with(task) {
@@ -63,28 +66,19 @@ class FrontendPlugin : Plugin<Project> {
                 inputs.files(installYarnTask.outputs)
                 inputs.files(packageJsonTask.outputs)
                 inputs.file(project.file("yarn.lock"))
-                outputs.dir(project.file("node_modules"))
 
-                commandLine = listOf("")
+                outputs.dir(project.file("node_modules"))
+                outputs.cacheIf { true }
+
+                // --frozen-lockfile -> CI catches cases where we forget to regenerate/commit yarn.lock
+                // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
+                // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
+                commandLine = listOf(
+                    yarnExecutable,
+                    "--mutex", "network"
+                ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
             }
             return task
-        }
-
-        private fun createBundleTask() {
-            with(project.tasks.create(BUNDLE, Exec::class.java)) {
-                group = GROUP
-                description = "Create frontend bundle via Webpack."
-
-                inputs.files(packageJsonTask.outputs)
-            }
-        }
-
-        private fun createRunTask() {
-//            throw UnsupportedOperationException("not implemented")
-        }
-
-        private fun createLintTasks() {
-//            throw UnsupportedOperationException("not implemented")
         }
 
         private fun configureIdeaPlugin() {
@@ -92,6 +86,9 @@ class FrontendPlugin : Plugin<Project> {
             val ext = project.extensions.getByType(IdeaModel::class.java)
             ext.module.excludeDirs.add(project.file("node_modules"))
         }
+
+        // TODO - switch to yarn/bin/yarn once Gradle build-cache supports symlinks
+        val yarnExecutable = "${project.buildDir}/yarn/lib/node_modules/yarn/bin/yarn.js"
     }
 
 
