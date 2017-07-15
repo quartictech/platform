@@ -19,6 +19,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            npm install -g npm@4.6.1
             ./gradlew resolveConfigurations installDependencies --build-cache --info --console=plain
 
       - run:
