@@ -24,26 +24,26 @@ export function searchDatasets(search) {
 export function selectNamespace(namespace) {
   return {
     type: constants.SELECT_NAMESPACE,
-    namespace: namespace,
+    namespace,
   };
 }
 
 export function createDataset(namespace: string, metadata: IDatasetMetadata, files: IFiles) {
-    return {
-      type: constants.CREATE_DATASET,
-      data: {
-        namespace,
-        metadata,
-        files,
-      },
-    };
+  return {
+    type: constants.CREATE_DATASET,
+    data: {
+      namespace,
+      metadata,
+      files,
+    },
+  };
 }
 
 export function deleteDataset(coords: IDatasetCoords) {
-    return {
-      type: constants.DELETE_DATASET,
-      coords,
-    };
+  return {
+    type: constants.DELETE_DATASET,
+    coords,
+  };
 }
 
 export function createDatasetError(error: string) {

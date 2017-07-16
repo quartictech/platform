@@ -48,8 +48,8 @@ export class App extends React.Component<IProps, void> {
 
 const mapDispatchToProps = {
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),
-  searchDatasets: (s) => actions.searchDatasets(s),
-  selectNamespace: (s) => actions.selectNamespace(s),
+  searchDatasets: s => actions.searchDatasets(s),
+  selectNamespace: s => actions.selectNamespace(s),
 };
 
 const mapStateToProps = createStructuredSelector({

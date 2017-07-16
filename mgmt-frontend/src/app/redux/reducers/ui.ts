@@ -8,8 +8,7 @@ const initialState: Ui = {
   namespace: null,
 };
 
-export function uiReducer(state: Map<string, any> = fromJS(initialState),
-  action: UiAction) {
+export function uiReducer(state: Map<string, any> = fromJS(initialState), action: UiAction) {
   switch (action.type) {
     case constants.UI_SET_ACTIVE_MODAL:
       return state.set("activeModal", action.activeModal);
