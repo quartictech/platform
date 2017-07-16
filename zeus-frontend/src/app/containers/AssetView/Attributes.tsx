@@ -29,20 +29,26 @@ const Attributes: React.SFC<AttributesProps> = props => (
       <h2>{toTitleCase(props.asset["Road Name"])}</h2>
       <h5>({toTitleCase(props.asset["Section Description"])})</h5>
       <table className={classNames(Classes.TABLE)} style={{ width: "100%" }}>
-        <tbody>{rows}</tbody>
+        <tbody>
+          {rows(props)}
+        </tbody>
       </table>
     </div>
   </Pane>
 );
 
 function rows(props: AttributesProps) {
-  return _.map(
+  const specialCases = _.map(
     {
       "Length": `${numeral(props.asset["Length"]).format("0")} m`,
       "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
     },
     (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>,
   );
+
+  const stats = _.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.0"), v[1]));
+
+  return specialCases.concat(stats);
 }
 
 function treatmentSchedule(treatments: any[]) {
@@ -80,27 +86,31 @@ function treatmentTable(treatments: any[]) {
         </tr>
       </thead>
       <tbody>
-        {_.map(treatments, treatment => (
-          <tr key={treatment["number"]}>
-            <td>{treatment["number"]}</td>
-            <td>
-                {moment(treatment["date"]).format("Do MMM YYYY")}
-                &nbsp;
-                <span
-                  className={classNames(
-                    Classes.ICON_STANDARD,
-                    Classes.INTENT_SUCCESS,
-                    { [Classes.iconClass("endorsed")]: treatment["date"] < Date.now() },
-                  )}
-                />
-            </td>
-            <td>{treatment["type"] || "???"}</td>
-          </tr>
-        ))}
+        {treatmentRows(treatments)}
       </tbody>
     </table>
   );
 }
+
+const treatmentRows = (treatments: any[]) => _.map(treatments, (treatment) => {
+  const iconClassNames = classNames(
+    Classes.ICON_STANDARD,
+    Classes.INTENT_SUCCESS,
+    { [Classes.iconClass("endorsed")]: treatment["date"] < Date.now() },
+  );
+
+  return (
+    <tr key={treatment["number"]}>
+      <td>{treatment["number"]}</td>
+      <td>
+          {moment(treatment["date"]).format("Do MMM YYYY")}
+          &nbsp;
+          <span className={iconClassNames} />
+      </td>
+      <td>{treatment["type"] || "???"}</td>
+    </tr>
+  );
+});
 
 function renderStat(key, value, quartile) {
   let color = null;
