@@ -97,10 +97,8 @@ class FrontendPlugin : Plugin<Project> {
             outputs.dir(File(project.buildDir, "webpack"))
             outputs.cacheIf { true }                    // TODO - build-cache is going to be weird due to injecting project.version
 
-            environment = mapOf(
-                "NODE_ENV" to "production",             // TODO: this can probably be handled inside Webpack configuration
-                "BUILD_VERSION" to project.version
-            )
+            environment["NODE_ENV"] = "production"      // TODO: this can probably be handled inside Webpack configuration
+            environment["BUILD_VERSION"] = project.version
 
             commandLine = listOf(webpackExecutable,
                 "--config", File(configDir, "webpack/prod.ts"),
