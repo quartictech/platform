@@ -21,19 +21,22 @@ interface AttributesProps {
 }
 
 // Add 40px to compensate for not having a title bar
-const Attributes: React.SFC<AttributesProps> = (props) => (
+const Attributes: React.SFC<AttributesProps> = props => (
   <Pane style={{ backgroundColor: "rgba(138, 155, 168, 0.15)" }}>
     <div style={{ height: "340px", padding: "10px" }}>
       <h1>{props.asset.RSL}</h1>
       <h2>{toTitleCase(props.asset["Road Name"])}</h2>
       <h5>({toTitleCase(props.asset["Section Description"])})</h5>
-      <table className={classNames(Classes.TABLE)} style={{ width: "100%"}}>
+      <table className={classNames(Classes.TABLE)} style={{ width: "100%" }}>
         <tbody>
           {
-            _.map({
-              "Length": `${numeral(props.asset["Length"]).format("0")} m`,
-              "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
-            }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
+            _.map(
+              {
+                "Length": `${numeral(props.asset["Length"]).format("0")} m`,
+                "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
+              },
+              (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>,
+            )
           }
           {_.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.0"), v[1]))}
         </tbody>

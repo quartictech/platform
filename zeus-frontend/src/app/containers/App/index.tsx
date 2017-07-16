@@ -3,7 +3,7 @@ import Header from "../../containers/Header";
 
 const s = require("./style.css");
 
-const App: React.SFC<{}> = (props) => (
+const App: React.SFC<{}> = props => (
   <div>
     <section className={s.App}>
       <Header />

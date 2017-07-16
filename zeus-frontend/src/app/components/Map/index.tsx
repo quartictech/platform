@@ -47,7 +47,7 @@ class Map extends React.Component<Props, any> {
   render() {
     return (
       <div className={s.map} style={{ height: this.props.height }}>
-        <div id="map-inner" className={s.mapViewport} style={{width: "100%", height: "100%"}}>
+        <div id="map-inner" className={s.mapViewport} style={{ width: "100%", height: "100%" }}>
         </div>
       </div>
     );

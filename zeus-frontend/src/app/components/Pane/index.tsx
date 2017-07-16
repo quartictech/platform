@@ -22,7 +22,7 @@ export default class Pane extends React.Component<PaneProps, {}> {
         style={{ ...this.props.style, overflow: "auto", display: "flex", flexDirection: "column" }}
       >
         {this.maybeHeader()}
-        
+
         <div className={Classes.DIALOG_BODY} style={{ margin: "10px", flex: 1 }}>
           <div style={{ height: "100%", flex: 1 }} >
             {this.props.children}

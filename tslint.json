@@ -27,6 +27,8 @@
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-use-before-declare": false,
+    "object-literal-key-quotes": [true, "consistent"],
+    "object-shorthand-properties-first": false, // This is unhelpful so disable it
     "one-line": [true,
       "check-open-brace",
       "check-catch",

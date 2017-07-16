@@ -50,8 +50,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
   constructor() {
     super();
     this.timeSeriesDatasets = {};
-    this.eventsDatasets = EVENT_TYPES.reduce((obj, k) =>
-      Object.assign(obj, { [k]: new Plottable.Dataset() }), {});
+    this.eventsDatasets = EVENT_TYPES.reduce((obj, k) => Object.assign(obj, { [k]: new Plottable.Dataset() }), {});
     this.plots = [];
 
     this.createChart();
@@ -82,9 +81,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
       .flatten()
       .value();
 
-    this.plots.forEach(p => {
-      this.group.append(p);
-    });
+    this.plots.forEach(p => this.group.append(p));
   }
 
   private createChart() {
@@ -103,19 +100,17 @@ class RealTimeChart extends React.Component<IProps, IState> {
     const yAxis = new Plottable.Axes.Numeric(this.yScaleTimeSeries, "left");
 
     const eventsPlot = new Plottable.Plots.Segment()
-       .attr("stroke", function(_d, _i, dataset) { return dataset.metadata(); }, colorScale)
+       .attr("stroke", (_d, _i, dataset) => dataset.metadata(), colorScale)
        .x((d: MaintenanceEvent) => d.timestamp, this.xScale)
        .y(_ => 0, yScale)
        .x2((d: MaintenanceEvent) => d.timestamp)
        .y2(_ => 1)
        .datasets(_.values(this.eventsDatasets));
 
-    let plots: Plottable.Component[] = [gridLines, eventsPlot];
+    const plots: Plottable.Component[] = [gridLines, eventsPlot];
     this.group = new Plottable.Components.Group(plots);
     this.configureTooltip(eventsPlot);
-    window.addEventListener("resize", function () {
-      eventsPlot.redraw();
-    });
+    window.addEventListener("resize", () => eventsPlot.redraw());
 
     this.chart = new Plottable.Components.Table([
       [this.yAxisLabel, yAxis, this.group],
@@ -139,7 +134,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
   render() {
     // overflow:hidden required due to https://github.com/palantir/plottable/issues/3298
     return (
-      <div style={{padding: "10px", width: "99%"}}>
+      <div style={{ padding: "10px", width: "99%" }}>
         <div className={s.chart} style={{ width: "100%", height: 175, overflow: "hidden" }} ref="svg"/>
         <div
           style={{ visibility: this.state.tooltip ? "visible" : "hidden", display: "inline-block" }}

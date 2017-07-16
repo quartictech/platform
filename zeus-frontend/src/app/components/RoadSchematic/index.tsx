@@ -88,7 +88,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   render() {
     // overflow:hidden required due to https://github.com/palantir/plottable/issues/3298
     return (
-        <div style={{padding: "10px", width: "99%"}}>
+        <div style={{ padding: "10px", width: "99%" }}>
           <div style={{ width: "100%", height: 250, overflow: "hidden" }} ref="svg" />
           <div
             style={{ visibility: this.state.hoveredEntity ? "visible" : "hidden", display: "inline-block" }}
@@ -164,7 +164,6 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
     const xAxis = new Plottable.Axes.Numeric(this.xScale, "bottom");
     const yAxis = new Plottable.Axes.Numeric(this.yScale, "left");
 
-    
     yAxis
       .tickLabelPadding(0)
       .formatter(label => this.getXspNameFromYPosition(label));
@@ -182,7 +181,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
   private configureInteraction(plotHighlighter: Plottable.Plot) {
     registerPointerHandler(
       plotHighlighter,
-      entity => {
+      (entity) => {
         if (this.state.hoveredEntity) {
           this.state.hoveredEntity.selection.attr("fill-opacity", 0);
         }
@@ -193,7 +192,7 @@ class RoadSchematic extends React.Component<RoadSchematicProps, State> {
       },
     );
   }
-  
+
   private getXspNameFromYPosition(y: number) {
     return _.findKey(this.intervalMap, i => i[0] < y && y < i[1]).toString();
   }
@@ -208,7 +207,7 @@ const intervalMap = (sections: RoadSchematicSection[]) => _.chain(sections)
     (memo: [number, XspToInterval], lane) => {
       const nextMax = memo[0] + laneWidth(lane);
       const nextInterval = [memo[0], nextMax];
-      return [nextMax, { ...(memo[1]), [lane]: nextInterval}] as [number, XspToInterval];
+      return [nextMax, { ...(memo[1]), [lane]: nextInterval }] as [number, XspToInterval];
     },
     [0, {}] as [number, XspToInterval],
   )

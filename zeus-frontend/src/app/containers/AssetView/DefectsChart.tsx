@@ -63,8 +63,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
 
     const timeSeries = Object.assign(
       {
-      defects:
-        this.computeTimeSeries(defectTimeSeries),
+        defects: this.computeTimeSeries(defectTimeSeries),
       },
       this.state.predictions ? {
         predictions: this.computeTimeSeries(this.props.asset._defect_predictions),
@@ -96,8 +95,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
 
   private computeTimeSeries(ts): TimeSeriesPoint[] {
     if (ts) {
-      return ts
-        .series.map( ({ timestamp, value }) => ({x: new Date(timestamp), y: value }));
+      return ts.series.map(({ timestamp, value }) => ({ x: new Date(timestamp), y: value }));
     }
     return [];
   }

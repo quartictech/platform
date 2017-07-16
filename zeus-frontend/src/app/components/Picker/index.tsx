@@ -112,7 +112,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     const categorisedEntries: {} = _.chain(entries)
       .filter(x => (this.props.manageFilter ? matches(x, text) : true))
       .groupBy(entry => entry.category)
-      .map((entries, category: string) => [category, _.map(entries, entry => ({idx: idx++, entry} as NumberedEntry))])
+      .map((entries, category: string) => [category, _.map(entries, entry => ({ entry, idx: idx++ } as NumberedEntry))])
       .object()
       .value();
     this.setState({ categorisedEntries });
@@ -156,7 +156,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     if (entry.disabled) {
       return;
     }
-    
+
     this.hideMenu();
     if (entry.href) {
       appHistory.push(entry.href);
@@ -231,8 +231,8 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           }
           placeholder={this.props.placeholder}
           value={this.state.text}
-          onKeyDown={(e) => this.onKeyDown(e)}
-          onChange={(e) => this.onChangeText(e.target.value)}
+          onKeyDown={e => this.onKeyDown(e)}
+          onChange={e => this.onChangeText(e.target.value)}
           intent={
             (this.props.selectedKey || this.props.disabled || this.props.errorDisabled) ? Intent.NONE : Intent.DANGER
           }

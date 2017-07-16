@@ -20,7 +20,7 @@ const EventsTable: React.SFC<EventsTableProps> = (props) => {
       .map(j => Object.assign(j, { type: "job", _date: j["Start Date"] }));
 
   const jobsGeo = props.asset._jobs_geo
-      .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"]}));
+      .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"] }));
 
   const events = treatments.concat(jobs).concat(jobsGeo);
 

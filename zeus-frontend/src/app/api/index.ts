@@ -7,7 +7,7 @@ const checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
     return response;
   }
-  throw new Error(response.statusText);  
+  throw new Error(response.statusText);
 };
 
 // NOTE: we may  want to switch representations to seconds since the epoch here for better Java compatibility
@@ -16,7 +16,7 @@ const dateInferringReviver = (key, value) => (key.toLowerCase().endsWith("timest
 const fetchUtil = <T>(url, options?) => fetch(
   `${apiRootUrl}${url}`, Object.assign({}, options, { credentials: "same-origin" }))
   .then(checkStatus)
-  .then((response: Response) => response.text() )
+  .then((response: Response) => response.text())
   .then<T>(r => JSON.parse(r, dateInferringReviver));
 
 const searchableResource = <T>(name: string) => ({
@@ -40,13 +40,13 @@ export const sessionInfo = <ManagedResource<SessionInfo>>{
 export const asset = <ManagedResource<Asset>>{
   name: "asset",
   shortName: "asset",
-  endpoint: (id) => fetchUtil(`/datasets/assets/${encodeURIComponent(id)}`),
+  endpoint: id => fetchUtil(`/datasets/assets/${encodeURIComponent(id)}`),
 };
 
 export const insight = <ManagedResource<Insight>>{
   name: "insight",
   shortName: "insight",
-  endpoint: (insight) => fetchUtil(`/datasets/insights/${encodeURIComponent(insight)}`),
+  endpoint: insight => fetchUtil(`/datasets/insights/${encodeURIComponent(insight)}`),
 };
 
 export const datasetInfo = <ManagedResource<{ [id: string] : DatasetInfo }>>{

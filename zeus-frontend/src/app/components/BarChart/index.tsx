@@ -26,29 +26,27 @@ class RealBarChart  extends React.Component<IProps, any> {
 
     const plot = new Plottable.Plots.Bar("horizontal")
       .addDataset(new Plottable.Dataset(this.props.data))
-       .x(function(d) { return d.value; }, xScale)
-       .y(function(d) { return d.name; }, yScale);
+       .x(d => d.value, xScale)
+       .y(d => d.name, yScale);
     const chart = new Plottable.Components.Group([plot]);
-    window.addEventListener("resize", function() {
-      plot.redraw();
-    });
+    window.addEventListener("resize", () => plot.redraw());
 
     // const legend = new Plottable.Components.Legend(colorScale).xAlignment("left").maxEntriesPerRow(3);
     // const group = new Plottable.Components.Group([yAxis, plot]);
     this.state = {
+      plot,
       chart: new Plottable.Components.Table([
         [yLabel, yAxis, chart],
         [null, null, xAxis],
         [null, null, xLabel],
       ]),
-      plot: plot,
     };
   }
 
   render() {
     return (
-      <div style={{padding: "10px", width: "99%"}}>
-    <div className={s.chart} style={{width: "100%", height: "200px"}} ref="svg">
+      <div style={{ padding: "10px", width: "99%" }}>
+    <div className={s.chart} style={{ width: "100%", height: "200px" }} ref="svg">
     </div>
     </div>
     );
