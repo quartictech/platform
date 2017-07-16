@@ -10,6 +10,7 @@ import * as _ from "underscore";
 import { registerPointerHandler } from "../../helpers/plottable";
 
 
+// tslint:disable-next-line:variable-name
 export const Schemes = {
   RED: [Colors.GRAY1, Colors.RED5, Colors.RED4, Colors.RED3, Colors.RED2, Colors.RED1],
   GOLD: [Colors.GRAY1, Colors.GOLD5, Colors.GOLD4, Colors.GOLD3, Colors.GOLD2, Colors.GOLD1],
@@ -42,8 +43,8 @@ export interface RoadSchematicSection {
 
 interface RoadSchematicProps {
   sections: RoadSchematicSection[];
-  filterPredicate?: (RoadSchematicSection) => boolean;
-  hoverText?: (RoadSchematicSection) => string | JSX.Element;
+  filterPredicate?: (s: RoadSchematicSection) => boolean;
+  hoverText?: (s: RoadSchematicSection) => string | JSX.Element;
   colorScheme?: string[];
   maxValue?: number;
 }

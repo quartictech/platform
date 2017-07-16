@@ -21,6 +21,7 @@ interface AttributesProps {
 }
 
 // Add 40px to compensate for not having a title bar
+// tslint:disable-next-line:variable-name
 const Attributes: React.SFC<AttributesProps> = props => (
   <Pane style={{ backgroundColor: "rgba(138, 155, 168, 0.15)" }}>
     <div style={{ height: "340px", padding: "10px" }}>

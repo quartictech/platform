@@ -1,5 +1,5 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 import {
   AnchorButton,

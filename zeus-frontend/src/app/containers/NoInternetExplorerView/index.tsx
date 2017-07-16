@@ -1,10 +1,11 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import {
   Dialog,
   NonIdealState,
 } from "@blueprintjs/core";
 
+// tslint:disable-next-line:variable-name
 const NoInternetExplorerView: React.SFC<{}> = () => (
   <DocumentTitle title="Quartic - Please use Firefox or Chrome">
     <Dialog

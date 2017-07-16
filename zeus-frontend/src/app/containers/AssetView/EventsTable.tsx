@@ -12,6 +12,7 @@ interface EventsTableProps {
   asset: Asset;
 }
 
+// tslint:disable-next-line:variable-name
 const EventsTable: React.SFC<EventsTableProps> = (props) => {
   const treatments = props.asset._treatments
       .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }));

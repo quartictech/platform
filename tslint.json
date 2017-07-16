@@ -35,6 +35,9 @@
       "check-else",
       "check-whitespace"
     ],
-    "quotemark": [ true, "double", "jsx-double" ]
+    "quotemark": [ true, "double", "jsx-double" ],
+    "import-name": false, // This seems more annoying than useful
+    "no-increment-decrement": false,  // Otherwise we can't do things like (let i = 0; i < max; i++)
+    "variable-name": [true, "check-format", "allow-leading-underscore"]
   }
 }

@@ -1,5 +1,5 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import {
   Classes,
 } from "@blueprintjs/core";
@@ -10,6 +10,7 @@ import standardProviders from "../../containers/SearchContainer/standardProvider
 
 const s = require("./style.css");
 
+// tslint:disable-next-line:variable-name
 const SearchView: React.SFC<{}> = () => (
   <DocumentTitle title="Quartic - Search">
     <div className={s.container} style={{ marginTop: "10%" }}>
