@@ -196,7 +196,7 @@ class ExplorerView extends React.Component<Props, State> {
 
   private columns = () => this.props.datasetContent.data.schema;
 
-  private calculateSelectedRows = (regions: IRegion[]) => 
+  private calculateSelectedRows = (regions: IRegion[]) =>
     _.chain(regions)
       .map(r => _.range(r.rows[0], r.rows[1] + 1))
       .flatten()
@@ -206,7 +206,7 @@ class ExplorerView extends React.Component<Props, State> {
 
 const stringify = (obj: any) => (obj === null) ? "" : obj.toString();
 
-const cellToRow = (region) => ((region.rows)
+const cellToRow = region => ((region.rows)
     ? Regions.row(region.rows[0], region.rows[1])
     : Regions.row(0, -1)  // This is a bit of a hack to support column selections
 );

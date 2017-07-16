@@ -7,7 +7,7 @@ const checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
     return response;
   }
-  throw new Error(response.statusText);
+  throw new Error(response.statusText);  
 };
 
 // NOTE: we may  want to switch representations to seconds since the epoch here for better Java compatibility

@@ -18,8 +18,7 @@ const sagaMiddleware = createSagaMiddleware();
  // TODO: fix type!
 export function configureStore(initialState?: Object): Redux.Store<any> {
   const env: string = process.env.NODE_ENV;
-
-  let middlewares: any[] = [router, sagaMiddleware];
+  const middlewares: any[] = [router, sagaMiddleware];
 
   if (env === "development") {
     middlewares.push(createLogger({

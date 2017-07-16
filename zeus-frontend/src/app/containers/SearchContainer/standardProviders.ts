@@ -34,12 +34,15 @@ const datasetProvider = () => {
   const engine = staticProviderEngine(["datasets", "raw", "explorer"]);
   return (reduxState: any, dispatch: Redux.Dispatch<any>, onResultChange: () => void) => {
     const datasets = getDatasetInfo(reduxState, dispatch);
-    return engine(_.map(datasets, (v, k) => ({
-      key: k,
-      name: v.prettyName,
-      iconName: "database",
-      href: `/explorer/${encodeURIComponent(k)}`,
-    })), onResultChange);
+    return engine(
+      _.map(datasets, (v, k) => ({
+        key: k,
+        name: v.prettyName,
+        iconName: "database",
+        href: `/explorer/${encodeURIComponent(k)}`,
+      })),
+      onResultChange,
+    );
   };
 };
 
@@ -67,7 +70,7 @@ const standardProviders: { [id: string] : SearchProvider } = {
       extra: item["Type"],
       iconName: "wrench",
       // TODO: what about the other RSLs?
-      href: 
+      href:
         item["RSLs"] && `/assets/${encodeURIComponent(item["RSLs"].split(",")[0])}`,
     }),
   ),

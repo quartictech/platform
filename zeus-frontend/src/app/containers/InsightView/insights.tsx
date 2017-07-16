@@ -3,9 +3,9 @@ import {
   Classes,
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
-import HighestLowest2016 from "./highestLowest2016";
-import HighestConcentration2016 from "./highestConcentration2016";
-import Flytipping from "./flytipping";
+import HighestLowest2016 from "./HighestLowest2016";
+import HighestConcentration2016 from "./HighestConcentration2016";
+import Flytipping from "./Flytipping";
 
 export interface InsightType {
   componentClass: any;
@@ -15,7 +15,7 @@ export interface InsightType {
 }
 
 const insights: { [name: string] : InsightType } = {
-  "highestLowest2016": {
+  highestLowest2016: {
     componentClass: HighestLowest2016,
     title: "Best / worst roads",
     disabled: false,
@@ -25,7 +25,7 @@ const insights: { [name: string] : InsightType } = {
       </div>
     ),
   },
-  "highestConcentration2016": {
+  highestConcentration2016: {
     componentClass: HighestConcentration2016,
     title: "Panel patching opportunities",
     disabled: false,
@@ -48,7 +48,7 @@ const insights: { [name: string] : InsightType } = {
       </div>
     ),
   },
-  "flytipping": {
+  flytipping: {
     componentClass: Flytipping,
     title: "Flytipping",
     disabled: false,
@@ -61,12 +61,12 @@ const insights: { [name: string] : InsightType } = {
       </div>
     ),
   },
-  "predictions2017": {
+  predictions2017: {
     componentClass: null,
     title: "Predictions (2017)",
     disabled: true,
   },
-  "smartOps": {
+  smartOps: {
     componentClass: null,
     title: "SmartOps",
     disabled: true,
