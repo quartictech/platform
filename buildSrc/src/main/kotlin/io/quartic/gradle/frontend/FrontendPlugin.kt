@@ -51,7 +51,7 @@ class FrontendPlugin : Plugin<Project> {
         ) {
             project.afterEvaluate {
                 prod = ext.prod
-                dev = ext.dev
+                dev = commonDependencies + ext.dev
             }
             packageJson = project.file("package.json")
         }

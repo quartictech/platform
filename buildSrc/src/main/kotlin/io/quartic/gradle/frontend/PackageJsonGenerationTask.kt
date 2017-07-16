@@ -1,5 +1,6 @@
 package io.quartic.gradle.frontend
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.gradle.api.DefaultTask
@@ -19,4 +20,9 @@ open class PackageJsonGenerationTask : DefaultTask() {
         val mapper = jacksonObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
         mapper.writeValue(packageJson, NpmDependencies(prod, dev))
     }
+
+    private data class NpmDependencies(
+        @JsonProperty("dependencies") val prod: Map<String, String>,
+        @JsonProperty("devDependencies") val dev: Map<String, String>
+    )
 }
