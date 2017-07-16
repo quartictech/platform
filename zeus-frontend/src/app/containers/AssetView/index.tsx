@@ -91,22 +91,28 @@ class AssetView extends React.Component<Props, State> {
         );
 
       case ResourceStatus.NOT_LOADED:
-        return <NonIdealState
-          visual="cross"
-          title="No asset loaded."
-        />;
+        return (
+          <NonIdealState
+            visual="cross"
+            title="No asset loaded."
+          />
+        );
 
       case ResourceStatus.LOADING:
-        return <NonIdealState
-          visual={<Spinner className={Classes.LARGE} />}
-          title="Loading asset ..."
-        />;
+        return (
+          <NonIdealState
+            visual={<Spinner className={Classes.LARGE} />}
+            title="Loading asset ..."
+          />
+        );
 
       case ResourceStatus.ERROR:
-        return <NonIdealState
-          visual="error"
-          title="There was an error loading asset."
-        />;
+        return (
+          <NonIdealState
+            visual="error"
+            title="There was an error loading asset."
+          />
+        );
     }
   }
 

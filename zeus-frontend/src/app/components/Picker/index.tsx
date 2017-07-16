@@ -210,6 +210,14 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   public render() {
+    const intent = (this.props.selectedKey || this.props.disabled || this.props.errorDisabled)
+      ? Intent.NONE
+      : Intent.DANGER;
+
+    const maybeSpinner = (this.props.working && this.state.menuVisible)
+      ? <Spinner className={Classes.SMALL} />
+      : undefined;
+
     return (
       <Popover
         autoFocus={false}
@@ -225,17 +233,12 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           className={this.props.className}
           disabled={this.props.disabled}
           leftIconName={this.props.iconName || this.props.defaultEntryIconName}
-          rightElement={(this.props.working && this.state.menuVisible)
-            ? <Spinner className={Classes.SMALL} />
-            : undefined
-          }
+          rightElement={maybeSpinner}
           placeholder={this.props.placeholder}
           value={this.state.text}
           onKeyDown={e => this.onKeyDown(e)}
           onChange={e => this.onChangeText(e.target.value)}
-          intent={
-            (this.props.selectedKey || this.props.disabled || this.props.errorDisabled) ? Intent.NONE : Intent.DANGER
-          }
+          intent={intent}
         />
       </Popover>
     );
@@ -251,13 +254,15 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 
     return (
       <Menu className={this.props.className}>
-        {
-          (_.isEmpty(items) && this.state.text !== "")
-            ? <MenuItem className={classNames(Classes.MENU_ITEM, Classes.DISABLED)} text="No results found." />
-            : items
-        }
+        {this.maybeMenuItems(items)}
       </Menu>
     );
+  }
+
+  private maybeMenuItems(items) {
+    return (_.isEmpty(items) && this.state.text !== "")
+      ? <MenuItem className={classNames(Classes.MENU_ITEM, Classes.DISABLED)} text="No results found." />
+      : items;
   }
 
   private renderCategory(category: string, entries: NumberedEntry[]) {
@@ -275,6 +280,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   // provides new colouring behaviour (along with onMouseOver).
   private renderEntry(entry: PickerEntry, idx: number) {
     const isHighlighted = (idx === this.state.idxHighlighted);
+    // Note the "as any" below is required because text not declared as string | JSXElement (even though that works)
     return (
       <div
         key={entry.key}
@@ -285,33 +291,38 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           href={entry.href && appHistory.createHref(entry.href)}
           onClick={() => entry.disabled || entry.href || this.onSelectEntry(entry)}
           disabled={entry.disabled}
-          text={(
-            <div style={{ marginLeft: "30px" }}>
-              <div><b>{entry.name}</b></div>
-              <small className={isHighlighted ? null : "pt-text-muted"}>
-                {
-                  entry.extra
-                    ? (
-                    <div>
-                      <p><b>{entry.description}</b></p>
-                      <div style={{ textAlign: "right" }}>
-                        <em>{entry.extra}</em>
-                      </div>
-                    </div>
-                    )
-                    : (
-                    <b>{entry.description}</b>
-                    )
-                }
-
-              </small>
-            </div>
-          ) as any} // Cast required because text not declared as string | JSXElement (even though that works)
+          text={this.entryText(entry, isHighlighted) as any}
           label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
           iconName={entry.iconName || this.props.defaultEntryIconName}
         />
       </div>
     );
+  }
+
+  private entryText(entry: PickerEntry, isHighlighted: boolean) {
+    return (
+      <div style={{ marginLeft: "30px" }}>
+        <div><b>{entry.name}</b></div>
+        <small className={isHighlighted ? null : "pt-text-muted"}>
+          {this.descriptionAndMaybeExtra(entry)}
+        </small>
+      </div>
+    );
+  }
+
+  private descriptionAndMaybeExtra(entry: PickerEntry) {
+    return entry.extra
+      ? (
+      <div>
+        <p><b>{entry.description}</b></p>
+        <div style={{ textAlign: "right" }}>
+          <em>{entry.extra}</em>
+        </div>
+      </div>
+      )
+      : (
+      <b>{entry.description}</b>
+      );
   }
 }
 

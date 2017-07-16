@@ -41,15 +41,18 @@ class HighestConcentration2016 extends React.Component<Props, {}> {
               </tr>
             </thead>
             <tbody>
-              {_.map(
-                this.props.entries,
-                (entry, idx) => this.row({ backgroundColor: "rgba(219, 55, 55, 0.15)" }, entry, idx))
-              }
+              {this.rows()}
             </tbody>
           </table>
         </Pane>
       </div>
     );
+  }
+
+  private rows() {
+    return _.map(
+      this.props.entries,
+      (entry, idx) => this.row({ backgroundColor: "rgba(219, 55, 55, 0.15)" }, entry, idx));
   }
 
   private row(style, entry: Entry, idx: number) {

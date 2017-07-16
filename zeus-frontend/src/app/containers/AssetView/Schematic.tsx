@@ -39,26 +39,27 @@ class Schematic extends React.Component<SchematicProps, State> {
         <Pane
           title="Survey schematic"
           iconName="error"
-          extraHeaderContent={this.controls()}>
-          { (_.size(sections) > 0)
-            ? (
-              <RoadSchematic
-                sections={sections}
-                filterPredicate={s => s.year === this.props.yearSelection}
-                hoverText={s => this.defectsCallout(s.raw)}
-                colorScheme={(this.state.surveySelection === "dvi") ? Schemes.RED : Schemes.GOLD}
-              />
-            )
-            : (
-              <NonIdealState
-                visual="info"
-                title="No survey data available"
-              />
-            )
-          }
+          extraHeaderContent={this.controls()}
+        >
+          {(_.size(sections) > 0) ? this.schematic(sections) : this.nonIdeal()}
         </Pane>
       </div>
     );
+  }
+
+  private schematic(sections: RoadSchematicSection[]) {
+    return (
+      <RoadSchematic
+        sections={sections}
+        filterPredicate={s => (s as any).year === this.props.yearSelection}
+        hoverText={s => this.defectsCallout((s as any).raw)}
+        colorScheme={(this.state.surveySelection === "dvi") ? Schemes.RED : Schemes.GOLD}
+      />
+    );
+  }
+
+  private nonIdeal() {
+    return <NonIdealState visual="info" title="No survey data available" />;
   }
 
   private defectsCallout(section: RoadSchematicSection) {
@@ -68,15 +69,14 @@ class Schematic extends React.Component<SchematicProps, State> {
     if (_.size(section["defects"]) === 0) {
       return <span>No defects</span>;
     }
-    return (
-      <span>
-        {_.map(section["defects"], (v, k: string) => (
-          <span key={k} style={{ paddingRight: "10px" }}>
-            <b>{_.last(k.split("-"))}:</b>&nbsp;{v}
-          </span>
-        ))}
+
+    const defects = _.map(section["defects"], (v, k: string) => (
+      <span key={k} style={{ paddingRight: "10px" }}>
+        <b>{_.last(k.split("-"))}:</b>&nbsp;{v}
       </span>
-    );
+    ));
+
+    return <span>{defects}</span>;
   }
 
   private controls() {

@@ -1,5 +1,8 @@
 {
-  "extends": "tslint-config-airbnb",
+  "extends": [
+    "tslint-config-airbnb",
+    "tslint-react"
+  ],
   "rules": {
     "class-name": true,
 
@@ -38,6 +41,9 @@
     "quotemark": [ true, "double", "jsx-double" ],
     "import-name": false, // This seems more annoying than useful
     "no-increment-decrement": false,  // Otherwise we can't do things like (let i = 0; i < max; i++)
-    "variable-name": [true, "check-format", "allow-leading-underscore"]
+    "variable-name": [true, "check-format", "allow-leading-underscore"],
+
+    "jsx-no-lambda": false,     // This is too annoying right now
+    "jsx-no-string-ref": false  // Figure out what to do about this at a later date
   }
 }

@@ -42,21 +42,25 @@ export default class Pane extends React.Component<PaneProps, {}> {
         <span
           className={classNames(Classes.ICON_STANDARD, Classes.iconClass(this.props.iconName))}
           style={{ paddingRight: 10 }}
-        ></span>
+        />
         <h5>{this.props.title}</h5>
         {this.props.extraHeaderContent}
-        {
-          this.props.onClose
-            ? (
-            <button
-              aria-label="Close"
-              className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
-              onClick={this.props.onClose}
-            />
-            )
-            : null
-        }
+        {this.maybeCloseButton()}
       </div>
+    );
+  }
+
+  private maybeCloseButton() {
+    if (!this.props.onClose) {
+      return null;
+    }
+
+    return (
+      <button
+        aria-label="Close"
+        className={classNames(Classes.DIALOG_CLOSE_BUTTON, Classes.iconClass("small-cross"))}
+        onClick={this.props.onClose}
+      />
     );
   }
 }

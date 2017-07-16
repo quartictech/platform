@@ -29,22 +29,21 @@ const Attributes: React.SFC<AttributesProps> = props => (
       <h2>{toTitleCase(props.asset["Road Name"])}</h2>
       <h5>({toTitleCase(props.asset["Section Description"])})</h5>
       <table className={classNames(Classes.TABLE)} style={{ width: "100%" }}>
-        <tbody>
-          {
-            _.map(
-              {
-                "Length": `${numeral(props.asset["Length"]).format("0")} m`,
-                "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
-              },
-              (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>,
-            )
-          }
-          {_.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.0"), v[1]))}
-        </tbody>
+        <tbody>{rows}</tbody>
       </table>
     </div>
   </Pane>
 );
+
+function rows(props: AttributesProps) {
+  return _.map(
+    {
+      "Length": `${numeral(props.asset["Length"]).format("0")} m`,
+      "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
+    },
+    (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>,
+  );
+}
 
 function treatmentSchedule(treatments: any[]) {
   const nextTreatment = _.find(treatments, t => t["date"] > Date.now());
@@ -87,11 +86,13 @@ function treatmentTable(treatments: any[]) {
             <td>
                 {moment(treatment["date"]).format("Do MMM YYYY")}
                 &nbsp;
-                <span className={classNames(
-                  Classes.ICON_STANDARD,
-                  Classes.INTENT_SUCCESS,
-                  { [Classes.iconClass("endorsed")]: treatment["date"] < Date.now() },
-                )} />
+                <span
+                  className={classNames(
+                    Classes.ICON_STANDARD,
+                    Classes.INTENT_SUCCESS,
+                    { [Classes.iconClass("endorsed")]: treatment["date"] < Date.now() },
+                  )}
+                />
             </td>
             <td>{treatment["type"] || "???"}</td>
           </tr>

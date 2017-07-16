@@ -51,11 +51,12 @@ const EventsTable: React.SFC<EventsTableProps> = (props) => {
 
 function renderEventRow(idx, event) {
   if (event.type === "job" || event.type === "job_geo") {
+    const icon = event.type === "job" ? "pt-icon-person" : "pt-icon-geosearch";
+
     return (
       <tr key={idx}>
         <td>
-            { event.type === "job" ? <span className="pt-icon-standard pt-icon-person"></span> :
-              <span className="pt-icon-standard pt-icon-geosearch"></span> } {event["Number"]}
+          <span className={`pt-icon-standard ${icon}`} /> {event["Number"]}
         </td>
 
         <td>
@@ -63,7 +64,7 @@ function renderEventRow(idx, event) {
         </td>
 
         <td>
-          { event["Type"] }
+          {event["Type"]}
         </td>
 
         <td>
@@ -74,7 +75,7 @@ function renderEventRow(idx, event) {
     return (
       <tr key={idx}>
         <td>
-          <span className="pt-icon-standard pt-icon-tint"></span> {event["Confirm Number"]}
+          <span className="pt-icon-standard pt-icon-tint" /> {event["Confirm Number"]}
         </td>
 
         <td>

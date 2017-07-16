@@ -78,6 +78,7 @@ frontend {
     dev "ts-node", "3.2.0"
     dev "tslint", "5.4.3"
     dev "tslint-config-airbnb", "5.2.1"
+    dev "tslint-react", "3.0.0"
     dev "typescript", "2.1.5"
     dev "url-loader", "0.5.7"
     dev "webpack", "2.6.1"
