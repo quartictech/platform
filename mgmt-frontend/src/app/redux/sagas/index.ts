@@ -53,14 +53,19 @@ function* watchCreateDataset(): SagaIterator {
     const uploadResult = yield call(api.uploadFile, action.data.namespace, action.data.files.files);
 
     if (!uploadResult.err) {
-      const createResult = yield call(api.createDataset, action.data.namespace, action.data.metadata,
-        uploadResult.data, action.data.files.fileType);
+      const createResult = yield call(
+        api.createDataset,
+        action.data.namespace,
+        action.data.metadata,
+        uploadResult.data,
+        action.data.files.fileType,
+      );
       if (! createResult.err) {
         yield call(showSuccess, `Successfully created dataset: ${action.data.metadata.name}`);
         yield put(actions.setActiveModal(null));
         yield put(actions.fetchDatasets());
       } else {
-          yield call(showError, `Error while creating dataset: ${createResult.err.message}`);
+        yield call(showError, `Error while creating dataset: ${createResult.err.message}`);
       }
     } else {
       yield call(showError, `Error while uploading file: ${uploadResult.err.message}`);

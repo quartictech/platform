@@ -13,10 +13,9 @@ import "@blueprintjs/core/dist/blueprint.css";
 const store: Redux.Store<any> = configureStore();
 
 import { selectLocationState } from "./redux/selectors";
-const history = syncHistoryWithStore(appHistory, store,
-  {
-    selectLocationState: selectLocationState(),
-  });
+const history = syncHistoryWithStore(appHistory, store, {
+  selectLocationState: selectLocationState(),
+});
 
 const component = (
   <Router history={history}>

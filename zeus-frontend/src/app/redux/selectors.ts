@@ -18,7 +18,7 @@ export const selectLocationState = () => {
   };
 };
 
-export const selectManaged = (state) => state.get("managed");
+export const selectManaged = state => state.get("managed");
 export const selectSessionInfo = selector(api.sessionInfo);
 export const selectDatasetInfo = selector(api.datasetInfo);
 export const selectDatasetContent = selector(api.datasetContent);

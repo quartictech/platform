@@ -1,10 +1,15 @@
 {
+  "extends": [
+    "tslint-config-airbnb",
+    "tslint-react"
+  ],
   "rules": {
     "class-name": true,
-    "comment-format": [true, "check-space"],
+
+    // Let's always use braces
+    "ext-curly": false,
     "curly": true,
-    "eofline": true,
-    "indent": true,
+
     "max-line-length": [true, 120],
     "forin": true,
     "label-position": true,
@@ -17,38 +22,28 @@
       "timeEnd",
       "trace"
     ],
-    "no-construct": true,
     "no-debugger": true,
     "no-duplicate-variable": true,
     "no-empty": false,
-    "no-eval": true,
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
-    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
-    "no-trailing-whitespace": false,
+    "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-use-before-declare": false,
-    "no-var-keyword": true,
+    "object-literal-key-quotes": [true, "consistent"],
+    "object-shorthand-properties-first": false, // This is unhelpful so disable it
     "one-line": [true,
       "check-open-brace",
       "check-catch",
       "check-else",
       "check-whitespace"
     ],
-    "radix": true,
-    "semicolon": true,
-    "triple-equals": [true, "allow-null-check"],
-    "variable-name": [true,
-      "allow-leading-underscore",
-      "allow-pascal-case"
-    ],
-    "whitespace": [true,
-      "check-branch",
-      "check-decl",
-      "check-operator",
-      "check-separator",
-      "check-type"
-    ],
-    "quotemark": [ true, "double", "jsx-double" ]
+    "quotemark": [ true, "double", "jsx-double" ],
+    "import-name": false, // This seems more annoying than useful
+    "no-increment-decrement": false,  // Otherwise we can't do things like (let i = 0; i < max; i++)
+    "variable-name": [true, "check-format", "allow-leading-underscore"],
+
+    "jsx-no-lambda": false,     // This is too annoying right now
+    "jsx-no-string-ref": false  // Figure out what to do about this at a later date
   }
 }

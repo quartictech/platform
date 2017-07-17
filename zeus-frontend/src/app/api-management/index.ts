@@ -53,14 +53,14 @@ export const resourceActions = <T>(resource: ManagedResource<T>) => {
     required: (...args) => ({ type: c.required, args }),
     requiredFresh: (...args) => ({ type: c.requiredFresh, args }),
     beganLoading: () => ({ type: c.beganLoading }),
-    loaded: (data) => ({ type: c.loaded, data }),
+    loaded: data => ({ type: c.loaded, data }),
     failedToLoad: (key: string) => ({ type: c.failedToLoad, key }),
   };
 };
 
 const showError = (key, message) => {
   // Avoids duplicates
-  if (_.some(toaster.getToasts(), t => t.key === key )) {
+  if (_.some(toaster.getToasts(), t => t.key === key)) {
     return key;
   }
 
@@ -92,13 +92,13 @@ function* fetchAndWatchForClear<T>(resource: ManagedResource<T>, action: any): S
 }
 
 function* shouldElide<T>(resource: ManagedResource<T>, action: any): SagaIterator {
-    if (action.type === constants(resource).required) {
-      const myState = (yield select(selector(resource))) as ResourceState<T>;
-      if (myState.status !== ResourceStatus.NOT_LOADED) {
-        return true;
-      }
+  if (action.type === constants(resource).required) {
+    const myState = (yield select(selector(resource))) as ResourceState<T>;
+    if (myState.status !== ResourceStatus.NOT_LOADED) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 export function* watchAndFetch(resources: ManagedResource<any>[]): SagaIterator {
@@ -141,39 +141,40 @@ export const singleReducer = <T>(resource: ManagedResource<T>) => (
     status: ResourceStatus.NOT_LOADED,
     toasterKey: null,
   }),
-  action: any) => {
-    switch (action.type) {
-      case constants(resource).clear:
-        return state
-          .set("data", {})
-          .set("status", ResourceStatus.NOT_LOADED);
+  action: any,
+) => {
+  switch (action.type) {
+    case constants(resource).clear:
+      return state
+        .set("data", {})
+        .set("status", ResourceStatus.NOT_LOADED);
 
-      case constants(resource).beganLoading:
-        return state
-          .set("data", {})
-          .set("status", ResourceStatus.LOADING);
+    case constants(resource).beganLoading:
+      return state
+        .set("data", {})
+        .set("status", ResourceStatus.LOADING);
 
-      case constants(resource).failedToLoad:
-        return state
-          .set("data", {})
-          .set("status", ResourceStatus.ERROR)
-          .set("toasterKey", action.key);
+    case constants(resource).failedToLoad:
+      return state
+        .set("data", {})
+        .set("status", ResourceStatus.ERROR)
+        .set("toasterKey", action.key);
 
-      case constants(resource).loaded:
-        return state
-          .set("data", action.data)
-          .set("status", ResourceStatus.LOADED);
+    case constants(resource).loaded:
+      return state
+        .set("data", action.data)
+        .set("status", ResourceStatus.LOADED);
 
-      default:
-        return state;
-    }
-  };
+    default:
+      return state;
+  }
+};
 
 export const reducer = (resources: ManagedResource<any>[]) =>
   combineReducers(_.object(_.map(resources, r => [r.shortName, singleReducer(r)])) as {});
 
 export const selector = <T>(resource: ManagedResource<T>) =>
-  (state) => state.get("managed")[resource.shortName].toJS() as ResourceState<T>;
+  state => state.get("managed")[resource.shortName].toJS() as ResourceState<T>;
 
 export const ifLoaded = <T, R>(resource: ResourceState<T>, func: (T) => R, defaultValue: R) =>
   ((resource.status === ResourceStatus.LOADED) ? func(resource.data) : defaultValue);

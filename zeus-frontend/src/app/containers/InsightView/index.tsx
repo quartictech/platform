@@ -1,5 +1,5 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import {
   Classes,
   NonIdealState,
@@ -31,6 +31,7 @@ interface Props {
   insightRequired: (string) => void;
 }
 
+// tslint:disable-next-line:variable-name
 const UnknownInsight: React.SFC<{}> = () => (
   <NonIdealState
     visual="error"

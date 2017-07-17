@@ -3,7 +3,8 @@ import Header from "../../containers/Header";
 
 const s = require("./style.css");
 
-const App: React.SFC<{}> = (props) => (
+// tslint:disable-next-line:variable-name
+const App: React.SFC<{}> = props => (
   <div>
     <section className={s.App}>
       <Header />

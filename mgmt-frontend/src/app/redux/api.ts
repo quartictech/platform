@@ -23,15 +23,15 @@ export function fetchUtil(url, options?) {
   return fetch(url, newOptions)
     .then(checkStatus)
     .then(parseJSON)
-    .then((data) => ({ data }))
-    .catch((err) => ({ err }));
+    .then(data => ({ data }))
+    .catch(err => ({ err }));
 }
 
 export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
-const validContentType = (t) => (t != null && t.length > 0) ? t : "application/geo+json";
+const validContentType = t => (t != null && t.length > 0) ? t : "application/geo+json";
 
 export function uploadFile(namespace: string, files: any[]) {
   return fetchUtil(`${apiRootUrl}/file/${encodeURIComponent(namespace)}`, {

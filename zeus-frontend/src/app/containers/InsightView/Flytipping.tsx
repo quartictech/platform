@@ -6,22 +6,22 @@ const styles = require("./style.css");
 class Flytipping extends React.Component<{}, {}> {
   public render() {
     return (
-    <div style={{flex: 1}}>
+    <div style={{ flex: 1 }}>
       <div className={styles.splitRow}>
         <Pane title="Flytipping over time" iconName="help">
-        <div className="bk-root" style={{ width: "100%" }}>
+          <div className="bk-root" style={{ width: "100%" }}>
             <div className="bk-plotdiv" style={{ position: "relative" }}>
-            <div id="bokeh-plot" />
+              <div id="bokeh-plot" />
             </div>
-        </div>
+          </div>
         </Pane>
 
         <Pane title="Flytipping map" iconName="help">
-        <div className="bk-root" style={{ width: "100%" }}>
+          <div className="bk-root" style={{ width: "100%" }}>
             <div className="bk-plotdiv" style={{ position: "relative", height: "500px" }}>
-            <div id="bokeh-map" />
+              <div id="bokeh-map" />
             </div>
-        </div>
+          </div>
         </Pane>
       </div>
     </div>
@@ -34,23 +34,23 @@ class Flytipping extends React.Component<{}, {}> {
 
     bokeh.client.pull_session(`wss://${location.host}/dashboards/flytipping/ws`, sessionId)
       .then(
-          (session) => {
-            const roots = session.document.roots();
+        (session) => {
+          const roots = session.document.roots();
 
-            const itemFor = (modelName: string, elementId: string) => ({
-                elementid: elementId,
-                modelid: _.find(roots, (r: any) => r.name === modelName).id,
-                sessionid: sessionId,
+          const itemFor = (modelName: string, elementId: string) => ({
+            elementid: elementId,
+            modelid: _.find(roots, (r: any) => r.name === modelName).id,
+            sessionid: sessionId,
           });
 
           const items = [
-              itemFor("plot", "bokeh-plot"),
-              itemFor("map", "bokeh-map"),
+            itemFor("plot", "bokeh-plot"),
+            itemFor("map", "bokeh-map"),
           ];
 
           bokeh.embed.embed_items(null, items, "/dashboards/flytipping", `wss://${location.host}`);
         },
-        (error) => console.error(error),
+        error => console.error(error),
       );
   }
 }

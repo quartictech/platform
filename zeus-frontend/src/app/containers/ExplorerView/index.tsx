@@ -1,5 +1,5 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 import {
   AnchorButton,
@@ -99,26 +99,40 @@ class ExplorerView extends React.Component<Props, State> {
         return this.renderData();
 
       case ResourceStatus.NOT_LOADED:
-        return <NonIdealState
-          visual="cross"
-          title="No data loaded."
-        />;
+        return (
+          <NonIdealState
+            visual="cross"
+            title="No data loaded."
+          />
+        );
 
       case ResourceStatus.LOADING:
-        return <NonIdealState
-          visual={<Spinner className={Classes.LARGE} />}
-          title="Loading data ..."
-        />;
+        return (
+          <NonIdealState
+            visual={<Spinner className={Classes.LARGE} />}
+            title="Loading data ..."
+          />
+        );
 
       case ResourceStatus.ERROR:
-        return <NonIdealState
-          visual="error"
-          title="There was an error loading data."
-        />;
+        return (
+          <NonIdealState
+            visual="error"
+            title="There was an error loading data."
+          />
+        );
     }
   }
 
   private renderData() {
+    const columns = this.columns().map(col => (
+      <Column
+        key={col}
+        name={col}
+        renderCell={(row: number) => <Cell>{stringify(_.values(this.state.filteredItems)[row][col])}</Cell>}
+      />
+    ));
+
     return (
       <DocumentTitle title={`Quartic - ${this.maybePrettyName()}`}>
         <div>
@@ -135,13 +149,7 @@ class ExplorerView extends React.Component<Props, State> {
                 onSelection={regions => this.setState({ selectedRows: this.calculateSelectedRows(regions) })}
                 selectedRegionTransform={cellToRow}
               >
-                {
-                  this.columns().map(col => <Column
-                    key={col}
-                    name={col}
-                    renderCell={(row: number) => <Cell>{stringify(_.values(this.state.filteredItems)[row][col])}</Cell>}
-                  />)
-                }
+                {columns}
               </Table>
             </div>
           </Pane>
@@ -196,7 +204,7 @@ class ExplorerView extends React.Component<Props, State> {
 
   private columns = () => this.props.datasetContent.data.schema;
 
-  private calculateSelectedRows = (regions: IRegion[]) => 
+  private calculateSelectedRows = (regions: IRegion[]) =>
     _.chain(regions)
       .map(r => _.range(r.rows[0], r.rows[1] + 1))
       .flatten()
@@ -206,7 +214,7 @@ class ExplorerView extends React.Component<Props, State> {
 
 const stringify = (obj: any) => (obj === null) ? "" : obj.toString();
 
-const cellToRow = (region) => ((region.rows)
+const cellToRow = region => ((region.rows)
     ? Regions.row(region.rows[0], region.rows[1])
     : Regions.row(0, -1)  // This is a bit of a hack to support column selections
 );

@@ -6,7 +6,7 @@ class Loader extends React.Component<void, void> {
   render() {
     return (
       <Grid>
-        <div className={s.Spinner}></div>
+        <div className={s.Spinner} />
       </Grid>
     );
   }

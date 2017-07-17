@@ -28,12 +28,8 @@ class HighestLowest2016 extends React.Component<Props, {}> {
   render() {
     return (
       <div>
-        {this.pane("Highest defects (2016)", this.props.highest,
-          { backgroundColor: "rgba(219, 55, 55, 0.15)" })
-        }
-        {this.pane("Lowest defects (2016)", this.props.lowest,
-          { backgroundColor: "rgba(15, 153, 96, 0.15)" })
-        }
+        {this.pane("Highest defects (2016)", this.props.highest, { backgroundColor: "rgba(219, 55, 55, 0.15)" })}
+        {this.pane("Lowest defects (2016)", this.props.lowest, { backgroundColor: "rgba(15, 153, 96, 0.15)" })}
       </div>
     );
   }

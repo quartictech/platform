@@ -5,7 +5,8 @@ import { App, Home } from "../containers";
 
 const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 
-function getRoutes() { return (
+function getRoutes() {
+  return (
     <Route path="/" component={App}>
       <Route path="/datasets" component={Home} />
       <IndexRedirect to="/datasets" />

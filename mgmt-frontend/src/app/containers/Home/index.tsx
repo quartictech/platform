@@ -62,25 +62,29 @@ class Home extends React.Component<IProps, IState> {
           />
         </div>
 
-        {
-          (this.state.datasetCoords === null)
-            ? null
-            : (
-              <div className={s.right}>
-                <DatasetInfo
-                  coords={this.state.datasetCoords}
-                  dataset={this.props.datasets[this.state.datasetCoords.namespace][this.state.datasetCoords.id]}
-                  deleteClick={this.props.deleteDataset}
-                />
-              </div>
-            )
-        }
+        {this.maybeDatasetInfo()}
+      </div>
+    );
+  }
+
+  private maybeDatasetInfo() {
+    if (this.state.datasetCoords === null) {
+      return null;
+    }
+
+    return (
+      <div className={s.right}>
+        <DatasetInfo
+          coords={this.state.datasetCoords}
+          dataset={this.props.datasets[this.state.datasetCoords.namespace][this.state.datasetCoords.id]}
+          deleteClick={this.props.deleteDataset}
+        />
       </div>
     );
   }
 
   private selectDataset = (coords: IDatasetCoords) => {
-    this.setState({datasetCoords: coords});
+    this.setState({ datasetCoords: coords });
   }
 }
 

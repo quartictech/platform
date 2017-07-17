@@ -56,6 +56,18 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
   }
 
   render() {
+    return (
+      <Pane
+        title="Defects vs. time"
+        iconName="error"
+        extraHeaderContent={this.props.asset._defect_time_series ? this.renderChartButtons(this.props.asset) : null}
+      >
+        {(this.props.asset._defect_time_series && this.state.seriesSelection) ? this.chart() : this.nonIdeal()}
+      </Pane>
+    );
+  }
+
+  private chart() {
     const events = this.computeEvents(this.props.asset);
     const defectTimeSeries = this.props.asset._defect_time_series ?
       this.props.asset._defect_time_series[this.state.seriesSelection] :
@@ -63,8 +75,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
 
     const timeSeries = Object.assign(
       {
-      defects:
-        this.computeTimeSeries(defectTimeSeries),
+        defects: this.computeTimeSeries(defectTimeSeries),
       },
       this.state.predictions ? {
         predictions: this.computeTimeSeries(this.props.asset._defect_predictions),
@@ -72,32 +83,23 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
     );
 
     return (
-      <Pane
-        title="Defects vs. time"
-        iconName="error"
-        extraHeaderContent={this.props.asset._defect_time_series ? this.renderChartButtons(this.props.asset) : null}
-      >
-        { (this.props.asset._defect_time_series && this.state.seriesSelection) ?
-          <TimeChart
-            yLabel={this.state.seriesSelection}
-            events={events}
-            timeSeries={timeSeries}
-            colors={{ defects: "#1f77b4", predictions: "#00FF00" }}
-            onSelectYear={this.props.onSelectYear}
-          /> :
-          <NonIdealState
-            visual="info"
-            title="No survey data available"
-          />
-          }
-      </Pane>
+      <TimeChart
+        yLabel={this.state.seriesSelection}
+        events={events}
+        timeSeries={timeSeries}
+        colors={{ defects: "#1f77b4", predictions: "#00FF00" }}
+        onSelectYear={this.props.onSelectYear}
+      />
     );
+  }
+
+  private nonIdeal() {
+    return <NonIdealState visual="info" title="No survey data available" />;
   }
 
   private computeTimeSeries(ts): TimeSeriesPoint[] {
     if (ts) {
-      return ts
-        .series.map( ({ timestamp, value }) => ({x: new Date(timestamp), y: value }));
+      return ts.series.map(({ timestamp, value }) => ({ x: new Date(timestamp), y: value }));
     }
     return [];
   }

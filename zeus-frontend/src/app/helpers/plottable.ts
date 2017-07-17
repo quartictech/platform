@@ -1,12 +1,13 @@
 import * as Plottable from "plottable";
 import * as _ from "underscore";
 
-export const registerPointerHandler = (plot: Plottable.Plot,
+export const registerPointerHandler = (
+  plot: Plottable.Plot,
   handler: (entity?: Plottable.Plots.IPlotEntity) => void,
   closeEnough?: (point: Plottable.Point, entity: Plottable.Plots.IPlotEntity) => boolean,
 ) => {
   const interaction = new Plottable.Interactions.Pointer();
-  interaction.onPointerMove(p => {
+  interaction.onPointerMove((p) => {
     const selected = _.filter(plot.entitiesAt(p), e => closeEnough ? closeEnough(p, e) : true);
     if (selected.length === 1) {
       handler(selected[0]);
@@ -18,7 +19,8 @@ export const registerPointerHandler = (plot: Plottable.Plot,
   interaction.attachTo(plot);
 };
 
-export const registerClickHandler = (plot: Plottable.Plot,
+export const registerClickHandler = (
+  plot: Plottable.Plot,
   handler: (entity?: Plottable.Plots.IPlotEntity) => void,
   closeEnough?: (point: Plottable.Point, entity: Plottable.Plots.IPlotEntity) => boolean,
 ) => {
@@ -27,7 +29,7 @@ export const registerClickHandler = (plot: Plottable.Plot,
     const selected = _.filter(plot.entitiesAt(p), e => closeEnough ? closeEnough(p, e) : true);
     if (selected.length === 1) {
       handler(selected[0]);
-    } 
+    }
   });
   interaction.attachTo(plot);
 };

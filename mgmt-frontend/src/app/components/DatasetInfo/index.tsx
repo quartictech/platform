@@ -109,19 +109,21 @@ interface IPropertiesTableProps {
   props: {[key: string]: any};
 }
 
+// tslint:disable-next-line:variable-name
 const PropertiesTable = (props: IPropertiesTableProps) => (
   <table className="pt-table pt-condensed">
     <tbody>
-      {
-        _.map(props.props, (value, key) => (
-          <tr key={key}>
-            <td style={{ fontWeight: "bold" }}>{toUpperCase(key)}</td>
-            <td>{value && value.toString()}</td>
-          </tr>
-        ))
-      }
+      {_.map(props.props, (value, key) => <PropertiesRow key={key} value={value} />)}
     </tbody>
   </table>
+);
+
+// tslint:disable-next-line:variable-name
+const PropertiesRow = (key, value) => (
+  <tr key={key}>
+    <td style={{ fontWeight: "bold" }}>{toUpperCase(key)}</td>
+    <td>{value && value.toString()}</td>
+  </tr>
 );
 
 const toUpperCase = (str: string) => {

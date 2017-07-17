@@ -21,26 +21,35 @@ interface AttributesProps {
 }
 
 // Add 40px to compensate for not having a title bar
-const Attributes: React.SFC<AttributesProps> = (props) => (
+// tslint:disable-next-line:variable-name
+const Attributes: React.SFC<AttributesProps> = props => (
   <Pane style={{ backgroundColor: "rgba(138, 155, 168, 0.15)" }}>
     <div style={{ height: "340px", padding: "10px" }}>
       <h1>{props.asset.RSL}</h1>
       <h2>{toTitleCase(props.asset["Road Name"])}</h2>
       <h5>({toTitleCase(props.asset["Section Description"])})</h5>
-      <table className={classNames(Classes.TABLE)} style={{ width: "100%"}}>
+      <table className={classNames(Classes.TABLE)} style={{ width: "100%" }}>
         <tbody>
-          {
-            _.map({
-              "Length": `${numeral(props.asset["Length"]).format("0")} m`,
-              "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
-            }, (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>)
-          }
-          {_.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.0"), v[1]))}
+          {rows(props)}
         </tbody>
       </table>
     </div>
   </Pane>
 );
+
+function rows(props: AttributesProps) {
+  const specialCases = _.map(
+    {
+      "Length": `${numeral(props.asset["Length"]).format("0")} m`,
+      "Next treatment": treatmentSchedule(props.asset["_model_treatments"]),
+    },
+    (v, k: string) => <tr key={k}><td className={s["attribute-name"]}>{k}</td><td>{v}</td></tr>,
+  );
+
+  const stats = _.map(props.asset._stats, (v, k) => renderStat(k, numeral(v[0]).format("0.0"), v[1]));
+
+  return specialCases.concat(stats);
+}
 
 function treatmentSchedule(treatments: any[]) {
   const nextTreatment = _.find(treatments, t => t["date"] > Date.now());
@@ -77,25 +86,31 @@ function treatmentTable(treatments: any[]) {
         </tr>
       </thead>
       <tbody>
-        {_.map(treatments, treatment => (
-          <tr key={treatment["number"]}>
-            <td>{treatment["number"]}</td>
-            <td>
-                {moment(treatment["date"]).format("Do MMM YYYY")}
-                &nbsp;
-                <span className={classNames(
-                  Classes.ICON_STANDARD,
-                  Classes.INTENT_SUCCESS,
-                  { [Classes.iconClass("endorsed")]: treatment["date"] < Date.now() },
-                )} />
-            </td>
-            <td>{treatment["type"] || "???"}</td>
-          </tr>
-        ))}
+        {treatmentRows(treatments)}
       </tbody>
     </table>
   );
 }
+
+const treatmentRows = (treatments: any[]) => _.map(treatments, (treatment) => {
+  const iconClassNames = classNames(
+    Classes.ICON_STANDARD,
+    Classes.INTENT_SUCCESS,
+    { [Classes.iconClass("endorsed")]: treatment["date"] < Date.now() },
+  );
+
+  return (
+    <tr key={treatment["number"]}>
+      <td>{treatment["number"]}</td>
+      <td>
+          {moment(treatment["date"]).format("Do MMM YYYY")}
+          &nbsp;
+          <span className={iconClassNames} />
+      </td>
+      <td>{treatment["type"] || "???"}</td>
+    </tr>
+  );
+});
 
 function renderStat(key, value, quartile) {
   let color = null;

@@ -38,17 +38,18 @@ export default class NormalPicker extends React.Component<NormalPickerProps, {}>
   }
 
   private renderMenu() {
-    return (
-      <Menu className={s.normalPickerMenu}>
-        {this.props.entries.map(entry =>
-          <MenuItem
-            key={entry}
-            text={entry}
-            label={(this.props.selected === entry) ? IconContents.TICK : ""}
-            iconName={this.props.iconName}
-            onClick={() => this.props.onChange(entry)}
-          />)}
-      </Menu>
-    );
+    return <Menu className={s.normalPickerMenu}>{this.menuItems()}</Menu>;
+  }
+
+  private menuItems() {
+    return this.props.entries.map(entry => (
+      <MenuItem
+        key={entry}
+        text={entry}
+        label={(this.props.selected === entry) ? IconContents.TICK : ""}
+        iconName={this.props.iconName}
+        onClick={() => this.props.onChange(entry)}
+      />
+    ));
   }
 }

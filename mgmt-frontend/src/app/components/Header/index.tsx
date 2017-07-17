@@ -31,13 +31,18 @@ class NamespaceList extends React.Component<INamespaceListProps, {}> {
   }
 
   public render() {
+    const content = (
+      <Menu>
+        <MenuItem text="All" onClick={() => this.props.onChange(null)} />
+        <MenuDivider />
+        {this.renderNamespaceMenu()}
+      </Menu>
+    );
     return (
-      <Popover content={
-        <Menu>
-          <MenuItem text="All" onClick={() => this.props.onChange(null)} />
-          <MenuDivider />
-          {this.renderNamespaceMenu()}</Menu>}
-        position={Position.BOTTOM}>
+      <Popover
+        content={content}
+        position={Position.BOTTOM}
+      >
         <Button text={this.props.selectedNamespace || "All"} />
       </Popover>
     );
@@ -45,6 +50,11 @@ class NamespaceList extends React.Component<INamespaceListProps, {}> {
 }
 
 class Header extends React.Component<IProps, void> {
+  constructor(props: IProps) {
+    super(props);
+    this.onSearch = this.onSearch.bind(this);
+  }
+
   onSearch(e) {
     this.props.searchBoxChange(e.target.value);
   }
@@ -58,26 +68,24 @@ class Header extends React.Component<IProps, void> {
               className={s.logo}
               src={logo}
               role="presentation"
-              data-content={`Version: ${(process.env.BUILD_VERSION
-                || "unknown")}`}
+              data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
               data-variation="mini"
-            >
-            </img>
+            />
           </Link>
           <input
             className="pt-input"
             placeholder="Search datasets..."
             type="text"
-            onChange={this.onSearch.bind(this)}
+            onChange={this.onSearch}
           />
-          <span className="pt-navbar-divider"></span>
+          <span className="pt-navbar-divider" />
 
           <NamespaceList
             namespaces={this.props.namespaces}
             selectedNamespace={this.props.selectedNamespace}
             onChange={this.props.namespaceSelectChange}
           />
-          <span className="pt-navbar-divider"></span>
+          <span className="pt-navbar-divider" />
 
           <button
             onClick={this.props.newDatasetClick}
@@ -87,7 +95,7 @@ class Header extends React.Component<IProps, void> {
           </button>
         </div>
         <div className="pt-navbar-group pt-align-right">
-          <span className="pt-navbar-divider"></span>
+          <span className="pt-navbar-divider" />
           <a href="/map" alt="Map" className="pt-button pt-minimal pt-icon-map" />
         </div>
       </nav>);

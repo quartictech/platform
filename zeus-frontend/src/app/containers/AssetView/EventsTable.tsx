@@ -12,6 +12,7 @@ interface EventsTableProps {
   asset: Asset;
 }
 
+// tslint:disable-next-line:variable-name
 const EventsTable: React.SFC<EventsTableProps> = (props) => {
   const treatments = props.asset._treatments
       .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }));
@@ -20,7 +21,7 @@ const EventsTable: React.SFC<EventsTableProps> = (props) => {
       .map(j => Object.assign(j, { type: "job", _date: j["Start Date"] }));
 
   const jobsGeo = props.asset._jobs_geo
-      .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"]}));
+      .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"] }));
 
   const events = treatments.concat(jobs).concat(jobsGeo);
 
@@ -50,11 +51,12 @@ const EventsTable: React.SFC<EventsTableProps> = (props) => {
 
 function renderEventRow(idx, event) {
   if (event.type === "job" || event.type === "job_geo") {
+    const icon = event.type === "job" ? "pt-icon-person" : "pt-icon-geosearch";
+
     return (
       <tr key={idx}>
         <td>
-            { event.type === "job" ? <span className="pt-icon-standard pt-icon-person"></span> :
-              <span className="pt-icon-standard pt-icon-geosearch"></span> } {event["Number"]}
+          <span className={`pt-icon-standard ${icon}`} /> {event["Number"]}
         </td>
 
         <td>
@@ -62,7 +64,7 @@ function renderEventRow(idx, event) {
         </td>
 
         <td>
-          { event["Type"] }
+          {event["Type"]}
         </td>
 
         <td>
@@ -73,7 +75,7 @@ function renderEventRow(idx, event) {
     return (
       <tr key={idx}>
         <td>
-          <span className="pt-icon-standard pt-icon-tint"></span> {event["Confirm Number"]}
+          <span className="pt-icon-standard pt-icon-tint" /> {event["Confirm Number"]}
         </td>
 
         <td>
