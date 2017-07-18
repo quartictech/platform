@@ -1,0 +1,28 @@
+template:
+  apiVersion: batch/v1
+  kind: Job
+  spec:
+    template:
+      spec:
+        containers:
+          - name: jupyter
+            image: eu.gcr.io/quartictech/jupyter:53
+            command: ["echo", "Hello world"]
+#            volumeMounts:
+#              - name: config-volume
+#                mountPath: /setup
+        restartPolicy: Never
+#        volumes:
+#          - name: config-volume
+#            configMap:
+#              name: pipeline-job-config
+
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8160
+  adminConnectors:
+    - type: http
+      port: 8161

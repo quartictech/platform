@@ -1,0 +1,19 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.service" version "28"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+service {
+    simpleName = "bild"
+    mainClassName = "io.quartic.bild.BildApplication"
+    memory = System.env.ZEUS_MEMORY ?: "32m"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile 'io.fabric8:kubernetes-client:2.5.6'
+
+    testCompile project(":common-test")
+    testCompile libraries.wiremock
+}

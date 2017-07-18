@@ -29,6 +29,7 @@ include "common-core"
 include "common-application"
 include "common-test"
 
+include "bild"
 include "catalogue-api"
 include "catalogue-application"
 include "catalogue-utils"
