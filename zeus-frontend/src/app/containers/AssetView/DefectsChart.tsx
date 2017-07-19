@@ -121,14 +121,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
 
     const jobs = asset._jobs.concat(asset._jobs_geo)
       .filter(job => job["Start Date"] != null)
-      .filter(job =>
-        job["Type"] !== "MNHL - Highway Lighting" &&
-        !job["Type"].startsWith("Street Cleansing") &&
-        !job["Type"].startsWith("Street Lighting") &&
-        !job["Type"].startsWith("Drain Cleansing") &&
-        !job["Type"].startsWith("Drainage") &&
-        !job["Type"].startsWith("Highway Signs"),
-      )
+      .filter(job => job["Highways Job"])
       .map(job => ({
         type: "other",
         detail: `${job["Type"]} (${job["Number"]})`,
