@@ -33,7 +33,7 @@ class BildResource(val template: Job) {
         val job = JobBuilder(template).withNewMetadata()
             .withNamespace("bild")
             .withName(jobName)
-            .withLabels(mapOf(Pair("job", jobName)))
+            .withLabels(mapOf(Pair("job-name", jobName)))
             .endMetadata()
             .build()
         val jobResult = jobs().create(job)
