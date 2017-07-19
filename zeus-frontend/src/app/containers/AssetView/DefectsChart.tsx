@@ -83,7 +83,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
         color: "#00FF00",
       }}),
       ...(this.state.predictions && { usefulPredictions: {
-        points: this.computeTimeSeries(this.props.asset._defect_predictions), // TODO - hook up to actual data
+        points: this.computeTimeSeries(this.props.asset._defect_predictions_future),
         color: "#00FF00",
         dashed: true,
       }}),
