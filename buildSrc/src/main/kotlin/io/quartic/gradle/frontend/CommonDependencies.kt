@@ -64,7 +64,6 @@ val commonDependencies = mapOf(
     "http-proxy-middleware" to "0.17.3",
 
     // Other
-    "redux-logger" to "2.6.1",
     "redux-devtools-extension" to "2.13.2"
 )
 

@@ -2,7 +2,6 @@ import { createStore, applyMiddleware, compose } from "redux";
 import { routerMiddleware } from "react-router-redux";
 import { appHistory } from "../routes";
 import { rootReducer } from "./reducers";
-const logger = require("redux-logger")();
 const router = routerMiddleware(appHistory);
 
 import { sagas } from "./sagas";
@@ -18,10 +17,6 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
   const env: string = process.env.NODE_ENV;
 
   const middlewares: any[] = [router, sagaMiddleware];
-
-  if (env === "development") {
-    middlewares.push(logger);
-  }
 
   const finalCreateStore = compose(
     applyMiddleware(...middlewares),
