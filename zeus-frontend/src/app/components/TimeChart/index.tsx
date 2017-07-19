@@ -13,6 +13,7 @@ const s = require("./style.css");
 interface Series {
   points: TimeSeriesPoint[];
   color: string;
+  dashed?: boolean;
 }
 
 interface IProps {
@@ -72,6 +73,7 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
     const configurePlot = (plot, key, dataset) => plot
       .attr("stroke", _ => series[key].color)
+      .attr("stroke-dasharray", series[key].dashed ? "5, 5" : "0")
       .attr("fill", _ => series[key].color)
       .x(d => d.x, this.xScale)
       .y(d => d.y, this.yScaleTimeSeries)
