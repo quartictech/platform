@@ -73,21 +73,22 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
       this.props.asset._defect_time_series[this.state.seriesSelection] :
       null;
 
-    const timeSeries = Object.assign(
-      {
-        defects: this.computeTimeSeries(defectTimeSeries),
+    const series = {
+      defects: {
+        points: this.computeTimeSeries(defectTimeSeries),
+        color: "#1f77b4",
       },
-      this.state.predictions ? {
-        predictions: this.computeTimeSeries(this.props.asset._defect_predictions),
-      } : {},
-    );
+      ...(this.state.predictions && { predictions: {
+        points: this.computeTimeSeries(this.props.asset._defect_predictions),
+        color: "#00FF00",
+      }}),
+    }
 
     return (
       <TimeChart
         yLabel={this.state.seriesSelection}
         events={events}
-        timeSeries={timeSeries}
-        colors={{ defects: "#1f77b4", predictions: "#00FF00" }}
+        series={series}
         onSelectYear={this.props.onSelectYear}
       />
     );

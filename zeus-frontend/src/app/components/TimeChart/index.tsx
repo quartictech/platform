@@ -10,10 +10,14 @@ import { registerPointerHandler, registerClickHandler } from "../../helpers/plot
 import { MaintenanceEvent, TimeSeriesPoint } from "../../models";
 const s = require("./style.css");
 
+interface Series {
+  points: TimeSeriesPoint[];
+  color: string;
+}
+
 interface IProps {
   events: MaintenanceEvent[];
-  timeSeries: { [id: string]: TimeSeriesPoint[] };
-  colors: { [id: string]: string};
+  series: { [id: string]: Series };
   yLabel: string;
   onSelectYear: (year: string) => void;
 }
@@ -61,14 +65,14 @@ class RealTimeChart extends React.Component<IProps, IState> {
     };
   }
 
-  private updateChart(timeSeries: { [id: string]: TimeSeriesPoint[] }) {
+  private updateChart(series: { [id: string]: Series }) {
     _.each(this.plots, p => this.group.remove(p));
 
-    this.timeSeriesDatasets = _.mapObject(timeSeries, () => new Plottable.Dataset());
+    this.timeSeriesDatasets = _.mapObject(series, () => new Plottable.Dataset());
 
     const configurePlot = (plot, key, dataset) => plot
-      .attr("stroke", _ => this.props.colors[key])
-      .attr("fill", _ => this.props.colors[key])
+      .attr("stroke", _ => series[key].color)
+      .attr("fill", _ => series[key].color)
       .x(d => d.x, this.xScale)
       .y(d => d.y, this.yScaleTimeSeries)
       .addDataset(dataset);
@@ -152,13 +156,13 @@ class RealTimeChart extends React.Component<IProps, IState> {
 
   componentWillUpdate(nextProps: IProps) {
     // Only change the datasets that exist if the timeseries keys change
-    if (!setEq(Object.keys(nextProps.timeSeries), Object.keys(this.timeSeriesDatasets))) {
-      this.updateChart(nextProps.timeSeries);
+    if (!setEq(Object.keys(nextProps.series), Object.keys(this.timeSeriesDatasets))) {
+      this.updateChart(nextProps.series);
     }
 
     // Always update dataset data
-    Object.keys(nextProps.timeSeries).forEach(k =>
-      this.timeSeriesDatasets[k].data(nextProps.timeSeries[k]));
+    Object.keys(nextProps.series).forEach(k =>
+      this.timeSeriesDatasets[k].data(nextProps.series[k].points));
 
     if (this.yAxisLabel) {
       this.yAxisLabel.text(nextProps.yLabel);
