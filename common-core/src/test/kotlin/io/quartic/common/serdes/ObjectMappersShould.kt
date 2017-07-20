@@ -7,6 +7,7 @@ import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.time.Instant
 
 class ObjectMappersShould {
 
@@ -34,4 +35,13 @@ class ObjectMappersShould {
         assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": -Infinity }""").x, equalTo(Double.NEGATIVE_INFINITY))
         assertThat(OBJECT_MAPPER.readValue<Foo>("""{ "x": NaN }""").x, equalTo(Double.NaN))
     }
+
+    data class Baz(val t: Instant)
+
+    @Test
+    fun expect_unix_timestamps_for_instants() {
+        assertThat(OBJECT_MAPPER.readValue<Baz>("""{ "t": 1500561991 }""").t, equalTo(Instant.parse("2017-07-20T14:46:31Z")))
+    }
+
+
 }

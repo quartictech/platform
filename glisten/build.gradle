@@ -1,0 +1,17 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.service" version "28"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+service {
+    simpleName = "glisten"
+    mainClassName = "io.quartic.tracker.glisten.GlistenApplication"
+    memory = System.env.GLISTEN_MEMORY ?: "64m"
+}
+
+dependencies {
+    compile project(":common-application")
+
+    testCompile project(":common-test")
+}
