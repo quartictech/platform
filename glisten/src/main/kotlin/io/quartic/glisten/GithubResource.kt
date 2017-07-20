@@ -33,18 +33,7 @@ class GithubResource(
         // TODO - handle PingEvent, InstallationEvent, and InstallationRepositoriesEvent
         when (eventType) {
             "push" -> handlePushEvent(parseEvent(body, deliveryId), deliveryId)
-            else -> {
-                LOG.info("[$deliveryId] Ignored event of type '$eventType'")
-                return
-            }
-        }
-    }
-
-    private inline fun <reified T : Any> parseEvent(body: Map<String, Any>, deliveryId: String): T {
-        try {
-            return OBJECT_MAPPER.convertValue(body)
-        } catch (e: Exception) {
-            throw BadRequestException("[$deliveryId] Unparsable payload", e)
+            else -> LOG.info("[$deliveryId] Ignored event of type '$eventType'")
         }
     }
 
@@ -53,8 +42,15 @@ class GithubResource(
             ?: throw ForbiddenException("[$deliveryId] Unregistered installation ${pushEvent.installation.id}")
 
         // TODO - we shouldn't be logging this kind of detail
-        LOG.info("[$deliveryId] Push (customer = '$customer', repo = '${pushEvent.repository.fullName}, ref = '${pushEvent.ref}')")
+        LOG.info("[$deliveryId] Push (customer = '$customer', repo = '${pushEvent.repository.fullName}', ref = '${pushEvent.ref}')")
 
         notify(Notification(customer, pushEvent.repository.cloneUrl))
     }
+
+    private inline fun <reified T : Any> parseEvent(body: Map<String, Any>, deliveryId: String): T =
+        try {
+            OBJECT_MAPPER.convertValue(body)
+        } catch (e: Exception) {
+            throw BadRequestException("[$deliveryId] Unparsable payload", e)
+        }
 }
