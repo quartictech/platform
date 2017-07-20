@@ -8,6 +8,8 @@ import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class ObjectMappersShould {
 
@@ -43,5 +45,11 @@ class ObjectMappersShould {
         assertThat(OBJECT_MAPPER.readValue<Baz>("""{ "t": 1500561991 }""").t, equalTo(Instant.parse("2017-07-20T14:46:31Z")))
     }
 
-
+    @Test
+    fun write_instant_as_unix_timestamp() {
+        assertThat(
+            OBJECT_MAPPER.writeValueAsString(Baz(OffsetDateTime.of(2017, 7, 20, 14, 46, 31, 0, ZoneOffset.ofHours(1)).toInstant())),
+            equalTo("""{"t":1500558391.000000000}""")
+        )
+    }
 }

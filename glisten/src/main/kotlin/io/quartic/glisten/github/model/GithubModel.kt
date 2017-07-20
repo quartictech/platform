@@ -28,7 +28,7 @@ data class PushEvent(
 data class Commit(
     val id: GitHash,
     val message: String,
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "UTC")
     val timestamp: Instant,
     val author: User,
     val committer: User

@@ -1,3 +1,8 @@
+registrations:
+  quartic:
+    type: github
+    installationId: 40737
+
 server:
   applicationContextPath: /
   applicationConnectors:

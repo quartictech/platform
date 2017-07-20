@@ -1,9 +1,10 @@
-package io.quartic.tracker.scribe
+package io.quartic.glisten
 
 import io.dropwizard.Configuration
+import io.quartic.glisten.model.Registration
 
 data class GlistenConfiguration(
-    val _dummy: Int?
+    val registrations: Map<String, Registration>
 ) : Configuration()
 
 

@@ -1,12 +1,11 @@
-package io.quartic.tracker.scribe
+package io.quartic.glisten
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
-import io.quartic.glisten.GithubResource
 
 class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
     override fun runApplication(configuration: GlistenConfiguration, environment: Environment) {
-        environment.jersey().register(GithubResource())
+        environment.jersey().register(GithubResource(configuration.registrations, {}))
     }
 
     companion object {
