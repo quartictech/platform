@@ -15,6 +15,7 @@ data class PushEvent(
     val after: GitHash,
     val before: GitHash,
     val commits: List<Commit>,
+    val organization: Organization?,    // Not present for user repos
     val pusher: Pusher,
 
     // Common fields (see https://developer.github.com/webhooks/#payloads)
@@ -42,6 +43,13 @@ data class Repository(
     val private: Boolean,
     @JsonProperty("clone_url")
     val cloneUrl: String
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Organization(
+    val id: Int,
+    val login: String,
+    val description: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
