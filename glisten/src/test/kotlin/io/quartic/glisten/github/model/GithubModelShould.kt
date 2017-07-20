@@ -8,6 +8,9 @@ import org.junit.Test
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+/**
+ * These tests run Jackson deserialisation against captured webhook POST content.
+ */
 class GithubModelShould {
 
     @Test
