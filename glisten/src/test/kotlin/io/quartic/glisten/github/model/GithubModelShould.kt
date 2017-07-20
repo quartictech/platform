@@ -53,4 +53,9 @@ class GithubModelShould {
             )
         ))
     }
+
+    @Test
+    fun parse_push_event_for_org_repo() {
+        // TODO
+    }
 }
