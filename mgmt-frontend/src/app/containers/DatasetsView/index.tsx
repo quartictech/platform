@@ -25,7 +25,7 @@ interface IState {
   datasetCoords: IDatasetCoords;
 }
 
-class Home extends React.Component<IProps, IState> {
+class DatasetsView extends React.Component<IProps, IState> {
   public state : IState = {
     datasetCoords: null,
   };
@@ -88,7 +88,7 @@ class Home extends React.Component<IProps, IState> {
   }
 }
 
-export { Home };
+export { DatasetsView };
 
 const mapDispatchToProps = {
   fetchDatasets: actions.fetchDatasets,
@@ -105,4 +105,4 @@ const mapStateToProps = createStructuredSelector({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(Home);
+)(DatasetsView);

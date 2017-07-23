@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientException
 import io.fabric8.kubernetes.client.Watcher
 import io.fabric8.kubernetes.client.dsl.internal.JobOperationsImpl
+import io.quartic.bild.qube.QubeClient
 import java.util.*
 import javax.ws.rs.POST
 import javax.ws.rs.Path
@@ -16,19 +17,17 @@ import javax.ws.rs.core.MediaType
 
 @Path("/exec")
 class BildResource(val template: Job) {
-    val kubernetesClient = DefaultKubernetesClient()
+    val client = QubeClient()
 
-    fun jobs() = JobOperationsImpl(kubernetesClient.httpClient, kubernetesClient.configuration, "v1", "bild", null,
-         true, null, null, false, -1, TreeMap<String, String>(), TreeMap<String, String>(), TreeMap<String, Array<String>>(),
-            TreeMap<String, Array<String>>(),
-            TreeMap<String, String>())
+
 
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun exec() {
        val ns = NamespaceBuilder().withNewMetadata().withName("bild").endMetadata().build()
-        kubernetesClient.namespaces().createOrReplace(ns)
+        println("creating namespace")
+        DefaultKubernetesClient().use.namespaces().createOrReplace(ns)
         val jobName = "pipeline-${UUID.randomUUID()}"
         val job = JobBuilder(template).withNewMetadata()
             .withNamespace("bild")
@@ -36,7 +35,6 @@ class BildResource(val template: Job) {
             .withLabels(mapOf(Pair("job-name", jobName)))
             .endMetadata()
             .build()
-        val jobResult = jobs().create(job)
         val watch = kubernetesClient.pods().withLabel("job-name", jobName).watch(object: Watcher<Pod>{
             override fun onClose(cause: KubernetesClientException?) {
 
