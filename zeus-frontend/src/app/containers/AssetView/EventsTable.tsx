@@ -18,9 +18,11 @@ const EventsTable: React.SFC<EventsTableProps> = (props) => {
       .map(t => Object.assign(t, { type: "treatment", _date: t["Estimated Completion Date"] }));
 
   const jobs = props.asset._jobs
+      .filter(j => j["Highways Job"])
       .map(j => Object.assign(j, { type: "job", _date: j["Start Date"] }));
 
   const jobsGeo = props.asset._jobs_geo
+      .filter(j => j["Highways Job"])
       .map(j => Object.assign(j, { type: "job_geo", _date: j["Start Date"] }));
 
   const events = treatments.concat(jobs).concat(jobsGeo);
