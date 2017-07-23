@@ -107,10 +107,6 @@ class Header extends React.Component<IProps, void> {
             Upload Data
           </button>
         </div>
-        <div className="pt-navbar-group pt-align-right">
-          <span className="pt-navbar-divider" />
-          <a href="/map" alt="Map" className="pt-button pt-minimal pt-icon-map" />
-        </div>
       </nav>);
   }
 }
