@@ -6,16 +6,12 @@
 }
 
 .main {
-  width: 50%;
+  width: 100%;
+  height: 100%;
   padding: 10px;
-}
-
-.right {
-  width: 50%;
-  padding: 10px;
-  align-self: flex-start;
 }
 
 .cy {
   width: 100%;
+  height: 100%;
 }

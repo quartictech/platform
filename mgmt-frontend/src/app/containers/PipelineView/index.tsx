@@ -26,7 +26,10 @@ class PipelineView extends React.Component<IProps, {}> {
   render() {
     return (
       <div className={s.container}>
-        <div id="cy" className={s.cy}/>
+        <div className={s.main}>
+          <h1>Pipeline View: magnolia</h1>
+          <div id="cy" className={s.cy}/>
+        </div>
       </div>
     );
   }
