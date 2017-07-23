@@ -32,7 +32,7 @@ class PipelineView extends React.Component<IProps, {}> {
   }
 
   componentDidMount() {
-    let cy = cytoscape({
+    const cy = cytoscape({
       container: document.getElementById("cy"),
       elements: pipeline,
       autoungrabify: true,
@@ -52,7 +52,7 @@ class PipelineView extends React.Component<IProps, {}> {
             "font-size": "7px",
             "text-valign": "center",
             "shape": "roundrectangle",
-            "background-color": (ele) => ele.data("type") == "derived" ? "#db1e7b" : "#1c6a9d",
+            "background-color": (ele) => ele.data("type") === "derived" ? "#db1e7b" : "#1c6a9d",
           },
         },
         {
