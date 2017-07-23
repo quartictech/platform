@@ -26,26 +26,36 @@ class GithubResource(
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     fun handleEvent(
-        @HeaderParam("X-Github-Event") eventType: String,
-        @HeaderParam("X-Github-Delivery") deliveryId: String,
+        @HeaderParam("X-Github-Event") eventType: String?,
+        @HeaderParam("X-Github-Delivery") deliveryId: String?,
         body: Map<String, Any>
+    ) = EventHandler(validatePresent(eventType), validatePresent(deliveryId), body)()
+
+    private inner class EventHandler(
+        val eventType: String,
+        val deliveryId: String,
+        val body: Map<String, Any>
     ) {
-        // TODO - handle PingEvent, InstallationEvent, and InstallationRepositoriesEvent
-        when (eventType) {
-            "push" -> handlePushEvent(parseEvent(body, deliveryId), deliveryId)
-            else -> LOG.info("[$deliveryId] Ignored event of type '$eventType'")
+        operator fun invoke() {
+            // TODO - handle PingEvent, InstallationEvent, and InstallationRepositoriesEvent
+            when (eventType) {
+                "push" -> handlePushEvent(parseEvent(body, deliveryId))
+                else -> LOG.info("[$deliveryId] Ignored event of type '$eventType'")
+            }
+        }
+
+        private fun handlePushEvent(pushEvent: PushEvent) {
+            val customer = installations[pushEvent.installation.id]
+                ?: throw ForbiddenException("[$deliveryId] Unregistered installation ${pushEvent.installation.id}")
+
+            // TODO - we shouldn't be logging this kind of detail
+            LOG.info("[$deliveryId] Push (customer = '$customer', repo = '${pushEvent.repository.fullName}', ref = '${pushEvent.ref}')")
+
+            notify(Notification(customer, pushEvent.repository.cloneUrl))
         }
     }
 
-    private fun handlePushEvent(pushEvent: PushEvent, deliveryId: String) {
-        val customer = installations[pushEvent.installation.id]
-            ?: throw ForbiddenException("[$deliveryId] Unregistered installation ${pushEvent.installation.id}")
-
-        // TODO - we shouldn't be logging this kind of detail
-        LOG.info("[$deliveryId] Push (customer = '$customer', repo = '${pushEvent.repository.fullName}', ref = '${pushEvent.ref}')")
-
-        notify(Notification(customer, pushEvent.repository.cloneUrl))
-    }
+    private inline fun <reified T : Any> validatePresent(x : T?) = x ?: throw BadRequestException("Missing header")
 
     private inline fun <reified T : Any> parseEvent(body: Map<String, Any>, deliveryId: String): T =
         try {

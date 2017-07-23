@@ -6,7 +6,7 @@ plugins {
 
 service {
     simpleName = "glisten"
-    mainClassName = "io.quartic.tracker.glisten.GlistenApplication"
+    mainClassName = "io.quartic.glisten.GlistenApplication"
     memory = System.env.GLISTEN_MEMORY ?: "64m"
 }
 

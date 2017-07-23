@@ -41,14 +41,14 @@ Note that this will build the images with a registry name of `null` and a tag of
 
 ## Services
 
-Service        | Port (app/admin) | Port (frontend dev)  | Notes
+Service        | Port (app/admin) | Port (frontend dev)  | Description
 ---------------|------------------|----------------------|-----------------
-Weyl           | 8080 / 8081      | 3000                 |
-Catalogue      | 8090 / 8091      |                      |
-Mgmt           | 8100 / 8101      | 3010                 |
-Howl           | 8120 / 8121      |                      |
+Weyl           | 8080 / 8081      | 3000                 | Map UI
+Catalogue      | 8090 / 8091      |                      | Dataset catalogue
+Mgmt           | 8100 / 8101      | 3010                 | Dataset management UI
+Howl           | 8120 / 8121      |                      | Cloud storage abstraction
 ~~Terminator~~ | ~~8130 / 8131~~  |                      |
-Scribe         | 8140 / 8141      |                      |
-Rain           | 8150 / 8151      |                      |
-Zeus           | 8160 / 8161      | 3020                 |
-Glisten        | 8170 / 8171      |                      |
+Scribe         | 8140 / 8141      |                      | PubSub -> file storage batching
+Rain           | 8150 / 8151      |                      | Howl-to-live-layer converter
+Zeus           | 8160 / 8161      | 3020                 | Asset 360 UI
+Glisten        | 8170 / 8171      |                      | GitHub webhook listener
