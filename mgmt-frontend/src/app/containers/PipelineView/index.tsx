@@ -52,7 +52,10 @@ class PipelineView extends React.Component<IProps, {}> {
             "font-size": "7px",
             "text-valign": "center",
             "shape": "roundrectangle",
-            "background-color": (ele) => ele.data("type") === "derived" ? "#db1e7b" : "#1c6a9d",
+            "background-opacity": 0.7,
+            "background-color": ele => ele.data("type") === "derived" ? "#db1e7b" : "#1c6a9d",
+            "border-width": "5px",
+            "border-color": ele => ele.data("type") === "derived" ? "#db1e7b" : "#1c6a9d",
           },
         },
         {
@@ -62,16 +65,28 @@ class PipelineView extends React.Component<IProps, {}> {
             "line-color": "#ccc",
             "target-arrow-color": "#ccc",
             "target-arrow-shape": "triangle",
-            "curve-style": "bezier",
+            "curve-style": "unbundled-bezier",
+            "control-point-distances": "20 -20",
+            "control-point-weights": "0.25 0.75",
           },
         },
       ],
     });
 
     cy.on("select", "node", (_) => {
-      cy.$("edge").css({ "line-color": "#ccc" });
+      cy.$("node").css({
+        "background-opacity": 0.7,
+      });
+      cy.$("node:selected").css({
+        "background-opacity": 1.0,
+      });
+      cy.$("edge").css({
+        "line-color": "#ccc",
+        "target-arrow-color": "#ccc",
+      });
       cy.$("node:selected").connectedEdges().css({
         "line-color": "#db1e7b",
+        "target-arrow-color": "#db1e7b",
       });
     });
   }
