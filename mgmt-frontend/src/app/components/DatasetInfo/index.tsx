@@ -45,12 +45,12 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
             <Tab>Admin</Tab>
           </TabList>
           <TabPanel>
-            <div className="pt-callout pt-intent-primary pt-elevation-2">
+            <div className="pt-callout pt-elevation-2">
               <PropertiesTable props={this.props.dataset.metadata} />
             </div>
           </TabPanel>
           <TabPanel>
-            <div className="pt-callout pt-intent-primary pt-elevation-2">
+            <div className="pt-callout pt-elevation-2">
               <PropertiesTable props={this.props.dataset.locator} />
             </div>
           </TabPanel>
