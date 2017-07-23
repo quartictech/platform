@@ -32,12 +32,14 @@ class PipelineView extends React.Component<IProps, {}> {
   }
 
   componentDidMount() {
-    cytoscape({
+    let cy = cytoscape({
       container: document.getElementById("cy"),
       elements: pipeline,
+      autoungrabify: true,
       layout: {
         name: "dagre",
-        rankDir: "UD",
+        rankDir: "TB",
+        fit: true,
       },
       style: [
         {
@@ -49,8 +51,8 @@ class PipelineView extends React.Component<IProps, {}> {
             "color": "#ffffff",
             "font-size": "7px",
             "text-valign": "center",
-            "shape": "rectangle",
-            "background-color": "#db1e7b",
+            "shape": "roundrectangle",
+            "background-color": (ele) => ele.data("type") == "derived" ? "#db1e7b" : "#1c6a9d",
           },
         },
         {
@@ -60,11 +62,18 @@ class PipelineView extends React.Component<IProps, {}> {
             "line-color": "#ccc",
             "target-arrow-color": "#ccc",
             "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
           },
         },
       ],
     });
 
+    cy.on("select", "node", (_) => {
+      cy.$("edge").css({ "line-color": "#ccc" });
+      cy.$("node:selected").connectedEdges().css({
+        "line-color": "#db1e7b",
+      });
+    });
   }
 }
 
