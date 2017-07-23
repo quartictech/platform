@@ -19,15 +19,12 @@ import javax.ws.rs.core.MediaType
 class BildResource(val template: Job) {
     val client = QubeClient()
 
-
-
-
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun exec() {
        val ns = NamespaceBuilder().withNewMetadata().withName("bild").endMetadata().build()
         println("creating namespace")
-        DefaultKubernetesClient().use.namespaces().createOrReplace(ns)
+        DefaultKubernetesClient().use { client -> client.namespaces().createOrReplace(ns) }
         val jobName = "pipeline-${UUID.randomUUID()}"
         val job = JobBuilder(template).withNewMetadata()
             .withNamespace("bild")
@@ -35,17 +32,7 @@ class BildResource(val template: Job) {
             .withLabels(mapOf(Pair("job-name", jobName)))
             .endMetadata()
             .build()
-        val watch = kubernetesClient.pods().withLabel("job-name", jobName).watch(object: Watcher<Pod>{
-            override fun onClose(cause: KubernetesClientException?) {
-
-                println("closed")
-            }
-
-            override fun eventReceived(action: Watcher.Action, resource: Pod) {
-                println(action)
-                println(resource)
-            }
-        })
+        client.runJob("bild", job)
     }
 }
 

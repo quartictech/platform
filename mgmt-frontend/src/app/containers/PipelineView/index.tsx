@@ -11,7 +11,7 @@ import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-const pipeline = require("./pipeline.json")
+const pipeline = require("./pipeline.json");
 
 interface IProps {
   datasets: DatasetMap;
@@ -26,41 +26,44 @@ class PipelineView extends React.Component<IProps, {}> {
   render() {
     return (
       <div className={s.container}>
-        <div id="cy" className={s.cy}></div>
+        <div id="cy" className={s.cy}/>
       </div>
     );
   }
 
   componentDidMount() {
-  cytoscape({
-  container: document.getElementById('cy'),
-  elements: pipeline,
-  layout: {
-    name: "dagre",
-    rankDir: 'UD'
-  },
-  style: [{
-    selector: 'node',
-    style: {
-      'label': 'data(title)',
-      'width': 'label',
-      'padding': '5px',
-      'color': '#ffffff',
-      'font-size': '7px',
-      'text-valign': 'center',
-      'shape': 'rectangle',
-      'background-color': '#db1e7b',
-    }
-  }, {
-    selector: 'edge',
-    style: {
-      'width': 2,
-      'line-color': '#ccc',
-      'target-arrow-color': '#ccc',
-      'target-arrow-shape': 'triangle'
-    }
-  }]
-});
+    cytoscape({
+      container: document.getElementById("cy"),
+      elements: pipeline,
+      layout: {
+        name: "dagre",
+        rankDir: "UD",
+      },
+      style: [
+        {
+          selector: "node",
+          style: {
+            "label": "data(title)",
+            "width": "label",
+            "padding": "5px",
+            "color": "#ffffff",
+            "font-size": "7px",
+            "text-valign": "center",
+            "shape": "rectangle",
+            "background-color": "#db1e7b",
+          },
+        },
+        {
+          selector: "edge",
+          style: {
+            "width": 2,
+            "line-color": "#ccc",
+            "target-arrow-color": "#ccc",
+            "target-arrow-shape": "triangle",
+          },
+        },
+      ],
+    });
 
   }
 }

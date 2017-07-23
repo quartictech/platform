@@ -119,7 +119,7 @@ const PropertiesTable = (props: IPropertiesTableProps) => (
 );
 
 // tslint:disable-next-line:variable-name
-const PropertiesRow = ({propertyKey, value}) => (
+const PropertiesRow = ({ propertyKey, value }) => (
   <tr>
     <td style={{ fontWeight: "bold" }}>{toUpperCase(propertyKey)}</td>
     <td>{value && value.toString()}</td>
