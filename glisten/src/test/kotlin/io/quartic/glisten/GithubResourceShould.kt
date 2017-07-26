@@ -12,6 +12,7 @@ import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.Instant
+import java.time.ZoneOffset
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.BadRequestException
@@ -87,7 +88,7 @@ class GithubResourceShould {
             Commit(
                 id = "fc6206fd27761a1e03383287e213801105f01a25",
                 message = "Add some cool stuff",
-                timestamp = Instant.EPOCH,
+                timestamp = Instant.EPOCH.atOffset(ZoneOffset.UTC),
                 author = User("Johnny Noobhole", "johnny@noobhole.io", "johnny"),
                 committer = User("Johnny Noobhole", "johnny@noobhole.io", "johnny")
             )

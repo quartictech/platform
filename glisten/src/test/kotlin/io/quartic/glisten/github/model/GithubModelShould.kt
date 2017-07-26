@@ -32,7 +32,7 @@ class GithubModelShould {
                     Commit(
                         id = "e7298ce9149a7a06f83b8318b8c3fa655b71861d",
                         message = "Dummy commit",
-                        timestamp = OffsetDateTime.of(2017, 7, 20, 14, 41, 10, 0, ZoneOffset.ofHours(1)).toInstant(),
+                        timestamp = OffsetDateTime.of(2017, 7, 20, 14, 41, 10, 0, ZoneOffset.ofHours(1)),
                         author = user,
                         committer = user
                     )
@@ -78,7 +78,7 @@ class GithubModelShould {
                     Commit(
                         id = "fc6206fd27761a1e03383287e213801105f01a25",
                         message = "Add unfilled test",
-                        timestamp = OffsetDateTime.of(2017, 7, 20, 16, 15, 23, 0, ZoneOffset.ofHours(1)).toInstant(),
+                        timestamp = OffsetDateTime.of(2017, 7, 20, 16, 15, 23, 0, ZoneOffset.ofHours(1)),
                         author = user,
                         committer = user
                     )
