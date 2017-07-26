@@ -3,6 +3,8 @@ registrations:
     type: github
     installationId: 40737
 
+secretToken: noobhole
+
 server:
   applicationContextPath: /
   applicationConnectors:

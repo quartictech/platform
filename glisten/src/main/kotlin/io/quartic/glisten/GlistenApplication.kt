@@ -7,7 +7,11 @@ import io.quartic.common.application.ApplicationBase
 class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
     override fun runApplication(configuration: GlistenConfiguration, environment: Environment) {
         // TODO - wire through notify param to Bild client
-        environment.jersey().register(GithubResource(configuration.registrations, {}))
+        environment.jersey().register(GithubResource(
+            configuration.registrations,
+            configuration.secretToken,
+            {}
+        ))
     }
 
     companion object {
