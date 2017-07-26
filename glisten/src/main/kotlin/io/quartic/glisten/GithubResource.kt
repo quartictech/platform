@@ -21,7 +21,6 @@ class GithubResource(
     private val secretToken: String,
     private val notify: (Notification) -> Unit
 ) {
-    // TODO - handle webhook secret token (see https://developer.github.com/webhooks/securing/)
     // TODO - handle DoS due to massive payload causing OOM
 
     private val LOG by logger()
