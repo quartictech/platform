@@ -43,11 +43,18 @@ class JwtVerifier(
     base64EncodedKey: String,
     clock: Clock
 ) {
+    private val LOG by logger()
+
     private val parser = Jwts.parser()
         .setClock({ Date.from(clock.instant())})
         .setSigningKey(SecretKeySpec(Base64.getDecoder().decode(base64EncodedKey), ALGORITHM.toString()))
 
-    fun verify(token: String): String = parser.parseClaimsJws(token).body.subject
+    fun verify(token: String) = try {
+        parser.parseClaimsJws(token).body.subject
+    } catch (e: Exception) {
+        LOG.warn("JWT parsing failed", e)
+        null
+    }
 }
 
 // We can use HMAC for now as client-side verification of tokens is not an issue

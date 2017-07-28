@@ -5,6 +5,7 @@ import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.sequenceGenerator
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.Clock
@@ -105,9 +106,7 @@ class JwtShould {
     }
 
     private fun assertRejectedToken(token: String) {
-        assertThrows<Exception> {
-            verifier.verify(token)
-        }
+        assertThat(verifier.verify(token), nullValue())
     }
 
     private fun parse(token: String) = Jwts.parser().setSigningKey(key).parseClaimsJws(token)
