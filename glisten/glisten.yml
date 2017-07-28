@@ -1,0 +1,15 @@
+registrations:
+  quartic:
+    type: github
+    installationId: 40737
+
+secretToken: noobhole
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8170
+  adminConnectors:
+    - type: http
+      port: 8171

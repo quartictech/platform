@@ -42,6 +42,7 @@ include "howl-application"
 include "rain-application"
 include "orf"
 include "scribe"
+include "glisten"
 
 include "weyl-api"
 include "weyl-core"
