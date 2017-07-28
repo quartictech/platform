@@ -1,0 +1,11 @@
+base64EncodedKey: "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="
+tokenTimeToLiveMinutes: 1440
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8180
+  adminConnectors:
+    - type: http
+      port: 8181
