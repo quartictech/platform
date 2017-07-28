@@ -1,4 +1,4 @@
-package io.quartic.orf.model
+package io.quartic.common.auth
 
 import io.quartic.common.uid.Uid
 

@@ -1,3 +1,3 @@
-package io.quartic.orf.model
+package io.quartic.orf
 
 data class AuthResponse(val token: String)
