@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientException
 import io.fabric8.kubernetes.client.Watcher
 import io.fabric8.kubernetes.client.dsl.internal.JobOperationsImpl
+import io.fabric8.openshift.api.model.OAuthClient
 import io.quartic.bild.qube.QubeClient
 import java.util.*
 import javax.ws.rs.POST
@@ -17,22 +18,15 @@ import javax.ws.rs.core.MediaType
 
 @Path("/exec")
 class BildResource(val template: Job) {
-    val client = QubeClient()
-
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     fun exec() {
-       val ns = NamespaceBuilder().withNewMetadata().withName("bild").endMetadata().build()
         println("creating namespace")
-        DefaultKubernetesClient().use { client -> client.namespaces().createOrReplace(ns) }
-        val jobName = "pipeline-${UUID.randomUUID()}"
-        val job = JobBuilder(template).withNewMetadata()
-            .withNamespace("bild")
-            .withName(jobName)
-            .withLabels(mapOf(Pair("job-name", jobName)))
-            .endMetadata()
-            .build()
-        client.runJob("bild", job)
+        DefaultKubernetesClient().use { client ->
+            val ns = NamespaceBuilder().withNewMetadata().withName("bild").endMetadata().build()
+            client.namespaces().createOrReplace(ns)
+            QubeClient(client).runJob("bild", template)
+        }
     }
 }
 

@@ -7,7 +7,7 @@ template:
         containers:
           - name: jupyter
             image: eu.gcr.io/quartictech/jupyter:53
-            command: ["echo", "Hello world"]
+            command: ["sleep", "5"]
 #            volumeMounts:
 #              - name: config-volume
 #                mountPath: /setup
