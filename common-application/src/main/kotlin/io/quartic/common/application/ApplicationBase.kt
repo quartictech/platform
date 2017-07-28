@@ -25,7 +25,9 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Clock
 import java.util.*
 
-abstract class ApplicationBase<T : ConfigurationBase> : Application<T>() {
+abstract class ApplicationBase<T : ConfigurationBase>(
+    private val tokenAuthenticated: Boolean = false
+) : Application<T>() {
     private val LOG by logger()
     private val details = ApplicationDetails(javaClass)
 
@@ -68,8 +70,6 @@ abstract class ApplicationBase<T : ConfigurationBase> : Application<T>() {
     protected open fun initializeApplication(bootstrap: Bootstrap<T>) = Unit
 
     protected abstract fun runApplication(configuration: T, environment: Environment)
-
-    protected open val tokenAuthenticated: Boolean = false
 
     // TODO: this string substitution is gross, should come up with something better
     private val baseConfig: String
