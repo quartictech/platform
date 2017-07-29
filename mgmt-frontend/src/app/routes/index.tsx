@@ -8,12 +8,14 @@ const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 
 function getRoutes() {
   return (
-    <Route path="/" component={App}>
+    <Route>
       <Route path="/login" component={Login} />
-      <Route component={EnsureLoggedIn}>
-        <Route path="/datasets" component={DatasetsView} />
-        <Route path="/pipeline" component={PipelineView} />
-        <IndexRedirect to="/datasets" />
+      <Route path="/" component={App}>
+        <Route component={EnsureLoggedIn}>
+          <Route path="/datasets" component={DatasetsView} />
+          <Route path="/pipeline" component={PipelineView} />
+          <IndexRedirect to="/datasets" />
+        </Route>
       </Route>
     </Route>
   );
