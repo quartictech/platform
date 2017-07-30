@@ -50,7 +50,6 @@ class Login extends React.Component<IProps, IState> {
   }
 
   render() {
-    console.log(this.props);
     return (
       <div className={s.container}>
         <div className="pt-card pt-elevation-4" style={{width: 600, padding: 40, margin: "auto"}} >

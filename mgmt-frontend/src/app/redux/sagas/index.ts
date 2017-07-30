@@ -18,6 +18,19 @@ function showError(message) {
   });
 }
 
+function* checkedApiCall(apiFunction, ...args) {
+  const res = yield call(apiFunction, ...args);
+
+  if (! res.err) {
+    return res;
+  }
+
+  if (res.err.message === "Unauthorized") {
+    localStorage.removeItem("quartic-xsrf");
+    yield put(push("/login"))
+  }
+}
+
 function showSuccess(message) {
   toaster.show({
     intent: Intent.SUCCESS,
@@ -28,11 +41,7 @@ function showSuccess(message) {
 function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
-    const res = yield call(api.fetchDatasets);
-
-    if (! res.err) {
-      yield put(actions.fetchDatasetsSuccess(res.data));
-    }
+    yield fork(checkedApiCall, api.fetchDatasets);
   }
 }
 
