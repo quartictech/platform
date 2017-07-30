@@ -35,6 +35,19 @@ function* watchLoadDatasets(): SagaIterator {
   }
 }
 
+function* watchLoginGithub(): SagaIterator {
+  while (true) {
+    const action = yield take(constants.LOGIN_GITHUB);
+    const res = yield call(api.githubAuth, action.code);
+    console.log("hello");
+
+    if (! res.err) {
+      console.log(res);
+      localStorage.setItem("quartic-xss", res.xssToken);
+    }
+  }
+}
+
 function* watchDeleteDataset(): SagaIterator {
   while (true) {
     const action = yield take(constants.DELETE_DATASET);
@@ -77,4 +90,5 @@ export function* sagas(): SagaIterator {
   yield fork(watchLoadDatasets);
   yield fork(watchDeleteDataset);
   yield fork(watchCreateDataset);
+  yield fork(watchLoginGithub);
 }

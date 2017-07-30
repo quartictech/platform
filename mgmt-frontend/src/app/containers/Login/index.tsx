@@ -1,19 +1,49 @@
 import * as React from "react";
 import { connect } from "react-redux";
+import * as actions from "../../redux/actions";
 
-import { AnchorButton, Intent } from "@blueprintjs/core";
+import { AnchorButton, Intent, Spinner } from "@blueprintjs/core";
 
 import { createStructuredSelector } from "reselect";
 const s = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
+  location: any;
+  loginGithub: (string) => any;
 }
 
 interface IState {
 }
 
 class Login extends React.Component<IProps, IState> {
+  componentDidMount() {
+    if (this.props.location.query.provider === "gh" && this.props.location.query.code !== null) {
+      this.props.loginGithub(this.props.location.query.code);
+    }
+  }
+
+  renderSpinner() {
+      return (
+        <div className={s.signIn}>
+          <h2>Logging you in</h2>
+          <div style={{textAlign: "center", justifyContent: "center"}}>
+            <Spinner className="pt-large" />
+          </div>
+        </div>);
+  }
+
+  renderLogin() {
+    return (<div className={s.signIn}>
+            <h2>Please sign in.</h2>
+            <div className={s.signInButtons}>
+              <AnchorButton
+                href="/api/auth/gh"
+                text="Sign in with GitHub" className="pt-large" intent={Intent.PRIMARY} />
+            </div>
+          </div>);
+  }
+
   render() {
     return (
       <div className={s.container}>
@@ -25,12 +55,7 @@ class Login extends React.Component<IProps, IState> {
               data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
               data-variation="mini"
             />
-          <div className={s.signIn}>
-            <h2>Please sign in.</h2>
-            <div className={s.signInButtons}>
-              <AnchorButton text="Sign in with GitHub" className="pt-large" intent={Intent.PRIMARY} />
-            </div>
-          </div>
+          { this.props.location.query.code !== null ? this.renderSpinner() : this.renderLogin() }
         </div>
       </div>
     );
@@ -38,6 +63,7 @@ class Login extends React.Component<IProps, IState> {
 }
 
 const mapDispatchToProps = {
+  loginGithub: actions.loginGithub,
 };
 
 const mapStateToProps = createStructuredSelector({

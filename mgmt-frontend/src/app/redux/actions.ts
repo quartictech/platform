@@ -7,6 +7,20 @@ export function fetchDatasets() {
   };
 }
 
+export function loginGithub(code) {
+  return {
+    type: constants.LOGIN_GITHUB,
+    code,
+  }
+}
+
+export function loggedIn(authResult) {
+  return {
+    type: constants.LOGGED_IN,
+    authResult,
+  }
+}
+
 export function fetchDatasetsSuccess(data) {
   return {
     type: constants.FETCH_DATASETS_SUCCESS,

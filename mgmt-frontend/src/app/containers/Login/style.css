@@ -1,17 +1,25 @@
 
 .container {
-  height: calc(100vh - 50px);
-  display: flex;
-  background-color: #293742;
+  width: 100%;
+  height: 100vh;
+  padding-left: 10vw;
+  padding-right: 10vw;
+  padding-top: 100px;
+  background-color: #f5f8fa;
+  align-items: center;
+  justify-content: center;
 }
 
-.main {
-  width: 50%;
-  padding: 10px;
+.signIn {
+  padding-top: 30px;
+}
+.signInButtons {
+  padding-top: 30px;
 }
 
-.right {
-  width: 50%;
-  padding: 10px;
-  align-self: flex-start;
+img.logo {
+  width: 100%;
+  margin-left: -5px;
+  margin-right: 10px;
 }
+

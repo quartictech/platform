@@ -24,6 +24,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
         with (environment.jersey()) {
             register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(configuration.authorisedNamespaces)))
+            register(AuthResource())
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl!!))
     }

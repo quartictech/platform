@@ -27,11 +27,25 @@ export function fetchUtil(url, options?) {
     .catch(err => ({ err }));
 }
 
+export function fetchAuth(url, options?) {
+  const newOptions = Object.assign({}, options, { credentials: "same-origin" });
+  return fetch(url, newOptions)
+    .then(checkStatus)
+    .then(r => ({ xssToken: r.headers.get("XSS-Token") }))
+    .catch(err => ({ err }));
+}
+
 export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
 const validContentType = t => (t != null && t.length > 0) ? t : "application/geo+json";
+
+export function githubAuth(code: string) {
+  return fetchAuth(`${apiRootUrl}/auth/gh/complete?code=${code}`, {
+    method: "POST",
+  });
+}
 
 export function uploadFile(namespace: string, files: any[]) {
   return fetchUtil(`${apiRootUrl}/file/${encodeURIComponent(namespace)}`, {
