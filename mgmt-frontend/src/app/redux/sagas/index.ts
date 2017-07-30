@@ -10,6 +10,8 @@ import { toaster } from "../../containers/App/toaster";
 import { Intent } from "@blueprintjs/core";
 import { push } from 'react-router-redux';
 
+import { QUARTIC_XSRF } from "../../helpers/Utils";
+
 function showError(message) {
   toaster.show({
     iconName: "warning-sign",
@@ -48,7 +50,7 @@ function* watchLogout(): SagaIterator {
   while (true) {
     yield take(constants.LOGOUT);
     showError("Logged out");
-    localStorage.removeItem("quartic-xsrf");
+    localStorage.removeItem(QUARTIC_XSRF);
     yield put(push("/login"))
   }
 }
@@ -70,7 +72,7 @@ function* watchLoginGithub(): SagaIterator {
     const res = yield call(api.githubAuth, action.code);
 
     if (! res.err) {
-      localStorage.setItem("quartic-xsrf", res.xssToken);
+      localStorage.setItem(QUARTIC_XSRF, res.xsrfToken);
       yield put(push("/"));
     }
   }

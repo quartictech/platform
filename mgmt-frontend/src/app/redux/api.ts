@@ -2,6 +2,8 @@ const apiRootUrl = `${location.origin}${location.pathname}api`;
 
 import { IDatasetMetadata, IDatasetCoords } from "../models";
 
+import { QUARTIC_XSRF_HEADER } from "../helpers/Utils";
+
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
@@ -31,7 +33,7 @@ export function fetchAuth(url, options?) {
   const newOptions = Object.assign({}, options, { credentials: "same-origin" });
   return fetch(url, newOptions)
     .then(checkStatus)
-    .then(r => ({ xsrfToken: r.headers.get("XSRF-Token") }))
+    .then(r => ({ xsrfToken: r.headers.get(QUARTIC_XSRF_HEADER) }))
     .catch(err => ({ err }));
 }
 

@@ -33,7 +33,7 @@ class AuthResource {
         val cookie = NewCookie("quartic-jwt", "1", "/", null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, null, false, true)
         return Response.ok()
             .header("Set-Cookie", cookie.toString())
-            .header("XSS-Token", 2).build()
+            .header("XSRF-Token", 2).build()
     }
 
 }
