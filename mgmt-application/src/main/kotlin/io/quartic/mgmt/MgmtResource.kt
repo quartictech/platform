@@ -32,12 +32,8 @@ class MgmtResource(
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(@Auth user: User, @Context request: HttpServletRequest): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
-        request.cookies.forEach { s -> println("${s.name} ${s.value}")}
-
-//        return Response.ok().status(401).build()
-        return catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
-    }
+    fun getDatasets(@Auth user: User, @Context request: HttpServletRequest) =
+        catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
 
 
     @DELETE
