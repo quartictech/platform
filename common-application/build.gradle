@@ -5,14 +5,15 @@ plugins {
 
 dependencies {
     compile project(":common-core")
-
+    compile libraries.jjwt
     compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
     compile "io.dropwizard:dropwizard-auth:${versions.dropwizard}"
     compile "de.thomaskrille:dropwizard-template-config:1.4.0"
 
     runtime libraries.dropwizardMetricsInfluxdb
 
-    testCompile libraries.testCommon
+    testCompile project(":common-test")
+    testCompile libraries.dropwizardTesting
 }
 
 

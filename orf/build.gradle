@@ -1,0 +1,18 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.service" version "28"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+service {
+    simpleName = "orf"
+    mainClassName = "io.quartic.orf.OrfApplication"
+    memory = System.env.ORF_MEMORY ?: "32m"
+}
+
+dependencies {
+    compile project(":common-application")
+
+    testCompile project(":common-test")
+    testCompile libraries.dropwizardTesting
+}

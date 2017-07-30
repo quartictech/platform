@@ -1,8 +1,8 @@
 package io.quartic.rain
 
-import io.dropwizard.Configuration
+import io.quartic.common.application.ConfigurationBase
 
-class RainConfiguration : Configuration() {
+class RainConfiguration : ConfigurationBase() {
    var howlWatchUrl: String? = null
    val howlUrl: String? = null
 }

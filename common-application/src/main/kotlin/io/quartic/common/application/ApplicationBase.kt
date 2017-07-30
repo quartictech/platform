@@ -2,15 +2,14 @@ package io.quartic.common.application
 
 import de.thomaskrille.dropwizard_template_config.TemplateConfigBundle
 import io.dropwizard.Application
-import io.dropwizard.Configuration
 import io.dropwizard.auth.AuthDynamicFeature
 import io.dropwizard.auth.AuthValueFactoryProvider
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.common.ApplicationDetails
-import io.quartic.common.auth.QuarticAuthFilter
 import io.quartic.common.auth.User
+import io.quartic.common.auth.createAuthFilter
 import io.quartic.common.logging.logger
 import io.quartic.common.pingpong.PingPongResource
 import io.quartic.common.serdes.configureObjectMapper
@@ -21,7 +20,9 @@ import java.io.IOException
 import java.io.SequenceInputStream
 import java.nio.charset.StandardCharsets.UTF_8
 
-abstract class ApplicationBase<T : Configuration> : Application<T>() {
+abstract class ApplicationBase<T : ConfigurationBase>(
+    private val tokenAuthenticated: Boolean = false
+) : Application<T>() {
     private val LOG by logger()
     private val details = ApplicationDetails(javaClass)
 
@@ -44,11 +45,14 @@ abstract class ApplicationBase<T : Configuration> : Application<T>() {
     final override fun run(configuration: T, environment: Environment) {
         LOG.info("Running " + details.name + " " + details.version + " (Java " + details.javaVersion + ")")
 
+        // TODO - CORS settings
+        // TODO - check Origin and Referer headers
+
         with (environment.jersey()) {
             urlPattern = "/api/*"
             register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response
             register(PingPongResource())
-            register(AuthDynamicFeature(QuarticAuthFilter.create()))
+            register(AuthDynamicFeature(createAuthFilter(configuration.auth)))
             register(AuthValueFactoryProvider.Binder(User::class.java))
         }
 
@@ -63,7 +67,7 @@ abstract class ApplicationBase<T : Configuration> : Application<T>() {
     private val baseConfig: String
         get() = try {
             toString(javaClass.getResourceAsStream("/application.yml"), UTF_8)
-                    .replace("\\$\\{APPLICATION_NAME\\}".toRegex(), details.name.toLowerCase())
+                    .replace("\\$\\{APPLICATION_NAME}".toRegex(), details.name.toLowerCase())
         } catch (e: IOException) {
             throw RuntimeException("Couldn't read base config", e)
         }
