@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
+import javax.ws.rs.core.Request
 import javax.ws.rs.core.Response
 
 @Path("/")
@@ -31,9 +32,11 @@ class MgmtResource(
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(@Auth user: User): Response {
-        return Response.ok().status(401).build()
-//        catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
+    fun getDatasets(@Auth user: User, @Context request: HttpServletRequest): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
+        request.cookies.forEach { s -> println("${s.name} ${s.value}")}
+
+//        return Response.ok().status(401).build()
+        return catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
     }
 
 
@@ -48,7 +51,7 @@ class MgmtResource(
         // Note there's a potential race-condition here - another catalogue client could have manipulated the
         // dataset in-between these two statements.  It shouldn't matter - we will never delete a dataset not in an
         // authorised namespace.
-        throwIfDatasetNotPresentOrNotAllowed(user, DatasetCoordinates(namespace, id))
+//        throwIfDatasetNotPresentOrNotAllowed(user, DatasetCoordinates(namespace, id))
         catalogue.deleteDataset(namespace, id)
     }
 
@@ -134,15 +137,15 @@ class MgmtResource(
 
     private fun notFoundException(type: String, name: String) = NotFoundException("$type '$name' not found")
 
-    private fun throwIfDatasetNotPresentOrNotAllowed(user: User, coords: DatasetCoordinates) {
-        val datasets = getDatasets(user)    // These will already be filtered to those that the user is authorised for
-
-        val datasetsInNamespace = datasets[coords.namespace]
-                ?: throw notFoundException("Namespace", coords.namespace.namespace)
-        if (!datasetsInNamespace.contains(coords.id)) {
-            throw notFoundException("Dataset", coords.id.uid)
-        }
-    }
+//    private fun throwIfDatasetNotPresentOrNotAllowed(user: User, coords: DatasetCoordinates) {
+//        val datasets = getDatasets(user)    // These will already be filtered to those that the user is authorised for
+//
+//        val datasetsInNamespace = datasets[coords.namespace]
+//                ?: throw notFoundException("Namespace", coords.namespace.namespace)
+//        if (!datasetsInNamespace.contains(coords.id)) {
+//            throw notFoundException("Dataset", coords.id.uid)
+//        }
+//    }
 
     private fun throwIfNamespaceNotAllowed(user: User, namespace: DatasetNamespace) {
         if (!authoriser.authorisedFor(user, namespace)) {

@@ -14,10 +14,9 @@ export function loginGithub(code) {
   }
 }
 
-export function loggedIn(authResult) {
+export function logout() {
   return {
-    type: constants.LOGGED_IN,
-    authResult,
+    type: constants.LOGOUT,
   }
 }
 

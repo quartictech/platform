@@ -9,4 +9,4 @@ export const DELETE_DATASET = "DELETE_DATASET";
 
 
 export const LOGIN_GITHUB = "LOGIN_GITHUB";
-export const LOGGED_IN = "LOGGED_IN";
+export const LOGOUT = "LOGOUT";

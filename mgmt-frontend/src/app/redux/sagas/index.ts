@@ -18,16 +18,15 @@ function showError(message) {
   });
 }
 
-function* checkedApiCall(apiFunction, ...args) {
+function* checkedApiCall(apiFunction, ...args): SagaIterator {
   const res = yield call(apiFunction, ...args);
 
   if (! res.err) {
-    return res;
+    yield res;
   }
 
   if (res.err.message === "Unauthorized") {
-    localStorage.removeItem("quartic-xsrf");
-    yield put(push("/login"))
+    yield put(actions.logout());
   }
 }
 
@@ -38,10 +37,26 @@ function showSuccess(message) {
   });
 }
 
+function* watchLogout(): SagaIterator {
+  while (true) {
+    yield take(constants.LOGOUT);
+    showError("Logged out");
+    localStorage.removeItem("quartic-xsrf");
+    yield put(push("/login"))
+  }
+}
+
 function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
-    yield fork(checkedApiCall, api.fetchDatasets);
+    console.log("nice")
+    const res = yield fork(checkedApiCall, api.fetchDatasets);
+
+    if (!res.err) {
+      yield put(actions.fetchDatasetsSuccess(res.data));
+    }
+
+    console.log(res.data);
   }
 }
 
@@ -100,4 +115,5 @@ export function* sagas(): SagaIterator {
   yield fork(watchDeleteDataset);
   yield fork(watchCreateDataset);
   yield fork(watchLoginGithub);
+  yield fork(watchLogout);
 }
