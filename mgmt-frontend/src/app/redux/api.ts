@@ -2,7 +2,7 @@ const apiRootUrl = `${location.origin}${location.pathname}api`;
 
 import { IDatasetMetadata, IDatasetCoords } from "../models";
 
-import { QUARTIC_XSRF_HEADER } from "../helpers/Utils";
+import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "../helpers/Utils";
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
@@ -21,7 +21,12 @@ function parseJSON(response: Response) {
 }
 
 export function fetchUtil(url, options?) {
-  const newOptions = Object.assign({}, options, { credentials: "same-origin" });
+  const headers: Headers = options && options.header ? options.headers : new Headers();
+  headers.set(QUARTIC_XSRF_HEADER, localStorage.getItem(QUARTIC_XSRF));
+  const newOptions = Object.assign({}, options, {
+    credentials: "same-origin",
+    headers: headers
+  });
   return fetch(url, newOptions)
     .then(checkStatus)
     .then(parseJSON)

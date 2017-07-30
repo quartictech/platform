@@ -1,22 +1,28 @@
 package io.quartic.mgmt
 
+import io.quartic.common.auth.TokenAuthStrategy
+import io.quartic.common.auth.TokenGenerator
 import java.net.URI
-import javax.ws.rs.GET
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.QueryParam
+import java.net.URLEncoder
+import javax.ws.rs.*
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.NewCookie
 import javax.ws.rs.core.Response
 
 
 @Path("/auth")
-class AuthResource {
+class AuthResource(val clientId: String,
+                   clientSecret: String,
+                   val allowedOrgnisations: Set<String>,
+                   private val tokenGenerator: TokenGenerator) {
+
+    val github = Github(clientId, clientSecret, REDIRECT_URI)
+
     @GET
     @Path("/gh")
     fun github(): Response? {
-        val clientId = "af4a5c01c7850fa04758"
-        val redirectUri = "http://localhost:8100/api/auth/gh/callback"
-        val uri = URI.create("https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}")
+        val scopes = URLEncoder.encode(listOf("user").joinToString(" "))
+        val uri = URI.create("https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${REDIRECT_URI}&scope=${scopes}")
         return Response.temporaryRedirect(uri).build()
     }
 
@@ -29,11 +35,35 @@ class AuthResource {
 
     @POST
     @Path("/gh/complete")
-    fun githubDo(@QueryParam("code") code: String): Response {
-        val cookie = NewCookie("quartic-jwt", "1", "/", null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, null, false, true)
-        return Response.ok()
-            .header("Set-Cookie", cookie.toString())
-            .header("XSRF-Token", 2).build()
+    fun githubDo(@QueryParam("code") code: String,
+                 @HeaderParam(HttpHeaders.HOST) host: String): Response {
+        val accessToken = github.accessToken(code)
+        val user = github.user(accessToken)
+        val organizations = github.organizations(accessToken).map { org -> org.login }
+
+        if (!organizations.intersect(allowedOrgnisations).isEmpty()) {
+            val tokens = tokenGenerator.generate(user.login, host)
+            return Response.ok()
+                .header(TokenAuthStrategy.XSRF_TOKEN_HEADER, tokens.xsrf)
+                .cookie(NewCookie(
+                    TokenAuthStrategy.TOKEN_COOKIE,
+                    tokens.jwt,
+                    "/",
+                    null,
+                    null,
+                    NewCookie.DEFAULT_MAX_AGE,
+                    false, // secure
+                    true // httponly
+                ))
+                .build()
+        }
+
+        return Response.status(401).build()
+    }
+
+    companion object {
+        val COOKIE = "quartic-jwt";
+        val REDIRECT_URI = "http://localhost:8100/api/auth/gh/callback"
     }
 
 }
