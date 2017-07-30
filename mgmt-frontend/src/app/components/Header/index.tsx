@@ -87,16 +87,25 @@ class Header extends React.Component<IProps, void> {
           />
           <span className="pt-navbar-divider" />
 
+          <Link
+            className="pt-button pt-minimal pt-icon-database"
+            to="/datasets"
+          >
+          Datasets
+          </Link>
+          <Link
+            className="pt-button pt-minimal pt-icon-graph"
+            to="/pipeline"
+          >
+          Pipeline
+          </Link>
+
           <button
             onClick={this.props.newDatasetClick}
             className="pt-button pt-minimal pt-icon-cloud-upload"
           >
             Upload Data
           </button>
-        </div>
-        <div className="pt-navbar-group pt-align-right">
-          <span className="pt-navbar-divider" />
-          <a href="/map" alt="Map" className="pt-button pt-minimal pt-icon-map" />
         </div>
       </nav>);
   }

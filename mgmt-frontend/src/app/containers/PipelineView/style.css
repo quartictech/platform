@@ -1,0 +1,17 @@
+
+.container {
+  height: calc(100vh - 50px);
+  display: flex;
+  background-color: #f5f8fa;
+}
+
+.main {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+}
+
+.cy {
+  width: 100%;
+  height: 100%;
+}

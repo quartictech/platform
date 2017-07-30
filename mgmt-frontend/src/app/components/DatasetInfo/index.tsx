@@ -45,12 +45,12 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
             <Tab>Admin</Tab>
           </TabList>
           <TabPanel>
-            <div className="pt-callout pt-intent-primary pt-elevation-2">
+            <div className="pt-callout pt-elevation-2">
               <PropertiesTable props={this.props.dataset.metadata} />
             </div>
           </TabPanel>
           <TabPanel>
-            <div className="pt-callout pt-intent-primary pt-elevation-2">
+            <div className="pt-callout pt-elevation-2">
               <PropertiesTable props={this.props.dataset.locator} />
             </div>
           </TabPanel>
@@ -113,15 +113,15 @@ interface IPropertiesTableProps {
 const PropertiesTable = (props: IPropertiesTableProps) => (
   <table className="pt-table pt-condensed">
     <tbody>
-      {_.map(props.props, (value, key) => <PropertiesRow key={key} value={value} />)}
+      {_.map(props.props, (value, key) => <PropertiesRow key={key} propertyKey={key} value={value} />)}
     </tbody>
   </table>
 );
 
 // tslint:disable-next-line:variable-name
-const PropertiesRow = (key, value) => (
-  <tr key={key}>
-    <td style={{ fontWeight: "bold" }}>{toUpperCase(key)}</td>
+const PropertiesRow = ({ propertyKey, value }) => (
+  <tr>
+    <td style={{ fontWeight: "bold" }}>{toUpperCase(propertyKey)}</td>
     <td>{value && value.toString()}</td>
   </tr>
 );
