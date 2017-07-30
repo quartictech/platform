@@ -4,7 +4,7 @@ import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.JwtGenerator
-import io.quartic.common.auth.JwtId
+import io.quartic.common.auth.JwtGenerator.JwtId
 import io.quartic.common.uid.randomGenerator
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers.equalTo

@@ -1,8 +1,6 @@
 package io.quartic.common.auth
 
 import com.google.common.hash.Hashing
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jws
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.application.TokenAuthConfiguration
@@ -40,47 +38,29 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
     }
 
     override fun authenticate(creds: Tokens): User? {
+        parser.requireIssuer(creds.host)
+        parser.require(XSRF_TOKEN_HASH_CLAIM, hashToken(creds.xsrf))
+
         val claims = try {
             parser.parseClaimsJws(creds.jwt)
         } catch (e: Exception) {
             LOG.warn("JWT parsing failed", e)
             return null
         }
-        if (!hashMatches(claims, creds.xsrf)) return null
-        if (!issuerMatches(claims, creds.host)) return null
-        val subject = extractSubject(claims) ?: return null
-        return User(subject)
-    }
 
-    private fun extractSubject(claims: Jws<Claims>): String? {
         val subject = claims.body.subject
         if (subject == null) {
             LOG.warn("Subject claim is missing")
             return null
         }
-        return subject
+        return User(subject)
     }
 
-    private fun issuerMatches(claims: Jws<Claims>, host: String): Boolean {
-        if (claims.body.issuer != host) {
-            LOG.warn("Issuer mismatch (claim: '${claims.body.issuer}', host: '$host')")
-            return false
-        }
-        return true
-    }
-
-    private fun hashMatches(claims: Jws<Claims>, xsrfToken: String): Boolean {
-        // Comparing hash rather than original value to prevent joint XSS-XSRF attack
-        val xthClaim = claims.body[XSRF_TOKEN_HASH_CLAIM]
-        val xth = Hashing.sha1().hashString(xsrfToken, Charsets.UTF_8).toString()
-        if (xthClaim != xth) {
-            LOG.warn("XSRF token mismatch (claim: '$xthClaim', token-hash: '$xth')")
-            return false
-        }
-        return true
-    }
+    private fun hashToken(token: String) = Hashing.sha1().hashString(token, Charsets.UTF_8).toString()
 
     companion object {
+        // We can use HMAC for now as client-side verification of tokens is not an issue
+        val KEY_LENGTH_BITS = 512
         val ALGORITHM = SignatureAlgorithm.HS512
         val XSRF_TOKEN_HEADER = "X-XSRF-Token"
         val XSRF_TOKEN_HASH_CLAIM = "xth"

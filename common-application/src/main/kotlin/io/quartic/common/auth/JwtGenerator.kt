@@ -2,14 +2,15 @@ package io.quartic.common.auth
 
 import com.google.common.base.Preconditions.checkArgument
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.impl.TextCodec.BASE64
+import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.TokenAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.logging.logger
+import io.quartic.common.uid.Uid
 import io.quartic.common.uid.UidGenerator
 import java.time.Clock
 import java.time.temporal.TemporalAmount
 import java.util.*
-import javax.crypto.spec.SecretKeySpec
 
 class JwtGenerator(
     private val base64EncodedKey: String,
@@ -17,6 +18,8 @@ class JwtGenerator(
     private val clock: Clock,
     private val jtiGenerator: UidGenerator<JwtId>
 ) {
+    class JwtId(uid: String) : Uid(uid)
+
     private val LOG by logger()
 
     init {
@@ -40,6 +43,3 @@ class JwtGenerator(
     private fun expiration() = clock.instant() + timeToLive
 }
 
-// We can use HMAC for now as client-side verification of tokens is not an issue
-private val KEY_LENGTH_BITS = 512
-val ALGORITHM = SignatureAlgorithm.HS512

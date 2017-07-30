@@ -8,6 +8,7 @@ import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
 import io.quartic.common.application.TokenAuthConfiguration
+import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
