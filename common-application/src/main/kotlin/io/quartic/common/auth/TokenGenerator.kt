@@ -15,8 +15,6 @@ import java.time.Clock
 import java.time.temporal.TemporalAmount
 import java.util.*
 
-// TODO - XSRF token hash
-
 class TokenGenerator(
     private val base64EncodedKey: String,
     private val timeToLive: TemporalAmount,
