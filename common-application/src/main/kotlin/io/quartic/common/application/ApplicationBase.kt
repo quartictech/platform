@@ -45,6 +45,9 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     final override fun run(configuration: T, environment: Environment) {
         LOG.info("Running " + details.name + " " + details.version + " (Java " + details.javaVersion + ")")
 
+        // TODO - CORS settings
+        // TODO - check Origin and Referer headers
+
         with (environment.jersey()) {
             urlPattern = "/api/*"
             register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response

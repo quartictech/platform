@@ -59,7 +59,7 @@ class JwtShould {
             .setId("xyz")
             .compact()
 
-        assertThat(verifier.verify(token), equalTo("abc"))
+        assertThat(verifier.verify(token)!!.body.subject, equalTo("abc"))
     }
 
     @Test
@@ -67,15 +67,6 @@ class JwtShould {
         assertRejectedToken(Jwts.builder()
             .signWith(ALGORITHM, "CffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q==")    // Different!
             .setSubject("abc")
-            .setExpiration(Date.from(future))
-            .setId("xyz")
-            .compact())
-    }
-
-    @Test
-    fun reject_token_with_missing_subject() {
-        assertRejectedToken(Jwts.builder()
-            .signWith(ALGORITHM, key)
             .setExpiration(Date.from(future))
             .setId("xyz")
             .compact())

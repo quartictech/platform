@@ -50,7 +50,7 @@ class JwtVerifier(
         .setSigningKey(SecretKeySpec(Base64.getDecoder().decode(base64EncodedKey), ALGORITHM.toString()))
 
     fun verify(token: String) = try {
-        parser.parseClaimsJws(token).body.subject
+        parser.parseClaimsJws(token)
     } catch (e: Exception) {
         LOG.warn("JWT parsing failed", e)
         null
