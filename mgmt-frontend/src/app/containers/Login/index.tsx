@@ -15,7 +15,7 @@ const logo = require("./quartic.svg");
 interface IProps {
   location: any;
   router: InjectedRouter;
-  loginGithub: (string, router: InjectedRouter) => any;
+  loginGithub: (string) => any;
 }
 
 interface IState {
@@ -24,7 +24,7 @@ interface IState {
 class Login extends React.Component<IProps, IState> {
   componentDidMount() {
     if (this.props.location.query.provider === "gh" && this.props.location.query.code !== null) {
-      this.props.loginGithub(this.props.location.query.code, this.props.router);
+      this.props.loginGithub(this.props.location.query.code);
     }
   }
 

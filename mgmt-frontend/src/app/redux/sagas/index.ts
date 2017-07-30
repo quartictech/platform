@@ -8,6 +8,7 @@ import * as constants from "../constants";
 import { toaster } from "../../containers/App/toaster";
 
 import { Intent } from "@blueprintjs/core";
+import { push } from 'react-router-redux';
 
 function showError(message) {
   toaster.show({
@@ -42,7 +43,7 @@ function* watchLoginGithub(): SagaIterator {
 
     if (! res.err) {
       localStorage.setItem("quartic-xsrf", res.xssToken);
-      action.router.push("/");
+      yield put(push("/"));
     }
   }
 }
