@@ -24,13 +24,14 @@ class JwtGenerator(
             "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 
-    fun generate(user: String): String {
+    fun generate(user: String, issuer: String): String {
         val jti = jtiGenerator.get()
-        LOG.info("Generated JWT with jti '$jti' for user '$user'")
-        // Currently no need for iss or aud - only one issuer and one audience
+        LOG.info("Generated JWT with jti '$jti' for '$user@$issuer'")
+        // Currently no need for aud - only one audience
         return Jwts.builder()
             .signWith(ALGORITHM, base64EncodedKey)
             .setSubject(user)
+            .setIssuer(issuer)
             .setExpiration(Date.from(expiration()))
             .setId(jti.toString())
             .compact()

@@ -37,7 +37,7 @@ class ApplicationBaseTokenAuthShould {
 
         val response = target()
             .request()
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${jwtGenerator.generate("oliver")}")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${jwtGenerator.generate("oliver", "TODO")}")
             .get()
 
         assertThat(response.status, equalTo(200))

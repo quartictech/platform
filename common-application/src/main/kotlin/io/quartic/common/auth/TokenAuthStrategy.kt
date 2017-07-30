@@ -1,6 +1,8 @@
 package io.quartic.common.auth
 
 import com.google.common.hash.Hashing
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.logging.logger
@@ -34,27 +36,38 @@ class TokenAuthStrategy(private val jwtVerifier: JwtVerifier) : AuthStrategy<Tok
     override fun authenticate(creds: Tokens): User? {
         // JwtVerifier already logs, so no need to do so on failure here
         val claims = jwtVerifier.verify(creds.jwt) ?: return null
+        if (!hashMatches(claims, creds.xsrf)) return null
+        if (!issuerMatches(claims, creds.host)) return null
+        val subject = extractSubject(claims) ?: return null
+        return User(subject)
+    }
 
-        val subject = claims.body?.subject
+    private fun extractSubject(claims: Jws<Claims>): String? {
+        val subject = claims.body.subject
         if (subject == null) {
             LOG.warn("Subject claim is missing")
             return null
         }
+        return subject
+    }
 
+    private fun issuerMatches(claims: Jws<Claims>, host: String): Boolean {
+        if (claims.body.issuer != host) {
+            LOG.warn("Issuer mismatch (claim == '${claims.body.issuer}', host = '$host')")
+            return false
+        }
+        return true
+    }
+
+    private fun hashMatches(claims: Jws<Claims>, xsrfToken: String): Boolean {
         // Comparing hash rather than original value to prevent joint XSS-XSRF attack
         val xthClaim = claims.body[XSRF_TOKEN_HASH_CLAIM]
-        val xth = Hashing.sha1().hashString(creds.xsrf, Charsets.UTF_8)
+        val xth = Hashing.sha1().hashString(xsrfToken, Charsets.UTF_8)
         if (xthClaim != xth) {
             LOG.warn("XSRF token mismatch (claim == '$xthClaim', token-hash = '$xth')")
-            return null
+            return false
         }
-
-        if (claims.body.issuer != creds.host) {
-            LOG.warn("Issuer mismatch (claim == '${claims.body.issuer}', host = '${creds.host}')")
-            return null
-        }
-
-        return User(subject)
+        return true
     }
 
     companion object {

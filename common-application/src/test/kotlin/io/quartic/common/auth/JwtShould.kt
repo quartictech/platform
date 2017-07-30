@@ -28,7 +28,7 @@ class JwtShould {
 
     @Test
     fun generate_valid_token() {
-        val jws = parse(generator.generate("12345"))
+        val jws = parse(generator.generate("12345", "TODO"))
 
         assertThat(jws.header.getAlgorithm(), equalTo(ALGORITHM.value))
         assertThat(jws.body.subject, equalTo("12345"))
@@ -37,8 +37,8 @@ class JwtShould {
 
     @Test
     fun generate_unique_jtis() {
-        val jwsA = parse(generator.generate("12345"))
-        val jwsB = parse(generator.generate("12345"))  // Even for the same userID
+        val jwsA = parse(generator.generate("12345", "TODO"))
+        val jwsB = parse(generator.generate("12345", "TODO"))  // Even for the same userID
 
         assertThat(jwsB.body.id, Matchers.not(equalTo(jwsA.body.id)))
     }
