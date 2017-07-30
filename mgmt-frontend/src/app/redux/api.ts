@@ -25,7 +25,7 @@ export function fetchUtil(url, options?) {
   headers.set(QUARTIC_XSRF_HEADER, localStorage.getItem(QUARTIC_XSRF));
   const newOptions = Object.assign({}, options, {
     credentials: "same-origin",
-    headers: headers
+    headers,
   });
   return fetch(url, newOptions)
     .then(checkStatus)
