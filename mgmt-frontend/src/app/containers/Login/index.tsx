@@ -5,12 +5,17 @@ import * as actions from "../../redux/actions";
 import { AnchorButton, Intent, Spinner } from "@blueprintjs/core";
 
 import { createStructuredSelector } from "reselect";
+import {
+  withRouter,
+  InjectedRouter,
+} from "react-router"
 const s = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
   location: any;
-  loginGithub: (string) => any;
+  router: InjectedRouter;
+  loginGithub: (string, router: InjectedRouter) => any;
 }
 
 interface IState {
@@ -19,7 +24,7 @@ interface IState {
 class Login extends React.Component<IProps, IState> {
   componentDidMount() {
     if (this.props.location.query.provider === "gh" && this.props.location.query.code !== null) {
-      this.props.loginGithub(this.props.location.query.code);
+      this.props.loginGithub(this.props.location.query.code, this.props.router);
     }
   }
 
@@ -45,6 +50,7 @@ class Login extends React.Component<IProps, IState> {
   }
 
   render() {
+    console.log(this.props);
     return (
       <div className={s.container}>
         <div className="pt-card pt-elevation-4" style={{width: 600, padding: 40, margin: "auto"}} >
@@ -55,7 +61,7 @@ class Login extends React.Component<IProps, IState> {
               data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
               data-variation="mini"
             />
-          { this.props.location.query.code !== null ? this.renderSpinner() : this.renderLogin() }
+          { this.props.location.query.provider === "gh" ? this.renderSpinner() : this.renderLogin() }
         </div>
       </div>
     );
@@ -69,7 +75,8 @@ const mapDispatchToProps = {
 const mapStateToProps = createStructuredSelector({
 });
 
+const LoginWithRouter = withRouter(Login);
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(Login);
+)(LoginWithRouter);

@@ -7,10 +7,11 @@ export function fetchDatasets() {
   };
 }
 
-export function loginGithub(code) {
+export function loginGithub(code, router) {
   return {
     type: constants.LOGIN_GITHUB,
     code,
+    router,
   }
 }
 

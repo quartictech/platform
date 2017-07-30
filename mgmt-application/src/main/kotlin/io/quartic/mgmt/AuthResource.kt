@@ -1,15 +1,12 @@
 package io.quartic.mgmt
 
-import org.glassfish.grizzly.http.CookiesBuilder
 import java.net.URI
 import javax.ws.rs.GET
 import javax.ws.rs.POST
 import javax.ws.rs.Path
 import javax.ws.rs.QueryParam
-import javax.ws.rs.core.Cookie
 import javax.ws.rs.core.NewCookie
 import javax.ws.rs.core.Response
-
 
 
 @Path("/auth")
@@ -33,9 +30,9 @@ class AuthResource {
     @POST
     @Path("/gh/complete")
     fun githubDo(@QueryParam("code") code: String): Response {
-        val cookie = NewCookie("quartic-crf", "1")
+        val cookie = NewCookie("quartic-jwt", "1", null, null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, null, false, true)
         return Response.ok()
-            .header("Set-Cookie", cookie.toString() + ";HttpOnly")
+            .header("Set-Cookie", cookie.toString())
             .header("XSS-Token", 2).build()
     }
 

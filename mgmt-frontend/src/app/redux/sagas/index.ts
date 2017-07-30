@@ -39,11 +39,10 @@ function* watchLoginGithub(): SagaIterator {
   while (true) {
     const action = yield take(constants.LOGIN_GITHUB);
     const res = yield call(api.githubAuth, action.code);
-    console.log("hello");
 
     if (! res.err) {
-      console.log(res);
-      localStorage.setItem("quartic-xss", res.xssToken);
+      localStorage.setItem("quartic-xsrf", res.xssToken);
+      action.router.push("/");
     }
   }
 }

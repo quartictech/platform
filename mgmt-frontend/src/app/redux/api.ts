@@ -31,7 +31,7 @@ export function fetchAuth(url, options?) {
   const newOptions = Object.assign({}, options, { credentials: "same-origin" });
   return fetch(url, newOptions)
     .then(checkStatus)
-    .then(r => ({ xssToken: r.headers.get("XSS-Token") }))
+    .then(r => ({ xsrfToken: r.headers.get("XSRF-Token") }))
     .catch(err => ({ err }));
 }
 

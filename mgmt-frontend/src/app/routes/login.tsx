@@ -11,17 +11,18 @@ interface EnsureLoggedInProps {
 };
 
 class EnsureLoggedInComponent extends React.Component<EnsureLoggedInProps, {}> {
+  isAuthenticated() {
+    return localStorage.getItem("quartic-xsrf") !== null
+  }
+
   componentDidMount() {
-    console.log("redirecting");
-    if (!isAuthenticated) {
-      console.log("redirecting");
+    if (!this.isAuthenticated()) {
       this.props.router.push("/login");
     }
   }
 
   render() {
     const { children } = this.props;
-    console.log("Hello");
     return (isAuthenticated ? <div>{children}</div> : null);
   }
 };
