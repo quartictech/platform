@@ -30,17 +30,17 @@ export class App extends React.Component<IProps, void> {
   render() {
     const { children } = this.props;
     return (
-      <div className="pt-dark">
-      <section className={s.App}>
-        <Header
-          newDatasetClick={this.props.showNewDatasetModal}
-          searchBoxChange={this.props.searchDatasets}
-          selectedNamespace={this.props.ui.namespace}
-          namespaceSelectChange={this.props.selectNamespace}
-          namespaces={this.props.namespaces}
-        />
-          {children}
-      </section>
+      <div>
+        <section className={s.App}>
+          <Header
+            newDatasetClick={this.props.showNewDatasetModal}
+            searchBoxChange={this.props.searchDatasets}
+            selectedNamespace={this.props.ui.namespace}
+            namespaceSelectChange={this.props.selectNamespace}
+            namespaces={this.props.namespaces}
+          />
+            {children}
+        </section>
       </div>
     );
   }
