@@ -25,9 +25,16 @@ function* checkedApiCall(apiFunction, ...args): SagaIterator {
     yield res;
   }
 
-  if (res.err.message === "Unauthorized") {
+  if (res.err && res.err.message === "Unauthorized") {
     yield put(actions.logout());
   }
+
+  if (res.err) {
+    showError(res.err.message);
+    return res;
+  }
+
+  return res;
 }
 
 function showSuccess(message) {
@@ -49,14 +56,11 @@ function* watchLogout(): SagaIterator {
 function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
-    console.log("nice")
-    const res = yield fork(checkedApiCall, api.fetchDatasets);
+    const res = yield* checkedApiCall(api.fetchDatasets);
 
     if (!res.err) {
       yield put(actions.fetchDatasetsSuccess(res.data));
     }
-
-    console.log(res.data);
   }
 }
 
@@ -75,7 +79,7 @@ function* watchLoginGithub(): SagaIterator {
 function* watchDeleteDataset(): SagaIterator {
   while (true) {
     const action = yield take(constants.DELETE_DATASET);
-    const res = yield call(api.deleteDataset, action.coords);
+    const res = yield* checkedApiCall(api.deleteDataset, action.coords);
 
     if (! res.err) {
       yield call(showSuccess, `Deleted dataset: ${action.coords.id}`);
@@ -90,7 +94,7 @@ function* watchCreateDataset(): SagaIterator {
     const uploadResult = yield call(api.uploadFile, action.data.namespace, action.data.files.files);
 
     if (!uploadResult.err) {
-      const createResult = yield call(
+      const createResult = yield* checkedApiCall(
         api.createDataset,
         action.data.namespace,
         action.data.metadata,
