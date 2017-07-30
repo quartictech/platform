@@ -1,7 +1,6 @@
 package io.quartic.common.application
 
-import io.dropwizard.setup.Environment
-import io.dropwizard.testing.ConfigOverride
+import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.JwtGenerator
@@ -14,37 +13,15 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.time.Clock
 import java.time.Duration
-import javax.annotation.security.PermitAll
-import javax.ws.rs.GET
-import javax.ws.rs.Path
 import javax.ws.rs.core.HttpHeaders
 
-
-class ApplicationBaseShould {
-
-    @Path("/test")
-    @PermitAll
-    class TestResource {
-        @GET fun get() = "Hello world"
-    }
-
-    class TestConfiguration : ConfigurationBase()
-
-    class TestApplication : ApplicationBase<TestConfiguration>(true) {
-        override fun runApplication(configuration: TestConfiguration, environment: Environment) {
-            environment.jersey().register(TestResource())
-        }
-    }
+class ApplicationBaseTokenAuthShould {
 
     @Test
     fun respond_with_401_if_no_token_supplied() {
-        val client = JerseyClientBuilder().build()
-
-        val response = client.target("http://localhost:${RULE.localPort}/api/test")
+        val response = target()
             .request()
             .get()
-
-        println(response.headers)
 
         assertThat(response.status, equalTo(401))
     }
@@ -58,25 +35,27 @@ class ApplicationBaseShould {
             randomGenerator(::JwtId)
         )
 
-        val client = JerseyClientBuilder().build()
-
-        val response = client.target("http://localhost:${RULE.localPort}/api/test")
+        val response = target()
             .request()
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${jwtGenerator.generate("oliver")}")
             .get()
 
         assertThat(response.status, equalTo(200))
+        assertThat(response.readEntity(String::class.java), equalTo("Hello oliver"))
     }
+
+    private fun target() = JerseyClientBuilder().build().target("http://localhost:${RULE.localPort}/api/test")
 
     companion object {
         private val KEY = "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="
 
         @ClassRule
         @JvmField
-        val RULE = DropwizardAppRule<TestConfiguration>(
+        val RULE = DropwizardAppRule<TestApplication.TestConfiguration>(
             TestApplication::class.java,
             resourceFilePath("test.yml"),
-            ConfigOverride.config("base64EncodedJwtKey", KEY)
+            config("auth.type", "token"),
+            config("auth.base64EncodedKey", KEY)
         )
     }
 }
