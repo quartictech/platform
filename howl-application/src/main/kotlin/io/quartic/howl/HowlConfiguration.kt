@@ -1,7 +1,7 @@
 package io.quartic.howl
 
-import io.dropwizard.Configuration
+import io.quartic.common.application.ConfigurationBase
 
 data class HowlConfiguration(
         val storage: StorageBackendConfig
-) : Configuration()
+) : ConfigurationBase()

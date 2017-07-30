@@ -1,10 +1,10 @@
 package io.quartic.tracker.scribe
 
-import io.dropwizard.Configuration
 import io.quartic.catalogue.CatalogueClientConfiguration
 import io.quartic.catalogue.api.model.DatasetNamespace
+import io.quartic.common.application.ConfigurationBase
 
-class ScribeConfiguration : Configuration() {
+class ScribeConfiguration : ConfigurationBase() {
     class PubSubConfiguration {
         var subscription: String? = null
     }
