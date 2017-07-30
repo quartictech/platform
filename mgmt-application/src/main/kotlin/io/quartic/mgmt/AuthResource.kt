@@ -17,14 +17,14 @@ class AuthResource {
         val clientId = "af4a5c01c7850fa04758"
         val redirectUri = "http://localhost:8100/api/auth/gh/callback"
         val uri = URI.create("https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}")
-        return Response.seeOther(uri).build()
+        return Response.temporaryRedirect(uri).build()
     }
 
     @GET
     @Path("/gh/callback")
     fun githubCallback(@QueryParam("code") code: String): Response? {
         val uri = URI.create("http://localhost:3010/#/login?provider=gh&code=${code}")
-        return Response.seeOther(uri).build()
+        return Response.temporaryRedirect(uri).build()
     }
 
     @POST
