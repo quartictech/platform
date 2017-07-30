@@ -7,8 +7,8 @@ import {
 import { QUARTIC_XSRF } from "../helpers/Utils";
 
 interface EnsureLoggedInProps {
-  router: InjectedRouter,
-};
+  router: InjectedRouter;
+}
 
 class EnsureLoggedInComponent extends React.Component<EnsureLoggedInProps, {}> {
   isAuthenticated() {
@@ -31,6 +31,8 @@ class EnsureLoggedInComponent extends React.Component<EnsureLoggedInProps, {}> {
     const { children } = this.props;
     return (this.isAuthenticated() ? <div>{children}</div> : null);
   }
-};
+}
+
+// tslint:disable-next-line:variable-name
 export const EnsureLoggedIn = withRouter(EnsureLoggedInComponent);
 

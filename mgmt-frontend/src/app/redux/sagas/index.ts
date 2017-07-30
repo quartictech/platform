@@ -8,7 +8,7 @@ import * as constants from "../constants";
 import { toaster } from "../../containers/App/toaster";
 
 import { Intent } from "@blueprintjs/core";
-import { push } from 'react-router-redux';
+import { push } from "react-router-redux";
 
 import { QUARTIC_XSRF } from "../../helpers/Utils";
 
@@ -51,7 +51,7 @@ function* watchLogout(): SagaIterator {
     yield take(constants.LOGOUT);
     showError("Logged out");
     localStorage.removeItem(QUARTIC_XSRF);
-    yield put(push("/login"))
+    yield put(push("/login"));
   }
 }
 

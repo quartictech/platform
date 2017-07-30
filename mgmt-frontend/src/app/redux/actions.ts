@@ -11,13 +11,13 @@ export function loginGithub(code) {
   return {
     type: constants.LOGIN_GITHUB,
     code,
-  }
+  };
 }
 
 export function logout() {
   return {
     type: constants.LOGOUT,
-  }
+  };
 }
 
 export function fetchDatasetsSuccess(data) {
