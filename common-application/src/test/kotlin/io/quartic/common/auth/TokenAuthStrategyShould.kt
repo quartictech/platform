@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
@@ -34,7 +35,7 @@ class TokenAuthStrategyShould {
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
 
     private val requestContext = mock<ContainerRequestContext> {
-        on { cookies } doReturn mapOf("token" to Cookie("token", "abc"))
+        on { cookies } doReturn mapOf(TOKEN_COOKIE to Cookie(TOKEN_COOKIE, "abc"))
         on { getHeaderString(XSRF_TOKEN_HEADER) } doReturn "def"
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }

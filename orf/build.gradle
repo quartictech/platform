@@ -12,7 +12,7 @@ service {
 
 dependencies {
     compile project(":common-application")
-    compile libraries.jjwt
 
     testCompile project(":common-test")
+    testCompile libraries.dropwizardTesting
 }
