@@ -75,6 +75,10 @@ function* watchLoginGithub(): SagaIterator {
       localStorage.setItem(QUARTIC_XSRF, res.xsrfToken);
       yield put(push("/"));
     }
+    else {
+      showError("Couldn't authenticate");
+      yield put(push("/login"));
+    }
   }
 }
 
