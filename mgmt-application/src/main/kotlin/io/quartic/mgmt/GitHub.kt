@@ -2,18 +2,11 @@ package io.quartic.mgmt
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import feign.*
+import feign.Headers
+import feign.Param
+import feign.RequestLine
 import java.net.URI
-import java.net.URLEncoder
 import javax.ws.rs.core.MediaType
-import feign.FeignException.errorStatus
-import feign.codec.ErrorDecoder
-import feign.jackson.JacksonDecoder
-import feign.jackson.JacksonEncoder
-import feign.slf4j.Slf4jLogger
-import io.quartic.common.client.userAgentFor
-import io.quartic.common.serdes.OBJECT_MAPPER
-import javax.ws.rs.core.HttpHeaders.USER_AGENT
 import javax.ws.rs.core.UriBuilder
 
 

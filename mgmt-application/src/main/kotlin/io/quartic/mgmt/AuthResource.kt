@@ -1,6 +1,5 @@
 package io.quartic.mgmt
 
-import feign.Contract
 import feign.FeignException
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.auth.TokenGenerator
