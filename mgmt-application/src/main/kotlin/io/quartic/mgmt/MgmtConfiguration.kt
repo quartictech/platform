@@ -20,6 +20,6 @@ data class MgmtConfiguration(
     val catalogueUrl: String,
     val howlUrl: String,
     val authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap(),
-    val github: GithubConfiguration,
+    var github: GithubConfiguration,
     val tokenTimeToLiveMinutes: Int = 60
-) : ConfigurationBase()
+): ConfigurationBase()
