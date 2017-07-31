@@ -19,8 +19,10 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
         .setClock({ Date.from(clock.instant()) })
         .setSigningKey(SecretKeySpec(Base64.getDecoder().decode(config.base64EncodedKey), ALGORITHM.toString()))
 
+    override val scheme = "Cookie"      // This is a made-up auth scheme purely to avoid WWW-Authenticate: Basic on 401s
+
     override fun extractCredentials(requestContext: ContainerRequestContext): Tokens? {
-        val jwt = requestContext.cookies[TOKEN_COOKIE]
+        val jwt = requestContext.cookies[TOKEN_COOKIE]?.value
         if (jwt == null) {
             LOG.warn("Token cookie is missing")
             return null
@@ -33,8 +35,12 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
         }
 
         val host = requestContext.getHeaderString(HttpHeaders.HOST)
+        if (host == null) {
+            LOG.error("Host header is missing") // Error because this shouldn't be possible!
+            return null
+        }
 
-        return Tokens(jwt.value, xsrf, host)
+        return Tokens(jwt, xsrf, host)
     }
 
     override fun authenticate(creds: Tokens): User? {

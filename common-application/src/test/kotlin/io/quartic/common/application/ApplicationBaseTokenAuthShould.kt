@@ -8,10 +8,12 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.startsWith
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
 import org.junit.Test
 import java.time.Duration
+import javax.ws.rs.core.HttpHeaders
 
 class ApplicationBaseTokenAuthShould {
 
@@ -22,6 +24,7 @@ class ApplicationBaseTokenAuthShould {
             .get()
 
         assertThat(response.status, equalTo(401))
+        assertThat(response.headers[HttpHeaders.WWW_AUTHENTICATE]!!.last() as String, startsWith("Cookie"))
     }
 
     @Test
