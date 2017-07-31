@@ -23,6 +23,7 @@ dependencies {
 
     testCompile project(":common-test")
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile libraries.wiremock
 }
 
 

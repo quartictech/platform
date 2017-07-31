@@ -2,13 +2,19 @@ package io.quartic.mgmt
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.common.base.Charsets.UTF_8
-import feign.Headers
-import feign.Param
-import feign.RequestLine
+import feign.*
 import java.net.URI
 import java.net.URLEncoder
 import javax.ws.rs.core.MediaType
+import feign.FeignException.errorStatus
+import feign.codec.ErrorDecoder
+import feign.jackson.JacksonDecoder
+import feign.jackson.JacksonEncoder
+import feign.slf4j.Slf4jLogger
+import io.quartic.common.client.userAgentFor
+import io.quartic.common.serdes.OBJECT_MAPPER
+import javax.ws.rs.core.HttpHeaders.USER_AGENT
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Organization(
@@ -46,8 +52,6 @@ interface GitHub {
 }
 
 val OAUTH_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
-val OAUTH_BASE_URL = "https://github.com"
-val API_BASE_URL = "https://api.github.com"
 
 fun queryParam(key: String, value: String) = "${key}=${URLEncoder.encode(value, Charsets.UTF_8.name())}"
 
@@ -60,3 +64,5 @@ fun oauthUrl(clientId: String, redirectUri: String, scopes: List<String>): URI {
 
     return URI.create("${OAUTH_AUTHORIZE_URL}?${queryString}")
 }
+
+
