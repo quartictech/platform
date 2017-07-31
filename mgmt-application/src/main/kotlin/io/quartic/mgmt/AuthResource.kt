@@ -12,17 +12,16 @@ import javax.ws.rs.core.Response
 
 
 @Path("/auth")
-class AuthResource(val githubConfig: GithubConfiguration,
+class AuthResource(private val githubConfig: GithubConfiguration,
                    private val tokenGenerator: TokenGenerator) {
-    val github = Github(githubConfig.clientId, githubConfig.clientSecret, githubConfig.trampolineUrl)
+    private val github = Github(githubConfig.clientId, githubConfig.clientSecret, githubConfig.trampolineUrl)
 
     @GET
     @Path("/gh")
     fun github(@HeaderParam(HttpHeaders.HOST) host: String): Response? {
-        val scopes = URLEncoder.encode(githubConfig.scopes.joinToString(" "), "UTF-8")
         val issuer = getIssuer(host)
         val redirectUri = "${githubConfig.trampolineUrl}/${issuer}"
-        val uri = URI.create("${githubConfig.oauthUrl}?client_id=${githubConfig.clientId}&redirect_uri=${redirectUri}&scope=${scopes}")
+        val uri = Github.oauthUrl(githubConfig.clientId, redirectUri, githubConfig.scopes)
         return Response.temporaryRedirect(uri).build()
     }
 

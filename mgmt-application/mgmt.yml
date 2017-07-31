@@ -10,7 +10,6 @@ github:
   clientSecret: "6d1a5dfdcd0795fd96a9aecc6ee04fc188340583"
   allowedOrganisations:
     - quartictech
-  oauthUrl: "https://github.com/login/oauth/authorize"
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
 
   redirectHost: "http://localhost:3010"

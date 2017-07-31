@@ -8,6 +8,8 @@ import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import java.net.URI
+import java.net.URLEncoder
 
 class Github(val clientId: String, val clientSecret: String, val redirectUri: String) {
     val client = OkHttpClient()
@@ -21,6 +23,7 @@ class Github(val clientId: String, val clientSecret: String, val redirectUri: St
     data class User(
         val login: String
     )
+
 
     fun user(oauthToken: String): User {
         val request = Request.Builder()
@@ -73,5 +76,14 @@ class Github(val clientId: String, val clientSecret: String, val redirectUri: St
             .groupBy { p -> p.first }
         if ("access_token" in params) return params["access_token"]!![0].second
         else throw IllegalStateException("no access token returned")
+    }
+
+    companion object {
+        val OAUTH_URl = "https://github.com/login/oauth/authorize"
+
+        fun oauthUrl(clientId: String, redirectUri: String, scopes: List<String>): URI {
+            val scopes = URLEncoder.encode(scopes.joinToString(" "), "UTF-8")
+            return URI.create("${OAUTH_URl}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}")
+        }
     }
 }
