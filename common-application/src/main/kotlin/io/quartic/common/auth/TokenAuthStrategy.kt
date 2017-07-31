@@ -34,7 +34,7 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
 
         val host = requestContext.getHeaderString(HttpHeaders.HOST)
 
-        return Tokens(jwt.value, xsrf, host)
+        return Tokens(jwt.value, xsrf, getIssuer(host))
     }
 
     override fun authenticate(creds: Tokens): User? {

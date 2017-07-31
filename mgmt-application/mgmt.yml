@@ -9,7 +9,17 @@ github:
   clientId: "af4a5c01c7850fa04758"
   clientSecret: "6d1a5dfdcd0795fd96a9aecc6ee04fc188340583"
   allowedOrganisations:
-    - "quartictech"
+    - quartictech
+  oauthUrl: "https://github.com/login/oauth/authorize"
+  trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
+
+  redirectHost: "http://localhost:3010"
+  # in prod this should be
+  #redirectHost: "https://{}.quartic.io"
+
+  useSecureCookies: false
+  scopes:
+    - user
 
 server:
   applicationContextPath: /

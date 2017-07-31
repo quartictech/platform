@@ -8,7 +8,12 @@ import io.quartic.common.auth.User
 data class GithubConfiguration(
    val clientId: String,
    val clientSecret: String,
-   val allowedOrganisations: Set<String>
+   val allowedOrganisations: Set<String>,
+   val oauthUrl: String,
+   val trampolineUrl: String,
+   val useSecureCookies: Boolean,
+   val scopes: List<String>,
+   val redirectHost: String
 )
 
 class MgmtConfiguration : ConfigurationBase() {

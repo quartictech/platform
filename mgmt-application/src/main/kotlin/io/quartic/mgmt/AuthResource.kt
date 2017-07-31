@@ -2,6 +2,7 @@ package io.quartic.mgmt
 
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.auth.TokenGenerator
+import io.quartic.common.auth.getIssuer
 import java.net.URI
 import java.net.URLEncoder
 import javax.ws.rs.*
@@ -11,37 +12,37 @@ import javax.ws.rs.core.Response
 
 
 @Path("/auth")
-class AuthResource(val clientId: String,
-                   clientSecret: String,
-                   val allowedOrgnisations: Set<String>,
+class AuthResource(val githubConfig: GithubConfiguration,
                    private val tokenGenerator: TokenGenerator) {
-
-    val github = Github(clientId, clientSecret, REDIRECT_URI)
+    val github = Github(githubConfig.clientId, githubConfig.clientSecret, githubConfig.trampolineUrl)
 
     @GET
     @Path("/gh")
-    fun github(): Response? {
-        val scopes = URLEncoder.encode(listOf("user").joinToString(" "))
-        val uri = URI.create("https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${REDIRECT_URI}&scope=${scopes}")
+    fun github(@HeaderParam(HttpHeaders.HOST) host: String): Response? {
+        val scopes = URLEncoder.encode(githubConfig.scopes.joinToString(" "), "UTF-8")
+        val issuer = getIssuer(host)
+        val redirectUri = "${githubConfig.trampolineUrl}/${issuer}"
+        val uri = URI.create("${githubConfig.oauthUrl}client_id=${githubConfig.clientId}&redirect_uri=${redirectUri}&scope=${scopes}")
         return Response.temporaryRedirect(uri).build()
     }
 
     @GET
-    @Path("/gh/callback")
-    fun githubCallback(@QueryParam("code") code: String): Response? {
-        val uri = URI.create("http://localhost:3010/#/login?provider=gh&code=${code}")
+    @Path("/gh/callback/{issuer}")
+    fun githubCallback(@PathParam("issuer") issuer: String, @QueryParam("code") code: String): Response? {
+        val redirectHost = String.format(githubConfig.redirectHost, issuer)
+        val uri = URI.create("${redirectHost}/#/login?provider=gh&code=${code}")
         return Response.temporaryRedirect(uri).build()
     }
 
     @POST
     @Path("/gh/complete")
-    fun githubDo(@QueryParam("code") code: String,
+    fun githubComplete(@QueryParam("code") code: String,
                  @HeaderParam(HttpHeaders.HOST) host: String): Response {
         val accessToken = github.accessToken(code)
         val user = github.user(accessToken)
         val organizations = github.organizations(accessToken).map { org -> org.login }
 
-        if (!organizations.intersect(allowedOrgnisations).isEmpty()) {
+        if (!organizations.intersect(githubConfig.allowedOrganisations).isEmpty()) {
             val tokens = tokenGenerator.generate(user.login, host)
             return Response.ok()
                 .header(TokenAuthStrategy.XSRF_TOKEN_HEADER, tokens.xsrf)
@@ -52,7 +53,7 @@ class AuthResource(val clientId: String,
                     null,
                     null,
                     NewCookie.DEFAULT_MAX_AGE,
-                    false, // secure
+                    githubConfig.useSecureCookies, // secure
                     true // httponly
                 ))
                 .build()
@@ -60,10 +61,4 @@ class AuthResource(val clientId: String,
 
         return Response.status(401).build()
     }
-
-    companion object {
-        val COOKIE = "quartic-jwt";
-        val REDIRECT_URI = "http://localhost:8100/api/auth/gh/callback"
-    }
-
 }
