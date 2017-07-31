@@ -10,6 +10,7 @@ import io.quartic.common.client.client
 import io.quartic.common.logging.logger
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.randomGenerator
+import io.quartic.common.uid.secureRandomGenerator
 import java.net.URI
 import java.net.URLEncoder
 import javax.ws.rs.*
@@ -32,7 +33,7 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
 
     private val LOG by logger()
 
-    private val nonceGenerator = randomGenerator(32, ::NonceId)
+    private val nonceGenerator = secureRandomGenerator(::NonceId)
 
     @GET
     @Path("/gh")
