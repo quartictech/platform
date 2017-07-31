@@ -5,7 +5,8 @@ import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.websocket.serverEndpointConfig
-import io.quartic.howl.storage.ObservableStorageBackend
+import io.quartic.howl.storage.ObservableStorage
+import io.quartic.howl.storage.RoutingStorage
 import javax.websocket.server.ServerEndpointConfig
 
 class HowlApplication : ApplicationBase<HowlConfiguration>() {
@@ -16,11 +17,11 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
     }
 
     public override fun runApplication(configuration: HowlConfiguration, environment: Environment) {
-        val observableStorageBackend = ObservableStorageBackend(configuration.storage.build())
-        environment.jersey().register(HowlResource(observableStorageBackend))
+        val storage = ObservableStorage(RoutingStorage(configuration.namespaces))
+        environment.jersey().register(HowlResource(storage))
         websocketBundle.addEndpoint(serverEndpointConfig(
                 "/changes/{namespace}/{objectName}",
-                WebsocketEndpoint(observableStorageBackend.changes)
+                WebsocketEndpoint(storage.changes)
         ))
     }
 
