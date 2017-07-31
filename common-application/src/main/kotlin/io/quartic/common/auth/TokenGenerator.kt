@@ -32,7 +32,7 @@ class TokenGenerator(
 
     fun generate(user: String, issuer: String): Tokens {
         LOG.info("Generated JWT for '$user@$issuer'")
-        val xsrf = xsrfTokenGenerator.get()
+        val xsrf = xsrfTokenGenerator.get().uid
         // Currently no need for aud - only one audience, and no need for jti as the custom xth claim suffices as nonce
         return Tokens(
             Jwts.builder()
@@ -40,9 +40,9 @@ class TokenGenerator(
                 .setSubject(user)
                 .setIssuer(issuer)
                 .setExpiration(Date.from(expiration()))
-                .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString(xsrf.uid, Charsets.UTF_8).toString())
+                .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString(xsrf, Charsets.UTF_8).toString())
                 .compact(),
-            xsrf.uid
+            xsrf
         )
     }
 

@@ -22,7 +22,7 @@ private fun <C> createAuthFilter(strategy: AuthStrategy<C>): AuthFilter<C, User>
             override fun filter(requestContext: ContainerRequestContext) {
                 val creds = strategy.extractCredentials(requestContext)
                 if (!authenticate(requestContext, creds, BASIC_AUTH)) {
-                    throw WebApplicationException(unauthorizedHandler.buildResponse(prefix, realm))
+                    throw WebApplicationException(unauthorizedHandler.buildResponse(strategy.scheme, realm))
                 }
             }
         }
