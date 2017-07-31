@@ -15,7 +15,7 @@ data class GithubConfiguration(
     val useSecureCookies: Boolean,
     val scopes: List<String>,
     val redirectHost: String,
-    val cookieMaxAge: Int
+    val cookieMaxAgeSeconds: Int
 )
 
 data class MgmtConfiguration(

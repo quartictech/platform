@@ -62,7 +62,7 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
         // We can use HMAC for now as client-side verification of tokens is not an issue
         val KEY_LENGTH_BITS = 512
         val ALGORITHM = SignatureAlgorithm.HS512
-        val TOKEN_COOKIE = "token"
+        val TOKEN_COOKIE = "quartic-token"
         val XSRF_TOKEN_HEADER = "X-XSRF-Token"
         val XSRF_TOKEN_HASH_CLAIM = "xth"
     }

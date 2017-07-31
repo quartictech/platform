@@ -19,7 +19,7 @@ class AuthResourceShould {
         useSecureCookies = true,
         scopes = listOf("user"),
         redirectHost = "wat",
-        cookieMaxAge = 0
+        cookieMaxAgeSeconds = 0
     )
     val tokenGenerator = TokenGenerator(
         KEY,
