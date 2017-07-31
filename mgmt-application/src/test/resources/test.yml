@@ -6,8 +6,6 @@ authorisedNamespaces:
   alexsparrow: ["*"]
 
 github:
-  clientId: "af4a5c01c7850fa04758"
-  clientSecret: "6d1a5dfdcd0795fd96a9aecc6ee04fc188340583"
   allowedOrganisations:
     - quartictech
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
@@ -16,10 +14,12 @@ github:
   # in prod this should be
   #redirectHost: "https://{}.quartic.io"
 
-  useSecureCookies: false
-  cookieMaxAgeSeconds: 2592000 # 30 days
   scopes:
     - user
+
+cookies:
+  secure: true
+  maxAgeSeconds: 2592000 # 30 days
 
 server:
   applicationContextPath: /

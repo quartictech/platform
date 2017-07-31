@@ -2,43 +2,44 @@ package io.quartic.mgmt
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.auth.TokenGenerator
+import org.hamcrest.Matchers.equalTo
+import org.junit.Assert.assertThat
 import org.junit.Test
-import org.junit.Assert.*
-import org.mockito.ArgumentCaptor
+import java.time.Duration
 import javax.ws.rs.container.AsyncResponse
 import javax.ws.rs.core.Response
-import org.hamcrest.Matchers.*
-import java.time.Duration
 
 class AuthResourceShould {
-    private val gitHubConfiguration = GithubConfiguration(
-        clientId = "foo",
-        clientSecret = "bar",
-        allowedOrganisations = setOf("quartictech"),
-        trampolineUrl = "noob",
-        useSecureCookies = true,
-        scopes = listOf("user"),
-        redirectHost = "wat",
-        cookieMaxAgeSeconds = 0
-    )
-    val tokenGenerator = TokenGenerator(
-        KEY,
-        Duration.ofMinutes(100)
-    )
+    private val tokenGenerator = TokenGenerator(KEY, Duration.ofMinutes(100))
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
-    private val resource = AuthResource(gitHubConfiguration, tokenGenerator, gitHubOAuth, gitHub)
-
+    private val resource = AuthResource(
+        GithubConfiguration(
+            clientId = "foo",
+            clientSecret = "bar",
+            allowedOrganisations = setOf("quartictech"),
+            trampolineUrl = "noob",
+            scopes = listOf("user"),
+            redirectHost = "wat"
+        ),
+        CookiesConfiguration(
+            secure = true,
+            maxAgeSeconds = 30
+        ),
+        tokenGenerator, gitHubOAuth, gitHub
+    )
 
     @Test
     fun reject_non_whitelisted_organisations() {
         whenever(gitHub.organizations(any())).thenReturn(listOf(Organization("noob")))
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
+
         val asyncResponse = mock<AsyncResponse>()
         resource.githubComplete("noob", "localhost", asyncResponse)
-        val argumentCaptor = ArgumentCaptor.forClass(Response::class.java)
-        verify(asyncResponse, timeout(1000)).resume(argumentCaptor.capture())
-        assertThat(argumentCaptor.getValue().getStatus(), equalTo(401))
+
+        val captor = argumentCaptor<Response>()
+        verify(asyncResponse, timeout(1000)).resume(captor.capture())
+        assertThat(captor.firstValue.status, equalTo(401))
     }
 
     @Test
@@ -46,11 +47,13 @@ class AuthResourceShould {
         whenever(gitHub.organizations(any())).thenReturn(listOf(Organization("quartictech")))
         whenever(gitHub.user(any())).thenReturn(User("anoob"))
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
+
         val asyncResponse = mock<AsyncResponse>()
         resource.githubComplete("noob", "localhost", asyncResponse)
-        val argumentCaptor = ArgumentCaptor.forClass(Response::class.java)
-        verify(asyncResponse, timeout(1000)).resume(argumentCaptor.capture())
-        assertThat(argumentCaptor.getValue().getStatus(), equalTo(200))
+
+        val captor = argumentCaptor<Response>()
+        verify(asyncResponse, timeout(1000)).resume(captor.capture())
+        assertThat(captor.firstValue.status, equalTo(200))
     }
 
     companion object {

@@ -47,12 +47,19 @@ interface GitHub {
 
 val OAUTH_AUTHORIZE_PATH = "login/oauth/authorize"
 
-fun oauthUrl(oauthRoot: String, clientId: String, redirectUri: String, scopes: List<String>): URI {
+fun oauthUrl(
+    oauthRoot: String,
+    clientId: String,
+    redirectUri: String,
+    scopes: List<String>,
+    state: String
+): URI {
     val rootUri = URI.create("${oauthRoot}/${OAUTH_AUTHORIZE_PATH}")
     return UriBuilder.fromUri(rootUri)
         .queryParam("client_id", clientId)
         .queryParam("redirect_uri", redirectUri)
         .queryParam("scopes", scopes.joinToString(" "))
+        .queryParam("state", state)
         .build()
 }
 

@@ -16,10 +16,12 @@ github:
   # in prod this should be
   #redirectHost: "https://{}.quartic.io"
 
-  useSecureCookies: false
-  cookieMaxAgeSeconds: 2592000 # 30 days
   scopes:
     - user
+
+cookies:
+  secure: false
+  maxAgeSeconds: 2592000 # 30 days
 
 server:
   applicationContextPath: /
