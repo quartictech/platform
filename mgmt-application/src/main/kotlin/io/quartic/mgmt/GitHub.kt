@@ -26,8 +26,8 @@ data class AccessToken(
     val accessToken: String
 )
 
-interface GithubOAuth {
-    @RequestLine("POST /login/oauth/access_token")
+interface GitHubOAuth {
+    @RequestLine("POST /login/oauth/access_token?client_id={client_id}&client_secret={client_secret}&redirect_uri={redirect_uri}&code={code}")
     @Headers("Accept: ${MediaType.APPLICATION_JSON}")
     fun accessToken(@Param("client_id") clientId: String,
                     @Param("client_secret") clientSecret: String,
@@ -35,14 +35,14 @@ interface GithubOAuth {
                     @Param("code") code: String): AccessToken
 }
 
-interface Github {
+interface GitHub {
     @RequestLine("GET /user")
-    @Headers("Authorization: token {oauthToken")
-    fun user(@Named("oauthToken") oauthToken: String): User
+    @Headers("Authorization: token {oauthToken}")
+    fun user(@Param("oauthToken") oauthToken: String): User
 
     @RequestLine("GET /user/orgs")
-    @Headers("Authorization: token {oauthToken")
-    fun organizations(@Named("oauthToken") oauthToken: String): List<Organization>
+    @Headers("Authorization: token {oauthToken}")
+    fun organizations(@Param("oauthToken") oauthToken: String): List<Organization>
 }
 
 val OAUTH_AUTHORIZE_URl = "https://github.com/login/oauth/authorize"

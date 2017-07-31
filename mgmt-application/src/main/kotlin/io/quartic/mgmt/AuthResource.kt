@@ -3,6 +3,7 @@ package io.quartic.mgmt
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.getIssuer
+import io.quartic.common.client.client
 import java.net.URI
 import java.net.URLEncoder
 import javax.ws.rs.*
@@ -14,14 +15,15 @@ import javax.ws.rs.core.Response
 @Path("/auth")
 class AuthResource(private val githubConfig: GithubConfiguration,
                    private val tokenGenerator: TokenGenerator) {
-    private val github = Github(githubConfig.clientId, githubConfig.clientSecret, githubConfig.trampolineUrl)
+    private val githubOauth = client(GitHubOAuth::class.java, javaClass, OAUTH_BASE_URL)
+    private val githubApi = client(GitHub::class.java, javaClass, API_BASE_URL)
 
     @GET
     @Path("/gh")
     fun github(@HeaderParam(HttpHeaders.HOST) host: String): Response? {
         val issuer = getIssuer(host)
         val redirectUri = "${githubConfig.trampolineUrl}/${issuer}"
-        val uri = Github.oauthUrl(githubConfig.clientId, redirectUri, githubConfig.scopes)
+        val uri = oauthUrl(githubConfig.clientId, redirectUri, githubConfig.scopes)
         return Response.temporaryRedirect(uri).build()
     }
 
@@ -37,9 +39,9 @@ class AuthResource(private val githubConfig: GithubConfiguration,
     @Path("/gh/complete")
     fun githubComplete(@QueryParam("code") code: String,
                  @HeaderParam(HttpHeaders.HOST) host: String): Response {
-        val accessToken = github.accessToken(code)
-        val user = github.user(accessToken)
-        val organizations = github.organizations(accessToken).map { org -> org.login }
+        val accessToken = githubOauth.accessToken(githubConfig.clientId, githubConfig.clientSecret, githubConfig.trampolineUrl, code).accessToken
+        val user = githubApi.user(accessToken)
+        val organizations = githubApi.organizations(accessToken).map { org -> org.login }
 
         if (!organizations.intersect(githubConfig.allowedOrganisations).isEmpty()) {
             val tokens = tokenGenerator.generate(user.login, getIssuer(host))
