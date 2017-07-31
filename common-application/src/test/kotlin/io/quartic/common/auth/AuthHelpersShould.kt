@@ -6,7 +6,7 @@ import org.hamcrest.Matchers.equalTo
 
 class AuthHelpersShould {
     @Test
-    fun parse_submdonain() {
+    fun parse_subdomain() {
         assertThat(getIssuer("xyz.quartic.io"), equalTo("xyz"))
         assertThat(getIssuer("xyz.quartic.io:1334"), equalTo("xyz"))
     }

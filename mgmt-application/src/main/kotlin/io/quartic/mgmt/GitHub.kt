@@ -14,6 +14,7 @@ import feign.slf4j.Slf4jLogger
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.serdes.OBJECT_MAPPER
 import javax.ws.rs.core.HttpHeaders.USER_AGENT
+import javax.ws.rs.core.UriBuilder
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -51,18 +52,15 @@ interface GitHub {
     fun organizations(@Param("oauthToken") oauthToken: String): List<Organization>
 }
 
-val OAUTH_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+val OAUTH_AUTHORIZE_PATH = "login/oauth/authorize"
 
-fun queryParam(key: String, value: String) = "${key}=${URLEncoder.encode(value, Charsets.UTF_8.name())}"
-
-fun oauthUrl(clientId: String, redirectUri: String, scopes: List<String>): URI {
-    val queryString = listOf(
-        queryParam("client_id", clientId),
-        queryParam("redirect_uri", redirectUri),
-        queryParam("scopes", scopes.joinToString(" "))
-    ).joinToString("&")
-
-    return URI.create("${OAUTH_AUTHORIZE_URL}?${queryString}")
+fun oauthUrl(oauthRoot: String, clientId: String, redirectUri: String, scopes: List<String>): URI {
+    val rootUri = URI.create("${oauthRoot}/${OAUTH_AUTHORIZE_PATH}")
+    return UriBuilder.fromUri(rootUri)
+        .queryParam("client_id", clientId)
+        .queryParam("redirect_uri", redirectUri)
+        .queryParam("scopes", scopes.joinToString(" "))
+        .build()
 }
 
 

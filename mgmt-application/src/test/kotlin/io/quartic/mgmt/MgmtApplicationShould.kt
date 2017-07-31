@@ -69,7 +69,7 @@ class MgmtApplicationShould {
         assertThat(response.cookies, hasKey(TOKEN_COOKIE))
         assertThat(response.headers, hasKey(XSRF_TOKEN_HEADER))
 
-        assertTrue(!response.cookies[TOKEN_COOKIE]!!.isSecure)
+        assertTrue(response.cookies[TOKEN_COOKIE]!!.isSecure)
         assertTrue(response.cookies[TOKEN_COOKIE]!!.isHttpOnly)
 
         val authStrategy = TokenAuthStrategy(TokenAuthConfiguration(KEY))
@@ -119,7 +119,8 @@ class MgmtApplicationShould {
             config("github.apiRoot", {"http://localhost:${wireMockRule.port()}"}),
             config("github.clientId", CLIENT_ID),
             config("github.allowedOrganisations", "noobs"),
-            config("github.clientSecret", CLIENT_SECRET)
+            config("github.clientSecret", CLIENT_SECRET),
+            config("github.useSecureCookies", "true")
         )
     }
 }
