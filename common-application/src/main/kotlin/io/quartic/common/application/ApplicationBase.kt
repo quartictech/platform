@@ -32,11 +32,8 @@ abstract class ApplicationBase<T : ConfigurationBase>(
 
             setConfigurationSourceProvider { path ->
                 SequenceInputStream(
-                    toInputStream(baseConfig, UTF_8),
-                    SequenceInputStream(
-                        toInputStream("\n", UTF_8),
-                        FileInputStream(path)
-                    )
+                    toInputStream(baseConfig + "\n", UTF_8),
+                    toInputStream("\n", UTF_8)
                 )
             }
 

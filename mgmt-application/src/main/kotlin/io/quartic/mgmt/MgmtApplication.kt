@@ -22,8 +22,8 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
     }
 
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
-        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl!!)
-        val catalogueService = client<CatalogueService>(javaClass, configuration.catalogueUrl!!)
+        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
+        val catalogueService = client<CatalogueService>(javaClass, configuration.catalogueUrl)
 
         val tokenGenerator = TokenGenerator(
             (configuration.auth as TokenAuthConfiguration).base64EncodedKey,
@@ -32,9 +32,9 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
         with (environment.jersey()) {
             register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(configuration.authorisedNamespaces)))
-            register(AuthResource(configuration.github!!, tokenGenerator))
+            register(AuthResource(configuration.github, tokenGenerator))
         }
-        environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl!!))
+        environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))
     }
 
     companion object {

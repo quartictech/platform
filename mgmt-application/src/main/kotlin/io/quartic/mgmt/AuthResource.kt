@@ -31,21 +31,22 @@ class AuthResource(private val githubConfig: GithubConfiguration,
     @Path("/gh/callback/{issuer}")
     fun githubCallback(@PathParam("issuer") issuer: String, @QueryParam("code") code: String): Response? {
         val redirectHost = String.format(githubConfig.redirectHost, issuer)
-        val uri = URI.create("${redirectHost}/#/login?provider=gh&code=${code}")
+        val uri = URI.create("${redirectHost}/#/login?provider=gh&code=${URLEncoder.encode(code, Charsets.UTF_8.name())}")
         return Response.temporaryRedirect(uri).build()
     }
 
     @POST
     @Path("/gh/complete")
     fun githubComplete(@QueryParam("code") code: String,
-                 @HeaderParam(HttpHeaders.HOST) host: String): Response {
+                       @HeaderParam(HttpHeaders.HOST) host: String,
+                       @javax.ws.rs.container.Suspended response: javax.ws.rs.container.AsyncResponse) {
         val accessToken = githubOauth.accessToken(githubConfig.clientId, githubConfig.clientSecret, githubConfig.trampolineUrl, code).accessToken
         val user = githubApi.user(accessToken)
         val organizations = githubApi.organizations(accessToken).map { org -> org.login }
 
         if (!organizations.intersect(githubConfig.allowedOrganisations).isEmpty()) {
             val tokens = tokenGenerator.generate(user.login, getIssuer(host))
-            return Response.ok()
+            response.resume(Response.ok()
                 .header(TokenAuthStrategy.XSRF_TOKEN_HEADER, tokens.xsrf)
                 .cookie(NewCookie(
                     TokenAuthStrategy.TOKEN_COOKIE,
@@ -57,9 +58,9 @@ class AuthResource(private val githubConfig: GithubConfiguration,
                     githubConfig.useSecureCookies, // secure
                     true // httponly
                 ))
-                .build()
+                .build())
         }
 
-        return Response.status(401).build()
+        response.resume(Response.status(401).build())
     }
 }

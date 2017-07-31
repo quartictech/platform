@@ -15,10 +15,10 @@ data class GithubConfiguration(
    val redirectHost: String
 )
 
-class MgmtConfiguration : ConfigurationBase() {
-    var catalogueUrl: String? = null
-    var howlUrl: String? = null
-    var authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap()
-    var github: GithubConfiguration? = null
+data class MgmtConfiguration(
+    val catalogueUrl: String,
+    val howlUrl: String,
+    val authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap(),
+    val github: GithubConfiguration,
     val tokenTimeToLiveMinutes: Int = 60
-}
+) : ConfigurationBase()

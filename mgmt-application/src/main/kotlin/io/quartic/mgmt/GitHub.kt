@@ -2,12 +2,12 @@ package io.quartic.mgmt
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.common.base.Charsets.UTF_8
 import feign.Headers
 import feign.Param
 import feign.RequestLine
 import java.net.URI
 import java.net.URLEncoder
-import javax.inject.Named
 import javax.ws.rs.core.MediaType
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -45,11 +45,18 @@ interface GitHub {
     fun organizations(@Param("oauthToken") oauthToken: String): List<Organization>
 }
 
-val OAUTH_AUTHORIZE_URl = "https://github.com/login/oauth/authorize"
+val OAUTH_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 val OAUTH_BASE_URL = "https://github.com"
 val API_BASE_URL = "https://api.github.com"
 
+fun queryParam(key: String, value: String) = "${key}=${URLEncoder.encode(value, Charsets.UTF_8.name())}"
+
 fun oauthUrl(clientId: String, redirectUri: String, scopes: List<String>): URI {
-    val scopes = URLEncoder.encode(scopes.joinToString(" "), "UTF-8")
-    return URI.create("${OAUTH_AUTHORIZE_URl}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}")
+    val queryString = listOf(
+        queryParam("client_id", clientId),
+        queryParam("redirect_uri", redirectUri),
+        queryParam("scopes", scopes.joinToString(" "))
+    ).joinToString("&")
+
+    return URI.create("${OAUTH_AUTHORIZE_URL}?${queryString}")
 }
