@@ -1,5 +1,6 @@
-storage:
-  type: local_disk
+namespaces:
+  noob:
+    type: local
 
 server:
   applicationContextPath: /

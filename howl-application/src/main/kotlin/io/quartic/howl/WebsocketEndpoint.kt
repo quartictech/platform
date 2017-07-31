@@ -4,13 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.websocket.ResourceManagingEndpoint
-import io.quartic.howl.api.StorageBackendChange
+import io.quartic.howl.api.StorageChange
 import rx.Observable
 import rx.Subscription
 import javax.websocket.Session
 
 // TODO - this will need to change for 2D namespaces
-class WebsocketEndpoint(private val changes: Observable<StorageBackendChange>) : ResourceManagingEndpoint<Subscription>() {
+class WebsocketEndpoint(private val changes: Observable<StorageChange>) : ResourceManagingEndpoint<Subscription>() {
     private val LOG by logger()
 
     override fun createResourceFor(session: Session): Subscription {
