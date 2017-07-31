@@ -23,7 +23,7 @@ data class User(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
     @JsonProperty("access_token")
-    val accessToken: String
+    val accessToken: String?
 )
 
 interface GitHubOAuth {

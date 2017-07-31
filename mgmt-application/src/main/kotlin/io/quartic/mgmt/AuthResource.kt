@@ -45,7 +45,7 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
                        @HeaderParam(HttpHeaders.HOST) host: String,
                        @javax.ws.rs.container.Suspended response: javax.ws.rs.container.AsyncResponse) {
         try {
-            val accessToken = gitHubOAuth.accessToken(gitHubConfig.clientId, gitHubConfig.clientSecret, gitHubConfig.trampolineUrl, code).accessToken
+            val accessToken = gitHubOAuth.accessToken(gitHubConfig.clientId, gitHubConfig.clientSecret, gitHubConfig.trampolineUrl, code).accessToken!!
             val user = gitHubApi.user(accessToken)
             val organizations = gitHubApi.organizations(accessToken).map { org -> org.login }
 
@@ -66,17 +66,22 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
                     .build())
             }
             else {
+                LOG.info("user ${user} denied access")
                 response.resume(Response.status(401).build())
             }
         }
         catch (e: FeignException) {
+            LOG.error("Exception communicating with GitHub", e)
             if (e.status() in 400..499) {
                 response.resume(Response.status(401).build())
             }
             else {
-                LOG.error("Exception communicating with GitHub", e)
                 response.resume(Response.status(500).build())
             }
+        }
+        catch (e: Exception) {
+            LOG.error("Exception while authenticating", e)
+            response.resume(Response.status(500).build())
         }
     }
 }
