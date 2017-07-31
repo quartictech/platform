@@ -19,6 +19,8 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
         .setClock({ Date.from(clock.instant()) })
         .setSigningKey(SecretKeySpec(Base64.getDecoder().decode(config.base64EncodedKey), ALGORITHM.toString()))
 
+    override val scheme = "Cookie"      // This is a made-up auth scheme purely to avoid WWW-Authenticate: Basic on 401s
+
     override fun extractCredentials(requestContext: ContainerRequestContext): Tokens? {
         val jwt = requestContext.cookies[TOKEN_COOKIE]
         if (jwt == null) {
