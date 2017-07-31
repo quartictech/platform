@@ -17,6 +17,7 @@ github:
   #redirectHost: "https://{}.quartic.io"
 
   useSecureCookies: false
+  cookieMaxAge: 2592000 # 30 days
   scopes:
     - user
 

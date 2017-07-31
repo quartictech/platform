@@ -12,7 +12,8 @@ data class GithubConfiguration(
    val trampolineUrl: String,
    val useSecureCookies: Boolean,
    val scopes: List<String>,
-   val redirectHost: String
+   val redirectHost: String,
+   val cookieMaxAge: Int
 )
 
 data class MgmtConfiguration(

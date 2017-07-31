@@ -54,7 +54,7 @@ class AuthResource(private val githubConfig: GithubConfiguration,
                     "/",
                     null,
                     null,
-                    NewCookie.DEFAULT_MAX_AGE,
+                    githubConfig.cookieMaxAge,
                     githubConfig.useSecureCookies, // secure
                     true // httponly
                 ))
