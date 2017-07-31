@@ -36,7 +36,6 @@ class MgmtResourceShould {
 
     private val resource = MgmtResource(catalogue, howl, authoriser)
 
-
     @Before
     fun before() {
         whenever(catalogue.getDatasets()).thenReturn(datasets)

@@ -8,6 +8,9 @@ import * as constants from "../constants";
 import { toaster } from "../../containers/App/toaster";
 
 import { Intent } from "@blueprintjs/core";
+import { push } from "react-router-redux";
+
+import { QUARTIC_XSRF } from "../../helpers/Utils";
 
 function showError(message) {
   toaster.show({
@@ -17,6 +20,25 @@ function showError(message) {
   });
 }
 
+function* checkedApiCall(apiFunction, ...args): SagaIterator {
+  const res = yield call(apiFunction, ...args);
+
+  if (! res.err) {
+    yield res;
+  }
+
+  if (res.err && res.err.message === "Unauthorized") {
+    yield put(actions.logout());
+  }
+
+  if (res.err) {
+    showError(res.err.message);
+    return res;
+  }
+
+  return res;
+}
+
 function showSuccess(message) {
   toaster.show({
     intent: Intent.SUCCESS,
@@ -24,13 +46,34 @@ function showSuccess(message) {
   });
 }
 
+function* watchLogout(): SagaIterator {
+  while (true) {
+    yield take(constants.LOGOUT);
+    showError("Logged out");
+    localStorage.removeItem(QUARTIC_XSRF);
+    yield put(push("/login"));
+  }
+}
+
 function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
-    const res = yield call(api.fetchDatasets);
+    const res = yield* checkedApiCall(api.fetchDatasets);
+
+    if (!res.err) {
+      yield put(actions.fetchDatasetsSuccess(res.data));
+    }
+  }
+}
+
+function* watchLoginGithub(): SagaIterator {
+  while (true) {
+    const action = yield take(constants.LOGIN_GITHUB);
+    const res = yield call(api.githubAuth, action.code);
 
     if (! res.err) {
-      yield put(actions.fetchDatasetsSuccess(res.data));
+      localStorage.setItem(QUARTIC_XSRF, res.xsrfToken);
+      yield put(push("/"));
     }
   }
 }
@@ -38,7 +81,7 @@ function* watchLoadDatasets(): SagaIterator {
 function* watchDeleteDataset(): SagaIterator {
   while (true) {
     const action = yield take(constants.DELETE_DATASET);
-    const res = yield call(api.deleteDataset, action.coords);
+    const res = yield* checkedApiCall(api.deleteDataset, action.coords);
 
     if (! res.err) {
       yield call(showSuccess, `Deleted dataset: ${action.coords.id}`);
@@ -53,7 +96,7 @@ function* watchCreateDataset(): SagaIterator {
     const uploadResult = yield call(api.uploadFile, action.data.namespace, action.data.files.files);
 
     if (!uploadResult.err) {
-      const createResult = yield call(
+      const createResult = yield* checkedApiCall(
         api.createDataset,
         action.data.namespace,
         action.data.metadata,
@@ -77,4 +120,6 @@ export function* sagas(): SagaIterator {
   yield fork(watchLoadDatasets);
   yield fork(watchDeleteDataset);
   yield fork(watchCreateDataset);
+  yield fork(watchLoginGithub);
+  yield fork(watchLogout);
 }

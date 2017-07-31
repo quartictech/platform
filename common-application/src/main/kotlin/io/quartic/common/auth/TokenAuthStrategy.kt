@@ -40,11 +40,11 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
             return null
         }
 
-        return Tokens(jwt, xsrf, host)
+        return Tokens(jwt, xsrf, getIssuer(host))
     }
 
     override fun authenticate(creds: Tokens): User? {
-        parser.requireIssuer(creds.host)
+        parser.requireIssuer(creds.issuer)
         parser.require(XSRF_TOKEN_HASH_CLAIM, hashToken(creds.xsrf))
 
         val claims = try {
@@ -68,7 +68,7 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
         // We can use HMAC for now as client-side verification of tokens is not an issue
         val KEY_LENGTH_BITS = 512
         val ALGORITHM = SignatureAlgorithm.HS512
-        val TOKEN_COOKIE = "token"
+        val TOKEN_COOKIE = "quartic-token"
         val XSRF_TOKEN_HEADER = "X-XSRF-Token"
         val XSRF_TOKEN_HASH_CLAIM = "xth"
     }
@@ -76,6 +76,6 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
     data class Tokens(
         val jwt: String,
         val xsrf: String,
-        val host: String
+        val issuer: String
     )
 }
