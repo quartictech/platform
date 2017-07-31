@@ -38,7 +38,7 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
     }
 
     override fun authenticate(creds: Tokens): User? {
-        parser.requireIssuer(creds.host)
+        parser.requireIssuer(creds.issuer)
         parser.require(XSRF_TOKEN_HASH_CLAIM, hashToken(creds.xsrf))
 
         val claims = try {
@@ -70,6 +70,6 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
     data class Tokens(
         val jwt: String,
         val xsrf: String,
-        val host: String
+        val issuer: String
     )
 }

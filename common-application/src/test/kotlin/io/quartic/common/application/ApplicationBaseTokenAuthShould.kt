@@ -28,7 +28,7 @@ class ApplicationBaseTokenAuthShould {
     fun respond_with_200_if_valid_token_supplied() {
         val tokenGenerator = TokenGenerator(KEY, Duration.ofMinutes(10))
 
-        val tokens = tokenGenerator.generate("oliver", "localhost:${RULE.localPort}")
+        val tokens = tokenGenerator.generate("oliver", "localhost")
 
         val response = target()
             .request()

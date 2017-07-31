@@ -19,7 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
 
-class OrfApplicationShould {
+class MgmtApplicationShould {
 
     @Test
     fun generate_response_with_correct_header_and_cookie() {
@@ -39,7 +39,7 @@ class OrfApplicationShould {
         val tokens = Tokens(
             response.cookies[TOKEN_COOKIE]!!.value,
             response.headers[XSRF_TOKEN_HEADER]!!.last() as String,
-            "localhost:${RULE.localPort}"
+            "localhost"
         )
 
         assertThat(authStrategy.authenticate(tokens), equalTo(User("oliver")))

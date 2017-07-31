@@ -40,7 +40,7 @@ class TokenAuthStrategyShould {
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }
     private val strategy = TokenAuthStrategy(TokenAuthConfiguration(key), clock)
-    private val tokens = Tokens("abc", "def", "noob.quartic.io")
+    private val tokens = Tokens("abc", "def", "noob")
 
     @Test
     fun extract_tokens_when_present() {
@@ -57,6 +57,7 @@ class TokenAuthStrategyShould {
     @Test
     fun fail_to_extract_when_xsrf_header_missing() {
         whenever(requestContext.getHeaderString(XSRF_TOKEN_HEADER)).thenReturn(null)
+
 
         assertThat(strategy.extractCredentials(requestContext), nullValue())
     }
@@ -141,12 +142,12 @@ class TokenAuthStrategyShould {
         Jwts.builder()
             .signWith(ALGORITHM, key)
             .setSubject("oliver")
-            .setIssuer("noob.quartic.io")
+            .setIssuer("noob")
             .setExpiration(Date.from(future))
             .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString("def", Charsets.UTF_8).toString())
             .builderMods()
             .compact(),
         "def",
-        "noob.quartic.io"
+        "noob"
     )
 }
