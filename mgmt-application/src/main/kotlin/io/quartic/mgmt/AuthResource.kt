@@ -22,7 +22,7 @@ class AuthResource(val githubConfig: GithubConfiguration,
         val scopes = URLEncoder.encode(githubConfig.scopes.joinToString(" "), "UTF-8")
         val issuer = getIssuer(host)
         val redirectUri = "${githubConfig.trampolineUrl}/${issuer}"
-        val uri = URI.create("${githubConfig.oauthUrl}client_id=${githubConfig.clientId}&redirect_uri=${redirectUri}&scope=${scopes}")
+        val uri = URI.create("${githubConfig.oauthUrl}?client_id=${githubConfig.clientId}&redirect_uri=${redirectUri}&scope=${scopes}")
         return Response.temporaryRedirect(uri).build()
     }
 
@@ -43,7 +43,7 @@ class AuthResource(val githubConfig: GithubConfiguration,
         val organizations = github.organizations(accessToken).map { org -> org.login }
 
         if (!organizations.intersect(githubConfig.allowedOrganisations).isEmpty()) {
-            val tokens = tokenGenerator.generate(user.login, host)
+            val tokens = tokenGenerator.generate(user.login, getIssuer(host))
             return Response.ok()
                 .header(TokenAuthStrategy.XSRF_TOKEN_HEADER, tokens.xsrf)
                 .cookie(NewCookie(
