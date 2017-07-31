@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Classes } from "@blueprintjs/core";
-import { IDataset, IDatasetCoords, DatasetMap } from "../../models";
+import { IDataset, IDatasetCoords, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
 import _ = require("underscore");
 
@@ -11,7 +11,7 @@ interface IDatasetListProps {
   onSelect: (string) => void;
   searchString: string;
   selectedNamespace: string;
-};
+}
 
 const comparison = (a: IDataset, b: IDataset) => {
   const x = a.metadata.name.toLowerCase();
@@ -27,6 +27,7 @@ interface IDatasetRowProps {
   onSelect: () => void;
 }
 
+// tslint:disable-next-line:variable-name
 const DatasetRow = (props: IDatasetRowProps) => (
   <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
     <td style={{ wordWrap: "break-word" }}>
@@ -38,14 +39,15 @@ const DatasetRow = (props: IDatasetRowProps) => (
     </td>
     <td style={{ wordWrap: "break-word" }}>
       <b>{props.dataset.metadata.name}</b>
-      {
-        (props.dataset.metadata.name === props.dataset.metadata.description)
-        ? null
-        : <p>{props.dataset.metadata.description}</p>
-      }      
+      {maybeDescription(props.dataset.metadata)}
     </td>
   </tr>
 );
+
+const maybeDescription = (metadata: IDatasetMetadata) =>
+  (metadata.name === metadata.description)
+    ? null
+    : <p>{metadata.description}</p>;
 
 export class DatasetList extends React.Component<IDatasetListProps, void> {
   render() {
@@ -56,7 +58,7 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
       >
         <h3>Datasets</h3>
 
-        <div style={{ height: "98%", overflow: "scroll" }}>
+        <div style={{ height: "98%", overflow: "auto" }}>
           <table
             className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
             style={{ width: "100%", tableLayout: "fixed" }}
@@ -69,15 +71,19 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
               </tr>
             </thead>
             <tbody>
-            {
-                _.map(this.props.datasets,
-                  (datasets, namespace) => !this.props.selectedNamespace || this.props.selectedNamespace === namespace ?
-                    this.renderDatasetsInNamespace(namespace, datasets) : null)
-            }
+             {this.datasetRows()}
             </tbody>
           </table>
         </div>
       </div>
+    );
+  }
+
+  private datasetRows() {
+    return _.map(
+      this.props.datasets,
+      (datasets, namespace) => (!this.props.selectedNamespace || (this.props.selectedNamespace === namespace))
+       ? this.renderDatasetsInNamespace(namespace, datasets) : null,
     );
   }
 
@@ -86,20 +92,30 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
       .map(datasets, (dataset, id) => [id, dataset] as [string, IDataset])
       .filter(([id, dataset]) => this.datasetVisible(namespace, id, dataset))
       .sort(([, a], [, b]) => comparison(a, b))
-      .map(([id, dataset]) => <DatasetRow
-        key={id}
-        namespace={namespace}
-        id={id}
-        dataset={dataset}
-        active={this.props.selected === { id, namespace }}
-        onSelect={() => this.props.onSelect({ namespace, id })}
-      />);
+      .map(([id, dataset]) => (
+        <DatasetRow
+          key={id}
+          namespace={namespace}
+          id={id}
+          dataset={dataset}
+          active={this.props.selected === { id, namespace }}
+          onSelect={() => this.props.onSelect({ namespace, id })}
+        />
+      ));
   }
 
   private datasetVisible(namespace: string, datasetId: string, dataset: IDataset) {
     return this.props.searchString == null || this.props.searchString.length === 0 ||
-      _.some([namespace, datasetId, dataset.metadata.name, dataset.metadata.description, dataset.locator.type],
-        s => s.toLowerCase().includes(this.props.searchString));
+      _.some(
+        [
+          namespace,
+          datasetId,
+          dataset.metadata.name,
+          dataset.metadata.description,
+          dataset.locator.type,
+        ],
+        s => s.toLowerCase().includes(this.props.searchString),
+      );
   }
 }
 

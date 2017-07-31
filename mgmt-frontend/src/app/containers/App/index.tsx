@@ -14,10 +14,10 @@ const s = require("./style.css");
 interface IProps {
   children?: any;
   location?: {
-    pathname: string
+    pathname: string,
   };
   params?: {
-    node: string
+    node: string,
   };
   ui: Ui;
   showNewDatasetModal: any;
@@ -30,17 +30,17 @@ export class App extends React.Component<IProps, void> {
   render() {
     const { children } = this.props;
     return (
-      <div className="pt-dark">
-      <section className={s.App}>
-        <Header
-          newDatasetClick={this.props.showNewDatasetModal}
-          searchBoxChange={this.props.searchDatasets}
-          selectedNamespace={this.props.ui.namespace}
-          namespaceSelectChange={this.props.selectNamespace}
-          namespaces={this.props.namespaces}
-        />
-          {children}
-      </section>
+      <div>
+        <section className={s.App}>
+          <Header
+            newDatasetClick={this.props.showNewDatasetModal}
+            searchBoxChange={this.props.searchDatasets}
+            selectedNamespace={this.props.ui.namespace}
+            namespaceSelectChange={this.props.selectNamespace}
+            namespaces={this.props.namespaces}
+          />
+            {children}
+        </section>
       </div>
     );
   }
@@ -48,8 +48,8 @@ export class App extends React.Component<IProps, void> {
 
 const mapDispatchToProps = {
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),
-  searchDatasets: (s) => actions.searchDatasets(s),
-  selectNamespace: (s) => actions.selectNamespace(s),
+  searchDatasets: s => actions.searchDatasets(s),
+  selectNamespace: s => actions.selectNamespace(s),
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -59,5 +59,5 @@ const mapStateToProps = createStructuredSelector({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(App);

@@ -14,7 +14,7 @@ export const managedResourceProvider = <T>(
   selector: (state: any) => ResourceState<Dataset<T>>,
   resource: ManagedResource<Dataset<T>>,
   mapper: (id: string, item: T) => SearchResultEntry,
-) => (reduxState: any, dispatch: Redux.Dispatch<any>, _onResultChange: () => void) => {
+) => (reduxState: any, dispatch: Redux.Dispatch<any>) => {
   const resourceState = selector(reduxState);
   return {
     required: (query: string) => (dispatch((query.length > 0)

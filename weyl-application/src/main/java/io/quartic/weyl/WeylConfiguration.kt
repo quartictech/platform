@@ -1,8 +1,8 @@
 package io.quartic.weyl
 
-import io.dropwizard.Configuration
 import io.quartic.catalogue.CatalogueClientConfiguration
 import io.quartic.catalogue.api.model.DatasetNamespace
+import io.quartic.common.application.ConfigurationBase
 import io.quartic.weyl.core.model.Tag
 
 data class WeylConfiguration(
@@ -12,7 +12,7 @@ data class WeylConfiguration(
         val importNamespaceRules: Map<DatasetNamespace, List<Tag>>,
         val exportNamespace: DatasetNamespace,
         val map: MapConfig
-) : Configuration()
+) : ConfigurationBase()
 
 data class MapConfig(
         val lat: Double,

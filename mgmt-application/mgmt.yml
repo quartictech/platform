@@ -3,6 +3,23 @@ howlUrl: http://localhost:8120/api
 
 authorisedNamespaces:
   default: ["*"]
+  alexsparrow: ["*"]
+
+github:
+  clientId: "af4a5c01c7850fa04758"
+  clientSecret: "6d1a5dfdcd0795fd96a9aecc6ee04fc188340583"
+  allowedOrganisations:
+    - quartictech
+  trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
+
+  redirectHost: "http://localhost:3010"
+  # in prod this should be
+  #redirectHost: "https://{}.quartic.io"
+
+  useSecureCookies: false
+  cookieMaxAgeSeconds: 2592000 # 30 days
+  scopes:
+    - user
 
 server:
   applicationContextPath: /
@@ -12,3 +29,9 @@ server:
   adminConnectors:
     - type: http
       port: 8101
+
+auth:
+  type: token
+  base64EncodedKey: "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="
+
+

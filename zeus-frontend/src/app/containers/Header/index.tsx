@@ -48,23 +48,24 @@ class Header extends React.Component<Props, void> {
   }
 
   render() {
+    const imgStyle = {
+      height: "100%",
+      paddingTop: "10px",
+      paddingBottom: "10px",
+      marginLeft: "-5px",
+      marginRight: "10px",
+    };
+
     return (
       <nav className={classNames(Classes.NAVBAR, Classes.FIXED_TOP, Classes.DARK)}>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_LEFT)}>
           <Link to="/" style={{ height: "100%", display: "inline-block" }}>
             <img
-              style={{
-                height: "100%",
-                paddingTop: "10px",
-                paddingBottom: "10px",
-                marginLeft: "-5px",
-                marginRight: "10px",
-              }}
+              style={imgStyle}
               src={logo}
               role="presentation"
-            >
-            </img>
+            />
           </Link>
           <SearchContainer
             className={classNames(Classes.ROUND, styles.myPicker)}
@@ -124,33 +125,28 @@ class Header extends React.Component<Props, void> {
   }
 
   private renderInsightsMenu() {
-    return (
-      <Menu>
-        {_.map(insights, (insight, name) => (
-          <MenuItem
-            key={name}
-            iconName="layout-auto"
-            text={insight.title}
-            disabled={insight.disabled}
-            href={appHistory.createHref({ pathname: `/insights/${encodeURIComponent(name)}` })}
-          />
-        ))}
-      </Menu>
-    );
+    const menuItems = _.map(insights, (insight, name) => (
+      <MenuItem
+        key={name}
+        iconName="layout-auto"
+        text={insight.title}
+        disabled={insight.disabled}
+        href={appHistory.createHref({ pathname: `/insights/${encodeURIComponent(name)}` })}
+      />
+    ));
+    return <Menu>{menuItems}</Menu>;
   }
 
   private renderExplorerMenu() {
-    return (
-      <Menu>
-        {
-          _.map(this.props.datasetInfo.data, (v, k) => (
-            <MenuItem key={k} iconName="database" text={v.prettyName} href={appHistory.createHref({
-              pathname: `/explorer/${encodeURIComponent(k)}`,
-            })} />
-          ))
-        }
-      </Menu>
-    );
+    const menuItems = _.map(this.props.datasetInfo.data, (v, k) => (
+      <MenuItem
+        key={k}
+        iconName="database"
+        text={v.prettyName}
+        href={appHistory.createHref({ pathname: `/explorer/${encodeURIComponent(k)}` })}
+      />
+    ));
+    return <Menu>{menuItems}</Menu>;
   }
 
   private renderSettings() {
@@ -160,7 +156,7 @@ class Header extends React.Component<Props, void> {
           key={"info"}
           text={`Quartic version: ${process.env.BUILD_VERSION || "unknown"}`}
           iconName="info-sign"
-          disabled
+          disabled={true}
         />
       </Menu>
     );

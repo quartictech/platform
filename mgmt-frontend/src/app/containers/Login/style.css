@@ -1,0 +1,25 @@
+
+.container {
+  width: 100%;
+  height: 100vh;
+  padding-left: 10vw;
+  padding-right: 10vw;
+  padding-top: 100px;
+  background-color: #f5f8fa;
+  align-items: center;
+  justify-content: center;
+}
+
+.signIn {
+  padding-top: 30px;
+}
+.signInButtons {
+  padding-top: 30px;
+}
+
+img.logo {
+  width: 100%;
+  margin-left: -5px;
+  margin-right: 10px;
+}
+

@@ -30,7 +30,9 @@ class MgmtResource(
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(@Auth user: User) = catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
+    fun getDatasets(@Auth user: User) =
+        catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
+
 
     @DELETE
     @Path("/datasets/{namespace}/{id}")

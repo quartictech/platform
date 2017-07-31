@@ -1,12 +1,12 @@
 import * as React from "react";
-const DocumentTitle = require("react-document-title");  // TODO: wtf - doesn't work with import
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import Attributes from "./attributes";
-import PreviewMap from "./previewMap";
-import DefectsChart from "./defectsChart";
-import Schematic from "./schematic";
-import EventsTable from "./eventsTable";
+import Attributes from "./Attributes";
+import PreviewMap from "./PreviewMap";
+import DefectsChart from "./DefectsChart";
+import Schematic from "./Schematic";
+import EventsTable from "./EventsTable";
 
 import {
   resourceActions,
@@ -68,7 +68,7 @@ class AssetView extends React.Component<Props, State> {
     switch (asset.status) {
       case ResourceStatus.LOADED:
         return (
-          <div style={{flex: 1}}>
+          <div style={{ flex: 1 }}>
             <div className={s.splitRow}>
               <div className={s.splitLeft}>
                 <Attributes asset={asset.data} />
@@ -91,22 +91,28 @@ class AssetView extends React.Component<Props, State> {
         );
 
       case ResourceStatus.NOT_LOADED:
-        return <NonIdealState
-          visual="cross"
-          title="No asset loaded."
-        />;
+        return (
+          <NonIdealState
+            visual="cross"
+            title="No asset loaded."
+          />
+        );
 
       case ResourceStatus.LOADING:
-        return <NonIdealState
-          visual={<Spinner className={Classes.LARGE} />}
-          title="Loading asset ..."
-        />;
+        return (
+          <NonIdealState
+            visual={<Spinner className={Classes.LARGE} />}
+            title="Loading asset ..."
+          />
+        );
 
       case ResourceStatus.ERROR:
-        return <NonIdealState
-          visual="error"
-          title="There was an error loading asset."
-        />;
+        return (
+          <NonIdealState
+            visual="error"
+            title="There was an error loading asset."
+          />
+        );
     }
   }
 
