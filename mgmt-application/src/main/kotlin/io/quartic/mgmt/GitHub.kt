@@ -23,7 +23,10 @@ data class User(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
     @JsonProperty("access_token")
-    val accessToken: String
+    val accessToken: String?,
+    val error: String?,
+    @JsonProperty("error_description")
+    val errorDescription: String?
 )
 
 interface GitHubOAuth {
@@ -52,7 +55,7 @@ fun oauthUrl(oauthRoot: String, clientId: String, redirectUri: String, scopes: L
     return UriBuilder.fromUri(rootUri)
         .queryParam("client_id", clientId)
         .queryParam("redirect_uri", redirectUri)
-        .queryParam("scopes", scopes.joinToString(" "))
+        .queryParam("scope", scopes.joinToString(" "))
         .build()
 }
 
