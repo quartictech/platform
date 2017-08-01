@@ -14,13 +14,10 @@ import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.ws.rs.*
-import javax.ws.rs.container.AsyncResponse
-import javax.ws.rs.container.Suspended
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.NewCookie
 import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.Status.UNAUTHORIZED
 
 
 @Path("/auth")
@@ -80,12 +77,11 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
         @QueryParam("code") code: String?,
         @QueryParam("state") state: String?,
         @CookieParam(NONCE_COOKIE) nonceCookie: String?,
-        @HeaderParam(HttpHeaders.HOST) host: String,
-        @Suspended response: AsyncResponse
-    ) {
-        if (hash(state.nonNull("state")) != nonceCookie.nonNull(NONCE_COOKIE)) {
+        @HeaderParam(HttpHeaders.HOST) host: String
+    ): Response {
+        if (hash(state.nonNull("state")) != nonceCookie.nonNull("cookie")) {
             LOG.warn("Nonce hash mismatch")
-            response.resume(Response.status(UNAUTHORIZED).build())
+            throw NotAuthorizedException("Authorisation failure")
         }
 
         try {
@@ -93,36 +89,23 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
 
             if (accessToken.accessToken == null) {
                 LOG.error("Exception while authorising against GitHub: ${accessToken.error} - ${accessToken.errorDescription}")
-                response.resume(Response.status(401).build())
-                return
+                throw NotAuthorizedException("GitHub authorisation failure")
             } else {
                 val user = gitHubApi.user(accessToken.accessToken)
                 val organizations = gitHubApi.organizations(accessToken.accessToken).map { org -> org.login }
 
                 if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
                     val tokens = tokenGenerator.generate(user.login, getIssuer(host))
-                    response.resume(Response.ok()
+                    return Response.ok()
                         .header(XSRF_TOKEN_HEADER, tokens.xsrf)
                         .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
-                        .build())
+                        .build()
                 } else {
-                    LOG.info("user ${user} denied access")
-                    response.resume(Response.status(401).build())
+                    throw NotAuthorizedException("User doesn't belong to organisation")
                 }
             }
-        }
-        catch (e: FeignException) {
-            LOG.error("Exception communicating with GitHub", e)
-            if (e.status() in 400..499) {
-                response.resume(Response.status(UNAUTHORIZED).build())
-            }
-            else {
-                response.resume(Response.serverError().build())
-            }
-        }
-        catch (e: Exception) {
-            LOG.error("Exception while authenticating", e)
-            response.resume(Response.status(500).build())
+        } catch (e: FeignException) {
+            throw ServerErrorException("Exception communicating with GitHub", 500, e)
         }
     }
 

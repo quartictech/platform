@@ -31,6 +31,7 @@ import java.util.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
+import javax.ws.rs.core.Response.Status.UNAUTHORIZED
 
 class MgmtApplicationShould {
     init {
@@ -104,8 +105,13 @@ class MgmtApplicationShould {
 
     @Test
     fun generate_tokens_via_correct_header_and_cookie() {
-        val response = target("/complete", mapOf("code" to CODE))
+        val response = target("/complete",
+            mapOf(
+                "code" to CODE,
+                "state" to "abcdefg"
+            ))
             .request()
+            .cookie(NONCE_COOKIE, hash("abcdefg"))
             .post(null)
 
         with(response) {
@@ -130,12 +136,17 @@ class MgmtApplicationShould {
 
      @Test
     fun reject_bad_code() {
-        val response = target("/complete", mapOf("code" to BAD_CODE))
+        val response = target("/complete",
+            mapOf(
+                "code" to BAD_CODE,
+                "state" to "abcdefg"
+            ))
             .request()
+            .cookie(NONCE_COOKIE, hash("abcdefg"))
             .post(null)
 
         with(response) {
-            assertThat(status, equalTo(401))
+            assertThat(status, equalTo(UNAUTHORIZED.statusCode))
             assertThat(cookies, not(hasKey(TOKEN_COOKIE)))
             assertThat(headers, not(hasKey(XSRF_TOKEN_HEADER)))
         }
