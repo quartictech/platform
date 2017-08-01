@@ -32,7 +32,7 @@ function* checkedApiCall(apiFunction, ...args): SagaIterator {
   }
 
   if (res.err) {
-    showError(res.err.message);
+    showError(`Exception while processing request: ${res.err.message}`);
     return res;
   }
 
