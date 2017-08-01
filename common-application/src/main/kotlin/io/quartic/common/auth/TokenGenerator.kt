@@ -11,6 +11,7 @@ import io.quartic.common.logging.logger
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
+import io.quartic.common.uid.secureRandomGenerator
 import java.time.Clock
 import java.time.temporal.TemporalAmount
 import java.util.*
@@ -19,7 +20,7 @@ class TokenGenerator(
     private val base64EncodedKey: String,
     private val timeToLive: TemporalAmount,
     private val clock: Clock = Clock.systemUTC(),
-    private val xsrfTokenGenerator: UidGenerator<XsrfId> = randomGenerator(32, ::XsrfId)
+    private val xsrfTokenGenerator: UidGenerator<XsrfId> = secureRandomGenerator(::XsrfId)
 ) {
     class XsrfId(uid: String) : Uid(uid)
 

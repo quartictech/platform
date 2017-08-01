@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import feign.Headers
 import feign.Param
 import feign.RequestLine
+import org.apache.http.client.utils.URIBuilder
 import java.net.URI
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.UriBuilder
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,15 +48,18 @@ interface GitHub {
     fun organizations(@Param("oauthToken") oauthToken: String): List<Organization>
 }
 
-val OAUTH_AUTHORIZE_PATH = "login/oauth/authorize"
-
-fun oauthUrl(oauthRoot: String, clientId: String, redirectUri: String, scopes: List<String>): URI {
-    val rootUri = URI.create("${oauthRoot}/${OAUTH_AUTHORIZE_PATH}")
-    return UriBuilder.fromUri(rootUri)
-        .queryParam("client_id", clientId)
-        .queryParam("redirect_uri", redirectUri)
-        .queryParam("scope", scopes.joinToString(" "))
-        .build()
-}
+fun oauthUrl(
+    oauthRoot: String,
+    clientId: String,
+    redirectUri: String,
+    scopes: List<String>,
+    state: String
+): URI = URIBuilder(oauthRoot)
+    .setPath("/login/oauth/authorize")
+    .setParameter("client_id", clientId)
+    .setParameter("redirect_uri", redirectUri)
+    .setParameter("scope", scopes.joinToString(" "))
+    .setParameter("state", state)
+    .build()
 
 

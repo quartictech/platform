@@ -2,8 +2,8 @@ package io.quartic.mgmt
 
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.application.ConfigurationBase
-import io.quartic.mgmt.auth.Multimap
 import io.quartic.common.auth.User
+import io.quartic.mgmt.auth.Multimap
 
 data class GithubConfiguration(
     val oauthApiRoot: String = "https://github.com",
@@ -12,10 +12,13 @@ data class GithubConfiguration(
     val clientSecret: String,
     val allowedOrganisations: Set<String>,
     val trampolineUrl: String,
-    val useSecureCookies: Boolean,
     val scopes: List<String>,
-    val redirectHost: String,
-    val cookieMaxAgeSeconds: Int
+    val redirectHost: String
+)
+
+data class CookiesConfiguration(
+    val secure: Boolean,
+    val maxAgeSeconds: Int
 )
 
 data class MgmtConfiguration(
@@ -23,5 +26,6 @@ data class MgmtConfiguration(
     val howlUrl: String,
     val authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap(),
     var github: GithubConfiguration,
+    val cookies: CookiesConfiguration,
     val tokenTimeToLiveMinutes: Int = 60
 ): ConfigurationBase()

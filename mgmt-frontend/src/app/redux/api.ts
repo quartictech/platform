@@ -58,10 +58,13 @@ export function fetchDatasets() {
 
 const validContentType = t => (t != null && t.length > 0) ? t : "application/geo+json";
 
-export function githubAuth(code: string) {
-  return fetchAuth(`${apiRootUrl}/auth/gh/complete?code=${code}`, {
-    method: "POST",
-  });
+export function githubAuth(code: string, state: string) {
+  return fetchAuth(
+    `${apiRootUrl}/auth/gh/complete?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
+    {
+      method: "POST",
+    },
+  );
 }
 
 export function uploadFile(namespace: string, files: any[]) {
