@@ -69,7 +69,7 @@ function* watchLoadDatasets(): SagaIterator {
 function* watchLoginGithub(): SagaIterator {
   while (true) {
     const action = yield take(constants.LOGIN_GITHUB);
-    const res = yield call(api.githubAuth, action.code);
+    const res = yield call(api.githubAuth, action.code, action.state);
 
     if (! res.err) {
       localStorage.setItem(QUARTIC_XSRF, res.xsrfToken);
