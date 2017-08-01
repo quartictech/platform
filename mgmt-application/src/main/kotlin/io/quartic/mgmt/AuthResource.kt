@@ -9,10 +9,10 @@ import io.quartic.common.auth.getIssuer
 import io.quartic.common.client.client
 import io.quartic.common.logging.logger
 import io.quartic.common.uid.Uid
-import io.quartic.common.uid.randomGenerator
 import io.quartic.common.uid.secureRandomGenerator
 import java.net.URI
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets.UTF_8
 import javax.ws.rs.*
 import javax.ws.rs.container.AsyncResponse
 import javax.ws.rs.container.Suspended
@@ -20,6 +20,7 @@ import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.NewCookie
 import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status.UNAUTHORIZED
 
 
 @Path("/auth")
@@ -55,24 +56,40 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
 
     @GET
     @Path("/gh/callback/{issuer}")
-    fun githubCallback(@PathParam("issuer") issuer: String, @QueryParam("code") code: String): Response? {
-        val redirectHost = String.format(gitHubConfig.redirectHost, issuer)
-        val uri = URI.create("${redirectHost}/#/login?provider=gh&code=${URLEncoder.encode(code, Charsets.UTF_8.name())}")
+    fun githubCallback(
+        @PathParam("issuer") issuer: String,
+        @QueryParam("code") code: String?,
+        @QueryParam("state") state: String?
+    ): Response {
+        fun String.urlEncode() = URLEncoder.encode(this, UTF_8.name())
+
+        // We're not an open redirector (due to formatted target), so it's fine to do no validation here
+        // We can't use UriBuilder or the like, because these aren't real query params, they're for react-router
+        val uri = URI.create(
+            "${gitHubConfig.redirectHost.format(issuer)}/#/login?" +
+            "provider=gh&" +
+            "code=${code.nonNull("code").urlEncode()}&" +
+            "state=${state.nonNull("state").urlEncode()}"
+        )
         return Response.temporaryRedirect(uri).build()
     }
 
     @POST
     @Path("/gh/complete")
-    fun githubComplete(@QueryParam("code") code: String,
-                       @HeaderParam(HttpHeaders.HOST) host: String,
-                       @Suspended response: AsyncResponse) {
+    fun githubComplete(
+        @QueryParam("code") code: String?,
+        @QueryParam("state") state: String?,
+        @CookieParam(NONCE_COOKIE) nonceCookie: String?,
+        @HeaderParam(HttpHeaders.HOST) host: String,
+        @Suspended response: AsyncResponse
+    ) {
+        if (hash(state.nonNull("state")) != nonceCookie.nonNull(NONCE_COOKIE)) {
+            LOG.warn("Nonce hash mismatch")
+            response.resume(Response.status(UNAUTHORIZED).build())
+        }
+
         try {
-            val accessToken = gitHubOAuth.accessToken(
-                gitHubConfig.clientId,
-                gitHubConfig.clientSecret,
-                gitHubConfig.trampolineUrl,
-                code
-            ).accessToken
+            val accessToken = getAccessToken(code.nonNull("code"))
             val user = gitHubApi.user(accessToken)
             val organizations = gitHubApi.organizations(accessToken).map { org -> org.login }
 
@@ -84,19 +101,31 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
                     .build())
             }
             else {
-                response.resume(Response.status(401).build())
+                response.resume(Response.status(UNAUTHORIZED).build())
             }
         }
         catch (e: FeignException) {
             if (e.status() in 400..499) {
-                response.resume(Response.status(401).build())
+                response.resume(Response.status(UNAUTHORIZED).build())
             }
             else {
                 LOG.error("Exception communicating with GitHub", e)
-                response.resume(Response.status(500).build())
+                response.resume(Response.serverError().build())
             }
         }
     }
+
+    private fun getAccessToken(code: String): String {
+        return gitHubOAuth.accessToken(
+            gitHubConfig.clientId,
+            gitHubConfig.clientSecret,
+            gitHubConfig.trampolineUrl,
+            code
+        ).accessToken
+    }
+
+    // TODO - can we get DW to deal with this for QueryParam and CookieParam?
+    private fun <T> T?.nonNull(name: String): T = this ?: throw BadRequestException("Missing parameter: $name")
 
     private fun cookie(name: String, value: String, maxAgeSeconds: Int): NewCookie {
         return NewCookie(
@@ -114,6 +143,6 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
     private fun hash(token: String) = Hashing.sha1().hashString(token, Charsets.UTF_8).toString()
 
     companion object {
-        val NONCE_COOKIE = "nonce"
+        const val NONCE_COOKIE = "nonce"
     }
 }

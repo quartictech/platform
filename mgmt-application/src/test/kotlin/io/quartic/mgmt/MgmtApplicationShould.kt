@@ -15,7 +15,9 @@ import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
+import org.apache.http.client.utils.URIBuilder
 import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.http.message.BasicNameValuePair
 import org.glassfish.jersey.client.ClientProperties
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers
@@ -66,7 +68,6 @@ class MgmtApplicationShould {
         .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
         .withQueryParam("redirect_uri", equalTo("http://localhost:${RULE.localPort}/api/auth/gh/callback"))
 
-
     @Test
     fun generate_nonce_hash_in_cookie_that_matches_redirect_uri() {
         val response = target("").request().get()
@@ -79,15 +80,31 @@ class MgmtApplicationShould {
                 assertTrue(isSecure)
                 assertTrue(isHttpOnly)
                 assertThat(maxAge, equalTo(DEFAULT_MAX_AGE))
-                assertThat(value, Matchers.equalTo(hash(location.queryParams["state"]!!)))
+                    assertThat(value, Matchers.equalTo(hash(location.queryParams["state"]!!)))
             }
+        }
+
+        // TODO - check redirect location
+    }
+
+    @Test
+    fun trampoline_to_correct_subdomain_and_with_correctly_encoded_params() {
+        // Note the params will need URL-encoding
+        val response = target("/callback/noobs",
+            mapOf("code" to "abc%def", "state" to "uvw%xyz"))
+            .request().get()
+
+        with(response) {
+            assertThat(status, equalTo(TEMPORARY_REDIRECT.statusCode))
+            assertThat(location.toString(),
+                Matchers.equalTo("http://noobs:3010/#/login?provider=gh&code=abc%25def&state=uvw%25xyz")
+            )
         }
     }
 
     @Test
     fun generate_tokens_via_correct_header_and_cookie() {
-        val response = target("/complete")
-            .queryParam("code", CODE)
+        val response = target("/complete", mapOf("code" to CODE))
             .request()
             .post(null)
 
@@ -109,14 +126,11 @@ class MgmtApplicationShould {
             )
             assertThat(authStrategy.authenticate(tokens), equalTo(User("oliver")))
         }
-
-
     }
 
      @Test
     fun reject_bad_code() {
-        val response = target("/complete")
-            .queryParam("code", BAD_CODE)
+        val response = target("/complete", mapOf("code" to BAD_CODE))
             .request()
             .post(null)
 
@@ -130,8 +144,17 @@ class MgmtApplicationShould {
     private val URI.queryParams
         get() = URLEncodedUtils.parse(this, "UTF-8").associateBy({ it.name }, { it.value })
 
-    private fun target(suffix: String) = JerseyClientBuilder().build()
-        .target("http://localhost:${RULE.localPort}/api/auth/gh${suffix}")
+    // JerseyWebTarget uses UriBuilder under the hood, which is noob.  So we have to do this instead for query params.
+    private fun target(suffix: String, queryParams: Map<String, String> = emptyMap()) = JerseyClientBuilder().build()
+        .target(
+            URIBuilder()
+                .setScheme("http")
+                .setHost("localhost")
+                .setPort(RULE.localPort)
+                .setPath("/api/auth/gh${suffix}")
+                .setParameters(queryParams.map { BasicNameValuePair(it.key, it.value) })
+                .build()
+        )
         .property(ClientProperties.FOLLOW_REDIRECTS, false)
 
     private fun hash(token: String) = Hashing.sha1().hashString(token, Charsets.UTF_8).toString()
@@ -155,8 +178,8 @@ class MgmtApplicationShould {
             resourceFilePath("test.yml"),
             config("auth.type", "token"),
             config("auth.base64EncodedKey", KEY),
-            config("github.oauthApiRoot", {"http://localhost:${wireMockRule.port()}"}),
-            config("github.apiRoot", {"http://localhost:${wireMockRule.port()}"}),
+            config("github.oauthApiRoot", { "http://localhost:${wireMockRule.port()}" }),
+            config("github.apiRoot", { "http://localhost:${wireMockRule.port()}" }),
             config("github.clientId", CLIENT_ID),
             config("github.allowedOrganisations", "noobs"),
             config("github.clientSecret", CLIENT_SECRET)

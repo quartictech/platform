@@ -35,7 +35,7 @@ class AuthResourceShould {
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
 
         val asyncResponse = mock<AsyncResponse>()
-        resource.githubComplete("noob", "localhost", asyncResponse)
+        resource.githubComplete("noob", "TODO", "TODO", "localhost", asyncResponse)
 
         val captor = argumentCaptor<Response>()
         verify(asyncResponse, timeout(1000)).resume(captor.capture())
@@ -49,7 +49,7 @@ class AuthResourceShould {
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
 
         val asyncResponse = mock<AsyncResponse>()
-        resource.githubComplete("noob", "localhost", asyncResponse)
+        resource.githubComplete("noob", "TODO", "TODO", "localhost", asyncResponse)
 
         val captor = argumentCaptor<Response>()
         verify(asyncResponse, timeout(1000)).resume(captor.capture())

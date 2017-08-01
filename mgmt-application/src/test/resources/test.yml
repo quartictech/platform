@@ -10,9 +10,7 @@ github:
     - quartictech
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
 
-  redirectHost: "http://localhost:3010"
-  # in prod this should be
-  #redirectHost: "https://{}.quartic.io"
+  redirectHost: "http://%s:3010"
 
   scopes:
     - user
