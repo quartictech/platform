@@ -10,14 +10,20 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.test.assertThrows
+import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
+import org.apache.http.client.utils.URLEncodedUtils
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasKey
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.net.URI
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotAuthorizedException
 import javax.ws.rs.ServerErrorException
+import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
+import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
     private val tokenGenerator = mock<TokenGenerator>()
@@ -30,7 +36,7 @@ class AuthResourceShould {
             allowedOrganisations = setOf("quartictech"),
             trampolineUrl = "noob",
             scopes = listOf("user"),
-            redirectHost = "wat"
+            redirectHost = "http://%s.some.where"
         ),
         CookiesConfiguration(
             secure = true,
@@ -45,6 +51,48 @@ class AuthResourceShould {
         whenever(gitHub.user("sweet")).thenReturn(User("arlo"))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(Organization("quartictech")))
         whenever(tokenGenerator.generate("arlo", "localhost")).thenReturn(Tokens("jwt", "xsrf"))
+    }
+
+    @Test
+    fun generate_nonce_hash_in_cookie_that_matches_redirect_uri() {
+        val response = resource.github("yeah")
+
+        with(response) {
+            assertThat(status, equalTo(TEMPORARY_REDIRECT.statusCode))
+            assertThat(cookies, hasKey(NONCE_COOKIE))
+
+            with(cookies[NONCE_COOKIE]!!) {
+                assertTrue(isSecure)
+                assertTrue(isHttpOnly)
+                assertThat(maxAge, equalTo(DEFAULT_MAX_AGE))
+                assertThat(value, equalTo(hash(location.queryParams["state"]!!)))
+            }
+        }
+    }
+
+    private val URI.queryParams
+        get() = URLEncodedUtils.parse(this, "UTF-8").associateBy({ it.name }, { it.value })
+
+
+    @Test
+    fun fail_to_trampoline_if_params_missing() {
+        assertThrows<BadRequestException> {
+            resource.githubCallback("noobs", null, "xyz")
+        }
+
+        assertThrows<BadRequestException> {
+            resource.githubCallback("noobs", "abc", null)
+        }
+    }
+
+    @Test
+    fun trampoline_to_correct_subdomain_and_with_correctly_encoded_params() {
+        // Note the params will need URL-encoding
+        val response = resource.githubCallback("noobs", "abc%def", "uvw%xyz")
+        with(response) {
+            assertThat(status, equalTo(TEMPORARY_REDIRECT.statusCode))
+            assertThat(location.toString(), equalTo("http://noobs.some.where/#/login?provider=gh&code=abc%25def&state=uvw%25xyz"))
+        }
     }
 
     @Test

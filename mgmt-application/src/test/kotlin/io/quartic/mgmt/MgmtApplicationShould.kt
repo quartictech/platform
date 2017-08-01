@@ -16,21 +16,16 @@ import io.quartic.common.auth.User
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
 import org.apache.http.client.utils.URIBuilder
-import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.message.BasicNameValuePair
 import org.glassfish.jersey.client.ClientProperties
 import org.glassfish.jersey.client.JerseyClientBuilder
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
-import java.net.URI
 import java.util.*
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
-import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 import javax.ws.rs.core.Response.Status.UNAUTHORIZED
 
 class MgmtApplicationShould {
@@ -45,7 +40,7 @@ class MgmtApplicationShould {
         stubFor(postForAccessToken()
             .withQueryParam("code", equalTo(BAD_CODE))
             .willReturn(aResponse()
-                .withStatus(401)
+                .withStatus(200)    // Yes, GitHub returns 200 on error
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withBody(OBJECT_MAPPER.writeValueAsString(mapOf("error" to "noob")))))
 
@@ -68,40 +63,6 @@ class MgmtApplicationShould {
         .withQueryParam("client_id", equalTo(CLIENT_ID))
         .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
         .withQueryParam("redirect_uri", equalTo("http://localhost:${RULE.localPort}/api/auth/gh/callback"))
-
-    @Test
-    fun generate_nonce_hash_in_cookie_that_matches_redirect_uri() {
-        val response = target("").request().get()
-
-        with(response) {
-            assertThat(status, equalTo(TEMPORARY_REDIRECT.statusCode))
-            assertThat(cookies, hasKey(NONCE_COOKIE))
-
-            with(cookies[NONCE_COOKIE]!!) {
-                assertTrue(isSecure)
-                assertTrue(isHttpOnly)
-                assertThat(maxAge, equalTo(DEFAULT_MAX_AGE))
-                    assertThat(value, Matchers.equalTo(hash(location.queryParams["state"]!!)))
-            }
-        }
-
-        // TODO - check redirect location
-    }
-
-    @Test
-    fun trampoline_to_correct_subdomain_and_with_correctly_encoded_params() {
-        // Note the params will need URL-encoding
-        val response = target("/callback/noobs",
-            mapOf("code" to "abc%def", "state" to "uvw%xyz"))
-            .request().get()
-
-        with(response) {
-            assertThat(status, equalTo(TEMPORARY_REDIRECT.statusCode))
-            assertThat(location.toString(),
-                Matchers.equalTo("http://noobs:3010/#/login?provider=gh&code=abc%25def&state=uvw%25xyz")
-            )
-        }
-    }
 
     @Test
     fun generate_tokens_via_correct_header_and_cookie() {
@@ -134,7 +95,7 @@ class MgmtApplicationShould {
         }
     }
 
-     @Test
+    @Test
     fun reject_bad_code() {
         val response = target("/complete",
             mapOf(
@@ -151,9 +112,6 @@ class MgmtApplicationShould {
             assertThat(headers, not(hasKey(XSRF_TOKEN_HEADER)))
         }
     }
-
-    private val URI.queryParams
-        get() = URLEncodedUtils.parse(this, "UTF-8").associateBy({ it.name }, { it.value })
 
     // JerseyWebTarget uses UriBuilder under the hood, which is noob.  So we have to do this instead for query params.
     private fun target(suffix: String, queryParams: Map<String, String> = emptyMap()) = JerseyClientBuilder().build()

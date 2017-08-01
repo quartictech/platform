@@ -35,7 +35,7 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
 
     @GET
     @Path("/gh")
-    fun github(@HeaderParam(HttpHeaders.HOST) host: String): Response? {
+    fun github(@HeaderParam(HttpHeaders.HOST) host: String): Response {
         val nonce = nonceGenerator.get().uid
 
         val uri = oauthUrl(
