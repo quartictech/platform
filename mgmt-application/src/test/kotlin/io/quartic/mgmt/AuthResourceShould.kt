@@ -28,11 +28,12 @@ class AuthResourceShould {
         ),
         tokenGenerator, gitHubOAuth, gitHub
     )
+    private val accessToken = AccessToken("sweet", null, null)
 
     @Test
     fun reject_non_whitelisted_organisations() {
         whenever(gitHub.organizations(any())).thenReturn(listOf(Organization("noob")))
-        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
+        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(accessToken)
 
         val asyncResponse = mock<AsyncResponse>()
         resource.githubComplete("noob", "TODO", "TODO", "localhost", asyncResponse)
@@ -46,7 +47,7 @@ class AuthResourceShould {
     fun accept_whitelisted_organisations() {
         whenever(gitHub.organizations(any())).thenReturn(listOf(Organization("quartictech")))
         whenever(gitHub.user(any())).thenReturn(User("anoob"))
-        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
+        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(accessToken)
 
         val asyncResponse = mock<AsyncResponse>()
         resource.githubComplete("noob", "TODO", "TODO", "localhost", asyncResponse)
@@ -59,5 +60,4 @@ class AuthResourceShould {
     companion object {
         private val KEY = "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="
     }
-
 }

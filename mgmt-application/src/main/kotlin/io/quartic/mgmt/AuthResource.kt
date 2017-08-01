@@ -90,39 +90,48 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
 
         try {
             val accessToken = getAccessToken(code.nonNull("code"))
-            val user = gitHubApi.user(accessToken)
-            val organizations = gitHubApi.organizations(accessToken).map { org -> org.login }
 
-            if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
-                val tokens = tokenGenerator.generate(user.login, getIssuer(host))
-                response.resume(Response.ok()
-                    .header(XSRF_TOKEN_HEADER, tokens.xsrf)
-                    .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
-                    .build())
-            }
-            else {
-                response.resume(Response.status(UNAUTHORIZED).build())
+            if (accessToken.accessToken == null) {
+                LOG.error("Exception while authorising against GitHub: ${accessToken.error} - ${accessToken.errorDescription}")
+                response.resume(Response.status(401).build())
+                return
+            } else {
+                val user = gitHubApi.user(accessToken.accessToken)
+                val organizations = gitHubApi.organizations(accessToken.accessToken).map { org -> org.login }
+
+                if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
+                    val tokens = tokenGenerator.generate(user.login, getIssuer(host))
+                    response.resume(Response.ok()
+                        .header(XSRF_TOKEN_HEADER, tokens.xsrf)
+                        .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
+                        .build())
+                } else {
+                    LOG.info("user ${user} denied access")
+                    response.resume(Response.status(401).build())
+                }
             }
         }
         catch (e: FeignException) {
+            LOG.error("Exception communicating with GitHub", e)
             if (e.status() in 400..499) {
                 response.resume(Response.status(UNAUTHORIZED).build())
             }
             else {
-                LOG.error("Exception communicating with GitHub", e)
                 response.resume(Response.serverError().build())
             }
         }
+        catch (e: Exception) {
+            LOG.error("Exception while authenticating", e)
+            response.resume(Response.status(500).build())
+        }
     }
 
-    private fun getAccessToken(code: String): String {
-        return gitHubOAuth.accessToken(
-            gitHubConfig.clientId,
-            gitHubConfig.clientSecret,
-            gitHubConfig.trampolineUrl,
-            code
-        ).accessToken
-    }
+    private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
+        gitHubConfig.clientId,
+        gitHubConfig.clientSecret,
+        gitHubConfig.trampolineUrl,
+        code
+    )
 
     // TODO - can we get DW to deal with this for QueryParam and CookieParam?
     private fun <T> T?.nonNull(name: String): T = this ?: throw BadRequestException("Missing parameter: $name")

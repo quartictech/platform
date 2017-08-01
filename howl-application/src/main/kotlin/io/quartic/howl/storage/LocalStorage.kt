@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.storage.Storage.PutResult
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -12,7 +13,9 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
+class LocalStorage(private val config: Config) : Storage {
+    data class Config(val dataDir: String = "./data") : StorageConfig
+
     private val lock = ReentrantReadWriteLock()
     private val versionCounter = AtomicLong(System.currentTimeMillis())
 
@@ -36,7 +39,7 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         return null
     }
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
         coords.path.toFile().mkdirs()
         var tempFile: File? = null
         val version = versionCounter.incrementAndGet()
@@ -50,7 +53,7 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
                 tempFile.delete()
             }
         }
-        return version
+        return PutResult(version)
     }
 
     private fun getVersionPath(coords: StorageCoords, version: Long?): Path? {
@@ -68,7 +71,7 @@ class DiskStorageBackend(private val rootPath: Path) : StorageBackend {
         return fileNames.map { it -> parseLong(it) }.max()
     }
 
-    private val StorageCoords.path get() = rootPath.resolve(Paths.get(targetNamespace, identityNamespace, objectName))
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(Paths.get(targetNamespace, identityNamespace, objectName))
 
     private fun renameFile(from: Path, to: Path) {
         try {

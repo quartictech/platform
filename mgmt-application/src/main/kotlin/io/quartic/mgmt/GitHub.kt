@@ -23,7 +23,10 @@ data class User(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
     @JsonProperty("access_token")
-    val accessToken: String
+    val accessToken: String?,
+    val error: String?,
+    @JsonProperty("error_description")
+    val errorDescription: String?
 )
 
 interface GitHubOAuth {
@@ -51,14 +54,12 @@ fun oauthUrl(
     redirectUri: String,
     scopes: List<String>,
     state: String
-): URI {
-    return URIBuilder(oauthRoot)
-        .setPath("/login/oauth/authorize")
-        .setParameter("client_id", clientId)
-        .setParameter("redirect_uri", redirectUri)
-        .setParameter("scopes", scopes.joinToString(" "))
-        .setParameter("state", state)
-        .build()
-}
+): URI = URIBuilder(oauthRoot)
+    .setPath("/login/oauth/authorize")
+    .setParameter("client_id", clientId)
+    .setParameter("redirect_uri", redirectUri)
+    .setParameter("scope", scopes.joinToString(" "))
+    .setParameter("state", state)
+    .build()
 
 

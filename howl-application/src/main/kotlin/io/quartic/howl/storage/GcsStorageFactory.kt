@@ -8,12 +8,13 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
+import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
-class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
-    private val storage = buildService()
+class GcsStorageFactory {
+    data class Config(val bucket: String) : StorageConfig
 
-    private fun buildService(): Storage {
+    private val storage by lazy {
         val transport = GoogleNetHttpTransport.newTrustedTransport()
         val jsonFactory = JacksonFactory()
         var credential = GoogleCredential.getApplicationDefault(transport, jsonFactory)
@@ -26,39 +27,38 @@ class GcsStorageBackend(private val bucketSuffix: String) : StorageBackend {
             credential = credential.createScoped(StorageScopes.all())
         }
 
-        return Storage.Builder(transport, jsonFactory, credential)
+        Storage.Builder(transport, jsonFactory, credential)
                 .setApplicationName("Quartic platform")
                 .build()
     }
 
-    override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-        val get = storage.objects().get(coords.bucket, coords.path)
-        get.generation = version
+    fun create(config: Config) = object : io.quartic.howl.storage.Storage {
+        override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
+            val get = storage.objects().get(config.bucket, coords.path)
+            get.generation = version
 
-        try {
-            val httpResponse = get.executeMedia()
-            val content = httpResponse.content
-            if (content != null) {
-                return InputStreamWithContentType(httpResponse.contentType, content)
+            try {
+                val httpResponse = get.executeMedia()
+                val content = httpResponse.content
+                if (content != null) {
+                    return InputStreamWithContentType(httpResponse.contentType, content)
+                }
+            } catch (e: GoogleJsonResponseException) {
+                if (e.statusCode != 404) {
+                    throw e
+                }
             }
-        } catch (e: GoogleJsonResponseException) {
-            if (e.statusCode != 404) {
-                throw e
-            }
+            return null
         }
-        return null
 
+        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
+                storage.objects().insert(
+                        config.bucket,
+                        StorageObject().setName(coords.path),
+                        InputStreamContent(contentType, inputStream)
+                ).execute().generation)
     }
 
-    override fun putData(coords: StorageCoords, contentType: String?, inputStream: InputStream): Long? {
-        return storage.objects().insert(
-                coords.bucket,
-                StorageObject().setName(coords.path),
-                InputStreamContent(contentType, inputStream)
-        ).execute().generation
-    }
-
-    private val StorageCoords.bucket get() = "$targetNamespace.$bucketSuffix"
     private val StorageCoords.path get() = "$identityNamespace/$objectName"
 }
 
