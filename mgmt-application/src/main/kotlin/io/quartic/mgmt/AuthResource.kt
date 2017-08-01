@@ -45,38 +45,49 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
                        @HeaderParam(HttpHeaders.HOST) host: String,
                        @javax.ws.rs.container.Suspended response: javax.ws.rs.container.AsyncResponse) {
         try {
-            val accessToken = gitHubOAuth.accessToken(gitHubConfig.clientId, gitHubConfig.clientSecret, gitHubConfig.trampolineUrl, code).accessToken
-            val user = gitHubApi.user(accessToken)
-            val organizations = gitHubApi.organizations(accessToken).map { org -> org.login }
+            val accessToken = gitHubOAuth.accessToken(gitHubConfig.clientId, gitHubConfig.clientSecret, gitHubConfig.trampolineUrl, code)
 
-            if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
-                val tokens = tokenGenerator.generate(user.login, getIssuer(host))
-                response.resume(Response.ok()
-                    .header(TokenAuthStrategy.XSRF_TOKEN_HEADER, tokens.xsrf)
-                    .cookie(NewCookie(
-                        TokenAuthStrategy.TOKEN_COOKIE,
-                        tokens.jwt,
-                        "/",
-                        null,
-                        null,
-                        gitHubConfig.cookieMaxAgeSeconds,
-                        gitHubConfig.useSecureCookies, // secure
-                        true // httponly
-                    ))
-                    .build())
-            }
-            else {
+            if (accessToken.accessToken == null) {
+                LOG.error("Exception while oauthing: {} - {}", accessToken.error, accessToken.errorDescription)
                 response.resume(Response.status(401).build())
+                return
+            } else {
+                val user = gitHubApi.user(accessToken.accessToken)
+                val organizations = gitHubApi.organizations(accessToken.accessToken).map { org -> org.login }
+
+                if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
+                    val tokens = tokenGenerator.generate(user.login, getIssuer(host))
+                    response.resume(Response.ok()
+                        .header(TokenAuthStrategy.XSRF_TOKEN_HEADER, tokens.xsrf)
+                        .cookie(NewCookie(
+                            TokenAuthStrategy.TOKEN_COOKIE,
+                            tokens.jwt,
+                            "/",
+                            null,
+                            null,
+                            gitHubConfig.cookieMaxAgeSeconds,
+                            gitHubConfig.useSecureCookies, // secure
+                            true // httponly
+                        ))
+                        .build())
+                } else {
+                    LOG.info("user ${user} denied access")
+                    response.resume(Response.status(401).build())
+                }
             }
         }
         catch (e: FeignException) {
+            LOG.error("Exception communicating with GitHub", e)
             if (e.status() in 400..499) {
                 response.resume(Response.status(401).build())
             }
             else {
-                LOG.error("Exception communicating with GitHub", e)
                 response.resume(Response.status(500).build())
             }
+        }
+        catch (e: Exception) {
+            LOG.error("Exception while authenticating", e)
+            response.resume(Response.status(500).build())
         }
     }
 }

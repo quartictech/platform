@@ -29,11 +29,13 @@ class AuthResourceShould {
     private val gitHub = mock<GitHub>()
     private val resource = AuthResource(gitHubConfiguration, tokenGenerator, gitHubOAuth, gitHub)
 
+    fun accessToken() = AccessToken("sweet", null, null)
+
 
     @Test
     fun reject_non_whitelisted_organisations() {
         whenever(gitHub.organizations(any())).thenReturn(listOf(Organization("noob")))
-        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
+        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(accessToken())
         val asyncResponse = mock<AsyncResponse>()
         resource.githubComplete("noob", "localhost", asyncResponse)
         val argumentCaptor = ArgumentCaptor.forClass(Response::class.java)
@@ -45,7 +47,7 @@ class AuthResourceShould {
     fun accept_whitelisted_organisations() {
         whenever(gitHub.organizations(any())).thenReturn(listOf(Organization("quartictech")))
         whenever(gitHub.user(any())).thenReturn(User("anoob"))
-        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet"))
+        whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(accessToken())
         val asyncResponse = mock<AsyncResponse>()
         resource.githubComplete("noob", "localhost", asyncResponse)
         val argumentCaptor = ArgumentCaptor.forClass(Response::class.java)
