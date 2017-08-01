@@ -27,7 +27,7 @@ function* checkedApiCall(apiFunction, ...args): SagaIterator {
     yield res;
   }
 
-  if (res.err && res.err.message === "Unauthorized") {
+  if (res.err && res.err.status === 401) {
     yield put(actions.logout());
   }
 

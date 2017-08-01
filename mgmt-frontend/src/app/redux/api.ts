@@ -4,12 +4,22 @@ import { IDatasetMetadata, IDatasetCoords } from "../models";
 
 import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "../helpers/Utils";
 
+class ApiError extends Error {
+  status: number;
+  constructor(m: string, status: number) {
+    super(m);
+    // apparently necessary in TS. See: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md
+    Object.setPrototypeOf(this, ApiError.prototype);
+    this.status = status;
+  }
+}
+
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
   }
 
-  const error = new Error(response.statusText);
+  const error = new ApiError(response.statusText, response.status);
   throw error;
 }
 
