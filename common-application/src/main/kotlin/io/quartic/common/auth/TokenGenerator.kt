@@ -5,12 +5,12 @@ import com.google.common.hash.Hashing
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.TextCodec.BASE64
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.logging.logger
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.UidGenerator
-import io.quartic.common.uid.randomGenerator
 import io.quartic.common.uid.secureRandomGenerator
 import java.time.Clock
 import java.time.temporal.TemporalAmount
@@ -31,16 +31,17 @@ class TokenGenerator(
             "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 
-    fun generate(user: String, issuer: String): Tokens {
+    fun generate(user: User, issuer: String): Tokens {
         LOG.info("Generated JWT for '$user@$issuer'")
         val xsrf = xsrfTokenGenerator.get().uid
         // Currently no need for aud - only one audience, and no need for jti as the custom xth claim suffices as nonce
         return Tokens(
             Jwts.builder()
                 .signWith(ALGORITHM, base64EncodedKey)
-                .setSubject(user)
+                .setSubject(user.id)
                 .setIssuer(issuer)
                 .setExpiration(Date.from(expiration()))
+                .claim(CUSTOMER_ID_CLAIM, user.customerId)
                 .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString(xsrf, Charsets.UTF_8).toString())
                 .compact(),
             xsrf

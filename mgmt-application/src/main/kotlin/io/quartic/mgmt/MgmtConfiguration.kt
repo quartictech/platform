@@ -10,7 +10,6 @@ data class GithubConfiguration(
     val apiRoot: String = "https://api.github.com",
     val clientId: String,
     val clientSecret: String,
-    val allowedOrganisations: Set<String>,
     val trampolineUrl: String,
     val scopes: List<String>,
     val redirectHost: String
@@ -24,6 +23,7 @@ data class CookiesConfiguration(
 data class MgmtConfiguration(
     val catalogueUrl: String,
     val howlUrl: String,
+    val registryUrl: String,
     val authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap(),
     var github: GithubConfiguration,
     val cookies: CookiesConfiguration,

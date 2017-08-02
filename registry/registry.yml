@@ -1,0 +1,16 @@
+customers:
+  - id: 111
+    name: IBM
+    subdomain: ibm
+    namespace: ibm
+    githubOrgId: 111
+    githubRepoId: 555
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8190
+  adminConnectors:
+    - type: http
+      port: 8191

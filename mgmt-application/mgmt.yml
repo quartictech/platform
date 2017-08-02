@@ -1,5 +1,6 @@
 catalogueUrl: http://localhost:8090/api
 howlUrl: http://localhost:8120/api
+registryUrl: http://localhost:8190/api
 
 authorisedNamespaces:
   default: ["*"]
@@ -8,8 +9,6 @@ authorisedNamespaces:
 github:
   clientId: "af4a5c01c7850fa04758"
   clientSecret: "6d1a5dfdcd0795fd96a9aecc6ee04fc188340583"
-  allowedOrganisations:
-    - quartictech
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
 
   redirectHost: "http://localhost:3010"

@@ -23,6 +23,7 @@ dependencies {
     compile "io.github.openfeign:feign-jackson:${versions.feign}"
     compile "io.github.openfeign:feign-slf4j:${versions.feign}"
     compile "commons-io:commons-io:2.5"
+    compile libraries.commonsCodec
     compile "com.squareup.okhttp3:okhttp:3.4.2"
 
     testCompile project(":common-test")

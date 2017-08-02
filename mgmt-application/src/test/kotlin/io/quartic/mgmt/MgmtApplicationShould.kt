@@ -14,6 +14,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URIBuilder
 import org.glassfish.jersey.client.ClientProperties
 import org.glassfish.jersey.client.JerseyClientBuilder
@@ -31,102 +32,126 @@ import javax.ws.rs.core.Response.Status.Family.*
 
 class MgmtApplicationShould {
     init {
-        stubFor(get(urlPathEqualTo("/login/oauth/authorize"))
-            .withQueryParam("client_id", equalTo(CLIENT_ID))
-            .withQueryParam("redirect_uri", matching("http://localhost:${RULE.localPort}/api/auth/gh/callback/.*"))
-            .withQueryParam("scope", equalTo("user"))
-            .withQueryParam("state", matching(".*"))
-            .willReturn(aResponse()
-                .withStatus(302)
-                .withHeader(LOCATION, "{{request.query.redirect_uri}}?code=$CODE&state={{request.query.state}}")
-                .withTransformers("response-template")
-            ))
+        with(github) {
+            stubFor(get(urlPathEqualTo("/login/oauth/authorize"))
+                .withQueryParam("client_id", equalTo(CLIENT_ID))
+                .withQueryParam("redirect_uri", matching("http://localhost:${APP.localPort}/api/auth/gh/callback/.*"))
+                .withQueryParam("scope", equalTo("user"))
+                .withQueryParam("state", matching(".*"))
+                .willReturn(aResponse()
+                    .withStatus(302)
+                    .withHeader(LOCATION, "{{request.query.redirect_uri}}?code=$CODE&state={{request.query.state}}")
+                    .withTransformers("response-template")
+                ))
 
-        stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
-            .withQueryParam("client_id", equalTo(CLIENT_ID))
-            .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
-            .withQueryParam("redirect_uri", equalTo("http://localhost:${RULE.localPort}/api/auth/gh/callback"))
-            .withQueryParam("code", equalTo(CODE))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withBody(OBJECT_MAPPER.writeValueAsString(mapOf("access_token" to ACCESS_TOKEN)))))
+            stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
+                .withQueryParam("client_id", equalTo(CLIENT_ID))
+                .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
+                .withQueryParam("redirect_uri", equalTo("http://localhost:${APP.localPort}/api/auth/gh/callback"))
+                .withQueryParam("code", equalTo(CODE))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(mapOf("access_token" to ACCESS_TOKEN)))))
 
-        stubFor(get(urlPathEqualTo("/user"))
-            .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withBody(OBJECT_MAPPER.writeValueAsString(io.quartic.mgmt.User("oliver")))))
+            stubFor(get(urlPathEqualTo("/user"))
+                .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(io.quartic.mgmt.GitHubUser(1234, "oliver")))))
 
-        stubFor(get(urlPathEqualTo("/user/orgs"))
-            .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withBody(OBJECT_MAPPER.writeValueAsString(listOf(Organization("noobs"))))))
+            stubFor(get(urlPathEqualTo("/user/orgs"))
+                .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
+        }
+
+        with(registry) {
+            stubFor(get(urlPathEqualTo("/api/customers"))
+                .withQueryParam("subdomain", equalTo("localhost"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(Customer(
+                        id = 4321,
+                        githubOrgId = 5678,
+                        githubRepoId = 8765,
+                        name = "localhost",
+                        subdomain = "localhost",
+                        namespace = "localhost"
+                    )))
+                )
+            )
+        }
     }
 
-    private val client = JerseyClientBuilder().build()
-        .property(ClientProperties.FOLLOW_REDIRECTS, false)
+    private class Browser(var location: URI) {
+        private val client = JerseyClientBuilder().build()
+            .property(ClientProperties.FOLLOW_REDIRECTS, false)
 
-    private val cookies = mutableMapOf<String, String>()
+        private val cookies = mutableMapOf<String, String>()
 
-    private var location = URI("http://localhost:${RULE.localPort}/api/auth/gh")
+        fun get() = request { get() }
 
-    private fun request(): JerseyInvocation.Builder {
-        val builder = client.target(location).request()
-        cookies.forEach { builder.cookie(it.key, it.value) }
-        return builder
-    }
+        fun post() = request { post(null) }
 
-    private fun updateCookies(response: Response) {
-        response.cookies.forEach { cookies[it.key] = it.value.value }
-    }
+        private fun request(verb: JerseyInvocation.Builder.() -> Response): Response {
+            val builder = client.target(location).request()
+            cookies.forEach { builder.cookie(it.key, it.value) }
+            val response = builder.verb()
 
-    private fun updateLocation(response: Response) {
-        location = response.location
-    }
+            updateCookies(response)
+            if (familyOf(response.status) == REDIRECTION) {
+                updateLocation(response)
+            }
+            return response
+        }
 
-    private fun handleRedirectFrom(response: Response) {
-        assertThat(familyOf(response.status), equalTo(REDIRECTION))
-        updateCookies(response)
-        updateLocation(response)
+        private fun updateCookies(response: Response) {
+            response.cookies.forEach { cookies[it.key] = it.value.value }
+        }
+
+        private fun updateLocation(response: Response) {
+            location = response.location
+        }
     }
 
     @Test
     fun support_ete_oauth_flow() {
+        val browser = Browser(URI("http://localhost:${APP.localPort}/api/auth/gh"))
+
         // Begin process
-        handleRedirectFrom(request().get())
+        browser.get()
 
         // Query GitHub auth - the stubbing emulates the process which ends in browser being sent to trampoline
-        handleRedirectFrom(request().get())
+        browser.get()
 
         // Hit trampoline
-        handleRedirectFrom(request().get())
+        browser.get()
 
         // Extract fragment query params
-        val match = ".*code=(.*)&state=(.*)".toRegex().matchEntire(location.fragment)!!
+        val match = ".*code=(.*)&state=(.*)".toRegex().matchEntire(browser.location.fragment)!!
         val code = match.groups[1]!!.value
         val state = match.groups[2]!!.value
 
         // Finish auth
-        location = URIBuilder("http://localhost:${RULE.localPort}/api/auth/gh/complete")
+        browser.location = URIBuilder("http://localhost:${APP.localPort}/api/auth/gh/complete")
             .setParameter("code", code)
             .setParameter("state", state)
             .build()
-        val response = request().post(null)
 
-        with(response) {
-            assertThat(familyOf(response.status), equalTo(SUCCESSFUL))
+        with(browser.post()) {
+            assertThat(familyOf(status), equalTo(SUCCESSFUL))
 
             val authStrategy = TokenAuthStrategy(TokenAuthConfiguration(KEY))
             val tokens = Tokens(
-                getCookies()[TOKEN_COOKIE]!!.value,
+                cookies[TOKEN_COOKIE]!!.value,
                 headers[XSRF_TOKEN_HEADER]!!.last() as String,
                 "localhost"
             )
-            assertThat(authStrategy.authenticate(tokens), equalTo(User("oliver")))
+            assertThat(authStrategy.authenticate(tokens), equalTo(User(1234, 4321)))
         }
     }
 
@@ -139,24 +164,28 @@ class MgmtApplicationShould {
 
         @JvmField
         @ClassRule
-        var wireMockRule = WireMockRule(wireMockConfig()
+        var github = WireMockRule(wireMockConfig()
             .dynamicPort()
             .extensions(ResponseTemplateTransformer(false))
         )
 
+        @JvmField
+        @ClassRule
+        var registry = WireMockRule(wireMockConfig().dynamicPort())
+
         @ClassRule
         @JvmField
-        val RULE = DropwizardAppRule<MgmtConfiguration>(
+        val APP = DropwizardAppRule<MgmtConfiguration>(
             MgmtApplication::class.java,
             resourceFilePath("test.yml"),
             config("auth.type", "token"),
             config("auth.base64EncodedKey", KEY),
-            config("github.oauthApiRoot", { "http://localhost:${wireMockRule.port()}" }),
-            config("github.apiRoot", { "http://localhost:${wireMockRule.port()}" }),
+            config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
+            config("github.apiRoot", { "http://localhost:${github.port()}" }),
             config("github.clientId", CLIENT_ID),
-            config("github.allowedOrganisations", "noobs"),
             config("github.clientSecret", CLIENT_SECRET),
-            config("github.redirectHost", { "http://localhost:${wireMockRule.port()}" })
+            config("github.redirectHost", { "http://localhost:${github.port()}" }),
+            config("registryUrl", { "http://localhost:${registry.port()}/api" })
         )
     }
 }

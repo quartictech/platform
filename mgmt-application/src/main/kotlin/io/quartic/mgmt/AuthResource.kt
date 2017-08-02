@@ -1,15 +1,16 @@
 package io.quartic.mgmt
 
 import com.google.common.hash.Hashing
-import feign.FeignException
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
-import io.quartic.common.auth.getIssuer
+import io.quartic.common.auth.User
+import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.client.client
 import io.quartic.common.logging.logger
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
+import io.quartic.registry.api.RegistryService
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -21,12 +22,14 @@ import javax.ws.rs.core.Response
 
 
 @Path("/auth")
-class AuthResource(private val gitHubConfig: GithubConfiguration,
-                   private val cookiesConfig: CookiesConfiguration,
-                   private val tokenGenerator: TokenGenerator,
-                   private val gitHubOAuth: GitHubOAuth = client<GitHubOAuth>(AuthResource::class.java, gitHubConfig.oauthApiRoot),
-                   private val gitHubApi: GitHub = client<GitHub>(AuthResource::class.java, gitHubConfig.apiRoot)) {
-
+class AuthResource(
+    private val gitHubConfig: GithubConfiguration,
+    private val cookiesConfig: CookiesConfiguration,
+    private val tokenGenerator: TokenGenerator,
+    private val registry: RegistryService,
+    private val gitHubOAuth: GitHubOAuth = client<GitHubOAuth>(AuthResource::class.java, gitHubConfig.oauthApiRoot),
+    private val gitHubApi: GitHub = client<GitHub>(AuthResource::class.java, gitHubConfig.apiRoot)
+) {
     class NonceId(uid: String) : Uid(uid)
 
     private val LOG by logger()
@@ -41,7 +44,7 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
         val uri = oauthUrl(
             gitHubConfig.oauthApiRoot,
             gitHubConfig.clientId,
-            "${gitHubConfig.trampolineUrl}/${getIssuer(host)}",
+            "${gitHubConfig.trampolineUrl}/${extractSubdomain(host)}",
             gitHubConfig.scopes,
             nonce
         )
@@ -84,28 +87,37 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
             throw NotAuthorizedException("Authorisation failure")
         }
 
+        val accessToken = callServerOrThrow { getAccessToken(code.nonNull("code")) }
+        if (accessToken.accessToken == null) {
+            LOG.error("Error while authorising against GitHub: ${accessToken.error} - ${accessToken.errorDescription}")
+            throw NotAuthorizedException("GitHub authorisation failure")
+        }
+
+        val ghUser = callServerOrThrow { gitHubApi.user(accessToken.accessToken) }
+        val ghOrgs = callServerOrThrow { gitHubApi.organizations(accessToken.accessToken) }
+
+        val subdomain = extractSubdomain(host)
+        val customer = callServerOrThrow { registry.getCustomer(subdomain) } // Should never be null
+
+        if (ghOrgs.any { it.id == customer.githubOrgId }) {
+            val user = User(ghUser.id, customer.id) // TODO - using the GH ID as user ID is wrong in the long run
+            val tokens = tokenGenerator.generate(user, subdomain)
+            return Response.ok()
+                .header(XSRF_TOKEN_HEADER, tokens.xsrf)
+                .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
+                .build()
+        } else {
+            throw NotAuthorizedException("User doesn't belong to organisation")
+        }
+    }
+
+    private fun <R> callServerOrThrow(block: () -> R): R {
         try {
-            val accessToken = getAccessToken(code.nonNull("code"))
-
-            if (accessToken.accessToken == null) {
-                LOG.error("Exception while authorising against GitHub: ${accessToken.error} - ${accessToken.errorDescription}")
-                throw NotAuthorizedException("GitHub authorisation failure")
-            } else {
-                val user = gitHubApi.user(accessToken.accessToken)
-                val organizations = gitHubApi.organizations(accessToken.accessToken).map { org -> org.login }
-
-                if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
-                    val tokens = tokenGenerator.generate(user.login, getIssuer(host))
-                    return Response.ok()
-                        .header(XSRF_TOKEN_HEADER, tokens.xsrf)
-                        .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
-                        .build()
-                } else {
-                    throw NotAuthorizedException("User doesn't belong to organisation")
-                }
-            }
-        } catch (e: FeignException) {
-            throw ServerErrorException("Exception communicating with GitHub", 500, e)
+            return block()
+        } catch (wba: WebApplicationException) {
+            throw wba
+        } catch (e: Exception) {
+            throw ServerErrorException("Inter-service communication error", 500, e)
         }
     }
 
