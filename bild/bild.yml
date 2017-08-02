@@ -4,12 +4,11 @@ template:
   spec:
     template:
       spec:
-        serviceAccountName: bild-robot
         automountServiceAccountToken: false
         containers:
           - name: jupyter
             image: eu.gcr.io/quartictech/jupyter:53
-            command: ["sleep", "5"]
+            command: ["echo", "Hello World"]
 #            volumeMounts:
 #              - name: config-volume
 #                mountPath: /setup
@@ -28,3 +27,4 @@ server:
   adminConnectors:
     - type: http
       port: 8171
+
