@@ -14,6 +14,7 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":howl-api")
+    compile project(":registry-api")
     if (System.env.SKIP_FRONTEND == null) {
         compile project(":mgmt-frontend")
     }

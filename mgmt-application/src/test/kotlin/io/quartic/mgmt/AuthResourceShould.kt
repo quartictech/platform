@@ -2,6 +2,7 @@ package io.quartic.mgmt
 
 import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import feign.FeignException
@@ -9,8 +10,11 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
+import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
 import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
+import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasKey
@@ -27,13 +31,13 @@ import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
     private val tokenGenerator = mock<TokenGenerator>()
+    private val registry = mock<RegistryService>()
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
     private val resource = AuthResource(
         GithubConfiguration(
             clientId = "foo",
             clientSecret = "bar",
-            allowedOrganisations = setOf("quartictech"),
             trampolineUrl = "noob",
             scopes = listOf("user"),
             redirectHost = "http://%s.some.where"
@@ -42,15 +46,23 @@ class AuthResourceShould {
             secure = true,
             maxAgeSeconds = 30
         ),
-        tokenGenerator, gitHubOAuth, gitHub
+        tokenGenerator,
+        registry,
+        gitHubOAuth,
+        gitHub
     )
 
     @Before
     fun before() {
+        val customer = mock<Customer> {
+            on { id } doReturn 6666
+            on { githubOrgId } doReturn 5678
+        }
+        whenever(registry.getCustomer(any())).thenReturn(customer)
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
-        whenever(gitHub.user("sweet")).thenReturn(User("arlo"))
-        whenever(gitHub.organizations("sweet")).thenReturn(listOf(Organization("quartictech")))
-        whenever(tokenGenerator.generate("arlo", "localhost")).thenReturn(Tokens("jwt", "xsrf"))
+        whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo"))
+        whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
+        whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
     @Test
@@ -128,7 +140,7 @@ class AuthResourceShould {
 
     @Test
     fun reject_if_orgs_dont_overlap() {
-        whenever(gitHub.organizations("sweet")).thenReturn(listOf(Organization("quinticsolutions")))
+        whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(9876, "quinticsolutions")))
 
         assertThrows<NotAuthorizedException> {
             resource.githubComplete("xyz", "abc", hash("abc"), "localhost")

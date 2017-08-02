@@ -53,3 +53,4 @@ Rain           | 8150 / 8151      |                      | Howl-to-live-layer co
 Zeus           | 8160 / 8161      | 3020                 | Asset 360 UI
 Glisten        | 8170 / 8171      |                      | GitHub webhook listener
 ~~Orf~~        | ~~8180 / 8181~~  |                      | ~~Authentication~~
+Registry       | 8190 / 8191      |                      | Customer registry

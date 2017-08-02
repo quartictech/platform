@@ -1,0 +1,19 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.service" version "28"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+service {
+    simpleName = "registry"
+    mainClassName = "io.quartic.registry.RegistryApplication"
+    memory = System.env.REGISTRY_MEMORY ?: "32m"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":registry-api")
+
+    testCompile project(":common-test")
+    testCompile libraries.dropwizardTesting
+}
