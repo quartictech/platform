@@ -19,6 +19,7 @@ import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.NewCookie
 import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.ResponseBuilder
 
 
 @Path("/auth")
@@ -50,7 +51,7 @@ class AuthResource(
         )
 
         return Response.temporaryRedirect(uri)
-            .cookie(cookie(NONCE_COOKIE, hash(nonce), DEFAULT_MAX_AGE)) // Session expiration
+            .cookie(NONCE_COOKIE, hash(nonce), DEFAULT_MAX_AGE) // Session expiration
             .build()
     }
 
@@ -104,7 +105,7 @@ class AuthResource(
             val tokens = tokenGenerator.generate(user, subdomain)
             return Response.ok()
                 .header(XSRF_TOKEN_HEADER, tokens.xsrf)
-                .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
+                .cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds)
                 .build()
         } else {
             LOG.warn("User doesn't belong to organisation (${customer.githubOrgId} not in ${ghOrgs.map { "${it.id} (${it.login})" }})")
@@ -112,14 +113,12 @@ class AuthResource(
         }
     }
 
-    private fun <R> callServerOrThrow(block: () -> R): R {
-        try {
-            return block()
-        } catch (wba: WebApplicationException) {
-            throw wba
-        } catch (e: Exception) {
-            throw ServerErrorException("Inter-service communication error", 500, e)
-        }
+    private fun <R> callServerOrThrow(block: () -> R) = try {
+        block()
+    } catch (wba: WebApplicationException) {
+        throw wba
+    } catch (e: Exception) {
+        throw ServerErrorException("Inter-service communication error", 500, e)
     }
 
     private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
@@ -132,18 +131,16 @@ class AuthResource(
     // TODO - can we get DW to deal with this for QueryParam and CookieParam?
     private fun <T> T?.nonNull(name: String): T = this ?: throw BadRequestException("Missing parameter: $name")
 
-    private fun cookie(name: String, value: String, maxAgeSeconds: Int): NewCookie {
-        return NewCookie(
-            name,
-            value,
-            "/",
-            null,
-            null,
-            maxAgeSeconds,
-            cookiesConfig.secure,
-            true    // httpOnly
-        )
-    }
+    private fun ResponseBuilder.cookie(name: String, value: String, maxAgeSeconds: Int) = this.cookie(NewCookie(
+        name,
+        value,
+        "/",
+        null,
+        null,
+        maxAgeSeconds,
+        cookiesConfig.secure,
+        true    // httpOnly
+    ))
 
     private fun hash(token: String) = Hashing.sha1().hashString(token, Charsets.UTF_8).toString()
 
