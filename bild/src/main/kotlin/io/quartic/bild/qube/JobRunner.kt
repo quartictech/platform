@@ -1,25 +1,23 @@
 package io.quartic.bild.qube
 
 import com.google.common.base.Stopwatch
-import io.fabric8.kubernetes.api.model.Event
-import io.fabric8.kubernetes.api.model.Job
-import io.fabric8.kubernetes.api.model.JobBuilder
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.fabric8.kubernetes.client.Watch
-import io.fabric8.kubernetes.client.dsl.internal.JobOperationsImpl
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation
+import io.fabric8.kubernetes.client.dsl.ScalableResource
 import io.quartic.bild.model.CreationState
 import io.quartic.bild.model.JobResult
 import io.quartic.common.logging.logger
 import rx.Subscriber
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 
 class JobRunner(
-    jobTemplate: Job,
+    val job: Job,
     val jobName: String,
-    val client: DefaultKubernetesClient,
-    val namespace: String,
+    val jobOps: NonNamespaceOperation<Job, JobList, DoneableJob, ScalableResource<Job, DoneableJob>>,
+    val client: NamespacedKubernetesClient,
     val maxFailures: Int,
     val creationTimeoutSeconds: Int,
     val runTimeoutSeconds: Int) : Subscriber<Event>() {
@@ -45,32 +43,19 @@ class JobRunner(
         log.error("Observable has errored. This should not happen.", e)
     }
 
-    // This is needed because fabric8 isn't uptodate atm
-    fun jobs() = JobOperationsImpl(client.httpClient, client.configuration, "v1", namespace, null,
-        true, null, null, false, -1, TreeMap<String, String>(), TreeMap<String, String>(), TreeMap<String, Array<String>>(),
-        TreeMap<String, Array<String>>(),
-        TreeMap<String, String>())
-
-    val job = JobBuilder(jobTemplate).withNewMetadata()
-        .withNamespace(namespace)
-        .withName(jobName)
-        .endMetadata()
-        .build()
-
-
     fun cleanup() {
         log.info("[{}] Deleting job", jobName)
-        jobs().delete(job)
+        jobOps.delete(job)
         watcher?.close()
     }
 
     fun getLogs(): Map<String, String> {
-        val job = jobs().inNamespace(namespace).withName(jobName).get()
+        val job = jobOps.withName(jobName).get()
         if (job?.spec?.selector != null) {
-            val pods = client.pods().inNamespace(namespace).withLabelSelector(job.spec.selector).list().items
+            val pods = client.pods().withLabelSelector(job.spec.selector).list().items
             return pods.map { pod ->
                 val podName = pod.metadata.name
-                val logs = client.pods().inNamespace(namespace).withName(podName).getLog(true)
+                val logs = client.pods().withName(podName).getLog(true)
                 podName to logs
             }.groupBy({ p -> p.first })
                 .mapValues { v -> v.value.first().second }
@@ -80,11 +65,11 @@ class JobRunner(
 
     fun innerRun(): Job {
         log.info("[{}] Creating job", jobName)
-        jobs().create(job)
+        jobOps.create(job)
         val stopwatch = Stopwatch.createStarted()
 
         while (true) {
-            val job = jobs().withName(jobName).get()
+            val job = jobOps.withName(jobName).get()
 
             if (job.status.succeeded != null && job.status.succeeded >= 1) {
                 log.info("[{}] Completion due to success", jobName)
