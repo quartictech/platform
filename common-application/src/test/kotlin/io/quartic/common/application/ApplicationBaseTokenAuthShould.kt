@@ -32,7 +32,7 @@ class ApplicationBaseTokenAuthShould {
     fun respond_with_200_if_valid_token_supplied() {
         val tokenGenerator = TokenGenerator(KEY, Duration.ofMinutes(10))
 
-        val tokens = tokenGenerator.generate(User("oliver"), "localhost")
+        val tokens = tokenGenerator.generate(User(666, 777), "localhost")
 
         val response = target()
             .request()
@@ -41,7 +41,7 @@ class ApplicationBaseTokenAuthShould {
             .get()
 
         assertThat(response.status, equalTo(200))
-        assertThat(response.readEntity(String::class.java), equalTo("Hello oliver"))
+        assertThat(response.readEntity(String::class.java), equalTo("Hello 666"))
     }
 
     private fun target() = JerseyClientBuilder().build().target("http://localhost:${RULE.localPort}/api/test")
