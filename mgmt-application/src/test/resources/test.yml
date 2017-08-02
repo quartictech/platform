@@ -1,10 +1,6 @@
 catalogueUrl: http://localhost:8090/api
 howlUrl: http://localhost:8120/api
 
-authorisedNamespaces:
-  default: ["*"]
-  alexsparrow: ["*"]
-
 github:
   allowedOrganisations:
     - quartictech

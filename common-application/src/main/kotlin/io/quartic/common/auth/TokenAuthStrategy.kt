@@ -59,18 +59,26 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
             LOG.warn("Subject claim is missing")
             return null
         }
-        return User(subject)
+
+        val customerId = claims.body[CUSTOMER_ID_CLAIM] as String?
+        if (customerId == null) {
+            LOG.warn("Customer ID claim is missing")
+            return null
+        }
+
+        return User(subject, customerId)
     }
 
     private fun hashToken(token: String) = Hashing.sha1().hashString(token, Charsets.UTF_8).toString()
 
     companion object {
         // We can use HMAC for now as client-side verification of tokens is not an issue
-        val KEY_LENGTH_BITS = 512
         val ALGORITHM = SignatureAlgorithm.HS512
+        val KEY_LENGTH_BITS = 512
         val TOKEN_COOKIE = "quartic-token"
         val XSRF_TOKEN_HEADER = "X-XSRF-Token"
         val XSRF_TOKEN_HASH_CLAIM = "xth"
+        val CUSTOMER_ID_CLAIM = "cid"
     }
 
     data class Tokens(

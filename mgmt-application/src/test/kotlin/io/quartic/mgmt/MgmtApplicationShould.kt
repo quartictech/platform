@@ -57,14 +57,14 @@ class MgmtApplicationShould {
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withBody(OBJECT_MAPPER.writeValueAsString(io.quartic.mgmt.User("oliver")))))
+                .withBody(OBJECT_MAPPER.writeValueAsString(io.quartic.mgmt.GitHubUser(1234, "oliver")))))
 
         stubFor(get(urlPathEqualTo("/user/orgs"))
             .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withBody(OBJECT_MAPPER.writeValueAsString(listOf(Organization("noobs"))))))
+                .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
     }
 
     private val client = JerseyClientBuilder().build()
@@ -126,7 +126,7 @@ class MgmtApplicationShould {
                 headers[XSRF_TOKEN_HEADER]!!.last() as String,
                 "localhost"
             )
-            assertThat(authStrategy.authenticate(tokens), equalTo(User("oliver")))
+            assertThat(authStrategy.authenticate(tokens), equalTo(User("1234", "5678")))
         }
     }
 

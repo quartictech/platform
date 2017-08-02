@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
@@ -66,7 +67,7 @@ class TokenAuthStrategyShould {
     fun accept_valid_tokens() {
         val tokens = tokens { this }
 
-        assertThat(strategy.authenticate(tokens), equalTo(User("oliver")))
+        assertThat(strategy.authenticate(tokens), equalTo(User("oliver", "quartictech")))
     }
 
     @Test
@@ -103,6 +104,13 @@ class TokenAuthStrategyShould {
     fun reject_when_subject_claim_missing() {
         assertAuthenticationFails(tokens {
             setSubject(null)
+        })
+    }
+
+    @Test
+    fun reject_when_cid_claim_missing() {
+        assertAuthenticationFails(tokens {
+            claim(CUSTOMER_ID_CLAIM, null)
         })
     }
 
@@ -145,6 +153,7 @@ class TokenAuthStrategyShould {
             .setIssuer("noob")
             .setExpiration(Date.from(future))
             .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString("def", Charsets.UTF_8).toString())
+            .claim(CUSTOMER_ID_CLAIM, "quartictech")
             .builderMods()
             .compact(),
         "def",

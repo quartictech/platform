@@ -9,6 +9,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
+import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
 import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
 import org.apache.http.client.utils.URLEncodedUtils
@@ -48,9 +49,9 @@ class AuthResourceShould {
     @Before
     fun before() {
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
-        whenever(gitHub.user("sweet")).thenReturn(User("arlo"))
-        whenever(gitHub.organizations("sweet")).thenReturn(listOf(Organization("quartictech")))
-        whenever(tokenGenerator.generate("arlo", "localhost")).thenReturn(Tokens("jwt", "xsrf"))
+        whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo"))
+        whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
+        whenever(tokenGenerator.generate(User("1234", "5678"), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
     @Test
@@ -128,7 +129,7 @@ class AuthResourceShould {
 
     @Test
     fun reject_if_orgs_dont_overlap() {
-        whenever(gitHub.organizations("sweet")).thenReturn(listOf(Organization("quinticsolutions")))
+        whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(9876, "quinticsolutions")))
 
         assertThrows<NotAuthorizedException> {
             resource.githubComplete("xyz", "abc", hash("abc"), "localhost")

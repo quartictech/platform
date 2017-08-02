@@ -11,12 +11,14 @@ import javax.ws.rs.core.MediaType
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Organization(
+data class GitHubOrganization(
+    val id: Int,
     val login: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class User(
+data class GitHubUser(
+    val id: Int,
     val login: String
 )
 
@@ -41,11 +43,11 @@ interface GitHubOAuth {
 interface GitHub {
     @RequestLine("GET /user")
     @Headers("Authorization: token {oauthToken}")
-    fun user(@Param("oauthToken") oauthToken: String): User
+    fun user(@Param("oauthToken") oauthToken: String): GitHubUser
 
     @RequestLine("GET /user/orgs")
     @Headers("Authorization: token {oauthToken}")
-    fun organizations(@Param("oauthToken") oauthToken: String): List<Organization>
+    fun organizations(@Param("oauthToken") oauthToken: String): List<GitHubOrganization>
 }
 
 fun oauthUrl(

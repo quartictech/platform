@@ -5,6 +5,7 @@ import feign.FeignException
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
+import io.quartic.common.auth.User
 import io.quartic.common.auth.getIssuer
 import io.quartic.common.client.client
 import io.quartic.common.logging.logger
@@ -91,11 +92,15 @@ class AuthResource(private val gitHubConfig: GithubConfiguration,
                 LOG.error("Exception while authorising against GitHub: ${accessToken.error} - ${accessToken.errorDescription}")
                 throw NotAuthorizedException("GitHub authorisation failure")
             } else {
-                val user = gitHubApi.user(accessToken.accessToken)
-                val organizations = gitHubApi.organizations(accessToken.accessToken).map { org -> org.login }
+                val ghUser = gitHubApi.user(accessToken.accessToken)
+                val ghOrgs = gitHubApi.organizations(accessToken.accessToken).map { org -> org.login }
 
-                if (!organizations.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
-                    val tokens = tokenGenerator.generate(user.login, getIssuer(host))
+                // TODO - query Register for customerId + githubOrg
+                // TODO - using the GH ID as user ID is wrong in the long run
+                val user = User(ghUser.id.toString(), "5678")
+
+                if (!ghOrgs.intersect(gitHubConfig.allowedOrganisations).isEmpty()) {
+                    val tokens = tokenGenerator.generate(user, getIssuer(host))
                     return Response.ok()
                         .header(XSRF_TOKEN_HEADER, tokens.xsrf)
                         .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))

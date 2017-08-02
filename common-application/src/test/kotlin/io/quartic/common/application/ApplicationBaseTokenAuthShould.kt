@@ -6,6 +6,7 @@ import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
+import io.quartic.common.auth.User
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.startsWith
@@ -31,7 +32,7 @@ class ApplicationBaseTokenAuthShould {
     fun respond_with_200_if_valid_token_supplied() {
         val tokenGenerator = TokenGenerator(KEY, Duration.ofMinutes(10))
 
-        val tokens = tokenGenerator.generate("oliver", "localhost")
+        val tokens = tokenGenerator.generate(User("oliver"), "localhost")
 
         val response = target()
             .request()
