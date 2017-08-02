@@ -12,11 +12,13 @@ import io.quartic.mgmt.conversion.CsvConverter
 import org.apache.commons.io.IOUtils
 import java.io.IOException
 import java.io.InputStream
+import javax.annotation.security.PermitAll
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 
+@PermitAll
 @Path("/")
 class MgmtResource(
         private val catalogue: CatalogueService,
@@ -113,7 +115,6 @@ class MgmtResource(
         }
     }
 
-    // No need for auth injection here, as there's no interaction with dataset namespaces
     @POST
     @Path("/file/{namespace}")
     @Produces(MediaType.APPLICATION_JSON)
