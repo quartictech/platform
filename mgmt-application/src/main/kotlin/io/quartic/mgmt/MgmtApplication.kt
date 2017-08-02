@@ -12,8 +12,8 @@ import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
 import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.registry.api.RegistryService
 import java.time.Duration
-
 
 class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
@@ -22,8 +22,9 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
     }
 
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
-        val howlService = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
-        val catalogueService = client<CatalogueService>(javaClass, configuration.catalogueUrl)
+        val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
+        val catalogue = client<CatalogueService>(javaClass, configuration.catalogueUrl)
+        val registry = client<RegistryService>(javaClass, configuration.registryUrl)
 
         val tokenGenerator = TokenGenerator(
             (configuration.auth as TokenAuthConfiguration).base64EncodedKey,
@@ -31,8 +32,8 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         )
 
         with (environment.jersey()) {
-            register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(configuration.authorisedNamespaces)))
-            register(AuthResource(configuration.github, configuration.cookies, tokenGenerator))
+            register(MgmtResource(catalogue, howl, NamespaceAuthoriser(configuration.authorisedNamespaces)))
+            register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))
     }

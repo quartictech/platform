@@ -1,13 +1,12 @@
 catalogueUrl: http://localhost:8090/api
 howlUrl: http://localhost:8120/api
+registryUrl: http://localhost:8190/api
 
 authorisedNamespaces:
   default: ["*"]
   alexsparrow: ["*"]
 
 github:
-  allowedOrganisations:
-    - quartictech
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
 
   redirectHost: "http://%s:3010"
@@ -23,9 +22,9 @@ server:
   applicationContextPath: /
   applicationConnectors:
     - type: http
-      port: 8100
+      port: 0
   adminConnectors:
     - type: http
-      port: 8101
+      port: 0
 
 

@@ -17,7 +17,7 @@ import javax.ws.rs.NotFoundException
 
 class MgmtResourceShould {
 
-    private val arlo = User("arlo")
+    private val arlo = User("arlo", "quartic")
 
     private val foo = DatasetNamespace("foo")
     private val bar = DatasetNamespace("bar")

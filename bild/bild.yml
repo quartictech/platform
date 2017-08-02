@@ -24,13 +24,11 @@ kubernetes:
   #            configMap:
   #              name: pipeline-job-config
 
-
 server:
   applicationContextPath: /
   applicationConnectors:
     - type: http
-      port: 8170
+      port: 8200
   adminConnectors:
     - type: http
-      port: 8171
-
+      port: 8201

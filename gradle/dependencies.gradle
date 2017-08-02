@@ -13,6 +13,7 @@ versions.tyrus = "1.13"
 versions.rxjava = "1.2.1"
 
 libraries.guava = "com.google.guava:guava:19.0"
+libraries.commonsCodec = "commons-codec:commons-codec:1.9"
 libraries.commonsLang = "org.apache.commons:commons-lang3:3.4"
 libraries.rxjava = "io.reactivex:rxjava:${versions.rxjava}"
 libraries.websocket = "javax.websocket:javax.websocket-api:1.1"
