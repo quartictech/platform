@@ -1,4 +1,4 @@
-package io.quartic.mgmt.registry.model
+package io.quartic.registry.api.model
 
 data class Customer(
     val id: Int,

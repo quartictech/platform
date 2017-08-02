@@ -20,6 +20,7 @@ data class CookiesConfiguration(
 data class MgmtConfiguration(
     val catalogueUrl: String,
     val howlUrl: String,
+    val registryUrl: String,
     var github: GithubConfiguration,
     val cookies: CookiesConfiguration,
     val tokenTimeToLiveMinutes: Int = 60

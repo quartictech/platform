@@ -43,6 +43,9 @@ include "rain-application"
 include "scribe"
 include "glisten"
 
+include "registry-api"
+include "registry"
+
 include "weyl-api"
 include "weyl-core"
 include "weyl-application"

@@ -13,8 +13,8 @@ import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
 import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
-import io.quartic.mgmt.registry.RegistryClient
-import io.quartic.mgmt.registry.model.Customer
+import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasKey
@@ -31,7 +31,7 @@ import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
     private val tokenGenerator = mock<TokenGenerator>()
-    private val registry = mock<RegistryClient>()
+    private val registry = mock<RegistryService>()
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
     private val resource = AuthResource(
@@ -58,7 +58,7 @@ class AuthResourceShould {
             on { id } doReturn 6666
             on { githubOrgId } doReturn 5678
         }
-        whenever(registry.getCustomerBySubdomain(any())).thenReturn(customer)
+        whenever(registry.getCustomer(any())).thenReturn(customer)
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
         whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo"))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
