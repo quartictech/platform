@@ -67,7 +67,7 @@ class TokenAuthStrategyShould {
     fun accept_valid_tokens() {
         val tokens = tokens { this }
 
-        assertThat(strategy.authenticate(tokens), equalTo(User("oliver", "quartictech")))
+        assertThat(strategy.authenticate(tokens), equalTo(User(1234, 5678)))
     }
 
     @Test
@@ -108,9 +108,23 @@ class TokenAuthStrategyShould {
     }
 
     @Test
+    fun reject_when_subject_claim_not_an_int() {
+        assertAuthenticationFails(tokens {
+            setSubject("not_an_int")
+        })
+    }
+
+    @Test
     fun reject_when_cid_claim_missing() {
         assertAuthenticationFails(tokens {
             claim(CUSTOMER_ID_CLAIM, null)
+        })
+    }
+
+    @Test
+    fun reject_when_cid_claim_not_an_int() {
+        assertAuthenticationFails(tokens {
+            claim(CUSTOMER_ID_CLAIM, "not_an_int")
         })
     }
 
@@ -149,11 +163,11 @@ class TokenAuthStrategyShould {
     private fun tokens(builderMods: JwtBuilder.() -> JwtBuilder) = Tokens(
         Jwts.builder()
             .signWith(ALGORITHM, key)
-            .setSubject("oliver")
+            .setSubject("1234")
             .setIssuer("noob")
             .setExpiration(Date.from(future))
             .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString("def", Charsets.UTF_8).toString())
-            .claim(CUSTOMER_ID_CLAIM, "quartictech")
+            .claim(CUSTOMER_ID_CLAIM, "5678")
             .builderMods()
             .compact(),
         "def",

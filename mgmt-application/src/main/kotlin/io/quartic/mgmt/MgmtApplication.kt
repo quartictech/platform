@@ -12,6 +12,8 @@ import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
 import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.mgmt.registry.RegistryClient
+import io.quartic.mgmt.registry.model.Customer
 import java.time.Duration
 
 
@@ -32,9 +34,21 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
 
         with (environment.jersey()) {
             register(MgmtResource(catalogueService, howlService, NamespaceAuthoriser(emptyMap())))  // TODO
-            register(AuthResource(configuration.github, configuration.cookies, tokenGenerator))
+            register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, FakeRegistryClient()))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))
+    }
+
+    // TODO - eliminate this (note these IDs match MgmtApplicationShould test)
+    private class FakeRegistryClient : RegistryClient {
+        override fun getCustomerBySubdomain(subdomain: String) = Customer(
+            id = 4321,
+            githubOrgId = 5678,
+            githubRepoId = 8765,
+            name = subdomain,
+            subdomain = subdomain,
+            namespace = subdomain
+        )
     }
 
     companion object {

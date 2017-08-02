@@ -40,7 +40,7 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
             return null
         }
 
-        return Tokens(jwt, xsrf, getIssuer(host))
+        return Tokens(jwt, xsrf, extractSubdomain(host))
     }
 
     override fun authenticate(creds: Tokens): User? {
@@ -54,15 +54,15 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
             return null
         }
 
-        val subject = claims.body.subject
+        val subject = claims.body.subject?.toIntOrNull()
         if (subject == null) {
-            LOG.warn("Subject claim is missing")
+            LOG.warn("Subject claim is missing or unparseable")
             return null
         }
 
-        val customerId = claims.body[CUSTOMER_ID_CLAIM] as String?
+        val customerId = (claims.body[CUSTOMER_ID_CLAIM] as String?)?.toIntOrNull()
         if (customerId == null) {
-            LOG.warn("Customer ID claim is missing")
+            LOG.warn("Customer ID claim is missing or unparseable")
             return null
         }
 

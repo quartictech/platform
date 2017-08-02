@@ -7,5 +7,7 @@ data class User(
     val id: String,
     val customerId: String? = null // TODO - make non-nullable once we eliminate DummyAuth
 ) : Principal {
+    constructor(id: Int, customerId: Int) : this(id.toString(), customerId.toString())
+
     override fun getName() = id
 }

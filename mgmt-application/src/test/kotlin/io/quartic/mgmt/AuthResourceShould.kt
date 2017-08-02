@@ -2,6 +2,7 @@ package io.quartic.mgmt
 
 import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import feign.FeignException
@@ -12,6 +13,8 @@ import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
 import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
+import io.quartic.mgmt.registry.RegistryClient
+import io.quartic.mgmt.registry.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasKey
@@ -28,13 +31,13 @@ import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
     private val tokenGenerator = mock<TokenGenerator>()
+    private val registry = mock<RegistryClient>()
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
     private val resource = AuthResource(
         GithubConfiguration(
             clientId = "foo",
             clientSecret = "bar",
-            allowedOrganisations = setOf("quartictech"),
             trampolineUrl = "noob",
             scopes = listOf("user"),
             redirectHost = "http://%s.some.where"
@@ -43,15 +46,23 @@ class AuthResourceShould {
             secure = true,
             maxAgeSeconds = 30
         ),
-        tokenGenerator, gitHubOAuth, gitHub
+        tokenGenerator,
+        registry,
+        gitHubOAuth,
+        gitHub
     )
 
     @Before
     fun before() {
+        val customer = mock<Customer> {
+            on { id } doReturn 6666
+            on { githubOrgId } doReturn 5678
+        }
+        whenever(registry.getCustomerBySubdomain(any())).thenReturn(customer)
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
         whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo"))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
-        whenever(tokenGenerator.generate(User("1234", "5678"), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
+        whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
     @Test

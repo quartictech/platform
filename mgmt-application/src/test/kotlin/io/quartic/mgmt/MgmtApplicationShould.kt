@@ -67,66 +67,71 @@ class MgmtApplicationShould {
                 .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
     }
 
-    private val client = JerseyClientBuilder().build()
-        .property(ClientProperties.FOLLOW_REDIRECTS, false)
+    private class Browser(var location: URI) {
+        private val client = JerseyClientBuilder().build()
+            .property(ClientProperties.FOLLOW_REDIRECTS, false)
 
-    private val cookies = mutableMapOf<String, String>()
+        private val cookies = mutableMapOf<String, String>()
 
-    private var location = URI("http://localhost:${RULE.localPort}/api/auth/gh")
+        fun get() = request { get() }
 
-    private fun request(): JerseyInvocation.Builder {
-        val builder = client.target(location).request()
-        cookies.forEach { builder.cookie(it.key, it.value) }
-        return builder
-    }
+        fun post() = request { post(null) }
 
-    private fun updateCookies(response: Response) {
-        response.cookies.forEach { cookies[it.key] = it.value.value }
-    }
+        private fun request(verb: JerseyInvocation.Builder.() -> Response): Response {
+            val builder = client.target(location).request()
+            cookies.forEach { builder.cookie(it.key, it.value) }
+            val response = builder.verb()
 
-    private fun updateLocation(response: Response) {
-        location = response.location
-    }
+            updateCookies(response)
+            if (familyOf(response.status) == REDIRECTION) {
+                updateLocation(response)
+            }
+            return response
+        }
 
-    private fun handleRedirectFrom(response: Response) {
-        assertThat(familyOf(response.status), equalTo(REDIRECTION))
-        updateCookies(response)
-        updateLocation(response)
+        private fun updateCookies(response: Response) {
+            response.cookies.forEach { cookies[it.key] = it.value.value }
+        }
+
+        private fun updateLocation(response: Response) {
+            location = response.location
+        }
     }
 
     @Test
     fun support_ete_oauth_flow() {
+        val browser = Browser(URI("http://localhost:${RULE.localPort}/api/auth/gh"))
+
         // Begin process
-        handleRedirectFrom(request().get())
+        browser.get()
 
         // Query GitHub auth - the stubbing emulates the process which ends in browser being sent to trampoline
-        handleRedirectFrom(request().get())
+        browser.get()
 
         // Hit trampoline
-        handleRedirectFrom(request().get())
+        browser.get()
 
         // Extract fragment query params
-        val match = ".*code=(.*)&state=(.*)".toRegex().matchEntire(location.fragment)!!
+        val match = ".*code=(.*)&state=(.*)".toRegex().matchEntire(browser.location.fragment)!!
         val code = match.groups[1]!!.value
         val state = match.groups[2]!!.value
 
         // Finish auth
-        location = URIBuilder("http://localhost:${RULE.localPort}/api/auth/gh/complete")
+        browser.location = URIBuilder("http://localhost:${RULE.localPort}/api/auth/gh/complete")
             .setParameter("code", code)
             .setParameter("state", state)
             .build()
-        val response = request().post(null)
 
-        with(response) {
-            assertThat(familyOf(response.status), equalTo(SUCCESSFUL))
+        with(browser.post()) {
+            assertThat(familyOf(status), equalTo(SUCCESSFUL))
 
             val authStrategy = TokenAuthStrategy(TokenAuthConfiguration(KEY))
             val tokens = Tokens(
-                getCookies()[TOKEN_COOKIE]!!.value,
+                cookies[TOKEN_COOKIE]!!.value,
                 headers[XSRF_TOKEN_HEADER]!!.last() as String,
                 "localhost"
             )
-            assertThat(authStrategy.authenticate(tokens), equalTo(User("1234", "5678")))
+            assertThat(authStrategy.authenticate(tokens), equalTo(User(1234, 4321)))
         }
     }
 
@@ -154,7 +159,6 @@ class MgmtApplicationShould {
             config("github.oauthApiRoot", { "http://localhost:${wireMockRule.port()}" }),
             config("github.apiRoot", { "http://localhost:${wireMockRule.port()}" }),
             config("github.clientId", CLIENT_ID),
-            config("github.allowedOrganisations", "noobs"),
             config("github.clientSecret", CLIENT_SECRET),
             config("github.redirectHost", { "http://localhost:${wireMockRule.port()}" })
         )
