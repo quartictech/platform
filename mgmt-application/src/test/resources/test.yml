@@ -2,6 +2,10 @@ catalogueUrl: http://localhost:8090/api
 howlUrl: http://localhost:8120/api
 registryUrl: http://localhost:8190/api
 
+authorisedNamespaces:
+  default: ["*"]
+  alexsparrow: ["*"]
+
 github:
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
 
