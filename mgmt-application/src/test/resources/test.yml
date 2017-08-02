@@ -22,9 +22,9 @@ server:
   applicationContextPath: /
   applicationConnectors:
     - type: http
-      port: 8100
+      port: 0
   adminConnectors:
     - type: http
-      port: 8101
+      port: 0
 
 

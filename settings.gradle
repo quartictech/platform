@@ -25,6 +25,7 @@ def readFromCredsFile() {
 }
 
 
+include "bild"
 include "common-core"
 include "common-application"
 include "common-test"

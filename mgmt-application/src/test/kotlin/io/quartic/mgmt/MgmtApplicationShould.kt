@@ -35,7 +35,7 @@ class MgmtApplicationShould {
         with(github) {
             stubFor(get(urlPathEqualTo("/login/oauth/authorize"))
                 .withQueryParam("client_id", equalTo(CLIENT_ID))
-                .withQueryParam("redirect_uri", matching("http://localhost:${APP.localPort}/api/auth/gh/callback/.*"))
+                .withQueryParam("redirect_uri", matching("http://localhost:${trampolineProxy.port()}/api/auth/gh/callback/.*"))
                 .withQueryParam("scope", equalTo("user"))
                 .withQueryParam("state", matching(".*"))
                 .willReturn(aResponse()
@@ -47,7 +47,7 @@ class MgmtApplicationShould {
             stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
                 .withQueryParam("client_id", equalTo(CLIENT_ID))
                 .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
-                .withQueryParam("redirect_uri", equalTo("http://localhost:${APP.localPort}/api/auth/gh/callback"))
+                .withQueryParam("redirect_uri", equalTo("http://localhost:${trampolineProxy.port()}/api/auth/gh/callback"))
                 .withQueryParam("code", equalTo(CODE))
                 .willReturn(aResponse()
                     .withStatus(200)
@@ -59,7 +59,7 @@ class MgmtApplicationShould {
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                    .withBody(OBJECT_MAPPER.writeValueAsString(io.quartic.mgmt.GitHubUser(1234, "oliver")))))
+                    .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver")))))
 
             stubFor(get(urlPathEqualTo("/user/orgs"))
                 .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
@@ -84,6 +84,11 @@ class MgmtApplicationShould {
                     )))
                 )
             )
+        }
+
+        with(trampolineProxy) {
+            stubFor(get(urlMatching(".*"))
+                .willReturn(aResponse().proxiedFrom("http://localhost:${APP.localPort}")))
         }
     }
 
@@ -164,14 +169,24 @@ class MgmtApplicationShould {
 
         @JvmField
         @ClassRule
-        var github = WireMockRule(wireMockConfig()
+        val github = WireMockRule(wireMockConfig()
             .dynamicPort()
             .extensions(ResponseTemplateTransformer(false))
         )
 
         @JvmField
         @ClassRule
-        var registry = WireMockRule(wireMockConfig().dynamicPort())
+        val registry = WireMockRule(wireMockConfig().dynamicPort())
+
+        /**
+         * This shouldn't be needed, but the compiler gets in a twist if you pass
+         * { "http://localhost:${APP.localPort}" } as an arg to the APP construction below.
+         * So instead we pass it the address for this proxy, which in turn forwards requests back to the proxy
+         * endpoint :/
+         */
+        @JvmField
+        @ClassRule
+        val trampolineProxy = WireMockRule(wireMockConfig().dynamicPort())
 
         @ClassRule
         @JvmField
@@ -180,6 +195,7 @@ class MgmtApplicationShould {
             resourceFilePath("test.yml"),
             config("auth.type", "token"),
             config("auth.base64EncodedKey", KEY),
+            config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
             config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
             config("github.apiRoot", { "http://localhost:${github.port()}" }),
             config("github.clientId", CLIENT_ID),
