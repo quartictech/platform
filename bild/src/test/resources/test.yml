@@ -5,4 +5,4 @@ server:
       port: 0
   adminConnectors:
     - type: http
-      port: 8171
+      port: 0
