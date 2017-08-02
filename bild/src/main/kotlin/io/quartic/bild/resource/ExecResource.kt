@@ -1,33 +1,34 @@
 package io.quartic.bild.resource
 
-import io.fabric8.kubernetes.api.model.Job
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.quartic.bild.JobResultStore
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
-import io.quartic.bild.model.BildRequest
-import io.quartic.bild.qube.JobPool
+import io.quartic.bild.model.BildPhase
+import io.quartic.bild.model.CustomerId
 import io.quartic.common.uid.randomGenerator
-import java.util.concurrent.ArrayBlockingQueue
-import javax.ws.rs.*
+import java.util.concurrent.BlockingQueue
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
 @Path("/exec")
-class ExecResource(template: Job,
-                   client: DefaultKubernetesClient = DefaultKubernetesClient()) {
+class ExecResource(val queue: BlockingQueue<BildJob>, val jobResults: JobResultStore) {
     val idGenerator = randomGenerator { uid -> BildId(uid) }
-    val queue = ArrayBlockingQueue<BildJob>(1024)
 
-    init {
-        JobPool(template, client, queue)
-    }
-
-    @Path("/{customerId}")
+    @Path("/{customerId}/{phase}")
     @Produces(MediaType.APPLICATION_JSON)
     @POST
-    fun exec(@PathParam("customerId") customerId: String): BildId {
+    fun exec(@PathParam("customerId") customerId: CustomerId, @PathParam("phase") phase: BildPhase): BildId {
         val id = idGenerator.get()
-        val bild = BildRequest(customerId)
-        queue.put(BildJob(id, bild))
+        queue.put(BildJob(id, customerId, phase))
         return id
+    }
+
+    @Path("/backchannel/{jobId}")
+    @POST
+    fun backchannel(@PathParam("jobId") jobId: BildId, data: Any) {
+        jobResults.putExtraData(jobId, data)
     }
 }
