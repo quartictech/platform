@@ -1,6 +1,6 @@
 customers:
   - id: 111
-    name: noobhole
+    name: Noobhole
     subdomain: localhost
     namespace: noobhole
     githubOrgId: 30663321

@@ -23,16 +23,16 @@ class FrontendPlugin : Plugin<Project> {
     private class Applier(val project: Project) {
         private val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
 
-        val yarnDir = File(project.buildDir, "yarn")
-        val lintDir = File(project.buildDir, "lint")
-        val nodeModulesDir = project.file("node_modules")
-        val srcDir = project.file("src")
-        val configDir = project.file("config")
+        private val yarnDir = File(project.buildDir, "yarn")
+        private val lintDir = File(project.buildDir, "lint")
+        private val nodeModulesDir = project.file("node_modules")
+        private val srcDir = project.file("src")
+        private val configDir = project.file("config")
 
         // TODO - switch to symlinks in .bin once Gradle build cache supports symlinks
-        val yarnExecutable = File(yarnDir, "lib/node_modules/yarn/bin/yarn.js")
-        val tsNodeExecutable = File(nodeModulesDir, "ts-node/dist/bin.js")
-        val webpackExecutable = File(nodeModulesDir, "webpack/bin/webpack.js")
+        private val yarnExecutable = File(yarnDir, "lib/node_modules/yarn/bin/yarn.js")
+        private val tsNodeExecutable = File(nodeModulesDir, "ts-node/dist/bin.js")
+        private val webpackExecutable = File(nodeModulesDir, "webpack/bin/webpack.js")
 
         init {
             val packageJson = createPackageJsonGenerationTask()
@@ -181,7 +181,11 @@ class FrontendPlugin : Plugin<Project> {
         private fun configureIdeaPlugin() {
             project.plugins.apply(IdeaPlugin::class.java)
             val ext = project.extensions.getByType(IdeaModel::class.java)
-            ext.module.excludeDirs.add(nodeModulesDir)
+            ext.module {
+                val ed = it.excludeDirs
+                ed.add(nodeModulesDir)
+                it.excludeDirs = ed
+            }
         }
 
         private fun configureJavaPlugin(bundle: Task, lint: Task) {
@@ -200,14 +204,12 @@ class FrontendPlugin : Plugin<Project> {
         }
     }
 
-
-
-
     companion object {
         val YARN_VERSION = "0.27.5"
 
         val GROUP = "Frontend"
         val EXTENSION = "frontend"
+
         val INSTALL_YARN = "installYarn"
         val CREATE_PACKAGE_JSON = "createPackageJson"
         val INSTALL_DEPENDENCIES = "installDependencies"
