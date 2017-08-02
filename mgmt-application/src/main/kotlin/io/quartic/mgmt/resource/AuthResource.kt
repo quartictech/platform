@@ -1,4 +1,4 @@
-package io.quartic.mgmt
+package io.quartic.mgmt.resource
 
 import com.google.common.hash.Hashing
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
@@ -10,6 +10,7 @@ import io.quartic.common.client.client
 import io.quartic.common.logging.logger
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
+import io.quartic.mgmt.*
 import io.quartic.registry.api.RegistryService
 import java.net.URI
 import java.net.URLEncoder

@@ -1,17 +1,25 @@
-package io.quartic.mgmt
+package io.quartic.mgmt.resource
 
 import io.dropwizard.auth.Auth
+import io.quartic.bild.api.BildService
 import io.quartic.catalogue.api.CatalogueService
-import io.quartic.catalogue.api.model.*
+import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetCoordinates
+import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
+import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.common.logging.logger
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
+import io.quartic.mgmt.CreateDatasetRequest
+import io.quartic.mgmt.CreateStaticDatasetRequest
+import io.quartic.mgmt.FileType
+import io.quartic.mgmt.FileType.*
 import io.quartic.mgmt.auth.NamespaceAuthoriser
-import io.quartic.mgmt.bild.BildService
 import io.quartic.mgmt.conversion.CsvConverter
-import org.apache.commons.io.IOUtils
+import org.apache.commons.io.IOUtils.copy
 import java.io.IOException
 import java.io.InputStream
 import javax.annotation.security.PermitAll
@@ -49,9 +57,9 @@ class MgmtResource(
     @Path("/datasets/{namespace}/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun deleteDataset(
-            @Auth user: User,
-            @PathParam("namespace") namespace: DatasetNamespace,
-            @PathParam("id") id: DatasetId
+        @Auth user: User,
+        @PathParam("namespace") namespace: DatasetNamespace,
+        @PathParam("id") id: DatasetId
     ) {
         // Note there's a potential race-condition here - another catalogue client could have manipulated the
         // dataset in-between these two statements.  It shouldn't matter - we will never delete a dataset not in an
@@ -65,9 +73,9 @@ class MgmtResource(
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun createDataset(
-            @Auth user: User,
-            @PathParam("namespace") namespace: DatasetNamespace,
-            request: CreateDatasetRequest
+        @Auth user: User,
+        @PathParam("namespace") namespace: DatasetNamespace,
+        request: CreateDatasetRequest
     ): DatasetId {
         throwIfNamespaceNotAllowed(user, namespace)
 
@@ -75,14 +83,14 @@ class MgmtResource(
             is CreateStaticDatasetRequest -> {
                 try {
                     val name = preprocessFile(namespace.namespace, request.fileName, request.fileType)
-                    val locator = DatasetLocator.CloudDatasetLocator(
-                            "/%s/%s".format(namespace, name),
-                            false,
-                            request.mimeType())
+                    val locator = CloudDatasetLocator(
+                        "/%s/%s".format(namespace, name),
+                        false,
+                        request.mimeType())
                     DatasetConfig(
-                            request.metadata,
-                            locator,
-                            request.extensions()
+                        request.metadata,
+                        locator,
+                        request.extensions()
                     )
                 } catch (e: IOException) {
                     throw RuntimeException("Exception while preprocessing file", e)
@@ -100,7 +108,7 @@ class MgmtResource(
 
         return stream.use { s ->
             when (fileType) {
-                FileType.GEOJSON -> {
+                GEOJSON -> {
                     try {
                         GeoJsonParser(s).validate()
                     } catch (e: Exception) {
@@ -108,7 +116,7 @@ class MgmtResource(
                     }
                     fileName
                 }
-                FileType.CSV -> {
+                CSV -> {
                     val storageId = howl.uploadAnonymousFile(namespace, MediaType.APPLICATION_JSON) { outputStream ->
                         try {
                             CsvConverter().convert(s, outputStream)
@@ -118,7 +126,7 @@ class MgmtResource(
                     }
                     storageId.uid
                 }
-                FileType.RAW -> fileName
+                RAW -> fileName
                 else -> fileName
             }
         }
@@ -128,11 +136,11 @@ class MgmtResource(
     @Path("/file/{namespace}")
     @Produces(MediaType.APPLICATION_JSON)
     fun uploadFile(
-            @PathParam("namespace") namespace: DatasetNamespace,
-            @Context request: HttpServletRequest): HowlStorageId {
+        @PathParam("namespace") namespace: DatasetNamespace,
+        @Context request: HttpServletRequest): HowlStorageId {
         return howl.uploadAnonymousFile(namespace.namespace, request.contentType) { outputStream ->
             try {
-                IOUtils.copy(request.inputStream, outputStream)
+                copy(request.inputStream, outputStream)
             } catch (e: Exception) {
                 throw RuntimeException("Exception while uploading file: " + e)
             }

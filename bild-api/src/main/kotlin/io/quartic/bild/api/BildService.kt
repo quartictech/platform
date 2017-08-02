@@ -1,4 +1,4 @@
-package io.quartic.mgmt.bild
+package io.quartic.bild.api
 
 import feign.Headers
 import feign.Param
@@ -9,7 +9,7 @@ import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
-// TODO - delete
+@Path("/")
 interface BildService {
     @RequestLine("GET /dag/{customerId}")
     @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")

@@ -24,6 +24,7 @@ data class MgmtConfiguration(
     val catalogueUrl: String,
     val howlUrl: String,
     val registryUrl: String,
+    val bildUrl: String,
     val authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap(),
     var github: GithubConfiguration,
     val cookies: CookiesConfiguration,
