@@ -107,6 +107,7 @@ class AuthResource(
                 .cookie(cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds))
                 .build()
         } else {
+            LOG.warn("User doesn't belong to organisation (${customer.githubOrgId} not in ${ghOrgs.map { "${it.id} (${it.login})" }})")
             throw NotAuthorizedException("User doesn't belong to organisation")
         }
     }

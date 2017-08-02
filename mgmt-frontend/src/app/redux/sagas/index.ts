@@ -59,7 +59,6 @@ function* watchLoadDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
     const res = yield* checkedApiCall(api.fetchDatasets);
-
     if (!res.err) {
       yield put(actions.fetchDatasetsSuccess(res.data));
     }

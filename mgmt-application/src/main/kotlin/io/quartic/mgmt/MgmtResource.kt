@@ -5,9 +5,11 @@ import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.*
 import io.quartic.common.auth.User
 import io.quartic.common.geojson.GeoJsonParser
+import io.quartic.common.logging.logger
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.mgmt.bild.BildService
 import io.quartic.mgmt.conversion.CsvConverter
 import org.apache.commons.io.IOUtils
 import java.io.IOException
@@ -21,13 +23,20 @@ import javax.ws.rs.core.MediaType
 @PermitAll
 @Path("/")
 class MgmtResource(
-        private val catalogue: CatalogueService,
-        private val howl: HowlService,
-        private val authoriser: NamespaceAuthoriser
+    private val catalogue: CatalogueService,
+    private val howl: HowlService,
+    private val bild: BildService,
+    private val authoriser: NamespaceAuthoriser
 ) {
+    private val LOG by logger()
     // TODO - frontend will need to cope with DatasetNamespace in request paths and GET /datasets response
 
     // TODO - how does frontend know what namespace to use for dataset creation?
+
+    @GET
+    @Path("/dag")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getDag(@Auth user: User) = bild.getDag(user.customerId!!)
 
     @GET
     @Path("/datasets")

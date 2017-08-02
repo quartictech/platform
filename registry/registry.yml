@@ -1,9 +1,9 @@
 customers:
   - id: 111
-    name: IBM
-    subdomain: ibm
-    namespace: ibm
-    githubOrgId: 111
+    name: noobhole
+    subdomain: localhost
+    namespace: noobhole
+    githubOrgId: 30663321
     githubRepoId: 555
 
 server:

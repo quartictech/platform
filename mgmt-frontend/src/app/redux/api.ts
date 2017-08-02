@@ -56,6 +56,10 @@ export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
+export function fetchDag() {
+  return fetchUtil(`${apiRootUrl}/dag`);
+}
+
 const validContentType = t => (t != null && t.length > 0) ? t : "application/geo+json";
 
 export function githubAuth(code: string, state: string) {

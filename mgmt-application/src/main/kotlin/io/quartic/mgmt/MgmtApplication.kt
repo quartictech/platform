@@ -12,6 +12,7 @@ import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
 import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.mgmt.bild.BildService
 import io.quartic.registry.api.RegistryService
 import java.time.Duration
 
@@ -32,10 +33,19 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         )
 
         with (environment.jersey()) {
-            register(MgmtResource(catalogue, howl, NamespaceAuthoriser(configuration.authorisedNamespaces)))
+            register(MgmtResource(
+                catalogue,
+                howl,
+                FakeBild(), // TODO
+                NamespaceAuthoriser(configuration.authorisedNamespaces)
+            ))
             register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))
+    }
+
+    private class FakeBild : BildService {
+        override fun getDag(customerId: String) = mapOf("a" to customerId)
     }
 
     companion object {
