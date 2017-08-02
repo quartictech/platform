@@ -20,7 +20,7 @@ class Worker(val configuration: KubernetesConfiguraration,
              val events: Observable<Event>, val namespace: String,
              val jobResults: JobResultStore): Runnable {
     val log by logger()
-    val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
+    val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())!!
 
     fun jobName(job: BildJob) = "bild-${job.id.id}"
 
