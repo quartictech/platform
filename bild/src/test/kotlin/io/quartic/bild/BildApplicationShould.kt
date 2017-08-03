@@ -1,18 +1,18 @@
 package io.quartic.bild
 
-import io.dropwizard.testing.junit.DropwizardAppRule
-import org.junit.ClassRule
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
+import io.dropwizard.testing.junit.DropwizardAppRule
 import org.glassfish.jersey.client.JerseyClientBuilder
-import org.junit.Assert.*
 import org.hamcrest.Matchers
+import org.junit.Assert.assertThat
+import org.junit.ClassRule
 import org.junit.Test
 
 
 class BildApplicationShould {
     @Test
     fun fetch_dag_for_customer() {
-        val response = target("magnolia")
+        val response = target("111")
             .request()
             .get()
 

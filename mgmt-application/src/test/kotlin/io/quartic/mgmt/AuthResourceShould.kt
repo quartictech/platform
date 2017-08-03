@@ -12,7 +12,8 @@ import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
-import io.quartic.mgmt.AuthResource.Companion.NONCE_COOKIE
+import io.quartic.mgmt.resource.AuthResource
+import io.quartic.mgmt.resource.AuthResource.Companion.NONCE_COOKIE
 import io.quartic.registry.api.RegistryService
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
