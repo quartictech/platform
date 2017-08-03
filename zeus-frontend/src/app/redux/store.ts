@@ -1,7 +1,7 @@
 import { createStore, applyMiddleware } from "redux";
 import { routerMiddleware } from "react-router-redux";
-import { appHistory } from "../routes";
 import { composeWithDevTools } from "redux-devtools-extension";
+import { appHistory } from "../routes";
 import { rootReducer } from "./reducers";
 
 const router = routerMiddleware(appHistory);
@@ -39,5 +39,4 @@ export function configureStore(initialState?: Object): Redux.Store<any> {
   sagaMiddleware.run(sagas);
 
   return store;
-
 }

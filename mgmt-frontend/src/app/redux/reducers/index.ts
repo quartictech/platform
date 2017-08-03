@@ -1,6 +1,7 @@
 import { LOCATION_CHANGE } from "react-router-redux";
 import { datasetsReducer } from "./datasets";
 import { pipelineReducer } from "./pipeline";
+import { userReducer } from "./user";
 import { uiReducer } from "./ui";
 import { combineReducers } from "redux-immutable";
 import { fromJS } from "immutable";
@@ -28,6 +29,7 @@ function routeReducer(state = routeInitialState, action) {
 // TODO: Fix type!
 const rootReducer: Redux.Reducer<any> = combineReducers({
   route: routeReducer,
+  user: userReducer,
   datasets: datasetsReducer,
   pipeline: pipelineReducer,
   ui: uiReducer,

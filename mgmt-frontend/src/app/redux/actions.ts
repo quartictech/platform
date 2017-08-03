@@ -7,19 +7,24 @@ export function fetchDatasets() {
   };
 }
 
-export function loginGithub(code, state) {
-  return {
-    type: constants.LOGIN_GITHUB,
-    code,
-    state,
-  };
-}
+export const userLoginGithub = (code, state) => ({
+  type: constants.USER_LOGIN_GITHUB,
+  code,
+  state,  
+});
 
-export function logout() {
-  return {
-    type: constants.LOGOUT,
-  };
-}
+export const userLogout = () => ({
+  type: constants.USER_LOGOUT,
+});
+
+export const userLoginSuccess = () => ({
+  type: constants.USER_LOGIN_SUCCESS,
+});
+
+export const userFetchProfileSuccess = (profile) => ({
+  type: constants.USER_FETCH_PROFILE_SUCCESS,
+  profile,
+});
 
 export function fetchDatasetsSuccess(data) {
   return {
