@@ -37,7 +37,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         )
 
         with (environment.jersey()) {
-            register(UserResource())
+            register(UserResource(configuration.github))
             register(MgmtResource(
                 catalogue,
                 howl,
