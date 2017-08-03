@@ -12,8 +12,8 @@ class JobResultStore {
         var extraData: Any?
     )
 
-    val results = hashMapOf<BildId, Record>()
-    val latestBuild = hashMapOf<CustomerId, BildId>()
+    private val results = hashMapOf<BildId, Record>()
+    private val latestBuild = hashMapOf<CustomerId, BildId>()
 
     fun putJobResult(job: BildJob, jobResult: JobResult) {
         synchronized(results, {

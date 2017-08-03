@@ -1,11 +1,13 @@
 package io.quartic.bild.resource
 
+import com.fasterxml.jackson.annotation.ObjectIdGenerator
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
 import io.quartic.bild.model.CustomerId
 import io.quartic.common.logging.logger
+import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import java.util.concurrent.BlockingQueue
 import javax.ws.rs.POST
@@ -15,9 +17,10 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
 @Path("/exec")
-class ExecResource(val queue: BlockingQueue<BildJob>, val jobResults: JobResultStore) {
+class ExecResource(val queue: BlockingQueue<BildJob>,
+                   val jobResults: JobResultStore,
+                   val idGenerator: UidGenerator<BildId> = randomGenerator { uid -> BildId(uid) }) {
     val log by logger()
-    val idGenerator = randomGenerator { uid -> BildId(uid) }
 
     @Path("/{customerId}/{phase}")
     @Produces(MediaType.APPLICATION_JSON)
