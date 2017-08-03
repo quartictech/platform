@@ -6,7 +6,7 @@ import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 @Path("/dag")
-class DagResource(val pipelines: Map<String, Any>, val jobResults: JobResultStore) {
+class DagResource(val jobResults: JobResultStore) {
     @Path("/{customerId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET

@@ -16,8 +16,10 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 
 class Worker(val configuration: KubernetesConfiguraration,
-             val queue: BlockingQueue<BildJob>, val client: DefaultKubernetesClient,
-             val events: Observable<Event>, val namespace: String,
+             val queue: BlockingQueue<BildJob>,
+             val client: Qube,
+             val events: Observable<Event>,
+             val namespace: String,
              val jobResults: JobResultStore): Runnable {
     val log by logger()
     val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())!!
@@ -57,7 +59,7 @@ class Worker(val configuration: KubernetesConfiguraration,
             val jobRunner = JobRunner(
                 makeJob(job),
                 jobName,
-                Qube(client, namespace),
+                client,
                 configuration.maxFailures,
                 configuration.creationTimeoutSeconds,
                 configuration.runTimeoutSeconds

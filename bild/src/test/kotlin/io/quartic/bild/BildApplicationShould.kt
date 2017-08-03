@@ -28,7 +28,6 @@ class BildApplicationShould {
         assertThat(response.status, Matchers.equalTo(404))
     }
 
-
     private fun target(customerId: String) = JerseyClientBuilder().build().target("http://localhost:${RULE.localPort}/api/dag/${customerId}")
 
     companion object {

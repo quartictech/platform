@@ -1,11 +1,9 @@
 package io.quartic.bild.qube
 
 import com.google.common.base.Stopwatch
-import io.fabric8.kubernetes.api.model.*
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient
+import io.fabric8.kubernetes.api.model.Event
+import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.client.Watch
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation
-import io.fabric8.kubernetes.client.dsl.ScalableResource
 import io.quartic.bild.model.CreationState
 import io.quartic.bild.model.JobResult
 import io.quartic.common.logging.logger

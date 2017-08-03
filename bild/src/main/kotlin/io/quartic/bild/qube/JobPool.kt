@@ -2,9 +2,6 @@ package io.quartic.bild.qube
 
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.NamespaceBuilder
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
-import io.fabric8.kubernetes.client.KubernetesClientException
-import io.fabric8.kubernetes.client.Watcher
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
@@ -13,7 +10,8 @@ import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 
-class JobPool(val configuration: KubernetesConfiguraration, val client: DefaultKubernetesClient,
+class JobPool(val configuration: KubernetesConfiguraration,
+              val client: Qube,
               queue: BlockingQueue<BildJob>, jobResults: JobResultStore) {
     val log by logger()
     val namespace = NamespaceBuilder()
@@ -26,7 +24,7 @@ class JobPool(val configuration: KubernetesConfiguraration, val client: DefaultK
 
     init {
         log.info("Creating namespace: $namespace")
-        client.namespaces().createOrReplace(namespace)
+        client.ensureNamespaceExists(namespace)
         watchNamespace()
 
         for (i in 0..configuration.numConcurrentJobs - 1) {
@@ -34,7 +32,7 @@ class JobPool(val configuration: KubernetesConfiguraration, val client: DefaultK
                 Worker(
                     configuration,
                     queue,
-                    DefaultKubernetesClient(client.configuration),
+                    client.cloneClient(),
                     events,
                     configuration.namespace,
                     jobResults
@@ -44,14 +42,6 @@ class JobPool(val configuration: KubernetesConfiguraration, val client: DefaultK
     }
 
     fun watchNamespace() {
-       client.inNamespace(configuration.namespace).events().watch(object: Watcher<Event> {
-            override fun eventReceived(action: Watcher.Action?, resource: Event?) {
-                events.onNext(resource)
-            }
-
-            override fun onClose(cause: KubernetesClientException?) {
-                log.error("closed: {}", cause)
-            }
-        })
+        client.watchEvents { event -> events.onNext(event) }
     }
 }
