@@ -12,12 +12,10 @@ import io.quartic.common.logging.logger
 import rx.Subscriber
 import java.util.concurrent.TimeUnit
 
-
 class JobRunner(
     val job: Job,
     val jobName: String,
-    val jobOps: NonNamespaceOperation<Job, JobList, DoneableJob, ScalableResource<Job, DoneableJob>>,
-    val client: NamespacedKubernetesClient,
+    val client: Qube,
     val maxFailures: Int,
     val creationTimeoutSeconds: Int,
     val runTimeoutSeconds: Int) : Subscriber<Event>() {
@@ -45,19 +43,20 @@ class JobRunner(
 
     fun cleanup() {
         log.info("[{}] Deleting job", jobName)
-        jobOps.delete(job)
+        client.deleteJob(job)
         watcher?.close()
     }
 
     fun getLogs(): Map<String, String> {
-        val job = jobOps.withName(jobName).get()
+        val job = client.getJob(jobName)
         if (job?.spec?.selector != null) {
-            val pods = client.pods().withLabelSelector(job.spec.selector).list().items
+            val pods = client.listPodsForJob(job)
             return pods.map { pod ->
                 val podName = pod.metadata.name
-                val logs = client.pods().withName(podName).getLog(true)
+                val logs = client.getLogs(podName)
                 podName to logs
-            }.groupBy({ p -> p.first })
+            }
+                .groupBy({ p -> p.first })
                 .mapValues { v -> v.value.first().second }
         }
         return mapOf()
@@ -65,11 +64,11 @@ class JobRunner(
 
     fun innerRun(): Job {
         log.info("[{}] Creating job", jobName)
-        jobOps.create(job)
+        client.createJob(job)
         val stopwatch = Stopwatch.createStarted()
 
         while (true) {
-            val job = jobOps.withName(jobName).get()
+            val job = client.getJob(jobName)
 
             if (job.status.succeeded != null && job.status.succeeded >= 1) {
                 log.info("[{}] Completion due to success", jobName)

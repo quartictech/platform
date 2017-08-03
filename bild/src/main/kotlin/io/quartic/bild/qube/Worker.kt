@@ -41,22 +41,23 @@ class Worker(val configuration: KubernetesConfiguraration,
         .endSpec()
         .build()
 
-    // This is needed because fabric8 isn't uptodate atm
-    fun jobOps() = JobOperationsImpl(client.httpClient, client.configuration, "v1", namespace, null,
-        true, null, null, false, -1, TreeMap<String, String>(), TreeMap<String, String>(), TreeMap<String, Array<String>>(),
-        TreeMap<String, Array<String>>(),
-        TreeMap<String, String>())
+
 
     override fun run() {
-        try {
+        while (true) {
             val job = queue.take()
+            runJob(job)
+        }
+    }
+
+    fun runJob(job: BildJob) {
+        try {
             val jobName = jobName(job)
             log.info("Starting job: {}", jobName(job))
             val jobRunner = JobRunner(
                 makeJob(job),
                 jobName,
-                jobOps().inNamespace(namespace),
-                client.inNamespace(namespace),
+                Qube(client, namespace),
                 configuration.maxFailures,
                 configuration.creationTimeoutSeconds,
                 configuration.runTimeoutSeconds
@@ -74,7 +75,7 @@ class Worker(val configuration: KubernetesConfiguraration,
         }
         catch (e: Exception) {
             e.printStackTrace()
-            log.error("exception", e)
+            log.error("Exception", e)
         }
     }
 }
