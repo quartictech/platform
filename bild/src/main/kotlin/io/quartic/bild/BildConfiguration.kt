@@ -11,6 +11,7 @@ data class KubernetesConfiguraration(
     val creationTimeoutSeconds: Int,
     val runTimeoutSeconds: Int
 )
+
 data class BildConfiguration(
     val kubernetes: KubernetesConfiguraration
 ) : ConfigurationBase()

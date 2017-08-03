@@ -16,7 +16,6 @@ enum class BildPhase {
     BUILD
 }
 
-
 enum class CreationState {
     UNKNOWN,
     FAILED,
@@ -24,9 +23,9 @@ enum class CreationState {
 }
 
 data class JobResult (
-    val creationState: CreationState,
     val success: Boolean,
-    val logs: Map<String, String>
+    val logs: Map<String, String>,
+    val reason: String
 )
 
 

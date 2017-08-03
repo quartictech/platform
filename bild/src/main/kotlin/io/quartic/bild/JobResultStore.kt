@@ -9,7 +9,7 @@ import io.quartic.bild.model.JobResult
 class JobResultStore {
     data class Record (
         var jobResult: JobResult?,
-        var extraData: Any?
+        var dag: Any?
     )
 
     private val results = hashMapOf<BildId, Record>()
@@ -25,9 +25,9 @@ class JobResultStore {
         })
     }
 
-    fun putExtraData(id: BildId, extraData: Any?) {
+    fun putDag(id: BildId, dag: Any?) {
          synchronized(results, {
-            results.computeIfAbsent(id, { Record(null, null) }).extraData = extraData
+            results.computeIfAbsent(id, { Record(null, null) }).dag = dag
         })
     }
 

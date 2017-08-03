@@ -1,6 +1,5 @@
 package io.quartic.bild.resource
 
-import com.fasterxml.jackson.annotation.ObjectIdGenerator
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
@@ -35,6 +34,6 @@ class ExecResource(val queue: BlockingQueue<BildJob>,
     @Path("/backchannel/{jobId}")
     @POST
     fun backchannel(@PathParam("jobId") jobId: BildId, data: Any) {
-        jobResults.putExtraData(jobId, data)
+        jobResults.putDag(jobId, data)
     }
 }

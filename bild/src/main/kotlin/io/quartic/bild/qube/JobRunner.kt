@@ -19,8 +19,16 @@ class JobRunner(
     val runTimeoutSeconds: Int) : Subscriber<Event>() {
     val log by logger()
 
+    private val stopwatch = Stopwatch.createStarted()
     private var creationState: CreationState = CreationState.UNKNOWN
     private var watcher: Watch? = null
+
+    sealed class JobState {
+        data class Pending(val _dummy: Int = 0): JobState()
+        data class Running(val _dummy: Int = 0): JobState()
+        data class Failed(val jobResult: JobResult): JobState()
+        data class Succeeded(val jobResult: JobResult): JobState()
+    }
 
     override fun onNext(event: Event?) {
         log.info("[{}] Received event: {}\n\t{}", jobName, event?.reason, event?.message)
@@ -60,64 +68,50 @@ class JobRunner(
         return mapOf()
     }
 
-    fun innerRun(): Job {
+    fun start() {
         log.info("[{}] Creating job", jobName)
         client.createJob(job)
-        val stopwatch = Stopwatch.createStarted()
+    }
 
-        while (true) {
-            val job = client.getJob(jobName)
+    fun poll(): JobState {
+        val job = client.getJob(jobName)
 
-            if (job.status.succeeded != null && job.status.succeeded >= 1) {
-                log.info("[{}] Completion due to success", jobName)
-                return job
-            }
+        if (isSuccess(job)) {
+            log.info("[{}] Completion due to success", jobName)
+            return success("Success")
+        } else if (isFailure(job)) {
+            log.info("[{}] Too many failures", jobName)
+            return failure("Failure")
+        }
 
-            if (job.status.failed != null && job.status.failed >= maxFailures) {
-                log.info("[{}] Too many failures", jobName)
-                return job
-            }
+        if (creationState == CreationState.FAILED) {
+            log.info("[{}] Creation failed", jobName)
+            return failure("Creation failed")
+        }
 
-            if (creationState == CreationState.FAILED) {
-                log.info("[{}] Creation failed", jobName)
-                return job
-            }
+        if (creationState == CreationState.UNKNOWN &&
+            stopwatch.elapsed(TimeUnit.SECONDS) > creationTimeoutSeconds) {
+            log.info("[{}] Exceeded creation timeout", jobName)
+            return failure("Exceeded creation timeout")
+        }
+        if (creationState == CreationState.CREATED &&
+            stopwatch.elapsed(TimeUnit.SECONDS) > runTimeoutSeconds) {
+            log.info("[{}] Exceeded run timeout", jobName)
+            return failure("Exceeeded run timeout")
+        }
 
-            if (creationState == CreationState.UNKNOWN &&
-                stopwatch.elapsed(TimeUnit.SECONDS) > creationTimeoutSeconds) {
-                log.info("[{}] Exceeded creation timeout", jobName)
-                return job
-            }
-            if (creationState == CreationState.CREATED &&
-                stopwatch.elapsed(TimeUnit.SECONDS) > runTimeoutSeconds) {
-                log.info("[{}] Exceeded run timeout", jobName)
-                return job
-            }
-
-            log.info("[{}] Sleeping...", jobName)
-            Thread.sleep(1000)
+        if (creationState == CreationState.CREATED) {
+            return JobState.Running()
+        } else {
+            return JobState.Pending()
         }
     }
 
-    fun isSuccess(job: Job?): Boolean {
-        if (job != null) {
-           return job.status.succeeded >= 1
-        }
-        return false
-    }
+    fun isSuccess(job: Job?) = job?.status?.succeeded != null && job.status.succeeded >= 1
+    fun isFailure(job: Job?) = job?.status?.failed != null && job.status.failed >= maxFailures
 
-    fun run(): JobResult {
-        var job: Job? = null
-        try {
-            job = innerRun()
-        } catch (e: Exception) {
-            log.error("Exception while running job", e)
-        }
-        val result = JobResult(creationState, isSuccess(job), getLogs())
-        log.info("[{}] Job completed with result: {}", jobName, result)
-        cleanup()
-        return result
-    }
+    fun success(reason: String) = JobState.Succeeded(JobResult(true, getLogs(), reason))
+    fun failure(reason: String) = JobState.Failed(JobResult(false, getLogs(), reason))
 
     companion object {
         val FAILED_CREATE = "FailedCreate"

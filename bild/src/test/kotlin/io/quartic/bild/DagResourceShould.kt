@@ -1,13 +1,9 @@
 package io.quartic.bild
 
-import com.nhaarman.mockito_kotlin.isNull
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import io.dropwizard.testing.ResourceHelpers.resourceFilePath
-import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.bild.model.CustomerId
 import io.quartic.bild.resource.DagResource
-import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers
 import org.junit.Assert.assertThat
 import org.junit.Test
