@@ -1,25 +1,30 @@
 package io.quartic.bild
 
+import com.google.common.base.Stopwatch
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.JobBuilder
+import io.fabric8.kubernetes.api.model.JobStatus
+import io.quartic.bild.model.JobResult
 import io.quartic.bild.qube.JobRunner
 import io.quartic.bild.qube.Qube
+import org.hamcrest.Matchers
 import org.junit.Test
-import rx.schedulers.TestScheduler
 import rx.subjects.PublishSubject
 import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
 import rx.schedulers.Schedulers
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class JobRunnerShould {
     private val job = JobBuilder().build()
     private val qube = mock<Qube>()
     private val subject = PublishSubject.create<Event>()
     private val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
+    private val stopwatch = mock<Stopwatch>()
 
     init {
         whenever(qube.createJob(job)).thenReturn(job)
@@ -45,6 +50,15 @@ class JobRunnerShould {
         assertThat<JobRunner.JobState>(jobRunner.poll(), equalTo(JobRunner.JobState.Running()))
     }
 
+    @Test
+    fun fail_if_too_long_creating() {
+        val jobRunner = jobRunner()
+        jobRunner.start()
+        whenever(stopwatch.elapsed(TimeUnit.SECONDS)).thenReturn(60000)
+        val jobState = jobRunner.poll()
+        assertThat<Class<JobRunner.JobState>>(jobState.javaClass, equalTo(JobRunner.JobState.Failed::class.java))
+    }
+
     fun jobRunner(): JobRunner {
         val jobRunner = JobRunner(
             job,
@@ -52,7 +66,8 @@ class JobRunnerShould {
             qube,
             1,
             60,
-            60)
+            60,
+            stopwatch)
 
         subject.subscribeOn(scheduler).subscribe(jobRunner)
         return jobRunner

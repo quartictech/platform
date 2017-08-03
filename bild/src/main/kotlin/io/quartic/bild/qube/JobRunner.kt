@@ -10,16 +10,17 @@ import io.quartic.common.logging.logger
 import rx.Subscriber
 import java.util.concurrent.TimeUnit
 
-class JobRunner(
+class JobRunner (
     val job: Job,
     val jobName: String,
     val client: Qube,
     val maxFailures: Int,
     val creationTimeoutSeconds: Int,
-    val runTimeoutSeconds: Int) : Subscriber<Event>() {
+    val runTimeoutSeconds: Int,
+    val stopwatch: Stopwatch = Stopwatch.createStarted()
+) : Subscriber<Event>() {
     val log by logger()
 
-    private val stopwatch = Stopwatch.createStarted()
     private var creationState: CreationState = CreationState.UNKNOWN
     private var watcher: Watch? = null
 
