@@ -55,13 +55,22 @@ function* watchLogout(): SagaIterator {
   }
 }
 
-function* watchLoadDatasets(): SagaIterator {
+function* watchFetchDatasets(): SagaIterator {
   while (true) {
     yield take(constants.FETCH_DATASETS);
     const res = yield* checkedApiCall(api.fetchDatasets);
-
     if (!res.err) {
       yield put(actions.fetchDatasetsSuccess(res.data));
+    }
+  }
+}
+
+function* watchFetchPipeline(): SagaIterator {
+  while (true) {
+    yield take(constants.FETCH_PIPELINE);
+    const res = yield* checkedApiCall(api.fetchDag);
+    if (!res.err) {
+      yield put(actions.fetchPipelineSuccess(res.data));
     }
   }
 }
@@ -120,7 +129,8 @@ function* watchCreateDataset(): SagaIterator {
 }
 
 export function* sagas(): SagaIterator {
-  yield fork(watchLoadDatasets);
+  yield fork(watchFetchDatasets);
+  yield fork(watchFetchPipeline);
   yield fork(watchDeleteDataset);
   yield fork(watchCreateDataset);
   yield fork(watchLoginGithub);

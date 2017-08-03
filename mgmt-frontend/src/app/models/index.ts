@@ -36,6 +36,11 @@ export interface DatasetAction {
   data: any;
 }
 
+export interface PipelineAction {
+  type: string;
+  data: any;
+}
+
 export interface UiAction {
   type: string;
   activeModal?: string;

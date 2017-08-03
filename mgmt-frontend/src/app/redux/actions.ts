@@ -73,3 +73,16 @@ export function setActiveModal(activeModal) {
     activeModal,
   };
 }
+
+export function fetchPipeline() {
+  return {
+    type: constants.FETCH_PIPELINE,
+  };
+}
+
+export function fetchPipelineSuccess(data) {
+  return {
+    type: constants.FETCH_PIPELINE_SUCCESS,
+    data,
+  };
+}

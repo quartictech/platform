@@ -4,30 +4,26 @@ import * as cytoscape from "cytoscape";
 import * as cytoscapeDagre from "cytoscape-dagre";
 cytoscapeDagre(cytoscape);
 
-import { DatasetMap, Ui } from "../../models";
-
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-const pipeline = require("./pipeline.json");
+// TODO - can be make this pure-render?
 
 interface IProps {
-  datasets: DatasetMap;
-  ui: Ui;
-  createDataset: (any) => any;
-  fetchDatasets: any;
-  closeNewDatasetModal: any;
-  deleteDataset: (string) => void;
+  pipeline: any;
+  fetchPipeline: any;
 }
 
 class PipelineView extends React.Component<IProps, {}> {
+  private cy;
+
+  // TODO - change title here
   render() {
     return (
       <div className={s.container}>
         <div className={s.main}>
-          <h1>Pipeline View: magnolia</h1>
           <div id="cy" className={s.cy}/>
         </div>
       </div>
@@ -35,15 +31,27 @@ class PipelineView extends React.Component<IProps, {}> {
   }
 
   componentDidMount() {
-    const cy = cytoscape({
-      container: document.getElementById("cy"),
-      elements: pipeline,
-      autoungrabify: true,
-      layout: {
+    this.cy = this.configureCytoscape();
+    this.props.fetchPipeline();
+  }
+
+  componentDidUpdate(prevProps: IProps) {
+    if (prevProps !== this.props) {
+      this.cy.elements().remove();
+      this.cy.add(this.props.pipeline);
+      this.cy.elements().layout({
         name: "dagre",
         rankDir: "TB",
         fit: true,
-      },
+      }).run();
+    }
+  }
+
+  private configureCytoscape() {
+    const cy = cytoscape({
+      container: document.getElementById("cy"),
+      elements: {},
+      autoungrabify: true,
       style: [
         {
           selector: "node",
@@ -92,19 +100,17 @@ class PipelineView extends React.Component<IProps, {}> {
         "target-arrow-color": "#db1e7b",
       });
     });
+
+    return cy;
   }
 }
 
 const mapDispatchToProps = {
-  fetchDatasets: actions.fetchDatasets,
-  createDataset: actions.createDataset,
-  deleteDataset: actions.deleteDataset,
-  closeNewDatasetModal: () => actions.setActiveModal(null as string),
+  fetchPipeline: actions.fetchPipeline,
 };
 
 const mapStateToProps = createStructuredSelector({
-  datasets: selectors.selectDatasets,
-  ui: selectors.selectUi,
+  pipeline: selectors.selectPipeline,
 });
 
 export default connect(

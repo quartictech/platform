@@ -3,6 +3,7 @@ package io.quartic.mgmt
 import io.dropwizard.assets.AssetsBundle
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
+import io.quartic.bild.api.BildService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.application.TokenAuthConfiguration
@@ -12,6 +13,8 @@ import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
 import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.mgmt.resource.AuthResource
+import io.quartic.mgmt.resource.MgmtResource
 import io.quartic.registry.api.RegistryService
 import java.time.Duration
 
@@ -25,6 +28,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = client<CatalogueService>(javaClass, configuration.catalogueUrl)
         val registry = client<RegistryService>(javaClass, configuration.registryUrl)
+        val bild = client<BildService>(javaClass, configuration.bildUrl)
 
         val tokenGenerator = TokenGenerator(
             (configuration.auth as TokenAuthConfiguration).base64EncodedKey,
@@ -32,7 +36,12 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         )
 
         with (environment.jersey()) {
-            register(MgmtResource(catalogue, howl, NamespaceAuthoriser(configuration.authorisedNamespaces)))
+            register(MgmtResource(
+                catalogue,
+                howl,
+                bild,
+                NamespaceAuthoriser(configuration.authorisedNamespaces)
+            ))
             register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))

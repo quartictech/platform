@@ -1,6 +1,7 @@
 package io.quartic.mgmt
 
 import com.nhaarman.mockito_kotlin.*
+import io.quartic.bild.api.BildService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
@@ -9,6 +10,7 @@ import io.quartic.common.auth.User
 import io.quartic.common.test.assertThrows
 import io.quartic.howl.api.HowlService
 import io.quartic.mgmt.auth.NamespaceAuthoriser
+import io.quartic.mgmt.resource.MgmtResource
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before
@@ -32,8 +34,9 @@ class MgmtResourceShould {
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
     private val authoriser = mock<NamespaceAuthoriser>()
+    private val bild = mock<BildService>()
 
-    private val resource = MgmtResource(catalogue, howl, authoriser)
+    private val resource = MgmtResource(catalogue, howl, bild, authoriser)
 
     @Before
     fun before() {

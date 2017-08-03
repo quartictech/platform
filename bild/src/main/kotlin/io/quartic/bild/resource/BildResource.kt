@@ -1,14 +1,10 @@
 package io.quartic.bild.resource
 
-import javax.ws.rs.*
-import javax.ws.rs.core.MediaType
+import io.quartic.bild.api.BildService
+import javax.ws.rs.WebApplicationException
 
-@Path("/")
-class BildResource(val pipelines: Map<String, Any>) {
-    @Path("/dag/{customerId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @GET
-    fun dag(@PathParam("customerId") customerId: String): Any? =
+class BildResource(val pipelines: Map<String, Any>) : BildService {
+    override fun getDag(customerId: String): Any =
         pipelines.getOrElse(customerId, { throw WebApplicationException(404) })
 }
 
