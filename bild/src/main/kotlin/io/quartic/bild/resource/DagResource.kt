@@ -7,6 +7,7 @@ import javax.ws.rs.core.MediaType
 
 @Path("/dag")
 class DagResource(val jobResults: JobResultStore, val defaultPipeline: Any) {
+    // TODO: remove the fallback pipeline here once builds are working
     @Path("/{customerId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
