@@ -59,7 +59,7 @@ class MgmtApplicationShould {
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                    .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver")))))
+                    .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
 
             stubFor(get(urlPathEqualTo("/user/orgs"))
                 .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))

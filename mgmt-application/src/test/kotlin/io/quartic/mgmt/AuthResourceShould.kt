@@ -61,7 +61,7 @@ class AuthResourceShould {
         }
         whenever(registry.getCustomer(any())).thenReturn(customer)
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
-        whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo"))
+        whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob")))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
         whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
