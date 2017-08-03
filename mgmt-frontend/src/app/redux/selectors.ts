@@ -18,7 +18,7 @@ export const selectLocationState = () => {
 };
 
 export const selectLoggedIn = state => state.getIn(["user", "loggedIn"]) as boolean;
-export const selectProfile = state => {
+export const selectProfile = (state) => {
   const p = state.getIn(["user", "profile"]);
   return p ? p.toJS() as Profile : null;
 };

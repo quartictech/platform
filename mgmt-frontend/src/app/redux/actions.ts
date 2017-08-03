@@ -10,7 +10,7 @@ export function fetchDatasets() {
 export const userLoginGithub = (code, state) => ({
   type: constants.USER_LOGIN_GITHUB,
   code,
-  state,  
+  state,
 });
 
 export const userLogout = () => ({
@@ -21,7 +21,7 @@ export const userLoginSuccess = () => ({
   type: constants.USER_LOGIN_SUCCESS,
 });
 
-export const userFetchProfileSuccess = (profile) => ({
+export const userFetchProfileSuccess = profile => ({
   type: constants.USER_FETCH_PROFILE_SUCCESS,
   profile,
 });
