@@ -12,6 +12,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import { Profile } from "../../models";
+const styles = require("./styles.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
@@ -112,18 +113,11 @@ class Header extends React.Component<IProps, void> {
       return null;
     }
 
-    const imgStyle = {
-      height: "100%",
-      paddingTop: "10px",
-      paddingBottom: "10px",
-      borderRadius: "50%",
-    };
-
     // A button is somewhat weird as it does nothing currently, but at least it renders in a nice way
     return (
       <div style={{ height: "100%", display: "inline-block" }}>
         <img
-          style={imgStyle}
+          style={styles.profile}
           src={this.props.profile.avatarUrl}
         />
         <Button
