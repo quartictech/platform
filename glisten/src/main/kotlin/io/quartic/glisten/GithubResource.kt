@@ -5,9 +5,9 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.glisten.github.model.PushEvent
 import io.quartic.glisten.model.Notification
-import io.quartic.glisten.model.Registration
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
+import java.time.Clock
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.*
@@ -17,17 +17,13 @@ import javax.ws.rs.core.MediaType
 
 @Path("/github")
 class GithubResource(
-    registrations: Map<String, Registration>,
     private val secretToken: String,
-    private val notify: (Notification) -> Unit
+    private val notify: (Notification) -> Unit,
+    private val clock: Clock = Clock.systemUTC()
 ) {
     // TODO - handle DoS due to massive payload causing OOM
 
     private val LOG by logger()
-
-    private val installations = registrations
-        .entries
-        .associateBy({ e -> e.value.installationId }, { e -> e.key })
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -74,14 +70,16 @@ class GithubResource(
             }
         }
 
-        private fun handlePushEvent(pushEvent: PushEvent) {
-            val customer = installations[pushEvent.installation.id]
-                ?: throw ForbiddenException("[$deliveryId] Unregistered installation ${pushEvent.installation.id}")
-
-            // TODO - we shouldn't be logging this kind of detail
-            LOG.info("[$deliveryId] Push (customer = '$customer', repo = '${pushEvent.repository.fullName}', ref = '${pushEvent.ref}')")
-
-            notify(Notification(customer, pushEvent.repository.cloneUrl))
+        private fun handlePushEvent(event: PushEvent) {
+            LOG.info("[$deliveryId] Push (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')")
+            notify(Notification(
+                type = "github",
+                deliveryId = deliveryId,
+                installationId = event.installation.id,
+                repoId = event.repository.id,
+                ref = event.ref,
+                timestamp = clock.instant()
+            ))
         }
     }
 

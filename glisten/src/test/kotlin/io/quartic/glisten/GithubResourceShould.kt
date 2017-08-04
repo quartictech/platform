@@ -6,17 +6,17 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.glisten.github.model.*
 import io.quartic.glisten.model.Notification
-import io.quartic.glisten.model.Registration
 import org.apache.commons.codec.binary.Hex
 import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.time.Clock
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZoneOffset
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.BadRequestException
-import javax.ws.rs.ForbiddenException
 import javax.ws.rs.NotAuthorizedException
 
 class GithubResourceShould {
@@ -26,11 +26,8 @@ class GithubResourceShould {
     private val pingSignature = "sha1=62c3f51e3b54b13036a062f0fb21759837280481"
 
     private val notify = mock<(Notification) -> Unit>()
-
-    private val resource = GithubResource(mapOf(
-        "orgA" to Registration("github", 12345),
-        "orgB" to Registration("github", 67890)
-    ), secretToken, notify)
+    private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+    private val resource = GithubResource(secretToken, notify, clock)
 
     @Test
     fun respond_with_401_if_token_mismatch() {
@@ -55,19 +52,18 @@ class GithubResourceShould {
     }
 
     @Test
-    fun respond_with_403_if_unregistered_installation() {
-        val payload = OBJECT_MAPPER.writeValueAsString(pushEvent(54321))
-        assertThrows<ForbiddenException> {
-            resource.handleEvent("push", "abc", calculateSignature(payload), payload)
-        }
-    }
-
-    @Test
-    fun notify_if_registered_installation() {
-        val payload = OBJECT_MAPPER.writeValueAsString(pushEvent(12345))
+    fun notify_if_event_is_regular() {
+        val payload = OBJECT_MAPPER.writeValueAsString(pushEvent())
         resource.handleEvent("push", "abc", calculateSignature(payload), payload)
 
-        verify(notify)(Notification("orgA", "https://github.com/noobhole/noobing.git"))
+        verify(notify)(Notification(
+            type = "github",
+            deliveryId = "abc",
+            installationId = 12345,
+            repoId = 66666,
+            ref = "refs/heads/master",
+            timestamp = clock.instant()
+        ))
     }
 
     private fun calculateSignature(body: String): String {
@@ -80,7 +76,7 @@ class GithubResourceShould {
         return "sha1=${Hex.encodeHexString(result)}"
     }
 
-    private fun pushEvent(installationId: Int) = PushEvent(
+    private fun pushEvent() = PushEvent(
         ref = "refs/heads/master",
         after = "fc6206fd27761a1e03383287e213801105f01a25",
         before = "efadb7ddea7476c99fef529740096dce49f88279",
@@ -114,6 +110,6 @@ class GithubResourceShould {
             private = true,
             cloneUrl = "https://github.com/noobhole/noobing.git"
         ),
-        installation = Installation(installationId)
+        installation = Installation(12345)
     )
 }

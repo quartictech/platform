@@ -8,7 +8,6 @@ class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
     override fun runApplication(configuration: GlistenConfiguration, environment: Environment) {
         // TODO - wire through notify param to Bild client
         environment.jersey().register(GithubResource(
-            configuration.registrations,
             configuration.secretToken,
             {}
         ))
