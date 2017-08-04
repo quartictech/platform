@@ -13,7 +13,8 @@ import java.util.*
 class Qube(private val client: DefaultKubernetesClient, private val namespace: String) {
     private val log by logger()
 
-    // This is needed because fabric8 isn't uptodate atm
+    // This is needed because fabric8 hasn't updated the API version.
+    // See https://github.com/fabric8io/kubernetes-client/pull/827
     private val jobOps = JobOperationsImpl(client.httpClient, client.configuration, "v1", namespace, null,
         true, null, null, false, -1, TreeMap<String, String>(), TreeMap<String, String>(), TreeMap<String, Array<String>>(),
         TreeMap<String, Array<String>>(),
@@ -27,7 +28,6 @@ class Qube(private val client: DefaultKubernetesClient, private val namespace: S
     fun listPodsForJob(job: Job) = namespacedClient.pods().withLabelSelector(job.spec.selector).list().items
     fun getLogs(podName: String) = namespacedClient.pods().withName(podName).getLog(true)
     fun ensureNamespaceExists(namespace: Namespace) = client.namespaces().createOrReplace(namespace)
-    fun cloneClient() = Qube(DefaultKubernetesClient(client.configuration), namespace)
 
     fun watchEvents(f: (event: Event) -> Unit) {
         namespacedClient.events().watch(object: Watcher<Event> {

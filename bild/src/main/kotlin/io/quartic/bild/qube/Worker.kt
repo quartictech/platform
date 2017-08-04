@@ -17,7 +17,6 @@ class Worker(val configuration: KubernetesConfiguraration,
              val queue: BlockingQueue<BildJob>,
              val client: Qube,
              val events: Observable<Event>,
-             val namespace: String,
              val jobResults: JobResultStore): Runnable {
     val log by logger()
     val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())!!
@@ -27,7 +26,7 @@ class Worker(val configuration: KubernetesConfiguraration,
     fun makeJob(job: BildJob) = JobBuilder(configuration.template)
         .withNewMetadata()
         .withName(jobName(job))
-        .withNamespace(namespace)
+        .withNamespace(configuration.namespace)
         .endMetadata()
         .editSpec().editTemplate().editSpec().editFirstContainer()
         .addAllToEnv(
@@ -78,8 +77,8 @@ class Worker(val configuration: KubernetesConfiguraration,
                 configuration.creationTimeoutSeconds,
                 configuration.runTimeoutSeconds
                 )
-                val subscription = eventObservable(job).subscribeOn(scheduler)
-                    .subscribe(jobRunner)
+            val subscription = eventObservable(job).subscribeOn(scheduler)
+                .subscribe(jobRunner)
             try {
                 jobRunner.start()
                 val result = jobLoop(jobName, jobRunner)

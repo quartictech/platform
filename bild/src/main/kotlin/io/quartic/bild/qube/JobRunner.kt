@@ -11,13 +11,13 @@ import rx.Subscriber
 import java.util.concurrent.TimeUnit
 
 class JobRunner (
-    val job: Job,
-    val jobName: String,
-    val client: Qube,
-    val maxFailures: Int,
-    val creationTimeoutSeconds: Int,
-    val runTimeoutSeconds: Int,
-    val stopwatch: Stopwatch = Stopwatch.createStarted()
+    private val job: Job,
+    private val jobName: String,
+    private val client: Qube,
+    private val maxFailures: Int,
+    private val creationTimeoutSeconds: Int,
+    private val runTimeoutSeconds: Int,
+    private val stopwatch: Stopwatch = Stopwatch.createStarted()
 ) : Subscriber<Event>() {
     val log by logger()
 

@@ -13,14 +13,14 @@ import java.util.concurrent.Executors
 class JobPool(val configuration: KubernetesConfiguraration,
               val client: Qube,
               queue: BlockingQueue<BildJob>, jobResults: JobResultStore) {
-    val log by logger()
-    val namespace = NamespaceBuilder()
+    private val log by logger()
+    private val namespace = NamespaceBuilder()
         .editOrNewMetadata()
         .withName(configuration.namespace)
         .endMetadata()
         .build()
-    val threadPool = Executors.newFixedThreadPool(configuration.numConcurrentJobs);
-    val events = PublishSubject.create<Event>()
+    private val threadPool = Executors.newFixedThreadPool(configuration.numConcurrentJobs);
+    private val events = PublishSubject.create<Event>()
 
     init {
         log.info("Creating namespace: $namespace")
@@ -32,16 +32,15 @@ class JobPool(val configuration: KubernetesConfiguraration,
                 Worker(
                     configuration,
                     queue,
-                    client.cloneClient(),
+                    client,
                     events,
-                    configuration.namespace,
                     jobResults
                 )
             )
         }
     }
 
-    fun watchNamespace() {
+    private fun watchNamespace() {
         client.watchEvents { event -> events.onNext(event) }
     }
 }

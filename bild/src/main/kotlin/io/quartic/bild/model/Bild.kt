@@ -24,7 +24,7 @@ enum class CreationState {
 
 data class JobResult (
     val success: Boolean,
-    val logs: Map<String, String>,
+    val logOutputByPod: Map<String, String>,
     val reason: String
 )
 
