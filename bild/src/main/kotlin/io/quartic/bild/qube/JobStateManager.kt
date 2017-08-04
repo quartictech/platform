@@ -84,6 +84,11 @@ class JobStateManager(
     fun poll(): JobState {
         val job = client.getJob(jobName)
 
+        if (job == null) {
+            log.error("[{}] Job was deleted from underneath us", jobName)
+            return failure("Job was deleted from underneath us")
+        }
+
         if (isSuccess(job)) {
             log.info("[{}] Completion due to success", jobName)
             return success("Success")

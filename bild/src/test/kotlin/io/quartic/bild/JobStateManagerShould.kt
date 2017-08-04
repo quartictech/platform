@@ -1,6 +1,7 @@
 package io.quartic.bild
 
 import com.google.common.base.Stopwatch
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
@@ -54,6 +55,17 @@ class JobStateManagerShould {
         whenever(stopwatch.elapsed(TimeUnit.SECONDS)).thenReturn(60000)
         val jobState = jobRunner.poll()
         assertThat<Class<JobStateManager.JobState>>(jobState.javaClass, equalTo(JobStateManager.JobState.Failed::class.java))
+    }
+
+    @Test
+    fun handle_job_deletion() {
+        val jobRunner = jobRunner()
+        jobRunner.start()
+        val resultA = jobRunner.poll()
+        assertThat<JobStateManager.JobState>(resultA, equalTo(JobStateManager.JobState.Pending()))
+        whenever(qube.getJob(any())).thenReturn(null)
+        val resultB = jobRunner.poll()
+        assertThat<Class<JobStateManager.JobState>>(resultB.javaClass, equalTo(JobStateManager.JobState.Failed::class.java))
     }
 
     fun jobRunner(): JobStateManager {
