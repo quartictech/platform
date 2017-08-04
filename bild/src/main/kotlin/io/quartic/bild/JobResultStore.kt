@@ -8,8 +8,8 @@ import io.quartic.bild.model.JobResult
 
 class JobResultStore {
     data class Record (
-        var jobResult: JobResult?,
-        var dag: Any?
+        val jobResult: JobResult?,
+        val dag: Any?
     )
 
     private val results = hashMapOf<BildId, Record>()
@@ -17,7 +17,7 @@ class JobResultStore {
 
     fun putJobResult(job: BildJob, jobResult: JobResult) {
         synchronized(results, {
-            results.computeIfAbsent(job.id, { Record(null, null) }).jobResult = jobResult
+            results[job.id] = (results[job.id] ?: Record(null, null)).copy(jobResult = jobResult)
         })
 
         synchronized(latestBuild, {
@@ -27,7 +27,7 @@ class JobResultStore {
 
     fun putDag(id: BildId, dag: Any?) {
          synchronized(results, {
-            results.computeIfAbsent(id, { Record(null, null) }).dag = dag
+             results[id] = (results[id] ?: Record(null, null)).copy(dag = dag)
         })
     }
 
