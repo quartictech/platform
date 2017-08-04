@@ -1,10 +1,11 @@
 package io.quartic.glisten
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.quartic.bild.api.BildTriggerService
+import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.glisten.github.model.PushEvent
-import io.quartic.glisten.model.Notification
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
 import java.time.Clock
@@ -18,7 +19,7 @@ import javax.ws.rs.core.MediaType
 @Path("/github")
 class GithubResource(
     private val secretToken: String,
-    private val notify: (Notification) -> Unit,
+    private val trigger: BildTriggerService,
     private val clock: Clock = Clock.systemUTC()
 ) {
     // TODO - handle DoS due to massive payload causing OOM
@@ -51,7 +52,7 @@ class GithubResource(
             // TODO - handle PingEvent, InstallationEvent, and InstallationRepositoriesEvent
             when (eventType) {
                 "push" -> handlePushEvent(parseEvent(payload, deliveryId))
-                else -> LOG.info("[$deliveryId] Ignored event of type '$eventType'")
+                else -> LOG.info("Ignored event of type '$eventType'".nicely())
             }
         }
 
@@ -66,21 +67,29 @@ class GithubResource(
             val expected = "sha1=${Hex.encodeHexString(result)}"
 
             if (!MessageDigest.isEqual(expected.toByteArray(), signature.toByteArray())) {
-                throw NotAuthorizedException("[$deliveryId] Signature mismatch")
+                throw NotAuthorizedException("Signature mismatch".nicely())
             }
         }
 
         private fun handlePushEvent(event: PushEvent) {
-            LOG.info("[$deliveryId] Push (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')")
-            notify(Notification(
-                type = "github",
-                deliveryId = deliveryId,
-                installationId = event.installation.id,
-                repoId = event.repository.id,
-                ref = event.ref,
-                timestamp = clock.instant()
-            ))
+            fun String.toMessage() = "Trigger $this (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')".nicely()
+
+            try {
+                trigger.trigger(TriggerDetails(
+                    type = "github",
+                    deliveryId = deliveryId,
+                    installationId = event.installation.id,
+                    repoId = event.repository.id,
+                    ref = event.ref,
+                    timestamp = clock.instant()
+                ))
+                LOG.info("success".toMessage())
+            } catch (e: Exception) {
+                LOG.warn("failed".toMessage(), e)
+            }
         }
+
+        private fun String.nicely() = "[$deliveryId] $this"
     }
 
     private inline fun <reified T : Any> validatePresent(x : T?) = x ?: throw BadRequestException("Missing header")

@@ -1,11 +1,14 @@
 package io.quartic.glisten
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
+import io.quartic.bild.api.BildTriggerService
+import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.glisten.github.model.*
-import io.quartic.glisten.model.Notification
 import org.apache.commons.codec.binary.Hex
 import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat
@@ -18,6 +21,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotAuthorizedException
+import javax.ws.rs.ServerErrorException
 
 class GithubResourceShould {
     // Recorded from a real GitHub webhook (token is now changed, obviously!)
@@ -25,9 +29,9 @@ class GithubResourceShould {
     private val pingPayload = javaClass.getResource("/ping_event.json").readText()
     private val pingSignature = "sha1=62c3f51e3b54b13036a062f0fb21759837280481"
 
-    private val notify = mock<(Notification) -> Unit>()
+    private val trigger = mock<BildTriggerService>()
     private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
-    private val resource = GithubResource(secretToken, notify, clock)
+    private val resource = GithubResource(secretToken, trigger, clock)
 
     @Test
     fun respond_with_401_if_token_mismatch() {
@@ -52,11 +56,11 @@ class GithubResourceShould {
     }
 
     @Test
-    fun notify_if_event_is_regular() {
+    fun send_trigger_if_event_is_regular() {
         val payload = OBJECT_MAPPER.writeValueAsString(pushEvent())
         resource.handleEvent("push", "abc", calculateSignature(payload), payload)
 
-        verify(notify)(Notification(
+        verify(trigger).trigger(TriggerDetails(
             type = "github",
             deliveryId = "abc",
             installationId = 12345,
@@ -64,6 +68,16 @@ class GithubResourceShould {
             ref = "refs/heads/master",
             timestamp = clock.instant()
         ))
+    }
+
+    @Test
+    fun succeed_even_if_trigger_throws_error() {
+        whenever(trigger.trigger(any())).thenThrow(ServerErrorException("Server is noob", 500))
+
+        val payload = OBJECT_MAPPER.writeValueAsString(pushEvent())
+        resource.handleEvent("push", "abc", calculateSignature(payload), payload)
+
+        // No exception
     }
 
     private fun calculateSignature(body: String): String {

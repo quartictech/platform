@@ -1,9 +1,9 @@
-package io.quartic.glisten.model
+package io.quartic.bild.api.model
 
 import java.time.Instant
 
 // TODO - token or whatever
-data class Notification(
+data class TriggerDetails(
     val type: String,
     val deliveryId: String,     // For logging purposes
     val installationId: Long,
