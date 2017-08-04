@@ -12,7 +12,7 @@ import {
 } from "@blueprintjs/core";
 import * as classNames from "classnames";
 import { Profile } from "../../models";
-const styles = require("./styles.css");
+const styles = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
