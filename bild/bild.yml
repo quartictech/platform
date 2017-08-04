@@ -1,4 +1,5 @@
 kubernetes:
+  enable: false
   namespace: bild
   numConcurrentJobs: 4
   maxFailures: 5
