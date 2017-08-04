@@ -1,10 +1,12 @@
 package io.quartic.bild
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.JobBuilder
+import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
@@ -37,6 +39,17 @@ class WorkerShould {
         verify(jobRunner).cleanup()
         assertThat(subscriber.isUnsubscribed, equalTo(true))
     }
+
+    @Test
+    fun cleanup_on_exception() {
+        val subscriber = TestSubscriber.create<Event>()
+        whenever(jobRunner.subscriber()).thenReturn(subscriber)
+        whenever(jobLoop.loop(any(), any())).thenThrow(KubernetesClientException("wat"))
+        worker.runJob(bildJob)
+        verify(jobRunner).cleanup()
+        assertThat(subscriber.isUnsubscribed, equalTo(true))
+    }
+
 
     val bildJob = BildJob(BildId("1"), CustomerId("1"), BildPhase.TEST)
     val queue = mock<BlockingQueue<BildJob>>()
