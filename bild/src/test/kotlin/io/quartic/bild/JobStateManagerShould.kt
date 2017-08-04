@@ -6,11 +6,8 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.JobBuilder
-import io.fabric8.kubernetes.api.model.JobStatus
-import io.quartic.bild.model.JobResult
-import io.quartic.bild.qube.JobRunner
+import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
-import org.hamcrest.Matchers
 import org.junit.Test
 import rx.subjects.PublishSubject
 import org.hamcrest.Matchers.*
@@ -19,7 +16,7 @@ import rx.schedulers.Schedulers
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class JobRunnerShould {
+class JobStateManagerShould {
     private val job = JobBuilder().build()
     private val qube = mock<Qube>()
     private val subject = PublishSubject.create<Event>()
@@ -36,7 +33,7 @@ class JobRunnerShould {
         val jobRunner = jobRunner()
         jobRunner.start()
         verify(qube).createJob(job)
-        assertThat<JobRunner.JobState>(jobRunner.poll(), equalTo(JobRunner.JobState.Pending()))
+        assertThat<JobStateManager.JobState>(jobRunner.poll(), equalTo(JobStateManager.JobState.Pending()))
     }
 
     @Test
@@ -47,7 +44,7 @@ class JobRunnerShould {
         val event = mock<Event>()
         whenever(event.reason).thenReturn("SuccessfulCreate")
         subject.onNext(event)
-        assertThat<JobRunner.JobState>(jobRunner.poll(), equalTo(JobRunner.JobState.Running()))
+        assertThat<JobStateManager.JobState>(jobRunner.poll(), equalTo(JobStateManager.JobState.Running()))
     }
 
     @Test
@@ -56,11 +53,11 @@ class JobRunnerShould {
         jobRunner.start()
         whenever(stopwatch.elapsed(TimeUnit.SECONDS)).thenReturn(60000)
         val jobState = jobRunner.poll()
-        assertThat<Class<JobRunner.JobState>>(jobState.javaClass, equalTo(JobRunner.JobState.Failed::class.java))
+        assertThat<Class<JobStateManager.JobState>>(jobState.javaClass, equalTo(JobStateManager.JobState.Failed::class.java))
     }
 
-    fun jobRunner(): JobRunner {
-        val jobRunner = JobRunner(
+    fun jobRunner(): JobStateManager {
+        val jobRunner = JobStateManager(
             job,
             JOB_NAME,
             qube,
@@ -69,7 +66,7 @@ class JobRunnerShould {
             60,
             stopwatch)
 
-        subject.subscribeOn(scheduler).subscribe(jobRunner)
+        subject.subscribeOn(scheduler).subscribe(jobRunner.subscriber())
         return jobRunner
     }
 

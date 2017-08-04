@@ -6,39 +6,25 @@ import io.fabric8.kubernetes.api.model.JobBuilder
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
-import io.quartic.bild.model.JobResult
 import io.quartic.common.logging.logger
 import rx.Observable
 import rx.schedulers.Schedulers
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 
-class Worker(val configuration: KubernetesConfiguraration,
-             val queue: BlockingQueue<BildJob>,
-             val client: Qube,
-             val events: Observable<Event>,
-             val jobResults: JobResultStore): Runnable {
+class Worker(
+    private val configuration: KubernetesConfiguraration,
+    private val queue: BlockingQueue<BildJob>,
+    private val client: Qube,
+    private val events: Observable<Event>,
+    private val jobResults: JobResultStore,
+    private val jobStateManagerFactory: (job: BildJob) -> JobStateManager = { job ->
+        createJobRunner(client, configuration, job)
+    },
+    private val jobLoop: JobLoop = JobLoop()
+): Runnable {
     val log by logger()
     val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())!!
-
-    fun jobName(job: BildJob) = "bild-${job.id.id}"
-
-    fun makeJob(job: BildJob) = JobBuilder(configuration.template)
-        .withNewMetadata()
-        .withName(jobName(job))
-        .withNamespace(configuration.namespace)
-        .endMetadata()
-        .editSpec().editTemplate().editSpec().editFirstContainer()
-        .addAllToEnv(
-            listOf(
-                EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
-                EnvVar("QUARTIC_JOB_ID", job.id.toString(), null)
-            ))
-        .endContainer()
-        .endSpec()
-        .endTemplate()
-        .endSpec()
-        .build()
 
     fun eventObservable(job: BildJob) = events
         .filter { event -> event.involvedObject.name == jobName(job) }
@@ -50,40 +36,21 @@ class Worker(val configuration: KubernetesConfiguraration,
         }
     }
 
-    fun jobLoop(jobName: String, jobRunner: JobRunner): JobResult {
-        while (true) {
-            val jobState = jobRunner.poll()
-            when(jobState) {
-                is JobRunner.JobState.Running -> log.info("[{}] Running", jobName)
-                is JobRunner.JobState.Pending -> log.info("[{}] Pending", jobName)
-                is JobRunner.JobState.Failed -> return jobState.jobResult
-                is JobRunner.JobState.Succeeded -> return jobState.jobResult
-            }
-
-            log.info("[{}] Sleeping...", jobName)
-            Thread.sleep(1000)
-        }
-    }
-
     fun runJob(job: BildJob) {
         try {
             val jobName = jobName(job)
             log.info("Starting job: {}", jobName(job))
-            val jobRunner = JobRunner(
-                makeJob(job),
-                jobName,
-                client,
-                configuration.maxFailures,
-                configuration.creationTimeoutSeconds,
-                configuration.runTimeoutSeconds
-                )
+            val jobRunner = jobStateManagerFactory(job)
             val subscription = eventObservable(job).subscribeOn(scheduler)
-                .subscribe(jobRunner)
+                .subscribe(jobRunner.subscriber())
             try {
                 jobRunner.start()
-                val result = jobLoop(jobName, jobRunner)
+                val result = jobLoop.loop(jobName, jobRunner)
                 log.info("[{}] Job completed with result: {}", jobName, result)
                 jobResults.putJobResult(job, result)
+            }
+            catch (e: Exception) {
+                log.error("Exception while running job", e)
             }
             finally {
                 jobRunner.cleanup()
@@ -91,8 +58,38 @@ class Worker(val configuration: KubernetesConfiguraration,
             }
         }
         catch (e: Exception) {
-            e.printStackTrace()
-            log.error("Exception", e)
+            log.error("Unexpected exception", e)
         }
+    }
+
+    companion object {
+        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BildJob) = JobStateManager(
+                createJob(configuration, job),
+                jobName(job),
+                client,
+                configuration.maxFailures,
+                configuration.creationTimeoutSeconds,
+                configuration.runTimeoutSeconds
+        )
+
+        fun createJob(configuration: KubernetesConfiguraration, job: BildJob) = JobBuilder(configuration.template)
+            .withNewMetadata()
+            .withName(jobName(job))
+            .withNamespace(configuration.namespace)
+            .endMetadata()
+            .editSpec().editTemplate().editSpec().editFirstContainer()
+            .addAllToEnv(
+                listOf(
+                    EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
+                    EnvVar("QUARTIC_JOB_ID", job.id.toString(), null)
+                ))
+            .endContainer()
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+            .build()
+
+
+        fun jobName(job: BildJob) = "bild-${job.id.id}"
     }
 }

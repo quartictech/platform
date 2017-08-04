@@ -10,15 +10,15 @@ import io.quartic.common.logging.logger
 import rx.Subscriber
 import java.util.concurrent.TimeUnit
 
-class JobRunner (
+class JobStateManager(
     private val job: Job,
     private val jobName: String,
     private val client: Qube,
     private val maxFailures: Int,
     private val creationTimeoutSeconds: Int,
     private val runTimeoutSeconds: Int,
-    private val stopwatch: Stopwatch = Stopwatch.createStarted()
-) : Subscriber<Event>() {
+    private val stopwatch: Stopwatch = Stopwatch.createUnstarted()
+) {
     val log by logger()
 
     private var creationState: CreationState = CreationState.UNKNOWN
@@ -31,27 +31,33 @@ class JobRunner (
         data class Succeeded(val jobResult: JobResult): JobState()
     }
 
-    override fun onNext(event: Event?) {
-        log.info("[{}] Received event: {}\n\t{}", jobName, event?.reason, event?.message)
-        if (event?.reason == FAILED_CREATE) {
-            creationState = CreationState.FAILED
-        } else if (event?.reason == SUCCESSFUL_CREATE) {
-            creationState = CreationState.CREATED
-        }
-    }
 
-    override fun onCompleted() {
-        log.error("Observable has completed. This should not happen.")
-    }
-
-    override fun onError(e: Throwable?) {
-        log.error("Observable has errored. This should not happen.", e)
-    }
 
     fun cleanup() {
         log.info("[{}] Deleting job", jobName)
         client.deleteJob(job)
         watcher?.close()
+    }
+
+    fun subscriber(): Subscriber<Event> {
+        return object: Subscriber<Event>() {
+            override fun onNext(event: Event?) {
+                log.info("[{}] Received event: {}\n\t{}", jobName, event?.reason, event?.message)
+                if (event?.reason == FAILED_CREATE) {
+                    creationState = CreationState.FAILED
+                } else if (event?.reason == SUCCESSFUL_CREATE) {
+                    creationState = CreationState.CREATED
+                }
+            }
+
+            override fun onCompleted() {
+                log.error("Observable has completed. This should not happen.")
+            }
+
+            override fun onError(e: Throwable?) {
+                log.error("Observable has errored. This should not happen.", e)
+            }
+        }
     }
 
     fun getLogs(): Map<String, String> {
@@ -71,6 +77,7 @@ class JobRunner (
 
     fun start() {
         log.info("[{}] Creating job", jobName)
+        stopwatch.start()
         client.createJob(job)
     }
 
@@ -98,7 +105,7 @@ class JobRunner (
         if (creationState == CreationState.CREATED &&
             stopwatch.elapsed(TimeUnit.SECONDS) > runTimeoutSeconds) {
             log.info("[{}] Exceeded run timeout", jobName)
-            return failure("Exceeeded run timeout")
+            return failure("Exceeded run timeout")
         }
 
         if (creationState == CreationState.CREATED) {
