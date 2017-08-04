@@ -6,8 +6,8 @@ import java.time.Instant
 data class Notification(
     val type: String,
     val deliveryId: String,     // For logging purposes
-    val installationId: Int,
-    val repoId: Int,
+    val installationId: Long,
+    val repoId: Long,
     val ref: String,
     val timestamp: Instant
 )

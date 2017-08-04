@@ -3,7 +3,7 @@ package io.quartic.mgmt
 import io.dropwizard.assets.AssetsBundle
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
-import io.quartic.bild.api.BildService
+import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.application.TokenAuthConfiguration
@@ -29,7 +29,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = client<CatalogueService>(javaClass, configuration.catalogueUrl)
         val registry = client<RegistryService>(javaClass, configuration.registryUrl)
-        val bild = client<BildService>(javaClass, configuration.bildUrl)
+        val bild = client<BildQueryService>(javaClass, configuration.bildUrl)
 
         val tokenGenerator = TokenGenerator(
             (configuration.auth as TokenAuthConfiguration).base64EncodedKey,

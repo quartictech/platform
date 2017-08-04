@@ -4,8 +4,8 @@ import io.quartic.bild.JobResultStore
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
-import io.quartic.bild.model.CustomerId
 import io.quartic.common.logging.logger
+import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import java.util.concurrent.BlockingQueue

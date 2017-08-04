@@ -6,8 +6,8 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
-import io.quartic.bild.model.CustomerId
 import io.quartic.bild.resource.ExecResource
+import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
 import org.junit.Test
 import java.util.concurrent.BlockingQueue

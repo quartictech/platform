@@ -2,8 +2,8 @@ package io.quartic.bild
 
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
-import io.quartic.bild.model.CustomerId
 import io.quartic.bild.model.JobResult
+import io.quartic.common.model.CustomerId
 
 
 class JobResultStore {

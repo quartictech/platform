@@ -37,7 +37,7 @@ data class Commit(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Repository(
-    val id: Int,
+    val id: Long,
     val name: String,
     @JsonProperty("full_name")
     val fullName: String,
@@ -48,7 +48,7 @@ data class Repository(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Organization(
-    val id: Int,
+    val id: Long,
     val login: String,
     val description: String
 )
@@ -68,12 +68,12 @@ data class Pusher(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Sender(
-    val id: Int,
+    val id: Long,
     val login: String,
     val type: String    // TODO - is this an enum?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Installation(
-    val id: Int
+    val id: Long
 )
