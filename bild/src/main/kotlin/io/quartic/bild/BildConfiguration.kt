@@ -9,7 +9,8 @@ data class KubernetesConfiguraration(
     val numConcurrentJobs: Int,
     val maxFailures: Int,
     val creationTimeoutSeconds: Int,
-    val runTimeoutSeconds: Int
+    val runTimeoutSeconds: Int,
+    val enable: Boolean
 )
 
 data class BildConfiguration(
