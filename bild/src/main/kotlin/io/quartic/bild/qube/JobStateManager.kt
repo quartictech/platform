@@ -31,8 +31,6 @@ class JobStateManager(
         data class Succeeded(val jobResult: JobResult): JobState()
     }
 
-
-
     fun cleanup() {
         log.info("[{}] Deleting job", jobName)
         client.deleteJob(job)
@@ -85,31 +83,25 @@ class JobStateManager(
         val job = client.getJob(jobName)
 
         if (job == null) {
-            log.error("[{}] Job was deleted from underneath us", jobName)
             return failure("Job was deleted from underneath us")
         }
 
         if (isSuccess(job)) {
-            log.info("[{}] Completion due to success", jobName)
             return success("Success")
         } else if (isFailure(job)) {
-            log.info("[{}] Too many failures", jobName)
-            return failure("Failure")
+            return failure("Too many failures")
         }
 
         if (creationState == CreationState.FAILED) {
-            log.info("[{}] Creation failed", jobName)
             return failure("Creation failed")
         }
 
         if (creationState == CreationState.UNKNOWN &&
             stopwatch.elapsed(TimeUnit.SECONDS) > creationTimeoutSeconds) {
-            log.info("[{}] Exceeded creation timeout", jobName)
             return failure("Exceeded creation timeout")
         }
         if (creationState == CreationState.CREATED &&
             stopwatch.elapsed(TimeUnit.SECONDS) > runTimeoutSeconds) {
-            log.info("[{}] Exceeded run timeout", jobName)
             return failure("Exceeded run timeout")
         }
 

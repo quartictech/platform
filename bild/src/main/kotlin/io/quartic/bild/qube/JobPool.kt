@@ -10,7 +10,7 @@ import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 
-class JobPool(val configuration: KubernetesConfiguraration,
+class JobPool(configuration: KubernetesConfiguraration,
               val client: Qube,
               queue: BlockingQueue<BildJob>, jobResults: JobResultStore) {
     private val log by logger()

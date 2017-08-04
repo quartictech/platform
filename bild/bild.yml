@@ -4,6 +4,7 @@ kubernetes:
   maxFailures: 5
   creationTimeoutSeconds: 60
   runTimeoutSeconds: 3600
+  backChannelEndpoint: "http://bild.platform:8200/api/exec/backchannel/%s"
   template:
     apiVersion: batch/v1
     kind: Job
