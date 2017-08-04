@@ -75,7 +75,7 @@ class Login extends React.Component<IProps, IState> {
 }
 
 const mapDispatchToProps = {
-  loginGithub: actions.loginGithub,
+  loginGithub: actions.userLoginGithub,
 };
 
 const mapStateToProps = createStructuredSelector({

@@ -52,6 +52,10 @@ export function fetchAuth(url, options?) {
     .catch(err => ({ err }));
 }
 
+export function fetchProfile() {
+  return fetchUtil(`${apiRootUrl}/profile`);
+}
+
 export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }

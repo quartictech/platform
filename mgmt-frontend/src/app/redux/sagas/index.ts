@@ -1,9 +1,10 @@
-import { take, call, put, fork } from "redux-saga/effects";
+import { take, call, put, fork, select } from "redux-saga/effects";
 import { SagaIterator } from "redux-saga";
 
 import * as api from "../api";
 import * as actions from "../actions";
 import * as constants from "../constants";
+import * as selectors from "../selectors";
 
 import { toaster } from "../../containers/App/toaster";
 
@@ -12,30 +13,12 @@ import { push } from "react-router-redux";
 
 import { QUARTIC_XSRF } from "../../helpers/Utils";
 
-function showError(message) {
-  toaster.show({
-    iconName: "warning-sign",
-    intent: Intent.DANGER,
-    message,
-  });
-}
-
 function* checkedApiCall(apiFunction, ...args): SagaIterator {
   const res = yield call(apiFunction, ...args);
-
-  if (! res.err) {
-    yield res;
+  const loggedIn = yield select(selectors.selectLoggedIn);
+  if (loggedIn && res.err && res.err.status === 401) {
+    yield put(actions.userLogout());
   }
-
-  if (res.err && res.err.status === 401) {
-    yield put(actions.logout());
-  }
-
-  if (res.err) {
-    showError(`Exception while processing request: ${res.err.message}`);
-    return res;
-  }
-
   return res;
 }
 
@@ -48,8 +31,7 @@ function showSuccess(message) {
 
 function* watchLogout(): SagaIterator {
   while (true) {
-    yield take(constants.LOGOUT);
-    showError("Logged out");
+    yield take(constants.USER_LOGOUT);
     localStorage.removeItem(QUARTIC_XSRF);
     yield put(push("/login"));
   }
@@ -75,17 +57,24 @@ function* watchFetchPipeline(): SagaIterator {
   }
 }
 
+function* fetchProfile(): SagaIterator {
+  const res = yield* checkedApiCall(api.fetchProfile);
+  if (!res.err) {
+    yield put(actions.userFetchProfileSuccess(res.data));
+  }
+}
+
 function* watchLoginGithub(): SagaIterator {
   while (true) {
-    const action = yield take(constants.LOGIN_GITHUB);
+    const action = yield take(constants.USER_LOGIN_GITHUB);
     const res = yield call(api.githubAuth, action.code, action.state);
 
-    if (! res.err) {
+    if (!res.err) {
       localStorage.setItem(QUARTIC_XSRF, res.xsrfToken);
       yield put(push("/"));
+      yield* fetchProfile();  // TODO - what if profile fetching fails?
     } else {
-      showError("Couldn't authenticate");
-      yield put(push("/login"));
+      yield put(push("/login"));  // TODO - go to a "you are noob, try again page"
     }
   }
 }
@@ -95,7 +84,7 @@ function* watchDeleteDataset(): SagaIterator {
     const action = yield take(constants.DELETE_DATASET);
     const res = yield* checkedApiCall(api.deleteDataset, action.coords);
 
-    if (! res.err) {
+    if (!res.err) {
       yield call(showSuccess, `Deleted dataset: ${action.coords.id}`);
       yield put(actions.fetchDatasets());
     }
@@ -115,20 +104,17 @@ function* watchCreateDataset(): SagaIterator {
         uploadResult.data,
         action.data.files.fileType,
       );
-      if (! createResult.err) {
+      if (!createResult.err) {
         yield call(showSuccess, `Successfully created dataset: ${action.data.metadata.name}`);
         yield put(actions.setActiveModal(null));
         yield put(actions.fetchDatasets());
-      } else {
-        yield call(showError, `Error while creating dataset: ${createResult.err.message}`);
       }
-    } else {
-      yield call(showError, `Error while uploading file: ${uploadResult.err.message}`);
     }
   }
 }
 
 export function* sagas(): SagaIterator {
+  yield fork(fetchProfile);
   yield fork(watchFetchDatasets);
   yield fork(watchFetchPipeline);
   yield fork(watchDeleteDataset);

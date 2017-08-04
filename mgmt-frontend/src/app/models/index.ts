@@ -41,6 +41,11 @@ export interface PipelineAction {
   data: any;
 }
 
+export interface ProfileAction {
+  type: string;
+  data: any;
+}
+
 export interface UiAction {
   type: string;
   activeModal?: string;
@@ -52,4 +57,9 @@ export interface Ui {
   namespace: string;
   searchString: string;
   activeModal: string;
+}
+
+export interface Profile {
+  name: string;
+  avatarUrl: string;
 }
