@@ -31,5 +31,12 @@ class JobResultStore {
         })
     }
 
-    fun getLatest(id: CustomerId) = results.get(latestBuild.get(id))
+    fun getLatest(id: CustomerId): JobResultStore.Record? {
+        val latestBuild = latestBuild.get(id)
+
+        if (latestBuild != null) {
+            return results[latestBuild]
+        }
+        return null
+    }
 }
