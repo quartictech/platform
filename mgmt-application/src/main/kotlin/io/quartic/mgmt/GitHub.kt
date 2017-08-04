@@ -19,7 +19,10 @@ data class GitHubOrganization(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GitHubUser(
     val id: Int,
-    val login: String
+    val login: String,
+    val name: String,
+    @JsonProperty("avatar_url")
+    val avatarUrl: URI
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -41,6 +44,9 @@ interface GitHubOAuth {
 }
 
 interface GitHub {
+    @RequestLine("GET /user/{userId}")
+    fun user(@Param("userId") userId: Int): GitHubUser
+
     @RequestLine("GET /user")
     @Headers("Authorization: token {oauthToken}")
     fun user(@Param("oauthToken") oauthToken: String): GitHubUser

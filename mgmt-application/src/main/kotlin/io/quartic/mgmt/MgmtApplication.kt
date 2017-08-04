@@ -15,6 +15,7 @@ import io.quartic.howl.api.HowlClient
 import io.quartic.mgmt.auth.NamespaceAuthoriser
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.MgmtResource
+import io.quartic.mgmt.resource.UserResource
 import io.quartic.registry.api.RegistryService
 import java.time.Duration
 
@@ -36,6 +37,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         )
 
         with (environment.jersey()) {
+            register(UserResource(configuration.github))
             register(MgmtResource(
                 catalogue,
                 howl,
