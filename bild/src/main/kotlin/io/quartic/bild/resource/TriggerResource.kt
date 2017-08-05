@@ -1,6 +1,7 @@
 package io.quartic.bild.resource
 
-import io.quartic.bild.JobResultStore
+import io.quartic.bild.api.BildTriggerService
+import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
@@ -15,25 +16,24 @@ import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
-@Path("/exec")
-class ExecResource(val queue: BlockingQueue<BildJob>,
-                   val jobResults: JobResultStore,
-                   val idGenerator: UidGenerator<BildId> = randomGenerator { uid -> BildId(uid) }) {
-    val log by logger()
+class TriggerResource(
+    private val queue: BlockingQueue<BildJob>,
+    private val idGenerator: UidGenerator<BildId> = randomGenerator { uid -> BildId(uid) }
+) : BildTriggerService {
+    private val LOG by logger()
+
+    override fun trigger(trigger: TriggerDetails) {
+        // TODO: look up customerId or whatever from Registry
+        LOG.info("Received trigger: ${trigger}")
+    }
 
     @Path("/{customerId}/{phase}")
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     fun exec(@PathParam("customerId") customerId: CustomerId, @PathParam("phase") phase: BildPhase): BildId {
         val id = idGenerator.get()
-        log.info("Queue has size {}", queue.size)
+        LOG.info("Queue has size {}", queue.size)
         queue.put(BildJob(id, customerId, phase))
         return id
-    }
-
-    @Path("/backchannel/{jobId}")
-    @POST
-    fun backchannel(@PathParam("jobId") jobId: BildId, data: Any) {
-        jobResults.putDag(jobId, data)
     }
 }

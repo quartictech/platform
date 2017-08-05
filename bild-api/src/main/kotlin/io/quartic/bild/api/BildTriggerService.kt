@@ -14,5 +14,5 @@ interface BildTriggerService {
     @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    fun trigger(trigger: TriggerDetails): Unit
+    fun trigger(trigger: TriggerDetails)
 }

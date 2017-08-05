@@ -6,8 +6,9 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.qube.JobPool
 import io.quartic.bild.qube.Qube
+import io.quartic.bild.resource.BackChannelResource
 import io.quartic.bild.resource.QueryResource
-import io.quartic.bild.resource.ExecResource
+import io.quartic.bild.resource.TriggerResource
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -28,8 +29,9 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
         }
 
         with (environment.jersey()) {
-            register(QueryResource(jobResults, OBJECT_MAPPER.readValue<Any>(javaClass.getResourceAsStream("/pipeline.json"))))
-            register(ExecResource(queue, jobResults))
+            register(QueryResource(jobResults, OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"))))
+            register(TriggerResource(queue))
+            register(BackChannelResource(jobResults))
         }
     }
 
