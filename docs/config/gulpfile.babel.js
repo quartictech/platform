@@ -23,7 +23,7 @@ const PRODUCTION = !!(yargs.argv.production);
 const config = loadConfig();
 
 function loadConfig() {
-  let ymlFile = fs.readFileSync('config.yml', 'utf8');
+  let ymlFile = fs.readFileSync('config/gulp.yml', 'utf8');
   return yaml.load(ymlFile);
 }
 
@@ -57,7 +57,7 @@ function jekyll(done) {
 
   browser.notify("Running Jekyll");
 
-  return spawn('bundle', ['exec', 'jekyll', 'build', '-q'], {stdio: 'inherit', env:processEnv})
+  return spawn('bundle', ['exec', 'jekyll', 'build', '--config', 'config/jekyll.yml', '-q'], {stdio: 'inherit', env:processEnv})
     .on('close', done);
 };
 

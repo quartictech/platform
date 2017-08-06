@@ -15,7 +15,7 @@ uncss_options:
 
 # Gulp will reference these paths when it copies files
 paths:
-  dist: "build/site"
+  dist: "build/bundle"
   assets:
     - "src/assets/**/*"
     - "!src/assets/{img,js,scss}/**/*"

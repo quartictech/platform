@@ -2,7 +2,7 @@
 
 source: "src"
 
-destination: "build/site"
+destination: "build/bundle"
 
 exclude:
   - "assets"

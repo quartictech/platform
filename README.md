@@ -1,3 +1,9 @@
+## Prerequisites
+
+- JDK 8
+- NPM 4+
+- Ruby + Bundler
+
 ## Running the stack locally
 
 **Note:** The Scribe service writes to a real cloud bucket, even when running locally.
