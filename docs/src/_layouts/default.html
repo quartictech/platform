@@ -1,0 +1,31 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="{{root}}assets/css/app.css">
+  </head>
+  <body>
+
+    <div class="medium-3 large-2 medium-pull-9 large-pull-10 hide-for-small-only columns" data-sticky-container>
+      <ul class="vertical menu">
+      {% for section in site.data.nav %}
+        <li>
+          {{ section.name }}
+          <ul class="nested vertical menu">
+            {% for doc in section.docs %}
+            <li><a href="{{ doc.url }}">{{ doc.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+      </ul>
+    </div>
+
+    {{ content }}
+
+    <script src="{{root}}assets/js/app.js"></script>
+  </body>
+</html>

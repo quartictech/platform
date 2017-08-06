@@ -1,6 +1,6 @@
 .DS_Store
 node_modules
 npm-debug.log
-bower_components
-dist
+build/
+.jekyll_metadata
 *.swp

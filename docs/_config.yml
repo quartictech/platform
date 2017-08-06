@@ -1,0 +1,22 @@
+# Jekyll config
+
+source: "src"
+
+destination: "build/site"
+
+exclude:
+  - "assets"
+
+include:
+  - "_pages"
+
+keep_files:
+  - "assets"
+
+incremental: true
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
