@@ -20,3 +20,6 @@ defaults:
       layout: "default"
 
 markdown: kramdown
+
+kramdown:
+    smart_quotes:  ["apos", "apos", "ldquo", "rdquo"]
