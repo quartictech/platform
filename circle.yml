@@ -21,7 +21,7 @@ jobs:
           name: Install dependencies
           command: |
             ./gradlew installYarn --build-cache --console=plain
-            ./gradlew resolveConfigurations installDependencies --build-cache --parallel --console=plain
+            ./gradlew resolveConfigurations installDependencies installRubyDependencies --build-cache --parallel --console=plain
 
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:

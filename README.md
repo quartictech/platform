@@ -45,6 +45,18 @@ Note that this will build the images with a registry name of `null` and a tag of
 `QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
 
 
+## Documentation
+
+The stuff in `docs/` is based on [Zurb Foundation 6](http://foundation.zurb.com/sites/download.html/), with Panini
+replaced with Jekyll to handle Markdown nicely.  Note that this means Jekyll is **not** managing asset files.
+
+The whole thing is orchestrated by Gradle, as usual.  To run with a watch:
+
+```
+./gradlew docs:run
+
+```
+
 ## Services
 
 Service        | Port (app/admin) | Port (frontend dev)  | Description
