@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Header } from "../../components";
 
-import { Ui } from "../../models";
+import { Ui, Profile } from "../../models";
 
-import { selectNamespaces, selectUi } from "../../redux/selectors";
+import * as selectors from "../../redux/selectors";
 
 import { createStructuredSelector } from "reselect";
 import * as actions from "../../redux/actions";
@@ -24,23 +24,25 @@ interface IProps {
   searchDatasets: any;
   selectNamespace: (string) => any;
   namespaces: string[];
+  profile?: Profile;
 }
 
 export class App extends React.Component<IProps, void> {
   render() {
     const { children } = this.props;
     return (
-      <div className="pt-dark">
-      <section className={s.App}>
-        <Header
-          newDatasetClick={this.props.showNewDatasetModal}
-          searchBoxChange={this.props.searchDatasets}
-          selectedNamespace={this.props.ui.namespace}
-          namespaceSelectChange={this.props.selectNamespace}
-          namespaces={this.props.namespaces}
-        />
-          {children}
-      </section>
+      <div>
+        <section className={s.App}>
+          <Header
+            newDatasetClick={this.props.showNewDatasetModal}
+            searchBoxChange={this.props.searchDatasets}
+            selectedNamespace={this.props.ui.namespace}
+            namespaceSelectChange={this.props.selectNamespace}
+            namespaces={this.props.namespaces}
+            profile={this.props.profile}
+          />
+            {children}
+        </section>
       </div>
     );
   }
@@ -53,8 +55,9 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectUi,
-  namespaces: selectNamespaces,
+  profile: selectors.selectProfile,
+  ui: selectors.selectUi,
+  namespaces: selectors.selectNamespaces,
 });
 
 export default connect(

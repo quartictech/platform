@@ -1,0 +1,35 @@
+kubernetes:
+  enable: false
+  namespace: bild
+  numConcurrentJobs: 4
+  maxFailures: 5
+  creationTimeoutSeconds: 60
+  runTimeoutSeconds: 3600
+  template:
+    apiVersion: batch/v1
+    kind: Job
+    spec:
+      template:
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - name: jupyter
+              image: eu.gcr.io/quartictech/jupyter:53
+              command: ["bash", "-c", "echo $QUARTIC_PHASE $QUARTIC_JOB_ID"]
+  #            volumeMounts:
+  #              - name: config-volume
+  #                mountPath: /setup
+          restartPolicy: Never
+  #        volumes:
+  #          - name: config-volume
+  #            configMap:
+  #              name: pipeline-job-config
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8200
+  adminConnectors:
+    - type: http
+      port: 8201

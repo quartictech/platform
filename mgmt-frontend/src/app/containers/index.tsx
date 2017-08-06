@@ -1,4 +1,6 @@
 import App from "./App";
-import Home from "./Home";
+import DatasetsView from "./DatasetsView";
+import PipelineView from "./PipelineView";
+import Login from "./Login";
 
-export { App, Home };
+export { App, DatasetsView, PipelineView, Login };

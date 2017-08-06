@@ -26,6 +26,9 @@ def readFromCredsFile() {
 
 include "docs"
 
+include "bild-api"
+include "bild"
+
 include "common-core"
 include "common-application"
 include "common-test"
@@ -42,6 +45,10 @@ include "howl-application"
 
 include "rain-application"
 include "scribe"
+include "glisten"
+
+include "registry-api"
+include "registry"
 
 include "weyl-api"
 include "weyl-core"

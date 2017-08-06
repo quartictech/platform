@@ -1,0 +1,16 @@
+customers:
+  - id: 111
+    name: Noobhole
+    subdomain: localhost
+    namespace: noobhole
+    githubOrgId: 30663321
+    githubRepoId: 555
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 8190
+  adminConnectors:
+    - type: http
+      port: 8191

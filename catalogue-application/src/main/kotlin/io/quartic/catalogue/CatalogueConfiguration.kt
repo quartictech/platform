@@ -1,5 +1,5 @@
 package io.quartic.catalogue
 
-import io.dropwizard.Configuration
+import io.quartic.common.application.ConfigurationBase
 
-data class CatalogueConfiguration(val backend: StorageBackendConfig) : Configuration()
+data class CatalogueConfiguration(val backend: StorageBackendConfig) : ConfigurationBase()

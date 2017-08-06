@@ -1,0 +1,31 @@
+catalogueUrl: http://localhost:8090/api
+howlUrl: http://localhost:8120/api
+registryUrl: http://localhost:8190/api
+bildUrl: http://localhost:8200/api
+
+authorisedNamespaces:
+  default: ["*"]
+  alexsparrow: ["*"]
+
+github:
+  trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
+
+  redirectHost: "http://%s:3010"
+
+  scopes:
+    - user
+
+cookies:
+  secure: true
+  maxAgeSeconds: 2592000 # 30 days
+
+server:
+  applicationContextPath: /
+  applicationConnectors:
+    - type: http
+      port: 0
+  adminConnectors:
+    - type: http
+      port: 0
+
+

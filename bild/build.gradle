@@ -1,0 +1,21 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+    id "io.quartic.service" version "28"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+service {
+    simpleName = "bild"
+    mainClassName = "io.quartic.bild.BildApplication"
+    memory = System.env.BILD_MEMORY ?: "32m"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":bild-api")
+    compile 'io.fabric8:kubernetes-client:2.5.6'
+    compile libraries.rxjava
+
+    testCompile project(":common-test")
+    testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+}

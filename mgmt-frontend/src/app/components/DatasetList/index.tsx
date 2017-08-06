@@ -58,7 +58,7 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
       >
         <h3>Datasets</h3>
 
-        <div style={{ height: "98%", overflow: "scroll" }}>
+        <div style={{ height: "98%", overflow: "auto" }}>
           <table
             className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
             style={{ width: "100%", tableLayout: "fixed" }}

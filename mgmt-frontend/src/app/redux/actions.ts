@@ -7,6 +7,25 @@ export function fetchDatasets() {
   };
 }
 
+export const userLoginGithub = (code, state) => ({
+  type: constants.USER_LOGIN_GITHUB,
+  code,
+  state,
+});
+
+export const userLogout = () => ({
+  type: constants.USER_LOGOUT,
+});
+
+export const userLoginSuccess = () => ({
+  type: constants.USER_LOGIN_SUCCESS,
+});
+
+export const userFetchProfileSuccess = profile => ({
+  type: constants.USER_FETCH_PROFILE_SUCCESS,
+  profile,
+});
+
 export function fetchDatasetsSuccess(data) {
   return {
     type: constants.FETCH_DATASETS_SUCCESS,
@@ -57,5 +76,18 @@ export function setActiveModal(activeModal) {
   return {
     type: constants.UI_SET_ACTIVE_MODAL,
     activeModal,
+  };
+}
+
+export function fetchPipeline() {
+  return {
+    type: constants.FETCH_PIPELINE,
+  };
+}
+
+export function fetchPipelineSuccess(data) {
+  return {
+    type: constants.FETCH_PIPELINE_SUCCESS,
+    data,
   };
 }

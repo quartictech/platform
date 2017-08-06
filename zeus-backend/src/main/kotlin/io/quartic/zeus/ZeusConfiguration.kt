@@ -1,12 +1,12 @@
 package io.quartic.zeus
 
-import io.dropwizard.Configuration
+import io.quartic.common.application.ConfigurationBase
 import io.quartic.zeus.model.DatasetName
 import java.net.URL
 
 data class ZeusConfiguration(
         val datasets: Map<DatasetName, DataProviderConfiguration>
-) : Configuration()
+) : ConfigurationBase()
 
 data class DataProviderConfiguration(
         val prettyName: String,

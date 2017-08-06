@@ -16,12 +16,12 @@ fun objectMapper() = OBJECT_MAPPER
 
 // TODO: consolidate with Dropwizard mapper (in particular AfterburnerModule)
 fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
-        .registerModule(Jdk8Module())
-        .registerModule(JavaTimeModule())
-        .registerModule(KotlinModule())
-        .setSerializationInclusion(Include.NON_NULL)
-        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-        .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
+    .registerModule(Jdk8Module())
+    .registerModule(JavaTimeModule())
+    .registerModule(KotlinModule())
+    .setSerializationInclusion(Include.NON_NULL)
+    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+    .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
 
 fun encode(obj: Any) = try {
     OBJECT_MAPPER.writeValueAsString(obj)
