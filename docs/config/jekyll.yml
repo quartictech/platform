@@ -13,8 +13,6 @@ include:
 keep_files:
   - "assets"
 
-incremental: true
-
 defaults:
   - scope:
       path: ""

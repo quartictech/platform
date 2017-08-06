@@ -2,7 +2,23 @@
 
 - JDK 8
 - NPM 4+
+
+  ```
+  brew install node
+  ```
+
 - Ruby + Bundler
+
+  ```
+  brew install ruby
+  gem install bundler
+  ```
+
+- aspell
+
+  ```
+  brew install aspell --with-lang-en
+  ```
 
 ## Running the stack locally
 
@@ -56,6 +72,9 @@ The whole thing is orchestrated by Gradle, as usual.  To run with a watch:
 ./gradlew docs:run
 
 ```
+
+The spellchecking list is in `docs/wordlist`.  Please curate this carefully.
+
 
 ## Services
 

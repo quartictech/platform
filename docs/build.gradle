@@ -70,6 +70,27 @@ run {
     commandLine     gulpExecutable, "--gulpfile", gulpFile, "--cwd", projectDir
 }
 
+task checkSpelling(type: Exec) {
+    def outputLog = new File("$buildDir/spelling/spelling.out")
+
+    group           FrontendPlugin.GROUP
+    description     "Checks spelling."
+
+    inputs.files    bundle.outputs
+    inputs.file     "wordlist"
+
+    outputs.file    outputLog
+    outputs.cacheIf { true }
+
+    commandLine     "./checkSpelling.sh", outputLog
+
+    doFirst {
+        outputLog.parentFile.mkdirs()
+    }
+}
+
+check.dependsOn checkSpelling
+
 idea {
     module {
         excludeDirs += [file("node_modules")]
