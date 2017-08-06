@@ -37,7 +37,6 @@ frontend {
     dev "gulp-uglify", "^1.2.0"
     dev "gulp-uncss", "^1.0.1"
     dev "js-yaml", "^3.4.6"
-    dev "panini", "^1.3.0"
     dev "rimraf", "^2.4.3"
     dev "style-sherpa", "^1.0.0"
     dev "vinyl-named", "^1.1.0"
