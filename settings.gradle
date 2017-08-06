@@ -24,6 +24,7 @@ def readFromCredsFile() {
     return fields
 }
 
+include "docs"
 
 include "common-core"
 include "common-application"

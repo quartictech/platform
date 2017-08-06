@@ -1,0 +1,9 @@
+plugins {
+    id "idea"
+}
+
+idea {
+    module {
+        excludeDirs += [file("node_modules")]
+    }
+}
