@@ -6,8 +6,8 @@
     - name: Signing in
       url: /signing-in
 
-    - name: Giving us money
-      url: /giving-us-money
+    - name: Let me begin
+      url: /let-me-begin
 
 - name: Running builds
   docs:
