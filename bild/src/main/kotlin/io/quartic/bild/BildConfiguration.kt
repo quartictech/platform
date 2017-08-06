@@ -11,6 +11,7 @@ data class KubernetesConfiguraration(
     val creationTimeoutSeconds: Int,
     val runTimeoutSeconds: Int,
     val backChannelEndPoint: String
+    val enable: Boolean
 )
 
 data class BildConfiguration(

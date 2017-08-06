@@ -61,7 +61,7 @@ class WorkerShould {
     val jobLoop = mock<JobLoop>()
 
     val worker = Worker(
-        KubernetesConfiguraration("wat", job, 4, 100, 100, 100, "%s"),
+        KubernetesConfiguraration("wat", job, 4, 100, 100, 100, "%s", true),
         queue,
         client,
         events,
