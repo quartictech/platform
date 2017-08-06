@@ -1,7 +1,5 @@
 ---
-title: Quartic platform documentation
+title: Welcome to Quartic!
 ---
-
-# Welcome to Quartic!
 
 You must be noob, and we're going to help you now.

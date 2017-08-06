@@ -4,27 +4,40 @@
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foundation for Sites</title>
+    <title>Quartic - {{ page.title }}</title>
     <link rel="stylesheet" href="{{root}}assets/css/app.css">
+
+    <link rel="shortcut icon" type="image/ico" href="/assets/img/icons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/assets/img/icons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/assets/img/icons/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="/assets/img/icons/manifest.json">
+    <link rel="mask-icon" href="/assets/img/icons/safari-pinned-tab.svg" color="#dd137b">
+    <meta name="msapplication-config" content="/assets/img/icons/browserconfig.xml" />
+    <meta name="theme-color" content="#ffffff">
+
+    <meta property="og:url" content="https://docs.quartic.io/">
+    <meta property="og:title" content="Quartic documentation - {{ page.title }}">
+    <meta property="og:image" content="https://docs.quartic.io/assets/img/quartic_logo_dark.png">
+    <meta property="og:type" content="website">
   </head>
   <body>
 
-    <div class="medium-3 large-2 medium-pull-9 large-pull-10 hide-for-small-only columns" data-sticky-container>
-      <ul class="vertical menu">
-      {% for section in site.data.nav %}
-        <li>
-          {{ section.name }}
-          <ul class="nested vertical menu">
-            {% for doc in section.docs %}
-            <li><a href="{{ doc.url }}">{{ doc.name }}</a></li>
-            {% endfor %}
-          </ul>
-        </li>
-      {% endfor %}
-      </ul>
-    </div>
+    {% include nav.html %}
 
-    {{ content }}
+
+    <div id="section" class="row">
+      <div class="medium-3 hide-for-small-only columns" data-sticky-container>
+        <div class="sticky" data-sticky data-margin-top="0">
+          {% include sidebar.html %}
+        </div>
+      </div>
+
+      <div class="medium-9 columns">
+        <h1>{{ page.title }}</h1>
+        {{ content }}
+      </div>
+    </div>
 
     <script src="{{root}}assets/js/app.js"></script>
   </body>

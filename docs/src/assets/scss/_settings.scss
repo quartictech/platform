@@ -78,11 +78,11 @@ $foundation-palette: (
 $light-gray: #e6e6e6;
 $medium-gray: #cacaca;
 $dark-gray: #8a8a8a;
-$black: #0a0a0a;
-$white: #fefefe;
+$black: #3f484a;
+$white: #fbfbf9;
 $body-background: $white;
 $body-font-color: $black;
-$body-font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+$body-font-family: 'Hind Madurai', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 $body-antialiased: true;
 $global-margin: 1rem;
 $global-padding: 1rem;
@@ -146,9 +146,9 @@ $header-styles: (
     'h6': ('font-size': 16),
   ),
   medium: (
-    'h1': ('font-size': 48),
-    'h2': ('font-size': 40),
-    'h3': ('font-size': 31),
+    'h1': ('font-size': 34),
+    'h2': ('font-size': 30),
+    'h3': ('font-size': 27),
     'h4': ('font-size': 25),
     'h5': ('font-size': 20),
     'h6': ('font-size': 16),
@@ -222,13 +222,13 @@ $input-error-font-weight: $global-weight-bold;
 // ------------
 
 $accordion-background: $white;
-$accordion-plusminus: true;
-$accordion-title-font-size: rem-calc(12);
+$accordion-plusminus: false;
+$accordion-title-font-size: rem-calc(24);
 $accordion-item-color: $primary-color;
 $accordion-item-background-hover: $light-gray;
-$accordion-item-padding: 1.25rem 1rem;
+$accordion-item-padding: 0.5rem 1rem;
 $accordion-content-background: $white;
-$accordion-content-border: 1px solid $light-gray;
+$accordion-content-border: 0px solid $light-gray;
 $accordion-content-color: $body-font-color;
 $accordion-content-padding: 1rem;
 
@@ -840,7 +840,7 @@ $tooltip-radius: $global-radius;
 // -----------
 
 $topbar-padding: 0.5rem;
-$topbar-background: $light-gray;
+$topbar-background: none;
 $topbar-submenu-background: $topbar-background;
 $topbar-title-spacing: 0.5rem 1rem 0.5rem 0;
 $topbar-input-width: 200px;
