@@ -1,0 +1,32 @@
+port: 8000
+
+compatibility:
+  - "last 2 versions"
+  - "ie >= 9"
+  - "ios >= 7"
+
+# UnCSS will use these settings
+uncss_options:
+  html:
+    - "src/**/*.html"
+  ignore:
+    - !!js/regexp .foundation-mq
+    - !!js/regexp ^\.is-.*
+
+# Gulp will reference these paths when it copies files
+paths:
+  dist: "build/bundle"
+  assets:
+    - "src/assets/**/*"
+    - "!src/assets/{img,js,scss}/**/*"
+  sass:
+    - "node_modules/foundation-sites/scss"
+    - "node_modules/motion-ui/src"
+  entries:
+    - "src/assets/js/app.js"
+
+watch:
+  pages:
+    - "src/*.{md,html,yml,xml}"
+    - "src/{_data,_includes,_layouts,_pages,_posts}/**/*.{md,html,yml,xml}"
+    - "!src/assets/**/*.*"

@@ -1,0 +1,25 @@
+# Jekyll config
+
+source: "src"
+
+destination: "build/bundle"
+
+exclude:
+  - "assets"
+
+include:
+  - "_pages"
+
+keep_files:
+  - "assets"
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
+markdown: kramdown
+
+kramdown:
+    smart_quotes:  ["apos", "apos", "ldquo", "rdquo"]

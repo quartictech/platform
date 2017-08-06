@@ -1,6 +1,6 @@
 package io.quartic.gradle.frontend
 
-val commonDependencies = mapOf(
+val standardDependencies = mapOf(
     // Webpack build
     "babel-core" to "6.18.2",
     "babel-loader" to "6.4.1",

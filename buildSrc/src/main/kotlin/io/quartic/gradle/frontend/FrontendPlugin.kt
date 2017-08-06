@@ -51,7 +51,7 @@ class FrontendPlugin : Plugin<Project> {
         ) {
             project.afterEvaluate {
                 prod = ext.prod
-                dev = commonDependencies + ext.dev
+                dev = ext.dev + (if (ext.includeStandardDeps) standardDependencies else emptyMap())
             }
             packageJson = project.file("package.json")
         }
@@ -90,11 +90,11 @@ class FrontendPlugin : Plugin<Project> {
 
         private fun createBundleTask(installDeps: Task) = task<Exec>(
             BUNDLE,
-            "Creates asset bundle via Webpack."
+            "Creates asset bundle."
         ) {
             configureCommonInputs(installDeps)
 
-            outputs.dir(File(project.buildDir, "webpack"))
+            outputs.dir(File(project.buildDir, "bundle"))
             outputs.cacheIf { true }                    // TODO - build-cache is going to be weird due to injecting project.version
 
             environment["NODE_ENV"] = "production"      // TODO: this can probably be handled inside Webpack configuration

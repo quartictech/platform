@@ -5,6 +5,7 @@ open class FrontendExtension {
     private val _dev = mutableMapOf<String, String>()
     val prod get() = _prod.toMap()
     val dev get() = _dev.toMap()
+    var includeStandardDeps = true
 
     @Suppress("unused")
     fun prod(name: String, version: String) {
