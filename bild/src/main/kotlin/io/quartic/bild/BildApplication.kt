@@ -1,6 +1,7 @@
 package io.quartic.bild
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.dropwizard.jdbi.DBIFactory
 import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.bild.model.BildJob
@@ -27,10 +28,18 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
             log.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }
 
+        val dao = configureDatabase(configuration, environment)
+
         with (environment.jersey()) {
             register(DagResource(jobResults, OBJECT_MAPPER.readValue<Any>(javaClass.getResourceAsStream("/pipeline.json"))))
             register(ExecResource(queue, jobResults))
         }
+    }
+
+    private fun configureDatabase(configuration: BildConfiguration, environment: Environment): BildDao {
+        val factory = DBIFactory()
+        val jdbi = factory.build(environment, configuration.database, "postgresql")
+        return jdbi.onDemand(BildDao::class.java)
     }
 
     companion object {

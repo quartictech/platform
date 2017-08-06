@@ -14,6 +14,7 @@ data class KubernetesConfiguraration(
 )
 
 data class BildConfiguration(
-    val kubernetes: KubernetesConfiguraration
+    val kubernetes: KubernetesConfiguraration,
+    val database: DataSourceFactory
 ) : ConfigurationBase()
 
