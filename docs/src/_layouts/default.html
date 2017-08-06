@@ -7,6 +7,8 @@
     <title>Quartic - {{ page.title }}</title>
     <link rel="stylesheet" href="{{root}}assets/css/app.css">
 
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/foundicons/3.0.0/foundation-icons.min.css" />
+
     <link rel="shortcut icon" type="image/ico" href="/assets/img/icons/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" href="/assets/img/icons/favicon-32x32.png" sizes="32x32">
@@ -23,20 +25,23 @@
   </head>
   <body>
 
-    {% include nav.html %}
+    <div id="wrapper">
+      {% include nav.html %}
 
+      <div id="main" class="row">
+        <div class="medium-3 hide-for-small-only columns" data-sticky-container>
+          <div class="sticky" data-sticky data-margin-top="0">
+            {% include sidebar.html %}
+          </div>
+        </div>
 
-    <div id="section" class="row">
-      <div class="medium-3 hide-for-small-only columns" data-sticky-container>
-        <div class="sticky" data-sticky data-margin-top="0">
-          {% include sidebar.html %}
+        <div class="medium-9 columns">
+          <h1>{{ page.title }}</h1>
+          {{ content }}
         </div>
       </div>
 
-      <div class="medium-9 columns">
-        <h1>{{ page.title }}</h1>
-        {{ content }}
-      </div>
+      {% include footer.html %}
     </div>
 
     <script src="{{root}}assets/js/app.js"></script>

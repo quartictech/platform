@@ -54,17 +54,36 @@
 @include motion-ui-transitions;
 @include motion-ui-animations;
 
-$light-pink: #CA0063;
+$sexy-pink: #CA0063;
 $dark-pink: #a90e5e;
-$selected-pink: #f13b99;
+$sultry-purple: #5A057B;
 
-#section {
-  padding-top: 4rem;
-  padding-bottom: 4rem;
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#wrapper {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#main {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    width: 100%;
+    display: block;
+    flex: 1;
 }
 
 h1, h2, h3, h4, h5, h6 {
     color: $dark-pink;
+}
+
+a:hover {
+    color: $sexy-pink !important;
 }
 
 .qt-nav {
@@ -91,10 +110,6 @@ h1, h2, h3, h4, h5, h6 {
 
     a {
         color: #8f1956;
-
-        &:hover {
-            color: $selected-pink;
-        }
     }
 }
 
@@ -104,10 +119,41 @@ h1, h2, h3, h4, h5, h6 {
 
     &:hover, &:focus {
         background: none;
-        color: $dark-pink;
     }
 
-    &:hover {
-        color: $selected-pink;
+    &:focus {
+        color: $dark-pink;
+    }
+}
+
+footer {
+    width: 100%;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    text-align: center;
+    background-color: $sultry-purple;
+    color: $white;
+
+    i {
+        font-size: 100px;
+    }
+
+    .footer-icons {
+        list-style-type: none;
+        margin-left: 0px;
+        li {
+            display: inline-block;
+            padding-right: 1em;
+            padding-left: 0em;
+            padding-top: 0em;
+            padding-bottom: 0em;
+            line-height: 1;
+
+            a {
+                font-size: 2em;
+                color: $white;
+                border-bottom: none;
+            }
+        }
     }
 }
