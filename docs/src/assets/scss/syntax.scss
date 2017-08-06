@@ -9,7 +9,7 @@
   color: $black;
   background-color: #fdedf5;
   border-radius: 1em;
-  padding: 1.5em;
+  padding: 1.25em;
   
   .err {
     color: #002b36;
@@ -53,6 +53,10 @@
   }
   // Variable names
   .n, .nb, .nf {
+    // color: #a90e5e;
+  }
+  // Function names
+  .nf {
     color: #a90e5e;
   }
   // Decorators

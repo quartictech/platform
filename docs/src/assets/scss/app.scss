@@ -80,6 +80,11 @@ html, body {
     flex: 1;
 }
 
+header p {
+    color: $dark-pink;
+    font-size: 1.25rem;
+}
+
 h1, h2, h3, h4, h5, h6 {
     color: $dark-pink;
 }
