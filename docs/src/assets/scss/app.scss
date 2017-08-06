@@ -6,6 +6,8 @@
 @import 'foundation';
 @import 'motion-ui';
 
+@import 'syntax';
+
 @include foundation-global-styles;
 @include foundation-grid;
 @include foundation-flex-grid;
@@ -156,4 +158,11 @@ footer {
             }
         }
     }
+}
+
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.9rem;
 }

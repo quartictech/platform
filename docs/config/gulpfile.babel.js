@@ -144,7 +144,7 @@ function reload(done) {
 function watch() {
   gulp.watch(config.paths.assets, copy);
   gulp.watch(config.watch.pages).on('all', gulp.series(jekyll, browser.reload));
-  gulp.watch('src/assets/scss/**/*.scss').on('all', sass);
+  gulp.watch('src/assets/scss/**/*.{css,scss}').on('all', sass);
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
   gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
 }

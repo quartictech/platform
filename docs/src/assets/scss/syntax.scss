@@ -1,0 +1,94 @@
+// Originally generated via rougify style base16.solarized, then modified manually
+
+@import 'settings';
+
+.highlight {
+  table td { padding: 5px; }
+  table pre { margin: 0; }
+
+  color: $black;
+  background-color: #fdedf5;
+  border-radius: 1em;
+  padding: 1.5em;
+  
+  .err {
+    color: #002b36;
+    background-color: #dc322f;
+  }
+  .c, .cd, .cm, .c1, .cs {
+    color: #657b83;
+  }
+  .cp {
+    color: #b58900;
+  }
+  .nt {
+    color: #b58900;
+  }
+  // Keywords
+  .o, .ow {
+    color: #5a057b;
+  }
+  .gi {
+    color: #859900;
+  }
+  .gd {
+    color: #dc322f;
+  }
+  .gh {
+    color: #268bd2;
+    background-color: #002b36;
+    font-weight: bold;
+  }
+  .k, .kn, .kp, .kr, .kv {
+    color: #5a057b;
+  }
+  .kc {
+    color: #cb4b16;
+  }
+  .kt {
+    color: #cb4b16;
+  }
+  .kd {
+    color: #cb4b16;
+  }
+  // Variable names
+  .n, .nb, .nf {
+    color: #a90e5e;
+  }
+  // Decorators
+  .nd {
+    color: #db1e7b;
+  }
+  // Strings
+  .s, .sb, .sc, .sd, .s2, .sh, .sx, .s1 {
+    color: #db1e7b;
+  }
+  .sr {
+    color: #2aa198;
+  }
+  .si {
+    color: #d33682;
+  }
+  .se {
+    color: #d33682;
+  }
+  .nn {
+    color: #b58900;
+  }
+  .nc {
+    color: #b58900;
+  }
+  .no {
+    color: #b58900;
+  }
+  .na {
+    color: #268bd2;
+  }
+  // Literals
+  .m, .mf, .mh, .mi, .il, .mo, .mb, .mx {
+    color: #1c6a9d;
+  }
+  .ss {
+    color: #859900;
+  }
+}
