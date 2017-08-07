@@ -3,7 +3,6 @@ package io.quartic.registry.api
 import feign.Headers
 import feign.Param
 import feign.RequestLine
-import io.quartic.common.model.CustomerId
 import io.quartic.registry.api.model.Customer
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType

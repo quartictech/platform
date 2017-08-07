@@ -50,8 +50,12 @@ class MgmtResource(
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
     fun getDatasets(@Auth user: User): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
-        val customer = registry.getCustomerById(user.customerId?.id!!)
-        return catalogue.getDatasets().filterKeys { namespace -> customer.namespace == namespace.namespace }
+        if (user.customerId == null) {
+            return emptyMap()
+        } else {
+            val customer = registry.getCustomerById(user.customerId!!)
+            return catalogue.getDatasets().filterKeys { namespace -> customer.namespace == namespace.namespace }
+        }
     }
 
 
