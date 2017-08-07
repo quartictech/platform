@@ -7,6 +7,7 @@ import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.decodeAsBase64
 import java.time.Clock
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
@@ -22,7 +23,7 @@ class TokenAuthStrategy(
 
     private val parser = Jwts.parser()
         .setClock({ Date.from(clock.instant()) })
-        .setSigningKey(SecretKeySpec(codec.decrypt(config.encryptedKey), ALGORITHM.toString()))
+        .setSigningKey(SecretKeySpec(codec.decrypt(config.keyEncryptedBase64).decodeAsBase64(), ALGORITHM.toString()))
 
     override val scheme = "Cookie"      // This is a made-up auth scheme purely to avoid WWW-Authenticate: Basic on 401s
 

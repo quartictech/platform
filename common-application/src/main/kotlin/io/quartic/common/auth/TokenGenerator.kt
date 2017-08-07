@@ -10,6 +10,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.secureRandomGenerator
@@ -28,7 +29,7 @@ class TokenGenerator(
 
     private val LOG by logger()
 
-    private val key = codec.decrypt(config.encryptedKey)
+    private val key = codec.decrypt(config.keyEncryptedBase64).decodeAsBase64()
 
     init {
         checkArgument(key.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")

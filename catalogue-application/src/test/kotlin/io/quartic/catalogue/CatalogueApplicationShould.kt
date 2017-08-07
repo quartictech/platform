@@ -9,8 +9,7 @@ import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.client.client
-import io.quartic.common.secrets.encodeAsBase64
-import io.quartic.common.test.MASTER_KEY
+import io.quartic.common.test.MASTER_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
@@ -43,7 +42,7 @@ class CatalogueApplicationShould {
         val RULE = DropwizardAppRule(
             CatalogueApplication::class.java,
             resourceFilePath("catalogue.yml"),
-            ConfigOverride.config("base64EncodedMasterKey", MASTER_KEY.encodeAsBase64())
+            ConfigOverride.config("masterKeyBase64", MASTER_KEY_BASE64)
         )
     }
 }

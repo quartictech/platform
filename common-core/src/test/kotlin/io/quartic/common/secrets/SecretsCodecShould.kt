@@ -72,10 +72,9 @@ class SecretsCodecShould {
         val key = sr.nextBytes(128 / 8)
         val codec = SecretsCodec(key)
 
-        val original = sr.nextBytes(16)
-        val encrypted = codec.encrypt(original)
+        val encrypted = codec.encrypt(CONTROVERSIAL_SECRET)
 
-        assertThat(codec.decrypt(encrypted), equalTo(original))
+        assertThat(codec.decrypt(encrypted), equalTo(CONTROVERSIAL_SECRET))
     }
 
     @Test
@@ -83,9 +82,7 @@ class SecretsCodecShould {
         val key = sr.nextBytes(128 / 8)
         val codec = SecretsCodec(key)
 
-        val original = sr.nextBytes(16)
-        val encrypted = codec.encrypt(original)
-
+        val encrypted = codec.encrypt(CONTROVERSIAL_SECRET)
         val modified = encrypted.copy(tag = sr.nextBytes(128 / 8))
 
         assertThrows<AEADBadTagException> {
@@ -101,5 +98,9 @@ class SecretsCodecShould {
 
     private fun SecureRandom.nextHexString(numChars: Int): String {
         return encodeHexString(nextBytes(numChars / 2))
+    }
+
+    companion object {
+        private val CONTROVERSIAL_SECRET = "Arlo likes La Dispute"
     }
 }

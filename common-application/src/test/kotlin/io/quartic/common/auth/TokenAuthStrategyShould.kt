@@ -16,7 +16,6 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -38,7 +37,7 @@ class TokenAuthStrategyShould {
     private val future = now + timeToLive
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
     private val codec = mock<SecretsCodec> {
-        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64.decodeAsBase64()
+        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
     }
 
     private val requestContext = mock<ContainerRequestContext> {

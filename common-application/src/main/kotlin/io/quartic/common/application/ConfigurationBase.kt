@@ -11,10 +11,10 @@ import javax.validation.constraints.NotNull
 
 abstract class ConfigurationBase : Configuration() {
     @NotNull
-    lateinit var base64EncodedMasterKey: String
+    lateinit var masterKeyBase64: String
     val auth: AuthConfiguration = DummyAuthConfiguration()  // TODO - remove this default eventually
 
-    val secretsCodec by lazy { SecretsCodec(base64EncodedMasterKey) }
+    val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
 }
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -25,7 +25,7 @@ abstract class ConfigurationBase : Configuration() {
 sealed class AuthConfiguration
 
 data class TokenAuthConfiguration(
-    val encryptedKey: EncryptedSecret
+    val keyEncryptedBase64: EncryptedSecret
 ) : AuthConfiguration()
 
 data class DummyAuthConfiguration(

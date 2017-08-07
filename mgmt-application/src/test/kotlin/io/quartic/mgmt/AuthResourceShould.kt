@@ -12,7 +12,6 @@ import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
 import io.quartic.mgmt.resource.AuthResource
@@ -39,7 +38,7 @@ class AuthResourceShould {
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
     private val codec = mock<SecretsCodec> {
-        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64.decodeAsBase64()
+        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
     }
     private val resource = AuthResource(
         GithubConfiguration(

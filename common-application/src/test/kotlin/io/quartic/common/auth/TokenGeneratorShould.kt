@@ -11,7 +11,6 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenGenerator.XsrfId
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.sequenceGenerator
@@ -30,7 +29,7 @@ class TokenGeneratorShould {
     private val timeToLive = Duration.ofMinutes(69)
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
     private val codec = mock<SecretsCodec> {
-        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64.decodeAsBase64()
+        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
     }
     private val generator = TokenGenerator(TokenAuthConfiguration(mock()), codec, timeToLive, clock)
 
@@ -59,7 +58,7 @@ class TokenGeneratorShould {
     @Test
     fun validate_key_length() {
         val codec = mock<SecretsCodec> {
-            on { decrypt(any()) } doReturn ByteArray(4)
+            on { decrypt(any()) } doReturn "abcd"
         }
 
         assertThrows<IllegalArgumentException> {

@@ -9,7 +9,6 @@ import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.client.client
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.secrets.encodeAsString
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
 import io.quartic.mgmt.*
@@ -127,7 +126,7 @@ class AuthResource(
 
     private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
         gitHubConfig.clientId,
-        secretsCodec.decrypt(gitHubConfig.clientSecret).encodeAsString(),
+        secretsCodec.decrypt(gitHubConfig.clientSecret),
         gitHubConfig.trampolineUrl,
         code
     )

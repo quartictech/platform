@@ -13,7 +13,7 @@ import javax.crypto.spec.SecretKeySpec
 
 // See https://www.securecoding.cert.org/confluence/display/java/MSC61-J.+Do+not+use+insecure+or+weak+cryptographic+algorithms etc.
 class SecretsCodec(masterKey: ByteArray) {
-    constructor(base64EncodedMasterKey: String) : this(base64EncodedMasterKey.decodeAsBase64())
+    constructor(masterKeyBase64: String) : this(masterKeyBase64.decodeAsBase64())
 
     private val key = SecretKeySpec(masterKey, ALGORITHM)
     private val sr = SecureRandom()
@@ -22,7 +22,7 @@ class SecretsCodec(masterKey: ByteArray) {
         checkArgument(masterKey.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 
-    fun encrypt(secret: ByteArray): EncryptedSecret {
+    fun encrypt(secret: String): EncryptedSecret {
         val iv = ByteArray(IV_LENGTH_BITS / 8)
         sr.nextBytes(iv)
 
@@ -33,17 +33,18 @@ class SecretsCodec(masterKey: ByteArray) {
             GCMParameterSpec(TAG_LENGTH_BITS, iv)
         )
 
-        val payload = cipher.doFinal(secret)
+        val secretBytes = secret.toByteArray()
+        val payload = cipher.doFinal(secretBytes)
 
         return EncryptedSecret(
             iv,
-            payload.copyOf(secret.size),
-            payload.copyOfRange(secret.size, payload.size)
+            payload.copyOf(secretBytes.size),
+            payload.copyOfRange(secretBytes.size, payload.size)
         )
     }
 
     @Throws(AEADBadTagException::class)
-    fun decrypt(encryptedSecret: EncryptedSecret): ByteArray {
+    fun decrypt(encryptedSecret: EncryptedSecret): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(
             Cipher.DECRYPT_MODE,
@@ -51,7 +52,7 @@ class SecretsCodec(masterKey: ByteArray) {
             GCMParameterSpec(TAG_LENGTH_BITS, encryptedSecret.iv)
         )
 
-        return cipher.doFinal(encryptedSecret.payload + encryptedSecret.tag)
+        return cipher.doFinal(encryptedSecret.payload + encryptedSecret.tag).encodeAsString()
     }
 
     data class EncryptedSecret(
@@ -105,10 +106,10 @@ class SecretsCodec(masterKey: ByteArray) {
         val IV_LENGTH_BITS = 96
         val TAG_LENGTH_BITS = 128
 
-        fun generateMasterKey(): ByteArray {
+        fun generateMasterKeyBase64(): String {
             val bytes = ByteArray(KEY_LENGTH_BITS / 8)
             sr.nextBytes(bytes)
-            return bytes
+            return bytes.encodeAsBase64()
         }
 
         private val sr = SecureRandom()
