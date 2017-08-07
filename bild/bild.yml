@@ -5,6 +5,7 @@ kubernetes:
   maxFailures: 5
   creationTimeoutSeconds: 60
   runTimeoutSeconds: 3600
+  backChannelEndpoint: "http://bild.platform:8200/api/exec/backchannel/%s"
   template:
     apiVersion: batch/v1
     kind: Job
@@ -15,15 +16,15 @@ kubernetes:
           containers:
             - name: jupyter
               image: eu.gcr.io/quartictech/jupyter:53
-              command: ["bash", "-c", "echo $QUARTIC_PHASE $QUARTIC_JOB_ID"]
-  #            volumeMounts:
-  #              - name: config-volume
-  #                mountPath: /setup
+              command:
+                - "sudo"
+                - "-E"
+                - "-u"
+                - "jovyan"
+                - "bash"
+                - "-c"
+                - "export PATH=/opt/conda/bin:$PATH; shrubbery_update; python -u -m quarty"
           restartPolicy: Never
-  #        volumes:
-  #          - name: config-volume
-  #            configMap:
-  #              name: pipeline-job-config
 
 server:
   applicationContextPath: /

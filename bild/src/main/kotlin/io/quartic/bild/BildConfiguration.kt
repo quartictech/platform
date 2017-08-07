@@ -10,6 +10,7 @@ data class KubernetesConfiguraration(
     val maxFailures: Int,
     val creationTimeoutSeconds: Int,
     val runTimeoutSeconds: Int,
+    val backChannelEndPoint: String,
     val enable: Boolean
 )
 
