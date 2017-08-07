@@ -42,7 +42,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
                 catalogue,
                 howl,
                 bild,
-                NamespaceAuthoriser(configuration.authorisedNamespaces)
+                registry
             ))
             register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
         }
