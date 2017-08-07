@@ -1,31 +1,19 @@
-import { call, fork, put, select } from "redux-saga/effects";
+import { call, fork, put } from "redux-saga/effects";
 import { SagaIterator } from "redux-saga";
 import { push } from "react-router-redux";
 
 import * as api from "../api";
 import * as actions from "../actions";
 import * as constants from "../constants";
-import * as selectors from "../selectors";
 
 import { QUARTIC_XSRF } from "../../helpers/Utils";
 
 import { checkedApiCall, watch } from "./utils";
 
-function* isLoggedIn(): SagaIterator {
-  yield select(selectors.selectLoggedIn);
-}
-
 function* fetchProfile(): SagaIterator {
   const res = yield* checkedApiCall(api.fetchProfile);
   if (!res.err) {
     yield put(actions.userFetchProfileSuccess(res.data));
-  }
-}
-
-function* fetchProfileIfLoggedIn(): SagaIterator {
-  const loggedIn = yield* isLoggedIn();
-  if (loggedIn) {
-    yield* fetchProfile();
   }
 }
 
@@ -48,7 +36,11 @@ function* loginGithub(action): SagaIterator {
 }
 
 export function* manageUser(): SagaIterator {
-  yield fork(fetchProfileIfLoggedIn);
+  if (localStorage.getItem(QUARTIC_XSRF)) {
+    yield put(actions.userLoginSuccess());
+    yield fork(fetchProfile);   // Do this async
+  }
+
   yield fork(watch(constants.USER_LOGIN_GITHUB, loginGithub));
   yield fork(watch(constants.USER_LOGOUT, logout));
 }
