@@ -8,6 +8,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.User
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.secrets.encodeAsBase64
 import io.quartic.common.test.MASTER_KEY
 import io.quartic.common.test.TOKEN_KEY_BASE64
@@ -64,7 +65,7 @@ class ApplicationBaseTokenAuthShould {
             resourceFilePath("test.yml"),
             config("base64EncodedMasterKey", MASTER_KEY.encodeAsBase64()),
             config("auth.type", "token"),
-            config("auth.encryptedKey", CODEC.encrypt(TOKEN_KEY_BASE64).toString())
+            config("auth.encryptedKey", CODEC.encrypt(TOKEN_KEY_BASE64.decodeAsBase64()).toString())
         )
     }
 }

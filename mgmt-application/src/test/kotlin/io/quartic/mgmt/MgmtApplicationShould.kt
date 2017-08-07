@@ -9,6 +9,7 @@ import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.secrets.encodeAsBase64
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.MASTER_KEY
@@ -202,12 +203,12 @@ class MgmtApplicationShould {
             resourceFilePath("test.yml"),
             config("base64EncodedMasterKey", MASTER_KEY.encodeAsBase64()),
             config("auth.type", "token"),
-            config("auth.encryptedKey", CODEC.encrypt(TOKEN_KEY_BASE64).toString()),
+            config("auth.encryptedKey", CODEC.encrypt(TOKEN_KEY_BASE64.decodeAsBase64()).toString()),
             config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
             config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
             config("github.apiRoot", { "http://localhost:${github.port()}" }),
             config("github.clientId", CLIENT_ID),
-            config("github.clientSecret", CLIENT_SECRET),
+            config("github.clientSecret", CODEC.encrypt(CLIENT_SECRET.toByteArray()).toString()),
             config("github.redirectHost", { "http://localhost:${github.port()}" }),
             config("registryUrl", { "http://localhost:${registry.port()}/api" })
         )

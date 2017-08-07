@@ -8,7 +8,6 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
-import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
@@ -18,6 +17,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.decodeAsBase64
+import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
@@ -64,7 +64,6 @@ class TokenAuthStrategyShould {
     @Test
     fun fail_to_extract_when_xsrf_header_missing() {
         whenever(requestContext.getHeaderString(XSRF_TOKEN_HEADER)).thenReturn(null)
-
 
         assertThat(strategy.extractCredentials(requestContext), nullValue())
     }

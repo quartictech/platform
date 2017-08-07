@@ -45,7 +45,13 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
                 bild,
                 NamespaceAuthoriser(configuration.authorisedNamespaces)
             ))
-            register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
+            register(AuthResource(
+                configuration.github,
+                configuration.cookies,
+                configuration.secretsCodec,
+                tokenGenerator,
+                registry
+            ))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))
     }

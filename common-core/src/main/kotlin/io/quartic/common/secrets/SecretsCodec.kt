@@ -22,8 +22,6 @@ class SecretsCodec(masterKey: ByteArray) {
         checkArgument(masterKey.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 
-    fun encrypt(base64EncodedSecret: String) = encrypt(base64EncodedSecret.decodeAsBase64())
-
     fun encrypt(secret: ByteArray): EncryptedSecret {
         val iv = ByteArray(IV_LENGTH_BITS / 8)
         sr.nextBytes(iv)

@@ -8,6 +8,8 @@ import io.quartic.common.auth.User
 import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.client.client
 import io.quartic.common.logging.logger
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.encodeAsString
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
 import io.quartic.mgmt.*
@@ -27,6 +29,7 @@ import javax.ws.rs.core.Response.ResponseBuilder
 class AuthResource(
     private val gitHubConfig: GithubConfiguration,
     private val cookiesConfig: CookiesConfiguration,
+    private val secretsCodec: SecretsCodec,
     private val tokenGenerator: TokenGenerator,
     private val registry: RegistryService,
     private val gitHubOAuth: GitHubOAuth = client<GitHubOAuth>(AuthResource::class.java, gitHubConfig.oauthApiRoot),
@@ -124,7 +127,7 @@ class AuthResource(
 
     private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
         gitHubConfig.clientId,
-        gitHubConfig.clientSecret,
+        secretsCodec.decrypt(gitHubConfig.clientSecret).encodeAsString(),
         gitHubConfig.trampolineUrl,
         code
     )
