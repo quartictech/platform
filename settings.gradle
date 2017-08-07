@@ -24,6 +24,7 @@ def readFromCredsFile() {
     return fields
 }
 
+include "docs"
 
 include "bild-api"
 include "bild"

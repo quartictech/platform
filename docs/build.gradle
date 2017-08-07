@@ -1,0 +1,111 @@
+import io.quartic.gradle.frontend.FrontendPlugin
+
+plugins {
+    id "idea"
+    id "io.quartic.docker" version "47"
+}
+
+apply plugin: FrontendPlugin
+
+def gulpExecutable = file("node_modules/gulp-cli/bin/gulp.js")
+def gulpFile = file("config/gulpfile.babel.js")
+
+frontend {
+    includeStandardDeps false
+
+    prod "foundation-sites", "~6.4.1"
+    prod "jquery", ">=3.0.0"
+    prod "what-input", "^4.1.3"
+    prod "motion-ui", "~1.2.2"
+
+    dev "babel-core", "^6.24.1"
+    dev "babel-loader", "^6.4.1"
+    dev "babel-preset-es2015", "^6.3.13"
+    dev "babel-register", "^6.7.2"
+    dev "browser-sync", "^2.10.0"
+    dev "gulp", "gulpjs/gulp#4.0"
+    dev "gulp-autoprefixer", "^3.1.0"
+    dev "gulp-babel", "^6.1.2"
+    dev "gulp-clean-css", "^3.3.1"
+    dev "gulp-cli", "^1.2.1"
+    dev "gulp-concat", "^2.5.2"
+    dev "gulp-extname", "^0.2.0"
+    dev "gulp-if", "^2.0.0"
+    dev "gulp-imagemin", "^2.2.1"
+    dev "gulp-load-plugins", "^1.1.0"
+    dev "gulp-sass", "^2.1.0"
+    dev "gulp-sourcemaps", "^1.6.0"
+    dev "gulp-uglify", "^1.2.0"
+    dev "gulp-uncss", "^1.0.1"
+    dev "js-yaml", "^3.4.6"
+    dev "rimraf", "^2.4.3"
+    dev "style-sherpa", "^1.0.0"
+    dev "vinyl-named", "^1.1.0"
+    dev "webpack", "^2.6.1"
+    dev "webpack-stream", "^3.2.0"
+    dev "yargs", "^3.8.0"
+}
+
+task installRubyDependencies(type: Exec) {
+    group           FrontendPlugin.GROUP
+    description     "Installs Ruby Gem dependencies."
+
+    inputs.file     "Gemfile"
+    inputs.file     "Gemfile.lock"
+
+    outputs.dir     "$buildDir/ruby"
+    outputs.cacheIf { true }
+
+    commandLine     "bundle", "install"
+}
+
+bundle {
+    inputs.files    installRubyDependencies.outputs
+
+    commandLine     gulpExecutable, "--gulpfile", gulpFile, "--cwd", projectDir, "build", "--production"
+}
+
+run {
+    inputs.files    installRubyDependencies.outputs
+
+    commandLine     gulpExecutable, "--gulpfile", gulpFile, "--cwd", projectDir
+}
+
+task checkSpelling(type: Exec) {
+    def outputLog = new File("$buildDir/spelling/spelling.out")
+
+    group           FrontendPlugin.GROUP
+    description     "Checks spelling."
+
+    inputs.files    bundle.outputs
+    inputs.file     "wordlist"
+
+    outputs.file    outputLog
+    outputs.cacheIf { true }
+
+    commandLine     "./checkSpelling.sh", outputLog
+
+    doFirst {
+        outputLog.parentFile.mkdirs()
+    }
+}
+
+check.dependsOn checkSpelling
+
+docker {
+    image   "${System.env.QUARTIC_DOCKER_REPOSITORY}/docs:${project.version}"
+
+    content copySpec {
+        from "Dockerfile"
+        from "default.conf"
+        from(bundle) {
+            into "bundle"
+        }
+    }
+}
+
+idea {
+    module {
+        excludeDirs += [file("node_modules")]
+    }
+}

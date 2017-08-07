@@ -1,0 +1,23 @@
+- name: Getting started
+  docs:
+    - name: Signing up
+      url: /signing-up
+
+    - name: Signing in
+      url: /signing-in
+
+    - name: Let me begin
+      url: /let-me-begin
+
+- name: Running builds
+  docs:
+    - name: Crossing the chasm
+      url: /crossing-the-chasm
+
+    - name: Adopting early
+      url: /adopting-early
+
+- name: Platform concepts
+  docs:
+    - name: Execution sandboxes
+      url: /execution-sandboxes

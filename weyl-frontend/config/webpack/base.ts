@@ -7,7 +7,7 @@ import * as postcssReporter from "postcss-reporter";
 
 module.exports = {
   output: {
-    path: path.resolve("build", "webpack", "assets"),
+    path: path.resolve("build", "bundle", "assets"),
     publicPath: "",
   },
 
