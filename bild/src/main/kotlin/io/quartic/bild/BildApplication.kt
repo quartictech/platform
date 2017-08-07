@@ -10,8 +10,12 @@ import io.quartic.bild.resource.BackChannelResource
 import io.quartic.bild.resource.QueryResource
 import io.quartic.bild.resource.TriggerResource
 import io.quartic.common.application.ApplicationBase
+import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.registry.api.RegistryServiceAsync
+import sun.misc.BASE64Decoder
+import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 
 class BildApplication : ApplicationBase<BildConfiguration>() {
@@ -21,16 +25,21 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
 
         val jobResults = JobResultStore()
 
+        val registry = retrofitClient<RegistryServiceAsync>(BildApplication::class.java, configuration.registryUrl)
+
+        val githubClient = GithubInstallationClient(configuration.github.appId, configuration.github.apiRootUrl,
+            configuration.github.privateKey)
+
         if (configuration.kubernetes.enable) {
             val client = Qube(DefaultKubernetesClient(), configuration.kubernetes.namespace)
-            JobPool(configuration.kubernetes, client, queue, jobResults)
+            JobPool(configuration.kubernetes, client, queue, jobResults, githubClient)
         } else {
             log.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }
 
         with (environment.jersey()) {
             register(QueryResource(jobResults, OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"))))
-            register(TriggerResource(queue))
+            register(TriggerResource(queue, registry))
             register(BackChannelResource(jobResults))
         }
     }

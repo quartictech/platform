@@ -10,11 +10,19 @@ data class KubernetesConfiguraration(
     val maxFailures: Int,
     val creationTimeoutSeconds: Int,
     val runTimeoutSeconds: Int,
-    val backChannelEndPoint: String,
+    val backChannelEndpoint: String,
     val enable: Boolean
 )
 
+data class GitHubConfiguration(
+    val appId: String,
+    val apiRootUrl: String,
+    val privateKey: String
+)
+
 data class BildConfiguration(
-    val kubernetes: KubernetesConfiguraration
+    val kubernetes: KubernetesConfiguraration,
+    val registryUrl: String,
+    val github: GitHubConfiguration
 ) : ConfigurationBase()
 

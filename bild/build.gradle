@@ -13,6 +13,7 @@ service {
 dependencies {
     compile project(":common-application")
     compile project(":bild-api")
+    compile project(":registry-api")
     compile 'io.fabric8:kubernetes-client:2.5.6'
     compile libraries.rxjava
 

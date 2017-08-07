@@ -80,7 +80,9 @@ class GithubResource(
                     deliveryId = deliveryId,
                     installationId = event.installation.id,
                     repoId = event.repository.id,
+                    cloneUrl = event.repository.cloneUrl,
                     ref = event.ref,
+                    commit = event.headCommit.id,
                     timestamp = clock.instant()
                 ))
                 LOG.info("success".toMessage())

@@ -26,6 +26,11 @@ dependencies {
     compile libraries.commonsCodec
     compile "com.squareup.okhttp3:okhttp:3.4.2"
 
+    compile "com.squareup.retrofit2:retrofit:${versions.retrofit}"
+    compile "com.squareup.retrofit2:converter-jackson:${versions.retrofit}"
+    compile "com.squareup.retrofit2:adapter-java8:${versions.retrofit}"
+    compile 'com.squareup.okhttp3:logging-interceptor:3.3.1'
+
     testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile libraries.wiremock

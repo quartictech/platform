@@ -11,6 +11,7 @@ versions.geoTools = "15.2"
 versions.metrics = "3.1.2"
 versions.tyrus = "1.13"
 versions.rxjava = "1.2.1"
+versions.retrofit = "2.3.0"
 
 libraries.guava = "com.google.guava:guava:19.0"
 libraries.commonsCodec = "commons-codec:commons-codec:1.9"

@@ -2,6 +2,7 @@ package io.quartic.bild.qube
 
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.NamespaceBuilder
+import io.quartic.bild.GithubInstallationClient
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
@@ -13,7 +14,8 @@ import java.util.concurrent.Executors
 class JobPool(configuration: KubernetesConfiguraration,
               private val client: Qube,
               queue: BlockingQueue<BildJob>,
-              jobResults: JobResultStore) {
+              jobResults: JobResultStore,
+              githubClient: GithubInstallationClient) {
     private val log by logger()
     private val namespace = NamespaceBuilder()
         .editOrNewMetadata()
@@ -35,7 +37,8 @@ class JobPool(configuration: KubernetesConfiguraration,
                     queue,
                     client,
                     events,
-                    jobResults
+                    jobResults,
+                    githubClient
                 )
             )
         }

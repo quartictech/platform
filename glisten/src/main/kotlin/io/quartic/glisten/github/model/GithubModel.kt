@@ -15,6 +15,8 @@ data class PushEvent(
     val ref: GitRef,
     val after: GitHash,
     val before: GitHash,
+    @JsonProperty("head_commit")
+    val headCommit: Commit,
     val commits: List<Commit>,
     val organization: Organization?,    // Not present for user repos
     val pusher: Pusher,
