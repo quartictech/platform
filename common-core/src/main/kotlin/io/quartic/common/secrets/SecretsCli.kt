@@ -18,27 +18,24 @@ class SecretsCli {
                 System.exit(0)
             }
 
-            val masterKeyBase64 = getSecretFromUser("Master key (base64-encoded): ")
-            val codec = SecretsCodec(masterKeyBase64)
+            val codec = SecretsCodec(getUnsafeSecretFromUser("Master key (base64-encoded): "))
 
             println("=== ${if (decodeMode) "Decode" else "Encode"} mode ===")
             println()
 
             while (true) {
                 if (decodeMode) {
-                    val encryptedSecret = getSecretFromUser("Encrypted secret: ")
-                    println(codec.decrypt(EncryptedSecret(encryptedSecret)))
+                    println(codec.decrypt(getEncryptedSecretFromUser("Encrypted secret: ")).veryUnsafe)
                 } else {
-                    val secret = getSecretFromUser("Secret (unencoded): ")
-                    println(codec.encrypt(secret).toCanonicalRepresentation())
+                    println(codec.encrypt(getUnsafeSecretFromUser("Secret (unencoded): ")).somewhatUnsafe)
                 }
             }
         }
 
-        /**
-         * We deliberately use this to discourage this CLI being scripted (because that would inevitably lead to
-         * unencrypted secrets being stored on disk (in a script) on in the shell history).
-         */
+        // We deliberately use this to discourage this CLI being scripted (because that would inevitably lead to
+        // unencrypted secrets being stored on disk (in a script) on in the shell history).
+        private fun getEncryptedSecretFromUser(prompt: String) = EncryptedSecret(getSecretFromUser(prompt))
+        private fun getUnsafeSecretFromUser(prompt: String) = UnsafeSecret(getSecretFromUser(prompt))
         private fun getSecretFromUser(prompt: String) = String(System.console().readPassword(prompt))
     }
 }

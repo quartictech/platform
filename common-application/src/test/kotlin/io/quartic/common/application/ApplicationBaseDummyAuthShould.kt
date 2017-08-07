@@ -39,7 +39,7 @@ class ApplicationBaseDummyAuthShould {
         val RULE = DropwizardAppRule<TestApplication.TestConfiguration>(
             TestApplication::class.java,
             resourceFilePath("test.yml"),
-            ConfigOverride.config("masterKeyBase64", MASTER_KEY_BASE64)
+            ConfigOverride.config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe)
         )
     }
 }

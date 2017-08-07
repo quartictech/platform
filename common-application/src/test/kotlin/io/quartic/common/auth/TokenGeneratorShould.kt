@@ -11,6 +11,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenGenerator.XsrfId
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.sequenceGenerator
@@ -58,7 +59,7 @@ class TokenGeneratorShould {
     @Test
     fun validate_key_length() {
         val codec = mock<SecretsCodec> {
-            on { decrypt(any()) } doReturn "abcd"
+            on { decrypt(any()) } doReturn UnsafeSecret("abcd")
         }
 
         assertThrows<IllegalArgumentException> {
@@ -66,5 +67,5 @@ class TokenGeneratorShould {
         }
     }
 
-    private fun parse(token: String) = Jwts.parser().setSigningKey(TOKEN_KEY_BASE64).parseClaimsJws(token)
+    private fun parse(token: String) = Jwts.parser().setSigningKey(TOKEN_KEY_BASE64.veryUnsafe).parseClaimsJws(token)
 }

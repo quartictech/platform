@@ -166,7 +166,7 @@ class TokenAuthStrategyShould {
 
     private fun tokens(builderMods: JwtBuilder.() -> JwtBuilder) = Tokens(
         Jwts.builder()
-            .signWith(ALGORITHM, TOKEN_KEY_BASE64)
+            .signWith(ALGORITHM, TOKEN_KEY_BASE64.veryUnsafe)
             .setSubject("1234")
             .setIssuer("noob")
             .setExpiration(Date.from(future))

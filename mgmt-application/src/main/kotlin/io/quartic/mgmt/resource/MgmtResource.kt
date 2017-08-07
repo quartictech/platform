@@ -127,7 +127,6 @@ class MgmtResource(
                     storageId.uid
                 }
                 RAW -> fileName
-                else -> fileName
             }
         }
     }

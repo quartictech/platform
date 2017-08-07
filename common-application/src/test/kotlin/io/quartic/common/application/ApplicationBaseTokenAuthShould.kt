@@ -61,9 +61,9 @@ class ApplicationBaseTokenAuthShould {
         val RULE = DropwizardAppRule<TestApplication.TestConfiguration>(
             TestApplication::class.java,
             resourceFilePath("test.yml"),
-            config("masterKeyBase64", MASTER_KEY_BASE64),
+            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe),
             config("auth.type", "token"),
-            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toCanonicalRepresentation())
+            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe)
         )
     }
 }

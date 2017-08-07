@@ -9,6 +9,7 @@ import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.MASTER_KEY_BASE64
 import io.quartic.common.test.TOKEN_KEY_BASE64
@@ -44,7 +45,7 @@ class MgmtApplicationShould {
 
             stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
                 .withQueryParam("client_id", equalTo(CLIENT_ID))
-                .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
+                .withQueryParam("client_secret", equalTo(CLIENT_SECRET.veryUnsafe))
                 .withQueryParam("redirect_uri", equalTo("http://localhost:${trampolineProxy.port()}/api/auth/gh/callback"))
                 .withQueryParam("code", equalTo(CODE))
                 .willReturn(aResponse()
@@ -169,7 +170,7 @@ class MgmtApplicationShould {
         private val CODEC = SecretsCodec(MASTER_KEY_BASE64)
 
         private val CLIENT_ID = "foo"
-        private val CLIENT_SECRET = "bar"
+        private val CLIENT_SECRET = UnsafeSecret("bar")
         private val CODE = "good"
         private val ACCESS_TOKEN = UUID.randomUUID().toString()
 
@@ -199,14 +200,14 @@ class MgmtApplicationShould {
         val APP = DropwizardAppRule<MgmtConfiguration>(
             MgmtApplication::class.java,
             resourceFilePath("test.yml"),
-            config("masterKeyBase64", MASTER_KEY_BASE64),
+            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe),
             config("auth.type", "token"),
-            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toCanonicalRepresentation()),
+            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe),
             config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
             config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
             config("github.apiRoot", { "http://localhost:${github.port()}" }),
             config("github.clientId", CLIENT_ID),
-            config("github.clientSecret", CODEC.encrypt(CLIENT_SECRET).toCanonicalRepresentation()),
+            config("github.clientSecret", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
             config("github.redirectHost", { "http://localhost:${github.port()}" }),
             config("registryUrl", { "http://localhost:${registry.port()}/api" })
         )

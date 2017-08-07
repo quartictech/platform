@@ -126,7 +126,7 @@ class AuthResource(
 
     private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
         gitHubConfig.clientId,
-        secretsCodec.decrypt(gitHubConfig.clientSecret),
+        secretsCodec.decrypt(gitHubConfig.clientSecret).veryUnsafe,
         gitHubConfig.trampolineUrl,
         code
     )

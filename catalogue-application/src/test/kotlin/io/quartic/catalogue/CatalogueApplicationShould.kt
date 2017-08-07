@@ -1,6 +1,6 @@
 package io.quartic.catalogue
 
-import io.dropwizard.testing.ConfigOverride
+import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.catalogue.api.CatalogueService
@@ -42,7 +42,7 @@ class CatalogueApplicationShould {
         val RULE = DropwizardAppRule(
             CatalogueApplication::class.java,
             resourceFilePath("catalogue.yml"),
-            ConfigOverride.config("masterKeyBase64", MASTER_KEY_BASE64)
+            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe)
         )
     }
 }

@@ -23,7 +23,10 @@ class TokenAuthStrategy(
 
     private val parser = Jwts.parser()
         .setClock({ Date.from(clock.instant()) })
-        .setSigningKey(SecretKeySpec(codec.decrypt(config.keyEncryptedBase64).decodeAsBase64(), ALGORITHM.toString()))
+        .setSigningKey(SecretKeySpec(
+            codec.decrypt(config.keyEncryptedBase64).veryUnsafe.decodeAsBase64(),
+            ALGORITHM.toString()
+        ))
 
     override val scheme = "Cookie"      // This is a made-up auth scheme purely to avoid WWW-Authenticate: Basic on 401s
 

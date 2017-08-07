@@ -11,7 +11,7 @@ data class EncryptedSecret(
     val payload: ByteArray,
     val tag: ByteArray
 ) {
-    constructor(other: EncryptedSecret) : this(other.iv, other.payload, other.tag)
+    private constructor(other: EncryptedSecret) : this(other.iv, other.payload, other.tag)
     constructor(str: String) : this(parse(str))
 
     init {
@@ -21,7 +21,7 @@ data class EncryptedSecret(
 
     override fun toString() = "{EncryptedSecret}"   // To prevent accidental logging and stuff
 
-    fun toCanonicalRepresentation() = "${SecretsCodec.VERSION}$${encodeHexString(iv)}$${encodeHexString(payload)}$${encodeHexString(tag)}"
+    val somewhatUnsafe = "${SecretsCodec.VERSION}$${encodeHexString(iv)}$${encodeHexString(payload)}$${encodeHexString(tag)}"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -29,7 +29,7 @@ class TokenGenerator(
 
     private val LOG by logger()
 
-    private val key = codec.decrypt(config.keyEncryptedBase64).decodeAsBase64()
+    private val key = codec.decrypt(config.keyEncryptedBase64).veryUnsafe.decodeAsBase64()
 
     init {
         checkArgument(key.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")
