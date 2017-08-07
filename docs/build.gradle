@@ -2,6 +2,7 @@ import io.quartic.gradle.frontend.FrontendPlugin
 
 plugins {
     id "idea"
+    id "io.quartic.docker" version "47"
 }
 
 apply plugin: FrontendPlugin
@@ -90,6 +91,18 @@ task checkSpelling(type: Exec) {
 }
 
 check.dependsOn checkSpelling
+
+docker {
+    image   "${System.env.QUARTIC_DOCKER_REPOSITORY}/docs:${project.version}"
+
+    content copySpec {
+        from "Dockerfile"
+        from "default.conf"
+        from(bundle) {
+            into "bundle"
+        }
+    }
+}
 
 idea {
     module {
