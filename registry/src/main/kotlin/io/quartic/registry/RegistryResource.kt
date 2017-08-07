@@ -2,9 +2,6 @@ package io.quartic.registry
 
 import io.quartic.registry.api.RegistryService
 import io.quartic.registry.api.model.Customer
-import retrofit2.Call
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 import javax.ws.rs.NotFoundException
 
 class RegistryResource(

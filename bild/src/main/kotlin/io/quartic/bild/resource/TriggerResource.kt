@@ -11,11 +11,6 @@ import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.registry.api.RegistryServiceAsync
 import java.util.concurrent.BlockingQueue
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
-import javax.ws.rs.Produces
-import javax.ws.rs.core.MediaType
 
 class TriggerResource(
     private val queue: BlockingQueue<BildJob>,

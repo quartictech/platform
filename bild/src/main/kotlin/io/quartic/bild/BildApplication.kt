@@ -14,8 +14,6 @@ import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.registry.api.RegistryServiceAsync
-import sun.misc.BASE64Decoder
-import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 
 class BildApplication : ApplicationBase<BildConfiguration>() {

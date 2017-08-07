@@ -5,7 +5,6 @@ import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.JobResult
 import io.quartic.common.model.CustomerId
 
-
 class JobResultStore {
     data class Record (
         val jobResult: JobResult?,
