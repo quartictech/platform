@@ -53,7 +53,7 @@ class SecretsCodec(masterKeyBase64: UnsafeSecret) {
         val VERSION = 1
         val ALGORITHM = "AES"
         val TRANSFORMATION = "AES/GCM/NoPadding"
-        val KEY_LENGTH_BITS = 128
+        val KEY_LENGTH_BITS = 256
         val IV_LENGTH_BITS = 96
         val TAG_LENGTH_BITS = 128
 

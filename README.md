@@ -1,6 +1,12 @@
 ## Prerequisites
 
-- JDK 8
+- JDK 8 (plus unlimited strength JCE)
+
+  ```
+  brew cask install java
+  brew cask install jce-unlimited-strength-policy
+  ```
+
 - NPM 4+
 
   ```

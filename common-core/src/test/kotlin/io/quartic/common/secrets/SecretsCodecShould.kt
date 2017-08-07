@@ -19,7 +19,7 @@ class SecretsCodecShould {
 
     @Test
     fun decrypt_an_encrypted_secret() {
-        val key = sr.nextBytes(128 / 8).toUnsafeSecret()
+        val key = sr.nextBytes(256 / 8).toUnsafeSecret()
         val codec = SecretsCodec(key)
 
         val encrypted = codec.encrypt(CONTROVERSIAL_SECRET)
@@ -29,7 +29,7 @@ class SecretsCodecShould {
 
     @Test
     fun fail_to_decrypt_if_tag_mismatch() {
-        val key = sr.nextBytes(128 / 8).toUnsafeSecret()
+        val key = sr.nextBytes(256 / 8).toUnsafeSecret()
         val codec = SecretsCodec(key)
 
         val encrypted = codec.encrypt(CONTROVERSIAL_SECRET)
