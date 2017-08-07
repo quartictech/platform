@@ -27,5 +27,5 @@ interface RegistryServiceAsync {
     fun getCustomerAsync(
         @Query("subdomain") subdomain: String?,
         @Query("githubRepoId") githubRepoId: Long?
-    ): CompletableFuture<Customer>
+    ): CompletableFuture<Customer?>
 }

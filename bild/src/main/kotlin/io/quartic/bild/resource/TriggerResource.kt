@@ -23,9 +23,13 @@ class TriggerResource(
         LOG.info("Received trigger: ${trigger}")
         registry.getCustomerAsync(null, trigger.repoId)
             .thenAccept{ customer ->
-                val id = idGenerator.get()
-                LOG.info("Initiating build for customer '{}'. Queue has size {}", customer.id, queue.size)
-                queue.put(BildJob(id, CustomerId(customer.id), trigger.installationId, trigger.cloneUrl, trigger.ref, trigger.commit, BildPhase.TEST))
+                if (customer != null) {
+                    val id = idGenerator.get()
+                    LOG.info("Initiating build for customer '{}'. Queue has size {}", customer.id, queue.size)
+                    queue.put(BildJob(id, CustomerId(customer.id), trigger.installationId, trigger.cloneUrl, trigger.ref, trigger.commit, BildPhase.TEST))
+                } else {
+                    LOG.warn("Customer not found for repo: {}", trigger.repoId)
+                }
             }
             .exceptionally { e ->
                 LOG.error("Exception while contacting registry", e)
