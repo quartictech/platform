@@ -16,7 +16,7 @@ class RegistryResource(
         .filter { githubRepoId == null || it.githubRepoId == githubRepoId }
 
         if (matching.isEmpty()) {
-            throw NotFoundException("No customer with subdomain '$subdomain'")
+            throw NotFoundException("No customer with subdomain '$subdomain' and githubRepoId '${githubRepoId}'")
         }
 
         return matching.first()
