@@ -22,41 +22,41 @@ class SecretsCodecShould {
 
         val repr = original.toString()
 
-        assertThat(EncryptedSecret.parse(repr), equalTo(original))
+        assertThat(EncryptedSecret(repr), equalTo(original))
     }
 
     @Test
     fun fail_to_parse_if_parts_are_invalid() {
         // Not enough parts
         assertThrows<IllegalArgumentException> {
-            EncryptedSecret.parse("1\$${sr.nextHexString(96 / 4)}\$abcd")
+            EncryptedSecret("1\$${sr.nextHexString(96 / 4)}\$abcd")
         }
 
         // Too many parts
         assertThrows<IllegalArgumentException> {
-            EncryptedSecret.parse("1\$${sr.nextHexString(96 / 4)}\$abcd\$${sr.nextHexString(128 / 4)}\$abcd")
+            EncryptedSecret("1\$${sr.nextHexString(96 / 4)}\$abcd\$${sr.nextHexString(128 / 4)}\$abcd")
         }
 
         // Undecodable
         assertThrows<IllegalArgumentException> {
-            EncryptedSecret.parse("1\$${sr.nextHexString(96 / 4)}\$abxy\$${sr.nextHexString(128 / 4)}")
+            EncryptedSecret("1\$${sr.nextHexString(96 / 4)}\$abxy\$${sr.nextHexString(128 / 4)}")
         }
 
         // IV wrong size
         assertThrows<IllegalArgumentException> {
-            EncryptedSecret.parse("1\$${sr.nextHexString(128 / 4)}\$abxy\$${sr.nextHexString(128 / 4)}")
+            EncryptedSecret("1\$${sr.nextHexString(128 / 4)}\$abxy\$${sr.nextHexString(128 / 4)}")
         }
 
         // Tag wrong size
         assertThrows<IllegalArgumentException> {
-            EncryptedSecret.parse("1\$${sr.nextHexString(96 / 4)}\$abxy\$${sr.nextHexString(96 / 4)}")
+            EncryptedSecret("1\$${sr.nextHexString(96 / 4)}\$abxy\$${sr.nextHexString(96 / 4)}")
         }
     }
 
     @Test
     fun fail_to_parse_if_version_mismatch() {
         assertThrows<IllegalArgumentException> {
-            EncryptedSecret.parse("2\$${sr.nextHexString(96 / 4)}\$abxy\$${sr.nextHexString(128 / 4)}")
+            EncryptedSecret("2\$${sr.nextHexString(96 / 4)}\$abxy\$${sr.nextHexString(128 / 4)}")
         }
     }
 
@@ -86,7 +86,7 @@ class SecretsCodecShould {
         val original = sr.nextBytes(16)
         val encrypted = codec.encrypt(original)
 
-        val modified = encrypted.dropLast(32) + sr.nextHexString(32)
+        val modified = encrypted.copy(tag = sr.nextBytes(128 / 8))
 
         assertThrows<AEADBadTagException> {
             codec.decrypt(modified)

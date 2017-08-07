@@ -3,12 +3,12 @@ package io.quartic.common.auth
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.hash.Hashing
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.impl.TextCodec.BASE64
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.logging.logger
+import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.secureRandomGenerator
@@ -27,7 +27,7 @@ class TokenGenerator(
     private val LOG by logger()
 
     init {
-        checkArgument(BASE64.decode(base64EncodedKey).size == KEY_LENGTH_BITS / 8,
+        checkArgument(base64EncodedKey.decodeAsBase64().size == KEY_LENGTH_BITS / 8,
             "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 

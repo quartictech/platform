@@ -52,7 +52,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
             urlPattern = "/api/*"
             register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response
             register(PingPongResource())
-            register(AuthDynamicFeature(createAuthFilter(configuration.auth)))
+            register(AuthDynamicFeature(createAuthFilter(configuration.auth, configuration.secretsCodec)))
             register(AuthValueFactoryProvider.Binder(User::class.java))
         }
 

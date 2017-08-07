@@ -1,12 +1,14 @@
 package io.quartic.common.auth
 
 import com.google.common.hash.Hashing
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
+import io.quartic.common.TOKEN_KEY_BASE64
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
@@ -14,6 +16,8 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.decodeAsBase64
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
@@ -28,19 +32,21 @@ import javax.ws.rs.core.Cookie
 import javax.ws.rs.core.HttpHeaders
 
 class TokenAuthStrategyShould {
-    private val key = "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q==" // 512-bit key
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val past = now - timeToLive
     private val future = now + timeToLive
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
+    private val codec = mock<SecretsCodec> {
+        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64.decodeAsBase64()
+    }
 
     private val requestContext = mock<ContainerRequestContext> {
         on { cookies } doReturn mapOf(TOKEN_COOKIE to Cookie(TOKEN_COOKIE, "abc"))
         on { getHeaderString(XSRF_TOKEN_HEADER) } doReturn "def"
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }
-    private val strategy = TokenAuthStrategy(TokenAuthConfiguration(key), clock)
+    private val strategy = TokenAuthStrategy(TokenAuthConfiguration(mock()), codec, clock)
     private val tokens = Tokens("abc", "def", "noob")
 
     @Test
@@ -162,7 +168,7 @@ class TokenAuthStrategyShould {
 
     private fun tokens(builderMods: JwtBuilder.() -> JwtBuilder) = Tokens(
         Jwts.builder()
-            .signWith(ALGORITHM, key)
+            .signWith(ALGORITHM, TOKEN_KEY_BASE64)
             .setSubject("1234")
             .setIssuer("noob")
             .setExpiration(Date.from(future))
