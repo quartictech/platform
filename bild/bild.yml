@@ -23,7 +23,7 @@ kubernetes:
                 - "jovyan"
                 - "bash"
                 - "-c"
-                - "export PATH=/opt/conda/bin:$PATH; shrubbery_update feature/demo; python -u -m quarty"
+                - "export PATH=/opt/conda/bin:$PATH; shrubbery_update; python -u -m quarty"
           restartPolicy: Never
 
 server:

@@ -23,6 +23,8 @@ class JobStateManager(
 
     private var creationState: CreationState = CreationState.UNKNOWN
     private var watcher: Watch? = null
+    // Record whether we've ever seen the job returned by the API
+    private var jobSeen: Boolean = false
 
     sealed class JobState {
         data class Pending(val _dummy: Int = 0): JobState()
@@ -83,8 +85,14 @@ class JobStateManager(
         val job = client.getJob(jobName)
 
         if (job == null) {
-            return failure("Job was deleted from underneath us")
+            if (jobSeen) {
+                return failure("Job was deleted from underneath us.")
+            } else {
+                return failure("Job not returned when querying API for the first time.")
+            }
         }
+
+        jobSeen = true
 
         if (isSuccess(job)) {
             return success("Success")
