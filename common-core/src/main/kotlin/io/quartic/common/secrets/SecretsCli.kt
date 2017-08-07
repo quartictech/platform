@@ -14,7 +14,7 @@ class SecretsCli {
 
             // Key-gen mode
             if (keyGenMode) {
-                println(SecretsCodec.generateMasterKeyBase64())
+                println(SecretsCodec.generateMasterKeyBase64().veryUnsafe)
                 System.exit(0)
             }
 
