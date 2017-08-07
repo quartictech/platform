@@ -63,7 +63,7 @@ class ApplicationBaseTokenAuthShould {
             resourceFilePath("test.yml"),
             config("masterKeyBase64", MASTER_KEY_BASE64),
             config("auth.type", "token"),
-            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toString())
+            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toCanonicalRepresentation())
         )
     }
 }

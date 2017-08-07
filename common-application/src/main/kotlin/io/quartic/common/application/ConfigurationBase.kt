@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.dropwizard.Configuration
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.secrets.SecretsCodec.EncryptedSecret
+import io.quartic.common.secrets.EncryptedSecret
 import javax.validation.constraints.NotNull
 
 abstract class ConfigurationBase : Configuration() {

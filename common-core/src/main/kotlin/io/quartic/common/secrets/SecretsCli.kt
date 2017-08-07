@@ -1,7 +1,5 @@
 package io.quartic.common.secrets
 
-import io.quartic.common.secrets.SecretsCodec.EncryptedSecret
-
 class SecretsCli {
     companion object {
         @JvmStatic fun main(args: Array<String>) {
@@ -32,7 +30,7 @@ class SecretsCli {
                     println(codec.decrypt(EncryptedSecret(encryptedSecret)))
                 } else {
                     val secret = getSecretFromUser("Secret (unencoded): ")
-                    println(codec.encrypt(secret))
+                    println(codec.encrypt(secret).toCanonicalRepresentation())
                 }
             }
         }

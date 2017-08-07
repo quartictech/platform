@@ -201,12 +201,12 @@ class MgmtApplicationShould {
             resourceFilePath("test.yml"),
             config("masterKeyBase64", MASTER_KEY_BASE64),
             config("auth.type", "token"),
-            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toString()),
+            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toCanonicalRepresentation()),
             config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
             config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
             config("github.apiRoot", { "http://localhost:${github.port()}" }),
             config("github.clientId", CLIENT_ID),
-            config("github.clientSecret", CODEC.encrypt(CLIENT_SECRET).toString()),
+            config("github.clientSecret", CODEC.encrypt(CLIENT_SECRET).toCanonicalRepresentation()),
             config("github.redirectHost", { "http://localhost:${github.port()}" }),
             config("registryUrl", { "http://localhost:${registry.port()}/api" })
         )

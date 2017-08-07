@@ -3,7 +3,7 @@ package io.quartic.mgmt
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.auth.User
-import io.quartic.common.secrets.SecretsCodec.EncryptedSecret
+import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.mgmt.auth.Multimap
 
 data class GithubConfiguration(
