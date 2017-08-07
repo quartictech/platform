@@ -10,7 +10,7 @@ data class GithubConfiguration(
     val oauthApiRoot: String = "https://github.com",
     val apiRoot: String = "https://api.github.com",
     val clientId: String,
-    val clientSecret: EncryptedSecret,
+    val clientSecretEncrypted: EncryptedSecret,
     val trampolineUrl: String,
     val scopes: List<String>,
     val redirectHost: String

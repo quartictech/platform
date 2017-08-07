@@ -43,7 +43,7 @@ class AuthResourceShould {
     private val resource = AuthResource(
         GithubConfiguration(
             clientId = "foo",
-            clientSecret = mock(),
+            clientSecretEncrypted = mock(),
             trampolineUrl = "noob",
             scopes = listOf("user"),
             redirectHost = "http://%s.some.where"
