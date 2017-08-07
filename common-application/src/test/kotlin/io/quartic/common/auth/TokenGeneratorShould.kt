@@ -1,12 +1,18 @@
 package io.quartic.common.auth
 
 import com.google.common.hash.Hashing
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import io.jsonwebtoken.Jwts
-import io.quartic.common.TOKEN_KEY_BASE64
+import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenGenerator.XsrfId
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.decodeAsBase64
+import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.sequenceGenerator
 import org.hamcrest.Matchers.equalTo
@@ -23,7 +29,10 @@ class TokenGeneratorShould {
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
-    private val generator = TokenGenerator(TOKEN_KEY_BASE64, timeToLive, clock)
+    private val codec = mock<SecretsCodec> {
+        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64.decodeAsBase64()
+    }
+    private val generator = TokenGenerator(TokenAuthConfiguration(mock()), codec, timeToLive, clock)
 
     @Test
     fun generate_valid_tokens() {
@@ -49,8 +58,12 @@ class TokenGeneratorShould {
 
     @Test
     fun validate_key_length() {
+        val codec = mock<SecretsCodec> {
+            on { decrypt(any()) } doReturn ByteArray(4)
+        }
+
         assertThrows<IllegalArgumentException> {
-            TokenGenerator("tooshort", timeToLive, clock, sequenceGenerator(::XsrfId))
+            TokenGenerator(TokenAuthConfiguration(mock()), codec, timeToLive, clock, sequenceGenerator(::XsrfId))
         }
     }
 

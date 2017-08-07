@@ -3,12 +3,13 @@ package io.quartic.common.auth
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.hash.Hashing
 import io.jsonwebtoken.Jwts
+import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.logging.logger
-import io.quartic.common.secrets.decodeAsBase64
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.secureRandomGenerator
@@ -17,7 +18,8 @@ import java.time.temporal.TemporalAmount
 import java.util.*
 
 class TokenGenerator(
-    private val base64EncodedKey: String,
+    config: TokenAuthConfiguration,
+    codec: SecretsCodec,
     private val timeToLive: TemporalAmount,
     private val clock: Clock = Clock.systemUTC(),
     private val xsrfTokenGenerator: UidGenerator<XsrfId> = secureRandomGenerator(::XsrfId)
@@ -26,9 +28,10 @@ class TokenGenerator(
 
     private val LOG by logger()
 
+    private val key = codec.decrypt(config.encryptedKey)
+
     init {
-        checkArgument(base64EncodedKey.decodeAsBase64().size == KEY_LENGTH_BITS / 8,
-            "Key is not exactly $KEY_LENGTH_BITS bits long")
+        checkArgument(key.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 
     fun generate(user: User, issuer: String): Tokens {
@@ -37,7 +40,7 @@ class TokenGenerator(
         // Currently no need for aud - only one audience, and no need for jti as the custom xth claim suffices as nonce
         return Tokens(
             Jwts.builder()
-                .signWith(ALGORITHM, base64EncodedKey)
+                .signWith(ALGORITHM, key)
                 .setSubject(user.id)
                 .setIssuer(issuer)
                 .setExpiration(Date.from(expiration()))

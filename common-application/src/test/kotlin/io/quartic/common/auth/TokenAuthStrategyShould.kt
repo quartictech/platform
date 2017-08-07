@@ -8,7 +8,7 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
-import io.quartic.common.TOKEN_KEY_BASE64
+import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM

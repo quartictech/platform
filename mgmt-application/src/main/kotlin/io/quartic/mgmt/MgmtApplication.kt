@@ -32,7 +32,8 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         val bild = client<BildService>(javaClass, configuration.bildUrl)
 
         val tokenGenerator = TokenGenerator(
-            (configuration.auth as TokenAuthConfiguration).base64EncodedKey,
+            configuration.auth as TokenAuthConfiguration,
+            configuration.secretsCodec,
             Duration.ofMinutes(configuration.tokenTimeToLiveMinutes.toLong())
         )
 
