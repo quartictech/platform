@@ -38,8 +38,8 @@ class SecretsCli {
         }
 
         /**
-         * We deliberately use this to prevent this CLI being scripted (and thus encouraging secrets to be stored
-         * on disk (in a script) on in the shell history.
+         * We deliberately use this to discourage this CLI being scripted (because that would inevitably lead to
+         * unencrypted secrets being stored on disk (in a script) on in the shell history).
          */
         private fun getSecretFromUser(prompt: String) = String(System.console().readPassword(prompt))
     }

@@ -9,9 +9,8 @@ import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.secrets.encodeAsBase64
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.test.MASTER_KEY
+import io.quartic.common.test.MASTER_KEY_BASE64
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URIBuilder
@@ -167,7 +166,7 @@ class MgmtApplicationShould {
     }
 
     companion object {
-        private val CODEC = SecretsCodec(MASTER_KEY)
+        private val CODEC = SecretsCodec(MASTER_KEY_BASE64)
 
         private val CLIENT_ID = "foo"
         private val CLIENT_SECRET = "bar"
@@ -200,7 +199,7 @@ class MgmtApplicationShould {
         val APP = DropwizardAppRule<MgmtConfiguration>(
             MgmtApplication::class.java,
             resourceFilePath("test.yml"),
-            config("masterKeyBase64", MASTER_KEY.encodeAsBase64()),
+            config("masterKeyBase64", MASTER_KEY_BASE64),
             config("auth.type", "token"),
             config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).toString()),
             config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
