@@ -6,6 +6,8 @@ logging:
     - type: console
       logFormat: "%-5p [%d] %c{5}: %m%n%rEx"
 
+masterKeyBase64: ${MASTER_KEY_BASE64}
+
 <#if ENABLE_METRICS??>
 metrics:
   reporters:
