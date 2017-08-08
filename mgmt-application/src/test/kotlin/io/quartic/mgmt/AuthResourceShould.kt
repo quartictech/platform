@@ -1,10 +1,7 @@
 package io.quartic.mgmt
 
 import com.google.common.hash.Hashing
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import feign.FeignException
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
@@ -23,6 +20,9 @@ import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.stubbing.OngoingStubbing
+import retrofit2.Call
+import retrofit2.Response
 import java.net.URI
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotAuthorizedException
@@ -59,11 +59,18 @@ class AuthResourceShould {
             on { id } doReturn 6666
             on { githubOrgId } doReturn 5678
         }
-        whenever(registry.getCustomer(any())).thenReturn(customer)
+        val customerResponse = mockResponse(customer)
+        whenever(registry.getCustomer(any(), anyOrNull())).thenReturn(customerResponse)
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
         whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob")))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
         whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
+    }
+
+    fun  <T> mockResponse(value: T?): Call<T?> {
+        val mock = mock<Call<T?>>()
+        whenever(mock.execute()).thenReturn(Response.success(value))
+        return mock
     }
 
     @Test

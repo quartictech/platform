@@ -9,6 +9,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.client.client
+import io.quartic.common.client.retrofitClient
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
@@ -28,7 +29,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = client<CatalogueService>(javaClass, configuration.catalogueUrl)
-        val registry = client<RegistryService>(javaClass, configuration.registryUrl)
+        val registry = retrofitClient<RegistryService>(javaClass, configuration.registryUrl)
         val bild = client<BildQueryService>(javaClass, configuration.bildUrl)
 
         val tokenGenerator = TokenGenerator(

@@ -65,7 +65,9 @@ class GithubResourceShould {
             deliveryId = "abc",
             installationId = 12345,
             repoId = 66666,
+            cloneUrl = "https://github.com/noobhole/noobing.git",
             ref = "refs/heads/master",
+            commit = "fc6206fd27761a1e03383287e213801105f01a25",
             timestamp = clock.instant()
         ))
     }
@@ -94,6 +96,13 @@ class GithubResourceShould {
         ref = "refs/heads/master",
         after = "fc6206fd27761a1e03383287e213801105f01a25",
         before = "efadb7ddea7476c99fef529740096dce49f88279",
+        headCommit = Commit(
+            id = "fc6206fd27761a1e03383287e213801105f01a25",
+            message = "Add some cool stuff",
+            timestamp = Instant.EPOCH.atOffset(ZoneOffset.UTC),
+            author = User("Johnny Noobhole", "johnny@noobhole.io", "johnny"),
+            committer = User("Johnny Noobhole", "johnny@noobhole.io", "johnny")
+        ),
         commits = listOf(
             Commit(
                 id = "fc6206fd27761a1e03383287e213801105f01a25",

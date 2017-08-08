@@ -28,6 +28,13 @@ class GithubModelShould {
                 ref = "refs/heads/master",
                 after = "e7298ce9149a7a06f83b8318b8c3fa655b71861d",
                 before = "a009c981dd764c771b8dc5ec37a40bc7433df801",
+                headCommit = Commit(
+                        id = "e7298ce9149a7a06f83b8318b8c3fa655b71861d",
+                        message = "Dummy commit",
+                        timestamp = OffsetDateTime.of(2017, 7, 20, 14, 41, 10, 0, ZoneOffset.ofHours(1)),
+                        author = user,
+                        committer = user
+                ),
                 commits = listOf(
                     Commit(
                         id = "e7298ce9149a7a06f83b8318b8c3fa655b71861d",
@@ -74,6 +81,13 @@ class GithubModelShould {
                 ref = "refs/heads/feature/github",
                 after = "fc6206fd27761a1e03383287e213801105f01a25",
                 before = "efadb7ddea7476c99fef529740096dce49f88279",
+                headCommit = Commit(
+                        id = "fc6206fd27761a1e03383287e213801105f01a25",
+                        message = "Add unfilled test",
+                        timestamp = OffsetDateTime.of(2017, 7, 20, 16, 15, 23, 0, ZoneOffset.ofHours(1)),
+                        author = user,
+                        committer = user
+                ),
                 commits = listOf(
                     Commit(
                         id = "fc6206fd27761a1e03383287e213801105f01a25",

@@ -1,6 +1,7 @@
 package io.quartic.registry.api
 
 import io.quartic.registry.api.model.Customer
+import retrofit2.Call
 import retrofit2.http.Query
 import java.util.concurrent.CompletableFuture
 import javax.ws.rs.GET
@@ -18,12 +19,12 @@ interface RegistryService {
     fun getCustomer(
         @Query("subdomain") @QueryParam("subdomain") subdomain: String?,
         @Query("githubRepoId") @QueryParam("githubRepoId") githubRepoId: Long?
-    ): Customer
+    ): Call<Customer?>
 }
 
 @Path("/")
 interface RegistryServiceAsync {
-    @retrofit2.http.GET("customers")
+    @retrofit2.http.GET("/customers")
     fun getCustomerAsync(
         @Query("subdomain") subdomain: String?,
         @Query("githubRepoId") githubRepoId: Long?

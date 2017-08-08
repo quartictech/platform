@@ -6,8 +6,8 @@ import javax.ws.rs.NotFoundException
 
 class RegistryResource(
     private val customers: Set<Customer>
-) : RegistryService {
-    override fun getCustomer(subdomain: String?, githubRepoId: Long?): Customer {
+) {
+    fun getCustomer(subdomain: String?, githubRepoId: Long?): Customer {
         val matching = customers
         .filter { subdomain == null || it.subdomain == subdomain }
         .filter { githubRepoId == null || it.githubRepoId == githubRepoId }

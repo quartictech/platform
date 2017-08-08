@@ -201,7 +201,7 @@ class MgmtApplicationShould {
             config("github.clientId", CLIENT_ID),
             config("github.clientSecret", CLIENT_SECRET),
             config("github.redirectHost", { "http://localhost:${github.port()}" }),
-            config("registryUrl", { "http://localhost:${registry.port()}/api" })
+            config("registryUrl", { "http://localhost:${registry.port()}/api/" })
         )
     }
 }
