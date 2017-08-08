@@ -10,6 +10,11 @@ import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.TokenAuthStrategy.Tokens
+import io.quartic.common.auth.User
+import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.MASTER_KEY_BASE64
 import io.quartic.common.test.TOKEN_KEY_BASE64
@@ -80,7 +85,7 @@ class MgmtApplicationShould {
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withBody(OBJECT_MAPPER.writeValueAsString(Customer(
-                        id = 4321,
+                        id = CustomerId(4321),
                         githubOrgId = 5678,
                         githubRepoId = 8765,
                         name = "localhost",

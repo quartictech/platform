@@ -28,7 +28,7 @@ data class WithPrevious<out T>(
 fun <Input, State, Output>
         mealy(initial: State, next: (State, Input) -> StateAndOutput<State, Output>) = Transformer<Input, Output> {
     observable -> observable
-        .scan(StateAndOutput(initial, null as Output), { wrapped, input -> next(wrapped.state, input) })
+        .scan(StateAndOutput(initial, null as Output?), { wrapped, input -> next(wrapped.state, input) })
         .skip(1)                        // Because scan() emits the initial value
         .map({ it.output })
 }

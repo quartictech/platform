@@ -11,15 +11,16 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 
 class JobPool(configuration: KubernetesConfiguraration,
-              val client: Qube,
-              queue: BlockingQueue<BildJob>, jobResults: JobResultStore) {
+              private val client: Qube,
+              queue: BlockingQueue<BildJob>,
+              jobResults: JobResultStore) {
     private val log by logger()
     private val namespace = NamespaceBuilder()
         .editOrNewMetadata()
         .withName(configuration.namespace)
         .endMetadata()
         .build()
-    private val threadPool = Executors.newFixedThreadPool(configuration.numConcurrentJobs);
+    private val threadPool = Executors.newFixedThreadPool(configuration.numConcurrentJobs)
     private val events = PublishSubject.create<Event>()
 
     init {

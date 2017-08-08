@@ -12,13 +12,13 @@ import javax.ws.rs.core.MediaType
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GitHubOrganization(
-    val id: Int,
+    val id: Long,
     val login: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GitHubUser(
-    val id: Int,
+    val id: Long,
     val login: String,
     val name: String,
     @JsonProperty("avatar_url")

@@ -36,7 +36,7 @@ class TokenGeneratorShould {
 
     @Test
     fun generate_valid_tokens() {
-        val tokens = generator.generate(User("12345", "67890"), "hello")
+        val tokens = generator.generate(User(12345, 67890), "hello")
 
         val claims = parse(tokens.jwt)
         val xsrfHash = Hashing.sha1().hashString(tokens.xsrf, Charsets.UTF_8).toString()
@@ -51,7 +51,7 @@ class TokenGeneratorShould {
 
     @Test
     fun generate_big_fat_xsrf_tokens() {
-        val tokens = generator.generate(User("12345", "67890"), "hello")
+        val tokens = generator.generate(User(12345, 67890), "hello")
 
         assertThat(tokens.xsrf.length, equalTo(32))
     }

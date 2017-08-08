@@ -1,7 +1,7 @@
 package io.quartic.mgmt.resource
 
 import io.dropwizard.auth.Auth
-import io.quartic.bild.api.BildService
+import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
@@ -17,8 +17,8 @@ import io.quartic.mgmt.CreateDatasetRequest
 import io.quartic.mgmt.CreateStaticDatasetRequest
 import io.quartic.mgmt.FileType
 import io.quartic.mgmt.FileType.*
-import io.quartic.mgmt.auth.NamespaceAuthoriser
 import io.quartic.mgmt.conversion.CsvConverter
+import io.quartic.registry.api.RegistryService
 import org.apache.commons.io.IOUtils.copy
 import java.io.IOException
 import java.io.InputStream
@@ -33,8 +33,8 @@ import javax.ws.rs.core.MediaType
 class MgmtResource(
     private val catalogue: CatalogueService,
     private val howl: HowlService,
-    private val bild: BildService,
-    private val authoriser: NamespaceAuthoriser
+    private val bild: BildQueryService,
+    private val registry: RegistryService
 ) {
     private val LOG by logger()
     // TODO - frontend will need to cope with DatasetNamespace in request paths and GET /datasets response
@@ -44,13 +44,19 @@ class MgmtResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User) = bild.getDag(user.customerId!!)
+    fun getDag(@Auth user: User) = bild.dag(user.customerId!!)
 
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(@Auth user: User) =
-        catalogue.getDatasets().filterKeys { namespace -> authoriser.authorisedFor(user, namespace) }
+    fun getDatasets(@Auth user: User): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
+        if (user.customerId == null) {
+            return emptyMap()
+        } else {
+            val customer = registry.getCustomerById(user.customerId!!)
+            return catalogue.getDatasets().filterKeys { namespace -> customer.namespace == namespace.namespace }
+        }
+    }
 
 
     @DELETE
@@ -78,7 +84,6 @@ class MgmtResource(
         request: CreateDatasetRequest
     ): DatasetId {
         throwIfNamespaceNotAllowed(user, namespace)
-
         val datasetConfig = when (request) {
             is CreateStaticDatasetRequest -> {
                 try {
@@ -159,7 +164,8 @@ class MgmtResource(
     }
 
     private fun throwIfNamespaceNotAllowed(user: User, namespace: DatasetNamespace) {
-        if (!authoriser.authorisedFor(user, namespace)) {
+        val customer = registry.getCustomerById(user.customerId!!)
+        if (customer.namespace != namespace.namespace) {
             throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
         }
     }

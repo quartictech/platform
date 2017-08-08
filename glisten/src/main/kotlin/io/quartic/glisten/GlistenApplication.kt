@@ -1,16 +1,17 @@
 package io.quartic.glisten
 
 import io.dropwizard.setup.Environment
+import io.quartic.bild.api.BildTriggerService
 import io.quartic.common.application.ApplicationBase
+import io.quartic.common.client.client
 
-// TODO - this app should arguably be even simpler and just ram stuff into a PubSub queue, in order to maximise uptime
 class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
     override fun runApplication(configuration: GlistenConfiguration, environment: Environment) {
-        // TODO - wire through notify param to Bild client
+        val trigger = client<BildTriggerService>(javaClass, configuration.bildUrl)
+
         environment.jersey().register(GithubResource(
-            configuration.registrations,
             configuration.secretToken,
-            {}
+            trigger
         ))
     }
 
