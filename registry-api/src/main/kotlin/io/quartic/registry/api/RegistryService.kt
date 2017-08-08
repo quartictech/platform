@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType
 @Path("/")
 interface RegistryService {
     @GET
-    @retrofit2.http.GET("/customers")
+    @retrofit2.http.GET("customers")
     @Path("/customers")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCustomer(
@@ -24,7 +24,7 @@ interface RegistryService {
 
 @Path("/")
 interface RegistryServiceAsync {
-    @retrofit2.http.GET("/customers")
+    @retrofit2.http.GET("customers")
     fun getCustomerAsync(
         @Query("subdomain") subdomain: String?,
         @Query("githubRepoId") githubRepoId: Long?
