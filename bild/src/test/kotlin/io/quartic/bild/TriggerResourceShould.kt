@@ -26,7 +26,7 @@ class TriggerResourceShould {
     private val bildId = BildId("noob")
 
     private val laDispute = Customer(
-        1L,
+        CustomerId(1L),
         123L,
         123456L,
         "la dispute",
@@ -39,10 +39,10 @@ class TriggerResourceShould {
             .thenReturn(JobResultStore.Record(null, dag))
 
         whenever(idGenerator.get()).thenReturn(bildId)
-        whenever(registry.getCustomerAsync(anyOrNull(), anyOrNull()))
+        whenever(registry.getCustomer(anyOrNull(), anyOrNull()))
             .thenReturn(CompletableFuture.completedFuture(null))
 
-        whenever(registry.getCustomerAsync(anyOrNull(), eq(123456L)))
+        whenever(registry.getCustomer(anyOrNull(), eq(123456L)))
             .thenReturn(CompletableFuture.completedFuture(laDispute))
 
     }
@@ -60,10 +60,10 @@ class TriggerResourceShould {
             Instant.now()
         ))
 
-        verify(registry).getCustomerAsync(isNull(), eq(123456L))
+        verify(registry).getCustomer(isNull(), eq(123456L))
         verify(queue).put(BildJob(
             bildId,
-            CustomerId(laDispute.id),
+            laDispute.id,
             0L,
             "https://no",
             "wat",
@@ -85,7 +85,7 @@ class TriggerResourceShould {
             Instant.now()
         ))
 
-        verify(registry).getCustomerAsync(isNull(), eq(123L))
+        verify(registry).getCustomer(isNull(), eq(123L))
         verify(queue, never()).put(any())
     }
 }

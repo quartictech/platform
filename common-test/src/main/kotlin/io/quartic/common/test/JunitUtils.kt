@@ -1,6 +1,9 @@
 package io.quartic.common.test
 
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.Assert.fail
+import java.util.concurrent.CompletableFuture
 
 inline fun <reified T : Throwable> assertThrows(crossinline block: () -> Unit): T {
     try {
@@ -14,4 +17,16 @@ inline fun <reified T : Throwable> assertThrows(crossinline block: () -> Unit): 
     }
     fail("Expected ${T::class}, none thrown")
     throw RuntimeException()    // Should never get here, just here to satisfy compiler
+}
+
+fun <T> mockCompletableFuture(value: T): CompletableFuture<T> {
+    val mock = mock<CompletableFuture<T>>()
+    whenever(mock.get()).thenReturn(value)
+    return mock
+}
+
+fun <T> mockCompletableFutureOptional(value: T): CompletableFuture<T?> {
+    val mock = mock<CompletableFuture<T?>>()
+    whenever(mock.get()).thenReturn(value)
+    return mock
 }

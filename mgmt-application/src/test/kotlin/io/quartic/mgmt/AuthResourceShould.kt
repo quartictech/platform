@@ -10,9 +10,12 @@ import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.common.test.mockCompletableFuture
+import io.quartic.common.test.mockCompletableFutureOptional
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.AuthResource.Companion.NONCE_COOKIE
 import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
 import org.hamcrest.Matchers.equalTo
@@ -25,6 +28,7 @@ import org.mockito.stubbing.OngoingStubbing
 import retrofit2.Call
 import retrofit2.Response
 import java.net.URI
+import java.util.concurrent.CompletableFuture
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotAuthorizedException
 import javax.ws.rs.ServerErrorException
@@ -33,7 +37,7 @@ import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
     private val tokenGenerator = mock<TokenGenerator>()
-    private val registry = mock<RegistryService>()
+    private val registry = mock<RegistryServiceClient>()
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
     private val resource = AuthResource(
@@ -60,7 +64,7 @@ class AuthResourceShould {
             on { id } doReturn CustomerId(6666)
             on { githubOrgId } doReturn 5678
         }
-        val customerResponse = mockResponse(customer)
+        val customerResponse = mockCompletableFutureOptional(customer)
         whenever(registry.getCustomer(any(), anyOrNull())).thenReturn(customerResponse)
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
         whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob")))
@@ -68,11 +72,7 @@ class AuthResourceShould {
         whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
-    fun  <T> mockResponse(value: T?): Call<T?> {
-        val mock = mock<Call<T?>>()
-        whenever(mock.execute()).thenReturn(Response.success(value))
-        return mock
-    }
+
 
     @Test
     fun generate_nonce_hash_in_cookie_that_matches_redirect_uri() {

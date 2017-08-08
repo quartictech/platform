@@ -12,6 +12,7 @@ import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
 import io.quartic.mgmt.*
 import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -28,7 +29,7 @@ class AuthResource(
     private val gitHubConfig: GithubConfiguration,
     private val cookiesConfig: CookiesConfiguration,
     private val tokenGenerator: TokenGenerator,
-    private val registry: RegistryService,
+    private val registry: RegistryServiceClient,
     private val gitHubOAuth: GitHubOAuth = client<GitHubOAuth>(AuthResource::class.java, gitHubConfig.oauthApiRoot),
     private val gitHubApi: GitHub = client<GitHub>(AuthResource::class.java, gitHubConfig.apiRoot)
 ) {
@@ -99,7 +100,7 @@ class AuthResource(
         val ghOrgs = callServerOrThrow { gitHubApi.organizations(accessToken.accessToken) }
 
         val subdomain = extractSubdomain(host)
-        val customer = callServerOrThrow { registry.getCustomer(subdomain, null).execute().body()!! } // Should never be null
+        val customer = callServerOrThrow { registry.getCustomer(subdomain, null).get()!! } // Should never be null
 
         if (ghOrgs.any { it.id == customer.githubOrgId }) {
             val user = User(ghUser.id, customer.id) // TODO - using the GH ID as user ID is wrong in the long run

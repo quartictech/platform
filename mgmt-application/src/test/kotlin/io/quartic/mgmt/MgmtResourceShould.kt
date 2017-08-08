@@ -11,9 +11,11 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.common.test.mockCompletableFuture
 import io.quartic.howl.api.HowlService
 import io.quartic.mgmt.resource.MgmtResource
 import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
@@ -43,15 +45,16 @@ class MgmtResourceShould {
 
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
-    private val registry = mock<RegistryService>()
+    private val registry = mock<RegistryServiceClient>()
     private val bild = mock<BildQueryService>()
 
     private val resource = MgmtResource(catalogue, howl, bild, registry)
 
     @Before
     fun before() {
+        val response = mockCompletableFuture(quartic)
         whenever(catalogue.getDatasets()).thenReturn(datasets)
-        whenever(registry.getCustomerById(CustomerId(5678))).thenReturn(quartic)
+        whenever(registry.getCustomerById(CustomerId(5678))).thenReturn(response)
     }
 
     @Test

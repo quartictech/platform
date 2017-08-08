@@ -17,6 +17,7 @@ import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.MgmtResource
 import io.quartic.mgmt.resource.UserResource
 import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
 class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
@@ -28,7 +29,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
     public override fun runApplication(configuration: MgmtConfiguration, environment: Environment) {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = client<CatalogueService>(javaClass, configuration.catalogueUrl)
-        val registry = retrofitClient<RegistryService>(javaClass, configuration.registryUrl)
+        val registry = retrofitClient<RegistryServiceClient>(javaClass, configuration.registryUrl)
         val bild = client<BildQueryService>(javaClass, configuration.bildUrl)
 
         val tokenGenerator = TokenGenerator(

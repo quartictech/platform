@@ -21,12 +21,12 @@ class TriggerResource(
 
     override fun trigger(trigger: TriggerDetails) {
         LOG.info("Received trigger: ${trigger}")
-        registry.getCustomerAsync(null, trigger.repoId)
+        registry.getCustomer(null, trigger.repoId)
             .thenAccept{ customer ->
                 if (customer != null) {
                     val id = idGenerator.get()
                     LOG.info("Initiating build for customer '{}'. Queue has size {}", customer.id, queue.size)
-                    queue.put(BildJob(id, CustomerId(customer.id), trigger.installationId, trigger.cloneUrl, trigger.ref, trigger.commit, BildPhase.TEST))
+                    queue.put(BildJob(id, customer.id, trigger.installationId, trigger.cloneUrl, trigger.ref, trigger.commit, BildPhase.TEST))
                 } else {
                     LOG.warn("Customer not found for repo: {}", trigger.repoId)
                 }
