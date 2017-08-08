@@ -12,6 +12,7 @@ service {
 
 dependencies {
     compile project(":common-application")
+    compile project(":bild-api")
 
     testCompile project(":common-test")
 }

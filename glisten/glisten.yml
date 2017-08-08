@@ -1,9 +1,6 @@
-registrations:
-  quartic:
-    type: github
-    installationId: 40737
+bildUrl: http://localhost:8200/api
 
-secretToken: noobhole
+secretToken: JaXAybVPJmDaLk2Z7fMx
 
 server:
   applicationContextPath: /

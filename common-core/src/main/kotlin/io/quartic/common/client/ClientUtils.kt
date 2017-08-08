@@ -16,9 +16,10 @@ import org.apache.commons.io.IOUtils.copy
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.net.URL
 import java.nio.charset.StandardCharsets
 
-
+inline fun <reified T : Any> client(owner: Class<*>, url: URL): T = client(T::class.java, owner, url.toString())
 inline fun <reified T : Any> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
 
 // TODO: eliminate overloads once everything ported to Kotlin

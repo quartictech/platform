@@ -1,7 +1,7 @@
 package io.quartic.mgmt.resource
 
 import io.dropwizard.auth.Auth
-import io.quartic.bild.api.BildService
+import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
@@ -33,7 +33,7 @@ import javax.ws.rs.core.MediaType
 class MgmtResource(
     private val catalogue: CatalogueService,
     private val howl: HowlService,
-    private val bild: BildService,
+    private val bild: BildQueryService,
     private val registry: RegistryService
 ) {
     private val LOG by logger()
@@ -44,7 +44,7 @@ class MgmtResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User) = bild.getDag(user.customerId!!)
+    fun getDag(@Auth user: User) = bild.dag(user.customerId!!)
 
     @GET
     @Path("/datasets")
@@ -131,7 +131,6 @@ class MgmtResource(
                     storageId.uid
                 }
                 RAW -> fileName
-                else -> fileName
             }
         }
     }

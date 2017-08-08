@@ -6,19 +6,19 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
-import io.quartic.bild.model.CustomerId
-import io.quartic.bild.resource.ExecResource
+import io.quartic.bild.resource.TriggerResource
+import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
 import org.junit.Test
 import java.util.concurrent.BlockingQueue
 
 
-class ExecResourceShould {
+class TriggerResourceShould {
     private val dag = mapOf("noob" to "yes")
     private val jobResults = mock<JobResultStore>()
     private val queue = mock<BlockingQueue<BildJob>>()
     private val idGenerator = mock<UidGenerator<BildId>>()
-    private val resource = ExecResource(queue, jobResults, idGenerator)
+    private val resource = TriggerResource(queue, idGenerator)
     private val bildId = BildId("noob")
 
     init {

@@ -90,7 +90,7 @@ class HowlResource(
         return Response.ok()
                 .header(CONTENT_TYPE, contentType)
                 .entity(StreamingOutput {
-                    inputStream.use { inputStream -> IOUtils.copy(inputStream, it) }
+                    inputStream.use { istream -> IOUtils.copy(istream, it) }
                 })
                 .build()
     }
