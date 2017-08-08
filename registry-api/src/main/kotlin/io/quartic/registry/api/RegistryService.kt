@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType
 @Path("/")
 interface RegistryService {
     @GET
-    @retrofit2.http.GET("customers")
+    @retrofit2.http.GET("/customers")
     @Path("/customers")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCustomer(
