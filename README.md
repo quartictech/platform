@@ -60,6 +60,15 @@ entries to the `build.gradle` file for the relevant subproject.  `package.json` 
 Note that this will build the images with a registry name of `null` and a tag of `unknown`.  CircleCI overrides the
 `QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
 
+## Github Application Auth
+Download the private key from the installation page for the app
+
+```
+openssl pkcs8 -topk8 -inform PEM -outform PEM -in private-key.pem -out private-key.der.pem -nocrypt
+```
+
+Copy the text into `bild.yml` (exlcuding the BEGIN and END lines) as `github.privateKey`. Similarly fill out
+the `appId` from the installation page.
 
 ## Documentation
 
