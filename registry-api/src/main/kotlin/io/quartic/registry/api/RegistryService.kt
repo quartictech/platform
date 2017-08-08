@@ -8,19 +8,12 @@ import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.QueryParam
-import feign.Headers
-import feign.RequestLine
 import io.quartic.common.model.CustomerId
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 @Path("/")
 interface RegistryService {
-    // Feign
-    @RequestLine("GET /customers/{id}")
-    @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
-    // Retrofit
-    @retrofit2.http.GET("customers")
     // JAX-RS
     @GET
     @Path("/customers/{id}")
@@ -29,11 +22,6 @@ interface RegistryService {
         @retrofit2.http.Path("id") @PathParam("id") customerId: CustomerId
     ): Customer
 
-    // Feign
-    @RequestLine("GET /customers?subdomain={subdomain}")
-    @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
-    // Retrofit
-    @retrofit2.http.GET("customers")
     // JAX-RS
     @GET
     @Path("/customers")
@@ -41,13 +29,19 @@ interface RegistryService {
     fun getCustomer(
         @Query("subdomain") @QueryParam("subdomain") subdomain: String?,
         @Query("githubRepoId") @QueryParam("githubRepoId") githubRepoId: Long?
-    ): Call<Customer?>
+    ): Customer
 }
 
 @Path("/")
-interface RegistryServiceAsync {
+interface RegistryServiceClient {
+    // Retrofit
+    @retrofit2.http.GET("customers/{id}")
+    fun getCustomerById(
+        @retrofit2.http.Path("id") @PathParam("id") customerId: CustomerId
+    ): CompletableFuture<Customer>
+
     @retrofit2.http.GET("customers")
-    fun getCustomerAsync(
+    fun getCustomer(
         @Query("subdomain") subdomain: String?,
         @Query("githubRepoId") githubRepoId: Long?
     ): CompletableFuture<Customer?>

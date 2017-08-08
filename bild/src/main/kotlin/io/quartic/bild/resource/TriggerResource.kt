@@ -9,12 +9,12 @@ import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
-import io.quartic.registry.api.RegistryServiceAsync
+import io.quartic.registry.api.RegistryServiceClient
 import java.util.concurrent.BlockingQueue
 
 class TriggerResource(
     private val queue: BlockingQueue<BildJob>,
-    private val registry: RegistryServiceAsync,
+    private val registry: RegistryServiceClient,
     private val idGenerator: UidGenerator<BildId> = randomGenerator { uid -> BildId(uid) }
 ) : BildTriggerService {
     private val LOG by logger()

@@ -8,7 +8,7 @@ import io.quartic.bild.model.BildPhase
 import io.quartic.bild.resource.TriggerResource
 import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
-import io.quartic.registry.api.RegistryServiceAsync
+import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.junit.Test
 import java.time.Instant
@@ -21,7 +21,7 @@ class TriggerResourceShould {
     private val jobResults = mock<JobResultStore>()
     private val queue = mock<BlockingQueue<BildJob>>()
     private val idGenerator = mock<UidGenerator<BildId>>()
-    private val registry = mock<RegistryServiceAsync>()
+    private val registry = mock<RegistryServiceClient>()
     private val resource = TriggerResource(queue, registry, idGenerator)
     private val bildId = BildId("noob")
 
