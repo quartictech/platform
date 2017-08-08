@@ -10,17 +10,17 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
-import io.quartic.bild.model.CustomerId
 import io.quartic.bild.qube.JobLoop
 import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
 import io.quartic.bild.qube.Worker
+import io.quartic.common.model.CustomerId
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.equalTo
 import org.junit.Test
+import rx.observers.TestSubscriber
 import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
-import org.hamcrest.MatcherAssert.*
-import org.hamcrest.Matchers.*
-import rx.observers.TestSubscriber
 
 class WorkerShould {
     @Test

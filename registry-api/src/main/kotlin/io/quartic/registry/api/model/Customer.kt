@@ -1,9 +1,9 @@
 package io.quartic.registry.api.model
 
 data class Customer(
-    val id: Int,
-    val githubOrgId: Int,
-    val githubRepoId: Int,
+    val id: Long,
+    val githubOrgId: Long,
+    val githubRepoId: Long,
     val name: String,
     val subdomain: String,
     val namespace: String

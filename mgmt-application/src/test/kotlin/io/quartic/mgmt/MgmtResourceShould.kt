@@ -1,7 +1,7 @@
 package io.quartic.mgmt
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.bild.api.BildService
+import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
@@ -19,7 +19,7 @@ import javax.ws.rs.NotFoundException
 
 class MgmtResourceShould {
 
-    private val arlo = User("arlo", "quartic")
+    private val arlo = User(1234, 5678)
 
     private val foo = DatasetNamespace("foo")
     private val bar = DatasetNamespace("bar")
@@ -34,7 +34,7 @@ class MgmtResourceShould {
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
     private val authoriser = mock<NamespaceAuthoriser>()
-    private val bild = mock<BildService>()
+    private val bild = mock<BildQueryService>()
 
     private val resource = MgmtResource(catalogue, howl, bild, authoriser)
 

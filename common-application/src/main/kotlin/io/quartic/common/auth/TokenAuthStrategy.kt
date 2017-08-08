@@ -54,13 +54,13 @@ class TokenAuthStrategy(config: TokenAuthConfiguration, clock: Clock = Clock.sys
             return null
         }
 
-        val subject = claims.body.subject?.toIntOrNull()
+        val subject = claims.body.subject?.toLongOrNull()
         if (subject == null) {
             LOG.warn("Subject claim is missing or unparseable")
             return null
         }
 
-        val customerId = (claims.body[CUSTOMER_ID_CLAIM] as String?)?.toIntOrNull()
+        val customerId = (claims.body[CUSTOMER_ID_CLAIM] as String?)?.toLongOrNull()
         if (customerId == null) {
             LOG.warn("Customer ID claim is missing or unparseable")
             return null

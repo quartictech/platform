@@ -1,6 +1,7 @@
 package io.quartic.glisten.github.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.OffsetDateTime
@@ -28,7 +29,7 @@ data class PushEvent(
 data class Commit(
     val id: GitHash,
     val message: String,
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", without = arrayOf(JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE))
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", without = arrayOf(ADJUST_DATES_TO_CONTEXT_TIME_ZONE))
     val timestamp: OffsetDateTime,
     val author: User,
     val committer: User
@@ -36,7 +37,7 @@ data class Commit(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Repository(
-    val id: Int,
+    val id: Long,
     val name: String,
     @JsonProperty("full_name")
     val fullName: String,
@@ -47,7 +48,7 @@ data class Repository(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Organization(
-    val id: Int,
+    val id: Long,
     val login: String,
     val description: String
 )
@@ -67,12 +68,12 @@ data class Pusher(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Sender(
-    val id: Int,
+    val id: Long,
     val login: String,
     val type: String    // TODO - is this an enum?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Installation(
-    val id: Int
+    val id: Long
 )
