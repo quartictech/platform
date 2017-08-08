@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.logging.logger
+import io.quartic.common.model.CustomerId
 import java.time.Clock
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
