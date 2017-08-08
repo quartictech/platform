@@ -83,6 +83,7 @@ class MgmtResource(
         @PathParam("namespace") namespace: DatasetNamespace,
         request: CreateDatasetRequest
     ): DatasetId {
+        throwIfNamespaceNotAllowed(user, namespace)
         val datasetConfig = when (request) {
             is CreateStaticDatasetRequest -> {
                 try {
@@ -162,4 +163,10 @@ class MgmtResource(
         }
     }
 
+    private fun throwIfNamespaceNotAllowed(user: User, namespace: DatasetNamespace) {
+        val customer = registry.getCustomerById(user.customerId!!)
+        if (customer.namespace != namespace.namespace) {
+            throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
+        }
+    }
 }
