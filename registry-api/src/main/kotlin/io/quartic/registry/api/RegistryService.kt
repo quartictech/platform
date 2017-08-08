@@ -8,12 +8,34 @@ import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.QueryParam
+import feign.Headers
+import feign.RequestLine
+import io.quartic.common.model.CustomerId
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 @Path("/")
 interface RegistryService {
-    @GET
+    // Feign
+    @RequestLine("GET /customers/{id}")
+    @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
+    // Retrofit
     @retrofit2.http.GET("customers")
+    // JAX-RS
+    @GET
+    @Path("/customers/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getCustomerById(
+        @retrofit2.http.Path("id") @PathParam("id") customerId: CustomerId
+    ): Customer
+
+    // Feign
+    @RequestLine("GET /customers?subdomain={subdomain}")
+    @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
+    // Retrofit
+    @retrofit2.http.GET("customers")
+    // JAX-RS
+    @GET
     @Path("/customers")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCustomer(

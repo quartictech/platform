@@ -25,7 +25,6 @@ data class MgmtConfiguration(
     val howlUrl: String,
     val registryUrl: String,
     val bildUrl: String,
-    val authorisedNamespaces: Multimap<User, DatasetNamespace> = emptyMap(),
     var github: GithubConfiguration,
     val cookies: CookiesConfiguration,
     val tokenTimeToLiveMinutes: Int = 60

@@ -13,7 +13,6 @@ import io.quartic.common.client.retrofitClient
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.howl.api.HowlClient
-import io.quartic.mgmt.auth.NamespaceAuthoriser
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.MgmtResource
 import io.quartic.mgmt.resource.UserResource
@@ -43,7 +42,7 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
                 catalogue,
                 howl,
                 bild,
-                NamespaceAuthoriser(configuration.authorisedNamespaces)
+                registry
             ))
             register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
         }

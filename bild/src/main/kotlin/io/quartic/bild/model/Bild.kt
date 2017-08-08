@@ -3,7 +3,7 @@ package io.quartic.bild.model
 import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.Uid
 
-data class BildId(val id: String) : Uid(id)
+class BildId(val id: String) : Uid(id)
 
 data class BildJob(
     val id: BildId,

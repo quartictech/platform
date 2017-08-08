@@ -104,7 +104,6 @@ class Worker(
                 .build()
         }
 
-
         fun jobName(job: BildJob) = "bild-${job.id.id}"
     }
 }
