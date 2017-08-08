@@ -11,6 +11,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
+import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.AuthResource.Companion.NONCE_COOKIE
@@ -56,7 +57,7 @@ class AuthResourceShould {
     @Before
     fun before() {
         val customer = mock<Customer> {
-            on { id } doReturn 6666
+            on { id } doReturn CustomerId(6666)
             on { githubOrgId } doReturn 5678
         }
         whenever(registry.getCustomer(any())).thenReturn(customer)

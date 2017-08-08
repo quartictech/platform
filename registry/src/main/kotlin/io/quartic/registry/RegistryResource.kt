@@ -9,7 +9,7 @@ class RegistryResource(
     private val customers: Set<Customer>
 ) : RegistryService {
     override fun getCustomerById(customerId: CustomerId): Customer =
-        customers.find { it.id == customerId.id.toLong() }
+        customers.find { it.id == customerId }
             ?: throw NotFoundException("No customer with id '$customerId'")
 
     override fun getCustomer(subdomain: String?) = customers.find { it.subdomain == subdomain }

@@ -25,7 +25,7 @@ class MgmtResourceShould {
 
     private val arlo = User(1234, 5678)
     private val quartic = Customer(
-        5678,
+        CustomerId(5678),
         1,
         1,
         "quartic",

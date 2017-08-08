@@ -13,6 +13,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.auth.User
+import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URIBuilder
@@ -75,7 +76,7 @@ class MgmtApplicationShould {
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withBody(OBJECT_MAPPER.writeValueAsString(Customer(
-                        id = 4321,
+                        id = CustomerId(4321),
                         githubOrgId = 5678,
                         githubRepoId = 8765,
                         name = "localhost",
