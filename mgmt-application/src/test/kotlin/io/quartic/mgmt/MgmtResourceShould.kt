@@ -2,25 +2,33 @@ package io.quartic.mgmt
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.bild.api.BildQueryService
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
-import io.quartic.common.test.assertThrows
 import io.quartic.howl.api.HowlService
-import io.quartic.mgmt.auth.NamespaceAuthoriser
 import io.quartic.mgmt.resource.MgmtResource
 import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
-import javax.ws.rs.NotFoundException
 
 class MgmtResourceShould {
 
     private val arlo = User(1234, 5678)
+    private val quartic = Customer(
+        100L,
+        1,
+        1,
+        "quartic",
+        "quartic",
+        "foo"
+    )
 
     private val foo = DatasetNamespace("foo")
     private val bar = DatasetNamespace("bar")
@@ -44,13 +52,11 @@ class MgmtResourceShould {
         whenever(catalogue.getDatasets()).thenReturn(datasets)
     }
 
-//    @Test
-//    fun get_only_authorised_datasets() {
-//        whenever(authoriser.authorisedFor(arlo, foo)).thenReturn(true)
-//        whenever(authoriser.authorisedFor(arlo, bar)).thenReturn(true)
-//
-//        assertThat(resource.getDatasets(arlo), equalTo(mapOf(foo to datasets[foo], bar to datasets[bar])))
-//    }
+    @Test
+    fun get_only_authorised_datasets() {
+        whenever(registry.getCustomerById(100L)).thenReturn(quartic)
+        assertThat(resource.getDatasets(arlo), equalTo(mapOf(foo to datasets[foo], bar to datasets[bar])))
+    }
 //
 //    @Test
 //    fun create_dataset_if_namespace_authorised() {

@@ -3,6 +3,7 @@ package io.quartic.registry.api
 import feign.Headers
 import feign.Param
 import feign.RequestLine
+import io.quartic.common.model.CustomerId
 import io.quartic.registry.api.model.Customer
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
@@ -15,7 +16,7 @@ interface RegistryService {
     @Path("/customers/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCustomerById(
-        @Param("id") @PathParam("id") customerId: String
+        @Param("id") @PathParam("id") customerId: CustomerId
     ): Customer
 
     @RequestLine("GET /customers?subdomain={subdomain}")
