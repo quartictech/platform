@@ -82,7 +82,7 @@ class Worker(
                 listOf(
                     EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
                     EnvVar("QUARTIC_JOB_ID", job.id.id, null),
-                    EnvVar("QUARTIC_BACKCHANNEL_ENDPOINT", String.format(configuration.backChannelEndPoint, job.id.id), null)
+                    EnvVar("QUARTIC_BACKCHANNEL_ENDPOINT", String.format(configuration.backChannelEndpoint, job.id.id), null)
                 ))
             .endContainer()
             .endSpec()
