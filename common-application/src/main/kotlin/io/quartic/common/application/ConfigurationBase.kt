@@ -5,9 +5,17 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.dropwizard.Configuration
+import io.quartic.common.secrets.EncryptedSecret
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
+import javax.validation.constraints.NotNull
 
 abstract class ConfigurationBase : Configuration() {
+    @NotNull
+    lateinit var masterKeyBase64: UnsafeSecret
     val auth: AuthConfiguration = DummyAuthConfiguration()  // TODO - remove this default eventually
+
+    val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
 }
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -18,7 +26,7 @@ abstract class ConfigurationBase : Configuration() {
 sealed class AuthConfiguration
 
 data class TokenAuthConfiguration(
-    val base64EncodedKey: String
+    val keyEncryptedBase64: EncryptedSecret
 ) : AuthConfiguration()
 
 data class DummyAuthConfiguration(

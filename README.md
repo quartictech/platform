@@ -1,6 +1,12 @@
 ## Prerequisites
 
-- JDK 8
+- JDK 8 (plus unlimited strength JCE)
+
+  ```
+  brew cask install java
+  brew cask install jce-unlimited-strength-policy
+  ```
+
 - NPM 4+
 
   ```
@@ -19,6 +25,7 @@
   ```
   brew install aspell --with-lang-en
   ```
+
 
 ## Running the stack locally
 
@@ -46,10 +53,12 @@ To run a service with reduced memory (example):
 SKIP_FRONTEND= WEYL_MEMORY=4g ./gradlew run --parallel
 ```
 
+
 ## Frontend dependencies
 
 Frontend dependencies aren't directly managed in `package.json`, because they're lame.  Instead, add `prod` and `dev`
 entries to the `build.gradle` file for the relevant subproject.  `package.json` files are explicitly Git-ignored!
+
 
 ## Building Docker images
 
@@ -74,6 +83,24 @@ The whole thing is orchestrated by Gradle, as usual.  To run with a watch:
 ```
 
 The spellchecking list is in `docs/wordlist`.  Please curate this carefully.
+
+
+## Secret management
+
+To avoid storing plaintext secrets in Git (either here or in the `infra` repo), all secrets that come in via
+configuration should be encrypted as `EncryptedSecret`s (except for the master key).
+
+Secrets can be encrypted via a fairly janky CLI, which can be run as follows:
+
+```
+./gradlew common-core:installDist
+./common-core/build/install/common-core/bin/common-core [-g] [-d]
+```
+
+Flags:
+
+- `-g` generates a random master key.
+- `-d` decodes rather than encodes.
 
 
 ## Services

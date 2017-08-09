@@ -1,11 +1,18 @@
 package io.quartic.common.auth
 
 import com.google.common.hash.Hashing
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import io.jsonwebtoken.Jwts
+import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenGenerator.XsrfId
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.sequenceGenerator
 import org.hamcrest.Matchers.equalTo
@@ -19,11 +26,13 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 class TokenGeneratorShould {
-    private val key = "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="    // 512-bit key
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
-    private val generator = TokenGenerator(key, timeToLive, clock)
+    private val codec = mock<SecretsCodec> {
+        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
+    }
+    private val generator = TokenGenerator(TokenAuthConfiguration(mock()), codec, timeToLive, clock)
 
     @Test
     fun generate_valid_tokens() {
@@ -49,10 +58,14 @@ class TokenGeneratorShould {
 
     @Test
     fun validate_key_length() {
+        val codec = mock<SecretsCodec> {
+            on { decrypt(any()) } doReturn UnsafeSecret("abcd")
+        }
+
         assertThrows<IllegalArgumentException> {
-            TokenGenerator("tooshort", timeToLive, clock, sequenceGenerator(::XsrfId))
+            TokenGenerator(TokenAuthConfiguration(mock()), codec, timeToLive, clock, sequenceGenerator(::XsrfId))
         }
     }
 
-    private fun parse(token: String) = Jwts.parser().setSigningKey(key).parseClaimsJws(token)
+    private fun parse(token: String) = Jwts.parser().setSigningKey(TOKEN_KEY_BASE64.veryUnsafe).parseClaimsJws(token)
 }

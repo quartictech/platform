@@ -7,14 +7,17 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenAuthStrategy
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenAuthStrategy.Tokens
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.common.test.MASTER_KEY_BASE64
+import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URIBuilder
 import org.glassfish.jersey.client.ClientProperties
@@ -47,7 +50,7 @@ class MgmtApplicationShould {
 
             stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
                 .withQueryParam("client_id", equalTo(CLIENT_ID))
-                .withQueryParam("client_secret", equalTo(CLIENT_SECRET))
+                .withQueryParam("client_secret", equalTo(CLIENT_SECRET.veryUnsafe))
                 .withQueryParam("redirect_uri", equalTo("http://localhost:${trampolineProxy.port()}/api/auth/gh/callback"))
                 .withQueryParam("code", equalTo(CODE))
                 .willReturn(aResponse()
@@ -68,6 +71,12 @@ class MgmtApplicationShould {
                     .withStatus(200)
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
+
+            stubFor(get(urlPathEqualTo("/user/1234"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
         }
 
         with(registry) {
@@ -103,7 +112,7 @@ class MgmtApplicationShould {
 
         fun post() = request { post(null) }
 
-        private fun request(verb: JerseyInvocation.Builder.() -> Response): Response {
+        fun request(verb: JerseyInvocation.Builder.() -> Response): Response {
             val builder = client.target(location).request()
             cookies.forEach { builder.cookie(it.key, it.value) }
             val response = builder.verb()
@@ -148,23 +157,25 @@ class MgmtApplicationShould {
             .setParameter("state", state)
             .build()
 
-        with(browser.post()) {
-            assertThat(familyOf(status), equalTo(SUCCESSFUL))
+        val xsrfToken = browser.post()
+            .headers[TokenAuthStrategy.XSRF_TOKEN_HEADER]!!.last() as String
 
-            val authStrategy = TokenAuthStrategy(TokenAuthConfiguration(KEY))
-            val tokens = Tokens(
-                cookies[TOKEN_COOKIE]!!.value,
-                headers[XSRF_TOKEN_HEADER]!!.last() as String,
-                "localhost"
-            )
-            assertThat(authStrategy.authenticate(tokens), equalTo(User(1234, 4321)))
+        // Attempt to get protected resource
+        browser.location = URI("http://localhost:${APP.localPort}/api/profile")
+        val response = browser.request {
+            header(TokenAuthStrategy.XSRF_TOKEN_HEADER, xsrfToken).get()
+        }
+
+        with(response) {
+            assertThat(familyOf(status), equalTo(SUCCESSFUL))
         }
     }
 
     companion object {
-        private val KEY = "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="
+        private val CODEC = SecretsCodec(MASTER_KEY_BASE64)
+
         private val CLIENT_ID = "foo"
-        private val CLIENT_SECRET = "bar"
+        private val CLIENT_SECRET = UnsafeSecret("bar")
         private val CODE = "good"
         private val ACCESS_TOKEN = UUID.randomUUID().toString()
 
@@ -194,13 +205,14 @@ class MgmtApplicationShould {
         val APP = DropwizardAppRule<MgmtConfiguration>(
             MgmtApplication::class.java,
             resourceFilePath("test.yml"),
+            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe),
             config("auth.type", "token"),
-            config("auth.base64EncodedKey", KEY),
+            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe),
             config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
             config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
             config("github.apiRoot", { "http://localhost:${github.port()}" }),
             config("github.clientId", CLIENT_ID),
-            config("github.clientSecret", CLIENT_SECRET),
+            config("github.clientSecretEncrypted", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
             config("github.redirectHost", { "http://localhost:${github.port()}" }),
             config("registryUrl", { "http://localhost:${registry.port()}/api" })
         )

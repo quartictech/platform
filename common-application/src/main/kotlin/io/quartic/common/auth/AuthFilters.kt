@@ -5,15 +5,16 @@ import io.dropwizard.auth.AuthFilter.AuthFilterBuilder
 import io.quartic.common.application.AuthConfiguration
 import io.quartic.common.application.DummyAuthConfiguration
 import io.quartic.common.application.TokenAuthConfiguration
+import io.quartic.common.secrets.SecretsCodec
 import java.util.*
 import javax.ws.rs.WebApplicationException
 import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.SecurityContext.BASIC_AUTH
 
-fun createAuthFilter(config: AuthConfiguration): AuthFilter<*, User> =
+fun createAuthFilter(config: AuthConfiguration, secretsCodec: SecretsCodec): AuthFilter<*, User> =
     when (config) {
         is DummyAuthConfiguration -> createAuthFilter(DummyAuthStrategy())
-        is TokenAuthConfiguration -> createAuthFilter(TokenAuthStrategy(config))
+        is TokenAuthConfiguration -> createAuthFilter(TokenAuthStrategy(config, secretsCodec))
     }
 
 private fun <C> createAuthFilter(strategy: AuthStrategy<C>): AuthFilter<C, User> {

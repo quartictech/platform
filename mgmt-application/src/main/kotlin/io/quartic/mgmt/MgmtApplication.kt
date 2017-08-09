@@ -31,7 +31,8 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
         val bild = client<BildQueryService>(javaClass, configuration.bildUrl)
 
         val tokenGenerator = TokenGenerator(
-            (configuration.auth as TokenAuthConfiguration).base64EncodedKey,
+            configuration.auth as TokenAuthConfiguration,
+            configuration.secretsCodec,
             Duration.ofMinutes(configuration.tokenTimeToLiveMinutes.toLong())
         )
 
@@ -43,7 +44,13 @@ class MgmtApplication : ApplicationBase<MgmtConfiguration>() {
                 bild,
                 registry
             ))
-            register(AuthResource(configuration.github, configuration.cookies, tokenGenerator, registry))
+            register(AuthResource(
+                configuration.github,
+                configuration.cookies,
+                configuration.secretsCodec,
+                tokenGenerator,
+                registry
+            ))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(javaClass, configuration.catalogueUrl))
     }
