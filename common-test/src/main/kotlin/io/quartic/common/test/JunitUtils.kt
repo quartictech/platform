@@ -1,9 +1,6 @@
 package io.quartic.common.test
 
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
 import org.junit.Assert.fail
-import java.util.concurrent.CompletableFuture
 
 inline fun <reified T : Throwable> assertThrows(crossinline block: () -> Unit): T {
     try {

@@ -1,7 +1,6 @@
 package io.quartic.registry.api
 
 import io.quartic.registry.api.model.Customer
-import retrofit2.Call
 import retrofit2.http.Query
 import java.util.concurrent.CompletableFuture
 import javax.ws.rs.GET
@@ -12,9 +11,9 @@ import io.quartic.common.model.CustomerId
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
+// JAX-RS
 @Path("/")
 interface RegistryService {
-    // JAX-RS
     @GET
     @Path("/customers/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -22,22 +21,20 @@ interface RegistryService {
         @retrofit2.http.Path("id") @PathParam("id") customerId: CustomerId
     ): Customer
 
-    // JAX-RS
     @GET
     @Path("/customers")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCustomer(
-        @Query("subdomain") @QueryParam("subdomain") subdomain: String?,
-        @Query("githubRepoId") @QueryParam("githubRepoId") githubRepoId: Long?
+        @QueryParam("subdomain") subdomain: String?,
+        @QueryParam("githubRepoId") githubRepoId: Long?
     ): Customer
 }
 
-@Path("/")
+// Retrofit
 interface RegistryServiceClient {
-    // Retrofit
     @retrofit2.http.GET("customers/{id}")
     fun getCustomerById(
-        @retrofit2.http.Path("id") @PathParam("id") customerId: CustomerId
+        @retrofit2.http.Path("id") customerId: CustomerId
     ): CompletableFuture<Customer>
 
     @retrofit2.http.GET("customers")
