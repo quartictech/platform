@@ -18,9 +18,3 @@ inline fun <reified T : Throwable> assertThrows(crossinline block: () -> Unit): 
     fail("Expected ${T::class}, none thrown")
     throw RuntimeException()    // Should never get here, just here to satisfy compiler
 }
-
-fun <T> mockCompletableFuture(value: T): CompletableFuture<T> {
-    val mock = mock<CompletableFuture<T>>()
-    whenever(mock.get()).thenReturn(value)
-    return mock
-}
