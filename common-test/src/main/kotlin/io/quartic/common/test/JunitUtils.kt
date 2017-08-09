@@ -24,9 +24,3 @@ fun <T> mockCompletableFuture(value: T): CompletableFuture<T> {
     whenever(mock.get()).thenReturn(value)
     return mock
 }
-
-fun <T> mockCompletableFutureOptional(value: T): CompletableFuture<T?> {
-    val mock = mock<CompletableFuture<T?>>()
-    whenever(mock.get()).thenReturn(value)
-    return mock
-}

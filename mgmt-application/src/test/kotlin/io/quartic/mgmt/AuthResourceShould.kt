@@ -8,16 +8,13 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
+import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
-import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.common.test.mockCompletableFuture
-import io.quartic.common.test.mockCompletableFutureOptional
 import io.quartic.github.*
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.AuthResource.Companion.NONCE_COOKIE
-import io.quartic.registry.api.RegistryService
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
@@ -27,11 +24,8 @@ import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.stubbing.OngoingStubbing
-import retrofit2.Call
-import retrofit2.Response
 import java.net.URI
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotAuthorizedException
 import javax.ws.rs.ServerErrorException
@@ -71,8 +65,7 @@ class AuthResourceShould {
             on { id } doReturn CustomerId(6666)
             on { githubOrgId } doReturn 5678
         }
-        val customerResponse = mockCompletableFutureOptional(customer)
-        whenever(registry.getCustomer(any(), anyOrNull())).thenReturn(customerResponse)
+        whenever(registry.getCustomer(any(), anyOrNull())).thenReturn(completedFuture(customer))
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
         whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob")))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))
