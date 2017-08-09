@@ -1,4 +1,4 @@
-package io.quartic.bild
+package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import feign.Headers

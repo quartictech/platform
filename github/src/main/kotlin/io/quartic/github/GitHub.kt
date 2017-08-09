@@ -1,4 +1,4 @@
-package io.quartic.mgmt
+package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty

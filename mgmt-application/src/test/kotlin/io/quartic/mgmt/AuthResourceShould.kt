@@ -14,6 +14,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.common.test.mockCompletableFuture
 import io.quartic.common.test.mockCompletableFutureOptional
+import io.quartic.github.*
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.AuthResource.Companion.NONCE_COOKIE
 import io.quartic.registry.api.RegistryService

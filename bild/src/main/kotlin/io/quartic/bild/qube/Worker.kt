@@ -4,11 +4,11 @@ import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.JobBuilder
-import io.quartic.bild.GithubInstallationClient
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
 import io.quartic.common.logging.logger
+import io.quartic.github.GithubInstallationClient
 import org.slf4j.LoggerFactory
 import rx.Observable
 import rx.schedulers.Schedulers

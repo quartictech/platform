@@ -1,4 +1,4 @@
-package io.quartic.glisten.github.model
+package io.quartic.github
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER

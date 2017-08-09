@@ -8,7 +8,7 @@ import io.quartic.bild.api.BildTriggerService
 import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
-import io.quartic.glisten.github.model.*
+import io.quartic.github.*
 import org.apache.commons.codec.binary.Hex
 import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat

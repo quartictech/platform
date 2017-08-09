@@ -5,7 +5,7 @@ import io.quartic.bild.api.BildTriggerService
 import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.glisten.github.model.PushEvent
+import io.quartic.github.PushEvent
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
 import java.time.Clock

@@ -2,7 +2,6 @@ package io.quartic.bild.qube
 
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.NamespaceBuilder
-import io.quartic.bild.GithubInstallationClient
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
@@ -10,6 +9,7 @@ import io.quartic.common.logging.logger
 import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
+import io.quartic.github.GithubInstallationClient
 
 class JobPool(configuration: KubernetesConfiguraration,
               private val client: Qube,

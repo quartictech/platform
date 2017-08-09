@@ -1,4 +1,4 @@
-package io.quartic.glisten.github.model
+package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE
