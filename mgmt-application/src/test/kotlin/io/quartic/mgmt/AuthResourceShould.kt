@@ -72,8 +72,6 @@ class AuthResourceShould {
         whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
-
-
     @Test
     fun generate_nonce_hash_in_cookie_that_matches_redirect_uri() {
         val response = resource.github("yeah")
