@@ -41,7 +41,9 @@ export class App extends React.Component<IProps, void> {
             namespaces={this.props.namespaces}
             profile={this.props.profile}
           />
+          <div className={s.container}>
             {children}
+          </div>
         </section>
       </div>
     );
