@@ -8,11 +8,9 @@ import io.dropwizard.Configuration
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
-import javax.validation.constraints.NotNull
 
 abstract class ConfigurationBase : Configuration() {
-    @NotNull
-    lateinit var masterKeyBase64: UnsafeSecret
+    val masterKeyBase64: UnsafeSecret = MASTER_KEY_BASE64
     val auth: AuthConfiguration = DummyAuthConfiguration()  // TODO - remove this default eventually
 
     val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
@@ -32,3 +30,5 @@ data class TokenAuthConfiguration(
 data class DummyAuthConfiguration(
     val _dummy: Int = 0
 ) : AuthConfiguration()
+
+val MASTER_KEY_BASE64 = UnsafeSecret("TyHTfhBcy/QT8W7iNaktCSz32qGfxVctboTZfOnfMZE=")

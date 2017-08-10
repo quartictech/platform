@@ -1,6 +1,5 @@
 package io.quartic.catalogue
 
-import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.catalogue.api.CatalogueService
@@ -9,7 +8,6 @@ import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.client.client
-import io.quartic.common.test.MASTER_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
@@ -41,8 +39,7 @@ class CatalogueApplicationShould {
         @JvmField
         val RULE = DropwizardAppRule(
             CatalogueApplication::class.java,
-            resourceFilePath("catalogue.yml"),
-            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe)
+            resourceFilePath("catalogue.yml")
         )
     }
 }

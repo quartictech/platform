@@ -1,12 +1,10 @@
 package io.quartic.mgmt
 
 import feign.FeignException
-import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.client.client
 import io.quartic.common.model.CustomerId
-import io.quartic.common.test.MASTER_KEY_BASE64
 import io.quartic.common.test.assertThrows
 import io.quartic.registry.RegistryApplication
 import io.quartic.registry.RegistryConfiguration
@@ -40,8 +38,7 @@ class RegistryApplicationShould {
         @JvmField
         val APP = DropwizardAppRule<RegistryConfiguration>(
             RegistryApplication::class.java,
-            resourceFilePath("test.yml"),
-            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe)
+            resourceFilePath("test.yml")
         )
     }
 }
