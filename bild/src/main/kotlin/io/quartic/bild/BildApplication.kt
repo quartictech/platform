@@ -26,8 +26,9 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
 
         val registry = retrofitClient<RegistryServiceClient>(BildApplication::class.java, configuration.registryUrl)
 
+        val githubPrivateKey = configuration.secretsCodec.decrypt(configuration.github.privateKey)
         val githubClient = GithubInstallationClient(configuration.github.appId, configuration.github.apiRootUrl,
-            configuration.github.privateKey)
+            githubPrivateKey)
 
         if (configuration.kubernetes.enable) {
             val client = Qube(DefaultKubernetesClient(), configuration.kubernetes.namespace)

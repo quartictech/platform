@@ -7,13 +7,15 @@ import feign.RequestLine
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.client.client
+import io.quartic.common.secrets.UnsafeSecret
 import org.apache.commons.codec.binary.Base64
 import java.security.Key
 import java.security.KeyFactory
 import java.time.Instant
 import java.security.spec.PKCS8EncodedKeySpec
 
-class GithubInstallationClient(private val appId: String, private val githubApiRoot: String, private val key: String) {
+class GithubInstallationClient(private val appId: String, private val githubApiRoot: String,
+                               private val key: UnsafeSecret) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class GitHubInstallationAccessToken(
@@ -30,7 +32,7 @@ class GithubInstallationClient(private val appId: String, private val githubApiR
     val privateKey: Key
 
     init {
-        val encoded = Base64.decodeBase64(key)
+        val encoded = Base64.decodeBase64(key.veryUnsafe)
         val spec = PKCS8EncodedKeySpec(encoded)
         val keyFactory = KeyFactory.getInstance("RSA")
         privateKey = keyFactory.generatePrivate(spec)

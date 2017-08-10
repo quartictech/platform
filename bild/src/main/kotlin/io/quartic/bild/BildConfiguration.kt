@@ -2,6 +2,7 @@ package io.quartic.bild
 
 import io.fabric8.kubernetes.api.model.Job
 import io.quartic.common.application.ConfigurationBase
+import io.quartic.common.secrets.EncryptedSecret
 
 data class KubernetesConfiguraration(
     val namespace: String,
@@ -17,7 +18,7 @@ data class KubernetesConfiguraration(
 data class GitHubConfiguration(
     val appId: String,
     val apiRootUrl: String,
-    val privateKey: String
+    val privateKey: EncryptedSecret
 )
 
 data class BildConfiguration(
