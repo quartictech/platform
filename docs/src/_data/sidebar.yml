@@ -2,17 +2,19 @@
   docs:
     - name: Signing up
       url: /signing-up
+    - name: Quickstart
+      url: /quickstart
 
 - name: Platform concepts
   docs:
     - name: Data stores
       url: /data-stores
-    
+
     - name: Catalogue
       url: /catalogue
-    
+
     - name: Pipeline graph
-      url: pipeline-graph
+      url: /pipelines
 
     - name: Orchestration
       url: /orchestration

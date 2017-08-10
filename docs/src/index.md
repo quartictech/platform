@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Quartic documentation
 ---
 
@@ -8,4 +9,4 @@ Quartic provides a framework to build, manage, orchestrate, and monitor data tra
 
 Our platform dramatically reduces the time you spend managing your data, allowing you instead to focus on analysis and data science.
 
-Get started by doing something, or doing another thing.
+Get started by signing up, and looking at an example.

@@ -17,7 +17,6 @@ frontend {
     prod "jquery", ">=3.0.0"
     prod "what-input", "^4.1.3"
     prod "motion-ui", "~1.2.2"
-
     dev "babel-core", "^6.24.1"
     dev "babel-loader", "^6.4.1"
     dev "babel-preset-es2015", "^6.3.13"
