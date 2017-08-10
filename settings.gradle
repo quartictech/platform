@@ -26,6 +26,8 @@ def readFromCredsFile() {
 
 include "docs"
 
+include "quarty"
+
 include "bild-api"
 include "bild"
 

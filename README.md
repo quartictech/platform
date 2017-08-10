@@ -12,6 +12,13 @@
   ```
   brew install node
   ```
+  
+- Python 3 + Virtualenv
+
+  ```
+  brew install python3
+  pip install virtualenv
+  ```
 
 - Ruby + Bundler
 

@@ -1,9 +1,7 @@
 package io.quartic.common.application
 
-import io.dropwizard.testing.ConfigOverride
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.test.MASTER_KEY_BASE64
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
@@ -38,8 +36,7 @@ class ApplicationBaseDummyAuthShould {
         @JvmField
         val RULE = DropwizardAppRule<TestApplication.TestConfiguration>(
             TestApplication::class.java,
-            resourceFilePath("test.yml"),
-            ConfigOverride.config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe)
+            resourceFilePath("test.yml")
         )
     }
 }

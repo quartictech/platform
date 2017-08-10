@@ -44,6 +44,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
 
     final override fun run(configuration: T, environment: Environment) {
         LOG.info("Running " + details.name + " " + details.version + " (Java " + details.javaVersion + ")")
+        warnIfDevMasterKey(configuration)
 
         // TODO - CORS settings
         // TODO - check Origin and Referer headers
@@ -57,6 +58,18 @@ abstract class ApplicationBase<T : ConfigurationBase>(
         }
 
         runApplication(configuration, environment)
+    }
+
+    private fun warnIfDevMasterKey(configuration: T) {
+        if (configuration.masterKeyBase64 == MASTER_KEY_BASE64) {
+            LOG.warn("\n" + """
+                #####################################################################
+                #                                                                   #
+                #           !!! RUNNING WITH DEVELOPMENT MASTER KEY !!!             #
+                #                                                                   #
+                #####################################################################
+            """.trimIndent())
+        }
     }
 
     protected open fun initializeApplication(bootstrap: Bootstrap<T>) = Unit
