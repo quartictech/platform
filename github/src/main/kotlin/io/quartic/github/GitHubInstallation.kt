@@ -15,7 +15,7 @@ import java.time.Instant
 import java.security.spec.PKCS8EncodedKeySpec
 
 class GithubInstallationClient(private val appId: String, private val githubApiRoot: String,
-                               private val key: UnsafeSecret) {
+                               key: UnsafeSecret) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class GitHubInstallationAccessToken(

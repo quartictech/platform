@@ -5,12 +5,10 @@ bildUrl: http://localhost:8200/api
 
 github:
   clientId: "af4a5c01c7850fa04758"
-  clientSecret: "6d1a5dfdcd0795fd96a9aecc6ee04fc188340583"
+  clientSecretEncrypted: "1$a53816bc3f1bfa4ffa915632$21626e930d51a932116f9ae6bef1b82a4ac57a24aabcb5995b507048e66e0c9ca60239b2dc3f7d49$f80d3b7df9273685a4008b350b74d7a8"
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
 
   redirectHost: "http://localhost:3010"
-  # in prod this should be
-  #redirectHost: "https://{}.quartic.io"
 
   scopes:
     - user
@@ -30,6 +28,6 @@ server:
 
 auth:
   type: token
-  base64EncodedKey: "BffwOJzi7ejTe9yC1IpQ4+P6fYpyGz+GvVyrfhamNisNqa96CF8wGSp3uATaITUP7r9n6zn9tDN8k4424zwZ2Q=="
+  keyEncryptedBase64: "1$200ce236d8932bcfdad93bda$8a313bc418373b941f796c9e0011668b669f91616409654851018eb0d8683c867184c7a78c254e67574d490581b0d32426ea314deb785313b46fc41c17ccc2d175bc85f94b5863fa1dbaad2bf04e501c2e4ad2b03e9fccbf$863ca1668d67a58d6590f1849df8e62d"
 
 

@@ -26,7 +26,7 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
 
         val registry = retrofitClient<RegistryServiceClient>(BildApplication::class.java, configuration.registryUrl)
 
-        val githubPrivateKey = configuration.secretsCodec.decrypt(configuration.github.privateKey)
+        val githubPrivateKey = configuration.secretsCodec.decrypt(configuration.github.privateKeyEncrypted)
         val githubClient = GithubInstallationClient(configuration.github.appId, configuration.github.apiRootUrl,
             githubPrivateKey)
 

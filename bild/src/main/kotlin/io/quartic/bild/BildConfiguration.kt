@@ -18,7 +18,7 @@ data class KubernetesConfiguraration(
 data class GitHubConfiguration(
     val appId: String,
     val apiRootUrl: String,
-    val privateKey: EncryptedSecret
+    val privateKeyEncrypted: EncryptedSecret
 )
 
 data class BildConfiguration(
