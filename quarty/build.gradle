@@ -36,7 +36,9 @@ task dist(type: Exec) {
 }
 
 jar {
-    from dist
+    from(dist) {
+        rename "quarty-${version}.tar.gz", "quarty.tar.gz"
+    }
 }
 
 idea {
