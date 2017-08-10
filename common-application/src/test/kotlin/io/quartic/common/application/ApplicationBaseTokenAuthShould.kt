@@ -8,7 +8,6 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.User
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.test.MASTER_KEY_BASE64
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers.equalTo
@@ -61,7 +60,6 @@ class ApplicationBaseTokenAuthShould {
         val RULE = DropwizardAppRule<TestApplication.TestConfiguration>(
             TestApplication::class.java,
             resourceFilePath("test.yml"),
-            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe),
             config("auth.type", "token"),
             config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe)
         )

@@ -7,12 +7,12 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
+import io.quartic.common.application.MASTER_KEY_BASE64
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.test.MASTER_KEY_BASE64
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.github.GitHubOrganization
 import io.quartic.github.GitHubUser
@@ -203,7 +203,6 @@ class MgmtApplicationShould {
         val APP = DropwizardAppRule<MgmtConfiguration>(
             MgmtApplication::class.java,
             resourceFilePath("test.yml"),
-            config("masterKeyBase64", MASTER_KEY_BASE64.veryUnsafe),
             config("auth.type", "token"),
             config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe),
             config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
