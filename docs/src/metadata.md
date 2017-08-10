@@ -4,7 +4,7 @@ subtitle: Fine-grained control of the DAG
 ---
 
 By default, Quartic associates metadata to every node in the DAG.
-This can be left completely untouched - the default behaviour and content will be suitable for most uses, certainly in simple cases. These defaults are also configurable either via the frontend, or via the config file.
+This can be left completely untouched - the default behaviour and content will be suitable for most uses. These defaults are also configurable either via the frontend, or via the config file.
 
 For finer grained control of the DAG, specifically orchestration, monitoring, and validation, read on.
 
