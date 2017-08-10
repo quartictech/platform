@@ -17,7 +17,7 @@ import javax.ws.rs.core.MediaType
 
 
 
-@Path("/github")
+@Path("/hooks/github")
 class GithubResource(
     private val secret: UnsafeSecret,
     private val trigger: BildTriggerService,
