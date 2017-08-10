@@ -79,6 +79,7 @@ class Worker(
             val env = mutableListOf(
                 EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
                 EnvVar("QUARTIC_JOB_ID", job.id.id, null),
+                EnvVar("QUARTIC_RUNNER_ENDPOINT", String.format(configuration.backChannelEndpoint, "runner"), null),
                 EnvVar("QUARTIC_BACKCHANNEL_ENDPOINT", String.format(configuration.backChannelEndpoint, job.id.id), null)
             )
 

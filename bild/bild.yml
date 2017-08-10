@@ -23,7 +23,7 @@ kubernetes:
                 - "jovyan"
                 - "bash"
                 - "-c"
-                - "export PATH=/opt/conda/bin:$PATH; pip install $QUARTIC_BACKCHANNEL_ENDPOINT && python -u -m quarty"
+                - "export PATH=/opt/conda/bin:$PATH; pip install $QUARTIC_RUNNER_ENDPOINT && python -u -m quarty"
           restartPolicy: Never
 
 registryUrl: http://localhost:8190/api/
