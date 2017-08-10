@@ -10,10 +10,10 @@ import javax.ws.rs.core.StreamingOutput
 
 @Path("/backchannel")
 class BackChannelResource(private val jobResults: JobResultStore) {
-    private val istream = javaClass.getResourceAsStream("/quarty.tar.gz")
+    val resource = javaClass.getResource("/quarty.tar.gz")
 
     init {
-        Preconditions.checkState(istream != null, "Runner distribution not found!")
+        Preconditions.checkState(resource != null, "Runner distribution not found!")
     }
 
     @Path("/{jobId}")
@@ -26,5 +26,5 @@ class BackChannelResource(private val jobResults: JobResultStore) {
     @Path("/runner")
     @Produces("application/gzip")
     @GET
-    fun runner(): Response = Response.ok(StreamingOutput { ostream -> copy(istream, ostream) }).build()
+    fun runner(): Response = Response.ok(StreamingOutput { ostream -> copy(resource.openStream(), ostream) }).build()
 }
