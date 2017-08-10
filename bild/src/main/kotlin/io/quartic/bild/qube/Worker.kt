@@ -84,11 +84,9 @@ class Worker(
 
             log.info("job: {}", job)
 
-            if (job.installationId != null && job.cloneUrl != null) {
-                val token = github.accessToken(job.installationId).token
-                env.add(EnvVar("QUARTIC_REPO", job.cloneUrl.replace("https://", "https://x-access-token:$token@"), null))
-                env.add(EnvVar("QUARTIC_COMMIT_REF", job.commit, null))
-            }
+            val token = github.accessToken(job.installationId).token
+            env.add(EnvVar("QUARTIC_REPO", job.cloneUrl.replace("https://", "https://x-access-token:$token@"), null))
+            env.add(EnvVar("QUARTIC_COMMIT_REF", job.commit, null))
 
             return JobBuilder(configuration.template)
                 .withNewMetadata()

@@ -14,8 +14,8 @@ class RegistryResource(
 
     override fun getCustomer(subdomain: String?, githubRepoId: Long?): Customer {
         val matching = customers
-        .filter { subdomain == null || it.subdomain == subdomain }
-        .filter { githubRepoId == null || it.githubRepoId == githubRepoId }
+            .filter { subdomain == null || it.subdomain == subdomain }
+            .filter { githubRepoId == null || it.githubRepoId == githubRepoId }
 
         if (matching.isEmpty()) {
             throw NotFoundException("No customer with subdomain '$subdomain' and githubRepoId '${githubRepoId}'")

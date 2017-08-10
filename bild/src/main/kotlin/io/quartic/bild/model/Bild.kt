@@ -8,8 +8,8 @@ class BildId(val id: String) : Uid(id)
 data class BildJob(
     val id: BildId,
     val customerId: CustomerId,
-    val installationId: Long?,
-    val cloneUrl: String?,
+    val installationId: Long,
+    val cloneUrl: String,
     val ref: String,
     val commit: String,
     val phase: BildPhase
