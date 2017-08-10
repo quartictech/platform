@@ -18,7 +18,7 @@ interface RegistryService {
     @Path("/customers/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCustomerById(
-        @retrofit2.http.Path("id") @PathParam("id") customerId: CustomerId
+        @PathParam("id") customerId: CustomerId
     ): Customer
 
     @GET

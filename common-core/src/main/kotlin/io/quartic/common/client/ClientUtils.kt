@@ -46,6 +46,7 @@ fun <T> client(target: Class<T>, owner: Class<*>, url: String, contract: Contrac
 inline fun <reified T: Any> retrofitClient(owner: Class<*>, url: String): T = retrofitClient(T::class.java, owner, url)
 
 fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
+    val urlWithSlash = if(url.endsWith("/")) url else url + "/"
     val interceptor = HttpLoggingInterceptor()
     interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
     val client = OkHttpClient.Builder()
@@ -66,7 +67,7 @@ fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
 
 
     val retrofit = Retrofit.Builder()
-        .baseUrl(url)
+        .baseUrl(urlWithSlash)
         .client(client)
         .addConverterFactory(JacksonConverterFactory.create(OBJECT_MAPPER))
         .addCallAdapterFactory(Java8CallAdapterFactory.create())
