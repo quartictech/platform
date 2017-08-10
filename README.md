@@ -77,14 +77,17 @@ Note that this will build the images with a registry name of `null` and a tag of
 `QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
 
 ## Github Application Auth
-Download the private key from the installation page for the app
+Setup a GitHub App (not an OAuth app). Download the private key from the installation page for the app. 
+Then:
 
+1. Convert to a saner format we can load from Java
 ```
 openssl pkcs8 -topk8 -inform PEM -outform PEM -in private-key.pem -out private-key.der.pem -nocrypt
 ```
-
-Copy the text into `bild.yml` (exlcuding the BEGIN and END lines) as `github.privateKey`. Similarly fill out
-the `appId` from the installation page.
+2. Crop the BEGIN and END lines so that just the key remains.
+3. Run the encryption CLI on this file using the `-f` option (see below).
+4. Copy the encrypted secret into `bild.yml` as `github.privateKeyEncrypted`
+5. Similarly fill out the `appId` from the installation page.
 
 ## Documentation
 
