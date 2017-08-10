@@ -10,7 +10,7 @@ class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
         val trigger = client<BildTriggerService>(javaClass, configuration.bildUrl)
 
         environment.jersey().register(GithubResource(
-            configuration.secretToken,
+            configuration.secretsCodec.decrypt(configuration.webhookSecretEncrypted),
             trigger
         ))
     }
