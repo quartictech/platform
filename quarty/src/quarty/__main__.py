@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # TODO: Remove these once we put appropriate logic in bild
-QUARTIC_REPO = "git@github.com:quartictech/shrubbery.git"
-QUARTIC_COMMIT = "develop"
+QUARTIC_REPO = os.environ["QUARTIC_REPO"]
+QUARTIC_COMMIT = os.environ["QUARTIC_COMMIT_REF"]
 QUARTIC_PHASE = "test"
 
 def load_config(path):
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     temp_path = tempfile.mkdtemp()
     os.chdir(temp_path)
     try:
-        logger.info("Cloning repo: %s", QUARTIC_REPO)
+        logger.info("Cloning repo: %s, commit: %s", QUARTIC_REPO, QUARTIC_COMMIT)
         subprocess.check_call(["git", "clone", QUARTIC_REPO, "build"])
         os.chdir("build")
 
