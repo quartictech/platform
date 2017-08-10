@@ -5,6 +5,14 @@
     - name: Quickstart
       url: /quickstart
 
+- name: The Quartic DSL
+  docs:
+    - name: Introduction to the DSL
+      url: /intro_dsl
+
+    - name: Metadata
+      url: /metadata
+
 - name: Platform concepts
   docs:
     - name: Data stores

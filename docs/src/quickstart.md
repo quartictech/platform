@@ -46,3 +46,11 @@ Note, this does not yet run the pipeline nor write anything anywhere.
 ### Running the pipeline
 
 Hit the play button somewhere.
+
+### Next steps
+
+Congrats! You've just built and run your first data pipeline complete with monitoring, automation,
+version control, and provenance.
+
+Next, we suggest you move on to the slightly longer guide to learn about the DAG,
+and tuning automation and monitoring so you can start using Quartic for real data engineering applications.
