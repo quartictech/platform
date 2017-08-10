@@ -76,19 +76,6 @@ entries to the `build.gradle` file for the relevant subproject.  `package.json` 
 Note that this will build the images with a registry name of `null` and a tag of `unknown`.  CircleCI overrides the
 `QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
 
-## Github Application Auth
-Setup a GitHub App (not an OAuth app). Download the private key from the installation page for the app. 
-Then:
-
-1. Convert to a saner format we can load from Java
-```
-openssl pkcs8 -topk8 -inform PEM -outform PEM -in private-key.pem -out private-key.der.pem -nocrypt
-```
-2. Crop the BEGIN and END lines so that just the key remains.
-3. Run the encryption CLI on this file using the `-f` option (see below).
-4. Copy the encrypted secret into `bild.yml` as `github.privateKeyEncrypted`
-5. Similarly fill out the `appId` from the installation page.
-
 ## Documentation
 
 The stuff in `docs/` is based on [Zurb Foundation 6](http://foundation.zurb.com/sites/download.html/), with Panini
@@ -104,7 +91,7 @@ The whole thing is orchestrated by Gradle, as usual.  To run with a watch:
 The spellchecking list is in `docs/wordlist`.  Please curate this carefully.
 
 
-## Secret management
+## Secrets
 
 To avoid storing plaintext secrets in Git (either here or in the `infra` repo), all secrets that come in via
 configuration should be encrypted as `EncryptedSecret`s (except for the master key).
@@ -113,13 +100,49 @@ Secrets can be encrypted via a fairly janky CLI, which can be run as follows:
 
 ```
 ./gradlew common-core:installDist
-./common-core/build/install/common-core/bin/common-core [-g] [-d]
+./common-core/build/install/common-core/bin/common-core [-g] [-d] [-f]
 ```
 
 Flags:
 
 - `-g` generates a random master key.
 - `-d` decodes rather than encodes.
+- `-f` encodes from a file.
+
+
+### OAuth token signing key (`mgmt`)
+
+512 bits of entropy, base-64 encoded.  Can generate with something like:
+
+```
+println(SecureRandom().nextBytes(512 / 8).encodeAsBase64())
+```
+
+
+### GitHub client secret (`mgmt`)
+
+In our GitHub OAuth app settings, click **Reset client secret**.
+
+
+### GitHub webhook secret (`glisten`)
+
+Currently generated with:
+
+```
+pwgen -1s 20
+```
+
+Also needs to be stored in our GitHub (non-OAuth) app settings.
+
+
+### GitHub private key (`bild`)
+
+1. In our GitHub (non-Oauth) app settings, click **Regenerate private key**, and download.
+2. Convert to a saner format we can load from Java
+    ```
+    openssl pkcs8 -topk8 -inform PEM -outform PEM -in private-key.pem -out private-key.der.pem -nocrypt
+    ```
+3. Crop the `BEGIN` and `END` lines so that just the key remains.
 
 
 ## Services
