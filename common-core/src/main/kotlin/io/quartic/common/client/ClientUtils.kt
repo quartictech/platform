@@ -12,19 +12,17 @@ import feign.jackson.JacksonEncoder
 import feign.slf4j.Slf4jLogger
 import io.quartic.common.ApplicationDetails
 import io.quartic.common.serdes.OBJECT_MAPPER
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.apache.commons.io.IOUtils.copy
+import retrofit2.Retrofit
+import retrofit2.adapter.java8.Java8CallAdapterFactory
+import retrofit2.converter.jackson.JacksonConverterFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
 import java.nio.charset.StandardCharsets
-import retrofit2.Retrofit
-import retrofit2.adapter.java8.Java8CallAdapterFactory
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 
 inline fun <reified T : Any> client(owner: Class<*>, url: URL): T = client(T::class.java, owner, url.toString())
@@ -48,21 +46,19 @@ inline fun <reified T: Any> retrofitClient(owner: Class<*>, url: String): T = re
 fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
     val urlWithSlash = if(url.endsWith("/")) url else url + "/"
     val interceptor = HttpLoggingInterceptor()
-    interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+    interceptor.level = HttpLoggingInterceptor.Level.BASIC
     val client = OkHttpClient.Builder()
         .addInterceptor(interceptor)
-        .addInterceptor(object: Interceptor {
-            override fun intercept(chain: Interceptor.Chain): Response? {
-                val original = chain.request();
+        .addInterceptor { chain ->
+            val original = chain.request();
 
-                val request = original.newBuilder()
-                    .header("User-Agent", userAgentFor(owner))
-                    .method(original.method(), original.body())
-                    .build();
+            val request = original.newBuilder()
+                .header("User-Agent", userAgentFor(owner))
+                .method(original.method(), original.body())
+                .build();
 
-                return chain.proceed(request);
-            }
-        })
+            chain.proceed(request);
+        }
         .build()
 
 
