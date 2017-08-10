@@ -211,7 +211,7 @@ class MgmtApplicationShould {
             config("github.clientId", CLIENT_ID),
             config("github.clientSecretEncrypted", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
             config("github.redirectHost", { "http://localhost:${github.port()}" }),
-            config("registryUrl", { "http://localhost:${registry.port()}/api/" })
+            config("registryUrl", { "http://localhost:${registry.port()}/api" })
         )
     }
 }
