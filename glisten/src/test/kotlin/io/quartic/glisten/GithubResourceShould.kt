@@ -6,6 +6,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.bild.api.BildTriggerService
 import io.quartic.bild.api.model.TriggerDetails
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.github.*
@@ -25,13 +26,13 @@ import javax.ws.rs.ServerErrorException
 
 class GithubResourceShould {
     // Recorded from a real GitHub webhook (token is now changed, obviously!)
-    private val secretToken = "JaXAybVPJmDaLk2Z7fMx"
+    private val secret = UnsafeSecret("JaXAybVPJmDaLk2Z7fMx")
     private val pingPayload = javaClass.getResource("/ping_event.json").readText()
     private val pingSignature = "sha1=62c3f51e3b54b13036a062f0fb21759837280481"
 
     private val trigger = mock<BildTriggerService>()
     private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
-    private val resource = GithubResource(secretToken, trigger, clock)
+    private val resource = GithubResource(secret, trigger, clock)
 
     @Test
     fun respond_with_401_if_token_mismatch() {
@@ -83,7 +84,7 @@ class GithubResourceShould {
     }
 
     private fun calculateSignature(body: String): String {
-        val keySpec = SecretKeySpec(secretToken.toByteArray(), "HmacSHA1")
+        val keySpec = SecretKeySpec(secret.veryUnsafe.toByteArray(), "HmacSHA1")
 
         val mac = Mac.getInstance("HmacSHA1")
         mac.init(keySpec)

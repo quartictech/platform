@@ -53,7 +53,7 @@ class ApplicationBaseTokenAuthShould {
     private fun target() = JerseyClientBuilder().build().target("http://localhost:${RULE.localPort}/api/test")
 
     companion object {
-        private val CODEC = SecretsCodec(MASTER_KEY_BASE64)
+        private val CODEC = SecretsCodec(DEV_MASTER_KEY_BASE64)
 
         @ClassRule
         @JvmField

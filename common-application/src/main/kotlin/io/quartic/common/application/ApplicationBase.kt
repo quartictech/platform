@@ -61,7 +61,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     }
 
     private fun warnIfDevMasterKey(configuration: T) {
-        if (configuration.masterKeyBase64 == MASTER_KEY_BASE64) {
+        if (configuration.masterKeyBase64 == DEV_MASTER_KEY_BASE64) {
             LOG.warn("\n" + """
                 #####################################################################
                 #                                                                   #
