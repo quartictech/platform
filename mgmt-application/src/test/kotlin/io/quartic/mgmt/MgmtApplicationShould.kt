@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.application.MASTER_KEY_BASE64
+import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.auth.TokenAuthStrategy
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
@@ -170,7 +170,7 @@ class MgmtApplicationShould {
     }
 
     companion object {
-        private val CODEC = SecretsCodec(MASTER_KEY_BASE64)
+        private val CODEC = SecretsCodec(DEV_MASTER_KEY_BASE64)
 
         private val CLIENT_ID = "foo"
         private val CLIENT_SECRET = UnsafeSecret("bar")
