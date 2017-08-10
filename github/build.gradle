@@ -1,0 +1,15 @@
+plugins {
+    id "nebula.kotlin" version "1.1.2"
+}
+
+dependencies {
+    compile libraries.jjwt
+    compile project(":common-core")
+
+    compile "javax.ws.rs:javax.ws.rs-api:2.0.1"
+    compile "org.apache.httpcomponents:httpclient:4.5.1"            // TODO - move into common
+
+    testCompile project(":common-test")
+}
+
+

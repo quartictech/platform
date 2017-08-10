@@ -1,23 +1,21 @@
 package io.quartic.mgmt
 
 import com.google.common.hash.Hashing
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import feign.FeignException
 import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.TokenGenerator.Tokens
 import io.quartic.common.auth.User
+import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
-import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.github.*
 import io.quartic.mgmt.resource.AuthResource
 import io.quartic.mgmt.resource.AuthResource.Companion.NONCE_COOKIE
-import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URLEncodedUtils
 import org.hamcrest.Matchers.equalTo
@@ -27,6 +25,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.net.URI
+import java.util.concurrent.CompletableFuture.completedFuture
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotAuthorizedException
 import javax.ws.rs.ServerErrorException
@@ -35,7 +34,7 @@ import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
     private val tokenGenerator = mock<TokenGenerator>()
-    private val registry = mock<RegistryService>()
+    private val registry = mock<RegistryServiceClient>()
     private val gitHubOAuth = mock<GitHubOAuth>()
     private val gitHub = mock<GitHub>()
     private val codec = mock<SecretsCodec> {
@@ -66,7 +65,7 @@ class AuthResourceShould {
             on { id } doReturn CustomerId(6666)
             on { githubOrgId } doReturn 5678
         }
-        whenever(registry.getCustomer(any())).thenReturn(customer)
+        whenever(registry.getCustomer(any(), anyOrNull())).thenReturn(completedFuture(customer))
         whenever(gitHubOAuth.accessToken(any(), any(), any(), any())).thenReturn(AccessToken("sweet", null, null))
         whenever(gitHub.user("sweet")).thenReturn(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob")))
         whenever(gitHub.organizations("sweet")).thenReturn(listOf(GitHubOrganization(5678, "quartictech")))

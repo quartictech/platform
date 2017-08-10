@@ -62,7 +62,7 @@ class HowlClient(userAgent: String, private val baseUrl: String) : HowlService {
                 .url(url)
                 .post(requestBody(contentType, upload))
                 .build()
-        return decode(client.newCall(request).execute().body().string(), HowlStorageId::class.java)
+        return decode(client.newCall(request).execute().body()!!.string(), HowlStorageId::class.java)
     }
 
     override fun downloadFile(targetNamespace: String, fileName: String)
@@ -80,13 +80,13 @@ class HowlClient(userAgent: String, private val baseUrl: String) : HowlService {
         val response = client.newCall(request).execute()
 
         return if (response.isSuccessful) {
-            response.body().byteStream()
+            response.body()!!.byteStream()
         } else {
             null
         }
     }
 
-    private fun url(vararg components: String) = with (HttpUrl.parse(baseUrl).newBuilder()) {
+    private fun url(vararg components: String) = with (HttpUrl.parse(baseUrl)!!.newBuilder()) {
         components.forEach { addEncodedPathSegment(it) }
         build()
     }
@@ -94,7 +94,7 @@ class HowlClient(userAgent: String, private val baseUrl: String) : HowlService {
     private fun requestBody(contentType: String, upload: (OutputStream) -> Unit): RequestBody {
         return object : RequestBody() {
             override fun contentType(): MediaType {
-                return MediaType.parse(contentType)
+                return MediaType.parse(contentType)!!
             }
 
             override fun writeTo(sink: BufferedSink) {

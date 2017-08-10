@@ -39,6 +39,8 @@ include "catalogue-api"
 include "catalogue-application"
 include "catalogue-utils"
 
+include "github"
+
 include "mgmt-application"
 include "mgmt-frontend"
 

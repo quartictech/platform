@@ -15,6 +15,7 @@ import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
 import io.quartic.bild.qube.Worker
 import io.quartic.common.model.CustomerId
+import io.quartic.github.GithubInstallationClient
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test
@@ -51,7 +52,7 @@ class WorkerShould {
     }
 
 
-    val bildJob = BildJob(BildId("1"), CustomerId("1"), BildPhase.TEST)
+    val bildJob = BildJob(BildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BildPhase.TEST)
     val queue = mock<BlockingQueue<BildJob>>()
     val client = mock<Qube>()
     val events = PublishSubject.create<Event>()
@@ -59,6 +60,7 @@ class WorkerShould {
     val job = JobBuilder().build()
     val jobRunner = mock<JobStateManager>()
     val jobLoop = mock<JobLoop>()
+    val github = mock<GithubInstallationClient>()
 
     val worker = Worker(
         KubernetesConfiguraration("wat", job, 4, 100, 100, 100, "%s", true),
@@ -66,6 +68,7 @@ class WorkerShould {
         client,
         events,
         jobResultStore,
+        github,
         { jobRunner },
         jobLoop
     )

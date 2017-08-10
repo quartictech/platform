@@ -2,8 +2,6 @@ package io.quartic.mgmt
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.bild.api.BildQueryService
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
@@ -13,12 +11,13 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.howl.api.HowlService
 import io.quartic.mgmt.resource.MgmtResource
-import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.CompletableFuture.completedFuture
 import javax.ws.rs.NotFoundException
 
 class MgmtResourceShould {
@@ -43,7 +42,7 @@ class MgmtResourceShould {
 
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
-    private val registry = mock<RegistryService>()
+    private val registry = mock<RegistryServiceClient>()
     private val bild = mock<BildQueryService>()
 
     private val resource = MgmtResource(catalogue, howl, bild, registry)
@@ -51,7 +50,7 @@ class MgmtResourceShould {
     @Before
     fun before() {
         whenever(catalogue.getDatasets()).thenReturn(datasets)
-        whenever(registry.getCustomerById(CustomerId(5678))).thenReturn(quartic)
+        whenever(registry.getCustomerById(CustomerId(5678))).thenReturn(completedFuture(quartic))
     }
 
     @Test

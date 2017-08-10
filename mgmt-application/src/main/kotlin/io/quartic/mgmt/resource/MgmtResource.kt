@@ -19,6 +19,7 @@ import io.quartic.mgmt.FileType
 import io.quartic.mgmt.FileType.*
 import io.quartic.mgmt.conversion.CsvConverter
 import io.quartic.registry.api.RegistryService
+import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
 import java.io.IOException
 import java.io.InputStream
@@ -34,7 +35,7 @@ class MgmtResource(
     private val catalogue: CatalogueService,
     private val howl: HowlService,
     private val bild: BildQueryService,
-    private val registry: RegistryService
+    private val registry: RegistryServiceClient
 ) {
     private val LOG by logger()
     // TODO - frontend will need to cope with DatasetNamespace in request paths and GET /datasets response
@@ -53,7 +54,7 @@ class MgmtResource(
         if (user.customerId == null) {
             return emptyMap()
         } else {
-            val customer = registry.getCustomerById(user.customerId!!)
+            val customer = registry.getCustomerById(user.customerId!!).get()
             return catalogue.getDatasets().filterKeys { namespace -> customer.namespace == namespace.namespace }
         }
     }
@@ -164,7 +165,7 @@ class MgmtResource(
     }
 
     private fun throwIfNamespaceNotAllowed(user: User, namespace: DatasetNamespace) {
-        val customer = registry.getCustomerById(user.customerId!!)
+        val customer = registry.getCustomerById(user.customerId!!).get()
         if (customer.namespace != namespace.namespace) {
             throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
         }

@@ -3,7 +3,6 @@ package io.quartic.mgmt.resource
 import io.dropwizard.auth.Auth
 import io.quartic.common.auth.User
 import io.quartic.common.client.client
-import io.quartic.mgmt.GitHub
 import io.quartic.mgmt.GithubConfiguration
 import io.quartic.mgmt.model.Profile
 import javax.annotation.security.PermitAll
@@ -12,6 +11,7 @@ import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.ServerErrorException
 import javax.ws.rs.core.MediaType
+import io.quartic.github.GitHub
 
 @PermitAll
 @Path("/profile")

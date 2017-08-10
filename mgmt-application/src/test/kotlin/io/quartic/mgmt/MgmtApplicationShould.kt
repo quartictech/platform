@@ -14,6 +14,8 @@ import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.TOKEN_KEY_BASE64
+import io.quartic.github.GitHubOrganization
+import io.quartic.github.GitHubUser
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URIBuilder
 import org.glassfish.jersey.client.ClientProperties

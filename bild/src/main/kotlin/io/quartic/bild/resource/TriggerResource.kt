@@ -9,31 +9,31 @@ import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
+import io.quartic.registry.api.RegistryServiceClient
 import java.util.concurrent.BlockingQueue
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
-import javax.ws.rs.Produces
-import javax.ws.rs.core.MediaType
 
 class TriggerResource(
     private val queue: BlockingQueue<BildJob>,
+    private val registry: RegistryServiceClient,
     private val idGenerator: UidGenerator<BildId> = randomGenerator { uid -> BildId(uid) }
 ) : BildTriggerService {
     private val LOG by logger()
 
     override fun trigger(trigger: TriggerDetails) {
-        // TODO: look up customerId or whatever from Registry
         LOG.info("Received trigger: ${trigger}")
-    }
-
-    @Path("/{customerId}/{phase}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @POST
-    fun exec(@PathParam("customerId") customerId: CustomerId, @PathParam("phase") phase: BildPhase): BildId {
-        val id = idGenerator.get()
-        LOG.info("Queue has size {}", queue.size)
-        queue.put(BildJob(id, customerId, phase))
-        return id
+        registry.getCustomer(null, trigger.repoId)
+            .thenAccept{ customer ->
+                if (customer != null) {
+                    val id = idGenerator.get()
+                    LOG.info("Initiating build for customer '{}'. Queue has size {}", customer.id, queue.size)
+                    queue.put(BildJob(id, customer.id, trigger.installationId, trigger.cloneUrl, trigger.ref, trigger.commit, BildPhase.TEST))
+                } else {
+                    LOG.warn("Customer not found for repo: {}", trigger.repoId)
+                }
+            }
+            .exceptionally { e ->
+                LOG.error("Exception while contacting registry", e)
+                null
+            }
     }
 }
