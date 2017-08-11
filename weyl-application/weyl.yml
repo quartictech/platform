@@ -20,11 +20,5 @@ map:
   lng: -0.0915
   zoom: 9.7
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 8080
-  adminConnectors:
-    - type: http
-      port: 8081
+url:
+  port: 8080
