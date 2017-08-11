@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link } from "react-router";
 import {
   Classes,
+  Intent,
   Menu,
   MenuItem,
   MenuDivider,
@@ -20,6 +21,7 @@ interface IProps {
   searchBoxChange: any;
   selectedNamespace: string;
   namespaceSelectChange: any;
+  onLogOutClick: () => void;
   namespaces: string[];
   profile?: Profile;
 }
@@ -93,16 +95,7 @@ class Header extends React.Component<IProps, void> {
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
-
           {this.maybeRenderProfile()}
-
-          <span className={Classes.NAVBAR_DIVIDER} />
-
-          <Popover content={this.renderSettings()} position={Position.BOTTOM_RIGHT}>
-            <Tooltip content="Settings" position={Position.BOTTOM}>
-              <Button className={Classes.MINIMAL} iconName="settings" />
-            </Tooltip>
-          </Popover>
         </div>
       </nav>
     );
@@ -115,16 +108,26 @@ class Header extends React.Component<IProps, void> {
 
     // A button is somewhat weird as it does nothing currently, but at least it renders in a nice way
     return (
-      <div style={{ height: "100%", display: "inline-block" }}>
-        <img
-          className={style.profile}
-          src={this.props.profile.avatarUrl}
-        />
-        <Button
-          className={Classes.MINIMAL}
-          text={this.props.profile.name}
-        />
-      </div>
+        <Popover content={this.renderSettings()} position={Position.BOTTOM_RIGHT}>
+            <Tooltip
+              content="Settings"
+              position={Position.BOTTOM_RIGHT}
+              tooltipClassName={Classes.MINIMAL}
+            >
+              <div style={{ height: "100%", display: "block" }}>
+                <Button
+                  className={Classes.MINIMAL}
+                  rightIconName="chevron-down"
+                >
+                  <img
+                    className={style.profile}
+                    src={this.props.profile.avatarUrl}
+                  />
+                  {this.props.profile.name}
+                </Button>
+              </div>
+            </Tooltip>
+        </Popover>
     );
   }
 
@@ -132,10 +135,16 @@ class Header extends React.Component<IProps, void> {
     return (
       <Menu>
         <MenuItem
-          key={"info"}
           text={`Quartic version: ${process.env.BUILD_VERSION || "unknown"}`}
           iconName="info-sign"
           disabled={true}
+        />
+        <MenuDivider />
+        <MenuItem
+          text="Sign out"
+          iconName="log-out"
+          intent={Intent.DANGER}
+          onClick={this.props.onLogOutClick}
         />
       </Menu>
     );

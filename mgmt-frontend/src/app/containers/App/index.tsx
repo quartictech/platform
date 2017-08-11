@@ -23,6 +23,7 @@ interface IProps {
   showNewDatasetModal: any;
   searchDatasets: any;
   selectNamespace: (string) => any;
+  logout: () => void;
   namespaces: string[];
   profile?: Profile;
 }
@@ -38,6 +39,7 @@ export class App extends React.Component<IProps, void> {
             searchBoxChange={this.props.searchDatasets}
             selectedNamespace={this.props.ui.namespace}
             namespaceSelectChange={this.props.selectNamespace}
+            onLogOutClick={this.props.logout}
             namespaces={this.props.namespaces}
             profile={this.props.profile}
           />
@@ -52,8 +54,9 @@ export class App extends React.Component<IProps, void> {
 
 const mapDispatchToProps = {
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),
-  searchDatasets: s => actions.searchDatasets(s),
-  selectNamespace: s => actions.selectNamespace(s),
+  searchDatasets: actions.searchDatasets,
+  selectNamespace: actions.selectNamespace,
+  logout: actions.userLogout,
 };
 
 const mapStateToProps = createStructuredSelector({

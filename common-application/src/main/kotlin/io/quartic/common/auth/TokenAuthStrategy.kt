@@ -59,7 +59,7 @@ class TokenAuthStrategy(
         val claims = try {
             parser.parseClaimsJws(creds.jwt)
         } catch (e: Exception) {
-            LOG.warn("JWT parsing failed", e)
+            LOG.warn("JWT parsing failed: ${e.message}")    // Logging the whole stack trace is annoying
             return null
         }
 
