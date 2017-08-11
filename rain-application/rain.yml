@@ -1,11 +1,5 @@
 howlUrl: http://localhost:8120/api
 howlWatchUrl: ws://localhost:8120/changes
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 8150
-  adminConnectors:
-    - type: http
-      port: 8151
+url:
+  port: 8150

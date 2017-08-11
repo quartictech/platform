@@ -14,11 +14,5 @@ defaultCatalogueNamespace: production
 batchSize: 10
 extractionPeriodSeconds: 15
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 8140
-  adminConnectors:
-    - type: http
-      port: 8141
+url:
+  port: 8140

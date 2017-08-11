@@ -15,13 +15,7 @@ cookies:
   secure: true
   maxAgeSeconds: 2592000 # 30 days
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 0
-  adminConnectors:
-    - type: http
-      port: 0
+url:
+  randomPort: true
 
 
