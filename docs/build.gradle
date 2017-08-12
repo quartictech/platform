@@ -2,7 +2,7 @@ import io.quartic.gradle.frontend.FrontendPlugin
 
 plugins {
     id "idea"
-    id "io.quartic.docker" version "47"
+    id "io.quartic.docker" version "53"
 }
 
 apply plugin: FrontendPlugin
