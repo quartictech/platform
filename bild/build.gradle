@@ -1,6 +1,6 @@
 plugins {
     id "nebula.kotlin" version "1.1.2"
-    id "io.quartic.service" version "28"
+    id "io.quartic.service" version "47"
     id "com.palantir.configuration-resolver" version "0.2.0"
 }
 
@@ -13,6 +13,9 @@ service {
 dependencies {
     compile project(":common-application")
     compile project(":bild-api")
+    compile project(":registry-api")
+    compile project(":github")
+    compile project(":quarty")
     compile 'io.fabric8:kubernetes-client:2.5.6'
     compile libraries.dropwizardJdbi
     compile libraries.rxjava

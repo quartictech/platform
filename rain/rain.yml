@@ -1,0 +1,5 @@
+howlUrl: http://localhost:8120/api
+howlWatchUrl: ws://localhost:8120/changes
+
+url:
+  port: 8150

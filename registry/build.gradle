@@ -1,6 +1,6 @@
 plugins {
     id "nebula.kotlin" version "1.1.2"
-    id "io.quartic.service" version "28"
+    id "io.quartic.service" version "47"
     id "com.palantir.configuration-resolver" version "0.2.0"
 }
 

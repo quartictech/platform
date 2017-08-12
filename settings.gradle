@@ -24,36 +24,46 @@ def readFromCredsFile() {
     return fields
 }
 
+// Ancillary
+
 include "docs"
 
-include "bild-api"
-include "bild"
+include "quarty"
 
 include "common-core"
 include "common-application"
 include "common-test"
 
+include "github"
+
+// Services
+
+include "bild"
+include "bild-api"
+
+include "catalogue"
 include "catalogue-api"
-include "catalogue-application"
 include "catalogue-utils"
 
-include "mgmt-application"
-include "mgmt-frontend"
-
-include "howl-api"
-include "howl-application"
-
-include "rain-application"
-include "scribe"
 include "glisten"
 
-include "registry-api"
-include "registry"
+include "home"
+include "home-frontend"
 
+include "howl"
+include "howl-api"
+
+include "rain"
+
+include "registry"
+include "registry-api"
+
+include "scribe"
+
+include "weyl"
 include "weyl-api"
 include "weyl-core"
-include "weyl-application"
 include "weyl-frontend"
 
+include "zeus"
 include "zeus-frontend"
-include "zeus-backend"

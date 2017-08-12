@@ -9,17 +9,20 @@ import io.quartic.common.logging.logger
 import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
+import io.quartic.github.GithubInstallationClient
 
-class JobPool(val configuration: KubernetesConfiguraration,
-              val client: Qube,
-              queue: BlockingQueue<BildJob>, jobResults: JobResultStore) {
+class JobPool(configuration: KubernetesConfiguraration,
+              private val client: Qube,
+              queue: BlockingQueue<BildJob>,
+              jobResults: JobResultStore,
+              githubClient: GithubInstallationClient) {
     private val log by logger()
     private val namespace = NamespaceBuilder()
         .editOrNewMetadata()
         .withName(configuration.namespace)
         .endMetadata()
         .build()
-    private val threadPool = Executors.newFixedThreadPool(configuration.numConcurrentJobs);
+    private val threadPool = Executors.newFixedThreadPool(configuration.numConcurrentJobs)
     private val events = PublishSubject.create<Event>()
 
     init {
@@ -34,7 +37,8 @@ class JobPool(val configuration: KubernetesConfiguraration,
                     queue,
                     client,
                     events,
-                    jobResults
+                    jobResults,
+                    githubClient
                 )
             )
         }

@@ -1,12 +1,12 @@
 package io.quartic.glisten
 
-import io.dropwizard.Configuration
 import io.quartic.common.application.ConfigurationBase
-import io.quartic.glisten.model.Registration
+import io.quartic.common.secrets.EncryptedSecret
+import java.net.URL
 
 data class GlistenConfiguration(
-    val registrations: Map<String, Registration>,
-    val secretToken: String
+    val bildUrl: URL,
+    val webhookSecretEncrypted: EncryptedSecret
 ) : ConfigurationBase()
 
 

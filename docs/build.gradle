@@ -2,6 +2,7 @@ import io.quartic.gradle.frontend.FrontendPlugin
 
 plugins {
     id "idea"
+    id "io.quartic.docker" version "47"
 }
 
 apply plugin: FrontendPlugin
@@ -68,6 +69,39 @@ run {
     inputs.files    installRubyDependencies.outputs
 
     commandLine     gulpExecutable, "--gulpfile", gulpFile, "--cwd", projectDir
+}
+
+task checkSpelling(type: Exec) {
+    def outputLog = new File("$buildDir/spelling/spelling.out")
+
+    group           FrontendPlugin.GROUP
+    description     "Checks spelling."
+
+    inputs.files    bundle.outputs
+    inputs.file     "wordlist"
+
+    outputs.file    outputLog
+    outputs.cacheIf { true }
+
+    commandLine     "./checkSpelling.sh", outputLog
+
+    doFirst {
+        outputLog.parentFile.mkdirs()
+    }
+}
+
+check.dependsOn checkSpelling
+
+docker {
+    image   "${System.env.QUARTIC_DOCKER_REPOSITORY}/docs:${project.version}"
+
+    content copySpec {
+        from "Dockerfile"
+        from "default.conf"
+        from(bundle) {
+            into "bundle"
+        }
+    }
 }
 
 idea {

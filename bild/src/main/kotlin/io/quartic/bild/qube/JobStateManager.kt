@@ -23,6 +23,8 @@ class JobStateManager(
 
     private var creationState: CreationState = CreationState.UNKNOWN
     private var watcher: Watch? = null
+    // Record whether we've ever seen the job returned by the API
+    private var jobSeen: Boolean = false
 
     sealed class JobState {
         data class Pending(val _dummy: Int = 0): JobState()
@@ -30,8 +32,6 @@ class JobStateManager(
         data class Failed(val jobResult: JobResult): JobState()
         data class Succeeded(val jobResult: JobResult): JobState()
     }
-
-
 
     fun cleanup() {
         log.info("[{}] Deleting job", jobName)
@@ -84,27 +84,32 @@ class JobStateManager(
     fun poll(): JobState {
         val job = client.getJob(jobName)
 
+        if (job == null) {
+            if (jobSeen) {
+                return failure("Job was deleted from underneath us.")
+            } else {
+                return failure("Job not returned when querying API for the first time.")
+            }
+        }
+
+        jobSeen = true
+
         if (isSuccess(job)) {
-            log.info("[{}] Completion due to success", jobName)
             return success("Success")
         } else if (isFailure(job)) {
-            log.info("[{}] Too many failures", jobName)
-            return failure("Failure")
+            return failure("Too many failures")
         }
 
         if (creationState == CreationState.FAILED) {
-            log.info("[{}] Creation failed", jobName)
             return failure("Creation failed")
         }
 
         if (creationState == CreationState.UNKNOWN &&
             stopwatch.elapsed(TimeUnit.SECONDS) > creationTimeoutSeconds) {
-            log.info("[{}] Exceeded creation timeout", jobName)
             return failure("Exceeded creation timeout")
         }
         if (creationState == CreationState.CREATED &&
             stopwatch.elapsed(TimeUnit.SECONDS) > runTimeoutSeconds) {
-            log.info("[{}] Exceeded run timeout", jobName)
             return failure("Exceeded run timeout")
         }
 

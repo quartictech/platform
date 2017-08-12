@@ -1,0 +1,6 @@
+namespaces:
+  noob:
+    type: local
+
+url:
+  port: 8120

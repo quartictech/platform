@@ -10,17 +10,18 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
-import io.quartic.bild.model.CustomerId
 import io.quartic.bild.qube.JobLoop
 import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
 import io.quartic.bild.qube.Worker
+import io.quartic.common.model.CustomerId
+import io.quartic.github.GithubInstallationClient
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.equalTo
 import org.junit.Test
+import rx.observers.TestSubscriber
 import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
-import org.hamcrest.MatcherAssert.*
-import org.hamcrest.Matchers.*
-import rx.observers.TestSubscriber
 
 class WorkerShould {
     @Test
@@ -51,7 +52,7 @@ class WorkerShould {
     }
 
 
-    val bildJob = BildJob(BildId("1"), CustomerId("1"), BildPhase.TEST)
+    val bildJob = BildJob(BildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BildPhase.TEST)
     val queue = mock<BlockingQueue<BildJob>>()
     val client = mock<Qube>()
     val events = PublishSubject.create<Event>()
@@ -59,13 +60,15 @@ class WorkerShould {
     val job = JobBuilder().build()
     val jobRunner = mock<JobStateManager>()
     val jobLoop = mock<JobLoop>()
+    val github = mock<GithubInstallationClient>()
 
     val worker = Worker(
-        KubernetesConfiguraration("wat", job, 4, 100, 100, 100, true),
+        KubernetesConfiguraration("wat", job, 4, 100, 100, 100, "%s", true),
         queue,
         client,
         events,
         jobResultStore,
+        github,
         { jobRunner },
         jobLoop
     )

@@ -2,11 +2,14 @@ package io.quartic.bild.qube
 
 import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.Event
+import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.JobBuilder
 import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
 import io.quartic.common.logging.logger
+import io.quartic.github.GithubInstallationClient
+import org.slf4j.LoggerFactory
 import rx.Observable
 import rx.schedulers.Schedulers
 import java.util.concurrent.BlockingQueue
@@ -18,9 +21,8 @@ class Worker(
     private val client: Qube,
     private val events: Observable<Event>,
     private val jobResults: JobResultStore,
-    private val jobStateManagerFactory: (job: BildJob) -> JobStateManager = { job ->
-        createJobRunner(client, configuration, job)
-    },
+    github: GithubInstallationClient,
+    private val jobStateManagerFactory: (job: BildJob) -> JobStateManager = { job: BildJob -> createJobRunner(client, configuration, job, github) },
     private val jobLoop: JobLoop = JobLoop()
 ): Runnable {
     val log by logger()
@@ -63,8 +65,9 @@ class Worker(
     }
 
     companion object {
-        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BildJob) = JobStateManager(
-                createJob(configuration, job),
+        val log = LoggerFactory.getLogger(this::class.java)
+        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BildJob, github: GithubInstallationClient) = JobStateManager(
+                createJob(configuration, job, github),
                 jobName(job),
                 client,
                 configuration.maxFailures,
@@ -72,23 +75,33 @@ class Worker(
                 configuration.runTimeoutSeconds
         )
 
-        fun createJob(configuration: KubernetesConfiguraration, job: BildJob) = JobBuilder(configuration.template)
-            .withNewMetadata()
-            .withName(jobName(job))
-            .withNamespace(configuration.namespace)
-            .endMetadata()
-            .editSpec().editTemplate().editSpec().editFirstContainer()
-            .addAllToEnv(
-                listOf(
-                    EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
-                    EnvVar("QUARTIC_JOB_ID", job.id.toString(), null)
-                ))
-            .endContainer()
-            .endSpec()
-            .endTemplate()
-            .endSpec()
-            .build()
+        fun createJob(configuration: KubernetesConfiguraration, job: BildJob, github: GithubInstallationClient): Job {
+            val env = mutableListOf(
+                EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
+                EnvVar("QUARTIC_JOB_ID", job.id.id, null),
+                EnvVar("QUARTIC_RUNNER_ENDPOINT", String.format(configuration.backChannelEndpoint, "runner"), null),
+                EnvVar("QUARTIC_BACKCHANNEL_ENDPOINT", String.format(configuration.backChannelEndpoint, job.id.id), null)
+            )
 
+            log.info("job: {}", job)
+
+            val token = github.accessToken(job.installationId).token
+            env.add(EnvVar("QUARTIC_REPO", job.cloneUrl.replace("https://", "https://x-access-token:$token@"), null))
+            env.add(EnvVar("QUARTIC_COMMIT_REF", job.commit, null))
+
+            return JobBuilder(configuration.template)
+                .withNewMetadata()
+                .withName(jobName(job))
+                .withNamespace(configuration.namespace)
+                .endMetadata()
+                .editSpec().editTemplate().editSpec().editFirstContainer()
+                .addAllToEnv(env)
+                .endContainer()
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .build()
+        }
 
         fun jobName(job: BildJob) = "bild-${job.id.id}"
     }
