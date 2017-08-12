@@ -1,7 +1,7 @@
 package io.quartic.bild.resource
 
 import com.google.common.base.Preconditions
-import io.quartic.bild.JobResultStore
+import io.quartic.bild.store.JobResultStore
 import io.quartic.bild.model.BildId
 import org.apache.commons.io.IOUtils.copy
 import javax.ws.rs.*

@@ -6,6 +6,8 @@ import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
 import io.quartic.bild.resource.TriggerResource
+import io.quartic.bild.store.JobRecord
+import io.quartic.bild.store.JobResultStore
 import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.UidGenerator
 import io.quartic.registry.api.RegistryServiceClient
@@ -36,7 +38,7 @@ class TriggerResourceShould {
 
     init {
         whenever(jobResults.getLatest(CustomerId("111")))
-            .thenReturn(JobResultStore.Record(null, dag))
+            .thenReturn(JobRecord(null, dag))
 
         whenever(idGenerator.get()).thenReturn(bildId)
         whenever(registry.getCustomer(anyOrNull(), anyOrNull()))

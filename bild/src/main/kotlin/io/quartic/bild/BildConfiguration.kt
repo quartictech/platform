@@ -1,7 +1,14 @@
 package io.quartic.bild
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.dropwizard.db.DataSourceFactory
+import io.dropwizard.jdbi.DBIFactory
+import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.api.model.Job
+import io.quartic.bild.store.EmbeddedJobResultStore
+import io.quartic.bild.store.JobResultStore
+import io.quartic.bild.store.PostgresJobResultStore
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
 
@@ -22,9 +29,34 @@ data class GitHubConfiguration(
     val privateKeyEncrypted: EncryptedSecret
 )
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = StoreConfiguration.PostgresStoreConfiguration::class, name = "postgres"),
+    JsonSubTypes.Type(value = StoreConfiguration.EmbeddedStoreConfiguration::class, name = "embedded")
+)
+sealed class StoreConfiguration {
+    abstract fun create(environment: Environment): JobResultStore
+
+    data class PostgresStoreConfiguration(
+        val database: DataSourceFactory
+    ) : StoreConfiguration() {
+        override fun create(environment: Environment): JobResultStore {
+            val factory = DBIFactory()
+            val jdbi = factory.build(environment, database, "postgresql")
+            return PostgresJobResultStore(database.build(environment.metrics(), "flyway"), jdbi)
+        }
+    }
+
+    class EmbeddedStoreConfiguration : StoreConfiguration() {
+        override fun create(environment: Environment): JobResultStore {
+            return EmbeddedJobResultStore()
+        }
+    }
+}
+
 data class BildConfiguration(
     val kubernetes: KubernetesConfiguraration,
-    val database: DataSourceFactory,
+    val store: StoreConfiguration,
     val registryUrl: String,
     val github: GitHubConfiguration
 ) : ConfigurationBase()

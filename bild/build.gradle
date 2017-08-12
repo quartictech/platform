@@ -16,10 +16,13 @@ dependencies {
     compile project(":registry-api")
     compile project(":github")
     compile project(":quarty")
-    compile 'io.fabric8:kubernetes-client:2.5.6'
+
+    compile "io.fabric8:kubernetes-client:2.5.6"
+    compile "org.flywaydb:flyway-core:4.2.0"
     compile libraries.dropwizardJdbi
     compile libraries.rxjava
 
     testCompile project(":common-test")
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile "com.opentable.components:otj-pg-embedded:0.9.0"
 }

@@ -2,7 +2,7 @@ package io.quartic.bild.qube
 
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.NamespaceBuilder
-import io.quartic.bild.JobResultStore
+import io.quartic.bild.store.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BildJob
 import io.quartic.common.logging.logger

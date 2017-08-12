@@ -14,6 +14,7 @@ import io.quartic.bild.qube.JobLoop
 import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
 import io.quartic.bild.qube.Worker
+import io.quartic.bild.store.JobResultStore
 import io.quartic.common.model.CustomerId
 import io.quartic.github.GithubInstallationClient
 import org.hamcrest.MatcherAssert.assertThat

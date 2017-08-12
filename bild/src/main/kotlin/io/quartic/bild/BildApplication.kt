@@ -10,6 +10,8 @@ import io.quartic.bild.qube.Qube
 import io.quartic.bild.resource.BackChannelResource
 import io.quartic.bild.resource.QueryResource
 import io.quartic.bild.resource.TriggerResource
+import io.quartic.bild.store.BildDao
+import io.quartic.bild.store.JobResultStore
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
@@ -23,7 +25,7 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
     override fun runApplication(configuration: BildConfiguration, environment: Environment) {
         val queue = ArrayBlockingQueue<BildJob>(1024)
 
-        val jobResults = JobResultStore()
+        val jobResults = configuration.store.create(environment)
 
         val registry = retrofitClient<RegistryServiceClient>(BildApplication::class.java, configuration.registryUrl)
 
@@ -38,19 +40,11 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
             log.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }
 
-        val dao = configureDatabase(configuration, environment)
-
         with (environment.jersey()) {
             register(QueryResource(jobResults, OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"))))
             register(TriggerResource(queue, registry))
             register(BackChannelResource(jobResults))
         }
-    }
-
-    private fun configureDatabase(configuration: BildConfiguration, environment: Environment): BildDao {
-        val factory = DBIFactory()
-        val jdbi = factory.build(environment, configuration.database, "postgresql")
-        return jdbi.onDemand(BildDao::class.java)
     }
 
     companion object {

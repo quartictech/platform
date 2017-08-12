@@ -2,6 +2,7 @@ package io.quartic.bild
 
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.bild.resource.QueryResource
+import io.quartic.bild.store.JobResultStore
 import io.quartic.common.model.CustomerId
 import org.hamcrest.Matchers
 import org.junit.Assert.assertThat
