@@ -1,11 +1,10 @@
 plugins {
     id "nebula.kotlin" version "1.1.2"
-    id "io.quartic.service" version "47"
+    id "io.quartic.service" version "53"
     id "com.palantir.configuration-resolver" version "0.2.0"
 }
 
 service {
-    simpleName = "zeus"
     mainClassName = "io.quartic.zeus.ZeusApplication"
     memory = System.env.ZEUS_MEMORY ?: "32m"
 }
