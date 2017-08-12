@@ -47,11 +47,11 @@ include "catalogue-utils"
 
 include "glisten"
 
+include "home"
+include "home-frontend"
+
 include "howl"
 include "howl-api"
-
-include "mgmt"
-include "mgmt-frontend"
 
 include "rain"
 

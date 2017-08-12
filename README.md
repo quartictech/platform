@@ -110,7 +110,7 @@ Flags:
 - `-f` encodes from a file.
 
 
-### OAuth token signing key (`mgmt`)
+### OAuth token signing key (`home`)
 
 512 bits of entropy, base-64 encoded.  Can generate with something like:
 
@@ -119,7 +119,7 @@ println(SecureRandom().nextBytes(512 / 8).encodeAsBase64())
 ```
 
 
-### GitHub client secret (`mgmt`)
+### GitHub client secret (`home`)
 
 In our GitHub OAuth app settings, click **Reset client secret**.
 
@@ -151,7 +151,7 @@ Service        | Port (app/admin) | Port (frontend dev)  | Description
 ---------------|------------------|----------------------|-----------------
 Weyl           | 8080 / 8081      | 3000                 | Map UI
 Catalogue      | 8090 / 8091      |                      | Dataset catalogue
-Mgmt           | 8100 / 8101      | 3010                 | Dataset management UI
+Home           | 8100 / 8101      | 3010                 | Home UI
 Howl           | 8120 / 8121      |                      | Cloud storage abstraction
 ~~Terminator~~ | ~~8130 / 8131~~  |                      |
 Scribe         | 8140 / 8141      |                      | PubSub -> file storage batching
