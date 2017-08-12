@@ -3,7 +3,6 @@ package io.quartic.bild
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.dropwizard.db.DataSourceFactory
-import io.dropwizard.jdbi.DBIFactory
 import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.api.model.Job
 import io.quartic.bild.store.EmbeddedJobResultStore
@@ -11,6 +10,11 @@ import io.quartic.bild.store.JobResultStore
 import io.quartic.bild.store.PostgresJobResultStore
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
+import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
+import com.github.arteam.jdbi3.JdbiFactory
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.kotlin.KotlinPlugin
+
 
 data class KubernetesConfiguraration(
     val namespace: String,
@@ -41,9 +45,9 @@ sealed class StoreConfiguration {
         val database: DataSourceFactory
     ) : StoreConfiguration() {
         override fun create(environment: Environment): JobResultStore {
-            val factory = DBIFactory()
-            val jdbi = factory.build(environment, database, "postgresql")
-            return PostgresJobResultStore(database.build(environment.metrics(), "flyway"), jdbi)
+            val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, database, "hsql")
+            dbi.installPlugin(KotlinPlugin())
+            return PostgresJobResultStore(database.build(environment.metrics(), "flyway"), dbi)
         }
     }
 

@@ -1,12 +1,13 @@
 package io.quartic.bild.store
 
-import io.dropwizard.db.DataSourceFactory
 import io.quartic.bild.model.BildId
 import io.quartic.bild.model.BildJob
+import io.quartic.bild.model.BildPhase
 import io.quartic.bild.model.JobResult
 import io.quartic.common.model.CustomerId
 import org.flywaydb.core.Flyway
-import org.skife.jdbi.v2.DBI
+import org.jdbi.v3.core.Jdbi
+import java.time.Instant
 import javax.sql.DataSource
 
 data class JobRecord (
@@ -15,7 +16,7 @@ data class JobRecord (
 )
 
 interface JobResultStore {
-
+    fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String, ref: String, commit: String, phase: BildPhase): BildId
 
     fun putJobResult(job: BildJob, jobResult: JobResult)
     fun putDag(id: BildId, dag: Any?)
@@ -23,6 +24,10 @@ interface JobResultStore {
 }
 
 class EmbeddedJobResultStore : JobResultStore {
+    override fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String, ref: String, commit: String, phase: BildPhase): BildId {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     private val results = hashMapOf<BildId, JobRecord>()
     private val latestBuild = hashMapOf<CustomerId, BildId>()
 
@@ -52,7 +57,11 @@ class EmbeddedJobResultStore : JobResultStore {
     }
 }
 
-class PostgresJobResultStore(dataSource: DataSource, dbi: DBI) : JobResultStore {
+class PostgresJobResultStore(dataSource: DataSource, dbi: Jdbi) : JobResultStore {
+    override fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String, ref: String, commit: String, phase: BildPhase): BildId {
+        return BildId(dao.createBuild(customerId, installationId, cloneUrl, ref, commit, phase, Instant.now()).toString())
+    }
+
     val dao = dbi.onDemand(BildDao::class.java)
 
     init {

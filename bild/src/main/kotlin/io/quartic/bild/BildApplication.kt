@@ -1,7 +1,6 @@
 package io.quartic.bild
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.dropwizard.jdbi.DBIFactory
 import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.bild.model.BildJob
@@ -10,8 +9,6 @@ import io.quartic.bild.qube.Qube
 import io.quartic.bild.resource.BackChannelResource
 import io.quartic.bild.resource.QueryResource
 import io.quartic.bild.resource.TriggerResource
-import io.quartic.bild.store.BildDao
-import io.quartic.bild.store.JobResultStore
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
