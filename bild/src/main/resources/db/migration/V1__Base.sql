@@ -2,7 +2,10 @@
 create table build(
             id serial,
             customer_id varchar,
-            revision varchar,
+            installation_id bigint,
+            clone_url varchar,
+            ref varchar,
+            commit varchar,
             phase varchar,
             logs text,
-            build_date timestamp)
+            start_time timestamp)

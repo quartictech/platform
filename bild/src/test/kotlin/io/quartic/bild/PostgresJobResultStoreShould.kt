@@ -25,7 +25,7 @@ class PostgresJobResultStoreShould {
     @Before
     fun setUp() {
         dbi = Jdbi.create(pg.embeddedPostgres.postgresDatabase)
-        dbi.installPlugin(SqlObjectPlugin())
+        dbi = io.quartic.bild.store.dbi(dbi)
         jobResults = PostgresJobResultStore(pg.embeddedPostgres.postgresDatabase, dbi)
     }
 
