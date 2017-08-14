@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as moment from "moment";
 
 import {
   Tab,
@@ -119,12 +120,18 @@ const PropertiesTable = (props: IPropertiesTableProps) => (
 );
 
 // tslint:disable-next-line:variable-name
-const PropertiesRow = ({ propertyKey, value }) => (
+const PropertiesRow = ({ propertyKey, value }) => {
+  let formattedValue = value;
+  if (propertyKey === "registered") {
+    formattedValue = moment.unix(value);
+  }
+  return (
   <tr>
     <td style={{ fontWeight: "bold" }}>{toUpperCase(propertyKey)}</td>
-    <td>{value && value.toString()}</td>
+    <td>{formattedValue && formattedValue.toString()}</td>
   </tr>
-);
+  );
+};
 
 const toUpperCase = (str: string) => {
   return str.substr(0, 1).toUpperCase() + str.substr(1);
