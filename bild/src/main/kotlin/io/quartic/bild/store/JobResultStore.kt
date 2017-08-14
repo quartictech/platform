@@ -1,8 +1,8 @@
 package io.quartic.bild.store
 
-import io.quartic.bild.model.BildId
-import io.quartic.bild.model.BildJob
-import io.quartic.bild.model.BildPhase
+import io.quartic.bild.model.BuildId
+import io.quartic.bild.model.BuildJob
+import io.quartic.bild.model.BuildPhase
 import io.quartic.bild.model.JobResult
 import io.quartic.common.model.CustomerId
 
@@ -12,21 +12,22 @@ data class JobRecord (
 )
 
 interface JobResultStore {
-    fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String, ref: String, commit: String, phase: BildPhase): BildId
-    fun putJobResult(job: BildJob, jobResult: JobResult)
-    fun putDag(id: BildId, dag: Any?)
+    fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String,
+                  ref: String, commit: String, phase: BuildPhase): BuildId
+    fun putJobResult(job: BuildJob, jobResult: JobResult)
+    fun putDag(id: BuildId, dag: Any?)
     fun getLatest(id: CustomerId): JobRecord?
 }
 
 class EmbeddedJobResultStore : JobResultStore {
-    private val results = hashMapOf<BildId, JobRecord>()
-    private val latestBuild = hashMapOf<CustomerId, BildId>()
+    private val results = hashMapOf<BuildId, JobRecord>()
+    private val latestBuild = hashMapOf<CustomerId, BuildId>()
 
-    override fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String, ref: String, commit: String, phase: BildPhase): BildId {
+    override fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String, ref: String, commit: String, phase: BuildPhase): BuildId {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun putJobResult(job: BildJob, jobResult: JobResult) {
+    override fun putJobResult(job: BuildJob, jobResult: JobResult) {
         synchronized(results, {
             results[job.id] = (results[job.id] ?: JobRecord(null, null)).copy(jobResult = jobResult)
         })
@@ -36,7 +37,7 @@ class EmbeddedJobResultStore : JobResultStore {
         })
     }
 
-    override fun putDag(id: BildId, dag: Any?) {
+    override fun putDag(id: BuildId, dag: Any?) {
          synchronized(results, {
              results[id] = (results[id] ?: JobRecord(null, null)).copy(dag = dag)
         })

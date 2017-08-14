@@ -7,9 +7,9 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.JobBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
-import io.quartic.bild.model.BildId
-import io.quartic.bild.model.BildJob
-import io.quartic.bild.model.BildPhase
+import io.quartic.bild.model.BuildId
+import io.quartic.bild.model.BuildJob
+import io.quartic.bild.model.BuildPhase
 import io.quartic.bild.qube.JobLoop
 import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
@@ -53,8 +53,8 @@ class WorkerShould {
     }
 
 
-    val bildJob = BildJob(BildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BildPhase.TEST)
-    val queue = mock<BlockingQueue<BildJob>>()
+    val bildJob = BuildJob(BuildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BuildPhase.TEST)
+    val queue = mock<BlockingQueue<BuildJob>>()
     val client = mock<Qube>()
     val events = PublishSubject.create<Event>()
     val jobResultStore = mock<JobResultStore>()

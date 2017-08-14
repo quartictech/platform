@@ -1,7 +1,7 @@
 package io.quartic.bild.store
 
-import io.quartic.bild.model.BildId
-import io.quartic.bild.model.BildPhase
+import io.quartic.bild.model.BuildId
+import io.quartic.bild.model.BuildPhase
 import io.quartic.common.model.CustomerId
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
@@ -28,7 +28,7 @@ interface BildDao {
         @Bind("clone_url") cloneUrl: String,
         @Bind("ref") ref: String,
         @Bind("commit") commit: String,
-        @Bind("phase") phase: BildPhase,
+        @Bind("phase") phase: BuildPhase,
         @Bind("start_time") startTime: Instant
     ): Long
 
@@ -45,13 +45,13 @@ interface BildDao {
         )
         """
     )
-    fun insertJob(@Bind("build_id") buildId: BildId,
+    fun insertJob(@Bind("build_id") buildId: BuildId,
                   @Bind("pod_name") podName: String,
                   @Bind("log") log: String)
 
     @SqlUpdate("update build set success = :success, reason = :reason where id = :id")
-    fun  setResult(@Bind("id") id: BildId, @Bind("success") success: Boolean, @Bind("reason") reason: String)
+    fun  setResult(@Bind("id") id: BuildId, @Bind("success") success: Boolean, @Bind("reason") reason: String)
 
     @SqlUpdate("update build set dag = :dag where id = :id")
-    fun  setDag(@Bind("id") id: BildId, @BindJson("dag") dag: Any?)
+    fun  setDag(@Bind("id") id: BuildId, @BindJson("dag") dag: Any?)
 }

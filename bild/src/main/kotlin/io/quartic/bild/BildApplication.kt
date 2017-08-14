@@ -3,7 +3,7 @@ package io.quartic.bild
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
-import io.quartic.bild.model.BildJob
+import io.quartic.bild.model.BuildJob
 import io.quartic.bild.qube.JobPool
 import io.quartic.bild.qube.Qube
 import io.quartic.bild.resource.BackChannelResource
@@ -20,7 +20,7 @@ import java.util.concurrent.ArrayBlockingQueue
 class BildApplication : ApplicationBase<BildConfiguration>() {
     val log by logger()
     override fun runApplication(configuration: BildConfiguration, environment: Environment) {
-        val queue = ArrayBlockingQueue<BildJob>(1024)
+        val queue = ArrayBlockingQueue<BuildJob>(1024)
 
         val jobResults = configuration.store.create(environment)
 

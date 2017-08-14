@@ -3,20 +3,19 @@ package io.quartic.bild.model
 import io.quartic.common.model.CustomerId
 import io.quartic.common.uid.Uid
 
-class BildId(val id: String) : Uid(id)
+class BuildId(val id: String) : Uid(id)
 
-data class BildJob(
-    val id: BildId,
+data class BuildJob(
+    val id: BuildId,
     val customerId: CustomerId,
     val installationId: Long,
     val cloneUrl: String,
     val ref: String,
     val commit: String,
-    val phase: BildPhase
-) {
-}
+    val phase: BuildPhase
+)
 
-enum class BildPhase {
+enum class BuildPhase {
     TEST,
     BUILD
 }

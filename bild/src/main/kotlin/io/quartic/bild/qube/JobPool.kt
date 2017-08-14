@@ -4,7 +4,7 @@ import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.NamespaceBuilder
 import io.quartic.bild.store.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
-import io.quartic.bild.model.BildJob
+import io.quartic.bild.model.BuildJob
 import io.quartic.common.logging.logger
 import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
@@ -13,7 +13,7 @@ import io.quartic.github.GithubInstallationClient
 
 class JobPool(configuration: KubernetesConfiguraration,
               private val client: Qube,
-              queue: BlockingQueue<BildJob>,
+              queue: BlockingQueue<BuildJob>,
               jobResults: JobResultStore,
               githubClient: GithubInstallationClient) {
     private val log by logger()

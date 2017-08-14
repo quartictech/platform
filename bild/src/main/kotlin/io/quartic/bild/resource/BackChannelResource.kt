@@ -2,7 +2,7 @@ package io.quartic.bild.resource
 
 import com.google.common.base.Preconditions
 import io.quartic.bild.store.JobResultStore
-import io.quartic.bild.model.BildId
+import io.quartic.bild.model.BuildId
 import org.apache.commons.io.IOUtils.copy
 import javax.ws.rs.*
 import javax.ws.rs.core.Response
@@ -18,7 +18,7 @@ class BackChannelResource(private val jobResults: JobResultStore) {
 
     @Path("/{jobId}")
     @POST
-    fun backchannel(@PathParam("jobId") jobId: BildId, data: Any) {
+    fun backchannel(@PathParam("jobId") jobId: BuildId, data: Any) {
         jobResults.putDag(jobId, data)
     }
 
