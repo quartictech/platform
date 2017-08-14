@@ -21,6 +21,7 @@ dependencies {
     compile libraries.dropwizardJdbi
     compile "org.jdbi:jdbi3-kotlin:3.0.0-beta2"
     compile "org.jdbi:jdbi3-sqlobject:3.0.0-beta2"
+    compile "org.jdbi:jdbi3-postgres:3.0.0-beta2"
     compile libraries.rxjava
 
     testCompile project(":common-test")

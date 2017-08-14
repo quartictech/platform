@@ -1,7 +1,10 @@
 package io.quartic.bild
 
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
+import io.quartic.bild.model.BildJob
 import io.quartic.bild.model.BildPhase
+import io.quartic.bild.model.JobResult
+import io.quartic.bild.store.BildDao
 import io.quartic.bild.store.PostgresJobResultStore
 import io.quartic.common.model.CustomerId
 import org.junit.Before
@@ -10,8 +13,6 @@ import org.junit.Test
 import org.hamcrest.MatcherAssert.*
 import org.hamcrest.Matchers.*
 import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-
 
 
 class PostgresJobResultStoreShould {
@@ -33,6 +34,23 @@ class PostgresJobResultStoreShould {
     @Test
     fun insert_build() {
         val id = jobResults.createJob(CustomerId(100), 100, "git", "head", "hash", BildPhase.TEST)
-        assertThat("sweet", equalTo("sweet"))
+
+        assertThat(id, notNullValue())
+    }
+
+    @Test
+    fun set_job_result() {
+        val id = jobResults.createJob(CustomerId(100), 100, "git", "head", "hash", BildPhase.TEST)
+
+        jobResults.putJobResult(
+            BildJob(id, CustomerId(100), 100, "git", "head", "hash", BildPhase.TEST),
+            JobResult(false, mapOf("my-pod" to "this is noob"), "noob hole")
+        )
+    }
+
+    @Test
+    fun put_dag() {
+        val id = jobResults.createJob(CustomerId(100), 100, "git", "head", "hash", BildPhase.TEST)
+        jobResults.putDag(id, mapOf("foo" to "bar"))
     }
 }

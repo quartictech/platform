@@ -12,7 +12,6 @@ import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
 import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
 import com.github.arteam.jdbi3.JdbiFactory
-import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 
 
