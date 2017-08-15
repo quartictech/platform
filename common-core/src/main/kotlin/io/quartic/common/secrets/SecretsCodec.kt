@@ -1,6 +1,7 @@
 package io.quartic.common.secrets
 
 import com.google.common.base.Preconditions.checkArgument
+import com.google.common.base.Preconditions.checkState
 import java.security.SecureRandom
 import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
@@ -13,7 +14,10 @@ class SecretsCodec(masterKeyBase64: UnsafeSecret) {
     private val sr = SecureRandom()
 
     init {
-        checkArgument(key.encoded.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")
+        checkArgument(key.encoded.size == KEY_LENGTH_BITS / 8,
+            "Key is not exactly $KEY_LENGTH_BITS bits long")
+        checkState(Cipher.getMaxAllowedKeyLength(ALGORITHM) >= KEY_LENGTH_BITS,
+            "Umlimited strength JCE policy is not installed")
     }
 
     fun encrypt(secret: UnsafeSecret): EncryptedSecret {
