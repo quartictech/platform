@@ -17,7 +17,7 @@ class SecretsCodec(masterKeyBase64: UnsafeSecret) {
         checkArgument(key.encoded.size == KEY_LENGTH_BITS / 8,
             "Key is not exactly $KEY_LENGTH_BITS bits long")
         checkState(Cipher.getMaxAllowedKeyLength(ALGORITHM) >= KEY_LENGTH_BITS,
-            "Umlimited strength JCE policy is not installed")
+            "Unlimited strength JCE policy is not installed")
     }
 
     fun encrypt(secret: UnsafeSecret): EncryptedSecret {
