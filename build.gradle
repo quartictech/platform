@@ -27,7 +27,7 @@ allprojects {
 
     // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
     dependencies {
-        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.2"
+        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.4"
     }
 
     sourceCompatibility = 1.8
