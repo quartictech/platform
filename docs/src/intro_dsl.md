@@ -69,7 +69,7 @@ survey_data = survey.data()
 ```
 
 The result of a `.data()` call will return an object dependent on the underlying materialisation format. Where possible, the underlying file (e.g. Parquet) is
-automatically convered to a Pandas dataframe for easier manipulation.
+automatically converted to a Pandas dataframe for easier manipulation.
 
 #### Manipulating data
 
