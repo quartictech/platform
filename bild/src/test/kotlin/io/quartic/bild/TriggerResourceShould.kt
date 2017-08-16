@@ -36,21 +36,14 @@ class TriggerResourceShould {
     )
 
     init {
-        whenever(buildStore.getLatest(CustomerId("111")))
-            .thenReturn(BuildId("100"))
-
         whenever(buildStore.createBuild(any(), any(), any(), any(), any(), any()))
             .thenReturn(bildId)
-
-        whenever(buildStore.getBuild(BuildId("100")))
-            .thenReturn(Build(dag))
 
         whenever(registry.getCustomer(anyOrNull(), anyOrNull()))
             .thenReturn(CompletableFuture.completedFuture(null))
 
         whenever(registry.getCustomer(anyOrNull(), eq(123456L)))
             .thenReturn(CompletableFuture.completedFuture(laDispute))
-
     }
 
     @Test
