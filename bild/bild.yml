@@ -37,7 +37,6 @@ database:
   runEmbedded: true
   dataSource:
     user: postgres
-    password: postgres
 
 url:
   port: 8200

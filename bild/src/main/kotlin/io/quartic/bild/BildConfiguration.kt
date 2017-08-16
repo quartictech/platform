@@ -5,6 +5,7 @@ import io.dropwizard.util.Duration
 import io.fabric8.kubernetes.api.model.Job
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
+import io.quartic.common.secrets.SecretsCodec
 
 data class KubernetesConfiguraration(
     val namespace: String,
@@ -25,7 +26,7 @@ data class GitHubConfiguration(
 
 data class DataSourceConfiguration(
     val user: String,
-    val password: String,
+    val password: EncryptedSecret? = null,
     val hostName: String = "localhost",
     val port: Int = 5432,
     val databaseName: String = "postgres",
@@ -40,11 +41,12 @@ data class DataSourceConfiguration(
     val minIdleTime: Duration = Duration.minutes(1)
 ) {
 
-    val dataSourceFactory = DataSourceFactory()
 
-    init {
+    fun dataSourceFactory(secretsCodec: SecretsCodec): DataSourceFactory {
+        val dataSourceFactory = DataSourceFactory()
+
         dataSourceFactory.user = user
-        dataSourceFactory.password = password
+        dataSourceFactory.password = if (password != null) secretsCodec.decrypt(password).veryUnsafe else null
         dataSourceFactory.url = "jdbc:postgresql://${hostName}:${port}/${databaseName}"
         dataSourceFactory.driverClass = driverClass
         dataSourceFactory.properties = properties
@@ -55,6 +57,8 @@ data class DataSourceConfiguration(
         dataSourceFactory.checkConnectionWhileIdle = checkConnectionWhileIdle
         dataSourceFactory.evictionInterval = evictionInterval
         dataSourceFactory.minIdleTime = minIdleTime
+
+        return dataSourceFactory
     }
 }
 

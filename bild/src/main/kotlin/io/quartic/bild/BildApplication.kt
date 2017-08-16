@@ -17,6 +17,7 @@ import io.quartic.bild.store.setupDbi
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.github.GithubInstallationClient
 import io.quartic.registry.api.RegistryServiceClient
@@ -34,7 +35,7 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
         val githubClient = GithubInstallationClient(configuration.github.appId, configuration.github.apiRootUrl,
             githubPrivateKey)
 
-        val buildStore = buildStore(environment, configuration.database)
+        val buildStore = buildStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
 
         if (configuration.kubernetes.enable) {
             val client = Qube(DefaultKubernetesClient(), configuration.kubernetes.namespace)
@@ -52,15 +53,16 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
         }
     }
 
-    private fun buildStore(environment: Environment, configuration: DatabaseConfiguration): BuildStore {
+    private fun buildStore(environment: Environment, configuration: DatabaseConfiguration, secretsCodec: SecretsCodec): BuildStore {
          if (configuration.runEmbedded) {
              log.warn("Postgres is running in embedded mode!!")
              EmbeddedPostgres.builder()
                  .setPort(configuration.dataSource.port)
+                 .setCleanDataDirectory(false)
                  .setDataDirectory(File("./data"))
                  .start()
         }
-        val database = configuration.dataSource.dataSourceFactory
+        val database = configuration.dataSource.dataSourceFactory(secretsCodec)
         BuildStore.migrate(database.build(environment.metrics(), "flyway"))
         val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, database, "postgres")
         return setupDbi(dbi).onDemand(BuildStore::class.java)
