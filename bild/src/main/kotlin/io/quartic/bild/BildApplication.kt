@@ -54,10 +54,11 @@ class BildApplication : ApplicationBase<BildConfiguration>() {
 
     private fun buildStore(environment: Environment, configuration: DatabaseConfiguration): BuildStore {
          if (configuration.runEmbedded) {
-            EmbeddedPostgres.builder()
-                .setPort(configuration.dataSource.port)
-                .setDataDirectory(File("./data"))
-                .start()
+             log.warn("Postgres is running in embedded mode!!")
+             EmbeddedPostgres.builder()
+                 .setPort(configuration.dataSource.port)
+                 .setDataDirectory(File("./data"))
+                 .start()
         }
         val database = configuration.dataSource.dataSourceFactory
         BuildStore.migrate(database.build(environment.metrics(), "flyway"))
