@@ -37,7 +37,7 @@ interface BuildStore {
     @SqlUpdate("""insert into job(build_id, pod_name, log) values(:build_id, :pod_name, :log)""")
     fun insertJob(@Bind("build_id") buildId: BuildId,
                   @Bind("pod_name") podName: String,
-                  @Bind("log") log: String)
+                  @Bind("log") log: String?)
 
     @SqlUpdate("update build set success = :success, reason = :reason where id = :id")
     fun setResult(@Bind("id") id: BuildId, @Bind("success") success: Boolean, @Bind("reason") reason: String)
