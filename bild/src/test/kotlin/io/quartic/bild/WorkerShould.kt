@@ -10,6 +10,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.bild.model.BuildId
 import io.quartic.bild.model.BuildJob
 import io.quartic.bild.model.BuildPhase
+import io.quartic.bild.model.JobResult
 import io.quartic.bild.qube.JobLoop
 import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
@@ -29,7 +30,7 @@ class WorkerShould {
     fun start_job() {
         val subscriber = TestSubscriber.create<Event>()
         whenever(jobRunner.subscriber()).thenReturn(subscriber)
-        worker.runJob(bildJob)
+        worker.runJob(buildJob)
         verify(jobRunner).start()
     }
 
@@ -37,7 +38,7 @@ class WorkerShould {
     fun call_cleanup_methods() {
         val subscriber = TestSubscriber.create<Event>()
         whenever(jobRunner.subscriber()).thenReturn(subscriber)
-        worker.runJob(bildJob)
+        worker.runJob(buildJob)
         verify(jobRunner).cleanup()
         assertThat(subscriber.isUnsubscribed, equalTo(true))
     }
@@ -47,17 +48,27 @@ class WorkerShould {
         val subscriber = TestSubscriber.create<Event>()
         whenever(jobRunner.subscriber()).thenReturn(subscriber)
         whenever(jobLoop.loop(any(), any())).thenThrow(KubernetesClientException("wat"))
-        worker.runJob(bildJob)
+        worker.runJob(buildJob)
         verify(jobRunner).cleanup()
         assertThat(subscriber.isUnsubscribed, equalTo(true))
     }
 
+    @Test
+    fun set_job_result() {
+        val subscriber = TestSubscriber.create<Event>()
+        val jobResult = JobResult(true, mapOf("noobPod" to "sweet"), "Nice job!")
+        whenever(jobRunner.subscriber()).thenReturn(subscriber)
+        whenever(jobLoop.loop(any(), any())).thenReturn(jobResult)
+        worker.runJob(buildJob)
+        verify(jobRunner).start()
+        verify(jobStore).setJobResult(buildJob, jobResult)
+    }
 
-    val bildJob = BuildJob(BuildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BuildPhase.TEST)
+    val buildJob = BuildJob(BuildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BuildPhase.TEST)
     val queue = mock<BlockingQueue<BuildJob>>()
     val client = mock<Qube>()
     val events = PublishSubject.create<Event>()
-    val jobResultStore = mock<JobStore>()
+    val jobStore = mock<JobStore>()
     val job = JobBuilder().build()
     val jobRunner = mock<JobStateManager>()
     val jobLoop = mock<JobLoop>()
@@ -68,7 +79,7 @@ class WorkerShould {
         queue,
         client,
         events,
-        jobResultStore,
+        jobStore,
         github,
         { jobRunner },
         jobLoop

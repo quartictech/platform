@@ -20,7 +20,7 @@ class Worker(
     private val queue: BlockingQueue<BuildJob>,
     private val client: Qube,
     private val events: Observable<Event>,
-    private val jobResults: JobStore,
+    private val jobStore: JobStore,
     github: GithubInstallationClient,
     private val jobStateManagerFactory: (job: BuildJob) -> JobStateManager = { job: BuildJob -> createJobRunner(client, configuration, job, github) },
     private val jobLoop: JobLoop = JobLoop()
@@ -49,7 +49,7 @@ class Worker(
                 jobRunner.start()
                 val result = jobLoop.loop(jobName, jobRunner)
                 log.info("[{}] Job completed with result: {}", jobName, result)
-                jobResults.putResult(job, result)
+                jobStore.setJobResult(job, result)
             }
             catch (e: Exception) {
                 log.error("Exception while running job", e)

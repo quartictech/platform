@@ -10,17 +10,17 @@ import javax.ws.rs.core.StreamingOutput
 import io.quartic.bild.store.JobStore
 
 @Path("/backchannel")
-class BackChannelResource(private val jobResults: JobStore) {
+class BackChannelResource(private val jobStore: JobStore) {
     val resource = javaClass.getResource("/quarty.tar.gz")
 
     init {
         Preconditions.checkState(resource != null, "Runner distribution not found!")
     }
 
-    @Path("/{jobId}")
+    @Path("/{buildId}")
     @POST
-    fun backchannel(@PathParam("jobId") jobId: BuildId, data: Dag) {
-        jobResults.setDag(jobId, data)
+    fun backchannel(@PathParam("buildId") buildId: BuildId, data: Dag) {
+        jobStore.setDag(buildId, data)
     }
 
     // TODO - this is gross, but given that we have this backchannel endpoint, it will suffice for now

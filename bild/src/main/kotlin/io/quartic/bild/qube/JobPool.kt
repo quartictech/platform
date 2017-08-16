@@ -14,7 +14,7 @@ import io.quartic.github.GithubInstallationClient
 class JobPool(configuration: KubernetesConfiguraration,
               private val client: Qube,
               queue: BlockingQueue<BuildJob>,
-              jobResults: JobStore,
+              jobStore: JobStore,
               githubClient: GithubInstallationClient) {
     private val log by logger()
     private val namespace = NamespaceBuilder()
@@ -37,7 +37,7 @@ class JobPool(configuration: KubernetesConfiguraration,
                     queue,
                     client,
                     events,
-                    jobResults,
+                    jobStore,
                     githubClient
                 )
             )

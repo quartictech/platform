@@ -44,7 +44,7 @@ class PostgresJobStoreShould {
     fun set_job_result() {
         val id = jobResults.createJob(CustomerId(100), 100, "git", "head", "hash", BuildPhase.TEST)
 
-        jobResults.putResult(
+        jobResults.setJobResult(
             BuildJob(id, CustomerId(100), 100, "git", "head", "hash", BuildPhase.TEST),
             JobResult(false, mapOf("my-pod" to "this is noob"), "noob hole")
         )

@@ -6,8 +6,8 @@ import io.quartic.bild.model.BuildId
 import io.quartic.bild.model.BuildJob
 import io.quartic.bild.model.BuildPhase
 import io.quartic.bild.api.model.Dag
+import io.quartic.bild.model.Build
 import io.quartic.bild.resource.TriggerResource
-import io.quartic.bild.store.Build
 import io.quartic.bild.store.JobStore
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER

@@ -17,15 +17,9 @@ import java.sql.ResultSet
 import java.time.Instant
 import javax.sql.DataSource
 
-data class Build (
-    val dag: Dag?
-)
 
-class BuildMapper: RowMapper<Build> {
-    override fun map(rs: ResultSet?, ctx: StatementContext?): Build = Build(
-        OBJECT_MAPPER.readValue<Dag>(rs!!.getString("dag"), Dag::class.java)
-    )
-}
+
+
 
 @RegisterRowMapper(BuildMapper::class)
 interface JobStore {
@@ -66,7 +60,7 @@ interface JobStore {
     fun getBuild(@Bind("id") id: BuildId): Build?
 
     @Transaction
-    fun putResult(job: BuildJob, jobResult: JobResult) {
+    fun setJobResult(job: BuildJob, jobResult: JobResult) {
         jobResult.logOutputByPod.forEach { podName, log -> insertJob(job.id, podName, log) }
         setResult(job.id, jobResult.success, jobResult.reason)
     }
