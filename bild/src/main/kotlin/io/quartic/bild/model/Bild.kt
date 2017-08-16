@@ -31,5 +31,3 @@ data class JobResult (
     val logOutputByPod: Map<String, String>,
     val reason: String
 )
-
-

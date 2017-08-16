@@ -1,19 +1,10 @@
 package io.quartic.bild
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.dropwizard.db.DataSourceFactory
-import io.dropwizard.setup.Environment
+import io.dropwizard.util.Duration
 import io.fabric8.kubernetes.api.model.Job
-import io.quartic.bild.store.EmbeddedJobResultStore
-import io.quartic.bild.store.JobResultStore
-import io.quartic.bild.store.PostgresJobResultStore
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
-import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
-import com.github.arteam.jdbi3.JdbiFactory
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-
 
 data class KubernetesConfiguraration(
     val namespace: String,
@@ -32,34 +23,49 @@ data class GitHubConfiguration(
     val privateKeyEncrypted: EncryptedSecret
 )
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    JsonSubTypes.Type(value = StoreConfiguration.PostgresStoreConfiguration::class, name = "postgres"),
-    JsonSubTypes.Type(value = StoreConfiguration.EmbeddedStoreConfiguration::class, name = "embedded")
-)
-sealed class StoreConfiguration {
-    abstract fun create(environment: Environment): JobResultStore
+data class DataSourceConfiguration(
+    val user: String,
+    val password: String,
+    val hostName: String = "localhost",
+    val port: Int = 5432,
+    val databaseName: String = "postgres",
+    val driverClass: String = "org.postgresql.Driver",
+    val properties: Map<String, String> = mapOf("charSet" to "UTF-8"),
+    val maxWaitForConnection: Duration = Duration.seconds(1),
+    val validationQuery: String = "/* MyService Health Check */ SELECT 1",
+    val minSize: Int = 8,
+    val maxSize: Int = 32,
+    val checkConnectionWhileIdle: Boolean = false,
+    val evictionInterval: Duration = Duration.seconds(10),
+    val minIdleTime: Duration = Duration.minutes(1)
+) {
 
-    data class PostgresStoreConfiguration(
-        val database: DataSourceFactory
-    ) : StoreConfiguration() {
-        override fun create(environment: Environment): JobResultStore {
-            val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, database, "hsql")
-            dbi.installPlugin(KotlinPlugin())
-            return PostgresJobResultStore(database.build(environment.metrics(), "flyway"), dbi)
-        }
-    }
+    val dataSourceFactory = DataSourceFactory()
 
-    class EmbeddedStoreConfiguration : StoreConfiguration() {
-        override fun create(environment: Environment): JobResultStore {
-            return EmbeddedJobResultStore()
-        }
+    init {
+        dataSourceFactory.user = user
+        dataSourceFactory.password = password
+        dataSourceFactory.url = "jdbc:postgresql://${hostName}:${port}/${databaseName}"
+        dataSourceFactory.driverClass = driverClass
+        dataSourceFactory.properties = properties
+        dataSourceFactory.maxWaitForConnection = maxWaitForConnection
+        dataSourceFactory.validationQuery = validationQuery
+        dataSourceFactory.minSize = minSize
+        dataSourceFactory.maxSize = maxSize
+        dataSourceFactory.checkConnectionWhileIdle = checkConnectionWhileIdle
+        dataSourceFactory.evictionInterval = evictionInterval
+        dataSourceFactory.minIdleTime = minIdleTime
     }
 }
 
+data class DatabaseConfiguration(
+    val runEmbedded: Boolean,
+    val dataSource: DataSourceConfiguration
+)
+
 data class BildConfiguration(
     val kubernetes: KubernetesConfiguraration,
-    val store: StoreConfiguration,
+    val database: DatabaseConfiguration,
     val registryUrl: String,
     val github: GitHubConfiguration
 ) : ConfigurationBase()

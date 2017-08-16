@@ -20,11 +20,11 @@ dependencies {
     compile "org.flywaydb:flyway-core:4.2.0"
     compile libraries.dropwizardJdbi
     compile "org.jdbi:jdbi3-kotlin:3.0.0-beta2"
-    compile "org.jdbi:jdbi3-sqlobject:3.0.0-beta2"
+    compile "org.jdbi:jdbi3-kotlin-sqlobject:3.0.0-beta2"
     compile "org.jdbi:jdbi3-postgres:3.0.0-beta2"
     compile libraries.rxjava
+    compile "com.opentable.components:otj-pg-embedded:0.9.0"
 
     testCompile project(":common-test")
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
-    testCompile "com.opentable.components:otj-pg-embedded:0.9.0"
 }

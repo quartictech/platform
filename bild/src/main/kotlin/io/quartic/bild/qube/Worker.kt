@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.JobBuilder
-import io.quartic.bild.store.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
 import io.quartic.bild.model.BuildJob
 import io.quartic.common.logging.logger
@@ -14,13 +13,14 @@ import rx.Observable
 import rx.schedulers.Schedulers
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
+import io.quartic.bild.store.JobStore
 
 class Worker(
     private val configuration: KubernetesConfiguraration,
     private val queue: BlockingQueue<BuildJob>,
     private val client: Qube,
     private val events: Observable<Event>,
-    private val jobResults: JobResultStore,
+    private val jobResults: JobStore,
     github: GithubInstallationClient,
     private val jobStateManagerFactory: (job: BuildJob) -> JobStateManager = { job: BuildJob -> createJobRunner(client, configuration, job, github) },
     private val jobLoop: JobLoop = JobLoop()
@@ -49,7 +49,7 @@ class Worker(
                 jobRunner.start()
                 val result = jobLoop.loop(jobName, jobRunner)
                 log.info("[{}] Job completed with result: {}", jobName, result)
-                jobResults.putJobResult(job, result)
+                jobResults.putResult(job, result)
             }
             catch (e: Exception) {
                 log.error("Exception while running job", e)

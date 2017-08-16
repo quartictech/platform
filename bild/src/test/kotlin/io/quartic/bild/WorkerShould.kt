@@ -14,7 +14,7 @@ import io.quartic.bild.qube.JobLoop
 import io.quartic.bild.qube.JobStateManager
 import io.quartic.bild.qube.Qube
 import io.quartic.bild.qube.Worker
-import io.quartic.bild.store.JobResultStore
+import io.quartic.bild.store.JobStore
 import io.quartic.common.model.CustomerId
 import io.quartic.github.GithubInstallationClient
 import org.hamcrest.MatcherAssert.assertThat
@@ -57,7 +57,7 @@ class WorkerShould {
     val queue = mock<BlockingQueue<BuildJob>>()
     val client = mock<Qube>()
     val events = PublishSubject.create<Event>()
-    val jobResultStore = mock<JobResultStore>()
+    val jobResultStore = mock<JobStore>()
     val job = JobBuilder().build()
     val jobRunner = mock<JobStateManager>()
     val jobLoop = mock<JobLoop>()

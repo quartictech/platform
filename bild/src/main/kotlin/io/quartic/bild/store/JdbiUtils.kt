@@ -12,6 +12,7 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.customizer.SqlStatementCustomizerFactory
 import org.jdbi.v3.sqlobject.customizer.SqlStatementCustomizingAnnotation
 import org.jdbi.v3.sqlobject.customizer.SqlStatementParameterCustomizer
+import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.postgresql.util.PGobject
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
@@ -45,9 +46,10 @@ class BindJsonFactory : SqlStatementCustomizerFactory {
 @SqlStatementCustomizingAnnotation(BindJsonFactory::class)
 annotation class BindJson(val name: String)
 
-fun dbi(dbi: Jdbi): Jdbi {
+fun setupDbi(dbi: Jdbi): Jdbi {
     dbi.installPlugin(SqlObjectPlugin())
     dbi.installPlugin(KotlinPlugin())
+    dbi.installPlugin(KotlinSqlObjectPlugin())
     dbi.installPlugin(PostgresPlugin())
     dbi.registerArgument(UidArgumentFactory())
     dbi.registerArgument(PGobjectArgumentFactory())

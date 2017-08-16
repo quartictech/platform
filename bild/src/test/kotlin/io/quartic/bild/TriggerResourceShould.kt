@@ -5,11 +5,12 @@ import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.bild.model.BuildId
 import io.quartic.bild.model.BuildJob
 import io.quartic.bild.model.BuildPhase
+import io.quartic.bild.api.model.Dag
 import io.quartic.bild.resource.TriggerResource
-import io.quartic.bild.store.JobRecord
-import io.quartic.bild.store.JobResultStore
+import io.quartic.bild.store.Build
+import io.quartic.bild.store.JobStore
 import io.quartic.common.model.CustomerId
-import io.quartic.common.uid.UidGenerator
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.junit.Test
@@ -17,14 +18,12 @@ import java.time.Instant
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CompletableFuture
 
-
 class TriggerResourceShould {
-    private val dag = mapOf("noob" to "yes")
-    private val jobResults = mock<JobResultStore>()
+    private val dag = OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)
+    private val jobResults = mock<JobStore>()
     private val queue = mock<BlockingQueue<BuildJob>>()
-    private val idGenerator = mock<UidGenerator<BuildId>>()
     private val registry = mock<RegistryServiceClient>()
-    private val resource = TriggerResource(queue, registry, idGenerator)
+    private val resource = TriggerResource(queue, registry, jobResults)
     private val bildId = BuildId("noob")
 
     private val laDispute = Customer(
@@ -38,9 +37,14 @@ class TriggerResourceShould {
 
     init {
         whenever(jobResults.getLatest(CustomerId("111")))
-            .thenReturn(JobRecord(null, dag))
+            .thenReturn(BuildId("100"))
 
-        whenever(idGenerator.get()).thenReturn(bildId)
+        whenever(jobResults.createJob(any(), any(), any(), any(), any(), any()))
+            .thenReturn(bildId)
+
+        whenever(jobResults.getBuild(BuildId("100")))
+            .thenReturn(Build(dag))
+
         whenever(registry.getCustomer(anyOrNull(), anyOrNull()))
             .thenReturn(CompletableFuture.completedFuture(null))
 
