@@ -4,13 +4,7 @@ customers:
     subdomain: localhost
     namespace: noobhole
     githubOrgId: 30663321
-    githubRepoId: 555
+    githubRepoId: 71576535
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 8190
-  adminConnectors:
-    - type: http
-      port: 8191
+url:
+  port: 8190

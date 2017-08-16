@@ -44,6 +44,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
 
     final override fun run(configuration: T, environment: Environment) {
         LOG.info("Running " + details.name + " " + details.version + " (Java " + details.javaVersion + ")")
+        warnIfDevMasterKey(configuration)
 
         // TODO - CORS settings
         // TODO - check Origin and Referer headers
@@ -52,11 +53,23 @@ abstract class ApplicationBase<T : ConfigurationBase>(
             urlPattern = "/api/*"
             register(JsonProcessingExceptionMapper(true)) // So we get Jackson deserialization errors in the response
             register(PingPongResource())
-            register(AuthDynamicFeature(createAuthFilter(configuration.auth)))
+            register(AuthDynamicFeature(createAuthFilter(configuration.auth, configuration.secretsCodec)))
             register(AuthValueFactoryProvider.Binder(User::class.java))
         }
 
         runApplication(configuration, environment)
+    }
+
+    private fun warnIfDevMasterKey(configuration: T) {
+        if (configuration.masterKeyBase64 == DEV_MASTER_KEY_BASE64) {
+            LOG.warn("\n" + """
+                #####################################################################
+                #                                                                   #
+                #           !!! RUNNING WITH DEVELOPMENT MASTER KEY !!!             #
+                #                                                                   #
+                #####################################################################
+            """.trimIndent())
+        }
     }
 
     protected open fun initializeApplication(bootstrap: Bootstrap<T>) = Unit

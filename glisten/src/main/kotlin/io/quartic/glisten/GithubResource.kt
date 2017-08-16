@@ -4,8 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.bild.api.BildTriggerService
 import io.quartic.bild.api.model.TriggerDetails
 import io.quartic.common.logging.logger
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.glisten.github.model.PushEvent
+import io.quartic.github.PushEvent
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
 import java.time.Clock
@@ -16,9 +17,9 @@ import javax.ws.rs.core.MediaType
 
 
 
-@Path("/github")
+@Path("/hooks/github")
 class GithubResource(
-    private val secretToken: String,
+    private val secret: UnsafeSecret,
     private val trigger: BildTriggerService,
     private val clock: Clock = Clock.systemUTC()
 ) {
@@ -58,7 +59,7 @@ class GithubResource(
 
         // TODO - maybe move to DW auth
         private fun validateSignature() {
-            val keySpec = SecretKeySpec(secretToken.toByteArray(), "HmacSHA1")
+            val keySpec = SecretKeySpec(secret.veryUnsafe.toByteArray(), "HmacSHA1")
 
             val mac = Mac.getInstance("HmacSHA1")
             mac.init(keySpec)
@@ -80,7 +81,9 @@ class GithubResource(
                     deliveryId = deliveryId,
                     installationId = event.installation.id,
                     repoId = event.repository.id,
+                    cloneUrl = event.repository.cloneUrl,
                     ref = event.ref,
+                    commit = event.headCommit.id,
                     timestamp = clock.instant()
                 ))
                 LOG.info("success".toMessage())

@@ -1,0 +1,48 @@
+plugins {
+    id "java"
+    id "idea"
+}
+
+
+def venvDir = file(".env")
+def pythonExecutable = file("${venvDir}/bin/python")
+def distDir = file("$buildDir/dist")
+
+// TODO - we'll need to set PYTHONPATH if this gets more advanced
+
+task createVirtualenv(type: Exec) {
+    group               "Python"
+    description         "Creates virtualenv"
+
+    outputs.dir         venvDir
+
+    commandLine         "python3", "-m", "venv", venvDir
+}
+
+task dist(type: Exec) {
+    group               "Python"
+    description         "Creates source distribution"
+
+    dependsOn           createVirtualenv
+
+    inputs.file         "setup.py"
+    inputs.file         "README"
+    inputs.dir          "src"
+
+    outputs.file        "${distDir}/quarty-${version}.tar.gz"
+    outputs.cacheIf     { true }
+
+    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "sdist", "--dist-dir", distDir
+}
+
+jar {
+    from(dist) {
+        rename "quarty-${version}.tar.gz", "quarty.tar.gz"
+    }
+}
+
+idea {
+    module {
+        excludeDirs += file(".env")
+    }
+}

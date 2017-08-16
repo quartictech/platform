@@ -5,10 +5,38 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.dropwizard.Configuration
+import io.dropwizard.jetty.HttpConnectorFactory
+import io.dropwizard.server.DefaultServerFactory
+import io.quartic.common.secrets.EncryptedSecret
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 
 abstract class ConfigurationBase : Configuration() {
+    val masterKeyBase64: UnsafeSecret = DEV_MASTER_KEY_BASE64
     val auth: AuthConfiguration = DummyAuthConfiguration()  // TODO - remove this default eventually
+
+    // Opinionated port selection
+    var url: ServerDetails = ServerDetails()
+        set(value) {
+            super.setServerFactory(DefaultServerFactory().apply {
+                applicationContextPath = value.contextPath
+                applicationConnectors = listOf(HttpConnectorFactory().apply {
+                    port = if (value.randomPort) 0 else value.port
+                })
+                adminConnectors = listOf(HttpConnectorFactory().apply {
+                    port = if (value.randomPort) 0 else (value.port + 1)
+                })
+            })
+        }
+
+    val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
 }
+
+data class ServerDetails(
+    val port: Int = 80,
+    val contextPath: String = "/",
+    val randomPort: Boolean = false
+)
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
@@ -18,9 +46,11 @@ abstract class ConfigurationBase : Configuration() {
 sealed class AuthConfiguration
 
 data class TokenAuthConfiguration(
-    val base64EncodedKey: String
+    val keyEncryptedBase64: EncryptedSecret
 ) : AuthConfiguration()
 
 data class DummyAuthConfiguration(
     val _dummy: Int = 0
 ) : AuthConfiguration()
+
+val DEV_MASTER_KEY_BASE64 = UnsafeSecret("TyHTfhBcy/QT8W7iNaktCSz32qGfxVctboTZfOnfMZE=")

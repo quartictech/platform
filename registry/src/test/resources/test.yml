@@ -6,11 +6,5 @@ customers:
     githubOrgId: 30663321
     githubRepoId: 555
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 0
-  adminConnectors:
-    - type: http
-      port: 0
+url:
+  randomPort: true

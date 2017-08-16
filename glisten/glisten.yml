@@ -1,12 +1,6 @@
 bildUrl: http://localhost:8200/api
 
-secretToken: JaXAybVPJmDaLk2Z7fMx
+webhookSecretEncrypted: 1$750bce4cb6ce303cd178e305$2a27e18ace8b746083a087d0683f87e85964da70$f5123f534b44aadc2bb68b7e1bdc668a
 
-server:
-  applicationContextPath: /
-  applicationConnectors:
-    - type: http
-      port: 8170
-  adminConnectors:
-    - type: http
-      port: 8171
+url:
+  port: 8170
