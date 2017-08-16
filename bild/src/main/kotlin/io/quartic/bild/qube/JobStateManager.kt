@@ -60,15 +60,21 @@ class JobStateManager(
         }
     }
 
-    fun getLogs(): Map<String, String> {
+    fun getLogs(): Map<String, String?> {
         val job = client.getJob(jobName)
         if (job?.spec?.selector != null) {
             val pods = client.listPodsForJob(job)
-            return pods.map { pod ->
-                val podName = pod.metadata.name
-                val logs = client.getLogs(podName)
-                podName to logs
-            }
+            return pods
+                .map { pod ->
+                    val podName = pod.metadata.name
+                    var logs: String? = null
+                    try {
+                        logs = client.getLogs(podName)
+                    } catch (e: Exception) {
+                        log.warn("[{}] Exception while fetching logs for pod: {}", jobName, podName)
+                    }
+                    podName to logs
+                }
                 .groupBy({ p -> p.first })
                 .mapValues { v -> v.value.first().second }
         }
