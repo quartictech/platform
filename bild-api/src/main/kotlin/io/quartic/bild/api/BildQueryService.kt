@@ -20,5 +20,5 @@ interface BildQueryService {
     @Produces(MediaType.APPLICATION_JSON)
     fun dag(
         @Param("customerId") @PathParam("customerId") customerId: CustomerId
-    ): Dag?
+    ): Dag
 }

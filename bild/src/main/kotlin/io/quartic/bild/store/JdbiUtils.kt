@@ -35,7 +35,7 @@ internal class UidArgumentFactory : AbstractArgumentFactory<Uid>(Types.VARCHAR) 
         Argument { position, statement, ctx -> statement!!.setLong(position, value.uid.toLong()) }
 }
 
-internal class PGobjectArgumentFactory : AbstractArgumentFactory<PGobject>(Types.JAVA_OBJECT) {
+internal class PgObjectArgFactory : AbstractArgumentFactory<PGobject>(Types.JAVA_OBJECT) {
     override fun build(value: PGobject, config: ConfigRegistry) =
         Argument { position, statement, ctx -> statement!!.setObject(position, value) }
 }
@@ -63,6 +63,6 @@ fun setupDbi(dbi: Jdbi): Jdbi {
     dbi.installPlugin(KotlinSqlObjectPlugin())
     dbi.installPlugin(PostgresPlugin())
     dbi.registerArgument(UidArgumentFactory())
-    dbi.registerArgument(PGobjectArgumentFactory())
+    dbi.registerArgument(PgObjectArgFactory())
     return dbi
 }

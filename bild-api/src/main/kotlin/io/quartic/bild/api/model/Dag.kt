@@ -7,7 +7,7 @@ data class DagNodeData(
 )
 
 data class DagEdgeData(
-    val id: Int,
+    val id: Long,
     val source: String,
     val target: String
 )

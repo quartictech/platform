@@ -8,7 +8,7 @@ import io.quartic.bild.model.BuildPhase
 import io.quartic.bild.api.model.Dag
 import io.quartic.bild.model.Build
 import io.quartic.bild.resource.TriggerResource
-import io.quartic.bild.store.JobStore
+import io.quartic.bild.store.BuildStore
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.registry.api.RegistryServiceClient
@@ -20,10 +20,10 @@ import java.util.concurrent.CompletableFuture
 
 class TriggerResourceShould {
     private val dag = OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)
-    private val jobResults = mock<JobStore>()
+    private val buildStore = mock<BuildStore>()
     private val queue = mock<BlockingQueue<BuildJob>>()
     private val registry = mock<RegistryServiceClient>()
-    private val resource = TriggerResource(queue, registry, jobResults)
+    private val resource = TriggerResource(queue, registry, buildStore)
     private val bildId = BuildId("noob")
 
     private val laDispute = Customer(
@@ -36,13 +36,13 @@ class TriggerResourceShould {
     )
 
     init {
-        whenever(jobResults.getLatest(CustomerId("111")))
+        whenever(buildStore.getLatest(CustomerId("111")))
             .thenReturn(BuildId("100"))
 
-        whenever(jobResults.createJob(any(), any(), any(), any(), any(), any()))
+        whenever(buildStore.createBuild(any(), any(), any(), any(), any(), any()))
             .thenReturn(bildId)
 
-        whenever(jobResults.getBuild(BuildId("100")))
+        whenever(buildStore.getBuild(BuildId("100")))
             .thenReturn(Build(dag))
 
         whenever(registry.getCustomer(anyOrNull(), anyOrNull()))

@@ -7,10 +7,10 @@ import org.apache.commons.io.IOUtils.copy
 import javax.ws.rs.*
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.StreamingOutput
-import io.quartic.bild.store.JobStore
+import io.quartic.bild.store.BuildStore
 
 @Path("/backchannel")
-class BackChannelResource(private val jobStore: JobStore) {
+class BackChannelResource(private val buildStore: BuildStore) {
     val resource = javaClass.getResource("/quarty.tar.gz")
 
     init {
@@ -20,7 +20,7 @@ class BackChannelResource(private val jobStore: JobStore) {
     @Path("/{buildId}")
     @POST
     fun backchannel(@PathParam("buildId") buildId: BuildId, data: Dag) {
-        jobStore.setDag(buildId, data)
+        buildStore.setDag(buildId, data)
     }
 
     // TODO - this is gross, but given that we have this backchannel endpoint, it will suffice for now

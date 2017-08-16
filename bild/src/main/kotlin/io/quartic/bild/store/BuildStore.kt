@@ -3,28 +3,20 @@ package io.quartic.bild.store
 import io.quartic.bild.api.model.Dag
 import io.quartic.bild.model.*
 import io.quartic.common.model.CustomerId
-import io.quartic.common.serdes.OBJECT_MAPPER
 import org.flywaydb.core.Flyway
-import org.jdbi.v3.core.mapper.RowMapper
-import org.jdbi.v3.core.statement.StatementContext
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.jdbi.v3.sqlobject.transaction.Transaction
-import java.sql.ResultSet
 import java.time.Instant
 import javax.sql.DataSource
 
-
-
-
-
 @RegisterRowMapper(BuildMapper::class)
-interface JobStore {
-    fun createJob(customerId: CustomerId, installationId: Long, cloneUrl: String,
-                           ref: String, commit: String, phase: BuildPhase): BuildId {
+interface BuildStore {
+    fun createBuild(customerId: CustomerId, installationId: Long, cloneUrl: String,
+                    ref: String, commit: String, phase: BuildPhase): BuildId {
         return BuildId(insertBuild(customerId, installationId, cloneUrl, ref,
             commit, phase, Instant.now()).toString())
     }
