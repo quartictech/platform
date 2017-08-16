@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: quartic/uber-builder:67
+      - image: quartic/uber-builder:89
 
     working_directory: ~/platform
 
@@ -13,8 +13,8 @@ jobs:
       - restore_cache:
           keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
-            - platform-{{ .Branch }}-gradle
-            - platform-develop-gradle
+            - platform-v2-{{ .Branch }}-gradle
+            - platform-v2-develop-gradle
 
       # We don't install Yarn in parallel because NPM is raging
       - run:
@@ -30,22 +30,22 @@ jobs:
 
       - run:
           name: Calculate Gradle checksum file
-          command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > /gradle.txt
+          command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > ~/gradle.txt
 
       - save_cache:
-          key: platform-{{ .Branch }}-gradle-{{ checksum "/gradle.txt" }}
+          key: platform-v2-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
           paths:
             - ~/.gradle
 
       - run:
           name: Collect test results
           command: |
-            mkdir -p /test-results
-            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} /test-results/ \;
+            mkdir -p ~/test-results
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/ \;
           when: always
 
       - store_test_results:
-          path: /test-results/
+          path: ~/test-results/
 
       - setup_remote_docker:
           reusable: true

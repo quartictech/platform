@@ -3,6 +3,7 @@ package io.quartic.bild.api
 import feign.Headers
 import feign.Param
 import feign.RequestLine
+import io.quartic.bild.api.model.Dag
 import io.quartic.common.model.CustomerId
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -19,5 +20,5 @@ interface BildQueryService {
     @Produces(MediaType.APPLICATION_JSON)
     fun dag(
         @Param("customerId") @PathParam("customerId") customerId: CustomerId
-    ): Any
+    ): Dag
 }

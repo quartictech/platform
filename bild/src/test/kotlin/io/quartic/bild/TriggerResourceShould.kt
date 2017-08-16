@@ -2,12 +2,15 @@ package io.quartic.bild
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.bild.api.model.TriggerDetails
-import io.quartic.bild.model.BildId
-import io.quartic.bild.model.BildJob
-import io.quartic.bild.model.BildPhase
+import io.quartic.bild.model.BuildId
+import io.quartic.bild.model.BuildJob
+import io.quartic.bild.model.BuildPhase
+import io.quartic.bild.api.model.Dag
+import io.quartic.bild.model.Build
 import io.quartic.bild.resource.TriggerResource
+import io.quartic.bild.store.BuildStore
 import io.quartic.common.model.CustomerId
-import io.quartic.common.uid.UidGenerator
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.junit.Test
@@ -15,15 +18,13 @@ import java.time.Instant
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CompletableFuture
 
-
 class TriggerResourceShould {
-    private val dag = mapOf("noob" to "yes")
-    private val jobResults = mock<JobResultStore>()
-    private val queue = mock<BlockingQueue<BildJob>>()
-    private val idGenerator = mock<UidGenerator<BildId>>()
+    private val dag = OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)
+    private val buildStore = mock<BuildStore>()
+    private val queue = mock<BlockingQueue<BuildJob>>()
     private val registry = mock<RegistryServiceClient>()
-    private val resource = TriggerResource(queue, registry, idGenerator)
-    private val bildId = BildId("noob")
+    private val resource = TriggerResource(queue, registry, buildStore)
+    private val bildId = BuildId("noob")
 
     private val laDispute = Customer(
         CustomerId(1L),
@@ -35,16 +36,14 @@ class TriggerResourceShould {
     )
 
     init {
-        whenever(jobResults.getLatest(CustomerId("111")))
-            .thenReturn(JobResultStore.Record(null, dag))
+        whenever(buildStore.createBuild(any(), any(), any(), any(), any(), any()))
+            .thenReturn(bildId)
 
-        whenever(idGenerator.get()).thenReturn(bildId)
         whenever(registry.getCustomer(anyOrNull(), anyOrNull()))
             .thenReturn(CompletableFuture.completedFuture(null))
 
         whenever(registry.getCustomer(anyOrNull(), eq(123456L)))
             .thenReturn(CompletableFuture.completedFuture(laDispute))
-
     }
 
     @Test
@@ -61,14 +60,14 @@ class TriggerResourceShould {
         ))
 
         verify(registry).getCustomer(isNull(), eq(123456L))
-        verify(queue).put(BildJob(
+        verify(queue).put(BuildJob(
             bildId,
             laDispute.id,
             0L,
             "https://no",
             "wat",
             "hash",
-            BildPhase.TEST
+            BuildPhase.TEST
         ))
     }
 
