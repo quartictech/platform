@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -20,8 +21,9 @@ fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
     .registerModule(JavaTimeModule())
     .registerModule(KotlinModule())
     .setSerializationInclusion(Include.NON_NULL)
-    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-    .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
+    .disable(SerializationFeature.INDENT_OUTPUT)
+    .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+    .enable(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS)
 
 fun encode(obj: Any) = try {
     OBJECT_MAPPER.writeValueAsString(obj)
