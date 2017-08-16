@@ -4,9 +4,8 @@ import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.JobBuilder
-import io.quartic.bild.JobResultStore
 import io.quartic.bild.KubernetesConfiguraration
-import io.quartic.bild.model.BildJob
+import io.quartic.bild.model.BuildJob
 import io.quartic.common.logging.logger
 import io.quartic.github.GithubInstallationClient
 import org.slf4j.LoggerFactory
@@ -14,21 +13,22 @@ import rx.Observable
 import rx.schedulers.Schedulers
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
+import io.quartic.bild.store.BuildStore
 
 class Worker(
     private val configuration: KubernetesConfiguraration,
-    private val queue: BlockingQueue<BildJob>,
+    private val queue: BlockingQueue<BuildJob>,
     private val client: Qube,
     private val events: Observable<Event>,
-    private val jobResults: JobResultStore,
+    private val buildStore: BuildStore,
     github: GithubInstallationClient,
-    private val jobStateManagerFactory: (job: BildJob) -> JobStateManager = { job: BildJob -> createJobRunner(client, configuration, job, github) },
+    private val jobStateManagerFactory: (job: BuildJob) -> JobStateManager = { job: BuildJob -> createJobRunner(client, configuration, job, github) },
     private val jobLoop: JobLoop = JobLoop()
 ): Runnable {
     val log by logger()
     val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())!!
 
-    fun eventObservable(job: BildJob) = events
+    fun eventObservable(job: BuildJob) = events
         .filter { event -> event.involvedObject.name == jobName(job) }
 
     override fun run() {
@@ -38,7 +38,7 @@ class Worker(
         }
     }
 
-    fun runJob(job: BildJob) {
+    fun runJob(job: BuildJob) {
         try {
             val jobName = jobName(job)
             log.info("Starting job: {}", jobName(job))
@@ -49,7 +49,7 @@ class Worker(
                 jobRunner.start()
                 val result = jobLoop.loop(jobName, jobRunner)
                 log.info("[{}] Job completed with result: {}", jobName, result)
-                jobResults.putJobResult(job, result)
+                buildStore.setJobResult(job, result)
             }
             catch (e: Exception) {
                 log.error("Exception while running job", e)
@@ -66,7 +66,7 @@ class Worker(
 
     companion object {
         val log = LoggerFactory.getLogger(this::class.java)
-        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BildJob, github: GithubInstallationClient) = JobStateManager(
+        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BuildJob, github: GithubInstallationClient) = JobStateManager(
                 createJob(configuration, job, github),
                 jobName(job),
                 client,
@@ -75,7 +75,7 @@ class Worker(
                 configuration.runTimeoutSeconds
         )
 
-        fun createJob(configuration: KubernetesConfiguraration, job: BildJob, github: GithubInstallationClient): Job {
+        fun createJob(configuration: KubernetesConfiguraration, job: BuildJob, github: GithubInstallationClient): Job {
             val env = mutableListOf(
                 EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
                 EnvVar("QUARTIC_JOB_ID", job.id.id, null),
@@ -103,6 +103,6 @@ class Worker(
                 .build()
         }
 
-        fun jobName(job: BildJob) = "bild-${job.id.id}"
+        fun jobName(job: BuildJob) = "bild-${job.id.id}"
     }
 }
