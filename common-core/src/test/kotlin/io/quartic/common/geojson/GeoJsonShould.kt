@@ -1,6 +1,5 @@
 package io.quartic.common.geojson
 
-import com.fasterxml.jackson.databind.SerializationFeature
 import io.quartic.common.serdes.OBJECT_MAPPER
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
@@ -41,8 +40,6 @@ class GeoJsonShould {
                                 listOf(105.0, 1.0)
                         ))
                 )))))
-
-        OBJECT_MAPPER.enable(SerializationFeature.INDENT_OUTPUT)
 
         val sw = StringWriter()
         OBJECT_MAPPER.writeValue(sw, original)

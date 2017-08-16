@@ -12,7 +12,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 class ObjectMappersShould {
-
     data class Foo(val x: Double)
 
     @Test
