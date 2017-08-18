@@ -34,7 +34,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val tokenGenerator = TokenGenerator(
             configuration.auth as TokenAuthConfiguration,
             configuration.secretsCodec,
-            Duration.ofMinutes(configuration.tokenTimeToLiveMinutes.toLong())
+            Duration.ofSeconds(configuration.cookies.maxAgeSeconds.toLong())
         )
 
         with (environment.jersey()) {

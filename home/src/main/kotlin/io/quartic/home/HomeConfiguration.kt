@@ -24,6 +24,5 @@ data class HomeConfiguration(
     val registryUrl: String,
     val qubeUrl: String,
     var github: GithubConfiguration,
-    val cookies: CookiesConfiguration,
-    val tokenTimeToLiveMinutes: Int = 60
+    val cookies: CookiesConfiguration
 ): ConfigurationBase()
