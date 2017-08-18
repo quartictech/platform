@@ -12,10 +12,10 @@ import io.quartic.common.client.client
 import io.quartic.common.client.retrofitClient
 import io.quartic.common.client.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
-import io.quartic.howl.api.HowlClient
 import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.HomeResource
 import io.quartic.home.resource.UserResource
+import io.quartic.howl.api.HowlClient
 import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
@@ -34,7 +34,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val tokenGenerator = TokenGenerator(
             configuration.auth as TokenAuthConfiguration,
             configuration.secretsCodec,
-            Duration.ofMinutes(configuration.tokenTimeToLiveMinutes.toLong())
+            Duration.ofSeconds(configuration.cookies.maxAgeSeconds.toLong())
         )
 
         with (environment.jersey()) {
