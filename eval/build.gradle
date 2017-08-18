@@ -1,0 +1,35 @@
+import io.quartic.gradle.service.ServicePlugin
+
+plugins {
+    id "nebula.kotlin" version "1.1.4"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+apply plugin: ServicePlugin
+
+service {
+    mainClassName = "io.quartic.eval.EvalApplication"
+    memory = System.env.EVAL_MEMORY ?: "32m"
+}
+
+repositories {
+    jcenter()   // For coroutines
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":registry-api")
+    compile project(":qube-api")
+    compile project(":github")
+
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.17"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.17"
+
+    testCompile project(":common-test")
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}

@@ -16,6 +16,8 @@ include "catalogue"
 include "catalogue-api"
 include "catalogue-utils"
 
+include "eval"
+
 include "glisten"
 
 include "home"

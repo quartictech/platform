@@ -5,6 +5,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.net.URI
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -59,7 +60,7 @@ class GithubModelShould {
                     name = "test",
                     fullName = "choliver/test",
                     private = false,
-                    cloneUrl = "https://github.com/choliver/test.git"
+                    cloneUrl = URI("https://github.com/choliver/test.git")
                 ),
                 installation = Installation(40706)
             )
@@ -116,7 +117,7 @@ class GithubModelShould {
                     name = "platform",
                     fullName = "quartictech/platform",
                     private = true,
-                    cloneUrl = "https://github.com/quartictech/platform.git"
+                    cloneUrl = URI("https://github.com/quartictech/platform.git")
                 ),
                 installation = Installation(40737)
             )

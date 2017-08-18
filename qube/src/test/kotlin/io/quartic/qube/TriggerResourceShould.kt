@@ -11,6 +11,7 @@ import io.quartic.qube.store.BuildStore
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.junit.Test
+import java.net.URI
 import java.time.Instant
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CompletableFuture
@@ -35,10 +36,10 @@ class TriggerResourceShould {
         whenever(buildStore.createBuild(any(), any(), any(), any(), any(), any()))
             .thenReturn(buildId)
 
-        whenever(registry.getCustomer(anyOrNull(), anyOrNull()))
+        whenever(registry.getCustomerAsync(anyOrNull(), anyOrNull()))
             .thenReturn(CompletableFuture.completedFuture(null))
 
-        whenever(registry.getCustomer(anyOrNull(), eq(123456L)))
+        whenever(registry.getCustomerAsync(anyOrNull(), eq(123456L)))
             .thenReturn(CompletableFuture.completedFuture(laDispute))
     }
 
@@ -49,13 +50,13 @@ class TriggerResourceShould {
             "wat",
             0L,
             123456L,
-            "https://no",
+            URI("https://no"),
             "wat",
             "hash",
             Instant.now()
         ))
 
-        verify(registry).getCustomer(isNull(), eq(123456L))
+        verify(registry).getCustomerAsync(isNull(), eq(123456L))
         verify(queue).put(BuildJob(
             buildId,
             laDispute.id,
@@ -74,13 +75,13 @@ class TriggerResourceShould {
             "wat",
             0L,
             123L,
-            "https://no",
+            URI("https://no"),
             "wat",
             "hash",
             Instant.now()
         ))
 
-        verify(registry).getCustomer(isNull(), eq(123L))
+        verify(registry).getCustomerAsync(isNull(), eq(123L))
         verify(queue, never()).put(any())
     }
 }
