@@ -1,7 +1,6 @@
 package io.quartic.home
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
@@ -11,6 +10,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.home.resource.HomeResource
 import io.quartic.howl.api.HowlService
+import io.quartic.qube.api.QubeQueryService
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
@@ -43,9 +43,9 @@ class HomeResourceShould {
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
     private val registry = mock<RegistryServiceClient>()
-    private val bild = mock<BildQueryService>()
+    private val qube = mock<QubeQueryService>()
 
-    private val resource = HomeResource(catalogue, howl, bild, registry)
+    private val resource = HomeResource(catalogue, howl, qube, registry)
 
     @Before
     fun before() {

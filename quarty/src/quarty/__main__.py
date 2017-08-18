@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# TODO: Remove these once we put appropriate logic in bild
+# TODO: Remove these once we put appropriate logic in qube
 QUARTIC_REPO = os.environ["QUARTIC_REPO"]
 QUARTIC_COMMIT = os.environ["QUARTIC_COMMIT_REF"]
 QUARTIC_PHASE = "test"

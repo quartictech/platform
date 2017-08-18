@@ -1,8 +1,8 @@
 package io.quartic.glisten
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.quartic.bild.api.BildTriggerService
-import io.quartic.bild.api.model.TriggerDetails
+import io.quartic.qube.api.QubeTriggerService
+import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -20,7 +20,7 @@ import javax.ws.rs.core.MediaType
 @Path("/hooks/github")
 class GithubResource(
     private val secret: UnsafeSecret,
-    private val trigger: BildTriggerService,
+    private val trigger: QubeTriggerService,
     private val clock: Clock = Clock.systemUTC()
 ) {
     // TODO - handle DoS due to massive payload causing OOM
