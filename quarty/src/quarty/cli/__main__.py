@@ -4,12 +4,10 @@ import subprocess
 import tempfile
 import yaml
 import logging
-import aiohttp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# TODO: Remove these once we put appropriate logic in bild
 QUARTIC_REPO = os.environ["QUARTIC_REPO"]
 QUARTIC_COMMIT = os.environ["QUARTIC_COMMIT_REF"]
 QUARTIC_PHASE = "test"
