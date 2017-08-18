@@ -38,9 +38,6 @@ include "github"
 
 // Services
 
-include "bild"
-include "bild-api"
-
 include "catalogue"
 include "catalogue-api"
 include "catalogue-utils"
@@ -52,6 +49,9 @@ include "home-frontend"
 
 include "howl"
 include "howl-api"
+
+include "qube"
+include "qube-api"
 
 include "rain"
 

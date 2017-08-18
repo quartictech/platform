@@ -1,4 +1,4 @@
-bildUrl: http://localhost:8200/api
+qubeUrl: http://localhost:8200/api
 
 webhookSecretEncrypted: 1$750bce4cb6ce303cd178e305$2a27e18ace8b746083a087d0683f87e85964da70$f5123f534b44aadc2bb68b7e1bdc668a
 
