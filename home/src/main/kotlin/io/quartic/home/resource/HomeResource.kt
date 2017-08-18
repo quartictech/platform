@@ -1,7 +1,6 @@
 package io.quartic.home.resource
 
 import io.dropwizard.auth.Auth
-import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
@@ -18,6 +17,7 @@ import io.quartic.home.FileType.*
 import io.quartic.home.conversion.CsvConverter
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
+import io.quartic.qube.api.QubeQueryService
 import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
 import java.io.IOException
@@ -33,7 +33,7 @@ import javax.ws.rs.core.MediaType
 class HomeResource(
     private val catalogue: CatalogueService,
     private val howl: HowlService,
-    private val bild: BildQueryService,
+    private val qube: QubeQueryService,
     private val registry: RegistryServiceClient
 ) {
     private val LOG by logger()
@@ -44,7 +44,7 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User) = bild.dag(user.customerId!!)
+    fun getDag(@Auth user: User) = qube.dag(user.customerId!!)
 
     @GET
     @Path("/datasets")

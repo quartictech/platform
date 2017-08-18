@@ -22,7 +22,7 @@ data class HomeConfiguration(
     val catalogueUrl: String,
     val howlUrl: String,
     val registryUrl: String,
-    val bildUrl: String,
+    val qubeUrl: String,
     var github: GithubConfiguration,
     val cookies: CookiesConfiguration
 ): ConfigurationBase()

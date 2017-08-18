@@ -3,7 +3,6 @@ package io.quartic.home
 import io.dropwizard.assets.AssetsBundle
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
-import io.quartic.bild.api.BildQueryService
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.application.TokenAuthConfiguration
@@ -16,6 +15,7 @@ import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.HomeResource
 import io.quartic.home.resource.UserResource
 import io.quartic.howl.api.HowlClient
+import io.quartic.qube.api.QubeQueryService
 import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
@@ -29,7 +29,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = client<CatalogueService>(javaClass, configuration.catalogueUrl)
         val registry = retrofitClient<RegistryServiceClient>(javaClass, configuration.registryUrl)
-        val bild = client<BildQueryService>(javaClass, configuration.bildUrl)
+        val qube = client<QubeQueryService>(javaClass, configuration.qubeUrl)
 
         val tokenGenerator = TokenGenerator(
             configuration.auth as TokenAuthConfiguration,
@@ -42,7 +42,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
             register(HomeResource(
                 catalogue,
                 howl,
-                bild,
+                qube,
                 registry
             ))
             register(AuthResource(
