@@ -3,6 +3,7 @@ import logging
 import tempfile
 import os
 import asyncio
+import json
 import yaml
 
 logging.basicConfig(level=logging.INFO)
@@ -39,8 +40,6 @@ def load_config(path):
         return yaml.load(stream)
 
 async def initialise_repo(repo_url, repo_commit):
-    temp_path = tempfile.mkdtemp()
-    os.chdir(temp_path)
     logger.info("Cloning repo: %s, commit: %s", repo_url, repo_commit)
     rc = await _run_subprocess(["git", "clone", repo_url, "build"])
     if rc != 0:
@@ -58,5 +57,18 @@ async def initialise_repo(repo_url, repo_commit):
         return load_config("quartic.yml")
     except Exception as e:
         raise QuartyException("Exception loading quartic.yml: {}", e)
+
+async def evaluate(path, modules, stdout_cb, stderr_cb):
+    cmd = ["python", "-u", "-m", "quartic.pipeline", "--evaluate", 
+           "../steps.json", "--exception", "../exception.json"] + modules
+    logger.info("Executing: %s", cmd)
+    rc = await _stream_subprocess(cmd, stdout_cb, stderr_cb)
+    if rc != 0:
+        exception = json.load(open("../exception.json"))
+        raise QuartyException(exception)
+    else:
+        return json.load(open("../steps.json"))
+
+
 
    
