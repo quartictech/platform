@@ -1,5 +1,6 @@
 package io.quartic.hey
 
+import io.quartic.common.client.userAgentFor
 import io.quartic.common.logging.logger
 import io.quartic.hey.model.SlackAttachment
 import io.quartic.hey.model.SlackColor
@@ -12,13 +13,15 @@ import io.vertx.ext.web.client.WebClientOptions
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.LoggerFormat
 import io.vertx.ext.web.handler.LoggerHandler
+import java.net.URI
+import java.time.Instant
 
-class Hey : AbstractVerticle() {
+class HeyApplication : AbstractVerticle() {
 
     private val LOG by logger()
 
     override fun start() {
-        val client = WebClient.create(vertx, WebClientOptions().setUserAgent("Quartic-Hey"))
+        val client = WebClient.create(vertx, WebClientOptions().setUserAgent(userAgentFor(javaClass)))
 
         val router = Router.router(vertx)
 
@@ -32,29 +35,32 @@ class Hey : AbstractVerticle() {
                 attachments = listOf(
                     SlackAttachment(
                         title = "Build #37 failure",
+                        titleLink = URI("https://www.quartic.io"),
+                        text = "There was a serious problem here.",
+                        timestamp = Instant.now(),
                         color = SlackColor.DANGER
                     )
                 )
             )
 
-            LOG.info("Sending message to Slack")
-
-            client.post(80, "hooks.slack.com", "/services/$SLACK_TOKEN")
+            client.post(443, "hooks.slack.com", "/services/$SLACK_TOKEN")
+                .ssl(true)
                 .sendJson(message) { ar ->
-                    if (ar.succeeded()) {
+                    if (ar.succeeded() && ar.result().statusCode() in 200..299) {
                         LOG.info("Message sent successfully")
-                        ctx.response().end("Message sent")
                     } else {
                         LOG.error("Message failed: ${ar.cause().message})")
-                        ctx.fail(500)
                     }
                 }
+            ctx.response().end()
         }
 
         vertx.createHttpServer()
             .requestHandler { router.accept(it) }
             .listen(DEV_PORT) { res ->
-                if (res.failed()) {
+                if (res.succeeded()) {
+                    LOG.info("Listening on port ${DEV_PORT}")
+                } else {
                     LOG.error("Could not start server", res.cause())
                     vertx.close()
                 }
@@ -65,12 +71,12 @@ class Hey : AbstractVerticle() {
         @JvmStatic
         fun main(args: Array<String>) {
             val vertx = Vertx.vertx()
-            vertx.deployVerticle(Hey())
+            vertx.deployVerticle(HeyApplication())
         }
 
         val DEV_PORT = 8220     // TODO
 
-        val SLACK_TOKEN = "https://hooks.slack.com/services/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"
+        val SLACK_TOKEN = "T2CTQKSKU/B6QQVQENP/D2rEcAxbaiZOILANc7cTs48R"
         val SLACK_CHANNEL = "#infrastructure"
         val SLACK_USERNAME = "Quartic Hey"
     }

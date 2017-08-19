@@ -3,7 +3,10 @@ package io.quartic.hey
 import io.quartic.hey.model.SlackAttachment
 import io.quartic.hey.model.SlackColor
 import io.quartic.hey.model.SlackMessage
+import io.vertx.core.json.Json
 import org.junit.Test
+import java.net.URI
+import java.time.Instant
 
 class Slack {
     @Test
@@ -14,15 +17,13 @@ class Slack {
             attachments = listOf(
                 SlackAttachment(
                     title = "Build #37 failure",
-                    color = SlackColor.DANGER
+                    titleLink = URI("https://www.quartic.io"),
+                    color = SlackColor.DANGER,
+                    timestamp = Instant.now()
                 )
             )
         )
 
-
-    }
-
-    companion object {
-        val SLACK_TOKEN = "T2CTQKSKU/B6QQVQENP/D2rEcAxbaiZOILANc7cTs48R"
+        println(Json.encode(message))
     }
 }
