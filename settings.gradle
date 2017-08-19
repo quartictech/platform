@@ -18,6 +18,8 @@ include "catalogue-utils"
 
 include "glisten"
 
+include "hey"
+
 include "home"
 include "home-frontend"
 
@@ -41,5 +43,3 @@ include "weyl-frontend"
 
 include "zeus"
 include "zeus-frontend"
-
-include "yeah"

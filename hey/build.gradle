@@ -4,5 +4,8 @@ plugins {
 }
 
 dependencies {
-    compile "io.vertx:vertx-web:3.4.1"
+    compile project(":common-core")
+    compile "io.vertx:vertx-web:3.4.2"
+
+    runtime "ch.qos.logback:logback-classic:1.2.3"
 }
