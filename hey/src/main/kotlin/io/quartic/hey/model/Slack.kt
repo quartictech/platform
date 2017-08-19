@@ -19,7 +19,8 @@ data class SlackAttachment(
     @get:JsonProperty("title_link")
     val titleLink: URI? = null,
     val pretext: String? = null,
-    val text: String? = null,
+    val text: String,
+    val fields: List<SlackField> = emptyList(),
     val footer: String? = null,
     @get:JsonProperty("footer_icon")
     val footerIcon: URI? = null,
@@ -27,9 +28,16 @@ data class SlackAttachment(
     val timestamp: Instant? = null,
     val color: SlackColor? = SlackColor.QUARTIC
 ) {
+    // Gross workaround for Jackson's apparent inability to format as integer seconds-since-epoch
     @get:JsonGetter("ts")
     val timestampAsSeconds = timestamp?.epochSecond
 }
+
+class SlackField(
+    val title: String,
+    val value: String,
+    val short: Boolean? = null
+)
 
 class SlackColor(private val value: String) {
     @JsonValue

@@ -4,6 +4,7 @@ import io.quartic.common.client.userAgentFor
 import io.quartic.common.logging.logger
 import io.quartic.hey.model.SlackAttachment
 import io.quartic.hey.model.SlackColor
+import io.quartic.hey.model.SlackField
 import io.quartic.hey.model.SlackMessage
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Vertx
@@ -37,6 +38,10 @@ class HeyApplication : AbstractVerticle() {
                         title = "Build #37 failure",
                         titleLink = URI("https://www.quartic.io"),
                         text = "There was a serious problem here.",
+                        fields = listOf(
+                            SlackField("Repo", "Noobhole", true),
+                            SlackField("Ref", "develop", true)
+                        ),
                         timestamp = Instant.now(),
                         color = SlackColor.DANGER
                     )

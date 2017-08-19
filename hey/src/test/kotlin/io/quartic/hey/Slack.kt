@@ -18,6 +18,7 @@ class Slack {
                 SlackAttachment(
                     title = "Build #37 failure",
                     titleLink = URI("https://www.quartic.io"),
+                    text = "Absolutely noob",
                     color = SlackColor.DANGER,
                     timestamp = Instant.now()
                 )
