@@ -6,6 +6,9 @@ plugins {
 dependencies {
     compile project(":common-core")
     compile "io.vertx:vertx-web:3.4.2"
+    compile "io.vertx:vertx-web-client:3.4.2"
 
     runtime "ch.qos.logback:logback-classic:1.2.3"
+
+    testCompile project(":common-test")
 }
