@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
 import java.net.URI
-import java.time.Instant
+import java.time.OffsetDateTime
 
 data class SlackMessage(
     val username: String,
@@ -25,12 +25,12 @@ data class SlackAttachment(
     @get:JsonProperty("footer_icon")
     val footerIcon: URI? = null,
     @get:JsonIgnore
-    val timestamp: Instant? = null,
+    val timestamp: OffsetDateTime? = null,
     val color: SlackColor? = SlackColor.QUARTIC
 ) {
     // Gross workaround for Jackson's apparent inability to format as integer seconds-since-epoch
     @get:JsonGetter("ts")
-    val timestampAsSeconds = timestamp?.epochSecond
+    val timestampAsSeconds = timestamp?.toEpochSecond()
 }
 
 class SlackField(

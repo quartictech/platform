@@ -19,6 +19,7 @@ include "catalogue-utils"
 include "glisten"
 
 include "hey"
+include "hey-api"
 
 include "home"
 include "home-frontend"

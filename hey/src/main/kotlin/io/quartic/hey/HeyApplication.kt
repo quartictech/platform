@@ -1,88 +1,70 @@
 package io.quartic.hey
 
-import io.quartic.common.client.userAgentFor
-import io.quartic.common.logging.logger
+import com.google.common.base.Throwables.getRootCause
+import io.quartic.common.vertx.ApplicationBase
+import io.quartic.hey.api.HeyColor
+import io.quartic.hey.api.HeyNotification
 import io.quartic.hey.model.SlackAttachment
 import io.quartic.hey.model.SlackColor
 import io.quartic.hey.model.SlackField
 import io.quartic.hey.model.SlackMessage
-import io.vertx.core.AbstractVerticle
-import io.vertx.core.Vertx
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.client.WebClient
-import io.vertx.ext.web.client.WebClientOptions
-import io.vertx.ext.web.handler.BodyHandler
-import io.vertx.ext.web.handler.LoggerFormat
-import io.vertx.ext.web.handler.LoggerHandler
-import java.net.URI
-import java.time.Instant
+import io.vertx.core.Future
+import io.vertx.core.json.JsonObject
 
-class HeyApplication : AbstractVerticle() {
+class HeyApplication : ApplicationBase(HEY_DEV_PORT) {
+    override fun customise(future: Future<Void>, rawConfig: JsonObject) {
+        val config = getConfiguration<HeyConfiguration>()
+        val slackToken = config.slackTokenEncrypted.decrypt()
 
-    private val LOG by logger()
+        router.post("/").handler { ctx ->
+            ctx.withConvertedBody<HeyNotification> { note ->
+                val message = noteToMessage(config, note)
 
-    override fun start() {
-        val client = WebClient.create(vertx, WebClientOptions().setUserAgent(userAgentFor(javaClass)))
-
-        val router = Router.router(vertx)
-
-        router.route().handler(LoggerHandler.create(LoggerFormat.SHORT))
-        router.route().handler(BodyHandler.create())    // TODO - do we need this?
-
-        router.get("/").handler { ctx ->
-            val message = SlackMessage(
-                username = SLACK_USERNAME,
-                channel = SLACK_CHANNEL,
-                attachments = listOf(
-                    SlackAttachment(
-                        title = "Build #37 failure",
-                        titleLink = URI("https://www.quartic.io"),
-                        text = "There was a serious problem here.",
-                        fields = listOf(
-                            SlackField("Repo", "Noobhole", true),
-                            SlackField("Ref", "develop", true)
-                        ),
-                        timestamp = Instant.now(),
-                        color = SlackColor.DANGER
-                    )
-                )
-            )
-
-            client.post(443, "hooks.slack.com", "/services/$SLACK_TOKEN")
-                .ssl(true)
-                .sendJson(message) { ar ->
-                    if (ar.succeeded() && ar.result().statusCode() in 200..299) {
-                        LOG.info("Message sent successfully")
-                    } else {
-                        LOG.error("Message failed: ${ar.cause().message})")
+                client.post(443, "hooks.slack.com", "/services/${slackToken.veryUnsafe}")
+                    .ssl(true)
+                    .sendJson(message) { ar ->
+                        if (ar.succeeded() && ar.result().statusCode() in 200..299) {
+                            LOG.info("Message sent successfully")
+                        } else {
+                            LOG.error("Message failed: ${getRootCause(ar.cause()).message})")
+                        }
                     }
-                }
-            ctx.response().end()
-        }
-
-        vertx.createHttpServer()
-            .requestHandler { router.accept(it) }
-            .listen(DEV_PORT) { res ->
-                if (res.succeeded()) {
-                    LOG.info("Listening on port ${DEV_PORT}")
-                } else {
-                    LOG.error("Could not start server", res.cause())
-                    vertx.close()
-                }
+                ctx.response().end()
             }
+        }
     }
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val vertx = Vertx.vertx()
-            vertx.deployVerticle(HeyApplication())
+    private fun noteToMessage(config: HeyConfiguration, note: HeyNotification) = SlackMessage(
+        username = config.slackUsername,
+        channel = config.slackChannel,
+        attachments = note.attachments.map { a ->
+            SlackAttachment(
+                title = a.title,
+                titleLink = a.titleLink,
+                text = a.text,
+                fields = a.fields.map { f ->
+                    SlackField(
+                        title = f.title,
+                        value = f.value,
+                        short = f.short
+                    )
+                },
+                footer = a.footer,
+                timestamp = a.timestamp,
+                color = when (a.color) {
+                    HeyColor.GOOD -> SlackColor.GOOD
+                    HeyColor.WARNING -> SlackColor.WARNING
+                    HeyColor.DANGER -> SlackColor.DANGER
+                    HeyColor.QUARTIC -> SlackColor.QUARTIC
+                    null -> null
+                }
+            )
         }
+    )
 
-        val DEV_PORT = 8220     // TODO
+    companion object {
+        @JvmStatic fun main(args: Array<String>) = deploy(HeyApplication())
 
-        val SLACK_TOKEN = "T2CTQKSKU/B6QQVQENP/D2rEcAxbaiZOILANc7cTs48R"
-        val SLACK_CHANNEL = "#infrastructure"
-        val SLACK_USERNAME = "Quartic Hey"
+        val HEY_DEV_PORT = 8220
     }
 }

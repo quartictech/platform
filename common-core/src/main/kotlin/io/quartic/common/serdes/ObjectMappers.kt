@@ -22,6 +22,7 @@ fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
     .registerModule(KotlinModule())
     .setSerializationInclusion(Include.NON_NULL)
     .disable(SerializationFeature.INDENT_OUTPUT)
+    .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
     .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
     .enable(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS)
 
