@@ -51,7 +51,7 @@
 To run a subset of services (example):
 
 ```
-SKIP_FRONTEND= ./gradlew :catalogue-app:run :weyl-app:run --parallel
+SKIP_FRONTEND= ./gradlew :catalogue:run :weyl:run --parallel
 ```
 
 To run a service with reduced memory (example):
