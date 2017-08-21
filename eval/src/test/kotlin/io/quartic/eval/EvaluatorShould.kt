@@ -38,6 +38,7 @@ class EvaluatorShould {
         evaluate()
 
         verify(database).writeResult(BuildResult.Success(dag))
+        verify(container).close()
     }
 
     @Test
@@ -47,6 +48,7 @@ class EvaluatorShould {
         evaluate()
 
         verify(database).writeResult(UserError("badness"))
+        verify(container).close()
     }
 
     @Test
@@ -82,7 +84,7 @@ class EvaluatorShould {
     }
 
     @Test
-    fun cancel_async_behaviour_on_concurrent_qube_error() {
+    fun cancel_async_behaviour_and_close_container_on_concurrent_qube_error() {
         whenever(container.errors).thenReturn(produce(CommonPool) {
             send(QubeProxy.QubeException("Stuff is bad"))
         })
@@ -94,6 +96,7 @@ class EvaluatorShould {
 
         verifyZeroInteractions(quartyBuilder)
         assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
+        verify(container).close()
     }
 
 
