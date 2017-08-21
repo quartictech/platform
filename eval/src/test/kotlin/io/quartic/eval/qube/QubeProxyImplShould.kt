@@ -19,8 +19,8 @@ import org.junit.Test
 import java.util.*
 
 class QubeProxyImplShould {
-    private val toQube = Channel<QubeRequest>(Channel.UNLIMITED)
-    private val fromQube = Channel<QubeResponse>(Channel.UNLIMITED)
+    private val toQube = Channel<QubeRequest>(2)
+    private val fromQube = Channel<QubeResponse>(2)
     private var nextUuid = 100
     private val qube = QubeProxyImpl(toQube, fromQube, { uuid(nextUuid++) })
 
@@ -91,13 +91,24 @@ class QubeProxyImplShould {
 
             qube.createContainer()
 
-            fromQube.send(Error(uuid(100), "Yup"))
-            fromQube.send(Error(uuid(100), "Yup"))
-            fromQube.send(Error(uuid(100), "Yup"))
-            fromQube.send(Error(uuid(100), "Yup"))
+            repeat(4) {
+                fromQube.send(Error(uuid(100), "Yup"))
+            }
             // Note the client doesn't attempt to receive the messages
 
-            qube.createContainer()  // This will timeout if we don't create a channel with non-default depth
+            qube.createContainer()  // This will timeout with a shallow channel
+        }
+    }
+
+    @Test
+    fun not_block_on_channel_from_clients() {
+        runOrTimeout {
+            qubeShouldCreateAsync(4)
+
+            // Note Qube doesn't attempt to receive the close messages, so will timeout with a shallow channel
+            (0..3)
+                .map { qube.createContainer() }
+                .forEach { it.close() }
         }
     }
 

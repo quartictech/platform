@@ -12,6 +12,7 @@ import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Destroy
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
@@ -30,7 +31,7 @@ class QubeProxyImpl(
 
     private val pending = mutableMapOf<UUID, Create>()
     private val active = mutableMapOf<UUID, SendChannel<QubeException>>()
-    private val fromClients = Channel<ClientRequest>()
+    private val fromClients = Channel<ClientRequest>(UNLIMITED)
     private val LOG by logger()
 
     init {
@@ -91,7 +92,7 @@ class QubeProxyImpl(
             (pending == null) ->
                 LOG.error("Ready response doesn't correspond to pending request")
             else -> {
-                val channel = Channel<QubeException>(Channel.UNLIMITED)
+                val channel = Channel<QubeException>(UNLIMITED)
                 active[response.uuid] = channel
                 pending.response.complete(QubeContainerProxy(response.hostname, channel) {
                     fromClients.send(Destroy(response.uuid))
