@@ -24,7 +24,7 @@ libraries.dropwizardJdbi = "com.github.arteam:dropwizard-jdbi3:1.0-rc3"
 libraries.dropwizardTesting = "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1.1.8"
 libraries.junit = "junit:junit:4.12"
-libraries.wiremock = "com.github.tomakehurst:wiremock:2.6.0"
+libraries.wiremock = "com.github.tomakehurst:wiremock:2.7.1"
 
 libraries.tyrus = [
         client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",

@@ -27,8 +27,8 @@ interface RegistryService {
     ): Customer
 }
 
-// Retrofit
-interface RegistryServiceClient : Retrofittable {
+@Retrofittable
+interface RegistryServiceClient {
     @retrofit2.http.GET("customers/{id}")
     fun getCustomerByIdAsync(
         @retrofit2.http.Path("id") customerId: CustomerId

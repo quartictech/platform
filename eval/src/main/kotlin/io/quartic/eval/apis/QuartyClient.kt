@@ -5,7 +5,8 @@ import io.quartic.qube.api.model.Dag
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 
-interface QuartyClient : Retrofittable {
+@Retrofittable
+interface QuartyClient {
     sealed class QuartyResult {
         data class Success(val log: String, val dag: Dag) : QuartyResult()
         data class Failure(val log: String) : QuartyResult()

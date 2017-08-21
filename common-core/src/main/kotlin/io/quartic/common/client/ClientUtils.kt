@@ -26,18 +26,20 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 
 
-interface Feignable
-interface Retrofittable
+@Target(AnnotationTarget.CLASS)
+annotation class Feignable
+@Target(AnnotationTarget.CLASS)
+annotation class Retrofittable
 
 class ClientBuilder(val owner: Class<*>) {
-    inline fun <reified T: Feignable> feign(url: String): T = client(owner, url)
-    inline fun <reified T: Retrofittable> retrofit(url: String): T = retrofitClient(owner, url)
-    inline fun <reified T: Retrofittable> retrofit(url: URI): T = retrofit(url.toString())
+    inline fun <reified T> feign(url: String): T = client(owner, url)
+    inline fun <reified T> retrofit(url: String): T = retrofitClient(owner, url)
+    inline fun <reified T> retrofit(url: URI): T = retrofit(url.toString())
 }
 
 
-inline fun <reified T : Any> client(owner: Class<*>, url: URL): T = client(T::class.java, owner, url.toString())
-inline fun <reified T : Any> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
+inline fun <reified T> client(owner: Class<*>, url: URL): T = client(T::class.java, owner, url.toString())
+inline fun <reified T> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
 
 // TODO: eliminate overloads once everything ported to Kotlin
 @JvmOverloads
@@ -51,9 +53,13 @@ fun <T> client(target: Class<T>, owner: Class<*>, url: String, contract: Contrac
             .logLevel(BASIC)
             .target(target, url)
 
-inline fun <reified T: Retrofittable> retrofitClient(owner: Class<*>, url: String): T = retrofitClient(T::class.java, owner, url)
+inline fun <reified T> retrofitClient(owner: Class<*>, url: String): T = retrofitClient(T::class.java, owner, url)
 
-fun <T: Retrofittable> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
+fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
+    if (!target.isAnnotationPresent(Retrofittable::class.java)) {
+        throw IllegalArgumentException("${target.simpleName} is not marked as @${Retrofittable::class.simpleName}")
+    }
+
     val urlWithSlash = if(url.endsWith("/")) url else url + "/"
     val interceptor = HttpLoggingInterceptor()
     interceptor.level = HttpLoggingInterceptor.Level.BASIC
