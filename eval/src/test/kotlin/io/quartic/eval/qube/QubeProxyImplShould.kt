@@ -85,6 +85,23 @@ class QubeProxyImplShould {
     }
 
     @Test
+    fun not_block_on_channel_to_client() {
+        runOrTimeout {
+            qubeShouldCreateAsync(2)
+
+            qube.createContainer()
+
+            fromQube.send(Error(uuid(100), "Yup"))
+            fromQube.send(Error(uuid(100), "Yup"))
+            fromQube.send(Error(uuid(100), "Yup"))
+            fromQube.send(Error(uuid(100), "Yup"))
+            // Note the client doesn't attempt to receive the messages
+
+            qube.createContainer()  // This will timeout if we don't create a channel with non-default depth
+        }
+    }
+
+    @Test
     fun destroy_on_close() {
         runOrTimeout {
             qubeShouldCreateAsync()

@@ -91,7 +91,7 @@ class QubeProxyImpl(
             (pending == null) ->
                 LOG.error("Ready response doesn't correspond to pending request")
             else -> {
-                val channel = Channel<QubeException>()
+                val channel = Channel<QubeException>(Channel.UNLIMITED)
                 active[response.uuid] = channel
                 pending.response.complete(QubeContainerProxy(response.hostname, channel) {
                     fromClients.send(Destroy(response.uuid))
