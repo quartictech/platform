@@ -2,21 +2,11 @@ kubernetes:
   enable: false
   namespace: qube
   numConcurrentJobs: 4
-  backChannelEndpoint: "http://qube.platform:8200/api/exec/backchannel/%s"
   podTemplate:
     spec:
       automountServiceAccountToken: false
       containers:
-        - name: jupyter
-          image: eu.gcr.io/quartictech/jupyter:53
-          command:
-            - "sudo"
-            - "-E"
-            - "-u"
-            - "jovyan"
-            - "bash"
-            - "-c"
-            - "export PATH=/opt/conda/bin:$PATH; sleep 5; false"
+        - name: container
       restartPolicy: Never
 registryUrl: http://localhost:8190/api
 

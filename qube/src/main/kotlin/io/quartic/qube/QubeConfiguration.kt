@@ -12,7 +12,6 @@ data class KubernetesConfiguraration(
     val namespace: String,
     val podTemplate: Pod,
     val numConcurrentJobs: Int,
-    val backChannelEndpoint: String,
     val enable: Boolean
 )
 
