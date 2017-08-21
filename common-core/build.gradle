@@ -1,8 +1,11 @@
+import io.quartic.gradle.publish.PublishPlugin
+
 plugins {
     id "application"
     id "nebula.kotlin" version "1.1.4"
-    id "io.quartic.publish" version "53"
 }
+
+apply plugin: PublishPlugin
 
 dependencies {
     compile libraries.guava

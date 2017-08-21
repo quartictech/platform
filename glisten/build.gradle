@@ -1,8 +1,11 @@
+import io.quartic.gradle.service.ServicePlugin
+
 plugins {
     id "nebula.kotlin" version "1.1.4"
-    id "io.quartic.service" version "53"
     id "com.palantir.configuration-resolver" version "0.2.0"
 }
+
+apply plugin: ServicePlugin
 
 service {
     mainClassName = "io.quartic.glisten.GlistenApplication"

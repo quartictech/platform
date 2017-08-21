@@ -1,10 +1,11 @@
+import io.quartic.gradle.docker.DockerPlugin
 import io.quartic.gradle.frontend.FrontendPlugin
 
 plugins {
     id "idea"
-    id "io.quartic.docker" version "53"
 }
 
+apply plugin: DockerPlugin
 apply plugin: FrontendPlugin
 
 def gulpExecutable = file("node_modules/gulp-cli/bin/gulp.js")
