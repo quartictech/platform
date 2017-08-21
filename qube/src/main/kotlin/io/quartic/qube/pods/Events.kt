@@ -28,6 +28,8 @@ sealed class QubeEvent {
 
     data class CreatePod(
         val key: PodKey,
-        val returnChannel: Channel<SentMessage>
+        val returnChannel: Channel<SentMessage>,
+        val image: String,
+        val command: List<String>
     ): QubeEvent()
 }

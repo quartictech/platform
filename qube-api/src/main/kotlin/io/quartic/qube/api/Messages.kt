@@ -17,7 +17,11 @@ enum class Status {
     JsonSubTypes.Type(value = ReceivedMessage.RemovePod::class, name = "remove")
 )
 sealed class ReceivedMessage {
-    data class CreatePod(val name: String): ReceivedMessage()
+    data class CreatePod(
+        val name: String,
+        val image: String,
+        val command: List<String>
+    ): ReceivedMessage()
     data class RemovePod(val name: String): ReceivedMessage()
 }
 
@@ -27,6 +31,6 @@ sealed class ReceivedMessage {
     JsonSubTypes.Type(value = SentMessage.PodDeleted::class, name = "deleted")
 )
 sealed class SentMessage {
-    data class PodStatus(val name: String, val status: String): SentMessage()
+    data class PodStatus(val name: String, val status: Status, val hostname: String?): SentMessage()
     data class PodDeleted(val name: String) : SentMessage()
 }

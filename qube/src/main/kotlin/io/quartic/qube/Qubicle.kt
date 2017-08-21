@@ -33,7 +33,9 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
                 is ReceivedMessage.CreatePod -> events.offer(
                     QubeEvent.CreatePod(
                         PodKey(scopeUUID, message.name),
-                        returnChannel
+                        returnChannel,
+                        message.image,
+                        message.command
                     )
                 )
                 is ReceivedMessage.RemovePod -> events.offer(
@@ -43,6 +45,8 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
                 )
             }
         }
+
+        websocket.exceptionHandler { websocket.close() }
 
         websocket.closeHandler { events.offer(QubeEvent.CancelScope(scopeUUID)) }
 
