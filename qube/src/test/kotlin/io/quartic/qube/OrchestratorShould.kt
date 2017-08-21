@@ -23,29 +23,31 @@ class OrchestratorShould {
     @Test
     fun enqueue_pods() {
         runBlocking {
-            async(CommonPool) { orchestrator.run() }
-            events.send(createScope())
+            val deferred = async(CommonPool) { orchestrator.run() }
+            events.send(createClient())
             events.send(createPod())
             verify(worker, timeout(500)).run(createPod())
+            deferred.cancel()
         }
     }
 
     @Test
     fun ignore_pods_for_nonexistent_scope() {
         runBlocking {
-            async(CommonPool) { orchestrator.run() }
+            val deferred = async(CommonPool) { orchestrator.run() }
             events.send(createPod())
             verify(worker, timeout(500).times(0)).run(createPod())
 
             reset(worker)
-            events.send(createScope())
+            events.send(createClient())
             events.send(createPod())
             verify(worker, timeout(500)).run(createPod())
 
             reset(worker)
-            events.send(cancelScope())
+            events.send(cancelClient())
             events.send(createPod())
             verify(worker, timeout(500).times(0)).run(createPod())
+            deferred.cancel()
         }
     }
 
@@ -53,11 +55,12 @@ class OrchestratorShould {
     fun respect_concurrency() {
         runBlocking {
             whenever(worker.run(any())).then { runBlocking { delay(1000) } }
-            async(CommonPool) { orchestrator.run() }
-            events.send(createScope())
+            val deferred = async(CommonPool) { orchestrator.run() }
+            events.send(createClient())
             events.send(createPod())
             events.send(createPod())
             verify(worker, timeout(500).times(1)).run(createPod())
+            deferred.cancel()
         }
     }
 
@@ -65,16 +68,18 @@ class OrchestratorShould {
     fun cancel_pods() {
         runBlocking {
             whenever(worker.run(any())).then { runBlocking { delay(1000) } }
-            async(CommonPool) { orchestrator.run() }
-            events.send(createScope())
+            val deferred = async(CommonPool) { orchestrator.run() }
+            events.send(createClient())
             events.send(createPod())
             events.send(cancelPod())
-            verify(worker, timeout(500).times(1)).run(any())
+            deferred.cancel()
+            verify(worker, timeout(500)).run(any())
         }
+
     }
 
     fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, "dummy:1", listOf("true"))
-    fun createScope() = QubeEvent.CreateClient(podKey.client)
-    fun cancelScope() = QubeEvent.CancelClient(podKey.client)
+    fun createClient() = QubeEvent.CreateClient(podKey.client)
+    fun cancelClient() = QubeEvent.CancelClient(podKey.client)
     fun cancelPod() = QubeEvent.CancelPod(podKey)
 }

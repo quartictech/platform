@@ -34,7 +34,9 @@ class Orchestrator(
 
             // Drain waiting list
             state.drainWaitingList(concurrency) { create ->
-                async(CommonPool) { worker.run(create) }
+                async(CommonPool) {
+                    worker.run(create)
+                }
             }
         }
     }
