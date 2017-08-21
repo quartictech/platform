@@ -90,7 +90,7 @@ class AuthResourceShould {
     }
 
     private val URI.queryParams
-        get() = URLEncodedUtils.parse(this, "UTF-8").associateBy({ it.name }, { it.value })
+        get() = URLEncodedUtils.parse(this, Charsets.UTF_8).associateBy({ it.name }, { it.value })
 
 
     @Test
