@@ -14,6 +14,7 @@ import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
@@ -47,40 +48,37 @@ class Evaluator(
         }
     }
 
-    private suspend fun buildShouldProceed(trigger: TriggerDetails) = try {
-        registry.getCustomerAsync(null, trigger.repoId).await()
-        true
-    } catch (ce: CancellationException) {
-        throw ce
-    } catch (e: Exception) {
-        if (e is HttpException && e.code() == 404) {
-            LOG.warn("Repo ID ${trigger.repoId} not found in Registry")
-        } else {
-            LOG.error("Error communicating with Registry", e)
+    private suspend fun buildShouldProceed(trigger: TriggerDetails) = cancellable(
+        block = {
+            registry.getCustomerAsync(null, trigger.repoId).await()
+            true
+        },
+        onThrow = { t ->
+            if (t is HttpException && t.code() == 404) {
+                LOG.warn("Repo ID ${trigger.repoId} not found in Registry")
+            } else {
+                LOG.error("Error communicating with Registry", t)
+            }
+            false
         }
-        false
-    }
+    )
 
-    private suspend fun runBuild(trigger: TriggerDetails): BuildResult {
-        return try {
+    private suspend fun runBuild(trigger: TriggerDetails) = cancellable(
+        block = {
             qube.createContainer().use { container ->
-                val getDag = getDagAsync(container, trigger)
-                try {
-                    select {
+                getDagAsync(container, trigger).use { getDag ->
+                    select<BuildResult> {
                         getDag.onAwait { transformQuartyResult(it) }
                         container.errors.onReceive { throw it }
                     }
-                } finally {
-                    getDag.cancel()
                 }
             }
-        } catch (ce: CancellationException) {
-            throw ce
-        } catch (e: Exception) {
-            LOG.error("Build failure", e)
-            InternalError(e)
+        },
+        onThrow = { t ->
+            LOG.error("Build failure", t)
+            InternalError(t)
         }
-    }
+    )
 
     private fun transformQuartyResult(it: QuartyResult) = when (it) {
         is QuartyResult.Success -> Success(it.dag)
@@ -94,11 +92,18 @@ class Evaluator(
         quartyBuilder(container.hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")
     }
 
-    private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = try {
-        await()
+    private inline fun <T : Job, R> T.use(block: (T) -> R) = AutoCloseable { cancel() }.use { block(this) }
+
+    private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = cancellable(
+        block = { await() },
+        onThrow = { throw RuntimeException("Error while ${action}", it) }
+    )
+
+    private suspend fun <R> cancellable(block: suspend () -> R, onThrow: (Throwable) -> R) = try {
+        block()
     } catch (ce: CancellationException) {
         throw ce
-    } catch (e: Exception) {
-        throw RuntimeException("Error while ${action}", e)
+    } catch (t: Throwable) {
+        onThrow(t)
     }
 }
