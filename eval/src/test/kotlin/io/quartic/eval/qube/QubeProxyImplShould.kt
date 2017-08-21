@@ -127,7 +127,7 @@ class QubeProxyImplShould {
     }
 
     private fun qubeShouldCreateAsync(num: Int = 1) = async(CommonPool) {
-        for (i in 0 until num) {
+        repeat(num) {
             val request = toQube.receive()
             if (request is Create) {
                 fromQube.send(Ready(request.uuid, "noob"))
@@ -136,7 +136,7 @@ class QubeProxyImplShould {
     }
 
     private fun qubeShouldFailToCreateAsync(num: Int = 1) = async(CommonPool) {
-        for (i in 0 until num) {
+        repeat(num) {
             val request = toQube.receive()
             if (request is Create) {
                 fromQube.send(Error(request.uuid, "Badness occurred"))
