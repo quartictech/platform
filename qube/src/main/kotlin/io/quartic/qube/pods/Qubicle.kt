@@ -1,4 +1,4 @@
-package io.quartic.qube
+package io.quartic.qube.pods
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.api.model.Pod
@@ -6,10 +6,6 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.api.ReceivedMessage
 import io.quartic.qube.api.SentMessage
-import io.quartic.qube.pods.Orchestrator
-import io.quartic.qube.pods.PodKey
-import io.quartic.qube.pods.QubeEvent
-import io.quartic.qube.qube.KubernetesClient
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import kotlinx.coroutines.experimental.*
@@ -20,7 +16,8 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>()
 
-    private val orchestrator = Orchestrator(client, events, podTemplate)
+    private val worker = WorkerImpl(client, podTemplate)
+    private val orchestrator = Orchestrator(events, worker)
 
     fun setupWebsocket(websocket: ServerWebSocket) {
         val scopeUUID = UUID.randomUUID()
@@ -62,7 +59,9 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
     }
 
     override fun start() {
-        orchestrator.run()
+        launch(CommonPool) {
+            orchestrator.run()
+        }
 
         vertx.createHttpServer()
             .websocketHandler { websocket ->

@@ -34,8 +34,6 @@ dependencies {
 
     compile "io.vertx:vertx-web:3.4.2"
 
-    runtime "ch.qos.logback:logback-classic:1.2.3"
-
     testCompile project(":common-test")
     testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
 }

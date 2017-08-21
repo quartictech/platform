@@ -4,43 +4,35 @@ import com.github.arteam.jdbi3.JdbiFactory
 import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import io.dropwizard.setup.Environment
+import io.fabric8.kubernetes.api.model.NamespaceBuilder
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.github.GithubInstallationClient
 import io.quartic.qube.api.model.Dag
-import io.quartic.qube.model.BuildJob
-import io.quartic.qube.qube.JobPool
-import io.quartic.qube.qube.KubernetesClient
+import io.quartic.qube.pods.KubernetesClient
+import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource
 import io.quartic.qube.resource.QueryResource
-import io.quartic.qube.resource.TriggerResource
 import io.quartic.qube.store.BuildStore
 import io.quartic.qube.store.setupDbi
-import io.quartic.registry.api.RegistryServiceClient
 import io.vertx.core.Vertx
 import java.io.File
-import java.util.concurrent.ArrayBlockingQueue
 
 class QubeApplication : ApplicationBase<QubeConfiguration>() {
     val log by logger()
     override fun runApplication(configuration: QubeConfiguration, environment: Environment) {
-        val queue = ArrayBlockingQueue<BuildJob>(1024)
-
-        val registry = retrofitClient<RegistryServiceClient>(QubeApplication::class.java, configuration.registryUrl)
-
-        val githubPrivateKey = configuration.secretsCodec.decrypt(configuration.github.privateKeyEncrypted)
-        val githubClient = GithubInstallationClient(configuration.github.appId, configuration.github.apiRootUrl,
-            githubPrivateKey)
-
         val buildStore = buildStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
 
         if (configuration.kubernetes.enable) {
             val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)
-            JobPool(configuration.kubernetes, client, queue, buildStore, githubClient)
+            val namespace = NamespaceBuilder()
+                .editOrNewMetadata()
+                .withName(configuration.kubernetes.namespace)
+                .endMetadata()
+                .build()
+            client.ensureNamespaceExists(namespace)
 
             val vertx = Vertx.vertx()
             vertx.deployVerticle(Qubicle(client, configuration.kubernetes.podTemplate))
@@ -52,7 +44,6 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             // TODO: remove default pipeline
             register(QueryResource(buildStore,
                 OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)))
-            register(TriggerResource(queue, registry, buildStore))
             register(BackChannelResource(buildStore))
         }
 

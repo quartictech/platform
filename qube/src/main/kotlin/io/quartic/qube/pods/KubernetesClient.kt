@@ -1,4 +1,4 @@
-package io.quartic.qube.qube
+package io.quartic.qube.pods
 
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Job
@@ -14,10 +14,6 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
 
     private val namespacedClient = client.inNamespace(namespace)
 
-    fun deleteJob(job: Job) = client.extensions().jobs().delete(job)
-    fun createJob(job: Job) = client.extensions().jobs().create(job)
-    fun getJob(jobName: String) = client.extensions().jobs().withName(jobName).get()
-    fun listPodsForJob(job: Job) = namespacedClient.pods().withLabelSelector(job.spec.selector).list().items
     fun getLogs(podName: String) = namespacedClient.pods().withName(podName).getLog(true)
     fun ensureNamespaceExists(namespace: Namespace) = client.namespaces().createOrReplace(namespace)
 
@@ -33,16 +29,6 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
         }
 
     })
-
-    fun watchEvents(f: (event: Event) -> Unit) {
-        namespacedClient.events().watch(object: Watcher<Event> {
-            override fun eventReceived(action: Watcher.Action?, resource: Event) = f(resource)
-
-            override fun onClose(cause: KubernetesClientException?) {
-                log.error("closed: {}", cause)
-            }
-        })
-    }
 
     fun deletePod(name: String) = namespacedClient.pods().withName(name).delete()
 }
