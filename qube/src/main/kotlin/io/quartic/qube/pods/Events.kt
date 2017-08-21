@@ -18,7 +18,7 @@ sealed class QubeEvent {
         val key: PodKey
     ) : QubeEvent()
 
-    data class CancelScope(
+    data class CancelClient(
         val client: UUID
     ): QubeEvent()
 

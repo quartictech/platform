@@ -17,7 +17,8 @@ class OrchestratorShould {
     private val returnChannel = Channel<Response>()
 
     private val worker = mock<Worker>()
-    private val orchestrator = Orchestrator(events, worker, 1)
+    private val orchestratorState = OrchestratorState()
+    private val orchestrator = Orchestrator(events, worker, 1, orchestratorState)
 
     @Test
     fun enqueue_pods() {
@@ -60,7 +61,20 @@ class OrchestratorShould {
         }
     }
 
+    @Test
+    fun cancel_pods() {
+        runBlocking {
+            whenever(worker.run(any())).then { runBlocking { delay(1000) } }
+            async(CommonPool) { orchestrator.run() }
+            events.send(createScope())
+            events.send(createPod())
+            events.send(cancelPod())
+            verify(worker, timeout(500).times(1)).run(any())
+        }
+    }
+
     fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, "dummy:1", listOf("true"))
     fun createScope() = QubeEvent.CreateClient(podKey.client)
-    fun cancelScope() = QubeEvent.CancelScope(podKey.client)
+    fun cancelScope() = QubeEvent.CancelClient(podKey.client)
+    fun cancelPod() = QubeEvent.CancelPod(podKey)
 }

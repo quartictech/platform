@@ -56,7 +56,7 @@ class Qubicle(
             }
         }
 
-        websocket.closeHandler { events.offer(QubeEvent.CancelScope(clientUUID)) }
+        websocket.closeHandler { events.offer(QubeEvent.CancelClient(clientUUID)) }
 
         launch(CommonPool) {
             for (message in returnChannel) {
