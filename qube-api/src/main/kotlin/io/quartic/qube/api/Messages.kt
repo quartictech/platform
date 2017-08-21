@@ -13,24 +13,28 @@ enum class Status {
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = ReceivedMessage.CreatePod::class, name = "create"),
-    JsonSubTypes.Type(value = ReceivedMessage.RemovePod::class, name = "remove")
+    JsonSubTypes.Type(value = Request.CreatePod::class, name = "create"),
+    JsonSubTypes.Type(value = Request.DestroyPod::class, name = "destroy")
 )
-sealed class ReceivedMessage {
+sealed class Request {
     data class CreatePod(
         val name: String,
         val image: String,
         val command: List<String>
-    ): ReceivedMessage()
-    data class RemovePod(val name: String): ReceivedMessage()
+    ): Request()
+    data class DestroyPod(val name: String): Request()
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = SentMessage.PodStatus::class, name = "status"),
-    JsonSubTypes.Type(value = SentMessage.PodDeleted::class, name = "deleted")
+    JsonSubTypes.Type(value = Response.PodWaiting::class, name = "waiting"),
+    JsonSubTypes.Type(value = Response.PodRunning::class, name = "running"),
+    JsonSubTypes.Type(value = Response.PodFailed::class, name = "failed"),
+    JsonSubTypes.Type(value = Response.PodSucceeded::class, name = "succeeded")
 )
-sealed class SentMessage {
-    data class PodStatus(val name: String, val status: Status, val hostname: String?): SentMessage()
-    data class PodDeleted(val name: String) : SentMessage()
+sealed class Response {
+    data class PodWaiting(val name: String): Response()
+    data class PodRunning(val name: String, val hostname: String): Response()
+    data class PodFailed(val name: String): Response()
+    data class PodSucceeded(val name: String): Response()
 }

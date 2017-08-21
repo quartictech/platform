@@ -3,8 +3,7 @@ package io.quartic.qube.pods
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
 import io.quartic.common.logging.logger
-import io.quartic.qube.api.SentMessage
-import io.quartic.qube.api.Status
+import io.quartic.qube.api.Response
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.run
@@ -13,8 +12,8 @@ interface Worker {
     suspend fun run(create: QubeEvent.CreatePod)
 }
 
-class WorkerImpl(val client: KubernetesClient, val podTemplate: Pod): Worker {
-    private val threadPool = newFixedThreadPoolContext(4, "OrchestratorThreadPool")
+class WorkerImpl(val client: KubernetesClient, val podTemplate: Pod, val namespace: String): Worker {
+    private val threadPool = newFixedThreadPoolContext(4, "Worker-Thread-Pool")
     private val LOG by logger()
 
      private suspend fun createPod(pod: Pod) = run(threadPool) {
@@ -27,29 +26,27 @@ class WorkerImpl(val client: KubernetesClient, val podTemplate: Pod): Worker {
         LOG.info("[{}] Pod deleted", podName)
     }
 
-    private suspend fun runPod(podName: String, channel: Channel<Pod>, sendMessage: Channel<SentMessage>): Unit {
+    private suspend fun runPod(podName: String, channel: Channel<Pod>, responses: Channel<Response>) {
        for (message in channel) {
            val state = message.status.containerStatuses.firstOrNull()?.state
 
            if (state != null) {
                if (state.waiting != null) {
-                   sendMessage.send(SentMessage.PodStatus(podName, Status.PENDING, null))
+                   LOG.info("[{}] Pod waiting", podName)
+                   responses.send(Response.PodWaiting(podName))
                }
                if (state.running != null) {
-                   sendMessage.send(SentMessage.PodStatus(podName, Status.RUNNING, "$podName.qube"))
+                   responses.send(Response.PodRunning(podName, "$podName.$namespace"))
                }
                else if (state.terminated != null) {
                    if (state.terminated.exitCode == 0) {
-                       sendMessage.send(SentMessage.PodStatus(podName, Status.SUCCESS, null))
+                       responses.send(Response.PodSucceeded(podName))
                    }
                    else {
-                       sendMessage.send(SentMessage.PodStatus(podName, Status.ERROR, null))
+                       responses.send(Response.PodFailed(podName))
                    }
                    LOG.info("terminated {}", state)
                    return
-               }
-               else {
-                   sendMessage.send(SentMessage.PodStatus(podName, Status.UNKNOWN, null))
                }
            }
        }

@@ -11,7 +11,7 @@ import java.util.*
 class Orchestrator(
     private val events: Channel<QubeEvent>,
     private val worker: Worker,
-    private val concurrency: Int = 4
+    private val concurrency: Int
 ) {
     private val LOG by logger()
 

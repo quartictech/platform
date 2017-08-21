@@ -1,7 +1,7 @@
 package io.quartic.qube
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.qube.api.SentMessage
+import io.quartic.qube.api.Response
 import io.quartic.qube.pods.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -14,7 +14,7 @@ import java.util.*
 class OrchestratorShould {
     private val events = Channel<QubeEvent>()
     private val podKey = PodKey(UUID.randomUUID(), "test")
-    private val returnChannel = Channel<SentMessage>()
+    private val returnChannel = Channel<Response>()
 
     private val worker = mock<Worker>()
     private val orchestrator = Orchestrator(events, worker, 1)

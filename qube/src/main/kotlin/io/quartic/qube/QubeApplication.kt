@@ -21,7 +21,7 @@ import io.vertx.core.Vertx
 import java.io.File
 
 class QubeApplication : ApplicationBase<QubeConfiguration>() {
-    val log by logger()
+    val LOG by logger()
     override fun runApplication(configuration: QubeConfiguration, environment: Environment) {
         val buildStore = buildStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
 
@@ -35,9 +35,10 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             client.ensureNamespaceExists(namespace)
 
             val vertx = Vertx.vertx()
-            vertx.deployVerticle(Qubicle(client, configuration.kubernetes.podTemplate))
+            vertx.deployVerticle(Qubicle(client, configuration.kubernetes.podTemplate,
+                configuration.kubernetes.namespace, configuration.kubernetes.numConcurrentJobs))
         } else {
-            log.warn("Kubernetes is DISABLED. Jobs will NOT be run")
+            LOG.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }
 
         with (environment.jersey()) {
@@ -47,12 +48,11 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             register(BackChannelResource(buildStore))
         }
 
-
     }
 
     private fun buildStore(environment: Environment, configuration: DatabaseConfiguration, secretsCodec: SecretsCodec): BuildStore {
          if (configuration.runEmbedded) {
-             log.warn("Postgres is running in embedded mode!!")
+             LOG.warn("Postgres is running in embedded mode!!")
              EmbeddedPostgres.builder()
                  .setPort(configuration.dataSource.port)
                  .setCleanDataDirectory(false)

@@ -4,31 +4,36 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.api.model.Pod
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.qube.api.ReceivedMessage
-import io.quartic.qube.api.SentMessage
+import io.quartic.qube.api.Request
+import io.quartic.qube.api.Response
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.*
 
-class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
+class Qubicle(
+    client: KubernetesClient,
+    podTemplate: Pod,
+    namespace: String,
+    concurrentJobs: Int
+) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>()
 
-    private val worker = WorkerImpl(client, podTemplate)
-    private val orchestrator = Orchestrator(events, worker)
+    private val worker = WorkerImpl(client, podTemplate, namespace)
+    private val orchestrator = Orchestrator(events, worker, concurrentJobs)
 
     fun setupWebsocket(websocket: ServerWebSocket) {
         val scopeUUID = UUID.randomUUID()
-        val returnChannel = Channel<SentMessage>()
+        val returnChannel = Channel<Response>()
 
         events.offer(QubeEvent.CreateScope(scopeUUID))
         websocket.textMessageHandler { textMessage ->
             try {
-                val message = OBJECT_MAPPER.readValue<ReceivedMessage>(textMessage)
+                val message = OBJECT_MAPPER.readValue<Request>(textMessage)
                 when (message) {
-                    is ReceivedMessage.CreatePod -> events.offer(
+                    is Request.CreatePod -> events.offer(
                         QubeEvent.CreatePod(
                             PodKey(scopeUUID, message.name),
                             returnChannel,
@@ -36,7 +41,7 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
                             message.command
                         )
                     )
-                    is ReceivedMessage.RemovePod -> events.offer(
+                    is Request.DestroyPod -> events.offer(
                         QubeEvent.CancelPod(
                             PodKey(scopeUUID, message.name)
                         )

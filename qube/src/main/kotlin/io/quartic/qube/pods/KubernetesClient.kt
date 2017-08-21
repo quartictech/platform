@@ -1,7 +1,5 @@
 package io.quartic.qube.pods
 
-import io.fabric8.kubernetes.api.model.Event
-import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.Namespace
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
@@ -10,7 +8,7 @@ import io.fabric8.kubernetes.client.Watcher
 import io.quartic.common.logging.logger
 
 class KubernetesClient(private val client: DefaultKubernetesClient, private val namespace: String) {
-    private val log by logger()
+    private val LOG by logger()
 
     private val namespacedClient = client.inNamespace(namespace)
 
@@ -25,9 +23,8 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
         }
 
         override fun onClose(cause: KubernetesClientException?) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            LOG.error("Watch closed due to exception.", cause)
         }
-
     })
 
     fun deletePod(name: String) = namespacedClient.pods().withName(name).delete()

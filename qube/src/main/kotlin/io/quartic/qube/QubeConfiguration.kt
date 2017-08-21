@@ -13,9 +13,6 @@ data class KubernetesConfiguraration(
     val template: Job,
     val podTemplate: Pod,
     val numConcurrentJobs: Int,
-    val maxFailures: Int,
-    val creationTimeoutSeconds: Int,
-    val runTimeoutSeconds: Int,
     val backChannelEndpoint: String,
     val enable: Boolean
 )
