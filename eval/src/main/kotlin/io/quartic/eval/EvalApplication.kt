@@ -28,7 +28,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
-            for (details in channel) evaluator.evaluate(details)
+            for (details in channel) evaluator.evaluateAsync(details)
         }
     }
 

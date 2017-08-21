@@ -41,7 +41,7 @@ class Evaluator(
 
     private val LOG by logger()
 
-    suspend fun evaluate(trigger: TriggerDetails) {
+    suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
         if (buildShouldProceed(trigger)) {
             val result = runBuild(trigger)
             database.writeResult(result)

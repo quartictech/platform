@@ -23,6 +23,7 @@ import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.Matchers.instanceOf
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
@@ -32,6 +33,19 @@ import java.util.concurrent.CompletableFuture.completedFuture
 
 class EvaluatorShould {
     // TODO - distinguish registry 404s
+
+    @Test
+    fun run_multiple_evaluations_concurrently() = runBlocking {
+        whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
+        whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
+
+        val a = evaluator.evaluateAsync(details)
+        val b = evaluator.evaluateAsync(details.copy(repoId = 7777))
+
+        b.join()                                                // But we can still complete this one
+
+        assertFalse(a.isCompleted)
+    }
 
     @Test
     fun write_dag_to_db_if_everything_is_ok() {
@@ -53,6 +67,7 @@ class EvaluatorShould {
 
     @Test
     fun do_nothing_more_nor_write_to_db_if_customer_lookup_fails() {
+//        registryResponses[0] = exceptionalFuture()
         whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
 
         evaluate()
@@ -101,7 +116,7 @@ class EvaluatorShould {
 
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluate(details)
+        evaluator.evaluateAsync(details).join()
     }
 
     private fun <R> exceptionalFuture() = CompletableFuture<R>().apply {
