@@ -27,16 +27,17 @@ libraries.junit = "junit:junit:4.12"
 libraries.wiremock = "com.github.tomakehurst:wiremock:2.7.1"
 
 libraries.tyrus = [
-        client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
-        server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
-        containerClient: "org.glassfish.tyrus:tyrus-container-grizzly-client:${versions.tyrus}",
-        containerServer: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}",
+    client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
+    server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
+    containerClient: "org.glassfish.tyrus:tyrus-container-grizzly-client:${versions.tyrus}",
+    containerServer: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}",
 ]
 
 libraries.testCommon = [
-        libraries.junit,
-        "de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1",
-        "org.hamcrest:hamcrest-all:1.3",
-        "com.nhaarman:mockito-kotlin:1.1.0",
+    libraries.junit,
+    "de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1",
+    "org.hamcrest:hamcrest-all:1.3",
+    "com.nhaarman:mockito-kotlin:1.5.0",
+    "org.mockito:mockito-core:2.8.47"   // Force later version than mockito-kotlin pulls in, to get coroutine support
 ]
 

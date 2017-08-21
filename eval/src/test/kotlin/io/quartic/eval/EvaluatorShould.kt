@@ -4,13 +4,14 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
-import io.quartic.eval.apis.Database.BuildResult.*
+import io.quartic.eval.apis.Database.BuildResult.InternalError
+import io.quartic.eval.apis.Database.BuildResult.UserError
 import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.apis.QuartyClient
-import io.quartic.eval.apis.QuartyClient.QuartyResult
+import io.quartic.eval.apis.QuartyClient.QuartyResult.Failure
+import io.quartic.eval.apis.QuartyClient.QuartyResult.Success
 import io.quartic.eval.apis.QubeProxy
-import io.quartic.eval.apis.QubeProxy.QubeEvent.ErrorEvent
-import io.quartic.eval.apis.QubeProxy.QubeEvent.ReadyEvent
+import io.quartic.eval.apis.QubeProxy.QubeContainerProxy
 import io.quartic.github.GithubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.qube.api.model.Dag
 import io.quartic.qube.api.model.TriggerDetails
@@ -36,12 +37,12 @@ class EvaluatorShould {
     fun write_dag_to_db_if_everything_is_ok() {
         evaluate()
 
-        verify(database).writeResult(Success(dag))
+        verify(database).writeResult(BuildResult.Success(dag))
     }
 
     @Test
     fun write_logs_to_db_if_user_code_failed() {
-        whenever(quarty.getDag(any(), any())).thenReturn(completedFuture(QuartyResult.Failure("badness")))
+        whenever(quarty.getDag(any(), any())).thenReturn(completedFuture(Failure("badness")))
 
         evaluate()
 
@@ -60,9 +61,9 @@ class EvaluatorShould {
 
     @Test
     fun do_nothing_more_if_qube_fails_to_create_container() {
-        whenever(qube.enqueue()).thenReturn(produce(CommonPool) {
-            send(ErrorEvent("Stuff is bad"))
-        })
+        runBlocking {
+            whenever(qube.createContainer()).thenThrow(QubeProxy.QubeException("Stuff is bad"))
+        }
 
         evaluate()
 
@@ -82,9 +83,8 @@ class EvaluatorShould {
 
     @Test
     fun cancel_async_behaviour_on_concurrent_qube_error() {
-        whenever(qube.enqueue()).thenReturn(produce(CommonPool) {
-            send(ReadyEvent("a.b.c"))
-            send(ErrorEvent("Stuff is bad"))
+        whenever(container.errors).thenReturn(produce(CommonPool) {
+            send(QubeProxy.QubeException("Stuff is bad"))
         })
 
         val ghFuture = CompletableFuture<GitHubInstallationAccessToken>()
@@ -136,17 +136,20 @@ class EvaluatorShould {
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
     }
-    private val qube = mock<QubeProxy> {
-        on { enqueue() } doReturn produce(CommonPool) {
-            send(ReadyEvent("a.b.c"))
+    private val container = mock<QubeContainerProxy> {
+        on { hostname } doReturn "a.b.c"
+        on { errors } doReturn produce(CommonPool) {
             delay(500)  // To prevent closure
         }
+    }
+    private val qube = mock<QubeProxy> {
+        on { runBlocking { createContainer() } } doReturn container
     }
     private val github = mock<GitHubClient> {
         on { getAccessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken("yeah"))
     }
     private val quarty = mock<QuartyClient> {
-        on { getDag(URI("https://x-access-token:yeah@noob.com/foo/bar"), "develop") } doReturn completedFuture(QuartyResult.Success("stuff", dag))
+        on { getDag(URI("https://x-access-token:yeah@noob.com/foo/bar"), "develop") } doReturn completedFuture(Success("stuff", dag))
     }
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty

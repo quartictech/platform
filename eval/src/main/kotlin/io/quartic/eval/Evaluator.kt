@@ -9,15 +9,12 @@ import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.apis.QuartyClient
 import io.quartic.eval.apis.QuartyClient.QuartyResult
 import io.quartic.eval.apis.QubeProxy
-import io.quartic.eval.apis.QubeProxy.QubeEvent
-import io.quartic.eval.apis.QubeProxy.QubeEvent.ErrorEvent
-import io.quartic.eval.apis.QubeProxy.QubeEvent.ReadyEvent
+import io.quartic.eval.apis.QubeProxy.QubeContainerProxy
 import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
@@ -65,19 +62,17 @@ class Evaluator(
     }
 
     private suspend fun runBuild(trigger: TriggerDetails): BuildResult {
-        val channel = qube.enqueue()
-
         return try {
-            val hostname = awaitHostname(channel)
-            val getDag = getDagAsync(hostname, trigger)
-            try {
-                select {
-                    getDag.onAwait { transformQuartyResult(it) }
-                    channel.onReceiveOrNull { throw QubeException(qubeEventToMessage(it)) }
+            qube.createContainer().use { container ->
+                val getDag = getDagAsync(container, trigger)
+                try {
+                    select {
+                        getDag.onAwait { transformQuartyResult(it) }
+                        container.errors.onReceive { throw it }
+                    }
+                } finally {
+                    getDag.cancel()
                 }
-            } finally {
-                // TODO - Release connection to Qube
-                getDag.cancel()
             }
         } catch (ce: CancellationException) {
             throw ce
@@ -92,25 +87,11 @@ class Evaluator(
         is QuartyResult.Failure -> UserError(it.log)
     }
 
-    private fun qubeEventToMessage(it: QubeEvent?) = when (it) {
-        is ReadyEvent -> "Unexpected Qube event"
-        is ErrorEvent -> "Qube reported error: ${it.message}"
-        null -> "Unexpected Qube channel closure"
-    }
-
-    private fun getDagAsync(hostname: String, trigger: TriggerDetails) = async(CommonPool) {
+    private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {
         val token = github.getAccessTokenAsync(trigger.installationId).awaitWrapped("acquiring access token from GitHub")
 
         val cloneUrl = URIBuilder(trigger.cloneUrl).apply { userInfo = "x-access-token:${token.token}" }.build()
-        quartyBuilder(hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")
-    }
-
-    private suspend fun awaitHostname(channel: ReceiveChannel<QubeEvent>): String {
-        val event = channel.receive()
-        return when (event) {
-            is ReadyEvent -> event.hostname
-            is ErrorEvent -> throw QubeException("Qube reported error before container created: ${event.message}")
-        }
+        quartyBuilder(container.hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")
     }
 
     private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = try {
@@ -120,6 +101,4 @@ class Evaluator(
     } catch (e: Exception) {
         throw RuntimeException("Error while ${action}", e)
     }
-
-    class QubeException(message: String) : RuntimeException(message)
 }
