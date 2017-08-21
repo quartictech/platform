@@ -82,7 +82,7 @@ class Orchestrator(
             runPod(podName, podEvents, create.returnChannel)
         }
         catch (e: Exception) {
-           LOG.error("ooh niooo", e)
+           LOG.error("[{}] Exception while running pod", podName, e)
         }
         finally {
             deletePod(podName)
@@ -117,13 +117,15 @@ class Orchestrator(
                 }
 
                 is QubeEvent.CancelScope -> {
+                    val removeKeys = mutableSetOf<PodKey>()
                     runningPods.forEach{ key, job ->
                         if (key.scope == message.scope) {
                             job.cancel()
-                            runningPods.remove(key)
+                            removeKeys.add(key)
                         }
                     }
 
+                    removeKeys.forEach{key -> runningPods.remove(key)}
                     scopes.remove(message.scope)
                 }
 

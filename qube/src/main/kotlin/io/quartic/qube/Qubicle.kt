@@ -28,25 +28,29 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
 
         events.offer(QubeEvent.CreateScope(scopeUUID))
         websocket.textMessageHandler { textMessage ->
-            val message = OBJECT_MAPPER.readValue<ReceivedMessage>(textMessage)
-            when (message) {
-                is ReceivedMessage.CreatePod -> events.offer(
-                    QubeEvent.CreatePod(
-                        PodKey(scopeUUID, message.name),
-                        returnChannel,
-                        message.image,
-                        message.command
+            try {
+                val message = OBJECT_MAPPER.readValue<ReceivedMessage>(textMessage)
+                when (message) {
+                    is ReceivedMessage.CreatePod -> events.offer(
+                        QubeEvent.CreatePod(
+                            PodKey(scopeUUID, message.name),
+                            returnChannel,
+                            message.image,
+                            message.command
+                        )
                     )
-                )
-                is ReceivedMessage.RemovePod -> events.offer(
-                    QubeEvent.CancelPod(
-                        PodKey(scopeUUID, message.name)
+                    is ReceivedMessage.RemovePod -> events.offer(
+                        QubeEvent.CancelPod(
+                            PodKey(scopeUUID, message.name)
+                        )
                     )
-                )
+                }
+            }
+            catch (e: Exception) {
+                LOG.error("Closing websocket due to exception", e)
+                websocket.close()
             }
         }
-
-        websocket.exceptionHandler { websocket.close() }
 
         websocket.closeHandler { events.offer(QubeEvent.CancelScope(scopeUUID)) }
 
