@@ -18,7 +18,7 @@ import io.quartic.qube.store.BuildStore
 class Worker(
     private val configuration: KubernetesConfiguraration,
     private val queue: BlockingQueue<BuildJob>,
-    private val client: Qube,
+    private val client: KubernetesClient,
     private val events: Observable<Event>,
     private val buildStore: BuildStore,
     github: GithubInstallationClient,
@@ -66,7 +66,7 @@ class Worker(
 
     companion object {
         val log = LoggerFactory.getLogger(this::class.java)
-        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BuildJob, github: GithubInstallationClient) = JobStateManager(
+        fun createJobRunner(client: KubernetesClient, configuration: KubernetesConfiguraration, job: BuildJob, github: GithubInstallationClient) = JobStateManager(
                 createJob(configuration, job, github),
                 jobName(job),
                 client,
@@ -103,6 +103,6 @@ class Worker(
                 .build()
         }
 
-        fun jobName(job: BuildJob) = "qube-${job.id.id}"
+        fun jobName(job: BuildJob) = "kubernetesClient-${job.id.id}"
     }
 }

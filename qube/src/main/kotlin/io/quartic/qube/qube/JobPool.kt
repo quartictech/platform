@@ -12,7 +12,7 @@ import java.util.concurrent.Executors
 import io.quartic.github.GithubInstallationClient
 
 class JobPool(configuration: KubernetesConfiguraration,
-              private val client: Qube,
+              private val client: KubernetesClient,
               queue: BlockingQueue<BuildJob>,
               buildStore: BuildStore,
               githubClient: GithubInstallationClient) {

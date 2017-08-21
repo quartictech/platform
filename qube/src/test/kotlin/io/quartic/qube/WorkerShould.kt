@@ -13,7 +13,7 @@ import io.quartic.qube.model.BuildPhase
 import io.quartic.qube.model.JobResult
 import io.quartic.qube.qube.JobLoop
 import io.quartic.qube.qube.JobStateManager
-import io.quartic.qube.qube.Qube
+import io.quartic.qube.qube.KubernetesClient
 import io.quartic.qube.qube.Worker
 import io.quartic.qube.store.BuildStore
 import io.quartic.common.model.CustomerId
@@ -28,7 +28,7 @@ import java.util.concurrent.BlockingQueue
 class WorkerShould {
     val buildJob = BuildJob(BuildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BuildPhase.TEST)
     val queue = mock<BlockingQueue<BuildJob>>()
-    val client = mock<Qube>()
+    val client = mock<KubernetesClient>()
     val events = PublishSubject.create<Event>()
     val buildStore = mock<BuildStore>()
     val job = JobBuilder().build()

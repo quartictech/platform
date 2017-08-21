@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 class JobStateManager(
     private val job: Job,
     private val jobName: String,
-    private val client: Qube,
+    private val client: KubernetesClient,
     private val maxFailures: Int,
     private val creationTimeoutSeconds: Int,
     private val runTimeoutSeconds: Int,

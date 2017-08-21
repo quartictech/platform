@@ -14,13 +14,14 @@ import io.quartic.github.GithubInstallationClient
 import io.quartic.qube.api.model.Dag
 import io.quartic.qube.model.BuildJob
 import io.quartic.qube.qube.JobPool
-import io.quartic.qube.qube.Qube
+import io.quartic.qube.qube.KubernetesClient
 import io.quartic.qube.resource.BackChannelResource
 import io.quartic.qube.resource.QueryResource
 import io.quartic.qube.resource.TriggerResource
 import io.quartic.qube.store.BuildStore
 import io.quartic.qube.store.setupDbi
 import io.quartic.registry.api.RegistryServiceClient
+import io.vertx.core.Vertx
 import java.io.File
 import java.util.concurrent.ArrayBlockingQueue
 
@@ -38,8 +39,11 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
         val buildStore = buildStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
 
         if (configuration.kubernetes.enable) {
-            val client = Qube(DefaultKubernetesClient(), configuration.kubernetes.namespace)
+            val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)
             JobPool(configuration.kubernetes, client, queue, buildStore, githubClient)
+
+            val vertx = Vertx.vertx()
+            vertx.deployVerticle(Qubicle(client, configuration.kubernetes.podTemplate))
         } else {
             log.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }
@@ -51,6 +55,8 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             register(TriggerResource(queue, registry, buildStore))
             register(BackChannelResource(buildStore))
         }
+
+
     }
 
     private fun buildStore(environment: Environment, configuration: DatabaseConfiguration, secretsCodec: SecretsCodec): BuildStore {

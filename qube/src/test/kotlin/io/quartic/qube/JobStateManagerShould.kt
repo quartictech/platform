@@ -8,7 +8,7 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.JobBuilder
 import io.quartic.qube.qube.JobStateManager
-import io.quartic.qube.qube.Qube
+import io.quartic.qube.qube.KubernetesClient
 import org.junit.Test
 import rx.subjects.PublishSubject
 import org.hamcrest.Matchers.*
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 
 class JobStateManagerShould {
     private val job = JobBuilder().build()
-    private val qube = mock<Qube>()
+    private val qube = mock<KubernetesClient>()
     private val subject = PublishSubject.create<Event>()
     private val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
     private val stopwatch = mock<Stopwatch>()
