@@ -10,8 +10,9 @@ import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.apis.QuartyClient
 import io.quartic.eval.apis.QuartyClient.QuartyResult.Failure
 import io.quartic.eval.apis.QuartyClient.QuartyResult.Success
-import io.quartic.eval.apis.QubeProxy
-import io.quartic.eval.apis.QubeProxy.QubeContainerProxy
+import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.github.GithubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.qube.api.model.Dag
 import io.quartic.qube.api.model.TriggerDetails
@@ -30,7 +31,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
 class EvaluatorShould {
-    // TODO - test that we're not wrapping CancellationExceptions
     // TODO - distinguish registry 404s
 
     @Test
@@ -38,7 +38,7 @@ class EvaluatorShould {
         evaluate()
 
         verify(database).writeResult(BuildResult.Success(dag))
-        verify(container).close()
+        runBlocking { verify(container).close() }
     }
 
     @Test
@@ -48,7 +48,7 @@ class EvaluatorShould {
         evaluate()
 
         verify(database).writeResult(UserError("badness"))
-        verify(container).close()
+        runBlocking { verify(container).close() }
     }
 
     @Test
@@ -64,7 +64,7 @@ class EvaluatorShould {
     @Test
     fun do_nothing_more_if_qube_fails_to_create_container() {
         runBlocking {
-            whenever(qube.createContainer()).thenThrow(QubeProxy.QubeException("Stuff is bad"))
+            whenever(qube.createContainer()).thenThrow(QubeException("Stuff is bad"))
         }
 
         evaluate()
@@ -86,7 +86,7 @@ class EvaluatorShould {
     @Test
     fun cancel_async_behaviour_and_close_container_on_concurrent_qube_error() {
         whenever(container.errors).thenReturn(produce(CommonPool) {
-            send(QubeProxy.QubeException("Stuff is bad"))
+            send(QubeException("Stuff is bad"))
         })
 
         val ghFuture = CompletableFuture<GitHubInstallationAccessToken>()
@@ -96,7 +96,7 @@ class EvaluatorShould {
 
         verifyZeroInteractions(quartyBuilder)
         assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
-        verify(container).close()
+        runBlocking { verify(container).close() }
     }
 
 

@@ -8,13 +8,13 @@ import io.quartic.eval.apis.Database.BuildResult.*
 import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.apis.QuartyClient
 import io.quartic.eval.apis.QuartyClient.QuartyResult
-import io.quartic.eval.apis.QubeProxy
-import io.quartic.eval.apis.QubeProxy.QubeContainerProxy
+import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.utils.cancellable
+import io.quartic.eval.utils.use
 import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
-import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
@@ -92,18 +92,8 @@ class Evaluator(
         quartyBuilder(container.hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")
     }
 
-    private inline fun <T : Job, R> T.use(block: (T) -> R) = AutoCloseable { cancel() }.use { block(this) }
-
     private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = cancellable(
         block = { await() },
         onThrow = { throw RuntimeException("Error while ${action}", it) }
     )
-
-    private suspend fun <R> cancellable(block: suspend () -> R, onThrow: (Throwable) -> R) = try {
-        block()
-    } catch (ce: CancellationException) {
-        throw ce
-    } catch (t: Throwable) {
-        onThrow(t)
-    }
 }

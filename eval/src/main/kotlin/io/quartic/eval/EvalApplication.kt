@@ -5,12 +5,12 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.GitHubClient
-import io.quartic.eval.apis.QubeProxy
-import io.quartic.eval.apis.QubeProxy.QubeContainerProxy
+import io.quartic.eval.qube.QubeProxy
 import io.quartic.github.GithubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.qube.api.model.TriggerDetails
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ActorJob
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.actor
 import java.util.concurrent.CompletableFuture
@@ -49,11 +49,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     }
 
     // TODO - do this properly
-    private val qube = object : QubeProxy {
-        override suspend fun createContainer(): QubeContainerProxy {
-            throw UnsupportedOperationException("not implemented")
-        }
-    }
+    private val qube = QubeProxy.create(Channel(), Channel())
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)
