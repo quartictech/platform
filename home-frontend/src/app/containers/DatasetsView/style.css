@@ -3,6 +3,7 @@
   background-color: #f5f8fa;
   width: 100%;
   height: 100%;
+  display: flex;
 }
 
 .main {
@@ -14,5 +15,4 @@
 .right {
   width: 50%;
   padding: 10px;
-  align-self: flex-start;
 }
