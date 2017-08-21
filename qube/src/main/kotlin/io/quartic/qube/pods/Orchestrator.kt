@@ -41,40 +41,41 @@ class Orchestrator(
     }
 
     private suspend fun runWorker(create: QubeEvent.CreatePod) {
-        val podName = "${create.scope}-${create.name}"
+        val podName = "${create.key.scope}-${create.key.name}"
         val podEvents = Channel<Pod>()
-
         val watch = client.watchPod(podName) { _, pod ->
             if (pod != null) {
                 podEvents.offer(pod)
             }
         }
 
-        createPod(PodBuilder(podTemplate)
-            .editOrNewMetadata()
-            .withName(podName)
-            .endMetadata()
-            .build())
-            .await()
+        try {
+            createPod(PodBuilder(podTemplate)
+                .editOrNewMetadata()
+                .withName(podName)
+                .endMetadata()
+                .build())
+                .await()
 
-        runPod(podName, podEvents, create.returnChannel)
-
-        deletePod(podName)
-        LOG.info("[{}] Pod deleted", podName)
-
-        watch.close()
+            runPod(podName, podEvents, create.returnChannel)
+        }
+        finally {
+            deletePod(podName)
+            LOG.info("[{}] Pod deleted", podName)
+            watch.close()
+        }
     }
 
     fun run() = launch(CommonPool) {
         val scopes = mutableSetOf<UUID>()
-        val runningPods = mutableMapOf<Pair<UUID, String>, Job>()
+        val runningPods = mutableMapOf<PodKey, Job>()
         val waitingList: Queue<QubeEvent.CreatePod> = LinkedList<QubeEvent.CreatePod>()
 
         while (true) {
             val message = select<QubeEvent> {
                 events.onReceive { it }
-                runningPods.forEach { (scope, name), job ->
-                    job.onJoin { QubeEvent.PodTerminated(scope, name) }
+                runningPods.forEach { key, job ->
+                    job.onJoin { QubeEvent.PodTerminated(key) }
                 }
             }
 
@@ -87,14 +88,13 @@ class Orchestrator(
                     scopes.add(message.scope)
                 }
                 is QubeEvent.CancelPod -> {
-                    val p = message.scope to message.name
-                    runningPods[p]?.cancel()
-                    runningPods.remove(p)
+                    runningPods[message.key]?.cancel()
+                    runningPods.remove(message.key)
                 }
 
                 is QubeEvent.CancelScope -> {
                     runningPods.forEach{ key, job ->
-                        if (key.first == message.scope) {
+                        if (key.scope == message.scope) {
                             job.cancel()
                             runningPods.remove(key)
                         }
@@ -105,20 +105,20 @@ class Orchestrator(
 
                 is QubeEvent.PodTerminated -> {
                     LOG.info("Removing pod: {}", message)
-                    runningPods.remove(message.scope to message.name)
+                    runningPods.remove(message.key)
                 }
             }
 
             // Drain waiting list
             while (waitingList.isNotEmpty() && runningPods.size < MAX_CONCURRENCY) {
                 val create = waitingList.remove()
-                if (scopes.contains(create.scope) &&
-                    !runningPods.containsKey(create.scope to create.name)) {
-                    LOG.info("Running {}", create.name)
+                if (scopes.contains(create.key.scope) &&
+                    !runningPods.containsKey(create.key)) {
+                    LOG.info("Running {}", create.key.name)
                     val job = async(coroutineContext) { runWorker(create) }
-                    runningPods.put(Pair(create.scope, create.name), job)
+                    runningPods.put(create.key, job)
                 } else {
-                    LOG.warn("Discarding request due to no matching scope: {}", create.scope)
+                    LOG.warn("Discarding request: {}", create)
                 }
             }
         }

@@ -4,6 +4,10 @@ import io.quartic.qube.api.SentMessage
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.*
 
+data class PodKey(
+    val scope: UUID,
+    val name: String
+)
 
 sealed class QubeEvent {
     data class CreateScope(
@@ -11,8 +15,7 @@ sealed class QubeEvent {
     ): QubeEvent()
 
     data class CancelPod(
-        val scope: UUID,
-        val name: String
+        val key: PodKey
     ) : QubeEvent()
 
     data class CancelScope(
@@ -20,13 +23,11 @@ sealed class QubeEvent {
     ): QubeEvent()
 
     data class PodTerminated(
-        val scope: UUID,
-        val name: String
+        val key: PodKey
     ): QubeEvent()
 
     data class CreatePod(
-        val scope: UUID,
-        val name: String,
+        val key: PodKey,
         val returnChannel: Channel<SentMessage>
     ): QubeEvent()
 }

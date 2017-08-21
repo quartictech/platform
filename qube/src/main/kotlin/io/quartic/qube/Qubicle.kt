@@ -7,6 +7,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.api.ReceivedMessage
 import io.quartic.qube.api.SentMessage
 import io.quartic.qube.pods.Orchestrator
+import io.quartic.qube.pods.PodKey
 import io.quartic.qube.pods.QubeEvent
 import io.quartic.qube.qube.KubernetesClient
 import io.vertx.core.AbstractVerticle
@@ -29,8 +30,17 @@ class Qubicle(client: KubernetesClient, podTemplate: Pod) : AbstractVerticle() {
         websocket.textMessageHandler { textMessage ->
             val message = OBJECT_MAPPER.readValue<ReceivedMessage>(textMessage)
             when (message) {
-                is ReceivedMessage.CreatePod -> events.offer(QubeEvent.CreatePod(scopeUUID, message.name, returnChannel))
-                is ReceivedMessage.RemovePod -> events.offer(QubeEvent.CancelPod(scopeUUID, message.name))
+                is ReceivedMessage.CreatePod -> events.offer(
+                    QubeEvent.CreatePod(
+                        PodKey(scopeUUID, message.name),
+                        returnChannel
+                    )
+                )
+                is ReceivedMessage.RemovePod -> events.offer(
+                    QubeEvent.CancelPod(
+                        PodKey(scopeUUID, message.name)
+                    )
+                )
             }
         }
 
