@@ -5,13 +5,13 @@ import io.quartic.common.logging.logger
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.*
-import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.apis.QuartyClient
 import io.quartic.eval.apis.QuartyClient.QuartyResult
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.utils.cancellable
 import io.quartic.eval.utils.use
+import io.quartic.github.GitHubInstallationClient
 import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
@@ -27,14 +27,14 @@ import java.util.concurrent.CompletableFuture
 class Evaluator(
     private val registry: RegistryServiceClient,
     private val qube: QubeProxy,
-    private val github: GitHubClient,
+    private val github: GitHubInstallationClient,
     private val database: Database,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
     constructor(
         registry: RegistryServiceClient,
         qube: QubeProxy,
-        github: GitHubClient,
+        github: GitHubInstallationClient,
         database: Database,
         clientBuilder: ClientBuilder
     ) : this(registry, qube, github, database, { hostname -> clientBuilder.retrofit("http://${hostname}") })
@@ -86,7 +86,7 @@ class Evaluator(
     }
 
     private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {
-        val token = github.getAccessTokenAsync(trigger.installationId).awaitWrapped("acquiring access token from GitHub")
+        val token = github.accessTokenAsync(trigger.installationId).awaitWrapped("acquiring access token from GitHub")
 
         val cloneUrl = URIBuilder(trigger.cloneUrl).apply { userInfo = "x-access-token:${token.token}" }.build()
         quartyBuilder(container.hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")

@@ -33,6 +33,7 @@ annotation class Retrofittable
 
 class ClientBuilder(val owner: Class<*>) {
     inline fun <reified T> feign(url: String): T = client(owner, url)
+    inline fun <reified T> feign(url: URI): T = feign(url.toString())
     inline fun <reified T> retrofit(url: String): T = retrofitClient(owner, url)
     inline fun <reified T> retrofit(url: URI): T = retrofit(url.toString())
 }

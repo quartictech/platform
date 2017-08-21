@@ -4,16 +4,14 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
-import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.qube.QubeProxy
-import io.quartic.github.GithubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.GitHubInstallationClient
 import io.quartic.qube.api.model.TriggerDetails
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ActorJob
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.actor
-import java.util.concurrent.CompletableFuture
 
 class EvalApplication : ApplicationBase<EvalConfiguration>() {
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
@@ -25,7 +23,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         val evaluator = Evaluator(
             clientBuilder.retrofit(configuration.registryUrl),
             qube,
-            github,
+            github(configuration),
             database,
             clientBuilder
         )
@@ -42,11 +40,12 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     }
 
     // TODO - do this properly
-    private val github = object : GitHubClient {
-        override fun getAccessTokenAsync(installationId: Long): CompletableFuture<GitHubInstallationAccessToken> {
-            throw UnsupportedOperationException("not implemented")
-        }
-    }
+    private fun github(config: EvalConfiguration) = GitHubInstallationClient(
+        config.github.appId,
+        config.github.apiRootUrl,
+        config.secretsCodec.decrypt(config.github.privateKeyEncrypted),
+        clientBuilder
+    )
 
     // TODO - do this properly
     private val qube = QubeProxy.create(Channel(), Channel())

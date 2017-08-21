@@ -6,14 +6,14 @@ import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.InternalError
 import io.quartic.eval.apis.Database.BuildResult.UserError
-import io.quartic.eval.apis.GitHubClient
 import io.quartic.eval.apis.QuartyClient
 import io.quartic.eval.apis.QuartyClient.QuartyResult.Failure
 import io.quartic.eval.apis.QuartyClient.QuartyResult.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
-import io.quartic.github.GithubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.GitHubInstallationClient
+import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.qube.api.model.Dag
 import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
@@ -75,7 +75,7 @@ class EvaluatorShould {
 
     @Test
     fun do_nothing_more_if_github_token_request_fails() {
-        whenever(github.getAccessTokenAsync(any())).thenReturn(exceptionalFuture())
+        whenever(github.accessTokenAsync(any())).thenReturn(exceptionalFuture())
 
         evaluate()
 
@@ -90,7 +90,7 @@ class EvaluatorShould {
         })
 
         val ghFuture = CompletableFuture<GitHubInstallationAccessToken>()
-        whenever(github.getAccessTokenAsync(any())).thenReturn(ghFuture)
+        whenever(github.accessTokenAsync(any())).thenReturn(ghFuture)
 
         evaluate()
 
@@ -148,8 +148,8 @@ class EvaluatorShould {
     private val qube = mock<QubeProxy> {
         on { runBlocking { createContainer() } } doReturn container
     }
-    private val github = mock<GitHubClient> {
-        on { getAccessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken("yeah"))
+    private val github = mock<GitHubInstallationClient> {
+        on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken("yeah"))
     }
     private val quarty = mock<QuartyClient> {
         on { getDag(URI("https://x-access-token:yeah@noob.com/foo/bar"), "develop") } doReturn completedFuture(Success("stuff", dag))

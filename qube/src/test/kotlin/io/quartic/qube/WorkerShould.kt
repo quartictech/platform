@@ -17,7 +17,7 @@ import io.quartic.qube.qube.Qube
 import io.quartic.qube.qube.Worker
 import io.quartic.qube.store.BuildStore
 import io.quartic.common.model.CustomerId
-import io.quartic.github.GithubInstallationClient
+import io.quartic.github.GitHubInstallationClient
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test
@@ -34,7 +34,7 @@ class WorkerShould {
     val job = JobBuilder().build()
     val jobRunner = mock<JobStateManager>()
     val jobLoop = mock<JobLoop>()
-    val github = mock<GithubInstallationClient>()
+    val github = mock<GitHubInstallationClient>()
     val subscriber = TestSubscriber.create<Event>()
 
     val worker = Worker(
