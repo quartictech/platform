@@ -29,7 +29,7 @@ class EnsureLoggedInComponent extends React.Component<EnsureLoggedInProps, {}> {
 
   render() {
     const { children } = this.props;
-    return (this.isAuthenticated() ? <div>{children}</div> : null);
+    return (this.isAuthenticated() ? <div style={{ display: "block", height: "100%" }}>{children}</div> : null);
   }
 }
 
