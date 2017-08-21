@@ -28,4 +28,5 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
     })
 
     fun deletePod(name: String) = namespacedClient.pods().withName(name).delete()
+    fun getPod(name: String) = namespacedClient.pods().withName(name).get()
 }

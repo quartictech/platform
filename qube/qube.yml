@@ -2,30 +2,22 @@ kubernetes:
   enable: false
   namespace: qube
   numConcurrentJobs: 4
-  maxFailures: 5
-  creationTimeoutSeconds: 60
-  runTimeoutSeconds: 3600
   backChannelEndpoint: "http://qube.platform:8200/api/exec/backchannel/%s"
-  template:
-    apiVersion: batch/v1
-    kind: Job
+  podTemplate:
     spec:
-      template:
-        spec:
-          automountServiceAccountToken: false
-          containers:
-            - name: jupyter
-              image: eu.gcr.io/quartictech/jupyter:53
-              command:
-                - "sudo"
-                - "-E"
-                - "-u"
-                - "jovyan"
-                - "bash"
-                - "-c"
-                - "export PATH=/opt/conda/bin:$PATH; pip install $QUARTIC_RUNNER_ENDPOINT && python -u -m quarty"
-          restartPolicy: Never
-
+      automountServiceAccountToken: false
+      containers:
+        - name: jupyter
+          image: eu.gcr.io/quartictech/jupyter:53
+          command:
+            - "sudo"
+            - "-E"
+            - "-u"
+            - "jovyan"
+            - "bash"
+            - "-c"
+            - "export PATH=/opt/conda/bin:$PATH; sleep 5; false"
+      restartPolicy: Never
 registryUrl: http://localhost:8190/api
 
 github:

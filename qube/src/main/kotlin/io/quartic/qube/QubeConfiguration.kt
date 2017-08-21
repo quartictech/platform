@@ -10,7 +10,6 @@ import io.quartic.common.secrets.SecretsCodec
 
 data class KubernetesConfiguraration(
     val namespace: String,
-    val template: Job,
     val podTemplate: Pod,
     val numConcurrentJobs: Int,
     val backChannelEndpoint: String,

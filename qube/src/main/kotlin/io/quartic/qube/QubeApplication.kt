@@ -15,15 +15,15 @@ import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource
 import io.quartic.qube.resource.QueryResource
-import io.quartic.qube.store.BuildStore
+import io.quartic.qube.store.JobStore
 import io.quartic.qube.store.setupDbi
 import io.vertx.core.Vertx
 import java.io.File
 
 class QubeApplication : ApplicationBase<QubeConfiguration>() {
-    val LOG by logger()
+    private val LOG by logger()
     override fun runApplication(configuration: QubeConfiguration, environment: Environment) {
-        val buildStore = buildStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
+        val jobStore = jobStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
 
         if (configuration.kubernetes.enable) {
             val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)
@@ -36,21 +36,22 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
 
             val vertx = Vertx.vertx()
             vertx.deployVerticle(Qubicle(client, configuration.kubernetes.podTemplate,
-                configuration.kubernetes.namespace, configuration.kubernetes.numConcurrentJobs))
+                configuration.kubernetes.namespace, configuration.kubernetes.numConcurrentJobs,
+                jobStore))
         } else {
             LOG.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }
 
         with (environment.jersey()) {
             // TODO: remove default pipeline
-            register(QueryResource(buildStore,
+            register(QueryResource(
                 OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)))
-            register(BackChannelResource(buildStore))
+            register(BackChannelResource(jobStore))
         }
 
     }
 
-    private fun buildStore(environment: Environment, configuration: DatabaseConfiguration, secretsCodec: SecretsCodec): BuildStore {
+    private fun jobStore(environment: Environment, configuration: DatabaseConfiguration, secretsCodec: SecretsCodec): JobStore {
          if (configuration.runEmbedded) {
              LOG.warn("Postgres is running in embedded mode!!")
              EmbeddedPostgres.builder()
@@ -60,9 +61,9 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
                  .start()
         }
         val database = configuration.dataSource.dataSourceFactory(secretsCodec)
-        BuildStore.migrate(database.build(environment.metrics(), "flyway"))
+        JobStore.migrate(database.build(environment.metrics(), "flyway"))
         val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, database, "postgres")
-        return setupDbi(dbi).onDemand(BuildStore::class.java)
+        return setupDbi(dbi).onDemand(JobStore::class.java)
     }
 
     companion object {

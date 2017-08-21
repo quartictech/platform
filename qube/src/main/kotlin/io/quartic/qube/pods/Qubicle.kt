@@ -6,6 +6,7 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.api.Request
 import io.quartic.qube.api.Response
+import io.quartic.qube.store.JobStore
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import kotlinx.coroutines.experimental.*
@@ -16,26 +17,27 @@ class Qubicle(
     client: KubernetesClient,
     podTemplate: Pod,
     namespace: String,
-    concurrentJobs: Int
+    concurrentJobs: Int,
+    jobStore: JobStore
 ) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>()
 
-    private val worker = WorkerImpl(client, podTemplate, namespace)
+    private val worker = WorkerImpl(client, podTemplate, namespace, jobStore)
     private val orchestrator = Orchestrator(events, worker, concurrentJobs)
 
     fun setupWebsocket(websocket: ServerWebSocket) {
-        val scopeUUID = UUID.randomUUID()
+        val clientUUID = UUID.randomUUID()
         val returnChannel = Channel<Response>()
 
-        events.offer(QubeEvent.CreateScope(scopeUUID))
+        events.offer(QubeEvent.CreateClient(clientUUID))
         websocket.textMessageHandler { textMessage ->
             try {
                 val message = OBJECT_MAPPER.readValue<Request>(textMessage)
                 when (message) {
                     is Request.CreatePod -> events.offer(
                         QubeEvent.CreatePod(
-                            PodKey(scopeUUID, message.name),
+                            PodKey(clientUUID, message.name),
                             returnChannel,
                             message.image,
                             message.command
@@ -43,7 +45,7 @@ class Qubicle(
                     )
                     is Request.DestroyPod -> events.offer(
                         QubeEvent.CancelPod(
-                            PodKey(scopeUUID, message.name)
+                            PodKey(clientUUID, message.name)
                         )
                     )
                 }
@@ -54,7 +56,7 @@ class Qubicle(
             }
         }
 
-        websocket.closeHandler { events.offer(QubeEvent.CancelScope(scopeUUID)) }
+        websocket.closeHandler { events.offer(QubeEvent.CancelScope(clientUUID)) }
 
         launch(CommonPool) {
             for (message in returnChannel) {

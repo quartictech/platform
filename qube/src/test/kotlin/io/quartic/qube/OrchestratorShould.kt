@@ -61,6 +61,6 @@ class OrchestratorShould {
     }
 
     fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, "dummy:1", listOf("true"))
-    fun createScope() = QubeEvent.CreateScope(podKey.scope)
-    fun cancelScope() = QubeEvent.CancelScope(podKey.scope)
+    fun createScope() = QubeEvent.CreateClient(podKey.client)
+    fun cancelScope() = QubeEvent.CancelScope(podKey.client)
 }

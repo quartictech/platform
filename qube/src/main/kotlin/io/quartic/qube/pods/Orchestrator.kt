@@ -16,7 +16,7 @@ class Orchestrator(
     private val LOG by logger()
 
     suspend fun run() {
-        val scopes = mutableSetOf<UUID>()
+        val clients = mutableSetOf<UUID>()
         val runningPods = mutableMapOf<PodKey, Job>()
         val waitingList: Queue<QubeEvent.CreatePod> = LinkedList<QubeEvent.CreatePod>()
 
@@ -33,8 +33,8 @@ class Orchestrator(
                 is QubeEvent.CreatePod -> {
                     waitingList.add(message)
                 }
-                is QubeEvent.CreateScope -> {
-                    scopes.add(message.scope)
+                is QubeEvent.CreateClient -> {
+                    clients.add(message.client)
                 }
                 is QubeEvent.CancelPod -> {
                     runningPods[message.key]?.cancel()
@@ -44,14 +44,14 @@ class Orchestrator(
                 is QubeEvent.CancelScope -> {
                     val removeKeys = mutableSetOf<PodKey>()
                     runningPods.forEach{ key, job ->
-                        if (key.scope == message.scope) {
+                        if (key.client == message.client) {
                             job.cancel()
                             removeKeys.add(key)
                         }
                     }
 
                     removeKeys.forEach{key -> runningPods.remove(key)}
-                    scopes.remove(message.scope)
+                    clients.remove(message.client)
                 }
 
                 is QubeEvent.PodTerminated -> {
@@ -63,7 +63,7 @@ class Orchestrator(
             // Drain waiting list
             while (waitingList.isNotEmpty() && runningPods.size < concurrency) {
                 val create = waitingList.remove()
-                if (scopes.contains(create.key.scope) &&
+                if (clients.contains(create.key.client) &&
                     !runningPods.containsKey(create.key)) {
                     LOG.info("Running {}", create.key.name)
                     val job = async(CommonPool) { worker.run(create) }

@@ -5,13 +5,13 @@ import kotlinx.coroutines.experimental.channels.Channel
 import java.util.*
 
 data class PodKey(
-    val scope: UUID,
+    val client: UUID,
     val name: String
 )
 
 sealed class QubeEvent {
-    data class CreateScope(
-        val scope: UUID
+    data class CreateClient(
+        val client: UUID
     ): QubeEvent()
 
     data class CancelPod(
@@ -19,7 +19,7 @@ sealed class QubeEvent {
     ) : QubeEvent()
 
     data class CancelScope(
-        val scope: UUID
+        val client: UUID
     ): QubeEvent()
 
     data class PodTerminated(
