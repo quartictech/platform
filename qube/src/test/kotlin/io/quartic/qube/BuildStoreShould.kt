@@ -41,6 +41,13 @@ class BuildStoreShould {
     }
 
     @Test
+    fun get_latest() {
+        val buildId = buildStore.createBuild(CustomerId(100), 100, "git", "head", "hash", BuildPhase.TEST)
+        val id = buildStore.getLatest(CustomerId(100))
+        assertThat(id, equalTo(buildId))
+    }
+
+    @Test
     fun set_job_result() {
         val id = buildStore.createBuild(CustomerId(100), 100, "git", "head", "hash", BuildPhase.TEST)
 
