@@ -53,7 +53,7 @@ class HomeResource(
         if (user.customerId == null) {
             return emptyMap()
         } else {
-            val customer = registry.getCustomerById(user.customerId!!).get()
+            val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
             return catalogue.getDatasets().filterKeys { namespace -> customer.namespace == namespace.namespace }
         }
     }
@@ -164,7 +164,7 @@ class HomeResource(
     }
 
     private fun throwIfNamespaceNotAllowed(user: User, namespace: DatasetNamespace) {
-        val customer = registry.getCustomerById(user.customerId!!).get()
+        val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
         if (customer.namespace != namespace.namespace) {
             throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
         }

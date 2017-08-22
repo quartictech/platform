@@ -9,13 +9,13 @@ import io.quartic.common.logging.logger
 import rx.subjects.PublishSubject
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
-import io.quartic.github.GithubInstallationClient
+import io.quartic.github.GitHubInstallationClient
 
 class JobPool(configuration: KubernetesConfiguraration,
               private val client: Qube,
               queue: BlockingQueue<BuildJob>,
               buildStore: BuildStore,
-              githubClient: GithubInstallationClient) {
+              githubClient: GitHubInstallationClient) {
     private val log by logger()
     private val namespace = NamespaceBuilder()
         .editOrNewMetadata()

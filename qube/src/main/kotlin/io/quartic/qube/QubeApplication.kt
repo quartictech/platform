@@ -10,7 +10,7 @@ import io.quartic.common.client.retrofitClient
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.github.GithubInstallationClient
+import io.quartic.github.GitHubInstallationClient
 import io.quartic.qube.api.model.Dag
 import io.quartic.qube.model.BuildJob
 import io.quartic.qube.qube.JobPool
@@ -32,8 +32,12 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
         val registry = retrofitClient<RegistryServiceClient>(QubeApplication::class.java, configuration.registryUrl)
 
         val githubPrivateKey = configuration.secretsCodec.decrypt(configuration.github.privateKeyEncrypted)
-        val githubClient = GithubInstallationClient(configuration.github.appId, configuration.github.apiRootUrl,
-            githubPrivateKey)
+        val githubClient = GitHubInstallationClient(
+            configuration.github.appId,
+            configuration.github.apiRootUrl,
+            githubPrivateKey,
+            clientBuilder
+        )
 
         val buildStore = buildStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
 

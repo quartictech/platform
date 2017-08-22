@@ -1,9 +1,10 @@
 package io.quartic.qube.store
 
+import io.quartic.common.model.CustomerId
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.api.model.Dag
 import io.quartic.qube.model.Build
-import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.uid.Uid
+import io.quartic.qube.model.BuildId
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
@@ -30,14 +31,20 @@ class BuildMapper: RowMapper<Build> {
     )
 }
 
-internal class UidArgumentFactory : AbstractArgumentFactory<Uid>(Types.VARCHAR) {
-    override fun build(value: Uid, config: ConfigRegistry) =
-        Argument { position, statement, ctx -> statement!!.setLong(position, value.uid.toLong()) }
+internal class BuildIdArgumentFactory : AbstractArgumentFactory<BuildId>(Types.VARCHAR) {
+    override fun build(value: BuildId, config: ConfigRegistry) =
+        Argument { position, statement, _ -> statement!!.setLong(position, value.uid.toLong()) }
 }
+
+internal class CustomerIdArgumentFactory : AbstractArgumentFactory<CustomerId>(Types.VARCHAR) {
+    override fun build(value: CustomerId, config: ConfigRegistry) =
+        Argument { position, statement, _ -> statement!!.setString(position, value.uid) }
+}
+
 
 internal class PgObjectArgFactory : AbstractArgumentFactory<PGobject>(Types.JAVA_OBJECT) {
     override fun build(value: PGobject, config: ConfigRegistry) =
-        Argument { position, statement, ctx -> statement!!.setObject(position, value) }
+        Argument { position, statement, _ -> statement!!.setObject(position, value) }
 }
 
 class BindJsonFactory : SqlStatementCustomizerFactory {
@@ -56,13 +63,13 @@ class BindJsonFactory : SqlStatementCustomizerFactory {
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @SqlStatementCustomizingAnnotation(BindJsonFactory::class)
 annotation class BindJson(val name: String)
-
 fun setupDbi(dbi: Jdbi): Jdbi {
     dbi.installPlugin(SqlObjectPlugin())
     dbi.installPlugin(KotlinPlugin())
     dbi.installPlugin(KotlinSqlObjectPlugin())
     dbi.installPlugin(PostgresPlugin())
-    dbi.registerArgument(UidArgumentFactory())
+    dbi.registerArgument(CustomerIdArgumentFactory())
+    dbi.registerArgument(BuildIdArgumentFactory())
     dbi.registerArgument(PgObjectArgFactory())
     return dbi
 }
