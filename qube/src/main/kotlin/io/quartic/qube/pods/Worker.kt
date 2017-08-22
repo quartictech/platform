@@ -26,12 +26,12 @@ class WorkerImpl(
     private val LOG by logger()
 
     fun podName(key: PodKey) = "${key.client}-${key.name}"
-    private suspend fun createPod(pod: Pod) = async(threadPool) {
+    private suspend fun createPodAsync(pod: Pod) = async(threadPool) {
         client.createPod(pod)
         LOG.info("[{}] Pod created", pod.metadata.name)
     }
 
-    private suspend fun deletePod(podName: String) = async(threadPool) {
+    private suspend fun deletePodAsync(podName: String) = async(threadPool) {
         client.deletePod(podName)
         LOG.info("[{}] Pod deleted", podName)
     }
@@ -70,7 +70,7 @@ class WorkerImpl(
 
         try {
             val startTime = Instant.now()
-            createPod(PodBuilder(podTemplate)
+            createPodAsync(PodBuilder(podTemplate)
                 .editOrNewMetadata()
                 .withName(podName)
                 .withNamespace(namespace)
@@ -96,7 +96,7 @@ class WorkerImpl(
         finally {
             watch.close()
             withTimeout(10, TimeUnit.SECONDS) {
-                deletePod(podName).await()
+                deletePodAsync(podName).await()
             }
         }
     }

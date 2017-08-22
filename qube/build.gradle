@@ -46,3 +46,9 @@ kotlin {
         coroutines "enable"
     }
 }
+
+idea {
+    module {
+        excludeDirs += file("data")
+    }
+}
