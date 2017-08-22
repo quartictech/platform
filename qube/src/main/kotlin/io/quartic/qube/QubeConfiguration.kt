@@ -2,27 +2,17 @@ package io.quartic.qube
 
 import io.dropwizard.db.DataSourceFactory
 import io.dropwizard.util.Duration
-import io.fabric8.kubernetes.api.model.Job
+import io.fabric8.kubernetes.api.model.Pod
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import java.net.URI
 
 data class KubernetesConfiguraration(
     val namespace: String,
-    val template: Job,
+    val podTemplate: Pod,
     val numConcurrentJobs: Int,
-    val maxFailures: Int,
-    val creationTimeoutSeconds: Int,
-    val runTimeoutSeconds: Int,
-    val backChannelEndpoint: String,
+    val jobTimeoutSeconds: Long,
     val enable: Boolean
-)
-
-data class GitHubConfiguration(
-    val appId: String,
-    val apiRootUrl: URI,
-    val privateKeyEncrypted: EncryptedSecret
 )
 
 data class DataSourceConfiguration(
@@ -41,8 +31,6 @@ data class DataSourceConfiguration(
     val evictionInterval: Duration = Duration.seconds(10),
     val minIdleTime: Duration = Duration.minutes(1)
 ) {
-
-
     fun dataSourceFactory(secretsCodec: SecretsCodec): DataSourceFactory {
         val dataSourceFactory = DataSourceFactory()
 
@@ -71,7 +59,6 @@ data class DatabaseConfiguration(
 data class QubeConfiguration(
     val kubernetes: KubernetesConfiguraration,
     val database: DatabaseConfiguration,
-    val registryUrl: String,
-    val github: GitHubConfiguration
+    val websocketPort: Int
 ) : ConfigurationBase()
 

@@ -1,6 +1,5 @@
 package io.quartic.qube
 
-import com.nhaarman.mockito_kotlin.mock
 import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.qube.resource.BackChannelResource
 import org.hamcrest.Matchers.equalTo
@@ -23,6 +22,6 @@ class BackChannelResourceShould {
     @Rule
     @JvmField
     val resource = ResourceTestRule.builder()
-        .addResource(BackChannelResource(mock()))
+        .addResource(BackChannelResource())
         .build()
 }

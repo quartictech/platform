@@ -25,13 +25,13 @@ run {
 dependencies {
     compile project(":common-core")
     compile project(":hey-api")
-    compile "io.vertx:vertx-web:3.4.2"
-    compile "io.vertx:vertx-web-client:3.4.2"
-    compile "io.vertx:vertx-config:3.4.2"
+    compile libraries.vertx.web
+    compile libraries.vertx.client
+    compile libraries.vertx.config
 
     runtime "ch.qos.logback:logback-classic:1.2.3"
 
     testCompile project(":common-test")
-    testCompile "io.vertx:vertx-unit:3.4.2"
+    testCompile libraries.vertx.unit
     testCompile "com.github.stefanbirkner:system-rules:1.16.1"
 }

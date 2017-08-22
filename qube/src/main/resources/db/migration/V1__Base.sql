@@ -1,21 +1,13 @@
 
-create table build(
-  id serial,
-  customer_id varchar,
-  installation_id bigint,
-  clone_url varchar,
-  ref varchar,
-  commit varchar,
-  phase varchar,
-  start_time timestamp,
-  success boolean,
-  reason varchar,
-  dag jsonb
-);
-
 create table job(
-  id serial,
-  build_id integer,
-  pod_name varchar,
-  log text
+  id uuid,
+  client uuid,
+  name varchar,
+  create_spec jsonb,
+  log text,
+  start_time timestamp,
+  end_time timestamp,
+  reason varchar,
+  message varchar,
+  exit_code int
 );
