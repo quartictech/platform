@@ -2,12 +2,10 @@ package io.quartic.qube
 
 import io.dropwizard.db.DataSourceFactory
 import io.dropwizard.util.Duration
-import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.Pod
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import java.net.URI
 
 data class KubernetesConfiguraration(
     val namespace: String,

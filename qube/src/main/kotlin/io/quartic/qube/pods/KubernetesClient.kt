@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.Watch
 import io.fabric8.kubernetes.client.Watcher
 import io.quartic.common.logging.logger
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 
 class KubernetesClient(private val client: DefaultKubernetesClient, private val namespace: String) {
     private val LOG by logger()
@@ -34,7 +35,7 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
     fun createPod(pod: Pod) = namespacedClient.pods().create(pod)
 
     fun watchPod(podName:String): PodWatch {
-        val channel = Channel<Pod>()
+        val channel = Channel<Pod>(UNLIMITED)
         val watch = namespacedClient.pods().withName(podName)
             .watch(object: Watcher<Pod>{
                 override fun eventReceived(action: Watcher.Action?, resource: Pod?) {
