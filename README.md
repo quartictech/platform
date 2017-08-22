@@ -147,18 +147,19 @@ Also needs to be stored in our GitHub (non-OAuth) app settings.
 
 ## Services
 
-Service        | Port (app/admin) | Port (frontend dev)  | Description
----------------|------------------|----------------------|-----------------
-Weyl           | 8080 / 8081      | 3000                 | Map UI
-Catalogue      | 8090 / 8091      |                      | Dataset catalogue
-Home           | 8100 / 8101      | 3010                 | Home UI
-Howl           | 8120 / 8121      |                      | Cloud storage abstraction
-~~Terminator~~ | ~~8130 / 8131~~  |                      |
-Scribe         | 8140 / 8141      |                      | PubSub -> file storage batching
-Rain           | 8150 / 8151      |                      | Howl-to-live-layer converter
-Zeus           | 8160 / 8161      | 3020                 | Asset 360 UI
-Glisten        | 8170 / 8171      |                      | GitHub webhook listener
-~~Orf~~        | ~~8180 / 8181~~  |                      | ~~Authentication~~
-Registry       | 8190 / 8191      |                      | Customer registry
-Qube           | 8200 / 8201      |                      | Kubernetes abstraction
-Hey            | 8220 / 8221      |                      | Slack notifications
+Service        | Port (backend) | Port (frontend dev)  | Description
+---------------|----------------|----------------------|-----------------
+Weyl           | 8080           | 3000                 | Map UI
+Catalogue      | 8090           |                      | Dataset catalogue
+Home           | 8100           | 3010                 | Home UI
+Howl           | 8120           |                      | Cloud storage abstraction
+~~Terminator~~ | ~~8130~~       |                      |
+Scribe         | 8140           |                      | PubSub -> file storage batching
+Rain           | 8150           |                      | Howl-to-live-layer converter
+Zeus           | 8160           | 3020                 | Asset 360 UI
+Glisten        | 8170           |                      | GitHub webhook listener
+~~Orf~~        | ~~8180~~       |                      | ~~Authentication~~
+Registry       | 8190           |                      | Customer registry
+Qube           | 8200           |                      | Kubernetes abstraction
+Eval           | 8210           |                      | Deals with graph evaluation
+Hey            | 8220           |                      | Slack notifications

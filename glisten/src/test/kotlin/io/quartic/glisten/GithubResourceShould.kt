@@ -4,16 +4,17 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import io.quartic.qube.api.QubeTriggerService
-import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.github.*
+import io.quartic.qube.api.QubeTriggerService
+import io.quartic.qube.api.model.TriggerDetails
 import org.apache.commons.codec.binary.Hex
 import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -66,7 +67,7 @@ class GithubResourceShould {
             deliveryId = "abc",
             installationId = 12345,
             repoId = 66666,
-            cloneUrl = "https://github.com/noobhole/noobing.git",
+            cloneUrl = URI("https://github.com/noobhole/noobing.git"),
             ref = "refs/heads/master",
             commit = "fc6206fd27761a1e03383287e213801105f01a25",
             timestamp = clock.instant()
@@ -132,7 +133,7 @@ class GithubResourceShould {
             name = "noobing",
             fullName = "noobhole/noobing",
             private = true,
-            cloneUrl = "https://github.com/noobhole/noobing.git"
+            cloneUrl = URI("https://github.com/noobhole/noobing.git")
         ),
         installation = Installation(12345)
     )

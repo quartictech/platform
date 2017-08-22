@@ -10,6 +10,7 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.ApplicationDetails
 import io.quartic.common.auth.User
 import io.quartic.common.auth.createAuthFilter
+import io.quartic.common.client.ClientBuilder
 import io.quartic.common.logging.logger
 import io.quartic.common.pingpong.PingPongResource
 import io.quartic.common.serdes.configureObjectMapper
@@ -25,6 +26,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
 ) : Application<T>() {
     private val LOG by logger()
     private val details = ApplicationDetails(javaClass)
+    protected val clientBuilder = ClientBuilder(javaClass)
 
     final override fun initialize(bootstrap: Bootstrap<T>) {
         with (bootstrap) {

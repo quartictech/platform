@@ -82,7 +82,7 @@ class CatalogueResourceShould {
 
     @Test
     fun send_current_catalogue_state_on_websocket_open() {
-        val session = mock<Session>(RETURNS_DEEP_STUBS)
+        val session = mock<Session>(defaultAnswer = RETURNS_DEEP_STUBS)
         val datasets = loadsOfDatasets()
 
         whenever(backend.getAll()).thenReturn(datasets)
@@ -94,7 +94,7 @@ class CatalogueResourceShould {
 
     @Test
     fun send_catalogue_state_to_websocket_clients_after_change() {
-        val session = mock<Session>(RETURNS_DEEP_STUBS)
+        val session = mock<Session>(defaultAnswer = RETURNS_DEEP_STUBS)
         val datasets = loadsOfDatasets()
 
         whenever(backend.getAll())
@@ -114,7 +114,7 @@ class CatalogueResourceShould {
 
     @Test
     fun not_send_state_to_closed_websockets_after_change() {
-        val session = mock<Session>(RETURNS_DEEP_STUBS)
+        val session = mock<Session>(defaultAnswer = RETURNS_DEEP_STUBS)
 
         resource.onOpen(session, mock())
         resource.onClose(session, mock())

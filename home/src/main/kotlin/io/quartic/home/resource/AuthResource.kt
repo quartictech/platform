@@ -104,7 +104,7 @@ class AuthResource(
         val ghOrgs = callServerOrThrow { gitHubApi.organizations(accessToken.accessToken!!) }
 
         val subdomain = extractSubdomain(host)
-        val customer = callServerOrThrow { registry.getCustomer(subdomain, null).get()!! } // Should never be null
+        val customer = callServerOrThrow { registry.getCustomerAsync(subdomain, null).get()!! } // Should never be null
 
         if (ghOrgs.any { it.id == customer.githubOrgId }) {
             val user = User(ghUser.id, customer.id) // TODO - using the GH ID as user ID is wrong in the long run

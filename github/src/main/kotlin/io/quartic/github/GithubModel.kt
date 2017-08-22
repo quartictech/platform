@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.net.URI
 import java.time.OffsetDateTime
 
 typealias GitRef = String
@@ -45,7 +46,7 @@ data class Repository(
     val fullName: String,
     val private: Boolean,
     @JsonProperty("clone_url")
-    val cloneUrl: String
+    val cloneUrl: URI
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.api.model.Pod
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
+import java.net.URI
 
 data class KubernetesConfiguraration(
     val namespace: String,
@@ -32,8 +33,6 @@ data class DataSourceConfiguration(
     val evictionInterval: Duration = Duration.seconds(10),
     val minIdleTime: Duration = Duration.minutes(1)
 ) {
-
-
     fun dataSourceFactory(secretsCodec: SecretsCodec): DataSourceFactory {
         val dataSourceFactory = DataSourceFactory()
 
