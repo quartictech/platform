@@ -50,7 +50,7 @@ class HomeResourceShould {
     @Before
     fun before() {
         whenever(catalogue.getDatasets()).thenReturn(datasets)
-        whenever(registry.getCustomerById(CustomerId(5678))).thenReturn(completedFuture(quartic))
+        whenever(registry.getCustomerByIdAsync(CustomerId(5678))).thenReturn(completedFuture(quartic))
     }
 
     @Test

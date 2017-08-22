@@ -7,7 +7,7 @@ import io.fabric8.kubernetes.api.model.JobBuilder
 import io.quartic.qube.KubernetesConfiguraration
 import io.quartic.qube.model.BuildJob
 import io.quartic.common.logging.logger
-import io.quartic.github.GithubInstallationClient
+import io.quartic.github.GitHubInstallationClient
 import org.slf4j.LoggerFactory
 import rx.Observable
 import rx.schedulers.Schedulers
@@ -21,7 +21,7 @@ class Worker(
     private val client: Qube,
     private val events: Observable<Event>,
     private val buildStore: BuildStore,
-    github: GithubInstallationClient,
+    github: GitHubInstallationClient,
     private val jobStateManagerFactory: (job: BuildJob) -> JobStateManager = { job: BuildJob -> createJobRunner(client, configuration, job, github) },
     private val jobLoop: JobLoop = JobLoop()
 ): Runnable {
@@ -66,7 +66,7 @@ class Worker(
 
     companion object {
         val log = LoggerFactory.getLogger(this::class.java)
-        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BuildJob, github: GithubInstallationClient) = JobStateManager(
+        fun createJobRunner(client: Qube, configuration: KubernetesConfiguraration, job: BuildJob, github: GitHubInstallationClient) = JobStateManager(
                 createJob(configuration, job, github),
                 jobName(job),
                 client,
@@ -75,7 +75,7 @@ class Worker(
                 configuration.runTimeoutSeconds
         )
 
-        fun createJob(configuration: KubernetesConfiguraration, job: BuildJob, github: GithubInstallationClient): Job {
+        fun createJob(configuration: KubernetesConfiguraration, job: BuildJob, github: GitHubInstallationClient): Job {
             val env = mutableListOf(
                 EnvVar("QUARTIC_PHASE", job.phase.toString(), null),
                 EnvVar("QUARTIC_JOB_ID", job.id.id, null),

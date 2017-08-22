@@ -12,7 +12,7 @@ import java.time.Instant
 
 class BatchWriterShould {
     private val storage = mock<Storage>()
-    private val writer = BatchWriter(storage, "myBucket", "test", mock(RETURNS_DEEP_STUBS))
+    private val writer = BatchWriter(storage, "myBucket", "test", mock(defaultAnswer = RETURNS_DEEP_STUBS))
 
     @Test
     fun write_messages_to_file_with_valid_name_format() {
