@@ -91,5 +91,5 @@ private fun inputStreamEncoder(delegate: Encoder) = Encoder { obj, bodyType, tem
 
 fun userAgentFor(clazz: Class<*>): String {
     val details = ApplicationDetails(clazz)
-    return details.name + "/" + details.version + " (Java " + details.javaVersion + ")"
+    return "Quartic-${details.name}/${details.version}"
 }

@@ -34,26 +34,27 @@ public class ServicePlugin implements Plugin<Project> {
             project.mainClassName = service.mainClassName
             project.applicationDefaultJvmArgs = [
                 "-Xms${service.memory}",
-                "-Xmx${service.memory}",
-                "-XX:+PrintGCDetails",
-                "-XX:+PrintGCDateStamps",
-                "-Xloggc:mygclogfilename.gc"
+                "-Xmx${service.memory}"
             ]
 
-            project.run {
-                args = ["server", "${project.name}.yml"]
-            }
-        }
+            if (service.withConfigFile) {
+                project.run {
+                    args = ["server", "${project.name}.yml"]
+                }
 
-        project.distributions {
-            main {
-                contents {
-                    from(".") {
-                        include "*.yml"
+                project.distributions {
+                    main {
+                        contents {
+                            from(".") {
+                                include "*.yml"
+                            }
+                        }
                     }
                 }
             }
         }
+
+
     }
 
     private void configureDockerPlugin(Project project, ServiceExtension service) {
