@@ -3,8 +3,6 @@ package io.quartic.qube
 import com.nhaarman.mockito_kotlin.*
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
-import io.fabric8.kubernetes.client.Watch
-import io.fabric8.kubernetes.client.Watcher
 import io.quartic.qube.api.Response
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.PodKey
