@@ -7,15 +7,20 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import org.junit.Test
 import java.util.*
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 
 class OrchestratorShould {
-    private val events = Channel<QubeEvent>()
+    private val events = Channel<QubeEvent>(UNLIMITED)
     private val podKey = PodKey(UUID.randomUUID(), "test")
     private val returnChannel = Channel<Response>()
 
     private val worker = mock<Worker>()
     private val orchestratorState = OrchestratorState()
     private val orchestrator = Orchestrator(events, worker, 1, orchestratorState)
+
+    init {
+        whenever(worker.runAsync(any())).then { async(CommonPool) { delay(100) } }
+    }
 
     @Test
     fun enqueue_pods() {
@@ -51,7 +56,6 @@ class OrchestratorShould {
     @Test
     fun respect_concurrency() {
         runBlocking {
-            whenever(worker.runAsync(any())).then { runBlocking { delay(1000) } }
             val deferred = async(CommonPool) { orchestrator.run() }
             events.send(createClient())
             events.send(createPod())
