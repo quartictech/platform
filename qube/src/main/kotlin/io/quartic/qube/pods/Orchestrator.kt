@@ -3,6 +3,7 @@ package io.quartic.qube.pods
 import io.quartic.common.logging.logger
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.selects.select
+import java.util.concurrent.CancellationException
 
 class Orchestrator(
     private val events: Channel<QubeEvent>,
@@ -27,6 +28,10 @@ class Orchestrator(
                     }
                     state.runningPods.forEach { key, job ->
                         job.onJoin {
+                            val e = job.getCompletionException()
+                            if (e !is CancellationException) {
+                                LOG.error("[{}] Exception while running job", key, e)
+                            }
                             state.removeRunningPod(key)
                         }
                     }

@@ -12,6 +12,7 @@ data class KubernetesConfiguraration(
     val namespace: String,
     val podTemplate: Pod,
     val numConcurrentJobs: Int,
+    val jobTimeoutSeconds: Long,
     val enable: Boolean
 )
 

@@ -20,18 +20,20 @@ class Qubicle(
     podTemplate: Pod,
     namespace: String,
     concurrentJobs: Int,
+    jobTimeoutSeconds: Long,
     jobStore: JobStore
 ) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>(UNLIMITED)
 
-    private val worker = WorkerImpl(client, podTemplate, namespace, jobStore)
+    private val worker = WorkerImpl(client, podTemplate, namespace, jobStore, jobTimeoutSeconds)
     private val orchestrator = Orchestrator(events, worker, concurrentJobs)
 
     private fun setupWebsocket(websocket: ServerWebSocket) {
         val clientUUID = UUID.randomUUID()
         val returnChannel = Channel<Response>()
 
+        websocket.closeHandler { events.offer(QubeEvent.CancelClient(clientUUID)) }
         events.offer(QubeEvent.CreateClient(clientUUID))
         websocket.textMessageHandler { textMessage ->
             try {
@@ -58,7 +60,6 @@ class Qubicle(
             }
         }
 
-        websocket.closeHandler { events.offer(QubeEvent.CancelClient(clientUUID)) }
 
         launch(CommonPool) {
             for (message in returnChannel) {

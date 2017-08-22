@@ -21,6 +21,8 @@ class OrchestratorState {
     fun cancelAll() {
         _runningPods.forEach { key, job -> job.cancel() }
         _runningPods.clear()
+        clients.clear()
+        waitingList.clear()
     }
 
     fun cancelClient(client: UUID) {

@@ -66,7 +66,7 @@ class OrchestratorShould {
     }
 
     @Test
-    fun ensure_pods_are_cancelled() {
+    fun cancel_pods() {
         val job = mock<Job>()
         runBlocking {
             whenever(worker.runAsync(any())).thenReturn(job)
@@ -77,6 +77,21 @@ class OrchestratorShould {
             verify(worker, timeout(500)).runAsync(createPod())
             verify(job, timeout(500)).cancel(anyOrNull())
             deferred.cancel()
+        }
+    }
+
+    @Test
+    fun handles_worker_exception() {
+        runBlocking {
+            val job = async(CommonPool) {
+                throw RuntimeException("something was weird")
+            }
+            whenever(worker.runAsync(any())).thenReturn(job)
+            async(CommonPool) { orchestrator.run() }
+            events.send(createClient())
+            events.send(createPod())
+            events.send(createPod())
+            verify(worker, timeout(500).times(2)).runAsync(any())
         }
     }
 
