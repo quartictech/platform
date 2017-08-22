@@ -35,9 +35,16 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             client.ensureNamespaceExists(namespace)
 
             val vertx = Vertx.vertx()
-            vertx.deployVerticle(Qubicle(client, configuration.kubernetes.podTemplate,
-                configuration.kubernetes.namespace, configuration.kubernetes.numConcurrentJobs,
-                jobStore))
+            vertx.deployVerticle(
+                Qubicle(
+                    configuration.websocketPort,
+                    client,
+                    configuration.kubernetes.podTemplate,
+                    configuration.kubernetes.namespace,
+                    configuration.kubernetes.numConcurrentJobs,
+                    jobStore
+                )
+            )
         } else {
             LOG.warn("Kubernetes is DISABLED. Jobs will NOT be run")
         }

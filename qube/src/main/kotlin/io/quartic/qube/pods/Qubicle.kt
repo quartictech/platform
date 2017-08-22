@@ -15,6 +15,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import java.util.*
 
 class Qubicle(
+    private val websocketPort: Int,
     client: KubernetesClient,
     podTemplate: Pod,
     namespace: String,
@@ -27,7 +28,7 @@ class Qubicle(
     private val worker = WorkerImpl(client, podTemplate, namespace, jobStore)
     private val orchestrator = Orchestrator(events, worker, concurrentJobs)
 
-    fun setupWebsocket(websocket: ServerWebSocket) {
+    private fun setupWebsocket(websocket: ServerWebSocket) {
         val clientUUID = UUID.randomUUID()
         val returnChannel = Channel<Response>()
 
@@ -78,15 +79,12 @@ class Qubicle(
                     setupWebsocket(websocket)
                 }
             }
-            .listen(PORT) { res ->
+            .listen(websocketPort) { res ->
                if (res.failed()) {
                    LOG.error("Could not start server", res.cause())
                    vertx.close()
+                   System.exit(1)
                }
             }
-    }
-
-    companion object {
-        val PORT = 8202
     }
 }

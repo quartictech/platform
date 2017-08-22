@@ -1,8 +1,6 @@
 package io.quartic.qube.pods
 
 import io.quartic.common.logging.logger
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.selects.select
 
@@ -34,11 +32,7 @@ class Orchestrator(
                 }
 
                 // Drain waiting list
-                state.drainWaitingList(concurrency) { create ->
-                    async(CommonPool) {
-                        worker.run(create)
-                    }
-                }
+                state.drainWaitingList(concurrency) { create -> worker.runAsync(create) }
             }
         }
         finally {

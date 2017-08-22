@@ -15,12 +15,6 @@ data class KubernetesConfiguraration(
     val enable: Boolean
 )
 
-data class GitHubConfiguration(
-    val appId: String,
-    val apiRootUrl: String,
-    val privateKeyEncrypted: EncryptedSecret
-)
-
 data class DataSourceConfiguration(
     val user: String,
     val password: EncryptedSecret? = null,
@@ -67,7 +61,6 @@ data class DatabaseConfiguration(
 data class QubeConfiguration(
     val kubernetes: KubernetesConfiguraration,
     val database: DatabaseConfiguration,
-    val registryUrl: String,
-    val github: GitHubConfiguration
+    val websocketPort: Int
 ) : ConfigurationBase()
 

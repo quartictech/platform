@@ -6,16 +6,14 @@ import io.quartic.common.logging.logger
 import io.quartic.qube.api.Request
 import io.quartic.qube.api.Response
 import io.quartic.qube.store.JobStore
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.newFixedThreadPoolContext
-import kotlinx.coroutines.experimental.run
 import java.time.Instant
 import java.util.*
 
 interface Worker {
-    suspend fun run(create: QubeEvent.CreatePod)
+    fun runAsync(create: QubeEvent.CreatePod): Job
 }
-
 class WorkerImpl(
     val client: KubernetesClient,
     val podTemplate: Pod,
@@ -62,7 +60,7 @@ class WorkerImpl(
         }
     }
 
-    override suspend fun run(create: QubeEvent.CreatePod) {
+    override fun runAsync(create: QubeEvent.CreatePod): Job = async(CommonPool) {
         val podName = "${create.key.client}-${create.key.name}"
         val podEvents = Channel<Pod>()
         val watch = client.watchPod(podName) { _, pod ->
@@ -106,16 +104,16 @@ class WorkerImpl(
             val terminatedState = pod.status.containerStatuses.firstOrNull()?.state?.terminated
 
             jobStore.insertJob(
-                UUID.randomUUID(),
-                create.key.client,
-                create.key.name,
-                Request.CreatePod(create.key.name, create.image, create.command),
-                logs,
-                startTime,
-                endTime,
-                terminatedState?.reason,
-                terminatedState?.message,
-                terminatedState?.exitCode
+                id = UUID.randomUUID(),
+                client = create.key.client,
+                podName = create.key.name,
+                createPod = Request.CreatePod(create.key.name, create.image, create.command),
+                log = logs,
+                startTime = startTime,
+                endTime = endTime,
+                reason = terminatedState?.reason,
+                message = terminatedState?.message,
+                exitCode = terminatedState?.exitCode
             )
         }
 

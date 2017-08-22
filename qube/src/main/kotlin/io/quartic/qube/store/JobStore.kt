@@ -9,6 +9,9 @@ import java.time.Instant
 import java.util.*
 import javax.sql.DataSource
 
+/**
+ * Job here represents a run of a Kubernetes Pod and *not* an actual Kubernetes Job.
+ */
 @RegisterRowMapper(BuildMapper::class)
 interface JobStore {
     @SqlUpdate("""insert into job(
