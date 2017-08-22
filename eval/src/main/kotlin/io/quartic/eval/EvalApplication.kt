@@ -5,7 +5,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.qube.api.model.TriggerDetails
 import kotlinx.coroutines.experimental.CommonPool
@@ -46,7 +46,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         clientBuilder
     )
 
-    private fun qube(config: EvalConfiguration) = QubeProxy.create(WebsocketClient.create(config.qubeUrl))
+    private fun qube(config: EvalConfiguration) = QubeProxy.create(WebsocketClientImpl.create(config.qubeUrl))
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)

@@ -3,6 +3,7 @@ package io.quartic.eval.websocket
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.eval.utils.runOrTimeout
+import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent.MessageReceived
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.Matchers.equalTo
@@ -11,7 +12,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-class WebsocketClientShould {
+class WebsocketClientImplShould {
     @get:Rule
     val server = WebsocketServerRule()
 
@@ -49,7 +50,7 @@ class WebsocketClientShould {
 
         runOrTimeout {
             expected.forEach {
-                client.toServer.send(it)
+                client.outbound.send(it)
             }
         }
 
@@ -88,7 +89,7 @@ class WebsocketClientShould {
         runBlocking {
 //        runOrTimeout {
             repeat(1000) {
-                client.toServer.send(SendMsg("noob"))
+                client.outbound.send(SendMsg("noob"))
                 delay(100)
             }
         }
@@ -98,12 +99,16 @@ class WebsocketClientShould {
         server.messages = messages.map { OBJECT_MAPPER.writeValueAsString(it) }
     }
 
-    private fun createClient() = WebsocketClient.create<SendMsg, ReceiveMsg>(server.uri)
+    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(server.uri)
 
-    private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.collectReceivedMessages(num: Int): List<ReceiveMsg> {
+    private suspend fun WebsocketClientImpl<SendMsg, ReceiveMsg>.collectReceivedMessages(num: Int): List<ReceiveMsg> {
         val received = mutableListOf<ReceiveMsg>()
         repeat(num) {
-            received.add(fromServer.receive())
+            val event = events.receive()
+            when (event) {
+                is MessageReceived -> received.add(event.message)
+            }
+//            received.add(fromServer.receive())
         }
         return received
     }

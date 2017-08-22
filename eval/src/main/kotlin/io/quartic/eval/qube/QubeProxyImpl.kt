@@ -10,6 +10,7 @@ import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Create
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Destroy
 import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
@@ -55,10 +56,11 @@ class QubeProxyImpl(
                     }
                 }
 
-                qube.fromServer.onReceive {
+                qube.events.onReceive {
                     when (it) {
-                        is Ready -> handleReadyResponse(it)
-                        is Error -> handleErrorResponse(it)
+                        is BecomeReady -> {}     // TODO
+                        is BecomeFailed -> {}    // TODO
+                        is MessageReceived -> handleResponse(it.message)
                     }
                 }
             }
@@ -70,7 +72,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        qube.toServer.send(QubeRequest.Create(uuid))
+        qube.outbound.send(QubeRequest.Create(uuid))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {
@@ -78,7 +80,12 @@ class QubeProxyImpl(
 
         pending.remove(request.uuid)
         active.remove(request.uuid)
-        qube.toServer.send(QubeRequest.Destroy(request.uuid))
+        qube.outbound.send(QubeRequest.Destroy(request.uuid))
+    }
+
+    private suspend fun handleResponse(response: QubeResponse) = when (response) {
+        is Ready -> handleReadyResponse(response)
+        is Error -> handleErrorResponse(response)
     }
 
     private fun handleReadyResponse(response: Ready) {
