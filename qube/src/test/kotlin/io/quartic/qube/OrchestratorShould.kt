@@ -61,23 +61,7 @@ class OrchestratorShould {
         }
     }
 
-    @Test
-    fun cancel_pods() {
-        runBlocking {
-            whenever(worker.run(any())).then {
-                launch(CommonPool) { delay(1000) }
-            }
-            async(CommonPool) { orchestrator.run() }
-            events.send(createClient())
-            events.send(createPod())
-            delay(100)
-            events.send(cancelPod())
-            verify(worker, timeout(500)).run(any())
-        }
-    }
-
     fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, "dummy:1", listOf("true"))
     fun createClient() = QubeEvent.CreateClient(podKey.client)
     fun cancelClient() = QubeEvent.CancelClient(podKey.client)
-    fun cancelPod() = QubeEvent.CancelPod(podKey)
 }
