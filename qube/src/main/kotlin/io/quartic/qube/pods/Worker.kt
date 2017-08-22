@@ -26,12 +26,12 @@ class WorkerImpl(
     private val LOG by logger()
 
     fun podName(key: PodKey) = "${key.client}-${key.name}"
-    private suspend fun createPod(pod: Pod) = run(threadPool) {
+    private suspend fun createPod(pod: Pod) = async(threadPool) {
         client.createPod(pod)
         LOG.info("[{}] Pod created", pod.metadata.name)
     }
 
-    private suspend fun deletePod(podName: String) = run(threadPool) {
+    private suspend fun deletePod(podName: String) = async(threadPool) {
         client.deletePod(podName)
         LOG.info("[{}] Pod deleted", podName)
     }
@@ -82,24 +82,31 @@ class WorkerImpl(
                 .endContainer()
                 .endSpec()
                 .build())
+                .await()
 
             runPod(create.key, watch.channel, create.returnChannel)
             val endTime = Instant.now()
             storeResult(podName, create, startTime, endTime)
+                .await()
         }
         catch (e: Exception) {
+            create.returnChannel.send(Response.PodException(create.key.name))
             LOG.error("[{}] Exception while running pod", podName, e)
         }
         finally {
-            deletePod(podName)
             watch.close()
+            withTimeout(10, TimeUnit.SECONDS) {
+                deletePod(podName).await()
+            }
         }
     }
 
     override fun runAsync(create: QubeEvent.CreatePod) = async(CommonPool) { run(create) }
 
-    private suspend fun storeResult(podName: String, create: QubeEvent.CreatePod, startTime: Instant, endTime: Instant) {
-        run(threadPool) {
+
+    private suspend fun storeResult(podName: String, create: QubeEvent.CreatePod,
+                                    startTime: Instant, endTime: Instant) = async(threadPool) {
+        try {
             val pod = client.getPod(podName)
             val logs = client.getLogs(podName)
 
@@ -117,7 +124,9 @@ class WorkerImpl(
                 message = terminatedState?.message,
                 exitCode = terminatedState?.exitCode
             )
+        } catch (e: Exception) {
+            LOG.error("[{}] Exception storing to postgres", podName, e)
         }
-
     }
+
 }

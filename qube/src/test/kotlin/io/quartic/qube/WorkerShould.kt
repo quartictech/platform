@@ -3,6 +3,7 @@ package io.quartic.qube
 import com.nhaarman.mockito_kotlin.*
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
+import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.qube.api.Response
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.PodKey
@@ -12,6 +13,7 @@ import io.quartic.qube.store.JobStore
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import java.util.*
 
 class WorkerShould {
@@ -40,7 +42,7 @@ class WorkerShould {
         .endSpec()
         .build()
     val returnChannel = mock<Channel<Response>>()
-    val podEvents = Channel<Pod>()
+    val podEvents = Channel<Pod>(UNLIMITED)
 
     init {
         whenever(client.watchPod(any()))
@@ -87,35 +89,106 @@ class WorkerShould {
                     .build()
             )
 
-            verify(client, timeout(1000)).createPod(eq(pod))
             verify(returnChannel, timeout(1000)).send(
                 Response.PodRunning(key.name, "${key.client}-${key.name}.noob")
+            )
+        }
+    }
+
+    @Test
+    fun sends_status_on_pod_failed() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(1))
+
+            verify(returnChannel, timeout(1000)).send(
+                Response.PodFailed(key.name)
             )
         }
     }
 
      @Test
-    fun sends_status_on_pod_terminated() {
+    fun sends_status_on_pod_success() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
                 "la-dispute-discography-docker:1",
                 listOf("great music")))
-            podEvents.send(
-                PodBuilder(pod).editOrNewStatus()
-                    .addNewContainerStatus()
-                    .editOrNewState()
-                    .editOrNewRunning()
-                    .endRunning()
-                    .endState()
-                    .endContainerStatus()
-                    .endStatus()
-                    .build()
-            )
+            podEvents.send(podTerminated(0))
 
-            verify(client, timeout(1000)).createPod(eq(pod))
             verify(returnChannel, timeout(1000)).send(
-                Response.PodRunning(key.name, "${key.client}-${key.name}.noob")
+                Response.PodSucceeded(key.name)
             )
         }
     }
+
+    @Test
+    fun send_status_on_kube_failure() {
+        whenever(client.createPod(any())).thenThrow(KubernetesClientException("Noob"))
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+
+
+            verify(returnChannel, timeout(1000)).send(
+                Response.PodException(key.name)
+            )
+        }
+    }
+
+    @Test
+    fun store_to_postgres() {
+        whenever(client.getPod(any())).thenReturn(podTerminated(0))
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+
+            verify(jobStore, timeout(1000)).insertJob(
+                any(),
+                eq(key.client),
+                eq(key.name),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                eq(0)
+            )
+        }
+    }
+
+    @Test
+    fun handle_postgres_exception() {
+        whenever(client.getPod(any())).thenReturn(podTerminated(0))
+        whenever(jobStore.insertJob(
+            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(),
+            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
+            .thenThrow(RuntimeException("noobhole"))
+        runBlocking {
+            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+            job.await()
+            verify(returnChannel, times(0))
+                .send(Response.PodException(key.name))
+        }
+    }
+
+    fun podTerminated(exitCode: Int) = PodBuilder(pod).editOrNewStatus()
+        .addNewContainerStatus()
+        .editOrNewState()
+        .editOrNewTerminated()
+        .withExitCode(exitCode)
+        .endTerminated()
+        .endState()
+        .endContainerStatus()
+        .endStatus()
+        .build()
 }

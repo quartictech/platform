@@ -37,4 +37,5 @@ sealed class Response {
     data class PodRunning(val name: String, val hostname: String): Response()
     data class PodFailed(val name: String): Response()
     data class PodSucceeded(val name: String): Response()
+    data class PodException(val name: String): Response()
 }
