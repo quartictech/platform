@@ -1,0 +1,23 @@
+{
+  "attachments": [
+    {
+      "title": "Build #37 failure",
+      "titleLink": "https://www.quartic.io",
+      "text": "There was a serious problem here.",
+      "fields": [
+        {
+          "title": "Repo",
+          "value": "noobhole",
+          "short": true
+        },
+        {
+          "title": "Ref",
+          "value": "develop",
+          "short": true
+        }
+      ],
+      "timestamp": "2017-07-20T16:15:23+01:00",
+      "color": "QUARTIC"
+    }
+  ]
+}
