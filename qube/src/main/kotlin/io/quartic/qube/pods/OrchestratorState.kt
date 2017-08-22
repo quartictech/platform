@@ -7,19 +7,21 @@ import java.util.*
 class OrchestratorState {
     private val LOG by logger()
     private val clients = mutableSetOf<UUID>()
-    val runningPods = mutableMapOf<PodKey, Job>()
+    private val _runningPods = mutableMapOf<PodKey, Job>()
+    val runningPods: Map<PodKey, Job>
+        get() = _runningPods
     private val waitingList: Queue<QubeEvent.CreatePod> = LinkedList<QubeEvent.CreatePod>()
 
     fun createPod(message: QubeEvent.CreatePod) = waitingList.add(message)
     fun createClient(message: QubeEvent.CreateClient) = clients.add(message.client)
     fun cancelRunningPod(key: PodKey) {
-        runningPods[key]?.cancel()
-        runningPods.remove(key)
+        _runningPods[key]?.cancel()
+        _runningPods.remove(key)
     }
 
     fun cancelAll() {
-        runningPods.forEach { key, job -> job.cancel() }
-        runningPods.clear()
+        _runningPods.forEach { key, job -> job.cancel() }
+        _runningPods.clear()
     }
 
     fun cancelClient(client: UUID) {
@@ -29,16 +31,16 @@ class OrchestratorState {
         clients.remove(client)
     }
 
-    fun removeRunningPod(key: PodKey) = runningPods.remove(key)
+    fun removeRunningPod(key: PodKey) = _runningPods.remove(key)
 
-    private fun podCanRun(key: PodKey) = clients.contains(key.client) && ! runningPods.containsKey(key)
+    private fun podCanRun(key: PodKey) = clients.contains(key.client) && ! _runningPods.containsKey(key)
 
     suspend fun drainWaitingList(concurrency: Int, f: (create: QubeEvent.CreatePod) -> Job) {
-        while (waitingList.isNotEmpty() && runningPods.size < concurrency) {
+        while (waitingList.isNotEmpty() && _runningPods.size < concurrency) {
             val create = waitingList.remove()
             if (podCanRun(create.key)) {
                 val job =  f(create)
-                runningPods.put(create.key, job)
+                _runningPods.put(create.key, job)
             } else {
                 LOG.warn("Ignoring event: {}", create)
             }

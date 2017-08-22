@@ -8,7 +8,7 @@ import javax.ws.rs.core.StreamingOutput
 import io.quartic.qube.store.JobStore
 
 @Path("/backchannel")
-class BackChannelResource(private val jobStore: JobStore) {
+class BackChannelResource {
     val resource = javaClass.getResource("/quarty.tar.gz")
 
     init {

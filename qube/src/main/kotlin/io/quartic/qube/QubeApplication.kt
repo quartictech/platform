@@ -4,7 +4,6 @@ import com.github.arteam.jdbi3.JdbiFactory
 import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import io.dropwizard.setup.Environment
-import io.fabric8.kubernetes.api.model.NamespaceBuilder
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
@@ -48,7 +47,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             // TODO: remove default pipeline
             register(QueryResource(
                 OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)))
-            register(BackChannelResource(jobStore))
+            register(BackChannelResource())
         }
 
     }
