@@ -12,18 +12,13 @@ service {
     memory = System.env.EVAL_MEMORY ?: "32m"
 }
 
-repositories {
-    jcenter()   // For coroutines
-}
-
 dependencies {
     compile project(":common-application")
     compile project(":registry-api")
     compile project(":qube-api")
     compile project(":github")
 
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.17"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.17"
+    compile libraries.coroutines
 
     testCompile project(":common-test")
 }
