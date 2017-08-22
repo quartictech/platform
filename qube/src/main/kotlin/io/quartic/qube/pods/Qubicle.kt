@@ -10,6 +10,7 @@ import io.quartic.qube.store.JobStore
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.*
 
@@ -21,7 +22,7 @@ class Qubicle(
     jobStore: JobStore
 ) : AbstractVerticle() {
     private val LOG by logger()
-    private val events = Channel<QubeEvent>()
+    private val events = Channel<QubeEvent>(UNLIMITED)
 
     private val worker = WorkerImpl(client, podTemplate, namespace, jobStore)
     private val orchestrator = Orchestrator(events, worker, concurrentJobs)
