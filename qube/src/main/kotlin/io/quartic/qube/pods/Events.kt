@@ -22,10 +22,6 @@ sealed class QubeEvent {
         val client: UUID
     ): QubeEvent()
 
-    data class PodTerminated(
-        val key: PodKey
-    ): QubeEvent()
-
     data class CreatePod(
         val key: PodKey,
         val returnChannel: Channel<Response>,

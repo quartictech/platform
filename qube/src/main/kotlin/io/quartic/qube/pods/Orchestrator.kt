@@ -15,20 +15,21 @@ class Orchestrator(
     suspend fun run() {
         try {
             while (true) {
-                val message = select<QubeEvent> {
-                    events.onReceive { it }
-                    state.runningPods.forEach { key, job ->
-                        job.onJoin { QubeEvent.PodTerminated(key) }
+                select<Unit> {
+                    events.onReceive { message ->
+                        LOG.info("Message received {}", message)
+                        when (message) {
+                            is QubeEvent.CreatePod -> state.createPod(message)
+                            is QubeEvent.CreateClient -> state.createClient(message)
+                            is QubeEvent.CancelPod -> state.cancelRunningPod(message.key)
+                            is QubeEvent.CancelClient -> state.cancelClient(message.client)
+                        }
                     }
-                }
-
-                LOG.info("Message received {}", message)
-                when (message) {
-                    is QubeEvent.CreatePod -> state.createPod(message)
-                    is QubeEvent.CreateClient -> state.createClient(message)
-                    is QubeEvent.CancelPod -> state.cancelRunningPod(message.key)
-                    is QubeEvent.CancelClient -> state.cancelClient(message.client)
-                    is QubeEvent.PodTerminated -> state.removeRunningPod(message.key)
+                    state.runningPods.forEach { key, job ->
+                        job.onJoin {
+                            state.removeRunningPod(key)
+                        }
+                    }
                 }
 
                 // Drain waiting list

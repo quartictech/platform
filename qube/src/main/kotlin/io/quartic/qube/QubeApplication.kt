@@ -27,12 +27,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
 
         if (configuration.kubernetes.enable) {
             val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)
-            val namespace = NamespaceBuilder()
-                .editOrNewMetadata()
-                .withName(configuration.kubernetes.namespace)
-                .endMetadata()
-                .build()
-            client.ensureNamespaceExists(namespace)
+            client.ensureNamespaceExists()
 
             val vertx = Vertx.vertx()
             vertx.deployVerticle(
