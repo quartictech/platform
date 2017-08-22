@@ -39,7 +39,6 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    // TODO - do this properly
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
         config.github.appId,
         config.github.apiRootUrl,
