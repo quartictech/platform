@@ -17,6 +17,11 @@ class OrchestratorState {
         runningPods.remove(key)
     }
 
+    fun cancelAll() {
+        runningPods.forEach { key, job -> job.cancel() }
+        runningPods.clear()
+    }
+
     fun cancelClient(client: UUID) {
         val removeKeys = mutableSetOf<PodKey>()
         runningPods.forEach{ key, job ->
@@ -34,11 +39,9 @@ class OrchestratorState {
     private fun podCanRun(key: PodKey) = clients.contains(key.client) && ! runningPods.containsKey(key)
 
     suspend fun drainWaitingList(concurrency: Int, f: (create: QubeEvent.CreatePod) -> Job) {
-        LOG.info("Waiting list size: {}", waitingList.size)
         while (waitingList.isNotEmpty() && runningPods.size < concurrency) {
             val create = waitingList.remove()
             if (podCanRun(create.key)) {
-                LOG.info("Launching job")
                 val job =  f(create)
                 runningPods.put(create.key, job)
             } else {

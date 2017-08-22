@@ -3,11 +3,8 @@ package io.quartic.qube
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.qube.api.Response
 import io.quartic.qube.pods.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 import java.util.*
 
@@ -67,15 +64,16 @@ class OrchestratorShould {
     @Test
     fun cancel_pods() {
         runBlocking {
-            whenever(worker.run(any())).then { runBlocking { delay(1000) } }
-            val deferred = async(CommonPool) { orchestrator.run() }
+            whenever(worker.run(any())).then {
+                launch(CommonPool) { delay(1000) }
+            }
+            async(CommonPool) { orchestrator.run() }
             events.send(createClient())
             events.send(createPod())
+            delay(100)
             events.send(cancelPod())
-            deferred.cancel()
             verify(worker, timeout(500)).run(any())
         }
-
     }
 
     fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, "dummy:1", listOf("true"))
