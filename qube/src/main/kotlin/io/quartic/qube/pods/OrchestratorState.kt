@@ -23,14 +23,9 @@ class OrchestratorState {
     }
 
     fun cancelClient(client: UUID) {
-        val removeKeys = mutableSetOf<PodKey>()
-        runningPods.forEach{ key, job ->
-            if (key.client == client) {
-                job.cancel()
-                removeKeys.add(key)
-            }
-        }
-        removeKeys.forEach{key -> runningPods.remove(key)}
+        runningPods
+            .filterKeys { key -> key.client == client }
+            .forEach { key, job -> cancelRunningPod(key) }
         clients.remove(client)
     }
 
