@@ -1,0 +1,37 @@
+import io.quartic.gradle.service.ServicePlugin
+
+plugins {
+    id "nebula.kotlin" version "1.1.4"
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+apply plugin: ServicePlugin
+
+service {
+    mainClassName = "io.quartic.hey.HeyApplication"
+    memory = System.env.HEY_MEMORY ?: "32m"
+    withConfigFile = false
+}
+
+run {
+    environment += [
+        DEV_MODE: true,
+        SLACK_TOKEN_ENCRYPTED: '1$fcf8a3c9e4598cc5cf3cf31e$6c8cb8f0b3ca9d5e4c3eeae05001d3fd63c13432f0d7b9dbe90cbbb48c4cd5a4208b5357b86795f00a052cb4$ecc769fb123a4ede8e0a294f4a04296a',
+        SLACK_USERNAME: "Quartic Hey",
+        SLACK_CHANNEL: "#test"
+    ]
+}
+
+dependencies {
+    compile project(":common-core")
+    compile project(":hey-api")
+    compile "io.vertx:vertx-web:3.4.2"
+    compile "io.vertx:vertx-web-client:3.4.2"
+    compile "io.vertx:vertx-config:3.4.2"
+
+    runtime "ch.qos.logback:logback-classic:1.2.3"
+
+    testCompile project(":common-test")
+    testCompile "io.vertx:vertx-unit:3.4.2"
+    testCompile "com.github.stefanbirkner:system-rules:1.16.1"
+}
