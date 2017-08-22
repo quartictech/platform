@@ -13,6 +13,7 @@ versions.metrics = "3.1.2"
 versions.tyrus = "1.13"
 versions.rxjava = "1.2.1"
 versions.retrofit = "2.3.0"
+versions.vertx = "3.4.2"
 
 libraries.guava = "com.google.guava:guava:19.0"
 libraries.commonsCodec = "commons-codec:commons-codec:1.9"
@@ -30,6 +31,10 @@ libraries.dropwizardTesting = "io.dropwizard:dropwizard-testing:${versions.dropw
 libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1.1.8"
 libraries.junit = "junit:junit:4.12"
 libraries.wiremock = "com.github.tomakehurst:wiremock:2.7.1"
+
+libraries.vertx = [
+    core: "io.vertx:vertx-core:${versions.vertx}",
+]
 
 libraries.tyrus = [
     client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",

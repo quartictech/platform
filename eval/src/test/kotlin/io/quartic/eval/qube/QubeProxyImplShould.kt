@@ -1,5 +1,7 @@
 package io.quartic.eval.qube
 
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import io.quartic.eval.model.QubeRequest
 import io.quartic.eval.model.QubeRequest.Create
 import io.quartic.eval.model.QubeRequest.Destroy
@@ -7,12 +9,12 @@ import io.quartic.eval.model.QubeResponse
 import io.quartic.eval.model.QubeResponse.Error
 import io.quartic.eval.model.QubeResponse.Ready
 import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.utils.use
+import io.quartic.eval.websocket.WebsocketClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.runBlocking
-import kotlinx.coroutines.experimental.withTimeout
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.*
 import org.junit.Test
@@ -22,7 +24,11 @@ class QubeProxyImplShould {
     private val toQube = Channel<QubeRequest>(2)
     private val fromQube = Channel<QubeResponse>(2)
     private var nextUuid = 100
-    private val qube = QubeProxyImpl(toQube, fromQube, { uuid(nextUuid++) })
+    private val client = mock<WebsocketClient<QubeRequest, QubeResponse>> {
+        on { toServer } doReturn toQube
+        on { fromServer } doReturn fromQube
+    }
+    private val qube = QubeProxyImpl(client) { uuid(nextUuid++) }
 
     @Test
     fun generate_unique_uuids() {
@@ -151,14 +157,6 @@ class QubeProxyImplShould {
             val request = toQube.receive()
             if (request is Create) {
                 fromQube.send(Error(request.uuid, "Badness occurred"))
-            }
-        }
-    }
-
-    private fun runOrTimeout(block: suspend () -> Unit) {
-        runBlocking {
-            withTimeout(500) {
-                block()
             }
         }
     }
