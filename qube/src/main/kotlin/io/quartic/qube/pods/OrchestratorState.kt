@@ -8,8 +8,7 @@ class OrchestratorState {
     private val LOG by logger()
     private val clients = mutableSetOf<UUID>()
     private val _runningPods = mutableMapOf<PodKey, Job>()
-    val runningPods: Map<PodKey, Job>
-        get() = _runningPods
+    val runningPods: Map<PodKey, Job> = _runningPods
     private val waitingList: Queue<QubeEvent.CreatePod> = LinkedList<QubeEvent.CreatePod>()
 
     fun createPod(message: QubeEvent.CreatePod) = waitingList.add(message)
