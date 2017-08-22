@@ -28,5 +28,3 @@ dependencies {
     testCompile libraries.testCommon
     testCompile libraries.wiremock
 }
-
-
