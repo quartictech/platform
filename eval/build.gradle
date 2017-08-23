@@ -13,12 +13,14 @@ service {
 }
 
 dependencies {
+    compile project(":eval-api")
     compile project(":common-application")
     compile project(":registry-api")
     compile project(":qube-api")
     compile project(":github")
 
     compile libraries.coroutines
+    compile libraries.vertx.core
 
     testCompile project(":common-test")
 }

@@ -2,14 +2,14 @@ package io.quartic.eval
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
-import io.quartic.qube.api.model.TriggerDetails
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ActorJob
-import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.actor
 
@@ -22,7 +22,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     private fun evaluator(configuration: EvalConfiguration): ActorJob<TriggerDetails> {
         val evaluator = Evaluator(
             clientBuilder.retrofit(configuration.registryUrl),
-            qube,
+            qube(configuration),
             github(configuration),
             database,
             clientBuilder
@@ -46,8 +46,10 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         clientBuilder
     )
 
-    // TODO - do this properly
-    private val qube = QubeProxy.create(Channel(), Channel())
+    private fun qube(config: EvalConfiguration) = QubeProxy.create(
+        WebsocketClientImpl.create(config.qube.url),
+        config.qube.container
+    )
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)

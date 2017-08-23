@@ -16,7 +16,7 @@ class WebsocketListenerShould {
     val server = WebsocketServerRule()
 
     val listener by lazy {
-        WebsocketListener.Factory(server.uri, WebsocketClientSessionFactory(javaClass)).create(TestThing::class.java)
+        WebsocketListener.Factory(server.uri.toString(), WebsocketClientSessionFactory(javaClass)).create(TestThing::class.java)
     }
 
     @Test

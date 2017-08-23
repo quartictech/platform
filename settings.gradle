@@ -17,6 +17,7 @@ include "catalogue-api"
 include "catalogue-utils"
 
 include "eval"
+include "eval-api"
 
 include "glisten"
 

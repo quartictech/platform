@@ -2,6 +2,8 @@ package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
+import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.InternalError
@@ -15,7 +17,6 @@ import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.qube.api.model.Dag
-import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
@@ -164,7 +165,7 @@ class EvaluatorShould {
         on { runBlocking { createContainer() } } doReturn container
     }
     private val github = mock<GitHubInstallationClient> {
-        on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken("yeah"))
+        on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
         on { getDag(URI("https://x-access-token:yeah@noob.com/foo/bar"), "develop") } doReturn completedFuture(Success("stuff", dag))

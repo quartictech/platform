@@ -5,7 +5,7 @@ import io.quartic.common.secrets.EncryptedSecret
 import java.net.URL
 
 data class GlistenConfiguration(
-    val qubeUrl: URL,
+    val evalUrl: URL,
     val webhookSecretEncrypted: EncryptedSecret
 ) : ConfigurationBase()
 
