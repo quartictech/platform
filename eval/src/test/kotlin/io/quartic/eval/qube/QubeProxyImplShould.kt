@@ -1,5 +1,7 @@
 package io.quartic.eval.qube
 
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import io.quartic.eval.model.QubeRequest
 import io.quartic.eval.model.QubeRequest.Create
 import io.quartic.eval.model.QubeRequest.Destroy
@@ -7,37 +9,48 @@ import io.quartic.eval.model.QubeResponse
 import io.quartic.eval.model.QubeResponse.Error
 import io.quartic.eval.model.QubeResponse.Ready
 import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.eval.utils.runAndExpectToTimeout
+import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.utils.use
+import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.eval.websocket.WebsocketClient.Event
+import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.runBlocking
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.experimental.delay
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.*
 
 class QubeProxyImplShould {
-    private val toQube = Channel<QubeRequest>(2)
-    private val fromQube = Channel<QubeResponse>(2)
+    private val outbound = Channel<QubeRequest>(2)
+    private val events = Channel<Event<QubeResponse>>(2)
     private var nextUuid = 100
-    private val qube = QubeProxyImpl(toQube, fromQube, { uuid(nextUuid++) })
+    private val client = mock<WebsocketClient<QubeRequest, QubeResponse>> {
+        on { outbound } doReturn outbound
+        on { events } doReturn events
+    }
+    private val qube = QubeProxyImpl(client) { uuid(nextUuid++) }
 
     @Test
     fun generate_unique_uuids() {
         runOrTimeout {
+            qubeIsConnected()
+
             async(CommonPool) { qube.createContainer() }
             async(CommonPool) { qube.createContainer() }
 
-            assertThat(toQube.receive().uuid, equalTo(uuid(100)))
-            assertThat(toQube.receive().uuid, equalTo(uuid(101)))
+            assertThat(outbound.receive().uuid, equalTo(uuid(100)))
+            assertThat(outbound.receive().uuid, equalTo(uuid(101)))
         }
     }
 
     @Test
     fun return_hostname_if_qube_successfully_creates_container() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync()
 
             val container = qube.createContainer()
@@ -49,6 +62,7 @@ class QubeProxyImplShould {
     @Test
     fun throw_error_if_qube_fails_to_create_container() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldFailToCreateAsync()
 
             assertThrowsQubeException("Badness occurred") { qube.createContainer() }
@@ -58,11 +72,12 @@ class QubeProxyImplShould {
     @Test
     fun report_errors_after_creation() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync()
 
             val container = qube.createContainer()
 
-            fromQube.send(Error(uuid(100), "Oh dear me"))
+            events.send(MessageReceived(Error(uuid(100), "Oh dear me")))
 
             assertThat(container.errors.receive().message, equalTo("Oh dear me"))
         }
@@ -71,13 +86,14 @@ class QubeProxyImplShould {
     @Test
     fun route_errors_for_concurrent_containers() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync(2)
 
             val containerA = qube.createContainer()
             val containerB = qube.createContainer()
 
-            fromQube.send(Error(uuid(100), "Message 100"))
-            fromQube.send(Error(uuid(101), "Message 101"))
+            events.send(MessageReceived(Error(uuid(100), "Message 100")))
+            events.send(MessageReceived(Error(uuid(101), "Message 101")))
 
             assertThat(containerA.errors.receive().message, equalTo("Message 100"))
             assertThat(containerB.errors.receive().message, equalTo("Message 101"))
@@ -87,12 +103,13 @@ class QubeProxyImplShould {
     @Test
     fun not_block_on_channel_to_client() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync(2)
 
             qube.createContainer()
 
             repeat(4) {
-                fromQube.send(Error(uuid(100), "Yup"))
+                events.send(MessageReceived(Error(uuid(100), "Yup")))
             }
             // Note the client doesn't attempt to receive the messages
 
@@ -103,6 +120,7 @@ class QubeProxyImplShould {
     @Test
     fun not_block_on_channel_from_clients() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync(4)
 
             // Note Qube doesn't attempt to receive the close messages, so will timeout with a shallow channel
@@ -115,50 +133,122 @@ class QubeProxyImplShould {
     @Test
     fun destroy_on_close() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync()
 
             qube.createContainer().use {}   // Should autoclose
 
-            assertThat(toQube.receive(), equalTo(Destroy(uuid(100)) as QubeRequest))
+            assertThat(outbound.receive(), equalTo(Destroy(uuid(100)) as QubeRequest))
         }
+    }
+
+    @Test
+    fun be_idempotent_on_close() {
+        runOrTimeout {
+            qubeIsConnected()
+            qubeShouldCreateAsync()
+
+            val container = qube.createContainer()
+            container.close()
+            container.close()
+
+            assertThat(outbound.receive(), equalTo(Destroy(uuid(100)) as QubeRequest))
+        }
+
+        runAndExpectToTimeout { outbound.receive() }
     }
 
     @Test
     fun close_error_channel_on_close() {
         runOrTimeout {
+            qubeIsConnected()
             qubeShouldCreateAsync()
 
             val container = qube.createContainer()
             container.use {}   // Should autoclose
 
-            fromQube.send(Error(uuid(100), "Oh dear me"))
+            events.send(MessageReceived(Error(uuid(100), "Oh dear me")))
 
             assertTrue(container.errors.isClosedForReceive)
         }
     }
 
+    @Test
+    fun ignore_requests_until_connected() {
+        runOrTimeout {
+            val job = async(CommonPool) {
+                qube.createContainer()      // Blocks until connected
+            }
+
+            delay(50)
+
+            assertFalse(job.isCompleted)    // Shouldn't be complete yet
+
+            qubeIsConnected()
+            qubeShouldCreateAsync()
+
+            job.join()                      // This should complete only if we process requests after connection
+        }
+    }
+
+    @Test
+    fun disconnect_reports_errors_for_everything_currently_in_flight() {
+        runOrTimeout {
+            qubeIsConnected()
+            qubeShouldCreateAsync()
+
+            val container = qube.createContainer()      // Active
+
+            val job = async(CommonPool) {
+                qube.createContainer()                  // Pending
+            }
+
+            delay(50)
+            qubeIsDisconnected()
+            job.join()
+
+            container.errors.receive()                  // We get an error here
+            assertTrue(job.isCompletedExceptionally)    // And here
+        }
+    }
+
+    @Test
+    fun disconnect_is_idempotent() {
+        val container = runOrTimeout {
+            qubeIsConnected()
+            qubeShouldCreateAsync()
+
+            val container = qube.createContainer()      // Active
+
+            qubeIsDisconnected()
+            qubeIsConnected()
+            qubeIsDisconnected()
+
+            container.errors.receive()                  // We get an error here
+
+            container
+        }
+
+        runAndExpectToTimeout { container.errors.receive() }    // But not a second time
+    }
+
+    private suspend fun qubeIsConnected() = events.send(Event.Connected())
+    private suspend fun qubeIsDisconnected() = events.send(Event.Disconnected())
+
     private fun qubeShouldCreateAsync(num: Int = 1) = async(CommonPool) {
         repeat(num) {
-            val request = toQube.receive()
+            val request = outbound.receive()
             if (request is Create) {
-                fromQube.send(Ready(request.uuid, "noob"))
+                events.send(MessageReceived(Ready(request.uuid, "noob")))
             }
         }
     }
 
     private fun qubeShouldFailToCreateAsync(num: Int = 1) = async(CommonPool) {
         repeat(num) {
-            val request = toQube.receive()
+            val request = outbound.receive()
             if (request is Create) {
-                fromQube.send(Error(request.uuid, "Badness occurred"))
-            }
-        }
-    }
-
-    private fun runOrTimeout(block: suspend () -> Unit) {
-        runBlocking {
-            withTimeout(500) {
-                block()
+                events.send(MessageReceived(Error(request.uuid, "Badness occurred")))
             }
         }
     }

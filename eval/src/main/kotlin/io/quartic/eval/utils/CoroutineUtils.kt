@@ -2,6 +2,8 @@ package io.quartic.eval.utils
 
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.NonCancellable
+import kotlinx.coroutines.experimental.run
 
 public interface SuspendedAutoCloseable {
     suspend fun close()
@@ -16,13 +18,18 @@ public suspend fun <R> cancellable(block: suspend () -> R, onThrow: (Throwable) 
     onThrow(t)
 }
 
-public inline fun <T : Job, R> T.use(block: (T) -> R) = AutoCloseable { cancel() }.use { block(this) }
+public inline suspend fun <T : Job, R> T.use(block: (T) -> R) = try {
+    block(this)
+} finally {
+    cancel()
+}
 
 // Derived from AutoCloseable.use
-public suspend inline fun <T : SuspendedAutoCloseable?, R> T.use(block: (T) -> R) = try {
+// Note that making this inline seems to cause compiler errors (java.lang.VerifyError: Call to wrong <init> method)
+public suspend fun <T : SuspendedAutoCloseable?, R> T.use(block: suspend (T) -> R) = try {
     block(this)
-} catch (e: Throwable) {
-    throw e
 } finally {
-    this?.close()
+    run(NonCancellable) {
+        this?.close()
+    }
 }
