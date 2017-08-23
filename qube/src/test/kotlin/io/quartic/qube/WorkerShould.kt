@@ -1,84 +1,194 @@
 package io.quartic.qube
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
-import io.fabric8.kubernetes.api.model.Event
-import io.fabric8.kubernetes.api.model.JobBuilder
+import com.nhaarman.mockito_kotlin.*
+import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.api.model.PodBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
-import io.quartic.qube.model.BuildId
-import io.quartic.qube.model.BuildJob
-import io.quartic.qube.model.BuildPhase
-import io.quartic.qube.model.JobResult
-import io.quartic.qube.qube.JobLoop
-import io.quartic.qube.qube.JobStateManager
-import io.quartic.qube.qube.Qube
-import io.quartic.qube.qube.Worker
-import io.quartic.qube.store.BuildStore
-import io.quartic.common.model.CustomerId
-import io.quartic.github.GitHubInstallationClient
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
+import io.quartic.qube.api.Response
+import io.quartic.qube.pods.KubernetesClient
+import io.quartic.qube.pods.PodKey
+import io.quartic.qube.pods.QubeEvent
+import io.quartic.qube.pods.WorkerImpl
+import io.quartic.qube.store.JobStore
+import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
-import rx.observers.TestSubscriber
-import rx.subjects.PublishSubject
-import java.util.concurrent.BlockingQueue
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
+import java.util.*
 
 class WorkerShould {
-    val buildJob = BuildJob(BuildId("1"), CustomerId("1"), 213L, "http://wat", "wat", "hash", BuildPhase.TEST)
-    val queue = mock<BlockingQueue<BuildJob>>()
-    val client = mock<Qube>()
-    val events = PublishSubject.create<Event>()
-    val buildStore = mock<BuildStore>()
-    val job = JobBuilder().build()
-    val jobRunner = mock<JobStateManager>()
-    val jobLoop = mock<JobLoop>()
-    val github = mock<GitHubInstallationClient>()
-    val subscriber = TestSubscriber.create<Event>()
+    val client = mock<KubernetesClient>()
+    val podTemplate = PodBuilder()
+        .editOrNewSpec()
+        .addNewContainer()
+        .endContainer()
+        .endSpec()
+        .build()
 
-    val worker = Worker(
-        KubernetesConfiguraration("wat", job, 4, 100, 100, 100, "%s", true),
-        queue,
-        client,
-        events,
-        buildStore,
-        github,
-        { jobRunner },
-        jobLoop
-    )
+    val jobStore = mock<JobStore>()
+    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10)
+
+    val key = PodKey(UUID.randomUUID(), "test")
+    val pod = PodBuilder(podTemplate)
+        .editOrNewMetadata()
+        .withName("${key.client}-${key.name}")
+        .withNamespace("noob")
+        .endMetadata()
+        .editOrNewSpec()
+        .editFirstContainer()
+        .withImage("la-dispute-discography-docker:1")
+        .withCommand(listOf("great music"))
+        .endContainer()
+        .endSpec()
+        .build()
+    val returnChannel = mock<Channel<Response>>()
+    val podEvents = Channel<Pod>(UNLIMITED)
 
     init {
-        whenever(jobRunner.subscriber()).thenReturn(subscriber)
+        whenever(client.watchPod(any()))
+            .thenReturn(KubernetesClient.PodWatch(podEvents, mock()))
     }
 
     @Test
-    fun start_job() {
-        worker.runJob(buildJob)
-        verify(jobRunner).start()
+    fun watches_pod() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+
+            verify(client, timeout(1000)).watchPod(eq("${key.client}-${key.name}"))
+        }
     }
 
     @Test
-    fun call_cleanup_methods() {
-        worker.runJob(buildJob)
-        verify(jobRunner).cleanup()
-        assertThat(subscriber.isUnsubscribed, equalTo(true))
+    fun creates_pod() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+
+            verify(client, timeout(1000)).createPod(eq(pod))
+        }
     }
 
     @Test
-    fun cleanup_on_exception() {
-        whenever(jobLoop.loop(any(), any())).thenThrow(KubernetesClientException("wat"))
-        worker.runJob(buildJob)
-        verify(jobRunner).cleanup()
-        assertThat(subscriber.isUnsubscribed, equalTo(true))
+    fun sends_status_on_pod_running() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(
+                PodBuilder(pod).editOrNewStatus()
+                    .addNewContainerStatus()
+                    .editOrNewState()
+                    .editOrNewRunning()
+                    .endRunning()
+                    .endState()
+                    .endContainerStatus()
+                    .endStatus()
+                    .build()
+            )
+
+            verify(returnChannel, timeout(1000)).send(
+                Response.PodRunning(key.name, "${key.client}-${key.name}.noob")
+            )
+        }
     }
 
     @Test
-    fun set_job_result() {
-        val jobResult = JobResult(true, mapOf("noobPod" to "sweet"), "Nice job!")
-        whenever(jobLoop.loop(any(), any())).thenReturn(jobResult)
-        worker.runJob(buildJob)
-        verify(jobRunner).start()
-        verify(buildStore).setJobResult(buildJob, jobResult)
+    fun sends_status_on_pod_failed() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(1))
+
+            verify(returnChannel, timeout(1000)).send(
+                Response.PodFailed(key.name)
+            )
+        }
     }
+
+     @Test
+    fun sends_status_on_pod_success() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+
+            verify(returnChannel, timeout(1000)).send(
+                Response.PodSucceeded(key.name)
+            )
+        }
+    }
+
+    @Test
+    fun send_status_on_kube_failure() {
+        whenever(client.createPod(any())).thenThrow(KubernetesClientException("Noob"))
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+
+
+            verify(returnChannel, timeout(1000)).send(
+                Response.PodException(key.name)
+            )
+        }
+    }
+
+    @Test
+    fun store_to_postgres() {
+        whenever(client.getPod(any())).thenReturn(podTerminated(0))
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+
+            verify(jobStore, timeout(1000)).insertJob(
+                any(),
+                eq(key.client),
+                eq(key.name),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                eq(0)
+            )
+        }
+    }
+
+    @Test
+    fun handle_postgres_exception() {
+        whenever(client.getPod(any())).thenReturn(podTerminated(0))
+        whenever(jobStore.insertJob(
+            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(),
+            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
+            .thenThrow(RuntimeException("noobhole"))
+        runBlocking {
+            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel,
+                "la-dispute-discography-docker:1",
+                listOf("great music")))
+            podEvents.send(podTerminated(0))
+            job.await()
+            verify(returnChannel, times(0))
+                .send(Response.PodException(key.name))
+        }
+    }
+
+    fun podTerminated(exitCode: Int) = PodBuilder(pod).editOrNewStatus()
+        .addNewContainerStatus()
+        .editOrNewState()
+        .editOrNewTerminated()
+        .withExitCode(exitCode)
+        .endTerminated()
+        .endState()
+        .endContainerStatus()
+        .endStatus()
+        .build()
 }
