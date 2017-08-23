@@ -2,12 +2,12 @@ package io.quartic.eval.qube
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import io.quartic.eval.model.QubeRequest
-import io.quartic.eval.model.QubeRequest.Create
-import io.quartic.eval.model.QubeRequest.Destroy
-import io.quartic.eval.model.QubeResponse
-import io.quartic.eval.model.QubeResponse.Error
-import io.quartic.eval.model.QubeResponse.Ready
+import io.quartic.qube.api.QubeRequest
+import io.quartic.qube.api.QubeRequest.Create
+import io.quartic.qube.api.QubeRequest.Destroy
+import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.QubeResponse.Terminated
+import io.quartic.qube.api.QubeResponse.Running
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
@@ -42,8 +42,8 @@ class QubeProxyImplShould {
             async(CommonPool) { qube.createContainer() }
             async(CommonPool) { qube.createContainer() }
 
-            assertThat(outbound.receive().uuid, equalTo(uuid(100)))
-            assertThat(outbound.receive().uuid, equalTo(uuid(101)))
+            assertThat(outbound.receive().name, equalTo(uuid(100)))
+            assertThat(outbound.receive().name, equalTo(uuid(101)))
         }
     }
 
@@ -77,7 +77,7 @@ class QubeProxyImplShould {
 
             val container = qube.createContainer()
 
-            events.send(MessageReceived(Error(uuid(100), "Oh dear me")))
+            events.send(MessageReceived(Terminated(uuid(100), "Oh dear me")))
 
             assertThat(container.errors.receive().message, equalTo("Oh dear me"))
         }
@@ -92,8 +92,8 @@ class QubeProxyImplShould {
             val containerA = qube.createContainer()
             val containerB = qube.createContainer()
 
-            events.send(MessageReceived(Error(uuid(100), "Message 100")))
-            events.send(MessageReceived(Error(uuid(101), "Message 101")))
+            events.send(MessageReceived(Terminated(uuid(100), "Message 100")))
+            events.send(MessageReceived(Terminated(uuid(101), "Message 101")))
 
             assertThat(containerA.errors.receive().message, equalTo("Message 100"))
             assertThat(containerB.errors.receive().message, equalTo("Message 101"))
@@ -109,7 +109,7 @@ class QubeProxyImplShould {
             qube.createContainer()
 
             repeat(4) {
-                events.send(MessageReceived(Error(uuid(100), "Yup")))
+                events.send(MessageReceived(Terminated(uuid(100), "Yup")))
             }
             // Note the client doesn't attempt to receive the messages
 
@@ -167,7 +167,7 @@ class QubeProxyImplShould {
             val container = qube.createContainer()
             container.use {}   // Should autoclose
 
-            events.send(MessageReceived(Error(uuid(100), "Oh dear me")))
+            events.send(MessageReceived(Terminated(uuid(100), "Oh dear me")))
 
             assertTrue(container.errors.isClosedForReceive)
         }
@@ -239,7 +239,7 @@ class QubeProxyImplShould {
         repeat(num) {
             val request = outbound.receive()
             if (request is Create) {
-                events.send(MessageReceived(Ready(request.uuid, "noob")))
+                events.send(MessageReceived(Running(request.name, "noob")))
             }
         }
     }
@@ -248,7 +248,7 @@ class QubeProxyImplShould {
         repeat(num) {
             val request = outbound.receive()
             if (request is Create) {
-                events.send(MessageReceived(Error(request.uuid, "Badness occurred")))
+                events.send(MessageReceived(Terminated(request.name, "Badness occurred")))
             }
         }
     }
@@ -265,5 +265,5 @@ class QubeProxyImplShould {
         }
     }
 
-    private fun uuid(x: Int) = UUID(0, x.toLong())
+    private fun uuid(x: Int) = UUID(0, x.toLong()).toString()
 }

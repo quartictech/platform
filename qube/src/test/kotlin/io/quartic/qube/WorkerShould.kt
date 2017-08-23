@@ -104,7 +104,7 @@ class WorkerShould {
             podEvents.send(podTerminated(1))
 
             verify(returnChannel, timeout(1000)).send(
-                QubeResponse.Failed(key.name, state.terminated.message)
+                QubeResponse.Failed(key.name, "noobout")
             )
         }
     }
@@ -186,6 +186,7 @@ class WorkerShould {
         .editOrNewState()
         .editOrNewTerminated()
         .withExitCode(exitCode)
+        .withMessage("noobout")
         .endTerminated()
         .endState()
         .endContainerStatus()

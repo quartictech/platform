@@ -75,10 +75,8 @@ class Qubicle(
 
         vertx.createHttpServer()
             .websocketHandler { websocket ->
-                LOG.info("Websocket connection")
-                if (websocket.path().equals("/ws")) {
-                    setupWebsocket(websocket)
-                }
+                LOG.info("[${websocket.remoteAddress()}] Websocket connection")
+                setupWebsocket(websocket)
             }
             .listen(websocketPort) { res ->
                if (res.failed()) {
