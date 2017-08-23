@@ -1,5 +1,6 @@
 package io.quartic.eval.qube
 
+import com.google.common.base.Preconditions.checkState
 import io.quartic.common.logging.logger
 import io.quartic.eval.model.QubeRequest
 import io.quartic.eval.model.QubeResponse
@@ -29,6 +30,7 @@ class QubeProxyImpl(
         data class Destroy(val uuid: UUID) : ClientRequest()
     }
 
+    private var connected = false
     private val pending = mutableMapOf<UUID, Create>()
     private val active = mutableMapOf<UUID, SendChannel<QubeException>>()
     private val fromClients = Channel<ClientRequest>(UNLIMITED)
@@ -49,17 +51,19 @@ class QubeProxyImpl(
     private suspend fun runEventLoop() {
         while (true) {
             select<Unit> {
-                fromClients.onReceive {
-                    when (it) {
-                        is Create -> handleCreateRequest(it)
-                        is Destroy -> handleDestroyRequest(it)
+                if (connected) {
+                    fromClients.onReceive {
+                        when (it) {
+                            is Create -> handleCreateRequest(it)
+                            is Destroy -> handleDestroyRequest(it)
+                        }
                     }
                 }
 
                 qube.events.onReceive {
                     when (it) {
-                        is Connected -> {}     // TODO
-                        is Disconnected -> {}    // TODO
+                        is Connected -> handleConnected()
+                        is Disconnected -> handleDisconnected()
                         is MessageReceived -> handleResponse(it.message)
                     }
                 }
@@ -78,9 +82,29 @@ class QubeProxyImpl(
     private suspend fun handleDestroyRequest(request: Destroy) {
         LOG.info("[${request.uuid}] -> DESTROY")
 
-        pending.remove(request.uuid)
-        active.remove(request.uuid)
-        qube.outbound.send(QubeRequest.Destroy(request.uuid))
+        val pending = pending.remove(request.uuid)
+        val active = active.remove(request.uuid)
+        // Check ensures idempotency, which is also important post-reconnect (because we already killed everything)
+        if (pending != null || active != null) {
+            qube.outbound.send(QubeRequest.Destroy(request.uuid))
+        }
+    }
+
+    private suspend fun handleConnected() {
+        checkState(!connected, "Already connected")
+        connected = true
+    }
+
+    private suspend fun handleDisconnected() {
+        checkState(connected, "Already disconnected")
+        connected = false
+
+        // Kill everything
+        val exception = QubeException("Qube disconnected")
+        pending.values.forEach { it.response.completeExceptionally(exception) }
+        active.values.forEach { it.send(exception) }    // Client will call close on corresponding QubeContainerProxy, but that's ok
+        pending.clear()
+        active.clear()
     }
 
     private suspend fun handleResponse(response: QubeResponse) = when (response) {
