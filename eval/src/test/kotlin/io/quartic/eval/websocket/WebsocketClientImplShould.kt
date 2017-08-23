@@ -4,8 +4,6 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient.Event.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
 import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -161,30 +159,6 @@ class WebsocketClientImplShould {
         runOrTimeout {
             assertThat(client.events.receiveOrNull(), nullValue())
             assertTrue(client.outbound.isClosedForSend)
-        }
-    }
-
-    @Test
-    fun prioritise_internal_events() {
-        createClient().use { client ->
-            // TODO - stack up a ton of send messages
-            runOrTimeout {
-                client.awaitConnected()
-
-                val job = async(CommonPool) {
-                    repeat(10) {
-                        client.outbound.send(SendMsg("Noisy"))
-                    }
-                }
-
-                server.dropConnections()
-
-                client.awaitDisconnected()
-
-                job.join()
-            }
-
-            Thread.sleep(500)
         }
     }
 

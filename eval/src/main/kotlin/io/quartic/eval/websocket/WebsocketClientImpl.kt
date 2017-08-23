@@ -39,7 +39,6 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     }
 
     private val manager = StateManager()
-    private val sendContext = newSingleThreadContext("${javaClass.simpleName}-send")
     private val httpClient = Vertx.vertx().createHttpClient()
     private val _outbound = Channel<TSend>(UNLIMITED)
     private val _events = Channel<Event<TReceive>>(UNLIMITED)
@@ -86,6 +85,7 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     private suspend fun attemptConnection() {
         httpClient.websocket(uri.port, uri.host, uri.path,
             {
+                LOG.info("Connected to ${uri}")
                 InternalEvent.Connected(it).send()
                 it.handler { InternalEvent.MessageReceived(it.toString()).send() }
                 it.closeHandler { InternalEvent.Disconnected().send() }
@@ -102,11 +102,9 @@ class WebsocketClientImpl<in TSend, out TReceive>(
         when (state) {
             is SocketState.Connected -> {
                 LOG.info("Sending message")
-                // Run on a separate thread because this blocks
-                run(sendContext) {
+                try {
                     state.websocket.writeTextMessage(OBJECT_MAPPER.writeValueAsString(message)) // TODO - there is no backpressure here
-                }
-                LOG.info("Done")
+                } catch (e: IllegalStateException) {}   // This occurs if the websocket is closed but we don't know it yet
             }
             else ->
                 LOG.info("Swallowing message while websocket disconnected")
