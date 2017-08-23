@@ -1,4 +1,4 @@
-package io.quartic.qube.model
+package io.quartic.qube.api.model
 
 data class DagNodeData(
     val id: String,

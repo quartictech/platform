@@ -2,7 +2,7 @@ package io.quartic.qube
 
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.qube.model.Dag
+import io.quartic.qube.api.model.Dag
 import io.quartic.qube.resource.QueryResource
 import org.hamcrest.Matchers
 import org.junit.Assert.assertThat

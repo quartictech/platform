@@ -9,7 +9,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.qube.model.Dag
+import io.quartic.qube.api.model.Dag
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource

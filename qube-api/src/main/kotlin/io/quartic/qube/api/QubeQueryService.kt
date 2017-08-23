@@ -4,6 +4,7 @@ import feign.Headers
 import feign.Param
 import feign.RequestLine
 import io.quartic.common.model.CustomerId
+import io.quartic.qube.api.model.Dag
 import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
@@ -19,5 +20,5 @@ interface QubeQueryService {
     @Produces(MediaType.APPLICATION_JSON)
     fun dag(
         @Param("customerId") @PathParam("customerId") customerId: CustomerId
-    ): Any
+    ): Dag
 }
