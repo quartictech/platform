@@ -13,29 +13,33 @@ enum class Status {
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = Request.CreatePod::class, name = "create"),
-    JsonSubTypes.Type(value = Request.DestroyPod::class, name = "destroy")
+    JsonSubTypes.Type(value = QubeRequest.Create::class, name = "create"),
+    JsonSubTypes.Type(value = QubeRequest.Destroy::class, name = "destroy")
 )
-sealed class Request {
-    data class CreatePod(
-        val name: String,
+sealed class QubeRequest {
+    abstract val name: String
+
+    data class Create(
+        override val name: String,
         val image: String,
         val command: List<String>
-    ): Request()
-    data class DestroyPod(val name: String): Request()
+    ): QubeRequest()
+    data class Destroy(override val name: String): QubeRequest()
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = Response.PodWaiting::class, name = "waiting"),
-    JsonSubTypes.Type(value = Response.PodRunning::class, name = "running"),
-    JsonSubTypes.Type(value = Response.PodFailed::class, name = "failed"),
-    JsonSubTypes.Type(value = Response.PodSucceeded::class, name = "succeeded")
+    JsonSubTypes.Type(value = QubeResponse.Waiting::class, name = "waiting"),
+    JsonSubTypes.Type(value = QubeResponse.Running::class, name = "running"),
+    JsonSubTypes.Type(value = QubeResponse.Failed::class, name = "failed"),
+    JsonSubTypes.Type(value = QubeResponse.Succeeded::class, name = "succeeded"),
+    JsonSubTypes.Type(value = QubeResponse.Exception::class, name = "exception")
 )
-sealed class Response {
-    data class PodWaiting(val name: String): Response()
-    data class PodRunning(val name: String, val hostname: String): Response()
-    data class PodFailed(val name: String): Response()
-    data class PodSucceeded(val name: String): Response()
-    data class PodException(val name: String): Response()
+sealed class QubeResponse {
+    abstract val name: String
+    data class Waiting(override val name: String): QubeResponse()
+    data class Running(override val name: String, val hostname: String): QubeResponse()
+    data class Failed(override val name: String, val message: String): QubeResponse()
+    data class Succeeded(override val name: String): QubeResponse()
+    data class Exception(override val name: String): QubeResponse()
 }

@@ -57,6 +57,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
          if (configuration.runEmbedded) {
              LOG.warn("Postgres is running in embedded mode!!")
              EmbeddedPostgres.builder()
+                 .setErrorRedirector()
                  .setPort(configuration.dataSource.port)
                  .setCleanDataDirectory(false)
                  .setDataDirectory(File("./data"))

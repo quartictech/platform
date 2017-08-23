@@ -4,7 +4,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
-import io.quartic.qube.api.Response
+import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.PodKey
 import io.quartic.qube.pods.QubeEvent
@@ -41,7 +41,7 @@ class WorkerShould {
         .endContainer()
         .endSpec()
         .build()
-    val returnChannel = mock<Channel<Response>>()
+    val returnChannel = mock<Channel<QubeResponse>>()
     val podEvents = Channel<Pod>(UNLIMITED)
 
     init {
@@ -90,7 +90,7 @@ class WorkerShould {
             )
 
             verify(returnChannel, timeout(1000)).send(
-                Response.PodRunning(key.name, "${key.client}-${key.name}.noob")
+                QubeResponse.Running(key.name, "${key.client}-${key.name}.noob")
             )
         }
     }
@@ -104,7 +104,7 @@ class WorkerShould {
             podEvents.send(podTerminated(1))
 
             verify(returnChannel, timeout(1000)).send(
-                Response.PodFailed(key.name)
+                QubeResponse.Failed(key.name, state.terminated.message)
             )
         }
     }
@@ -118,7 +118,7 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
 
             verify(returnChannel, timeout(1000)).send(
-                Response.PodSucceeded(key.name)
+                QubeResponse.Succeeded(key.name)
             )
         }
     }
@@ -134,7 +134,7 @@ class WorkerShould {
 
 
             verify(returnChannel, timeout(1000)).send(
-                Response.PodException(key.name)
+                QubeResponse.Exception(key.name)
             )
         }
     }
@@ -177,7 +177,7 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
             job.await()
             verify(returnChannel, times(0))
-                .send(Response.PodException(key.name))
+                .send(QubeResponse.Exception(key.name))
         }
     }
 
