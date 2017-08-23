@@ -1,6 +1,6 @@
 package io.quartic.qube.store
 
-import io.quartic.qube.api.Request
+import io.quartic.qube.api.QubeRequest
 import org.flywaydb.core.Flyway
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
@@ -40,7 +40,7 @@ interface JobStore {
         @Bind("id") id: UUID,
         @Bind("client") client: UUID,
         @Bind("name") podName: String,
-        @BindJson("create_spec") createPod: Request.CreatePod,
+        @BindJson("create_spec") createPod: QubeRequest.Create,
         @Bind("log") log: String?,
         @Bind("start_time") startTime: Instant,
         @Bind("end_time") endTime: Instant,

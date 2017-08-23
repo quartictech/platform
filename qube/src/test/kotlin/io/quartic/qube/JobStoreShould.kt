@@ -5,7 +5,8 @@ import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.store.JobStore
 import io.quartic.qube.store.setupDbi
-import io.quartic.qube.api.Request
+import io.quartic.qube.api.QubeRequest
+import io.quartic.qube.api.model.ContainerSpec
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,8 +38,8 @@ class JobStoreShould {
     fun insert_job() {
         val uuid = UUID.randomUUID()
         val client = UUID.randomUUID()
-        val request = Request.CreatePod("blah", "dummy:1", listOf("true"))
-        val id = jobStore.insertJob(
+        val request = QubeRequest.Create("blah", ContainerSpec("dummy:1", listOf("true")))
+        jobStore.insertJob(
             uuid,
             client,
             "blah",

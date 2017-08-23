@@ -32,14 +32,6 @@ libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1
 libraries.junit = "junit:junit:4.12"
 libraries.wiremock = "com.github.tomakehurst:wiremock:2.7.1"
 
-libraries.vertx = [
-    core: "io.vertx:vertx-core:${versions.vertx}",
-    web: "io.vertx:vertx-web:${versions.vertx}",
-    client: "io.vertx:vertx-web-client:${versions.vertx}",
-    config: "io.vertx:vertx-config:${versions.vertx}",
-    unit: "io.vertx:vertx-unit:${versions.vertx}",
-]
-
 libraries.tyrus = [
     client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
     server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
@@ -55,3 +47,10 @@ libraries.testCommon = [
         "org.mockito:mockito-core:2.8.47"   // Force later version than mockito-kotlin pulls in, to get coroutine support
 ]
 
+libraries.vertx = [
+    core: "io.vertx:vertx-core:${versions.vertx}",
+    web: "io.vertx:vertx-web:${versions.vertx}",
+    client: "io.vertx:vertx-web-client:${versions.vertx}",
+    config: "io.vertx:vertx-config:${versions.vertx}",
+    unit: "io.vertx:vertx-unit:${versions.vertx}"
+]

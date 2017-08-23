@@ -1,7 +1,8 @@
 package io.quartic.qube
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.qube.api.Response
+import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.model.ContainerSpec
 import io.quartic.qube.pods.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
@@ -12,7 +13,7 @@ import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 class OrchestratorShould {
     private val events = Channel<QubeEvent>(UNLIMITED)
     private val podKey = PodKey(UUID.randomUUID(), "test")
-    private val returnChannel = Channel<Response>()
+    private val returnChannel = Channel<QubeResponse>()
 
     private val worker = mock<Worker>()
     private val orchestratorState = OrchestratorState()
@@ -95,7 +96,7 @@ class OrchestratorShould {
         }
     }
 
-    fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, "dummy:1", listOf("true"))
+    fun createPod() = QubeEvent.CreatePod(podKey, returnChannel, ContainerSpec("dummy:1", listOf("true")))
     fun cancelPod() = QubeEvent.CancelPod(podKey)
     fun createClient() = QubeEvent.CreateClient(podKey.client)
     fun cancelClient() = QubeEvent.CancelClient(podKey.client)

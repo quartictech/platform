@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.api.model.Pod
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.qube.api.Request
-import io.quartic.qube.api.Response
+import io.quartic.qube.api.QubeRequest
+import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.store.JobStore
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
@@ -31,23 +31,22 @@ class Qubicle(
 
     private fun setupWebsocket(websocket: ServerWebSocket) {
         val clientUUID = UUID.randomUUID()
-        val returnChannel = Channel<Response>()
+        val returnChannel = Channel<QubeResponse>()
 
         websocket.closeHandler { events.offer(QubeEvent.CancelClient(clientUUID)) }
         events.offer(QubeEvent.CreateClient(clientUUID))
         websocket.textMessageHandler { textMessage ->
             try {
-                val message = OBJECT_MAPPER.readValue<Request>(textMessage)
+                val message = OBJECT_MAPPER.readValue<QubeRequest>(textMessage)
                 when (message) {
-                    is Request.CreatePod -> events.offer(
+                    is QubeRequest.Create -> events.offer(
                         QubeEvent.CreatePod(
                             PodKey(clientUUID, message.name),
                             returnChannel,
-                            message.image,
-                            message.command
+                            message.container
                         )
                     )
-                    is Request.DestroyPod -> events.offer(
+                    is QubeRequest.Destroy -> events.offer(
                         QubeEvent.CancelPod(
                             PodKey(clientUUID, message.name)
                         )
@@ -75,10 +74,8 @@ class Qubicle(
 
         vertx.createHttpServer()
             .websocketHandler { websocket ->
-                LOG.info("Websocket connection")
-                if (websocket.path().equals("/ws")) {
-                    setupWebsocket(websocket)
-                }
+                LOG.info("[${websocket.remoteAddress()}] Websocket connection")
+                setupWebsocket(websocket)
             }
             .listen(websocketPort) { res ->
                if (res.failed()) {

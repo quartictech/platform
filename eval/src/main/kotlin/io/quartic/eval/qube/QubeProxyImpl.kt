@@ -2,16 +2,17 @@ package io.quartic.eval.qube
 
 import com.google.common.base.Preconditions.checkState
 import io.quartic.common.logging.logger
-import io.quartic.eval.model.QubeRequest
-import io.quartic.eval.model.QubeResponse
-import io.quartic.eval.model.QubeResponse.Error
-import io.quartic.eval.model.QubeResponse.Ready
+import io.quartic.qube.api.QubeResponse.Running
+import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Create
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Destroy
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
+import io.quartic.qube.api.QubeRequest
+import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
@@ -23,16 +24,17 @@ import java.util.*
 
 class QubeProxyImpl(
     private val qube: WebsocketClient<QubeRequest, QubeResponse>,
-    private val nextUuid: () -> UUID = UUID::randomUUID
+    private val container: ContainerSpec,
+    private val nextUuid: () -> QubeId = { UUID.randomUUID().toString() }
 ) : QubeProxy {
     private sealed class ClientRequest {
         data class Create(val response: CompletableDeferred<QubeContainerProxy> = CompletableDeferred()) : ClientRequest()
-        data class Destroy(val uuid: UUID) : ClientRequest()
+        data class Destroy(val uuid: QubeId) : ClientRequest()
     }
 
     private var connected = false
-    private val pending = mutableMapOf<UUID, Create>()
-    private val active = mutableMapOf<UUID, SendChannel<QubeException>>()
+    private val pending = mutableMapOf<QubeId, Create>()
+    private val active = mutableMapOf<QubeId, SendChannel<QubeException>>()
     private val fromClients = Channel<ClientRequest>(UNLIMITED)
     private val LOG by logger()
 
@@ -76,7 +78,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        qube.outbound.send(QubeRequest.Create(uuid))
+        qube.outbound.send(QubeRequest.Create(uuid, container))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {
@@ -109,35 +111,36 @@ class QubeProxyImpl(
     }
 
     private suspend fun handleResponse(response: QubeResponse) = when (response) {
-        is Ready -> handleReadyResponse(response)
-        is Error -> handleErrorResponse(response)
+        is Running -> handleRunningResponse(response)
+        is Terminated -> handleTerminatedResponse(response)
+        else -> LOG.info("[{}] Ignoring response: {}", response.name, response)
     }
 
-    private fun handleReadyResponse(response: Ready) {
-        LOG.info("[${response.uuid}] <- READY")
+    private fun handleRunningResponse(response: Running) {
+        LOG.info("[${response.name}] <- RUNNING")
 
-        val pending = pending.remove(response.uuid)
+        val pending = pending.remove(response.name)
         when {
-            (response.uuid in active) ->
-                LOG.error("Ready response duplicated")
+            (response.name in active) ->
+                LOG.error("Running response duplicated")
             (pending == null) ->
-                LOG.error("Ready response doesn't correspond to pending request")
+                LOG.error("Running response doesn't correspond to pending request")
             else -> {
                 val channel = Channel<QubeException>(UNLIMITED)
-                active[response.uuid] = channel
+                active[response.name] = channel
                 pending.response.complete(QubeContainerProxy(response.hostname, channel) {
-                    fromClients.send(Destroy(response.uuid))
+                    fromClients.send(Destroy(response.name))
                     channel.close()
                 })
             }
         }
     }
 
-    private suspend fun handleErrorResponse(response: Error) {
-        LOG.info("[${response.uuid}] <- ERROR")
+    private suspend fun handleTerminatedResponse(response: Terminated) {
+        LOG.info("[${response.name}] <- TERMINATED")
 
-        val pending = pending.remove(response.uuid)
-        val active = active[response.uuid]
+        val pending = pending.remove(response.name)
+        val active = active[response.name]
         val exception = QubeException(response.message)
 
         when {
@@ -146,7 +149,7 @@ class QubeProxyImpl(
             (active != null) ->
                 active.send(exception)
             else ->
-                LOG.error("Error response doesn't correspond to pending request or active container")
+                LOG.error("Terminated response doesn't correspond to pending request or active container")
         }
     }
 }

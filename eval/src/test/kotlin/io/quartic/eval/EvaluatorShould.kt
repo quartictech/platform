@@ -3,6 +3,7 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.InternalError
@@ -16,7 +17,6 @@ import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.qube.api.model.Dag
-import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool

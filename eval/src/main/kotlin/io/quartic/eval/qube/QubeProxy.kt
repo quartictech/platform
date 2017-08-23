@@ -1,9 +1,10 @@
 package io.quartic.eval.qube
 
-import io.quartic.eval.model.QubeRequest
-import io.quartic.eval.model.QubeResponse
 import io.quartic.eval.utils.SuspendedAutoCloseable
 import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.qube.api.QubeRequest
+import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 // Shouldn't really need this interface, but there's a current issue with coroutines and Mockito: https://github.com/mockito/mockito/issues/1152
@@ -21,6 +22,7 @@ interface QubeProxy {
     suspend fun createContainer(): QubeContainerProxy
 
     companion object {
-        fun create(client: WebsocketClient<QubeRequest, QubeResponse>) = QubeProxyImpl(client)
+        fun create(client: WebsocketClient<QubeRequest, QubeResponse>,
+                   container: ContainerSpec) = QubeProxyImpl(client, container)
     }
 }

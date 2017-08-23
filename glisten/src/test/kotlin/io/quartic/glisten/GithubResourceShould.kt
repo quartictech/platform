@@ -7,9 +7,9 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.api.EvalTriggerService
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.github.*
-import io.quartic.qube.api.QubeTriggerService
-import io.quartic.qube.api.model.TriggerDetails
 import org.apache.commons.codec.binary.Hex
 import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat
@@ -31,7 +31,7 @@ class GithubResourceShould {
     private val pingPayload = javaClass.getResource("/ping_event.json").readText()
     private val pingSignature = "sha1=62c3f51e3b54b13036a062f0fb21759837280481"
 
-    private val trigger = mock<QubeTriggerService>()
+    private val trigger = mock<EvalTriggerService>()
     private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
     private val resource = GithubResource(secret, trigger, clock)
 
