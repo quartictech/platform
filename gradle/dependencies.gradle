@@ -54,4 +54,3 @@ libraries.vertx = [
     config: "io.vertx:vertx-config:${versions.vertx}",
     unit: "io.vertx:vertx-unit:${versions.vertx}"
 ]
-

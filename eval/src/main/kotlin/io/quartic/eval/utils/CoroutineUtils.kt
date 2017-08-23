@@ -30,6 +30,6 @@ public suspend fun <T : SuspendedAutoCloseable?, R> T.use(block: suspend (T) -> 
     block(this)
 } finally {
     run(NonCancellable) {
-        this@use?.close()
+        this?.close()
     }
 }
