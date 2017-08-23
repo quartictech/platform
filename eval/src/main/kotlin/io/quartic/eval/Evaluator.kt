@@ -37,13 +37,14 @@ class Evaluator(
         github: GitHubInstallationClient,
         database: Database,
         clientBuilder: ClientBuilder
-    ) : this(registry, qube, github, database, { hostname -> clientBuilder.retrofit("http://${hostname}") })
+    ) : this(registry, qube, github, database, { hostname -> QuartyClient(clientBuilder, "http://${hostname}") })
 
     private val LOG by logger()
 
     suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
         if (buildShouldProceed(trigger)) {
             val result = runBuild(trigger)
+            println("Here: ${result}")
             database.writeResult(result)
         }
     }
@@ -89,7 +90,7 @@ class Evaluator(
         val token = github.accessTokenAsync(trigger.installationId).awaitWrapped("acquiring access token from GitHub")
 
         val cloneUrl = URIBuilder(trigger.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
-        quartyBuilder(container.hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")
+        quartyBuilder(container.hostname).getDag(cloneUrl, trigger.commit).awaitWrapped("communicating with Quarty")
     }
 
     private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = cancellable(

@@ -11,7 +11,7 @@ data class Dataset(
 data class Step(
     val id: String,
     val name: String,
-    val description: String,
+    val description: String?,
     val file: String,
     @JsonProperty("line_range")
     val lineRange: List<Int>,
