@@ -10,7 +10,7 @@ import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Create
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Destroy
 import io.quartic.eval.websocket.WebsocketClient
-import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent.*
+import io.quartic.eval.websocket.WebsocketClient.Event.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
@@ -58,8 +58,8 @@ class QubeProxyImpl(
 
                 qube.events.onReceive {
                     when (it) {
-                        is BecomeReady -> {}     // TODO
-                        is BecomeFailed -> {}    // TODO
+                        is Connected -> {}     // TODO
+                        is Disconnected -> {}    // TODO
                         is MessageReceived -> handleResponse(it.message)
                     }
                 }

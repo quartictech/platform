@@ -3,14 +3,15 @@ package io.quartic.eval.websocket
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.websocket.WebsocketServerRule
 import io.quartic.eval.utils.runOrTimeout
-import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent.MessageReceived
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.Matchers.equalTo
+import io.quartic.eval.websocket.WebsocketClient.Event.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
-import org.junit.Ignore
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.Duration
 
 class WebsocketClientImplShould {
     @get:Rule
@@ -19,7 +20,7 @@ class WebsocketClientImplShould {
     data class SendMsg(val s: String)
     data class ReceiveMsg(val i: Int)
 
-    // TODO - test websocket closure
+    // TODO - bias toward internal events
 
     @Test
     fun receive_messages() {
@@ -28,13 +29,14 @@ class WebsocketClientImplShould {
             ReceiveMsg(43),
             ReceiveMsg(44)
         )
-
         serverShouldSend(expected)
 
-        val client = createClient()
+        createClient().use { client ->
+            runOrTimeout {
+                client.awaitConnected()
 
-        runOrTimeout {
-            assertThat(client.collectReceivedMessages(3), equalTo(expected))
+                assertThat(client.awaitReceivedMessages(3), equalTo(expected))
+            }
         }
     }
 
@@ -46,16 +48,17 @@ class WebsocketClientImplShould {
             SendMsg("charlie")
         )
 
-        val client = createClient()
+        createClient().use { client ->
+            runOrTimeout {
+                client.awaitConnected()
 
-        runOrTimeout {
-            expected.forEach {
-                client.outbound.send(it)
+                expected.forEach {
+                    client.outbound.send(it)
+                }
             }
         }
 
         Thread.sleep(100)       // TODO: this is gross
-
         assertThat(server.receivedMessages, equalTo(expected.map { OBJECT_MAPPER.writeValueAsString(it) }))
     }
 
@@ -66,32 +69,122 @@ class WebsocketClientImplShould {
             "gibberish",
             ReceiveMsg(44)
         )
-
         serverShouldSend(expected)
 
-        val client = createClient()
+        createClient().use { client ->
+            runOrTimeout {
+                client.awaitConnected()
 
-        runOrTimeout {
-            assertThat(client.collectReceivedMessages(2), equalTo(listOf(expected[0], expected[2])))
+                assertThat(client.awaitReceivedMessages(2), equalTo(listOf(expected[0], expected[2])))
+            }
         }
     }
 
     @Test
-    @Ignore
-    fun lafjhs() {
-        val client = createClient()
+    fun notify_consumer_when_connection_dropped() {
+        createClient().use { client ->
+            runOrTimeout {
+                client.awaitConnected()
 
-        Thread.sleep(500)
+                server.dropConnections()
 
-        server.dropConnections()
-
-//        Thread.sleep(30000)
-        runBlocking {
-//        runOrTimeout {
-            repeat(1000) {
-                client.outbound.send(SendMsg("noob"))
-                delay(100)
+                client.awaitDisconnected()
             }
+        }
+    }
+
+    @Test
+    fun reconnect_then_continue_working_when_connection_dropped() {
+        val expected = listOf(ReceiveMsg(42))
+        serverShouldSend(expected)
+
+        createClient().use { client ->
+            runOrTimeout(1000) {
+                client.awaitConnected()
+
+                server.dropConnections()
+
+                client.awaitConnected()
+
+                assertThat(client.awaitReceivedMessages(1), equalTo(expected))
+            }
+        }
+    }
+
+    @Test
+    fun drop_outbound_messages_whilst_connection_dropped() {
+        createClient().use { client ->
+            runOrTimeout {
+                client.awaitConnected()
+
+                server.dropConnections()
+
+                client.awaitDisconnected()
+
+                client.outbound.send(SendMsg("no"))
+            }
+        }
+
+        Thread.sleep(100)
+        assertThat(server.receivedMessages, hasSize(0))
+    }
+
+    @Test
+    fun disconnect_and_not_attempt_reconnect_on_close() {
+        val client = createClient()
+        try {
+            runOrTimeout {
+                client.awaitConnected()
+                client.close()
+                client.awaitDisconnected()  // Should timeout, as we don't send message
+            }
+        } catch (e: Exception) {}           // We're expecting a timeout
+
+        Thread.sleep(100)
+        assertThat(server.numConnections, equalTo(1))
+        assertThat(server.numDisconnections, equalTo(1))
+    }
+
+    @Test
+    fun close_gracefully_if_not_yet_connected() {
+        server.stop()   // Prevent connections
+
+        val client = createClient()
+        client.close()  // Should be no exceptions
+    }
+
+    @Test
+    fun close_channels_on_close() {
+        val client = createClient()
+        client.close()
+
+        runOrTimeout {
+            assertThat(client.events.receiveOrNull(), nullValue())
+            assertTrue(client.outbound.isClosedForSend)
+        }
+    }
+
+    @Test
+    fun prioritise_internal_events() {
+        createClient().use { client ->
+            // TODO - stack up a ton of send messages
+            runOrTimeout {
+                client.awaitConnected()
+
+                val job = async(CommonPool) {
+                    repeat(10) {
+                        client.outbound.send(SendMsg("Noisy"))
+                    }
+                }
+
+                server.dropConnections()
+
+                client.awaitDisconnected()
+
+                job.join()
+            }
+
+            Thread.sleep(500)
         }
     }
 
@@ -99,17 +192,25 @@ class WebsocketClientImplShould {
         server.messages = messages.map { OBJECT_MAPPER.writeValueAsString(it) }
     }
 
-    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(server.uri)
+    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(server.uri, Duration.ofMillis(100))
 
-    private suspend fun WebsocketClientImpl<SendMsg, ReceiveMsg>.collectReceivedMessages(num: Int): List<ReceiveMsg> {
+    private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitReceivedMessages(num: Int): List<ReceiveMsg> {
         val received = mutableListOf<ReceiveMsg>()
         repeat(num) {
             val event = events.receive()
             when (event) {
                 is MessageReceived -> received.add(event.message)
             }
-//            received.add(fromServer.receive())
         }
         return received
     }
+
+    private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitConnected() = await(Connected::class.java)
+    private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitDisconnected() = await(Disconnected::class.java)
+
+    private suspend fun <T : WebsocketClient.Event<*>> WebsocketClient<SendMsg, ReceiveMsg>.await(clazz: Class<T>) {
+        while (!clazz.isInstance(events.receive())) {}
+    }
+
 }
+

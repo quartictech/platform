@@ -12,9 +12,8 @@ import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.utils.use
 import io.quartic.eval.websocket.WebsocketClient
-import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent
-import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent.MessageReceived
-import io.quartic.eval.websocket.WebsocketClientImpl
+import io.quartic.eval.websocket.WebsocketClient.Event
+import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
@@ -27,7 +26,7 @@ import java.util.*
 
 class QubeProxyImplShould {
     private val outbound = Channel<QubeRequest>(2)
-    private val events = Channel<WebsocketClientEvent<QubeResponse>>(2)
+    private val events = Channel<Event<QubeResponse>>(2)
     private var nextUuid = 100
     private val client = mock<WebsocketClient<QubeRequest, QubeResponse>> {
         on { outbound } doReturn outbound
