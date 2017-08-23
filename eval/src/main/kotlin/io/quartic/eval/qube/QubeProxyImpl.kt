@@ -84,7 +84,8 @@ class QubeProxyImpl(
 
         val pending = pending.remove(request.uuid)
         val active = active.remove(request.uuid)
-        // Check ensures idempotency, which is also important post-reconnect (because we already killed everything)
+        // These checks ensure this method is idempotent, i.e. we don't send multiple requests to Qube.
+        // This is important because this method is likely to be called after a reconnect (where we already killed everything)
         if (pending != null || active != null) {
             qube.outbound.send(QubeRequest.Destroy(request.uuid))
         }

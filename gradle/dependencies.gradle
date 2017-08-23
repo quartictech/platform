@@ -34,6 +34,10 @@ libraries.wiremock = "com.github.tomakehurst:wiremock:2.7.1"
 
 libraries.vertx = [
     core: "io.vertx:vertx-core:${versions.vertx}",
+    web: "io.vertx:vertx-web:${versions.vertx}",
+    client: "io.vertx:vertx-web-client:${versions.vertx}",
+    config: "io.vertx:vertx-config:${versions.vertx}",
+    unit: "io.vertx:vertx-unit:${versions.vertx}",
 ]
 
 libraries.tyrus = [
@@ -49,12 +53,5 @@ libraries.testCommon = [
         "org.hamcrest:hamcrest-all:1.3",
         "com.nhaarman:mockito-kotlin:1.5.0",
         "org.mockito:mockito-core:2.8.47"   // Force later version than mockito-kotlin pulls in, to get coroutine support
-]
-
-libraries.vertx = [
-    web: "io.vertx:vertx-web:${versions.vertx}",
-    client: "io.vertx:vertx-web-client:${versions.vertx}",
-    config: "io.vertx:vertx-config:${versions.vertx}",
-    unit: "io.vertx:vertx-unit:${versions.vertx}"
 ]
 

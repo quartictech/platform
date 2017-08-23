@@ -90,8 +90,8 @@ class WebsocketClientImpl<in TSend, out TReceive>(
                 it.handler { InternalEvent.MessageReceived(it.toString()).send() }
                 it.closeHandler { InternalEvent.Disconnected().send() }
             },
-            { t ->
-                LOG.error("Failed to connect", t)
+            {
+                LOG.error("Failed to connect to ${uri}")
                 InternalEvent.FailedToConnect().send()
             }
         )
@@ -116,9 +116,8 @@ class WebsocketClientImpl<in TSend, out TReceive>(
 
     // To deal with stragglers after close() is called
     private suspend fun <E> SendChannel<E>.sendIfOpen(element: E) {
-        try {
-            send(element)
-        } catch (e: ClosedSendChannelException) {}
+        try { send(element) }
+        catch (e: ClosedSendChannelException) {}
     }
 
     // The only thing that can update the SocketState
