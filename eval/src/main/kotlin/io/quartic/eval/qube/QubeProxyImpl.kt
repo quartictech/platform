@@ -117,14 +117,14 @@ class QubeProxyImpl(
     }
 
     private fun handleRunningResponse(response: Running) {
-        LOG.info("[${response.name}] <- READY")
+        LOG.info("[${response.name}] <- RUNNING")
 
         val pending = pending.remove(response.name)
         when {
             (response.name in active) ->
-                LOG.error("Ready response duplicated")
+                LOG.error("Running response duplicated")
             (pending == null) ->
-                LOG.error("Ready response doesn't correspond to pending request")
+                LOG.error("Running response doesn't correspond to pending request")
             else -> {
                 val channel = Channel<QubeException>(UNLIMITED)
                 active[response.name] = channel
@@ -137,7 +137,7 @@ class QubeProxyImpl(
     }
 
     private suspend fun handleTerminatedResponse(response: Terminated) {
-        LOG.info("[${response.name}] <- ERROR")
+        LOG.info("[${response.name}] <- TERMINATED")
 
         val pending = pending.remove(response.name)
         val active = active[response.name]
@@ -149,7 +149,7 @@ class QubeProxyImpl(
             (active != null) ->
                 active.send(exception)
             else ->
-                LOG.error("Error response doesn't correspond to pending request or active container")
+                LOG.error("Terminated response doesn't correspond to pending request or active container")
         }
     }
 }

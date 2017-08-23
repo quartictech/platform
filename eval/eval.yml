@@ -3,7 +3,8 @@ registryUrl: http://localhost:8190/api
 qube:
   url: ws://localhost:8202
   container:
-    image:
+    image: eu.gcr.io/quartictech/jupyter:53
+    command: "true"
 
 github:
   appId: 4352

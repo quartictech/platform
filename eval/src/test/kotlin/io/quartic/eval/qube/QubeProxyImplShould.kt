@@ -17,6 +17,7 @@ import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
 import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.delay
@@ -54,7 +55,7 @@ class QubeProxyImplShould {
     fun return_hostname_if_qube_successfully_creates_container() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             val container = qube.createContainer()
 
@@ -66,9 +67,22 @@ class QubeProxyImplShould {
     fun throw_error_if_qube_fails_to_create_container() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldFailToCreateAsync()
+            qubeWillFailToCreateAsync()
 
             assertThrowsQubeException("Badness occurred") { qube.createContainer() }
+        }
+    }
+
+    @Test
+    fun create_container_with_correct_spec() {
+        val containerId = uuid(100)
+        runOrTimeout {
+            qubeIsConnected()
+            val requests = qubeWillCreateAsync()
+
+            qube.createContainer()
+
+            assertThat(requests.await()[0] as Create, equalTo(Create(containerId, containerSpec)))
         }
     }
 
@@ -76,7 +90,7 @@ class QubeProxyImplShould {
     fun report_errors_after_creation() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             val container = qube.createContainer()
 
@@ -90,7 +104,7 @@ class QubeProxyImplShould {
     fun route_errors_for_concurrent_containers() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync(2)
+            qubeWillCreateAsync(2)
 
             val containerA = qube.createContainer()
             val containerB = qube.createContainer()
@@ -107,7 +121,7 @@ class QubeProxyImplShould {
     fun not_block_on_channel_to_client() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync(2)
+            qubeWillCreateAsync(2)
 
             qube.createContainer()
 
@@ -124,7 +138,7 @@ class QubeProxyImplShould {
     fun not_block_on_channel_from_clients() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync(4)
+            qubeWillCreateAsync(4)
 
             // Note Qube doesn't attempt to receive the close messages, so will timeout with a shallow channel
             (0..3)
@@ -137,7 +151,7 @@ class QubeProxyImplShould {
     fun destroy_on_close() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             qube.createContainer().use {}   // Should autoclose
 
@@ -149,7 +163,7 @@ class QubeProxyImplShould {
     fun be_idempotent_on_close() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             val container = qube.createContainer()
             container.close()
@@ -165,7 +179,7 @@ class QubeProxyImplShould {
     fun close_error_channel_on_close() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             val container = qube.createContainer()
             container.use {}   // Should autoclose
@@ -188,7 +202,7 @@ class QubeProxyImplShould {
             assertFalse(job.isCompleted)    // Shouldn't be complete yet
 
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             job.join()                      // This should complete only if we process requests after connection
         }
@@ -198,7 +212,7 @@ class QubeProxyImplShould {
     fun disconnect_reports_errors_for_everything_currently_in_flight() {
         runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             val container = qube.createContainer()      // Active
 
@@ -219,7 +233,7 @@ class QubeProxyImplShould {
     fun disconnect_is_idempotent() {
         val container = runOrTimeout {
             qubeIsConnected()
-            qubeShouldCreateAsync()
+            qubeWillCreateAsync()
 
             val container = qube.createContainer()      // Active
 
@@ -238,16 +252,17 @@ class QubeProxyImplShould {
     private suspend fun qubeIsConnected() = events.send(Event.Connected())
     private suspend fun qubeIsDisconnected() = events.send(Event.Disconnected())
 
-    private fun qubeShouldCreateAsync(num: Int = 1) = async(CommonPool) {
-        repeat(num) {
+    private fun qubeWillCreateAsync(num: Int = 1): Deferred<List<QubeRequest>> = async(CommonPool) {
+        (0 until num).map {
             val request = outbound.receive()
             if (request is Create) {
                 events.send(MessageReceived(Running(request.name, "noob")))
             }
+            request
         }
     }
 
-    private fun qubeShouldFailToCreateAsync(num: Int = 1) = async(CommonPool) {
+    private fun qubeWillFailToCreateAsync(num: Int = 1) = async(CommonPool) {
         repeat(num) {
             val request = outbound.receive()
             if (request is Create) {
