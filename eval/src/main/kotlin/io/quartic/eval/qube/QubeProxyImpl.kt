@@ -12,6 +12,7 @@ import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
@@ -23,6 +24,7 @@ import java.util.*
 
 class QubeProxyImpl(
     private val qube: WebsocketClient<QubeRequest, QubeResponse>,
+    private val container: ContainerSpec,
     private val nextUuid: () -> QubeId = { UUID.randomUUID().toString() }
 ) : QubeProxy {
     private sealed class ClientRequest {
@@ -76,9 +78,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        qube.outbound.send(
-            QubeRequest.Create(uuid, "eu.gcr.io/quartictech/jupyter:53", listOf("sleep", "60"))
-        )
+        qube.outbound.send(QubeRequest.Create(uuid, container))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {
@@ -111,13 +111,12 @@ class QubeProxyImpl(
     }
 
     private suspend fun handleResponse(response: QubeResponse) = when (response) {
-        is Running -> handleReadyResponse(response)
-        is Terminated -> handleErrorResponse(response)
-        // TODO: Add other response types here
+        is Running -> handleRunningResponse(response)
+        is Terminated -> handleTerminatedResponse(response)
         else -> LOG.info("[{}] Ignoring response: {}", response.name, response)
     }
 
-    private fun handleReadyResponse(response: Running) {
+    private fun handleRunningResponse(response: Running) {
         LOG.info("[${response.name}] <- READY")
 
         val pending = pending.remove(response.name)
@@ -137,7 +136,7 @@ class QubeProxyImpl(
         }
     }
 
-    private suspend fun handleErrorResponse(response: Terminated) {
+    private suspend fun handleTerminatedResponse(response: Terminated) {
         LOG.info("[${response.name}] <- ERROR")
 
         val pending = pending.remove(response.name)

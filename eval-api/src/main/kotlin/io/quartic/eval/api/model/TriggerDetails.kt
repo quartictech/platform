@@ -1,9 +1,8 @@
-package io.quartic.qube.api.model
+package io.quartic.eval.api.model
 
 import java.net.URI
 import java.time.Instant
 
-// TODO - token or whatever
 data class TriggerDetails(
     val type: String,
     val deliveryId: String,     // For logging purposes

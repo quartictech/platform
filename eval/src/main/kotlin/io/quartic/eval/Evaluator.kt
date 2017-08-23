@@ -2,6 +2,7 @@ package io.quartic.eval
 
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.logging.logger
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.*
@@ -12,7 +13,6 @@ import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.utils.cancellable
 import io.quartic.eval.utils.use
 import io.quartic.github.GitHubInstallationClient
-import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async

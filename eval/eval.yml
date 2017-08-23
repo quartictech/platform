@@ -1,5 +1,9 @@
 registryUrl: http://localhost:8190/api
-qubeUrl: ws://localhost:8202
+
+qube:
+  url: ws://localhost:8202
+  container:
+    image:
 
 github:
   appId: 4352

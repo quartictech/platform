@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.PodBuilder
 import io.quartic.common.logging.logger
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.store.JobStore
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
@@ -53,9 +54,9 @@ class WorkerImpl(
                     }
                     state?.terminated != null -> {
                         if (state.terminated.exitCode == 0) {
-                            responses.send(QubeResponse.Succeeded(key.name))
+                            responses.send(Terminated.Succeeded(key.name))
                         } else {
-                            responses.send(QubeResponse.Failed(key.name, state.terminated.message))
+                            responses.send(Terminated.Failed(key.name, state.terminated.message))
                         }
                         LOG.info("[{}] terminated {}", podName, state)
                         return@withTimeout
@@ -77,8 +78,8 @@ class WorkerImpl(
                 .endMetadata()
                 .editOrNewSpec()
                 .editFirstContainer()
-                .withImage(create.image)
-                .withCommand(create.command)
+                .withImage(create.container.image)
+                .withCommand(create.container.command)
                 .endContainer()
                 .endSpec()
                 .build())
@@ -90,7 +91,7 @@ class WorkerImpl(
                 .await()
         }
         catch (e: Exception) {
-            create.returnChannel.send(QubeResponse.Exception(create.key.name))
+            create.returnChannel.send(Terminated.Exception(create.key.name))
             LOG.error("[{}] Exception while running pod", podName, e)
         }
         finally {
@@ -116,7 +117,7 @@ class WorkerImpl(
                 id = UUID.randomUUID(),
                 client = create.key.client,
                 podName = create.key.name,
-                createPod = QubeRequest.Create(create.key.name, create.image, create.command),
+                createPod = QubeRequest.Create(create.key.name, create.container),
                 log = logs,
                 startTime = startTime,
                 endTime = endTime,

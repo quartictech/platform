@@ -15,6 +15,7 @@ import io.quartic.eval.utils.use
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
+import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
@@ -32,7 +33,9 @@ class QubeProxyImplShould {
         on { outbound } doReturn outbound
         on { events } doReturn events
     }
-    private val qube = QubeProxyImpl(client) { uuid(nextUuid++) }
+
+    private val containerSpec = ContainerSpec("noobout:1", listOf("true"))
+    private val qube = QubeProxyImpl(client, containerSpec) { uuid(nextUuid++) }
 
     @Test
     fun generate_unique_uuids() {
@@ -77,7 +80,7 @@ class QubeProxyImplShould {
 
             val container = qube.createContainer()
 
-            events.send(MessageReceived(Terminated(uuid(100), "Oh dear me")))
+            events.send(MessageReceived(Terminated.Failed(uuid(100), "Oh dear me")))
 
             assertThat(container.errors.receive().message, equalTo("Oh dear me"))
         }
@@ -92,8 +95,8 @@ class QubeProxyImplShould {
             val containerA = qube.createContainer()
             val containerB = qube.createContainer()
 
-            events.send(MessageReceived(Terminated(uuid(100), "Message 100")))
-            events.send(MessageReceived(Terminated(uuid(101), "Message 101")))
+            events.send(MessageReceived(Terminated.Failed(uuid(100), "Message 100")))
+            events.send(MessageReceived(Terminated.Failed(uuid(101), "Message 101")))
 
             assertThat(containerA.errors.receive().message, equalTo("Message 100"))
             assertThat(containerB.errors.receive().message, equalTo("Message 101"))
@@ -109,7 +112,7 @@ class QubeProxyImplShould {
             qube.createContainer()
 
             repeat(4) {
-                events.send(MessageReceived(Terminated(uuid(100), "Yup")))
+                events.send(MessageReceived(Terminated.Failed(uuid(100), "Yup")))
             }
             // Note the client doesn't attempt to receive the messages
 
@@ -167,7 +170,7 @@ class QubeProxyImplShould {
             val container = qube.createContainer()
             container.use {}   // Should autoclose
 
-            events.send(MessageReceived(Terminated(uuid(100), "Oh dear me")))
+            events.send(MessageReceived(Terminated.Failed(uuid(100), "Oh dear me")))
 
             assertTrue(container.errors.isClosedForReceive)
         }
@@ -248,7 +251,7 @@ class QubeProxyImplShould {
         repeat(num) {
             val request = outbound.receive()
             if (request is Create) {
-                events.send(MessageReceived(Terminated(request.name, "Badness occurred")))
+                events.send(MessageReceived(Terminated.Failed(request.name, "Badness occurred")))
             }
         }
     }

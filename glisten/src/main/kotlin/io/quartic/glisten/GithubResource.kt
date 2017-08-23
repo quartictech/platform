@@ -1,11 +1,11 @@
 package io.quartic.glisten
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.quartic.qube.api.QubeTriggerService
-import io.quartic.qube.api.model.TriggerDetails
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.api.EvalTriggerService
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.github.PushEvent
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
@@ -15,12 +15,10 @@ import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
-
-
 @Path("/hooks/github")
 class GithubResource(
     private val secret: UnsafeSecret,
-    private val trigger: QubeTriggerService,
+    private val trigger: EvalTriggerService,
     private val clock: Clock = Clock.systemUTC()
 ) {
     // TODO - handle DoS due to massive payload causing OOM
