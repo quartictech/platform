@@ -32,6 +32,10 @@ libraries.dropwizardMetricsInfluxdb = "com.izettle:dropwizard-metrics-influxdb:1
 libraries.junit = "junit:junit:4.12"
 libraries.wiremock = "com.github.tomakehurst:wiremock:2.7.1"
 
+libraries.vertx = [
+    core: "io.vertx:vertx-core:${versions.vertx}",
+]
+
 libraries.tyrus = [
     client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
     server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",

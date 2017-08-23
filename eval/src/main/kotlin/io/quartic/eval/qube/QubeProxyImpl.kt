@@ -9,19 +9,19 @@ import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Create
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Destroy
+import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.eval.websocket.WebsocketClient.WebsocketClientEvent.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.selects.select
 import java.util.*
 
 class QubeProxyImpl(
-    private val toQube: SendChannel<QubeRequest>,
-    private val fromQube: ReceiveChannel<QubeResponse>,
+    private val qube: WebsocketClient<QubeRequest, QubeResponse>,
     private val nextUuid: () -> UUID = UUID::randomUUID
 ) : QubeProxy {
     private sealed class ClientRequest {
@@ -56,10 +56,11 @@ class QubeProxyImpl(
                     }
                 }
 
-                fromQube.onReceive {
+                qube.events.onReceive {
                     when (it) {
-                        is Ready -> handleReadyResponse(it)
-                        is Error -> handleErrorResponse(it)
+                        is BecomeReady -> {}     // TODO
+                        is BecomeFailed -> {}    // TODO
+                        is MessageReceived -> handleResponse(it.message)
                     }
                 }
             }
@@ -71,7 +72,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        toQube.send(QubeRequest.Create(uuid))
+        qube.outbound.send(QubeRequest.Create(uuid))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {
@@ -79,7 +80,12 @@ class QubeProxyImpl(
 
         pending.remove(request.uuid)
         active.remove(request.uuid)
-        toQube.send(QubeRequest.Destroy(request.uuid))
+        qube.outbound.send(QubeRequest.Destroy(request.uuid))
+    }
+
+    private suspend fun handleResponse(response: QubeResponse) = when (response) {
+        is Ready -> handleReadyResponse(response)
+        is Error -> handleErrorResponse(response)
     }
 
     private fun handleReadyResponse(response: Ready) {

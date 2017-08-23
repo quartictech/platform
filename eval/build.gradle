@@ -19,6 +19,7 @@ dependencies {
     compile project(":github")
 
     compile libraries.coroutines
+    compile libraries.vertx.core
 
     testCompile project(":common-test")
 }
