@@ -1,10 +1,12 @@
 package io.quartic.eval.model
 
+import io.quartic.quarty.model.Dataset
+import io.quartic.quarty.model.Step
 import org.jgrapht.DirectedGraph
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
 
-class DAG (val dag: DirectedGraph<Dataset, PseudoEdge>) {
+class Dag(val dag: DirectedGraph<Dataset, PseudoEdge>) {
     data class PseudoEdge(
         val step: Step,
         val source: Dataset,
@@ -19,7 +21,7 @@ class DAG (val dag: DirectedGraph<Dataset, PseudoEdge>) {
     fun validate() = checkNoCycles() && checkOneStepPerDataset()
 
     companion object {
-        fun fromSteps(steps: List<Step>): DAG {
+        fun fromSteps(steps: List<Step>): Dag {
            val dag = DefaultDirectedGraph<Dataset, PseudoEdge>(PseudoEdge::class.java)
 
             steps.forEach { step ->
@@ -33,7 +35,7 @@ class DAG (val dag: DirectedGraph<Dataset, PseudoEdge>) {
                 }
             }
 
-            return DAG(dag)
+            return Dag(dag)
         }
     }
 }

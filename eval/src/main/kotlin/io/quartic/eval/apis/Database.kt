@@ -1,6 +1,6 @@
 package io.quartic.eval.apis
 
-import io.quartic.eval.model.Step
+import io.quartic.quarty.model.Step
 
 
 interface Database {

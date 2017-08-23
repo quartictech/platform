@@ -4,7 +4,9 @@ qube:
   url: ws://localhost:8202
   container:
     image: eu.gcr.io/quartictech/jupyter:53
-    command: "true"
+    command:
+      - "sleep"
+      - "1000"
 
 github:
   appId: 4352

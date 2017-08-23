@@ -50,7 +50,7 @@ class WorkerImpl(
                         responses.send(QubeResponse.Waiting(key.name))
                     }
                     state?.running != null -> {
-                        responses.send(QubeResponse.Running(key.name, "$podName.$namespace"))
+                        responses.send(QubeResponse.Running(key.name, "localhost:8080"))
                     }
                     state?.terminated != null -> {
                         if (state.terminated.exitCode == 0) {

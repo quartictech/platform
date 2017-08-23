@@ -18,6 +18,7 @@ dependencies {
     compile project(":registry-api")
     compile project(":qube-api")
     compile project(":github")
+    compile project(":quarty-utils")
 
     compile libraries.coroutines
     compile libraries.vertx.core
