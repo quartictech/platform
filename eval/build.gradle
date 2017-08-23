@@ -21,6 +21,7 @@ dependencies {
 
     compile libraries.coroutines
     compile libraries.vertx.core
+    compile "org.jgrapht:jgrapht-core:1.0.1"
 
     testCompile project(":common-test")
 }
