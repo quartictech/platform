@@ -10,7 +10,5 @@ interface Database {
         data class UserError(val message: String) : BuildResult()
     }
 
-    fun writeResult(result: BuildResult) {
-        println("result is: ${result}")
-    }
+    fun writeResult(result: BuildResult)
 }
