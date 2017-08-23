@@ -42,6 +42,6 @@ class QuartyClient(val quarty: Quarty) {
                     is QuartyMessage.Error -> QuartyResult.Failure(log)
                     else -> null
                 }
-            }.first()
+            }.filterNotNull().first()
         }
 }

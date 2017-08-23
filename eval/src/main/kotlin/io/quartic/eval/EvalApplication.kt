@@ -2,6 +2,7 @@ package io.quartic.eval
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
@@ -14,6 +15,8 @@ import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.actor
 
 class EvalApplication : ApplicationBase<EvalConfiguration>() {
+    private val LOG by logger()
+
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
         val evaluator = evaluator(configuration)
         environment.jersey().register(EvalResource(evaluator.channel))
@@ -35,7 +38,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     // TODO - do this properly
     private val database = object : Database {
         override fun writeResult(result: BuildResult) {
-            throw UnsupportedOperationException("not implemented")
+            LOG.info("Writing result to database: $result")
         }
     }
 
