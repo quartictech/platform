@@ -28,7 +28,7 @@ class GitHubInstallationClient(
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class GitHubInstallationAccessToken(
-        val token: String
+        val token: UnsafeSecret
     )
 
     // TODO - eliminate the non-async client, then rename the other one
@@ -65,16 +65,13 @@ class GitHubInstallationClient(
     // See https://developer.github.com/apps/building-integrations/setting-up-and-registering-github-apps/about-authentication-options-for-github-apps/
     private fun generateJwt(): String {
         val now = Instant.now().epochSecond
-
-        val jwt = Jwts.builder()
+        return Jwts.builder()
             .claim("iat", now)
             // 10 minutes
             .claim("exp", now + 10 * 60)
             .claim("iss", appId)
             .signWith(SignatureAlgorithm.RS256, privateKey)
             .compact()
-
-        return jwt
     }
 
     fun accessToken(installationId: Long) = github.installationAccessToken(installationId, generateJwt())
