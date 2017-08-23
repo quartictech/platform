@@ -9,7 +9,12 @@ import yaml
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class PipelineException(Exception):
+    "Exception in evaluating the pipeline. May be propagated to user"
+    pass
+
 class QuartyException(Exception):
+    "Exception in Quarty. Should not be propagated to user"
     pass
 
 # Borrowed from: https://kevinmccarthy.org/2016/07/25/streaming-subprocess-stdin-and-stdout-with-asyncio-in-python/
@@ -54,20 +59,27 @@ async def initialise_repo(repo_url, repo_commit):
 
     try:
         # Load config
+        if not os.path.exists("quartic.yml"):
+            raise PipelineException("No quartic.yml present")
+
         return load_config("quartic.yml")
     except Exception as e:
-        raise QuartyException("Exception loading quartic.yml: {}", e)
+        raise QuartyException("Exception reading quartic.yml", e)
 
 async def evaluate(path, modules, stdout_cb, stderr_cb):
     cmd = ["python", "-u", "-m", "quartic.pipeline", "--evaluate", 
            "../steps.json", "--exception", "../exception.json"] + modules
     logger.info("Executing: %s", cmd)
-    rc = await _stream_subprocess(cmd, stdout_cb, stderr_cb)
-    if rc != 0:
-        exception = json.load(open("../exception.json"))
-        raise QuartyException(exception)
-    else:
-        return json.load(open("../steps.json"))
+    try:
+        rc = await _stream_subprocess(cmd, stdout_cb, stderr_cb)
+        if rc != 0:
+            exception = json.load(open("../exception.json"))
+            raise PipelineException(exception)
+        else:
+            return json.load(open("../steps.json"))
+    except Exception as e:
+        raise QuartyException("Exception while evaluating pipeline", e)
+
 
 
 

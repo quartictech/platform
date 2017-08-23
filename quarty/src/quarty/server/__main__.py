@@ -4,7 +4,7 @@ import asyncio
 import logging
 import json
 from aiohttp import web
-from quarty.common import initialise_repo, evaluate, QuartyException
+from quarty.common import initialise_repo, evaluate, QuartyException, PipelineException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,24 +45,30 @@ async def pipeline(request):
     await resp.prepare(request)
     progress_message(resp, "Cloning repository")
 
-    temp_path = tempfile.mkdtemp()
-    os.chdir(temp_path)
-    config = await initialise_repo(repo_url, repo_commit)
-    progress_message(resp, "Initialising repository")
+    try:
+        temp_path = tempfile.mkdtemp()
+        os.chdir(temp_path)
 
-    runner = config["runner"]
-    if runner["type"] == "python":
-        path = runner.get("path", "src/")
-        modules = runner["modules"]
+        config = await initialise_repo(repo_url, repo_commit)
+        progress_message(resp, "Initialising repository")
 
-        try:
+        runner = config["runner"]
+        if runner["type"] == "python":
+            path = runner.get("path", "src/")
+            modules = runner["modules"]
+
             result = await evaluate(path, modules, 
                                     lambda l: log_message(resp, "stdout", l), 
                                     lambda l: log_message(resp, "stderr", l))
 
             result_message(resp, result)        
-        except QuartyException as e: 
-            error_message(resp, e.args[0])
+    # TODO: Clarify how we are handling these exceptions/passing them on
+    except PipelineException as e: 
+        error_message(resp, e.args[0])
+
+    except (QuartyException, Exception) as e:
+        logger.exception("An exception occurred while evaluating pipeline")
+        error_message(resp, "Quarty exception: {}".format(type(e).__name__))
 
     return resp
 
