@@ -36,8 +36,11 @@ class Evaluator(
         qube: QubeProxy,
         github: GitHubInstallationClient,
         database: Database,
-        clientBuilder: ClientBuilder
-    ) : this(registry, qube, github, database, { hostname -> QuartyClient(clientBuilder, "http://${hostname}") })
+        clientBuilder: ClientBuilder,
+        quartyPort: Int = 8080
+    ) : this(registry, qube, github, database,
+        { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
+    )
 
     private val LOG by logger()
 
