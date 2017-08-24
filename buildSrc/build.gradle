@@ -1,15 +1,16 @@
 plugins {
+    id "java-gradle-plugin"
     id "nebula.kotlin" version "1.1.4"
 }
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
+    compile localGroovy()
     compile gradleApi()
     compile "com.fasterxml.jackson.core:jackson-annotations:2.8.7"
-
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7" // Hardcode this version due to needing support for default values (see https://github.com/FasterXML/jackson-module-kotlin)
 
@@ -18,3 +19,28 @@ dependencies {
 
     testCompile "junit:junit:4.12"
 }
+
+gradlePlugin {
+    plugins {
+        def names = [
+            "docker",
+            "service",
+            "repos",
+            "publish",
+            "frontend"
+        ]
+
+        names.each { name ->
+            "$name" {
+                id = "io.quartic.$name"
+                implementationClass = "io.quartic.gradle.$name.${name.capitalize()}Plugin"
+            }
+        }
+    }
+}
+
+// TODO - figure out how to publish from buildSrc
+
+group "io.quartic.gradle"
+version (System.env.CIRCLE_BUILD_NUM ?: "unknown")
+

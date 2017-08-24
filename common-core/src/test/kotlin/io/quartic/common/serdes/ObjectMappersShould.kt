@@ -1,5 +1,6 @@
 package io.quartic.common.serdes
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.test.assertThrows
@@ -13,6 +14,24 @@ import java.time.ZoneOffset
 
 class ObjectMappersShould {
     data class Foo(val x: Double)
+
+    @Test
+    fun reject_missing_primitives() {
+        assertThrows<JsonMappingException> {
+            OBJECT_MAPPER.readValue<Foo>("""{ }""")
+        }
+    }
+
+    data class Noob(
+        @JsonProperty("yeah")
+        val x: Int = 10
+    )
+
+    /** This fails if KotlinModule() is not installed */
+    @Test
+    fun use_default_if_missing_and_marked_with_json_property() {
+        assertThat(OBJECT_MAPPER.readValue<Noob>("""{ }""").x, equalTo(10))
+    }
 
     @Test
     fun reject_null_primitives() {
