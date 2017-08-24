@@ -29,11 +29,6 @@ allprojects {
         maxHeapSize = "2048m"
     }
 
-    // TODO: eliminate once we bump Jackson version (see https://github.com/FasterXML/jackson-module-kotlin)
-    dependencies {
-        compile "org.jetbrains.kotlin:kotlin-reflect:1.1.4"
-    }
-
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
