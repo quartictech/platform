@@ -106,8 +106,6 @@ class WorkerImpl(
             .withNamespace(namespace)
             .endMetadata()
             .editOrNewSpec()
-            .withSubdomain(create.key.client.toString())
-            .withHostname(create.key.name)
             .editFirstContainer()
             .withImage(create.container.image)
             .withCommand(create.container.command)

@@ -39,8 +39,6 @@ class WorkerShould {
         .withNamespace("noob")
         .endMetadata()
         .editOrNewSpec()
-        .withHostname(key.name)
-        .withSubdomain(key.client.toString())
         .editFirstContainer()
         .withImage("la-dispute-discography-docker:1")
         .withCommand(listOf("great music"))
