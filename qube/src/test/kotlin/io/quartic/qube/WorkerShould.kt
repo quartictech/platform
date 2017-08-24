@@ -1,6 +1,7 @@
 package io.quartic.qube
 
 import com.nhaarman.mockito_kotlin.*
+import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -42,6 +43,17 @@ class WorkerShould {
         .editFirstContainer()
         .withImage("la-dispute-discography-docker:1")
         .withCommand(listOf("great music"))
+        .addNewPort()
+        .withContainerPort(8000)
+        .endPort()
+        .editOrNewReadinessProbe()
+        .withNewTcpSocket()
+        .withPort(IntOrString(8000))
+        .endTcpSocket()
+        .withInitialDelaySeconds(3)
+        .withPeriodSeconds(3)
+        .endReadinessProbe()
+
         .endContainer()
         .endSpec()
         .build()
@@ -49,7 +61,8 @@ class WorkerShould {
     val podEvents = Channel<Pod>(UNLIMITED)
     val containerSpec = ContainerSpec(
         "la-dispute-discography-docker:1",
-        listOf("great music"))
+        listOf("great music"),
+        8000)
 
     init {
         whenever(client.watchPod(any()))
@@ -75,26 +88,29 @@ class WorkerShould {
     }
 
     @Test
-    fun send_status_on_pod_running() {
+    fun send_status_on_pod_running_and_ready() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
-            podEvents.send(
-                PodBuilder(pod).editOrNewStatus()
-                    .addNewContainerStatus()
-                    .editOrNewState()
-                    .editOrNewRunning()
-                    .endRunning()
-                    .endState()
-                    .endContainerStatus()
-                    .endStatus()
-                    .build()
-            )
+            podEvents.send(runningPod(true))
 
             verify(returnChannel, timeout(1000)).send(
                 QubeResponse.Running(key.name, "${key.name}.${key.client}.noob")
             )
         }
     }
+
+    @Test
+    fun not_send_status_on_pod_running_not_ready() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            podEvents.send(runningPod(false))
+
+            verify(returnChannel, timeout(1000).times(0)).send(
+                QubeResponse.Running(key.name, "${key.name}.${key.client}.noob")
+            )
+        }
+    }
+
 
     @Test
     fun send_status_on_pod_failed() {
@@ -171,6 +187,17 @@ class WorkerShould {
                 .send(Terminated.Exception(key.name))
         }
     }
+
+    fun runningPod(ready: Boolean) = PodBuilder(pod).editOrNewStatus()
+        .addNewContainerStatus()
+        .withReady(ready)
+        .editOrNewState()
+        .editOrNewRunning()
+        .endRunning()
+        .endState()
+        .endContainerStatus()
+        .endStatus()
+        .build()
 
     fun podTerminated(exitCode: Int) = PodBuilder(pod).editOrNewStatus()
         .addNewContainerStatus()

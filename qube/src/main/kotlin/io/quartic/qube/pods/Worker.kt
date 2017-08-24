@@ -1,5 +1,6 @@
 package io.quartic.qube.pods
 
+import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
 import io.quartic.common.logging.logger
@@ -43,13 +44,15 @@ class WorkerImpl(
             val podName = podName(key)
             for (message in channel) {
                 val state = message.status.containerStatuses.firstOrNull()?.state
+                val ready = message.status.containerStatuses.firstOrNull()?.ready
+                LOG.info("[{}] Pod is in {} state", podName, ready)
 
                 when {
                     state?.waiting != null -> {
                         LOG.info("[{}] Pod waiting", podName)
                         responses.send(QubeResponse.Waiting(key.name))
                     }
-                    state?.running != null -> {
+                    state?.running != null && ready != null && ready -> {
                         responses.send(QubeResponse.Running(key.name, podHostname(key)))
                     }
                     state?.terminated != null -> {
@@ -73,20 +76,7 @@ class WorkerImpl(
 
         try {
             val startTime = Instant.now()
-            createPodAsync(PodBuilder(podTemplate)
-                .editOrNewMetadata()
-                .withName(podName)
-                .withNamespace(namespace)
-                .endMetadata()
-                .editOrNewSpec()
-                .withSubdomain(create.key.client.toString())
-                .withHostname(create.key.name)
-                .editFirstContainer()
-                .withImage(create.container.image)
-                .withCommand(create.container.command)
-                .endContainer()
-                .endSpec()
-                .build())
+            createPodAsync(pod(podName, create))
                 .await()
 
             runPod(create.key, watch.channel, create.returnChannel)
@@ -105,6 +95,35 @@ class WorkerImpl(
             }
         }
     }
+
+    private fun pod(podName: String, create: QubeEvent.CreatePod) =
+        PodBuilder(podTemplate)
+            .editOrNewMetadata()
+            .withName(podName)
+            .withNamespace(namespace)
+            .endMetadata()
+            .editOrNewSpec()
+            .withSubdomain(create.key.client.toString())
+            .withHostname(create.key.name)
+            .editFirstContainer()
+            .withImage(create.container.image)
+            .withCommand(create.container.command)
+
+            .addNewPort()
+            .withContainerPort(create.container.port)
+            .endPort()
+
+            .editOrNewReadinessProbe()
+            .withNewTcpSocket()
+            .withPort(IntOrString(create.container.port))
+            .endTcpSocket()
+            .withInitialDelaySeconds(3)
+            .withPeriodSeconds(3)
+            .endReadinessProbe()
+
+            .endContainer()
+            .endSpec()
+            .build()
 
     override fun runAsync(create: QubeEvent.CreatePod) = async(CommonPool) { run(create) }
 
