@@ -53,8 +53,8 @@ class WorkerImpl(
                         LOG.info("[{}] Pod waiting", podName)
                         responses.send(QubeResponse.Waiting(key.name))
                     }
-                    state?.running != null && ready != null && ready -> {
-                        responses.send(QubeResponse.Running(key.name, podHostname(key)))
+                    state?.running != null && ready != null && ready && message.status.podIP != null -> {
+                        responses.send(QubeResponse.Running(key.name, message.status.podIP))
                     }
                     state?.terminated != null -> {
                         if (state.terminated.exitCode == 0) {

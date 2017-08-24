@@ -95,7 +95,7 @@ class WorkerShould {
             podEvents.send(runningPod(true))
 
             verify(returnChannel, timeout(1000)).send(
-                QubeResponse.Running(key.name, "${key.name}.${key.client}.noob")
+                QubeResponse.Running(key.name, "100.100.100.100")
             )
         }
     }
@@ -197,6 +197,7 @@ class WorkerShould {
         .endRunning()
         .endState()
         .endContainerStatus()
+        .withPodIP("100.100.100.100")
         .endStatus()
         .build()
 
