@@ -17,6 +17,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
+import org.hamcrest.CoreMatchers
 import java.util.*
 
 class WorkerShould {
@@ -29,7 +30,7 @@ class WorkerShould {
         .build()
 
     val jobStore = mock<JobStore>()
-    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10)
+    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true)
 
     val key = PodKey(UUID.randomUUID(), "test")
     val pod = PodBuilder(podTemplate)
@@ -119,7 +120,7 @@ class WorkerShould {
             podEvents.send(podTerminated(1))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Failed(key.name, "noobout")
+                Terminated.Failed(key.name, "reason")
             )
         }
     }
@@ -131,7 +132,7 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Succeeded(key.name)
+                Terminated.Succeeded(key.name, "reason")
             )
         }
     }
@@ -145,7 +146,7 @@ class WorkerShould {
 
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Exception(key.name)
+                Terminated.Exception(key.name, anyOrNull())
             )
         }
     }
@@ -184,7 +185,7 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
             job.await()
             verify(returnChannel, times(0))
-                .send(Terminated.Exception(key.name))
+                .send(Terminated.Exception(key.name, any()))
         }
     }
 
@@ -205,6 +206,7 @@ class WorkerShould {
         .editOrNewTerminated()
         .withExitCode(exitCode)
         .withMessage("noobout")
+        .withReason("reason")
         .endTerminated()
         .endState()
         .endContainerStatus()

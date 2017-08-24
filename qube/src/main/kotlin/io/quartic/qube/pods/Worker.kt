@@ -22,7 +22,8 @@ class WorkerImpl(
     val podTemplate: Pod,
     val namespace: String,
     val jobStore: JobStore,
-    val timeoutSeconds: Long
+    val timeoutSeconds: Long,
+    val deletePods: Boolean
 ): Worker {
     private val threadPool = newFixedThreadPoolContext(4, "Worker-Thread-Pool")
     private val LOG by logger()
@@ -57,9 +58,9 @@ class WorkerImpl(
                     }
                     state?.terminated != null -> {
                         if (state.terminated.exitCode == 0) {
-                            responses.send(Terminated.Succeeded(key.name))
+                            responses.send(Terminated.Succeeded(key.name, state.terminated.reason))
                         } else {
-                            responses.send(Terminated.Failed(key.name, state.terminated.message))
+                            responses.send(Terminated.Failed(key.name, state.terminated.reason))
                         }
                         LOG.info("[{}] terminated {}", podName, state)
                         return@withTimeout
@@ -85,13 +86,15 @@ class WorkerImpl(
                 .await()
         }
         catch (e: Exception) {
-            create.returnChannel.send(Terminated.Exception(create.key.name))
+            create.returnChannel.send(Terminated.Exception(create.key.name, "Exception while running pod"))
             LOG.error("[{}] Exception while running pod", podName, e)
         }
         finally {
             watch.close()
-            withTimeout(10, TimeUnit.SECONDS) {
-                deletePodAsync(podName).await()
+            if (deletePods) {
+                withTimeout(10, TimeUnit.SECONDS) {
+                    deletePodAsync(podName).await()
+                }
             }
         }
     }
