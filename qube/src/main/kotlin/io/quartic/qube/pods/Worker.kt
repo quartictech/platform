@@ -46,7 +46,6 @@ class WorkerImpl(
             for (message in channel) {
                 val state = message.status.containerStatuses.firstOrNull()?.state
                 val ready = message.status.containerStatuses.firstOrNull()?.ready
-                LOG.info("[{}] Pod is in {} state", podName, ready)
 
                 when {
                     state?.waiting != null -> {
@@ -69,21 +68,16 @@ class WorkerImpl(
             }
         }
 
-    private fun podHostname(key: PodKey) = "${key.name}.${key.client}.$namespace"
-
     private suspend fun run(create: QubeEvent.CreatePod) {
         val podName = podName(create.key)
         val watch = client.watchPod(podName)
 
+        val startTime = Instant.now()
         try {
-            val startTime = Instant.now()
             createPodAsync(pod(podName, create))
                 .await()
 
             runPod(create.key, watch.channel, create.returnChannel)
-            val endTime = Instant.now()
-            storeResult(podName, create, startTime, endTime)
-                .await()
         }
         catch (e: Exception) {
             create.returnChannel.send(Terminated.Exception(create.key.name, "Exception while running pod"))
@@ -91,6 +85,13 @@ class WorkerImpl(
         }
         finally {
             watch.close()
+
+            withTimeout(10, TimeUnit.SECONDS) {
+                val endTime = Instant.now()
+                storeResult(podName, create, startTime, endTime)
+                    .await()
+            }
+
             if (deletePods) {
                 withTimeout(10, TimeUnit.SECONDS) {
                     deletePodAsync(podName).await()
