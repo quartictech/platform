@@ -50,7 +50,7 @@ class WorkerImpl(
                         responses.send(QubeResponse.Waiting(key.name))
                     }
                     state?.running != null -> {
-                        responses.send(QubeResponse.Running(key.name, "$podName.$namespace"))
+                        responses.send(QubeResponse.Running(key.name, podHostname(key)))
                     }
                     state?.terminated != null -> {
                         if (state.terminated.exitCode == 0) {
@@ -65,6 +65,8 @@ class WorkerImpl(
             }
         }
 
+    private fun podHostname(key: PodKey) = "${key.name}.${key.client}.$namespace"
+
     private suspend fun run(create: QubeEvent.CreatePod) {
         val podName = podName(create.key)
         val watch = client.watchPod(podName)
@@ -77,6 +79,8 @@ class WorkerImpl(
                 .withNamespace(namespace)
                 .endMetadata()
                 .editOrNewSpec()
+                .withSubdomain(create.key.client.toString())
+                .withHostname(create.key.name)
                 .editFirstContainer()
                 .withImage(create.container.image)
                 .withCommand(create.container.command)
