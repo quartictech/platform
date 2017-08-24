@@ -2,7 +2,6 @@ package io.quartic.qube.store
 
 import io.quartic.qube.api.QubeRequest
 import org.flywaydb.core.Flyway
-import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import java.time.Instant
@@ -12,7 +11,6 @@ import javax.sql.DataSource
 /**
  * Job here represents a run of a Kubernetes Pod and *not* an actual Kubernetes Job.
  */
-@RegisterRowMapper(BuildMapper::class)
 interface JobStore {
     @SqlUpdate("""insert into job(
         id,

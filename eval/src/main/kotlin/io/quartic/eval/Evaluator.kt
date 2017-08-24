@@ -6,13 +6,13 @@ import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.*
-import io.quartic.eval.apis.QuartyClient
-import io.quartic.eval.apis.QuartyClient.QuartyResult
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.utils.cancellable
 import io.quartic.eval.utils.use
 import io.quartic.github.GitHubInstallationClient
+import io.quartic.quarty.QuartyClient
+import io.quartic.quarty.QuartyClient.QuartyResult
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -37,7 +37,7 @@ class Evaluator(
         github: GitHubInstallationClient,
         database: Database,
         clientBuilder: ClientBuilder
-    ) : this(registry, qube, github, database, { hostname -> clientBuilder.retrofit("http://${hostname}") })
+    ) : this(registry, qube, github, database, { hostname -> QuartyClient(clientBuilder, "http://${hostname}") })
 
     private val LOG by logger()
 
@@ -80,16 +80,17 @@ class Evaluator(
         }
     )
 
-    private fun transformQuartyResult(it: QuartyResult) = when (it) {
+    private fun transformQuartyResult(it: QuartyClient.QuartyResult?) = when (it) {
         is QuartyResult.Success -> Success(it.dag)
         is QuartyResult.Failure -> UserError(it.log)
+        null -> InternalError(IllegalStateException("Missing result or failure from quarty"))
     }
 
     private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {
         val token = github.accessTokenAsync(trigger.installationId).awaitWrapped("acquiring access token from GitHub")
 
         val cloneUrl = URIBuilder(trigger.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
-        quartyBuilder(container.hostname).getDag(cloneUrl, trigger.ref).awaitWrapped("communicating with Quarty")
+        quartyBuilder(container.hostname).getResult(cloneUrl, trigger.commit).awaitWrapped("communicating with Quarty")
     }
 
     private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = cancellable(
