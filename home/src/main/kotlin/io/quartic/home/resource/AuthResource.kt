@@ -11,7 +11,11 @@ import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
-import io.quartic.home.*
+import io.quartic.github.GitHub
+import io.quartic.github.GitHubOAuth
+import io.quartic.github.oauthUrl
+import io.quartic.home.CookiesConfiguration
+import io.quartic.home.GithubConfiguration
 import io.quartic.registry.api.RegistryServiceClient
 import java.net.URI
 import java.net.URLEncoder
@@ -22,9 +26,6 @@ import javax.ws.rs.core.NewCookie
 import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.ResponseBuilder
-import io.quartic.github.GitHub
-import io.quartic.github.GitHubOAuth
-import io.quartic.github.oauthUrl
 
 
 @Path("/auth")
@@ -130,7 +131,7 @@ class AuthResource(
     private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
         gitHubConfig.clientId,
         secretsCodec.decrypt(gitHubConfig.clientSecretEncrypted).veryUnsafe,
-        gitHubConfig.trampolineUrl,
+        gitHubConfig.trampolineUrl.toString(),
         code
     )
 

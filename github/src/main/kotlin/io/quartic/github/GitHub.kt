@@ -39,7 +39,7 @@ interface GitHubOAuth {
     @Headers("Accept: ${MediaType.APPLICATION_JSON}")
     fun accessToken(@Param("client_id") clientId: String,
                     @Param("client_secret") clientSecret: String,
-                    @Param("redirect_uri") redirectUri: URI,
+                    @Param("redirect_uri") redirectUri: String,
                     @Param("code") code: String): AccessToken
 }
 
