@@ -1,8 +1,6 @@
 import io.quartic.gradle.kotlin.KotlinPlugin
-import io.quartic.gradle.publish.PublishPlugin
 
 apply plugin: KotlinPlugin
-apply plugin: PublishPlugin
 
 dependencies {
     compile project(":common-core")

@@ -1,12 +1,10 @@
 import io.quartic.gradle.kotlin.KotlinPlugin
-import io.quartic.gradle.publish.PublishPlugin
 
 plugins {
     id "application"
 }
 
 apply plugin: KotlinPlugin
-apply plugin: PublishPlugin
 
 dependencies {
     compile libraries.guava
