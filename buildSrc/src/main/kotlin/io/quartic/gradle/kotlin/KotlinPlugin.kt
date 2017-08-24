@@ -9,23 +9,21 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 @Suppress("unused")
 class KotlinPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        Applier(project)
-    }
+        val kotlinVersion = NebulaKotlinPlugin.loadKotlinVersion()
 
-    private class Applier(project: Project) {
-        init {
-            project.plugins.apply(NebulaKotlinPlugin::class.java)
+        project.plugins.apply(NebulaKotlinPlugin::class.java)
 
-            // See https://github.com/FasterXML/jackson-module-kotlin
-            project.dependencies.add("compile", "org.jetbrains.kotlin:kotlin-reflect:1.1.4")
+        // See https://github.com/FasterXML/jackson-module-kotlin
+        project.dependencies.add("compile", "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
 
-            project.extensions.getByType(KotlinProjectExtension::class.java).apply {
-                experimental.coroutines = Coroutines.ENABLE
-            }
-
-            // TODO - apply ktlint (see https://github.com/shyiko/ktlint)
-
-            // TODO - IntelliJ stuff to understand ktlint rules?
+        project.extensions.getByType(KotlinProjectExtension::class.java).apply {
+            experimental.coroutines = Coroutines.ENABLE
         }
+
+        // TODO - apply ktlint (see https://github.com/shyiko/ktlint)
+
+        // TODO - set it up as a dependency of check task
+
+        // TODO - IntelliJ stuff to understand ktlint rules?
     }
 }
