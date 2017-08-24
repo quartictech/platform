@@ -37,6 +37,8 @@ class WorkerShould {
         .withNamespace("noob")
         .endMetadata()
         .editOrNewSpec()
+        .withHostname(key.name)
+        .withSubdomain(key.client.toString())
         .editFirstContainer()
         .withImage("la-dispute-discography-docker:1")
         .withCommand(listOf("great music"))
@@ -55,7 +57,7 @@ class WorkerShould {
     }
 
     @Test
-    fun watches_pod() {
+    fun watch_pod() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
 
@@ -64,7 +66,7 @@ class WorkerShould {
     }
 
     @Test
-    fun creates_pod() {
+    fun create_pod() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
 
@@ -73,7 +75,7 @@ class WorkerShould {
     }
 
     @Test
-    fun sends_status_on_pod_running() {
+    fun send_status_on_pod_running() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
             podEvents.send(
@@ -89,13 +91,13 @@ class WorkerShould {
             )
 
             verify(returnChannel, timeout(1000)).send(
-                QubeResponse.Running(key.name, "${key.client}-${key.name}.noob")
+                QubeResponse.Running(key.name, "${key.name}.${key.client}.noob")
             )
         }
     }
 
     @Test
-    fun sends_status_on_pod_failed() {
+    fun send_status_on_pod_failed() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
             podEvents.send(podTerminated(1))
@@ -107,7 +109,7 @@ class WorkerShould {
     }
 
      @Test
-    fun sends_status_on_pod_success() {
+    fun send_status_on_pod_success() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
             podEvents.send(podTerminated(0))
