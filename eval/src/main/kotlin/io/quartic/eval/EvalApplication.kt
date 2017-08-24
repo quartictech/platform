@@ -1,8 +1,11 @@
 package io.quartic.eval
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
+import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.api.model.CytoscapeDag
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
@@ -18,9 +21,14 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     private val LOG by logger()
 
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
-        val evaluator = evaluator(configuration)
-        environment.jersey().register(EvalResource(evaluator.channel))
+        with(environment.jersey()) {
+            register(EvalResource(evaluator(configuration).channel))
+            register(QueryResource(defaultPipeline()))      // TODO: remove default pipeline
+        }
     }
+
+    private fun defaultPipeline() =
+        OBJECT_MAPPER.readValue<CytoscapeDag>(javaClass.getResourceAsStream("/pipeline.json"))
 
     private fun evaluator(configuration: EvalConfiguration): ActorJob<TriggerDetails> {
         val evaluator = Evaluator(

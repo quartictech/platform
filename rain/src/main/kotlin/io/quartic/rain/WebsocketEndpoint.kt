@@ -13,12 +13,13 @@ import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.StorageChange
 import io.quartic.weyl.api.LayerUpdateType
 import rx.Subscription
+import java.net.URI
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.stream.StreamSupport
 import javax.websocket.Session
 
-class WebsocketEndpoint(private val howlWatchUrl: String,
+class WebsocketEndpoint(private val howlWatchUrl: URI,
                         private val websocketClientSessionFactory: WebsocketClientSessionFactory,
                         private val howlClient: HowlClient) : ResourceManagingEndpoint<Subscription>() {
     private val LOG by logger()
@@ -27,9 +28,9 @@ class WebsocketEndpoint(private val howlWatchUrl: String,
         val namespace = session.pathParameters["namespace"]!!
         val objectName = session.pathParameters["objectName"]!!
         val listener = WebsocketListener<StorageChange>(
-                OBJECT_MAPPER.typeFactory.constructType(StorageChange::class.java),
-                String.format("%s/%s/%s", howlWatchUrl, namespace, objectName),
-                websocketClientSessionFactory)
+            OBJECT_MAPPER.typeFactory.constructType(StorageChange::class.java),
+            "${howlWatchUrl}/${namespace}/${objectName}",
+            websocketClientSessionFactory)
 
         return listener.observable
                 .startWith(StorageChange(namespace, objectName, null))
