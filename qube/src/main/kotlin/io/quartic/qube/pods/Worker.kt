@@ -79,6 +79,9 @@ class WorkerImpl(
 
             runPod(create.key, watch.channel, create.returnChannel)
         }
+        catch (e: CancellationException) {
+            LOG.info("[{}] Pod was cancelled", podName)
+        }
         catch (e: Exception) {
             create.returnChannel.send(Terminated.Exception(create.key.name, "Exception while running pod"))
             LOG.error("[{}] Exception while running pod", podName, e)

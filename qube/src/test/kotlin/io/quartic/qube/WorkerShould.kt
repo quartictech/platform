@@ -150,11 +150,35 @@ class WorkerShould {
     }
 
     @Test
-    fun store_to_postgres() {
+    fun store_to_postgres_on_success() {
         whenever(client.getPod(any())).thenReturn(podTerminated(0))
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
             podEvents.send(podTerminated(0))
+
+            verify(jobStore, timeout(1000)).insertJob(
+                any(),
+                eq(key.client),
+                eq(key.name),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                eq(0)
+            )
+        }
+    }
+
+    @Test
+    fun store_to_postgres_on_cancel() {
+        whenever(client.getPod(any())).thenReturn(podTerminated(0))
+        runBlocking {
+            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            verify(client, timeout(1000)).createPod(eq(pod))
+
+            job.cancel()
 
             verify(jobStore, timeout(1000)).insertJob(
                 any(),
