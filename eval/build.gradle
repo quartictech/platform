@@ -1,11 +1,12 @@
+import io.quartic.gradle.kotlin.KotlinPlugin
 import io.quartic.gradle.service.ServicePlugin
 
 plugins {
-    id "nebula.kotlin" version "1.1.4"
     id "com.palantir.configuration-resolver" version "0.2.0"
 }
 
 apply plugin: ServicePlugin
+apply plugin: KotlinPlugin
 
 service {
     mainClassName = "io.quartic.eval.EvalApplication"
@@ -21,15 +22,9 @@ dependencies {
     compile project(":github")
     compile project(":quarty-utils")
 
-    compile libraries.coroutines
     compile libraries.vertx.core
     compile "org.jgrapht:jgrapht-core:1.0.1"
 
     testCompile project(":common-test")
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}

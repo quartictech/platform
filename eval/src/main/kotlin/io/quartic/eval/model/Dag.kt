@@ -6,15 +6,15 @@ import org.jgrapht.DirectedGraph
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
 
-class Dag(val dag: DirectedGraph<Dataset, PseudoEdge>) {
+class Dag(private val dag: DirectedGraph<Dataset, PseudoEdge>) {
     data class PseudoEdge(
         val step: Step,
         val source: Dataset,
         val target: Dataset
     )
 
-    fun checkNoCycles() = !CycleDetector(dag).detectCycles()
-    fun checkOneStepPerDataset() = dag.vertexSet().all { vertex ->
+    private fun checkNoCycles() = !CycleDetector(dag).detectCycles()
+    private fun checkOneStepPerDataset() = dag.vertexSet().all { vertex ->
         dag.incomingEdgesOf(vertex).map { (step) -> step }.toSet().size <= 1
     }
 

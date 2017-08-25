@@ -165,9 +165,13 @@ footer {
     }
 }
 
-pre code {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 0.9rem;
+pre {
+    margin-bottom: 16px;
+
+    code {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 0.9rem;
+    }
 }

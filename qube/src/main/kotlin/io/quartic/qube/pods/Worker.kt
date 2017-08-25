@@ -3,6 +3,7 @@ package io.quartic.qube.pods
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
+import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
@@ -29,12 +30,12 @@ class WorkerImpl(
     private val LOG by logger()
 
     fun podName(key: PodKey) = "${key.client}-${key.name}"
-    private suspend fun createPodAsync(pod: Pod) = async(threadPool) {
+    private suspend fun createPod(pod: Pod) = run(threadPool) {
         client.createPod(pod)
         LOG.info("[{}] Pod created", pod.metadata.name)
     }
 
-    private suspend fun deletePodAsync(podName: String) = async(threadPool) {
+    private suspend fun deletePod(podName: String) = run(threadPool) {
         client.deletePod(podName)
         LOG.info("[{}] Pod deleted", podName)
     }
@@ -73,34 +74,34 @@ class WorkerImpl(
         val watch = client.watchPod(podName)
 
         val startTime = Instant.now()
-        try {
-            createPodAsync(pod(podName, create))
-                .await()
+        cancellable(
+            block = {
+                createPod(pod(podName, create))
 
-            runPod(create.key, watch.channel, create.returnChannel)
-        }
-        catch (e: CancellationException) {
-            LOG.info("[{}] Pod was cancelled", podName)
-        }
-        catch (e: Exception) {
-            create.returnChannel.send(Terminated.Exception(create.key.name, "Exception while running pod"))
-            LOG.error("[{}] Exception while running pod", podName, e)
-        }
-        finally {
-            watch.close()
+                runPod(create.key, watch.channel, create.returnChannel)
+            },
+            onThrow = { throwable ->
+                launch(NonCancellable) {
+                    LOG.error("[{}] Exception while running pod", podName, throwable)
+                    create.returnChannel.send(Terminated.Exception(create.key.name, "Exception while running pod"))
+                }
+            },
+            onFinally = {
+                launch(NonCancellable) {
+                    watch.close()
+                    withTimeout(10, TimeUnit.SECONDS) {
+                        val endTime = Instant.now()
+                        storeResult(podName, create, startTime, endTime)
+                    }
 
-            withTimeout(10, TimeUnit.SECONDS) {
-                val endTime = Instant.now()
-                storeResult(podName, create, startTime, endTime)
-                    .await()
-            }
-
-            if (deletePods) {
-                withTimeout(10, TimeUnit.SECONDS) {
-                    deletePodAsync(podName).await()
+                    if (deletePods) {
+                        withTimeout(10, TimeUnit.SECONDS) {
+                            deletePod(podName)
+                        }
+                    }
                 }
             }
-        }
+        )
     }
 
     private fun pod(podName: String, create: QubeEvent.CreatePod) =
@@ -134,7 +135,7 @@ class WorkerImpl(
 
 
     private suspend fun storeResult(podName: String, create: QubeEvent.CreatePod,
-                                    startTime: Instant, endTime: Instant) = async(threadPool) {
+                                    startTime: Instant, endTime: Instant) = run(threadPool) {
         try {
             val pod = client.getPod(podName)
             val logs = client.getLogs(podName)
