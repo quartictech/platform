@@ -6,6 +6,7 @@ import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.*
+import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.common.coroutines.cancellable
@@ -13,6 +14,7 @@ import io.quartic.common.coroutines.use
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
+import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -29,6 +31,7 @@ class Evaluator(
     private val qube: QubeProxy,
     private val github: GitHubInstallationClient,
     private val database: Database,
+    private val dagIsValid: (List<Step>) -> Boolean,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
     constructor(
@@ -39,6 +42,7 @@ class Evaluator(
         clientBuilder: ClientBuilder,
         quartyPort: Int = 8080
     ) : this(registry, qube, github, database,
+        { steps -> Dag.fromSteps(steps).validate() },
         { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
 
@@ -84,9 +88,15 @@ class Evaluator(
     )
 
     private fun transformQuartyResult(it: QuartyClient.QuartyResult?) = when (it) {
-        is QuartyResult.Success -> Success(it.dag)
+        is QuartyResult.Success -> {
+            if (dagIsValid(it.dag)) {
+                Success(it.dag)
+            } else {
+                UserError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+            }
+        }
         is QuartyResult.Failure -> UserError(it.log)
-        null -> InternalError(IllegalStateException("Missing result or failure from quarty"))
+        null -> InternalError(RuntimeException("Missing result or failure from Quarty"))
     }
 
     private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {
