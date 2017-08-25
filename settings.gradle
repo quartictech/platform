@@ -4,8 +4,9 @@ include "docs"
 
 include "quarty"
 
-include "common-core"
 include "common-application"
+include "common-core"
+include "common-db"
 include "common-test"
 
 include "github"

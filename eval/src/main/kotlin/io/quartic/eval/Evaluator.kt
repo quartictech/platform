@@ -20,6 +20,7 @@ import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
+import java.util.*
 import java.util.concurrent.CompletableFuture
 
 // TODO - retries
@@ -45,16 +46,16 @@ class Evaluator(
     private val LOG by logger()
 
     suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
-        if (buildShouldProceed(trigger)) {
+        val customer = getCustomer(trigger)
+        if (customer != null) {
             val result = runBuild(trigger)
-            database.writeResult(result)
+            database.writeResult(UUID.randomUUID(), customer.id, result)
         }
     }
 
-    private suspend fun buildShouldProceed(trigger: TriggerDetails) = cancellable(
+    private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
         block = {
             registry.getCustomerAsync(null, trigger.repoId).await()
-            true
         },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
@@ -62,7 +63,7 @@ class Evaluator(
             } else {
                 LOG.error("Error communicating with Registry", t)
             }
-            false
+            null
         }
     )
 

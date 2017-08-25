@@ -1,5 +1,6 @@
 package io.quartic.qube.store
 
+import io.quartic.db.BindJson
 import io.quartic.qube.api.QubeRequest
 import org.flywaydb.core.Flyway
 import org.jdbi.v3.sqlobject.customizer.Bind
@@ -46,12 +47,4 @@ interface JobStore {
         @Bind("message") message: String?,
         @Bind("exit_code") exitCode: Int?
     )
-
-    companion object {
-        fun migrate(database: DataSource) {
-            val flyway = Flyway()
-            flyway.dataSource = database
-            flyway.migrate()
-        }
-    }
 }

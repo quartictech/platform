@@ -1,11 +1,7 @@
-package io.quartic.qube.store
+package io.quartic.db
 
-import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.argument.AbstractArgumentFactory
-import org.jdbi.v3.core.argument.Argument
-import org.jdbi.v3.core.config.ConfigRegistry
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.postgres.PostgresPlugin
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
@@ -17,17 +13,6 @@ import org.postgresql.util.PGobject
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
 import java.lang.reflect.Type
-import java.sql.Types
-
-internal class CustomerIdArgumentFactory : AbstractArgumentFactory<CustomerId>(Types.VARCHAR) {
-    override fun build(value: CustomerId, config: ConfigRegistry) =
-        Argument { position, statement, _ -> statement!!.setString(position, value.uid) }
-}
-
-internal class PgObjectArgFactory : AbstractArgumentFactory<PGobject>(Types.JAVA_OBJECT) {
-    override fun build(value: PGobject, config: ConfigRegistry) =
-        Argument { position, statement, _ -> statement!!.setObject(position, value) }
-}
 
 class BindJsonFactory : SqlStatementCustomizerFactory {
     override fun createForParameter(annotation: Annotation?, sqlObjectType: Class<*>?, method: Method?, param: Parameter?,
@@ -45,6 +30,7 @@ class BindJsonFactory : SqlStatementCustomizerFactory {
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @SqlStatementCustomizingAnnotation(BindJsonFactory::class)
 annotation class BindJson(val name: String)
+
 fun setupDbi(dbi: Jdbi): Jdbi {
     dbi.installPlugin(SqlObjectPlugin())
     dbi.installPlugin(KotlinPlugin())
@@ -54,3 +40,4 @@ fun setupDbi(dbi: Jdbi): Jdbi {
     dbi.registerArgument(PgObjectArgFactory())
     return dbi
 }
+
