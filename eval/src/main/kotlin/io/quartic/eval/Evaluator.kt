@@ -8,8 +8,8 @@ import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.*
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.utils.cancellable
-import io.quartic.eval.utils.use
+import io.quartic.common.coroutines.cancellable
+import io.quartic.common.coroutines.use
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult

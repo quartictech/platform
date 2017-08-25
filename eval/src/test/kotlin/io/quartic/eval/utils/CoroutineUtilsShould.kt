@@ -1,5 +1,7 @@
 package io.quartic.eval.utils
 
+import io.quartic.common.coroutines.SuspendedAutoCloseable
+import io.quartic.common.coroutines.use
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel

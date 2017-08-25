@@ -1,6 +1,6 @@
 package io.quartic.eval.qube
 
-import io.quartic.eval.utils.SuspendedAutoCloseable
+import io.quartic.common.coroutines.SuspendedAutoCloseable
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
