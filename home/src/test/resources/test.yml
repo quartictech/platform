@@ -1,7 +1,7 @@
 catalogueUrl: http://localhost:8090/api
 howlUrl: http://localhost:8120/api
 registryUrl: http://localhost:8190/api/
-qubeUrl: http://localhost:8200/api
+evalUrl: http://localhost:8200/api
 
 github:
   trampolineUrl: "http://localhost:8100/api/auth/gh/callback"

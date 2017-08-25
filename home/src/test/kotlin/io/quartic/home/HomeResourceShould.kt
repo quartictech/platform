@@ -8,9 +8,9 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.home.resource.HomeResource
 import io.quartic.howl.api.HowlService
-import io.quartic.qube.api.QubeQueryService
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
@@ -43,9 +43,9 @@ class HomeResourceShould {
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
     private val registry = mock<RegistryServiceClient>()
-    private val qube = mock<QubeQueryService>()
+    private val eval = mock<EvalQueryServiceClient>()
 
-    private val resource = HomeResource(catalogue, howl, qube, registry)
+    private val resource = HomeResource(catalogue, howl, eval, registry)
 
     @Before
     fun before() {

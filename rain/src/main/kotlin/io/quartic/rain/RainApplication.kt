@@ -11,7 +11,7 @@ import io.quartic.howl.api.HowlClient
 import javax.websocket.server.ServerEndpointConfig
 
 class RainApplication : ApplicationBase<RainConfiguration>() {
-    private val websocketBundle = WebsocketBundle(*arrayOf<ServerEndpointConfig>())
+    private val websocketBundle = WebsocketBundle(*arrayOfNulls<ServerEndpointConfig>(0))
 
     public override fun initializeApplication(bootstrap: Bootstrap<RainConfiguration>) {
         bootstrap.addBundle(websocketBundle)
@@ -19,8 +19,8 @@ class RainApplication : ApplicationBase<RainConfiguration>() {
 
     public override fun runApplication(configuration: RainConfiguration, environment: Environment) {
         val websocketFactory = WebsocketClientSessionFactory(javaClass)
-        val howlClient = HowlClient(userAgentFor(RainApplication::class.java), configuration.howlUrl!!)
-        val websocketEndpoint = WebsocketEndpoint(configuration.howlWatchUrl!!, websocketFactory, howlClient)
+        val howlClient = HowlClient(userAgentFor(RainApplication::class.java), configuration.howlUrl)
+        val websocketEndpoint = WebsocketEndpoint(configuration.howlWatchUrl, websocketFactory, howlClient)
         websocketBundle.addEndpoint(serverEndpointConfig("/ws/{namespace}/{objectName}", websocketEndpoint))
     }
 

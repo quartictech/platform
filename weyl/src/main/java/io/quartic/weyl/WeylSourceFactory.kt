@@ -42,7 +42,7 @@ data class WeylSourceFactory(
                         WebsocketListener.Factory(configuration.rainWsUrlRoot + locatorPath, websocketFactory),
                         true)
             } else {
-                geojsonSource(dataset, configuration.howlStorageUrl + locatorPath)
+                geojsonSource(dataset, "${configuration.howlStorageUrl}${locatorPath}")
             }
 
     fun createSource(dataset: DatasetConfig): Source? {

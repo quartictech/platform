@@ -10,6 +10,7 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.common.logging.logger
+import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.home.CreateDatasetRequest
 import io.quartic.home.CreateStaticDatasetRequest
 import io.quartic.home.FileType
@@ -17,7 +18,6 @@ import io.quartic.home.FileType.*
 import io.quartic.home.conversion.CsvConverter
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
-import io.quartic.qube.api.QubeQueryService
 import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
 import java.io.IOException
@@ -33,7 +33,7 @@ import javax.ws.rs.core.MediaType
 class HomeResource(
     private val catalogue: CatalogueService,
     private val howl: HowlService,
-    private val qube: QubeQueryService,
+    private val eval: EvalQueryServiceClient,
     private val registry: RegistryServiceClient
 ) {
     private val LOG by logger()
@@ -44,7 +44,7 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User) = qube.dag(user.customerId!!)
+    fun getDag(@Auth user: User) = eval.getDagAsync(user.customerId!!).get()
 
     @GET
     @Path("/datasets")

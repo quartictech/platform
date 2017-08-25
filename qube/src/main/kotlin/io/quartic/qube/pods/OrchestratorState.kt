@@ -19,7 +19,7 @@ class OrchestratorState {
     }
 
     fun cancelAll() {
-        _runningPods.forEach { key, job -> job.cancel() }
+        _runningPods.forEach { _, job -> job.cancel() }
         _runningPods.clear()
         clients.clear()
         waitingList.clear()
@@ -28,7 +28,7 @@ class OrchestratorState {
     fun cancelClient(client: UUID) {
         runningPods
             .filterKeys { key -> key.client == client }
-            .forEach { key, job -> cancelRunningPod(key) }
+            .forEach { key, _ -> cancelRunningPod(key) }
         clients.remove(client)
     }
 
