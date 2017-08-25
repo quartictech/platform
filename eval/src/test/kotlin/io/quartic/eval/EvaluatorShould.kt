@@ -8,14 +8,14 @@ import io.quartic.eval.apis.Database
 import io.quartic.eval.apis.Database.BuildResult
 import io.quartic.eval.apis.Database.BuildResult.InternalError
 import io.quartic.eval.apis.Database.BuildResult.UserError
-import io.quartic.quarty.QuartyClient
-import io.quartic.quarty.QuartyClient.QuartyResult.Failure
-import io.quartic.quarty.QuartyClient.QuartyResult.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.quarty.QuartyClient
+import io.quartic.quarty.QuartyClient.QuartyResult.Failure
+import io.quartic.quarty.QuartyClient.QuartyResult.Success
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
@@ -57,6 +57,16 @@ class EvaluatorShould {
     }
 
     @Test
+    fun write_error_to_db_if_dag_is_invalid() {
+        whenever(dagIsValid.invoke(steps)).doReturn(false)
+
+        evaluate()
+
+        verify(database).writeResult(BuildResult.UserError("DAG is invalid"))
+        runBlocking { verify(container).close() }
+    }
+
+    @Test
     fun write_logs_to_db_if_user_code_failed() {
         whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure("badness")))
 
@@ -68,7 +78,6 @@ class EvaluatorShould {
 
     @Test
     fun do_nothing_more_nor_write_to_db_if_customer_lookup_fails() {
-//        registryResponses[0] = exceptionalFuture()
         whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
 
         evaluate()
@@ -150,7 +159,7 @@ class EvaluatorShould {
         namespace = "noobhole"
     )
 
-    private val steps = listOf<Step>()
+    private val steps = mock<List<Step>>()
 
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
@@ -174,5 +183,10 @@ class EvaluatorShould {
         on { invoke("a.b.c") } doReturn quarty
     }
     private val database = mock<Database>()
-    private val evaluator = Evaluator(registry, qube, github, database, quartyBuilder)
+    private val dagIsValid = mock<(List<Step>) -> Boolean>()
+    private val evaluator = Evaluator(registry, qube, github, database, dagIsValid, quartyBuilder)
+
+    init {
+        whenever(dagIsValid.invoke(steps)).doReturn(true)
+    }
 }
