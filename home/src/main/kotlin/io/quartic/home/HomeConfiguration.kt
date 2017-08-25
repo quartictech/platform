@@ -2,13 +2,14 @@ package io.quartic.home
 
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
+import java.net.URI
 
 data class GithubConfiguration(
     val oauthApiRoot: String = "https://github.com",
     val apiRoot: String = "https://api.github.com",
     val clientId: String,
     val clientSecretEncrypted: EncryptedSecret,
-    val trampolineUrl: String,
+    val trampolineUrl: URI,
     val scopes: List<String>,
     val redirectHost: String
 )
@@ -19,10 +20,10 @@ data class CookiesConfiguration(
 )
 
 data class HomeConfiguration(
-    val catalogueUrl: String,
-    val howlUrl: String,
-    val registryUrl: String,
-    val qubeUrl: String,
+    val catalogueUrl: URI,
+    val howlUrl: URI,
+    val registryUrl: URI,
+    val evalUrl: URI,
     var github: GithubConfiguration,
     val cookies: CookiesConfiguration
 ): ConfigurationBase()

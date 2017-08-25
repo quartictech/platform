@@ -1,8 +1,9 @@
 package io.quartic.rain
 
 import io.quartic.common.application.ConfigurationBase
+import java.net.URI
 
-class RainConfiguration : ConfigurationBase() {
-   var howlWatchUrl: String? = null
-   val howlUrl: String? = null
-}
+data class RainConfiguration(
+    val howlWatchUrl: URI,
+    val howlUrl: URI
+) : ConfigurationBase()
