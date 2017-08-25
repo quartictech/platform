@@ -19,7 +19,7 @@ class WebsocketClientSessionFactoryShould {
 
     private val session = mock<TyrusSession>()
     private val clientManager = mock<ClientManager> {
-        on { connectToServer(any<Endpoint>(), any<ClientEndpointConfig>(), any<URI>()) } doReturn session
+        on { connectToServer(any<Endpoint>(), any(), any()) } doReturn session
     }
     private val factory = WebsocketClientSessionFactory(javaClass, { clientManager })
     private val endpoint = mock<Endpoint>()

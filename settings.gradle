@@ -16,6 +16,9 @@ include "catalogue"
 include "catalogue-api"
 include "catalogue-utils"
 
+include "eval"
+include "eval-api"
+
 include "glisten"
 
 include "hey"
@@ -26,6 +29,8 @@ include "home-frontend"
 
 include "howl"
 include "howl-api"
+
+include "quarty-utils"
 
 include "qube"
 include "qube-api"

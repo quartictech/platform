@@ -5,7 +5,10 @@ import com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import feign.Param
 import feign.RequestLine
+import io.quartic.common.client.ClientBuilder
+import io.quartic.common.client.Retrofittable
 import io.quartic.common.client.client
+import io.quartic.common.test.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import javax.ws.rs.Path
@@ -30,5 +33,22 @@ class ClientUtilsShould {
         service.getStuff("abc/def")
 
         verify(getRequestedFor(urlEqualTo("/ooh/abc%2Fdef")))
+    }
+
+    interface NoobNonRetrofit
+
+    @Test
+    fun prevent_retrofitting_non_retrofit_interface() {
+        assertThrows<IllegalArgumentException> {
+            ClientBuilder(javaClass).retrofit<NoobNonRetrofit>("http://noob.com")
+        }
+    }
+
+    @Retrofittable
+    interface NoobRetrofit
+
+    @Test
+    fun allow_retrofitting_non_retrofit_interface() {
+        ClientBuilder(javaClass).retrofit<NoobRetrofit>("http://noob.com")
     }
 }

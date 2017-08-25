@@ -15,7 +15,7 @@ service {
 
 dependencies {
     compile project(":common-application")
-    compile project(":qube-api")
+    compile project(":eval-api")
     compile project(":github")
 
     testCompile project(":common-test")

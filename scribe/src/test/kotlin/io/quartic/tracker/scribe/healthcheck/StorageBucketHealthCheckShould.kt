@@ -11,7 +11,7 @@ import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import java.io.IOException
 
 class StorageBucketHealthCheckShould {
-    private val storage = mock<Storage>(RETURNS_DEEP_STUBS)
+    private val storage = mock<Storage>(defaultAnswer = RETURNS_DEEP_STUBS)
     private val healthcheck = StorageBucketHealthCheck(storage, "myBucket")
 
     @Test

@@ -1,0 +1,29 @@
+import io.quartic.gradle.kotlin.KotlinPlugin
+import io.quartic.gradle.service.ServicePlugin
+
+plugins {
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+apply plugin: ServicePlugin
+apply plugin: KotlinPlugin
+
+service {
+    mainClassName = "io.quartic.eval.EvalApplication"
+    memory = System.env.EVAL_MEMORY ?: "32m"
+}
+
+dependencies {
+    compile project(":eval-api")
+    compile project(":common-application")
+    compile project(":registry-api")
+    compile project(":qube-api")
+    compile project(":github")
+    compile project(":quarty-utils")
+
+    compile libraries.vertx.core
+    compile "org.jgrapht:jgrapht-core:1.0.1"
+
+    testCompile project(":common-test")
+}
+

@@ -7,16 +7,11 @@ setup(name="quarty",
       author="Quartic Technologies",
       author_email="contact@quartic.io",
       url="https://www.quartic.io",
-      license="MIT",
       packages=find_packages("src"),
       package_dir={"":"src"},
       install_requires=[
-          # "requests==2.17.3",
-          # "ipython==6.0.0",
-          # "datadiff==2.0.0",
-          # "pyarrow==0.4.0",
-          # "pyproj==1.9.5.1",
-          # "pandas==0.20.1",
-          # "networkx==1.11"
+          "aiohttp==2.2.5",
+          "aiohttp-utils-3.0.0",
+          "PyYAML==3.12"
       ],
       zip_safe=False)

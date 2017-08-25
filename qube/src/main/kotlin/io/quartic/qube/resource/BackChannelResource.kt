@@ -1,26 +1,18 @@
 package io.quartic.qube.resource
 
 import com.google.common.base.Preconditions
-import io.quartic.qube.model.BuildId
-import io.quartic.qube.api.model.Dag
 import org.apache.commons.io.IOUtils.copy
 import javax.ws.rs.*
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.StreamingOutput
-import io.quartic.qube.store.BuildStore
+import io.quartic.qube.store.JobStore
 
 @Path("/backchannel")
-class BackChannelResource(private val buildStore: BuildStore) {
+class BackChannelResource {
     val resource = javaClass.getResource("/quarty.tar.gz")
 
     init {
         Preconditions.checkState(resource != null, "Runner distribution not found!")
-    }
-
-    @Path("/{buildId}")
-    @POST
-    fun backchannel(@PathParam("buildId") buildId: BuildId, data: Dag) {
-        buildStore.setDag(buildId, data)
     }
 
     // TODO - this is gross, but given that we have this backchannel endpoint, it will suffice for now

@@ -21,12 +21,29 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.net.URI
 import java.net.URL
 import java.nio.charset.StandardCharsets
 
 
-inline fun <reified T : Any> client(owner: Class<*>, url: URL): T = client(T::class.java, owner, url.toString())
-inline fun <reified T : Any> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
+@Target(AnnotationTarget.CLASS)
+annotation class Feignable
+@Target(AnnotationTarget.CLASS)
+annotation class Retrofittable
+@Target(AnnotationTarget.CLASS)
+annotation class Jaxable
+
+
+class ClientBuilder(val owner: Class<*>) {
+    inline fun <reified T> feign(url: String): T = client(owner, url)
+    inline fun <reified T> feign(url: URI): T = feign(url.toString())
+    inline fun <reified T> retrofit(url: String): T = retrofitClient(owner, url)
+    inline fun <reified T> retrofit(url: URI): T = retrofit(url.toString())
+}
+
+
+inline fun <reified T> client(owner: Class<*>, url: URL): T = client(T::class.java, owner, url.toString())
+inline fun <reified T> client(owner: Class<*>, url: String): T = client(T::class.java, owner, url)
 
 // TODO: eliminate overloads once everything ported to Kotlin
 @JvmOverloads
@@ -40,24 +57,27 @@ fun <T> client(target: Class<T>, owner: Class<*>, url: String, contract: Contrac
             .logLevel(BASIC)
             .target(target, url)
 
-
-inline fun <reified T: Any> retrofitClient(owner: Class<*>, url: String): T = retrofitClient(T::class.java, owner, url)
+inline fun <reified T> retrofitClient(owner: Class<*>, url: String): T = retrofitClient(T::class.java, owner, url)
 
 fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
+    if (!target.isAnnotationPresent(Retrofittable::class.java)) {
+        throw IllegalArgumentException("${target.simpleName} is not marked as @${Retrofittable::class.simpleName}")
+    }
+
     val urlWithSlash = if(url.endsWith("/")) url else url + "/"
     val interceptor = HttpLoggingInterceptor()
     interceptor.level = HttpLoggingInterceptor.Level.BASIC
     val client = OkHttpClient.Builder()
         .addInterceptor(interceptor)
         .addInterceptor { chain ->
-            val original = chain.request();
+            val original = chain.request()
 
             val request = original.newBuilder()
                 .header("User-Agent", userAgentFor(owner))
                 .method(original.method(), original.body())
-                .build();
+                .build()
 
-            chain.proceed(request);
+            chain.proceed(request)
         }
         .build()
 

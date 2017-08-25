@@ -1,0 +1,10 @@
+{
+	"type": "whatever",
+	"deliveryId": "noob-1000",
+	"installationId": 45267,
+	"repoId": 71576535,
+	"cloneUrl": "https://github.com/quartictech/noobhole.git",
+	"ref": "HEAD",
+	"commit": "b3ddaf47eab8e05627a0da7672c4e229b49175e9",
+	"timestamp": 100000
+}

@@ -3,11 +3,11 @@ package io.quartic.glisten
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.client.client
-import io.quartic.qube.api.QubeTriggerService
+import io.quartic.eval.api.EvalTriggerService
 
 class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
     override fun runApplication(configuration: GlistenConfiguration, environment: Environment) {
-        val trigger = client<QubeTriggerService>(javaClass, configuration.qubeUrl)
+        val trigger = client<EvalTriggerService>(javaClass, configuration.evalUrl)
 
         environment.jersey().register(GithubResource(
             configuration.secretsCodec.decrypt(configuration.webhookSecretEncrypted),

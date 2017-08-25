@@ -10,6 +10,7 @@ dependencies {
     compile libraries.guava
     compile libraries.rxjava
     compile libraries.websocket
+    compile libraries.coroutines
     compile libraries.tyrus.client
     runtime libraries.tyrus.containerClient
 
