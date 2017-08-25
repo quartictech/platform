@@ -21,12 +21,13 @@ class Qubicle(
     namespace: String,
     concurrentJobs: Int,
     jobTimeoutSeconds: Long,
+    deletePods: Boolean,
     jobStore: JobStore
 ) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>(UNLIMITED)
 
-    private val worker = WorkerImpl(client, podTemplate, namespace, jobStore, jobTimeoutSeconds)
+    private val worker = WorkerImpl(client, podTemplate, namespace, jobStore, jobTimeoutSeconds, deletePods)
     private val orchestrator = Orchestrator(events, worker, concurrentJobs)
 
     private fun setupWebsocket(websocket: ServerWebSocket) {

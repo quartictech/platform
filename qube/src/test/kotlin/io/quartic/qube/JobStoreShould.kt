@@ -38,7 +38,8 @@ class JobStoreShould {
     fun insert_job() {
         val uuid = UUID.randomUUID()
         val client = UUID.randomUUID()
-        val request = QubeRequest.Create("blah", ContainerSpec("dummy:1", listOf("true")))
+        val request = QubeRequest.Create("blah",
+            ContainerSpec("dummy:1", listOf("true"), 8000))
         jobStore.insertJob(
             uuid,
             client,

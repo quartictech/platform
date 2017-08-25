@@ -5,8 +5,9 @@ import okhttp3.*
 import okio.BufferedSink
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.URI
 
-class HowlClient(userAgent: String, private val baseUrl: String) : HowlService {
+class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
     private class UserAgentInterceptor(private val userAgent: String) : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val originalRequest = chain.request()
@@ -86,7 +87,7 @@ class HowlClient(userAgent: String, private val baseUrl: String) : HowlService {
         }
     }
 
-    private fun url(vararg components: String) = with (HttpUrl.parse(baseUrl)!!.newBuilder()) {
+    private fun url(vararg components: String) = with (HttpUrl.parse(baseUrl.toString())!!.newBuilder()) {
         components.forEach { addEncodedPathSegment(it) }
         build()
     }

@@ -30,6 +30,9 @@ import java.nio.charset.StandardCharsets
 annotation class Feignable
 @Target(AnnotationTarget.CLASS)
 annotation class Retrofittable
+@Target(AnnotationTarget.CLASS)
+annotation class Jaxable
+
 
 class ClientBuilder(val owner: Class<*>) {
     inline fun <reified T> feign(url: String): T = client(owner, url)

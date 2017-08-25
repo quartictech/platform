@@ -1,5 +1,6 @@
 package io.quartic.qube.pods
 
+import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
 import io.quartic.common.logging.logger
@@ -21,7 +22,8 @@ class WorkerImpl(
     val podTemplate: Pod,
     val namespace: String,
     val jobStore: JobStore,
-    val timeoutSeconds: Long
+    val timeoutSeconds: Long,
+    val deletePods: Boolean
 ): Worker {
     private val threadPool = newFixedThreadPoolContext(4, "Worker-Thread-Pool")
     private val LOG by logger()
@@ -43,20 +45,21 @@ class WorkerImpl(
             val podName = podName(key)
             for (message in channel) {
                 val state = message.status.containerStatuses.firstOrNull()?.state
+                val ready = message.status.containerStatuses.firstOrNull()?.ready
 
                 when {
                     state?.waiting != null -> {
                         LOG.info("[{}] Pod waiting", podName)
                         responses.send(QubeResponse.Waiting(key.name))
                     }
-                    state?.running != null -> {
-                        responses.send(QubeResponse.Running(key.name, podHostname(key)))
+                    state?.running != null && ready != null && ready && message.status.podIP != null -> {
+                        responses.send(QubeResponse.Running(key.name, message.status.podIP))
                     }
                     state?.terminated != null -> {
                         if (state.terminated.exitCode == 0) {
-                            responses.send(Terminated.Succeeded(key.name))
+                            responses.send(Terminated.Succeeded(key.name, state.terminated.reason))
                         } else {
-                            responses.send(Terminated.Failed(key.name, state.terminated.message))
+                            responses.send(Terminated.Failed(key.name, state.terminated.reason))
                         }
                         LOG.info("[{}] terminated {}", podName, state)
                         return@withTimeout
@@ -65,46 +68,67 @@ class WorkerImpl(
             }
         }
 
-    private fun podHostname(key: PodKey) = "${key.name}.${key.client}.$namespace"
-
     private suspend fun run(create: QubeEvent.CreatePod) {
         val podName = podName(create.key)
         val watch = client.watchPod(podName)
 
+        val startTime = Instant.now()
         try {
-            val startTime = Instant.now()
-            createPodAsync(PodBuilder(podTemplate)
-                .editOrNewMetadata()
-                .withName(podName)
-                .withNamespace(namespace)
-                .endMetadata()
-                .editOrNewSpec()
-                .withSubdomain(create.key.client.toString())
-                .withHostname(create.key.name)
-                .editFirstContainer()
-                .withImage(create.container.image)
-                .withCommand(create.container.command)
-                .endContainer()
-                .endSpec()
-                .build())
+            createPodAsync(pod(podName, create))
                 .await()
 
             runPod(create.key, watch.channel, create.returnChannel)
-            val endTime = Instant.now()
-            storeResult(podName, create, startTime, endTime)
-                .await()
+        }
+        catch (e: CancellationException) {
+            LOG.info("[{}] Pod was cancelled", podName)
         }
         catch (e: Exception) {
-            create.returnChannel.send(Terminated.Exception(create.key.name))
+            create.returnChannel.send(Terminated.Exception(create.key.name, "Exception while running pod"))
             LOG.error("[{}] Exception while running pod", podName, e)
         }
         finally {
             watch.close()
+
             withTimeout(10, TimeUnit.SECONDS) {
-                deletePodAsync(podName).await()
+                val endTime = Instant.now()
+                storeResult(podName, create, startTime, endTime)
+                    .await()
+            }
+
+            if (deletePods) {
+                withTimeout(10, TimeUnit.SECONDS) {
+                    deletePodAsync(podName).await()
+                }
             }
         }
     }
+
+    private fun pod(podName: String, create: QubeEvent.CreatePod) =
+        PodBuilder(podTemplate)
+            .editOrNewMetadata()
+            .withName(podName)
+            .withNamespace(namespace)
+            .endMetadata()
+            .editOrNewSpec()
+            .editFirstContainer()
+            .withImage(create.container.image)
+            .withCommand(create.container.command)
+
+            .addNewPort()
+            .withContainerPort(create.container.port)
+            .endPort()
+
+            .editOrNewReadinessProbe()
+            .withNewTcpSocket()
+            .withPort(IntOrString(create.container.port))
+            .endTcpSocket()
+            .withInitialDelaySeconds(3)
+            .withPeriodSeconds(3)
+            .endReadinessProbe()
+
+            .endContainer()
+            .endSpec()
+            .build()
 
     override fun runAsync(create: QubeEvent.CreatePod) = async(CommonPool) { run(create) }
 

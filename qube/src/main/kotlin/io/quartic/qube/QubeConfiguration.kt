@@ -12,7 +12,8 @@ data class KubernetesConfiguraration(
     val podTemplate: Pod,
     val numConcurrentJobs: Int,
     val jobTimeoutSeconds: Long,
-    val enable: Boolean
+    val enable: Boolean,
+    val deletePods: Boolean = true
 )
 
 data class DataSourceConfiguration(

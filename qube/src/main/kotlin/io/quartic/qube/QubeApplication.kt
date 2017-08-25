@@ -8,12 +8,9 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.qube.api.model.Dag
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource
-import io.quartic.qube.resource.QueryResource
 import io.quartic.qube.store.JobStore
 import io.quartic.qube.store.setupDbi
 import io.vertx.core.Vertx
@@ -37,6 +34,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
                     configuration.kubernetes.namespace,
                     configuration.kubernetes.numConcurrentJobs,
                     configuration.kubernetes.jobTimeoutSeconds,
+                    configuration.kubernetes.deletePods,
                     jobStore
                 )
             )
@@ -45,9 +43,6 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
         }
 
         with (environment.jersey()) {
-            // TODO: remove default pipeline
-            register(QueryResource(
-                OBJECT_MAPPER.readValue(javaClass.getResourceAsStream("/pipeline.json"), Dag::class.java)))
             register(BackChannelResource())
         }
 

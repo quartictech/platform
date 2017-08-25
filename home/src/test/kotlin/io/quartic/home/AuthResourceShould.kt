@@ -44,7 +44,7 @@ class AuthResourceShould {
         GithubConfiguration(
             clientId = "foo",
             clientSecretEncrypted = mock(),
-            trampolineUrl = "noob",
+            trampolineUrl = URI("noob"),
             scopes = listOf("user"),
             redirectHost = "http://%s.some.where"
         ),

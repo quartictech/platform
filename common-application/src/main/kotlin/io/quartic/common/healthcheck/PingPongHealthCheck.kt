@@ -2,11 +2,12 @@ package io.quartic.common.healthcheck
 
 import com.codahale.metrics.health.HealthCheck
 import com.codahale.metrics.health.HealthCheck.Result.healthy
-import io.quartic.common.client.client
+import io.quartic.common.client.ClientBuilder
 import io.quartic.common.pingpong.PingPongService
+import java.net.URI
 
-class PingPongHealthCheck(owner: Class<*>, url: String) : HealthCheck() {
-    private val pingPong: PingPongService = client(owner, url)
+class PingPongHealthCheck(clientBuilder: ClientBuilder, url: URI) : HealthCheck() {
+    private val pingPong: PingPongService = clientBuilder.feign(url)
 
     override fun check(): Result = healthy(pingPong.ping().version)
 }

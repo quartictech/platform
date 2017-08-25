@@ -35,7 +35,7 @@ class QubeProxyImplShould {
         on { events } doReturn events
     }
 
-    private val containerSpec = ContainerSpec("noobout:1", listOf("true"))
+    private val containerSpec = ContainerSpec("noobout:1", listOf("true"), 8080)
     private val qube = QubeProxyImpl(client, containerSpec) { uuid(nextUuid++) }
 
     @Test

@@ -172,8 +172,8 @@ class WebsocketClientImplShould {
         val received = mutableListOf<ReceiveMsg>()
         repeat(num) {
             val event = events.receive()
-            when (event) {
-                is MessageReceived -> received.add(event.message)
+            if (event is MessageReceived) {
+                received.add(event.message)
             }
         }
         return received
