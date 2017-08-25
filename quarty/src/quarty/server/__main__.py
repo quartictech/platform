@@ -4,6 +4,7 @@ import asyncio
 import logging
 import json
 from aiohttp import web
+from aiohttp_utils import run
 from quarty.common import initialise_repo, evaluate, QuartyException, PipelineException
 
 logging.basicConfig(level=logging.INFO)
@@ -52,18 +53,13 @@ async def pipeline(request):
         config = await initialise_repo(repo_url, repo_commit)
         progress_message(resp, "Initialising repository")
 
-        runner = config["runner"]
-        if runner["type"] == "python":
-            path = runner.get("path", "src/")
-            modules = runner["modules"]
+        result = await evaluate(config['pipeline_directory'],
+                                lambda l: log_message(resp, "stdout", l),
+                                lambda l: log_message(resp, "stderr", l))
 
-            result = await evaluate(path, modules, 
-                                    lambda l: log_message(resp, "stdout", l), 
-                                    lambda l: log_message(resp, "stderr", l))
-
-            result_message(resp, result)        
+        result_message(resp, result)
     # TODO: Clarify how we are handling these exceptions/passing them on
-    except PipelineException as e: 
+    except PipelineException as e:
         error_message(resp, e.args[0])
 
     except (QuartyException, Exception) as e:
@@ -72,7 +68,6 @@ async def pipeline(request):
 
     return resp
 
-if __name__ == "__main__":
-    app = web.Application()
-    app.router.add_get('/pipeline', pipeline)
-    web.run_app(app, port=8080)
+app = web.Application()
+app.router.add_get('/pipeline', pipeline)
+run(app, app_uri='quarty.server.__main__:app', reload=False, port=8080)

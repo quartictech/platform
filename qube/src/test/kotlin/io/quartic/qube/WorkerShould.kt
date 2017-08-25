@@ -1,6 +1,7 @@
 package io.quartic.qube
 
 import com.nhaarman.mockito_kotlin.*
+import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -16,6 +17,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
+import org.hamcrest.CoreMatchers
 import java.util.*
 
 class WorkerShould {
@@ -28,7 +30,7 @@ class WorkerShould {
         .build()
 
     val jobStore = mock<JobStore>()
-    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10)
+    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true)
 
     val key = PodKey(UUID.randomUUID(), "test")
     val pod = PodBuilder(podTemplate)
@@ -37,11 +39,20 @@ class WorkerShould {
         .withNamespace("noob")
         .endMetadata()
         .editOrNewSpec()
-        .withHostname(key.name)
-        .withSubdomain(key.client.toString())
         .editFirstContainer()
         .withImage("la-dispute-discography-docker:1")
         .withCommand(listOf("great music"))
+        .addNewPort()
+        .withContainerPort(8000)
+        .endPort()
+        .editOrNewReadinessProbe()
+        .withNewTcpSocket()
+        .withPort(IntOrString(8000))
+        .endTcpSocket()
+        .withInitialDelaySeconds(3)
+        .withPeriodSeconds(3)
+        .endReadinessProbe()
+
         .endContainer()
         .endSpec()
         .build()
@@ -49,7 +60,8 @@ class WorkerShould {
     val podEvents = Channel<Pod>(UNLIMITED)
     val containerSpec = ContainerSpec(
         "la-dispute-discography-docker:1",
-        listOf("great music"))
+        listOf("great music"),
+        8000)
 
     init {
         whenever(client.watchPod(any()))
@@ -75,26 +87,29 @@ class WorkerShould {
     }
 
     @Test
-    fun send_status_on_pod_running() {
+    fun send_status_on_pod_running_and_ready() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
-            podEvents.send(
-                PodBuilder(pod).editOrNewStatus()
-                    .addNewContainerStatus()
-                    .editOrNewState()
-                    .editOrNewRunning()
-                    .endRunning()
-                    .endState()
-                    .endContainerStatus()
-                    .endStatus()
-                    .build()
-            )
+            podEvents.send(runningPod(true))
 
             verify(returnChannel, timeout(1000)).send(
+                QubeResponse.Running(key.name, "100.100.100.100")
+            )
+        }
+    }
+
+    @Test
+    fun not_send_status_on_pod_running_not_ready() {
+        runBlocking {
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            podEvents.send(runningPod(false))
+
+            verify(returnChannel, timeout(1000).times(0)).send(
                 QubeResponse.Running(key.name, "${key.name}.${key.client}.noob")
             )
         }
     }
+
 
     @Test
     fun send_status_on_pod_failed() {
@@ -103,7 +118,7 @@ class WorkerShould {
             podEvents.send(podTerminated(1))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Failed(key.name, "noobout")
+                Terminated.Failed(key.name, "reason")
             )
         }
     }
@@ -115,7 +130,7 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Succeeded(key.name)
+                Terminated.Succeeded(key.name, "reason")
             )
         }
     }
@@ -129,17 +144,41 @@ class WorkerShould {
 
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Exception(key.name)
+                Terminated.Exception(key.name, anyOrNull())
             )
         }
     }
 
     @Test
-    fun store_to_postgres() {
+    fun store_to_postgres_on_success() {
         whenever(client.getPod(any())).thenReturn(podTerminated(0))
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
             podEvents.send(podTerminated(0))
+
+            verify(jobStore, timeout(1000)).insertJob(
+                any(),
+                eq(key.client),
+                eq(key.name),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                eq(0)
+            )
+        }
+    }
+
+    @Test
+    fun store_to_postgres_on_cancel() {
+        whenever(client.getPod(any())).thenReturn(podTerminated(0))
+        runBlocking {
+            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            verify(client, timeout(1000)).createPod(eq(pod))
+
+            job.cancel()
 
             verify(jobStore, timeout(1000)).insertJob(
                 any(),
@@ -168,9 +207,21 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
             job.await()
             verify(returnChannel, times(0))
-                .send(Terminated.Exception(key.name))
+                .send(Terminated.Exception(key.name, any()))
         }
     }
+
+    fun runningPod(ready: Boolean) = PodBuilder(pod).editOrNewStatus()
+        .addNewContainerStatus()
+        .withReady(ready)
+        .editOrNewState()
+        .editOrNewRunning()
+        .endRunning()
+        .endState()
+        .endContainerStatus()
+        .withPodIP("100.100.100.100")
+        .endStatus()
+        .build()
 
     fun podTerminated(exitCode: Int) = PodBuilder(pod).editOrNewStatus()
         .addNewContainerStatus()
@@ -178,6 +229,7 @@ class WorkerShould {
         .editOrNewTerminated()
         .withExitCode(exitCode)
         .withMessage("noobout")
+        .withReason("reason")
         .endTerminated()
         .endState()
         .endContainerStatus()

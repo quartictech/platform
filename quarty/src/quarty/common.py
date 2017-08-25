@@ -66,9 +66,9 @@ async def initialise_repo(repo_url, repo_commit):
     except Exception as e:
         raise QuartyException("Exception reading quartic.yml", e)
 
-async def evaluate(path, modules, stdout_cb, stderr_cb):
-    cmd = ["python", "-u", "-m", "quartic.pipeline", "--evaluate", 
-           "../steps.json", "--exception", "../exception.json"] + modules
+async def evaluate(pipeline_dir, stdout_cb, stderr_cb):
+    cmd = ["python", "-u", "-m", "quartic.pipeline.runner", "--evaluate",
+           "../steps.json", "--exception", "../exception.json", pipeline_dir]
     logger.info("Executing: %s", cmd)
     try:
         rc = await _stream_subprocess(cmd, stdout_cb, stderr_cb)
@@ -79,8 +79,3 @@ async def evaluate(path, modules, stdout_cb, stderr_cb):
             return json.load(open("../steps.json"))
     except Exception as e:
         raise QuartyException("Exception while evaluating pipeline", e)
-
-
-
-
-   

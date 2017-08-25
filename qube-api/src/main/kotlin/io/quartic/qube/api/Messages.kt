@@ -30,10 +30,12 @@ sealed class QubeRequest {
 sealed class QubeResponse {
     abstract val name: String
 
-    sealed class Terminated(override val name: String, val message: String): QubeResponse() {
-        data class Failed(override val name: String, val errorMessage: String) : Terminated(name, errorMessage)
-        data class Succeeded(override val name: String) : Terminated(name, "Finished with success")
-        data class Exception(override val name: String) : Terminated(name, "Finished with failure")
+    sealed class Terminated(override val name: String): QubeResponse() {
+        abstract val message: String?
+
+        data class Failed(override val name: String, override val message: String?) : Terminated(name)
+        data class Succeeded(override val name: String, override val message:String?) : Terminated(name)
+        data class Exception(override val name: String, override val message: String?) : Terminated(name)
     }
 
     data class Waiting(override val name: String): QubeResponse()

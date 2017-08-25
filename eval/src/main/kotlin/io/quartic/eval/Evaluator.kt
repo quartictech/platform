@@ -9,8 +9,8 @@ import io.quartic.eval.apis.Database.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.utils.cancellable
-import io.quartic.eval.utils.use
+import io.quartic.common.coroutines.cancellable
+import io.quartic.common.coroutines.use
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
@@ -39,14 +39,11 @@ class Evaluator(
         qube: QubeProxy,
         github: GitHubInstallationClient,
         database: Database,
-        clientBuilder: ClientBuilder
-    ) : this(
-        registry,
-        qube,
-        github,
-        database,
+        clientBuilder: ClientBuilder,
+        quartyPort: Int = 8080
+    ) : this(registry, qube, github, database,
         { steps -> Dag.fromSteps(steps).validate() },
-        { hostname -> QuartyClient(clientBuilder, "http://${hostname}") }
+        { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
 
     private val LOG by logger()

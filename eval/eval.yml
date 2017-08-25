@@ -5,8 +5,10 @@ qube:
   container:
     image: eu.gcr.io/quartictech/jupyter:53
     command:
-      - "sleep"
-      - "1000"
+      - "python"
+      - "-m"
+      - "http.server"
+    port: 8000
 
 github:
   appId: 4352

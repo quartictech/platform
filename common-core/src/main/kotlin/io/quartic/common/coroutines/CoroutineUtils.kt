@@ -1,4 +1,4 @@
-package io.quartic.eval.utils
+package io.quartic.common.coroutines
 
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.Job
@@ -10,12 +10,17 @@ public interface SuspendedAutoCloseable {
 }
 
 
-public suspend fun <R> cancellable(block: suspend () -> R, onThrow: (Throwable) -> R) = try {
+public suspend fun <R> cancellable(
+    block: suspend () -> R,
+    onThrow: (Throwable) -> R,
+    onFinally: () -> Unit = {}) = try {
     block()
 } catch (ce: CancellationException) {
     throw ce
 } catch (t: Throwable) {
     onThrow(t)
+} finally {
+    onFinally()
 }
 
 public inline suspend fun <T : Job, R> T.use(block: (T) -> R) = try {

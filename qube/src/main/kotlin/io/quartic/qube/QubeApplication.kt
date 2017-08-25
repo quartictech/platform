@@ -34,6 +34,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
                     configuration.kubernetes.namespace,
                     configuration.kubernetes.numConcurrentJobs,
                     configuration.kubernetes.jobTimeoutSeconds,
+                    configuration.kubernetes.deletePods,
                     jobStore
                 )
             )

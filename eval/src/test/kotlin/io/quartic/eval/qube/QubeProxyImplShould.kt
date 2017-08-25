@@ -2,6 +2,7 @@ package io.quartic.eval.qube
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import io.quartic.common.coroutines.use
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeRequest.Create
 import io.quartic.qube.api.QubeRequest.Destroy
@@ -11,7 +12,6 @@ import io.quartic.qube.api.QubeResponse.Running
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
-import io.quartic.eval.utils.use
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
@@ -35,7 +35,7 @@ class QubeProxyImplShould {
         on { events } doReturn events
     }
 
-    private val containerSpec = ContainerSpec("noobout:1", listOf("true"))
+    private val containerSpec = ContainerSpec("noobout:1", listOf("true"), 8080)
     private val qube = QubeProxyImpl(client, containerSpec) { uuid(nextUuid++) }
 
     @Test

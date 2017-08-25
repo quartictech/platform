@@ -11,6 +11,7 @@ setup(name="quarty",
       package_dir={"":"src"},
       install_requires=[
           "aiohttp==2.2.5",
+          "aiohttp-utils-3.0.0",
           "PyYAML==3.12"
       ],
       zip_safe=False)
