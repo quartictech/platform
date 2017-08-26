@@ -1,6 +1,8 @@
 package io.quartic.eval
 
 import io.quartic.common.client.ClientBuilder
+import io.quartic.common.coroutines.cancellable
+import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
@@ -9,8 +11,6 @@ import io.quartic.eval.apis.Database.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.common.coroutines.cancellable
-import io.quartic.common.coroutines.use
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
@@ -31,6 +31,7 @@ class Evaluator(
     private val qube: QubeProxy,
     private val github: GitHubInstallationClient,
     private val database: Database,
+    private val notifier: Notifier,
     private val dagIsValid: (List<Step>) -> Boolean,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
@@ -39,9 +40,10 @@ class Evaluator(
         qube: QubeProxy,
         github: GitHubInstallationClient,
         database: Database,
+        notifier: Notifier,
         clientBuilder: ClientBuilder,
         quartyPort: Int = 8080
-    ) : this(registry, qube, github, database,
+    ) : this(registry, qube, github, database, notifier,
         { steps -> Dag.fromSteps(steps).validate() },
         { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
@@ -52,6 +54,7 @@ class Evaluator(
         if (buildShouldProceed(trigger)) {
             val result = runBuild(trigger)
             database.writeResult(result)
+            notifier.notifyAbout(trigger, result)
         }
     }
 

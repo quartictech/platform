@@ -26,7 +26,7 @@ data class SlackAttachment(
     val footerIcon: URI? = null,
     @get:JsonIgnore
     val timestamp: OffsetDateTime? = null,
-    val color: SlackColor? = SlackColor.QUARTIC
+    val color: SlackColor? = null
 ) {
     // Gross workaround for Jackson's apparent inability to format as integer seconds-since-epoch
     @get:JsonGetter("ts")
@@ -47,6 +47,5 @@ class SlackColor(private val value: String) {
         val GOOD = SlackColor("good")
         val WARNING = SlackColor("warning")
         val DANGER = SlackColor("danger")
-        val QUARTIC = SlackColor("#db1e7b")
     }
 }

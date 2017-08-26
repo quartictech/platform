@@ -1,8 +1,10 @@
 package io.quartic.hey.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.quartic.common.client.Retrofittable
 import java.net.URI
 import java.time.OffsetDateTime
+import java.util.concurrent.CompletableFuture
 
 data class HeyNotification(
     val attachments: List<HeyAttachment>
@@ -19,7 +21,7 @@ data class HeyAttachment(
     val color: HeyColor? = null
 )
 
-class HeyField(
+data class HeyField(
     val title: String,
     val value: String,
     val short: Boolean = false
@@ -30,4 +32,9 @@ enum class HeyColor {
     WARNING,
     DANGER,
     QUARTIC,
+}
+
+@Retrofittable
+interface HeyClient {
+    fun notify(notification: HeyNotification): CompletableFuture<Unit>
 }

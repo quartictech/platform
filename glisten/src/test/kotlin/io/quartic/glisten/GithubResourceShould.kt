@@ -67,6 +67,7 @@ class GithubResourceShould {
             deliveryId = "abc",
             installationId = 12345,
             repoId = 66666,
+            repoName = "noobhole/noobing",
             cloneUrl = URI("https://github.com/noobhole/noobing.git"),
             ref = "refs/heads/master",
             commit = "fc6206fd27761a1e03383287e213801105f01a25",
