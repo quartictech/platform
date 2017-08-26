@@ -11,19 +11,21 @@ class KotlinPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val kotlinVersion = NebulaKotlinPlugin.loadKotlinVersion()
 
-        project.plugins.apply(NebulaKotlinPlugin::class.java)
+        with(project) {
+            plugins.apply(NebulaKotlinPlugin::class.java)
 
-        // See https://github.com/FasterXML/jackson-module-kotlin
-        project.dependencies.add("compile", "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+            // See https://github.com/FasterXML/jackson-module-kotlin
+            dependencies.add("compile", "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
 
-        project.extensions.getByType(KotlinProjectExtension::class.java).apply {
-            experimental.coroutines = Coroutines.ENABLE
+            extensions.getByType(KotlinProjectExtension::class.java).apply {
+                experimental.coroutines = Coroutines.ENABLE
+            }
+
+            // TODO - apply ktlint (see https://github.com/shyiko/ktlint)
+
+            // TODO - set it up as a dependency of check task
+
+            // TODO - IntelliJ stuff to understand ktlint rules?
         }
-
-        // TODO - apply ktlint (see https://github.com/shyiko/ktlint)
-
-        // TODO - set it up as a dependency of check task
-
-        // TODO - IntelliJ stuff to understand ktlint rules?
     }
 }
