@@ -62,11 +62,14 @@ class EvaluatorShould {
     }
 
     @Test
-    fun write_dag_to_db_if_everything_is_ok() {
+    fun write_dag_to_db_and_notify_if_everything_is_ok() {
         evaluate()
 
         verify(database).insertTerminalMessage(any(), any(), eq("Success"),
             eq(BuildResult.Success(steps)), any())
+
+        verify(notifier).notifyAbout(details, BuildResult.Success(steps))
+
         runBlocking { verify(container).close() }
     }
 
@@ -126,6 +129,7 @@ class EvaluatorShould {
 
         verifyZeroInteractions(qube)
         verifyZeroInteractions(database)    // This is the only case where we *don't* record the result
+        verifyZeroInteractions(notifier)
     }
 
     @Test
@@ -186,6 +190,7 @@ class EvaluatorShould {
         deliveryId = "deadbeef",
         installationId = 1234,
         repoId = 5678,
+        repoName = "noob",
         cloneUrl = URI("https://noob.com/foo/bar"),
         ref = "develop",
         commit = "abc123",
@@ -226,9 +231,10 @@ class EvaluatorShould {
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty
     }
+    private val notifier = mock<Notifier>()
     private val database = mock<Database>()
     private val dagIsValid = mock<(List<Step>) -> Boolean>()
-    private val evaluator = Evaluator(registry, qube, github, database, dagIsValid, quartyBuilder)
+    private val evaluator = Evaluator(registry, qube, github, database, notifier, dagIsValid, quartyBuilder)
 
     init {
         whenever(dagIsValid.invoke(steps)).doReturn(true)

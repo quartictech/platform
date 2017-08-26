@@ -3,7 +3,6 @@ package io.quartic.eval
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.db.DatabaseBuilder
@@ -35,12 +34,16 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             qube(configuration),
             github(configuration),
             database(configuration, environment),
+            notifier(configuration),
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
             for (details in channel) evaluator.evaluateAsync(details)
         }
     }
+
+
+    private fun notifier(config: EvalConfiguration) = Notifier(clientBuilder.retrofit(config.heyUrl))
 
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
         config.github.appId,

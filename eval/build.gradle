@@ -18,6 +18,7 @@ dependencies {
     compile project(":common-application")
     compile project(":common-db")
     compile project(":registry-api")
+    compile project(":hey-api")
     compile project(":qube-api")
     compile project(":github")
     compile project(":quarty-utils")
