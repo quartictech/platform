@@ -36,6 +36,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             qube(configuration),
             github(configuration),
             database,
+            notifier(configuration),
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
@@ -49,6 +50,8 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             LOG.info("Writing result to database: $result")
         }
     }
+
+    private fun notifier(config: EvalConfiguration) = Notifier(clientBuilder.retrofit(config.heyUrl))
 
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
         config.github.appId,

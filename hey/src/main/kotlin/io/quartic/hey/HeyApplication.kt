@@ -55,7 +55,7 @@ class HeyApplication : ApplicationBase(HEY_DEV_PORT) {
                     HeyColor.GOOD -> SlackColor.GOOD
                     HeyColor.WARNING -> SlackColor.WARNING
                     HeyColor.DANGER -> SlackColor.DANGER
-                    HeyColor.QUARTIC -> SlackColor.QUARTIC
+                    HeyColor.QUARTIC -> SlackColor("#db1e7b")
                     null -> null
                 }
             )

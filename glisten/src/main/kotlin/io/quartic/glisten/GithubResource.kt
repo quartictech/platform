@@ -79,6 +79,7 @@ class GithubResource(
                     deliveryId = deliveryId,
                     installationId = event.installation.id,
                     repoId = event.repository.id,
+                    repoName = event.repository.fullName,
                     cloneUrl = event.repository.cloneUrl,
                     ref = event.ref,
                     commit = event.headCommit.id,
