@@ -7,6 +7,7 @@ import io.quartic.eval.websocket.WebsocketClient.Event.*
 import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.time.Duration
@@ -127,6 +128,7 @@ class WebsocketClientImplShould {
         assertThat(server.receivedMessages, hasSize(0))
     }
 
+    @Ignore("This is extremely flaky on CI, given we're trying to verify something *doesn't* happen asynchronously")
     @Test
     fun disconnect_and_not_attempt_reconnect_on_close() {
         val client = createClient()
