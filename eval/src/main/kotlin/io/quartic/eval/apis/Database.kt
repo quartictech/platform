@@ -24,10 +24,9 @@ import java.util.*
 @RegisterColumnMappers(RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class), RegisterColumnMapper(CustomerIdColumnMapper::class))
 interface Database {
     sealed class BuildResult {
-        abstract val messages: List<QuartyMessage>
-        data class Success(override val messages: List<QuartyMessage>, val dag: List<Step>) : BuildResult()
-        data class InternalError(override val messages: List<QuartyMessage>, val throwable: Throwable) : BuildResult()
-        data class UserError(override val messages: List<QuartyMessage>, val message: String) : BuildResult()
+        data class Success(val dag: List<Step>) : BuildResult()
+        data class InternalError(val throwable: Throwable) : BuildResult()
+        data class UserError(val detail: Any?) : BuildResult()
     }
 
     data class Build(
@@ -78,6 +77,6 @@ interface Database {
     fun insertTerminalMessage(@Bind("id") id: UUID?,
                               @Bind("phase_id") phaseId: UUID,
                               @Bind("type") simpleName: String?,
-                              @BindJson("message") result: Database.BuildResult,
+                              @BindJson("message") result: BuildResult,
                               @Bind("time") time: Instant?)
 }

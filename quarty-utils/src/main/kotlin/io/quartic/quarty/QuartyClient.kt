@@ -10,10 +10,12 @@ import java.util.concurrent.CompletableFuture
 import java.util.stream.Stream
 import kotlin.streams.toList
 
+typealias QuartyErrorDetail = Any?
+
 class QuartyClient(val quarty: Quarty) {
     sealed class QuartyResult {
         data class Success(val messages: List<QuartyMessage>, val result: List<Step>): QuartyResult()
-        data class Failure(val messages: List<QuartyMessage>) : QuartyResult()
+        data class Failure(val messages: List<QuartyMessage>, val detail: QuartyErrorDetail) : QuartyResult()
     }
 
     constructor(clientBuilder: ClientBuilder, url: String) :
@@ -39,7 +41,7 @@ class QuartyClient(val quarty: Quarty) {
             messages.map { message ->
                 when (message) {
                     is QuartyMessage.Result -> QuartyResult.Success(messages, message.result)
-                    is QuartyMessage.Error -> QuartyResult.Failure(messages)
+                    is QuartyMessage.Error -> QuartyResult.Failure(messages, message.detail)
                     else -> null
                 }
             }.filterNotNull().first()

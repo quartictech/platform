@@ -1,26 +1,25 @@
 
 create table build(
   id uuid not null unique,
-  customer_id bigint,
-  trigger_details jsonb,
-  build_number bigint,
-  result jsonb,
-  time timestamp
+  customer_id bigint not null,
+  trigger_details jsonb not null,
+  build_number bigint not null,
+  time timestamp not null
 );
 
 create table phase(
   id uuid not null unique,
-  name varchar,
-  build_id uuid,
-  time timestamp
+  build_id uuid not null,
+  name varchar not null,
+  time timestamp not null
 );
 
 create table event(
   id uuid not null unique,
-  phase_id uuid,
-  type varchar,
+  phase_id uuid not null,
+  type varchar not null,
   message jsonb,
-  time timestamp
+  time timestamp not null
 );
 
 

@@ -15,6 +15,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
+import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.*
@@ -51,6 +52,11 @@ class Evaluator(
     private val threadPool = newFixedThreadPoolContext(2, "database")
     private val LOG by logger()
 
+    data class Output(
+        val result: BuildResult,
+        val messages: List<QuartyMessage> = listOf()
+    )
+
     suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
         val startTime = Instant.now()
         val customer = getCustomer(trigger)
@@ -66,15 +72,23 @@ class Evaluator(
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         database.insertBuild(buildId, customerId, trigger, startTime)
-        database.insertPhase(phaseId, buildId, "DAG Evaluation", startTime)
+        database.insertPhase(phaseId, buildId, "Evaluating DAG", startTime)
         phaseId
     }
 
-    private suspend fun insertEvents(phaseId: UUID, result: BuildResult) = run(threadPool) {
-        result.messages
+    private suspend fun insertEvents(phaseId: UUID, output: Output) = run(threadPool) {
+        output.messages
             .forEach { message -> database.insertMessage(UUID.randomUUID(), phaseId, message::class.simpleName!!, message, Instant.now()) }
 
-        database.insertTerminalMessage(UUID.randomUUID(), phaseId, result::class.simpleName, result, Instant.now())
+        val name = output.result::class.simpleName
+        when (output.result) {
+            is BuildResult.Success ->
+                database.insertTerminalMessage(UUID.randomUUID(), phaseId,  name, output.result, Instant.now())
+            is BuildResult.UserError ->
+                database.insertTerminalMessage(UUID.randomUUID(), phaseId, name, output.result, Instant.now())
+             is BuildResult.InternalError ->
+                database.insertTerminalMessage(UUID.randomUUID(), phaseId, name, output.result, Instant.now())
+        }
     }
 
     private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
@@ -91,11 +105,11 @@ class Evaluator(
         }
     )
 
-    private suspend fun runBuild(trigger: TriggerDetails): BuildResult = cancellable(
+    private suspend fun runBuild(trigger: TriggerDetails): Output = cancellable(
         block = {
             qube.createContainer().use { container ->
                 getDagAsync(container, trigger).use { getDag ->
-                    select<BuildResult> {
+                    select<Output> {
                         getDag.onAwait { transformQuartyResult(it) }
                         container.errors.onReceive { throw it }
                     }
@@ -104,20 +118,20 @@ class Evaluator(
         },
         onThrow = { t ->
             LOG.error("Build failure", t)
-            BuildResult.InternalError(listOf(), t)
+            Output(BuildResult.InternalError(t))
         }
     )
 
     private fun transformQuartyResult(it: QuartyClient.QuartyResult?) = when (it) {
         is QuartyResult.Success -> {
             if (dagIsValid(it.result)) {
-                Success(it.messages, it.result)
+                Output(Success(it.result), it.messages)
             } else {
-                UserError(it.messages, "DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+                Output(UserError("DAG is invalid"), it.messages)     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
-        is QuartyResult.Failure -> UserError(it.messages, "Failure")
-        null -> InternalError(listOf(), RuntimeException("Missing result or failure from Quarty"))
+        is QuartyResult.Failure -> Output(UserError(it.detail), it.messages)
+        null -> Output(InternalError(RuntimeException("Missing result or failure from Quarty")))
     }
 
     private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {

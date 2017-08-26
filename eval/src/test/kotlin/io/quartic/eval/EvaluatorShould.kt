@@ -16,6 +16,7 @@ import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult.Failure
 import io.quartic.quarty.QuartyClient.QuartyResult.Success
+import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
@@ -27,8 +28,10 @@ import org.hamcrest.Matchers.instanceOf
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import java.net.URI
 import java.time.Instant
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
@@ -49,10 +52,21 @@ class EvaluatorShould {
     }
 
     @Test
+    fun write_build_and_phase_to_db() {
+        evaluate()
+
+        val captor = argumentCaptor<UUID>()
+        verify(database).insertBuild(captor.capture(),  eq(customer.id), eq(details), any())
+        verify(database).insertPhase(any(), eq(captor.firstValue), eq("Evaluating DAG"), any())
+        runBlocking { verify(container).close() }
+    }
+
+    @Test
     fun write_dag_to_db_if_everything_is_ok() {
         evaluate()
 
-        verify(database).writeResult(BuildResult.Success(steps))
+        verify(database).insertTerminalMessage(any(), any(), eq("Success"),
+            eq(BuildResult.Success(steps)), any())
         runBlocking { verify(container).close() }
     }
 
@@ -62,17 +76,28 @@ class EvaluatorShould {
 
         evaluate()
 
-        verify(database).writeResult(BuildResult.UserError("DAG is invalid"))
+        verify(database).insertTerminalMessage(
+            any(),
+            any(),
+            eq("UserError"),
+            eq(UserError("DAG is invalid")),
+            any())
         runBlocking { verify(container).close() }
     }
 
     @Test
     fun write_logs_to_db_if_user_code_failed() {
-        whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure("badness")))
+        val messages = listOf(QuartyMessage.Error("badness"))
+        whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure(messages, "badness")))
 
         evaluate()
 
-        verify(database).writeResult(UserError("badness"))
+         verify(database).insertTerminalMessage(
+            any(),
+            any(),
+            eq("UserError"),
+            eq(UserError("badness")),
+            any())
         runBlocking { verify(container).close() }
     }
 
@@ -133,9 +158,9 @@ class EvaluatorShould {
         completeExceptionally(RuntimeException("Sad"))
     }
 
-    private fun captureDatabaseResult(): BuildResult {
+    private fun captureDatabaseResult(): Any {
         val captor = argumentCaptor<BuildResult>()
-        verify(database).writeResult(captor.capture())
+        verify(database).insertTerminalMessage(any(), any(), any(), captor.capture(), any())
         return captor.firstValue
     }
 
@@ -177,7 +202,9 @@ class EvaluatorShould {
         on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
-        on { getResult(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success("stuff", steps))
+        on { getResult(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success(listOf(
+            QuartyMessage.Result(steps)
+        ), steps))
     }
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty
