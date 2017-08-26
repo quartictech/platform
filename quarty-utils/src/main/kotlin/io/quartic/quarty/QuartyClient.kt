@@ -34,9 +34,6 @@ class QuartyClient(val quarty: Quarty) {
     fun getResult(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> = stream(repoUrl, repoCommit)
         .thenApply { stream ->
             val messages = stream.toList()
-            val log = messages.filter { message -> message is QuartyMessage.Log }
-                .map { message -> (message as QuartyMessage.Log).line }
-                .joinToString("\n")
 
             messages.map { message ->
                 when (message) {
