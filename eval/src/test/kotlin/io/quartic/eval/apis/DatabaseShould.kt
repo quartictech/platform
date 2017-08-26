@@ -105,5 +105,15 @@ class DatabaseShould {
         )
     )
 
-    val triggerDetails = TriggerDetails("wat", "id", 100, 100, URI.create("git"), "ref", "w", Instant.now())
+    val triggerDetails = TriggerDetails(
+        type = "wat",
+        deliveryId = "id",
+        installationId = 100,
+        repoId = 100,
+        repoName = "repo",
+        cloneUrl = URI.create("ref"),
+        ref = "w",
+        commit = "commit",
+        timestamp = Instant.now()
+    )
 }
