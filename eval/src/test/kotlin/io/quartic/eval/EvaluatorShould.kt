@@ -87,10 +87,27 @@ class EvaluatorShould {
 
     @Test
     fun write_logs_to_db_if_user_code_failed() {
-        val messages = listOf(QuartyMessage.Error("badness"))
+        val messages = listOf(
+            QuartyMessage.Log("stdout", "some log message"),
+            QuartyMessage.Error("badness")
+        )
         whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure(messages, "badness")))
 
         evaluate()
+
+         verify(database).insertMessage(
+            any(),
+            any(),
+            eq("Log"),
+            eq(QuartyMessage.Log("stdout", "some log message")),
+            any())
+
+        verify(database).insertMessage(
+            any(),
+            any(),
+            eq("Error"),
+            eq(QuartyMessage.Error("badness")),
+            any())
 
          verify(database).insertTerminalMessage(
             any(),

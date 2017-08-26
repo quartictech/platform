@@ -59,10 +59,9 @@ class DatabaseShould {
     @Test
     fun insert_terminal_message() {
         val phaseId = UUID.randomUUID()
-        val messageId = UUID.randomUUID()
         val time = Instant.now()
-        database.insertTerminalMessage(messageId, phaseId, "SomeThing", Database.BuildResult.Success(steps), time)
-        database.insertTerminalMessage(messageId, phaseId, "SomeThing",
+        database.insertTerminalMessage(UUID.randomUUID(), phaseId, "SomeThing", Database.BuildResult.Success(steps), time)
+        database.insertTerminalMessage(UUID.randomUUID(), phaseId, "SomeThing",
             Database.BuildResult.UserError(mapOf("foo" to "bar")), time)
     }
 
