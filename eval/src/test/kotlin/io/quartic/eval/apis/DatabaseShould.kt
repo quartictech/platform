@@ -5,7 +5,9 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.db.DatabaseBuilder
 import io.quartic.eval.api.model.TriggerDetails
-import org.glassfish.jersey.internal.inject.Custom
+import io.quartic.quarty.model.Dataset
+import io.quartic.quarty.model.QuartyMessage
+import io.quartic.quarty.model.Step
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +41,32 @@ class DatabaseShould {
     }
 
     @Test
+    fun insert_phase() {
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        database.insertPhase(phaseId, buildId,"Thing", time)
+    }
+
+    @Test
+    fun insert_message() {
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        database.insertMessage(UUID.randomUUID(), phaseId, "SomeThing", QuartyMessage.Log("stdout", "Hahaha"), time)
+        database.insertMessage(UUID.randomUUID(), phaseId, "SomeThing", QuartyMessage.Result(steps), time)
+    }
+
+    @Test
+    fun insert_terminal_message() {
+        val phaseId = UUID.randomUUID()
+        val messageId = UUID.randomUUID()
+        val time = Instant.now()
+        database.insertTerminalMessage(messageId, phaseId, "SomeThing", Database.BuildResult.Success(steps), time)
+        database.insertTerminalMessage(messageId, phaseId, "SomeThing",
+            Database.BuildResult.UserError(mapOf("foo" to "bar")), time)
+    }
+
+    @Test
     fun use_sequential_build_numbers_per_customer() {
         val customerA = CustomerId(100L)
         val customerB = CustomerId(101L)
@@ -66,6 +94,17 @@ class DatabaseShould {
         }
     }
 
+    val steps = listOf(
+        Step(
+            "something",
+            "name",
+            "a step",
+            "something.py",
+            listOf(0, 1000),
+            listOf(Dataset("wat", "ds")),
+            listOf(Dataset("some", "w"))
+        )
+    )
 
     val triggerDetails = TriggerDetails("wat", "id", 100, 100, URI.create("git"), "ref", "w", Instant.now())
 }
