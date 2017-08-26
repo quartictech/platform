@@ -1,5 +1,7 @@
 package io.quartic.eval.apis
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -21,11 +23,18 @@ import java.time.Instant
 import java.util.*
 
 
-@RegisterColumnMappers(RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class), RegisterColumnMapper(CustomerIdColumnMapper::class))
+@RegisterColumnMappers(
+    RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class),
+    RegisterColumnMapper(Database.DagColumnMapper::class),
+    RegisterColumnMapper(CustomerIdColumnMapper::class))
 interface Database {
+    @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property="type")
     sealed class BuildResult {
+        @JsonTypeName("success")
         data class Success(val dag: List<Step>) : BuildResult()
+        @JsonTypeName("internal_error")
         data class InternalError(val throwable: Throwable) : BuildResult()
+        @JsonTypeName("user_error")
         data class UserError(val detail: Any?) : BuildResult()
     }
 
@@ -40,14 +49,42 @@ interface Database {
         val time: Instant
     )
 
+    data class Dag(
+        @ColumnName("message")
+        val message: BuildResult.Success
+    )
+
+    enum class EventType {
+        MESSAGE,
+        SUCCESS,
+        INTERNAL_ERROR,
+        USER_ERROR
+    }
+
     class TriggerDetailsColumnMapper: ColumnMapper<TriggerDetails> {
         override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): TriggerDetails =
+            OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
+    }
+
+    class DagColumnMapper: ColumnMapper<BuildResult.Success> {
+        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success =
             OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
     }
 
 
     @SqlQuery("select id, customer_id, build_number, trigger_details, time from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): Build
+
+    @SqlQuery("""
+        select message from event
+        left join phase on phase.id = event.phase_id
+        left join build on build.id = phase.build_id
+        where build.customer_id = :customer_id
+        and event.type = 'SUCCESS'
+        order by event.time desc
+        limit 1
+        """)
+    fun getLatestDag(@Bind("customer_id") customerId: CustomerId): Dag
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)
@@ -67,16 +104,16 @@ interface Database {
                     @Bind("time") startTime: Instant)
 
     @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
-    fun insertMessage(@Bind("id") id: UUID,
-                      @Bind("phase_id") phaseId: UUID,
-                      @Bind("type") type: String,
-                      @BindJson("message") message: QuartyMessage,
-                      @Bind("time") time: Instant)
+    fun insertEvent(@Bind("id") id: UUID,
+                    @Bind("phase_id") phaseId: UUID,
+                    @Bind("type") type: EventType,
+                    @BindJson("message") message: QuartyMessage,
+                    @Bind("time") time: Instant)
 
     @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
-    fun insertTerminalMessage(@Bind("id") id: UUID?,
-                              @Bind("phase_id") phaseId: UUID,
-                              @Bind("type") simpleName: String?,
-                              @BindJson("message") result: BuildResult,
-                              @Bind("time") time: Instant?)
+    fun insertTerminalEvent(@Bind("id") id: UUID?,
+                            @Bind("phase_id") phaseId: UUID,
+                            @Bind("type") type: EventType,
+                            @BindJson("message") result: BuildResult,
+                            @Bind("time") time: Instant?)
 }

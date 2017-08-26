@@ -11,6 +11,7 @@ import io.quartic.eval.apis.Database.BuildResult.UserError
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.eval.apis.Database.EventType
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
@@ -28,7 +29,6 @@ import org.hamcrest.Matchers.instanceOf
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import java.net.URI
 import java.time.Instant
 import java.util.*
@@ -65,7 +65,7 @@ class EvaluatorShould {
     fun write_dag_to_db_and_notify_if_everything_is_ok() {
         evaluate()
 
-        verify(database).insertTerminalMessage(any(), any(), eq("Success"),
+        verify(database).insertTerminalEvent(any(), any(), eq(EventType.SUCCESS),
             eq(BuildResult.Success(steps)), any())
 
         verify(notifier).notifyAbout(details, BuildResult.Success(steps))
@@ -79,10 +79,10 @@ class EvaluatorShould {
 
         evaluate()
 
-        verify(database).insertTerminalMessage(
+        verify(database).insertTerminalEvent(
             any(),
             any(),
-            eq("UserError"),
+            eq(EventType.USER_ERROR),
             eq(UserError("DAG is invalid")),
             any())
         runBlocking { verify(container).close() }
@@ -98,26 +98,26 @@ class EvaluatorShould {
 
         evaluate()
 
-         verify(database).insertMessage(
-            any(),
-            any(),
-            eq("Log"),
+         verify(database).insertEvent(
+             any(),
+             any(),
+             eq(EventType.MESSAGE),
             eq(QuartyMessage.Log("stdout", "some log message")),
             any())
 
-        verify(database).insertMessage(
+        verify(database).insertEvent(
             any(),
             any(),
-            eq("Error"),
+            eq(EventType.MESSAGE),
             eq(QuartyMessage.Error("badness")),
             any())
 
-         verify(database).insertTerminalMessage(
-            any(),
-            any(),
-            eq("UserError"),
-            eq(UserError("badness")),
-            any())
+         verify(database).insertTerminalEvent(
+             any(),
+             any(),
+             eq(EventType.USER_ERROR),
+             eq(UserError("badness")),
+             any())
         runBlocking { verify(container).close() }
     }
 
@@ -181,7 +181,7 @@ class EvaluatorShould {
 
     private fun captureDatabaseResult(): Any {
         val captor = argumentCaptor<BuildResult>()
-        verify(database).insertTerminalMessage(any(), any(), any(), captor.capture(), any())
+        verify(database).insertTerminalEvent(any(), any(), any(), captor.capture(), any())
         return captor.firstValue
     }
 

@@ -12,6 +12,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.net.URI
+import io.quartic.eval.apis.Database.EventType
 import java.time.Instant
 import org.hamcrest.MatcherAssert.*
 import org.hamcrest.CoreMatchers.*
@@ -49,20 +50,33 @@ class DatabaseShould {
     }
 
     @Test
-    fun insert_message() {
+    fun insert_event() {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        database.insertMessage(UUID.randomUUID(), phaseId, "SomeThing", QuartyMessage.Log("stdout", "Hahaha"), time)
-        database.insertMessage(UUID.randomUUID(), phaseId, "SomeThing", QuartyMessage.Result(steps), time)
+        database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, QuartyMessage.Log("stdout", "Hahaha"), time)
+        database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, QuartyMessage.Result(steps), time)
     }
 
     @Test
-    fun insert_terminal_message() {
+    fun insert_terminal_event() {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        database.insertTerminalMessage(UUID.randomUUID(), phaseId, "SomeThing", Database.BuildResult.Success(steps), time)
-        database.insertTerminalMessage(UUID.randomUUID(), phaseId, "SomeThing",
+        database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, Database.BuildResult.Success(steps), time)
+        database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE,
             Database.BuildResult.UserError(mapOf("foo" to "bar")), time)
+    }
+
+    @Test
+    fun get_latest_dag() {
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val eventId = UUID.randomUUID()
+        val time = Instant.now()
+        database.insertBuild(buildId, CustomerId(100L), triggerDetails, time)
+        database.insertPhase(phaseId, buildId,"Thing", time)
+        database.insertTerminalEvent(eventId, phaseId, EventType.SUCCESS, Database.BuildResult.Success(steps), time)
+        val dag = database.getLatestDag(CustomerId(100L))
+        assertThat(dag.message.dag, equalTo(steps))
     }
 
     @Test

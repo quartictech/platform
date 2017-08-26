@@ -11,8 +11,6 @@ import io.quartic.eval.apis.Database.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.common.coroutines.cancellable
-import io.quartic.common.coroutines.use
 import io.quartic.common.model.CustomerId
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
@@ -25,6 +23,7 @@ import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
+import io.quartic.eval.apis.Database.EventType
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -83,16 +82,15 @@ class Evaluator(
 
     private suspend fun insertEvents(phaseId: UUID, output: Output) = run(threadPool) {
         output.messages
-            .forEach { message -> database.insertMessage(UUID.randomUUID(), phaseId, message::class.simpleName!!, message, Instant.now()) }
+            .forEach { message -> database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, message, Instant.now()) }
 
-        val name = output.result::class.simpleName
         when (output.result) {
             is BuildResult.Success ->
-                database.insertTerminalMessage(UUID.randomUUID(), phaseId,  name, output.result, Instant.now())
+                database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.SUCCESS, output.result, Instant.now())
             is BuildResult.UserError ->
-                database.insertTerminalMessage(UUID.randomUUID(), phaseId, name, output.result, Instant.now())
+                database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.USER_ERROR, output.result, Instant.now())
              is BuildResult.InternalError ->
-                database.insertTerminalMessage(UUID.randomUUID(), phaseId, name, output.result, Instant.now())
+                database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.INTERNAL_ERROR, output.result, Instant.now())
         }
     }
 
