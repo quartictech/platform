@@ -98,7 +98,7 @@ class WebsocketClientImplShould {
         serverShouldSend(expected)
 
         createClient().use { client ->
-            runOrTimeout(1000) {
+            runOrTimeout {
                 client.awaitConnected()
 
                 server.dropConnections()
