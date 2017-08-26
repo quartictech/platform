@@ -31,6 +31,7 @@ class Evaluator(
     private val qube: QubeProxy,
     private val github: GitHubInstallationClient,
     private val database: Database,
+    private val notifier: Notifier,
     private val dagIsValid: (List<Step>) -> Boolean,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
@@ -39,9 +40,10 @@ class Evaluator(
         qube: QubeProxy,
         github: GitHubInstallationClient,
         database: Database,
+        notifier: Notifier,
         clientBuilder: ClientBuilder,
         quartyPort: Int = 8080
-    ) : this(registry, qube, github, database,
+    ) : this(registry, qube, github, database, notifier,
         { steps -> Dag.fromSteps(steps).validate() },
         { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
@@ -53,6 +55,7 @@ class Evaluator(
         if (customer != null) {
             val result = runBuild(trigger)
             database.writeResult(customer.id, result)
+            notifier.notifyAbout(trigger, result)
         }
     }
 

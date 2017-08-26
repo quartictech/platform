@@ -1,4 +1,5 @@
 registryUrl: http://localhost:8190/api
+heyUrl: http://localhost:8220/api
 
 qube:
   url: ws://localhost:8202
