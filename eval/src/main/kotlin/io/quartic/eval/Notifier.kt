@@ -23,7 +23,7 @@ class Notifier(
                 text = when (result) {
                     is BuildResult.Success -> "Success"
                     is BuildResult.InternalError -> result.throwable.message ?: "Internal error"
-                    is BuildResult.UserError -> result.message
+                    is BuildResult.UserError -> "Failure" // TODO: Add more detail here
                 },
                 fields = listOf(
                     HeyField("Repo", trigger.repoName, true),
