@@ -1,16 +1,16 @@
 package io.quartic.eval
 
 import io.quartic.common.client.ClientBuilder
+import io.quartic.common.coroutines.cancellable
+import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.apis.Database
-import io.quartic.eval.apis.Database.BuildResult
-import io.quartic.eval.apis.Database.BuildResult.*
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.Database.BuildResult
+import io.quartic.eval.database.Database.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.common.coroutines.cancellable
-import io.quartic.common.coroutines.use
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
@@ -49,24 +49,22 @@ class Evaluator(
     private val LOG by logger()
 
     suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
-        if (buildShouldProceed(trigger)) {
+        val customer = getCustomer(trigger)
+        if (customer != null) {
             val result = runBuild(trigger)
-            database.writeResult(result)
+            database.writeResult(customer.id, result)
         }
     }
 
-    private suspend fun buildShouldProceed(trigger: TriggerDetails) = cancellable(
-        block = {
-            registry.getCustomerAsync(null, trigger.repoId).await()
-            true
-        },
+    private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
+        block = { registry.getCustomerAsync(null, trigger.repoId).await() },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
                 LOG.warn("Repo ID ${trigger.repoId} not found in Registry")
             } else {
                 LOG.error("Error communicating with Registry", t)
             }
-            false
+            null
         }
     )
 

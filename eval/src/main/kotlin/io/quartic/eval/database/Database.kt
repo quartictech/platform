@@ -1,5 +1,6 @@
-package io.quartic.eval.apis
+package io.quartic.eval.database
 
+import io.quartic.common.model.CustomerId
 import io.quartic.quarty.model.Step
 
 
@@ -10,5 +11,7 @@ interface Database {
         data class UserError(val message: String) : BuildResult()
     }
 
-    fun writeResult(result: BuildResult)
+    fun writeResult(customerId: CustomerId, result: BuildResult)
+
+    fun getLatestDag(customerId: CustomerId): List<Step>?
 }

@@ -4,10 +4,10 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.apis.Database
-import io.quartic.eval.apis.Database.BuildResult
-import io.quartic.eval.apis.Database.BuildResult.InternalError
-import io.quartic.eval.apis.Database.BuildResult.UserError
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.Database.BuildResult
+import io.quartic.eval.database.Database.BuildResult.InternalError
+import io.quartic.eval.database.Database.BuildResult.UserError
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -52,7 +52,7 @@ class EvaluatorShould {
     fun write_dag_to_db_if_everything_is_ok() {
         evaluate()
 
-        verify(database).writeResult(BuildResult.Success(steps))
+        verify(database).writeResult(customerId, BuildResult.Success(steps))
         runBlocking { verify(container).close() }
     }
 
@@ -62,7 +62,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        verify(database).writeResult(BuildResult.UserError("DAG is invalid"))
+        verify(database).writeResult(customerId, BuildResult.UserError("DAG is invalid"))
         runBlocking { verify(container).close() }
     }
 
@@ -72,7 +72,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        verify(database).writeResult(UserError("badness"))
+        verify(database).writeResult(customerId, UserError("badness"))
         runBlocking { verify(container).close() }
     }
 
@@ -135,9 +135,11 @@ class EvaluatorShould {
 
     private fun captureDatabaseResult(): BuildResult {
         val captor = argumentCaptor<BuildResult>()
-        verify(database).writeResult(captor.capture())
+        verify(database).writeResult(eq(customerId), captor.capture())
         return captor.firstValue
     }
+
+    private val customerId = CustomerId(999)
 
     private val details = TriggerDetails(
         type = "github",
@@ -151,7 +153,7 @@ class EvaluatorShould {
     )
 
     private val customer = Customer(
-        id = CustomerId(999),
+        id = customerId,
         githubOrgId = 8765,
         githubRepoId = 5678,
         name = "Noobhole Ltd",
