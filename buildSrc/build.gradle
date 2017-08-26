@@ -9,7 +9,6 @@ repositories {
 def kotlinVersion = "1.1.4"
 
 dependencies {
-    compile localGroovy()
     compile gradleApi()
     compile "com.fasterxml.jackson.core:jackson-annotations:2.8.7"
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
