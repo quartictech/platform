@@ -13,7 +13,7 @@ service {
     memory = System.env.SCRIBE_MEMORY ?: "64m"
     // We need to override this due to an apparent bug with netty in alpine
     // see: https://github.com/GoogleCloudPlatform/google-cloud-java/issues/1430
-    dockerBaseImage = "openjdk:8u111-jre"
+    dockerBaseImage = "openjdk:8u141-jre"
 }
 
 dependencies {
