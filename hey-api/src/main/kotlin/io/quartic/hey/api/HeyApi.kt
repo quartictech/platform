@@ -2,6 +2,8 @@ package io.quartic.hey.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.quartic.common.client.Retrofittable
+import retrofit2.http.Body
+import retrofit2.http.POST
 import java.net.URI
 import java.time.OffsetDateTime
 import java.util.concurrent.CompletableFuture
@@ -36,5 +38,6 @@ enum class HeyColor {
 
 @Retrofittable
 interface HeyClient {
-    fun notify(notification: HeyNotification): CompletableFuture<Unit>
+    @POST("/")
+    fun notifyAsync(@Body notification: HeyNotification): CompletableFuture<Unit>
 }

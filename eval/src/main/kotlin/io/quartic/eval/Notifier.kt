@@ -14,7 +14,7 @@ class Notifier(
         // TODO - include build number in title
         // TODO - add a URL to results page or whatever
         // TODO - more useful description of internal vs. user errors
-        client.notify(HeyNotification(listOf(
+        client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = when (result) {
                     is BuildResult.Success -> "Build succeeded"
@@ -27,7 +27,7 @@ class Notifier(
                 },
                 fields = listOf(
                     HeyField("Repo", trigger.repoName, true),
-                    HeyField("Branch", trigger.ref, true)
+                    HeyField("Branch", trigger.ref.removePrefix("ref/heads/"), true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = when (result) {
