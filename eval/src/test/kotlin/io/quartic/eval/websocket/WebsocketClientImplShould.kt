@@ -82,7 +82,7 @@ class WebsocketClientImplShould {
     @Test
     fun notify_consumer_when_connection_dropped() {
         createClient().use { client ->
-            runOrTimeout {
+            runOrTimeout(2000) {
                 client.awaitConnected()
 
                 server.dropConnections()

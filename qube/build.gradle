@@ -13,10 +13,6 @@ service {
     memory = System.env.QUBE_MEMORY ?: "32m"
 }
 
-repositories {
-    jcenter()   // For coroutines
-}
-
 dependencies {
     compile project(":common-application")
     compile project(":common-db")

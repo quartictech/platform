@@ -3,6 +3,7 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.eval.Database.EventType
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildResult
 import io.quartic.eval.model.BuildResult.InternalError
@@ -10,7 +11,6 @@ import io.quartic.eval.model.BuildResult.UserError
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
-import io.quartic.eval.Database.EventType
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
@@ -64,11 +64,13 @@ class EvaluatorShould {
     fun write_dag_to_db_and_notify_if_everything_is_ok() {
         evaluate()
 
-        verify(database).insertTerminalEvent(any(), any(), eq(EventType.SUCCESS),
-            eq(BuildResult.Success(steps)), any())
-
+        verify(database).insertTerminalEvent(
+            any(),
+            any(),
+            eq(EventType.SUCCESS),
+            eq(BuildResult.Success(steps)),
+            any())
         verify(notifier).notifyAbout(details, BuildResult.Success(steps))
-
         runBlocking { verify(container).close() }
     }
 
@@ -101,15 +103,15 @@ class EvaluatorShould {
              any(),
              any(),
              eq(EventType.MESSAGE),
-            eq(QuartyMessage.Log("stdout", "some log message")),
-            any())
+             eq(QuartyMessage.Log("stdout", "some log message")),
+             any())
 
-        verify(database).insertEvent(
-            any(),
-            any(),
-            eq(EventType.MESSAGE),
-            eq(QuartyMessage.Error("badness")),
-            any())
+         verify(database).insertEvent(
+             any(),
+             any(),
+             eq(EventType.MESSAGE),
+             eq(QuartyMessage.Error("badness")),
+             any())
 
          verify(database).insertTerminalEvent(
              any(),
@@ -117,6 +119,7 @@ class EvaluatorShould {
              eq(EventType.USER_ERROR),
              eq(UserError("badness")),
              any())
+
         runBlocking { verify(container).close() }
     }
 
@@ -184,6 +187,8 @@ class EvaluatorShould {
         return captor.firstValue
     }
 
+    private val customerId = CustomerId(999)
+
     private val details = TriggerDetails(
         type = "github",
         deliveryId = "deadbeef",
@@ -197,7 +202,7 @@ class EvaluatorShould {
     )
 
     private val customer = Customer(
-        id = CustomerId(999),
+        id = customerId,
         githubOrgId = 8765,
         githubRepoId = 5678,
         name = "Noobhole Ltd",
