@@ -4,25 +4,28 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
+import io.quartic.common.model.CustomerId
+import io.quartic.eval.Database.EventType
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildResult
 import io.quartic.eval.model.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.common.model.CustomerId
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
 import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
+import kotlinx.coroutines.experimental.newFixedThreadPoolContext
+import kotlinx.coroutines.experimental.run
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
-import io.quartic.eval.Database.EventType
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -94,9 +97,7 @@ class Evaluator(
     }
 
     private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
-        block = {
-            registry.getCustomerAsync(null, trigger.repoId).await()
-        },
+        block = { registry.getCustomerAsync(null, trigger.repoId).await() },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
                 LOG.warn("Repo ID ${trigger.repoId} not found in Registry")

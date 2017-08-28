@@ -13,12 +13,18 @@ class Dag(private val dag: DirectedGraph<Dataset, PseudoEdge>) {
         val target: Dataset
     )
 
+    val nodes: Set<Dataset> = dag.vertexSet()
+    val edges: Set<PseudoEdge> = dag.edgeSet()
+
+    fun inDegreeOf(node: Dataset) = dag.inDegreeOf(node)
+    fun outDegreeOf(node: Dataset) = dag.outDegreeOf(node)
+
+    fun validate() = checkNoCycles() && checkOneStepPerDataset()
+
     private fun checkNoCycles() = !CycleDetector(dag).detectCycles()
     private fun checkOneStepPerDataset() = dag.vertexSet().all { vertex ->
         dag.incomingEdgesOf(vertex).map { (step) -> step }.toSet().size <= 1
     }
-
-    fun validate() = checkNoCycles() && checkOneStepPerDataset()
 
     companion object {
         fun fromSteps(steps: List<Step>): Dag {
