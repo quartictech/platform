@@ -27,7 +27,7 @@ class Notifier(
                 },
                 fields = listOf(
                     HeyField("Repo", trigger.repoName, true),
-                    HeyField("Branch", trigger.ref, true)
+                    HeyField("Branch", trigger.ref.removePrefix("ref/heads/"), true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = when (result) {
