@@ -57,11 +57,7 @@ interface Database {
     class BuildResultSuccessColumnMapper: ColumnMapper<BuildResult.Success> {
         override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success {
             val buildResult = OBJECT_MAPPER.readValue<BuildResult.Success>(r!!.getString(columnNumber))
-
-            if (buildResult.version != BuildResult.VERSION) {
-                throw IllegalStateException("Version mismatch: ${buildResult.version} != ${BuildResult.VERSION}")
-            }
-
+            buildResult.checkVersion()
             return buildResult
         }
     }
