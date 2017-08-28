@@ -5,6 +5,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jmailen.gradle.kotlinter.KotlinterExtension
+import org.jmailen.gradle.kotlinter.KotlinterPlugin
 
 @Suppress("unused")
 class KotlinPlugin : Plugin<Project> {
@@ -21,7 +23,11 @@ class KotlinPlugin : Plugin<Project> {
                 experimental.coroutines = Coroutines.ENABLE
             }
 
-            // TODO - apply ktlint (see https://github.com/shyiko/ktlint)
+            plugins.apply(KotlinterPlugin::class.java)
+
+            extensions.getByType(KotlinterExtension::class.java).apply {
+                ignoreFailures = true
+            }
 
             // TODO - set it up as a dependency of check task
 
