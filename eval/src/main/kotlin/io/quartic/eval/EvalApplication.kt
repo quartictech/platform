@@ -1,12 +1,9 @@
 package io.quartic.eval
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.db.DatabaseBuilder
-import io.quartic.eval.api.model.CytoscapeDag
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.websocket.WebsocketClientImpl
@@ -18,21 +15,20 @@ import kotlinx.coroutines.experimental.channels.actor
 
 class EvalApplication : ApplicationBase<EvalConfiguration>() {
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
+        val database = database(configuration, environment)
+
         with(environment.jersey()) {
-            register(EvalResource(evaluator(configuration, environment).channel))
-            register(QueryResource(defaultPipeline()))      // TODO: remove default pipeline
+            register(EvalResource(evaluator(configuration, database).channel))
+            register(QueryResource(database))
         }
     }
 
-    private fun defaultPipeline() =
-        OBJECT_MAPPER.readValue<CytoscapeDag>(javaClass.getResourceAsStream("/pipeline.json"))
-
-    private fun evaluator(configuration: EvalConfiguration, environment: Environment): ActorJob<TriggerDetails> {
+    private fun evaluator(configuration: EvalConfiguration, database: Database): ActorJob<TriggerDetails> {
         val evaluator = Evaluator(
             clientBuilder.retrofit(configuration.registryUrl),
             qube(configuration),
             github(configuration),
-            database(configuration, environment),
+            database,
             notifier(configuration),
             clientBuilder
         )

@@ -1,10 +1,10 @@
 package io.quartic.eval
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.quartic.common.model.CustomerId
-import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
+import io.quartic.common.model.CustomerId
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildResult
 import io.quartic.quarty.model.QuartyMessage
@@ -75,7 +75,7 @@ interface Database {
         order by event.time desc
         limit 1
         """)
-    fun getLatestSuccess(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow
+    fun getLatestSuccess(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow?
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)
