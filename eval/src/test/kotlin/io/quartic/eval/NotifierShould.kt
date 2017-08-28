@@ -23,7 +23,7 @@ class NotifierShould {
         repoId = 5678,
         repoName = "noob",
         cloneUrl = URI("https://noob.com/foo/bar"),
-        ref = "ref/heads/develop",
+        ref = "refs/heads/develop",
         commit = "abc123",
         timestamp = Instant.MIN
     )
