@@ -89,6 +89,17 @@ class DatabaseShould {
     }
 
     @Test
+    fun get_latest_success_fails_on_nonexistent() {
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val eventId = UUID.randomUUID()
+        val time = Instant.now()
+        database.insertBuild(buildId, CustomerId(100L), triggerDetails, time)
+        database.insertPhase(phaseId, buildId,"Thing", time)
+        assertThat(database.getLatestSuccess(CustomerId(100L)), nullValue())
+    }
+
+    @Test
     fun use_sequential_build_numbers_per_customer() {
         val customerA = CustomerId(100L)
         val customerB = CustomerId(101L)
@@ -105,6 +116,7 @@ class DatabaseShould {
             assertThat(database.getBuild(idB).buildNumber, equalTo(count.toLong()))
         }
     }
+
 
     @Test
     fun disallow_duplicate_build_ids() {
