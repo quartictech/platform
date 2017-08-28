@@ -10,12 +10,13 @@ import java.util.concurrent.CompletableFuture
 import java.util.stream.Stream
 import kotlin.streams.toList
 
-typealias QuartyErrorDetail = Any?
+// TODO: Fix this
+typealias QuartyErrorDetail = Any
 
 class QuartyClient(val quarty: Quarty) {
     sealed class QuartyResult {
         data class Success(val messages: List<QuartyMessage>, val result: List<Step>): QuartyResult()
-        data class Failure(val messages: List<QuartyMessage>, val detail: QuartyErrorDetail) : QuartyResult()
+        data class Failure(val messages: List<QuartyMessage>, val detail: QuartyErrorDetail?) : QuartyResult()
     }
 
     constructor(clientBuilder: ClientBuilder, url: String) :
