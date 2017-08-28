@@ -19,6 +19,7 @@ import io.quartic.quarty.model.QuartyMessage.Result
 import io.quartic.quarty.model.Step
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.nullValue
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.statement.UnableToExecuteStatementException
 import org.junit.BeforeClass
@@ -81,11 +82,10 @@ class DatabaseShould {
     fun get_latest_success_fails_on_nonexistent() {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
-        val eventId = UUID.randomUUID()
         val time = Instant.now()
-        database.insertBuild(buildId, CustomerId(100L), triggerDetails, time)
-        database.insertPhase(phaseId, buildId,"Thing", time)
-        assertThat(database.getLatestSuccess(CustomerId(100L)), nullValue())
+        DATABASE.insertBuild(buildId, customerId, triggerDetails, time)
+        DATABASE.insertPhase(phaseId, buildId,"Thing", time)
+        assertThat(DATABASE.getLatestSuccess(customerId), nullValue())
     }
 
     @Test
