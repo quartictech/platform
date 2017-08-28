@@ -8,7 +8,6 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.eval.api.model.CytoscapeDag
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.apis.Database
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient

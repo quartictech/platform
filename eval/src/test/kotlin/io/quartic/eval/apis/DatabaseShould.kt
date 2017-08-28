@@ -6,6 +6,8 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.common.db.DatabaseBuilder
+import io.quartic.common.db.setupDbi
+import io.quartic.eval.Database
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.QuartyMessage
@@ -14,11 +16,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.net.URI
-import io.quartic.eval.apis.Database.EventType
+import io.quartic.eval.Database.EventType
+import io.quartic.eval.model.BuildResult
 import java.time.Instant
 import org.hamcrest.MatcherAssert.*
 import org.hamcrest.CoreMatchers.*
+import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.statement.UnableToExecuteStatementException
+import org.postgresql.util.PGobject
 import java.util.*
 
 class DatabaseShould {
@@ -27,10 +32,12 @@ class DatabaseShould {
     var pg = EmbeddedPostgresRules.singleInstance()
 
     private lateinit var database: Database
+    private lateinit var dbi: Jdbi
 
     @Before
     fun setUp() {
         database = DatabaseBuilder.testDao(Database::class.java, pg.embeddedPostgres.postgresDatabase)
+        dbi = setupDbi(Jdbi.create(pg.embeddedPostgres.postgresDatabase))
     }
 
     @Test
@@ -78,7 +85,7 @@ class DatabaseShould {
         database.insertPhase(phaseId, buildId,"Thing", time)
         database.insertTerminalEvent(eventId, phaseId, EventType.SUCCESS, BuildResult.Success(steps), time)
         val dag = database.getLatestDag(CustomerId(100L))
-        assertThat(dag.message.dag, equalTo(steps))
+        assertThat(dag.message.steps, equalTo(steps))
     }
 
     @Test
@@ -117,6 +124,38 @@ class DatabaseShould {
 
         assertThat(buildResultDeser.get("version") as Int, equalTo(BuildResult.VERSION))
     }
+
+    @Test
+    fun check_build_result_version() {
+        val buildResult = BuildResult.Success(steps)
+
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        database.insertBuild(buildId, CustomerId(100L), triggerDetails, time)
+        database.insertPhase(phaseId, buildId, "noob", time)
+        database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.SUCCESS, buildResult, time)
+
+        // Tweak the JSON to change the version
+        val json = OBJECT_MAPPER.writeValueAsString(buildResult)
+        val buildResultFudge = OBJECT_MAPPER.readValue<MutableMap<String, Any>>(json)
+        buildResultFudge.set("version", -100)
+        val jsonFudge = OBJECT_MAPPER.writeValueAsString(buildResultFudge)
+
+        // Fudge the value in the DB
+        val pgObject = PGobject()
+        pgObject.type = "jsonb"
+        pgObject.value = jsonFudge
+        dbi.open().createUpdate("update event set message = :message")
+            .bind("message", pgObject)
+            .execute()
+
+        assertThrows<IllegalStateException> {
+            database.getLatestDag(CustomerId(100))
+        }
+    }
+
+
 
     val steps = listOf(
         Step(

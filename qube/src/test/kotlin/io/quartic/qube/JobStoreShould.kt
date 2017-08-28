@@ -31,7 +31,7 @@ class JobStoreShould {
     @Before
     fun setUp() {
         dbi = setupDbi(Jdbi.create(pg.embeddedPostgres.postgresDatabase))
-        jobStore = DatabaseBuilder.testDao(JobStoreShould::class.java, pg.embeddedPostgres.postgresDatabase)
+        jobStore = DatabaseBuilder.testDao(javaClass, pg.embeddedPostgres.postgresDatabase)
     }
 
     @Test

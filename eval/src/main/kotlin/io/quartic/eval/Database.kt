@@ -1,4 +1,4 @@
-package io.quartic.eval.apis
+package io.quartic.eval
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.model.CustomerId
@@ -6,6 +6,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.model.BuildResult
 import io.quartic.quarty.model.QuartyMessage
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
@@ -54,8 +55,15 @@ interface Database {
     }
 
     class BuildResultSuccessColumnMapper: ColumnMapper<BuildResult.Success> {
-        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success =
-            OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
+        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success {
+            val buildResult = OBJECT_MAPPER.readValue<BuildResult.Success>(r!!.getString(columnNumber))
+
+            if (buildResult.version != BuildResult.VERSION) {
+                throw IllegalStateException("Version mismatch: ${buildResult.version} != ${BuildResult.VERSION}")
+            }
+
+            return buildResult
+        }
     }
 
 
@@ -98,9 +106,9 @@ interface Database {
                     @Bind("time") time: Instant)
 
     @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
-    fun insertTerminalEvent(@Bind("id") id: UUID?,
+    fun insertTerminalEvent(@Bind("id") id: UUID,
                             @Bind("phase_id") phaseId: UUID,
                             @Bind("type") type: EventType,
                             @BindJson("message") result: BuildResult,
-                            @Bind("time") time: Instant?)
+                            @Bind("time") time: Instant)
 }

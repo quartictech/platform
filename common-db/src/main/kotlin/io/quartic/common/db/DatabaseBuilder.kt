@@ -11,7 +11,6 @@ import io.quartic.common.secrets.SecretsCodec
 import org.flywaydb.core.Flyway
 import org.jdbi.v3.core.Jdbi
 import java.io.File
-import java.util.*
 import javax.sql.DataSource
 
 class DatabaseBuilder(
@@ -21,7 +20,7 @@ class DatabaseBuilder(
     val secretsCodec: SecretsCodec) {
     val LOG by logger()
 
-    fun launchEmbdeedPostgres(): DataSourceFactory {
+    fun launchEmbeddedPostgres(): DataSourceFactory {
             LOG.warn("\n" + """
                 #####################################################################
                 #                                                                   #
@@ -38,12 +37,11 @@ class DatabaseBuilder(
 
     inline fun <reified T> dao(): T {
         val database = if (configuration.runEmbedded) {
-            launchEmbdeedPostgres()
+            launchEmbeddedPostgres()
         } else {
             configuration.dataSource.dataSourceFactory(secretsCodec)
         }
 
-        LOG.info("hello")
         val details = ApplicationDetails(owner)
         database.validationQuery = "/* ${details.name} - ${details.version} Health Check */ SELECT 1"
         database.properties = mutableMapOf(

@@ -16,7 +16,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
     private val LOG by logger()
     override fun runApplication(configuration: QubeConfiguration, environment: Environment) {
         val databaseBuilder = DatabaseBuilder(
-            QubeApplication::class.java,
+            javaClass,
             configuration.database,
             environment,
             SecretsCodec(configuration.masterKeyBase64)

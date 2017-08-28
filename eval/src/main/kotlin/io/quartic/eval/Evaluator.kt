@@ -5,9 +5,8 @@ import io.quartic.common.coroutines.cancellable
 import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.apis.Database
-import io.quartic.eval.apis.BuildResult
-import io.quartic.eval.apis.BuildResult.*
+import io.quartic.eval.model.BuildResult
+import io.quartic.eval.model.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
@@ -23,7 +22,7 @@ import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
-import io.quartic.eval.apis.Database.EventType
+import io.quartic.eval.Database.EventType
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -81,17 +80,17 @@ class Evaluator(
     }
 
     private suspend fun insertEvents(phaseId: UUID, output: Output) = run(threadPool) {
+        val now = Instant.now()
         output.messages
-            .forEach { message -> database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, message, Instant.now()) }
+            .forEach { message -> database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, message, now) }
 
-        when (output.result) {
-            is BuildResult.Success ->
-                database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.SUCCESS, output.result, Instant.now())
-            is BuildResult.UserError ->
-                database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.USER_ERROR, output.result, Instant.now())
-             is BuildResult.InternalError ->
-                database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.INTERNAL_ERROR, output.result, Instant.now())
+
+        val eventType = when (output.result) {
+            is BuildResult.Success -> EventType.SUCCESS
+            is BuildResult.UserError -> EventType.USER_ERROR
+            is BuildResult.InternalError -> EventType.INTERNAL_ERROR
         }
+        database.insertTerminalEvent(UUID.randomUUID(), phaseId, eventType, output.result, now)
     }
 
     private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
