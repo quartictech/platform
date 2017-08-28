@@ -2,7 +2,7 @@ package io.quartic.qube
 
 import io.fabric8.kubernetes.api.model.Pod
 import io.quartic.common.application.ConfigurationBase
-import io.quartic.db.DatabaseConfiguration
+import io.quartic.common.db.DatabaseConfiguration
 
 data class KubernetesConfiguraration(
     val namespace: String,

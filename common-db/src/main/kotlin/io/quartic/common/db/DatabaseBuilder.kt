@@ -1,4 +1,4 @@
-package io.quartic.db
+package io.quartic.common.db
 
 import com.github.arteam.jdbi3.JdbiFactory
 import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy

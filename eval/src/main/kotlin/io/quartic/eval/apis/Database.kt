@@ -3,8 +3,8 @@ package io.quartic.eval.apis
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.db.BindJson
-import io.quartic.db.CustomerIdColumnMapper
+import io.quartic.common.db.BindJson
+import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.quarty.model.QuartyMessage
 import org.jdbi.v3.core.mapper.ColumnMapper

@@ -1,4 +1,4 @@
-package io.quartic.db
+package io.quartic.common.db
 
 import io.dropwizard.db.DataSourceFactory
 import io.dropwizard.util.Duration

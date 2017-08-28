@@ -5,7 +5,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.db.DatabaseBuilder
+import io.quartic.common.db.DatabaseBuilder
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource

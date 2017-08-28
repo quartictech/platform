@@ -1,4 +1,4 @@
-package io.quartic.db
+package io.quartic.common.db
 
 import io.quartic.common.model.CustomerId
 import org.jdbi.v3.core.argument.AbstractArgumentFactory

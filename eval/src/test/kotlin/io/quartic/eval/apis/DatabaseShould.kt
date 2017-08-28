@@ -5,7 +5,7 @@ import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
-import io.quartic.db.DatabaseBuilder
+import io.quartic.common.db.DatabaseBuilder
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.QuartyMessage

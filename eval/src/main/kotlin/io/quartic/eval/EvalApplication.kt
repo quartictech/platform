@@ -5,7 +5,7 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.db.DatabaseBuilder
+import io.quartic.common.db.DatabaseBuilder
 import io.quartic.eval.api.model.CytoscapeDag
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database

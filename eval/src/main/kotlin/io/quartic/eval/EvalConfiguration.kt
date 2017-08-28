@@ -2,7 +2,7 @@ package io.quartic.eval
 
 import io.quartic.common.application.ConfigurationBase
 import io.quartic.common.secrets.EncryptedSecret
-import io.quartic.db.DatabaseConfiguration
+import io.quartic.common.db.DatabaseConfiguration
 import io.quartic.qube.api.model.ContainerSpec
 import java.net.URI
 

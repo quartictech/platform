@@ -1,4 +1,4 @@
-package io.quartic.db
+package io.quartic.common.db
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.model.CustomerId
