@@ -1,7 +1,9 @@
 package io.quartic.eval.apis
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.model.CustomerId
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.db.DatabaseBuilder
 import io.quartic.eval.api.model.TriggerDetails
@@ -105,6 +107,15 @@ class DatabaseShould {
         assertThrows<UnableToExecuteStatementException> {
             database.insertBuild(id, CustomerId(100), triggerDetails, Instant.now())
         }
+    }
+
+    @Test
+    fun serialize_build_result_version() {
+        val buildResult = BuildResult.Success(steps)
+        val json = OBJECT_MAPPER.writeValueAsString(buildResult)
+        val buildResultDeser = OBJECT_MAPPER.readValue<Map<String, Any>>(json)
+
+        assertThat(buildResultDeser.get("version") as Int, equalTo(BuildResult.VERSION))
     }
 
     val steps = listOf(

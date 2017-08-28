@@ -6,7 +6,7 @@ import io.quartic.quarty.model.Step
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property="type")
 sealed class BuildResult {
-    val version: Long = 1
+    val version = VERSION
 
     @JsonTypeName("success")
     data class Success(val dag: List<Step>) : BuildResult()
@@ -16,4 +16,8 @@ sealed class BuildResult {
 
     @JsonTypeName("user_error")
     data class UserError(val detail: Any?) : BuildResult()
+
+    companion object {
+        val VERSION = 1
+    }
 }
