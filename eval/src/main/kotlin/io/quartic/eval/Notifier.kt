@@ -1,7 +1,7 @@
 package io.quartic.eval
 
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.database.Database.BuildResult
+import io.quartic.eval.model.BuildResult
 import io.quartic.hey.api.*
 import java.time.Clock
 import java.time.ZoneOffset
@@ -14,7 +14,7 @@ class Notifier(
         // TODO - include build number in title
         // TODO - add a URL to results page or whatever
         // TODO - more useful description of internal vs. user errors
-        client.notify(HeyNotification(listOf(
+        client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = when (result) {
                     is BuildResult.Success -> "Build succeeded"
@@ -23,11 +23,11 @@ class Notifier(
                 text = when (result) {
                     is BuildResult.Success -> "Success"
                     is BuildResult.InternalError -> result.throwable.message ?: "Internal error"
-                    is BuildResult.UserError -> result.message
+                    is BuildResult.UserError -> result.detail as? String ?: "Failure"
                 },
                 fields = listOf(
                     HeyField("Repo", trigger.repoName, true),
-                    HeyField("Branch", trigger.ref, true)
+                    HeyField("Branch", trigger.ref.removePrefix("ref/heads/"), true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = when (result) {

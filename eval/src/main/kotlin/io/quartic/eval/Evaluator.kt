@@ -4,24 +4,30 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
+import io.quartic.common.model.CustomerId
+import io.quartic.eval.Database.EventType
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.database.Database
-import io.quartic.eval.database.Database.BuildResult
-import io.quartic.eval.database.Database.BuildResult.*
+import io.quartic.eval.model.BuildResult
+import io.quartic.eval.model.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.QuartyClient.QuartyResult
+import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
+import kotlinx.coroutines.experimental.newFixedThreadPoolContext
+import kotlinx.coroutines.experimental.run
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
+import java.time.Instant
+import java.util.*
 import java.util.concurrent.CompletableFuture
 
 // TODO - retries
@@ -48,15 +54,46 @@ class Evaluator(
         { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
 
+    private val threadPool = newFixedThreadPoolContext(2, "database")
     private val LOG by logger()
 
+    data class Output(
+        val result: BuildResult,
+        val messages: List<QuartyMessage> = listOf()
+    )
+
     suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
+        val startTime = Instant.now()
         val customer = getCustomer(trigger)
+
         if (customer != null) {
-            val result = runBuild(trigger)
-            database.writeResult(customer.id, result)
-            notifier.notifyAbout(trigger, result)
+            val phaseId = insertBuild(customer.id, trigger, startTime)
+            val output = runBuild(trigger)
+            notifier.notifyAbout(trigger, output.result)
+            insertEvents(phaseId, output)
         }
+    }
+
+    private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails, startTime: Instant): UUID = run(threadPool) {
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        database.insertBuild(buildId, customerId, trigger, startTime)
+        database.insertPhase(phaseId, buildId, "Evaluating DAG", startTime)
+        phaseId
+    }
+
+    private suspend fun insertEvents(phaseId: UUID, output: Output) = run(threadPool) {
+        val now = Instant.now()
+        output.messages
+            .forEach { message -> database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, message, now) }
+
+
+        val eventType = when (output.result) {
+            is BuildResult.Success -> EventType.SUCCESS
+            is BuildResult.UserError -> EventType.USER_ERROR
+            is BuildResult.InternalError -> EventType.INTERNAL_ERROR
+        }
+        database.insertTerminalEvent(UUID.randomUUID(), phaseId, eventType, output.result, now)
     }
 
     private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
@@ -71,11 +108,11 @@ class Evaluator(
         }
     )
 
-    private suspend fun runBuild(trigger: TriggerDetails) = cancellable(
+    private suspend fun runBuild(trigger: TriggerDetails): Output = cancellable(
         block = {
             qube.createContainer().use { container ->
                 getDagAsync(container, trigger).use { getDag ->
-                    select<BuildResult> {
+                    select<Output> {
                         getDag.onAwait { transformQuartyResult(it) }
                         container.errors.onReceive { throw it }
                     }
@@ -84,20 +121,20 @@ class Evaluator(
         },
         onThrow = { t ->
             LOG.error("Build failure", t)
-            InternalError(t)
+            Output(BuildResult.InternalError(t))
         }
     )
 
     private fun transformQuartyResult(it: QuartyClient.QuartyResult?) = when (it) {
         is QuartyResult.Success -> {
-            if (dagIsValid(it.dag)) {
-                Success(it.dag)
+            if (dagIsValid(it.result)) {
+                Output(Success(it.result), it.messages)
             } else {
-                UserError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+                Output(UserError("DAG is invalid"), it.messages)     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
-        is QuartyResult.Failure -> UserError(it.log)
-        null -> InternalError(RuntimeException("Missing result or failure from Quarty"))
+        is QuartyResult.Failure -> Output(UserError(it.detail), it.messages)
+        null -> Output(InternalError(RuntimeException("Missing result or failure from Quarty")))
     }
 
     private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {

@@ -3,8 +3,9 @@ package io.quartic.qube
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.common.db.DatabaseBuilder
 import io.quartic.qube.store.JobStore
-import io.quartic.qube.store.setupDbi
+import io.quartic.common.db.setupDbi
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.model.ContainerSpec
 import org.junit.Before
@@ -30,8 +31,7 @@ class JobStoreShould {
     @Before
     fun setUp() {
         dbi = setupDbi(Jdbi.create(pg.embeddedPostgres.postgresDatabase))
-        jobStore = dbi.onDemand(JobStore::class.java)
-        JobStore.migrate(pg.embeddedPostgres.postgresDatabase)
+        jobStore = DatabaseBuilder.testDao(javaClass, pg.embeddedPostgres.postgresDatabase)
     }
 
     @Test

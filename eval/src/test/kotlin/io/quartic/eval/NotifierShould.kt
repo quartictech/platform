@@ -3,7 +3,7 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.database.Database.BuildResult.*
+import io.quartic.eval.model.BuildResult.*
 import io.quartic.hey.api.*
 import org.junit.Test
 import java.net.URI
@@ -23,7 +23,7 @@ class NotifierShould {
         repoId = 5678,
         repoName = "noob",
         cloneUrl = URI("https://noob.com/foo/bar"),
-        ref = "develop",
+        ref = "ref/heads/develop",
         commit = "abc123",
         timestamp = Instant.MIN
     )
@@ -32,7 +32,7 @@ class NotifierShould {
     fun send_success_on_success() {
         notifier.notifyAbout(trigger, Success(emptyList()))
 
-        verify(hey).notify(HeyNotification(listOf(
+        verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build succeeded",
                 text = "Success",
@@ -50,7 +50,7 @@ class NotifierShould {
     fun send_error_on_internal_error() {
         notifier.notifyAbout(trigger, InternalError(RuntimeException("Noob occurred")))
 
-        verify(hey).notify(HeyNotification(listOf(
+        verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build failed",
                 text = "Noob occurred",
@@ -68,7 +68,7 @@ class NotifierShould {
     fun send_error_with_default_message_on_internal_error_without_message() {
         notifier.notifyAbout(trigger, InternalError(RuntimeException()))
 
-        verify(hey).notify(HeyNotification(listOf(
+        verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build failed",
                 text = "Internal error",
@@ -86,7 +86,7 @@ class NotifierShould {
     fun send_error_on_user_error() {
         notifier.notifyAbout(trigger, UserError("You caused a noob"))
 
-        verify(hey).notify(HeyNotification(listOf(
+        verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build failed",
                 text = "You caused a noob",

@@ -16,6 +16,7 @@ service {
 dependencies {
     compile project(":eval-api")
     compile project(":common-application")
+    compile project(":common-db")
     compile project(":registry-api")
     compile project(":hey-api")
     compile project(":qube-api")

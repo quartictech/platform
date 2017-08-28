@@ -2,8 +2,9 @@ package io.quartic.eval
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.common.db.DatabaseBuilder
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.database.NoobDatabase
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
@@ -14,13 +15,15 @@ import kotlinx.coroutines.experimental.channels.actor
 
 class EvalApplication : ApplicationBase<EvalConfiguration>() {
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
+        val database = database(configuration, environment)
+
         with(environment.jersey()) {
-            register(EvalResource(evaluator(configuration).channel))
+            register(EvalResource(evaluator(configuration, database).channel))
             register(QueryResource(database))
         }
     }
 
-    private fun evaluator(configuration: EvalConfiguration): ActorJob<TriggerDetails> {
+    private fun evaluator(configuration: EvalConfiguration, database: Database): ActorJob<TriggerDetails> {
         val evaluator = Evaluator(
             clientBuilder.retrofit(configuration.registryUrl),
             qube(configuration),
@@ -33,8 +36,6 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             for (details in channel) evaluator.evaluateAsync(details)
         }
     }
-
-    private val database = NoobDatabase()   // TODO - do this properly
 
     private fun notifier(config: EvalConfiguration) = Notifier(clientBuilder.retrofit(config.heyUrl))
 
@@ -49,6 +50,14 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         WebsocketClientImpl.create(config.qube.url),
         config.qube.container
     )
+
+    private fun database(config: EvalConfiguration, environment: Environment) =
+        DatabaseBuilder(
+            EvalApplication::class.java,
+            config.database,
+            environment,
+            SecretsCodec(config.masterKeyBase64)
+        ).dao<Database>()
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)
