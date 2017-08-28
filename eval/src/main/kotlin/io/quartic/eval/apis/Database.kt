@@ -1,7 +1,5 @@
 package io.quartic.eval.apis
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -9,7 +7,6 @@ import io.quartic.db.BindJson
 import io.quartic.db.CustomerIdColumnMapper
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.quarty.model.QuartyMessage
-import io.quartic.quarty.model.Step
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
@@ -25,20 +22,10 @@ import java.util.*
 
 @RegisterColumnMappers(
     RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class),
-    RegisterColumnMapper(Database.DagColumnMapper::class),
+    RegisterColumnMapper(Database.BuildResultSuccessColumnMapper::class),
     RegisterColumnMapper(CustomerIdColumnMapper::class))
 interface Database {
-    @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property="type")
-    sealed class BuildResult {
-        @JsonTypeName("success")
-        data class Success(val dag: List<Step>) : BuildResult()
-        @JsonTypeName("internal_error")
-        data class InternalError(val throwable: Throwable) : BuildResult()
-        @JsonTypeName("user_error")
-        data class UserError(val detail: Any?) : BuildResult()
-    }
-
-    data class Build(
+    data class BuildRow(
         val id: UUID,
         @ColumnName("customer_id")
         val customerId: CustomerId,
@@ -49,7 +36,7 @@ interface Database {
         val time: Instant
     )
 
-    data class Dag(
+    data class BuildResultSuccessRow(
         @ColumnName("message")
         val message: BuildResult.Success
     )
@@ -66,14 +53,14 @@ interface Database {
             OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
     }
 
-    class DagColumnMapper: ColumnMapper<BuildResult.Success> {
+    class BuildResultSuccessColumnMapper: ColumnMapper<BuildResult.Success> {
         override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success =
             OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
     }
 
 
     @SqlQuery("select id, customer_id, build_number, trigger_details, time from build where id = :id")
-    fun getBuild(@Bind("id") id: UUID): Build
+    fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
         select message from event
@@ -84,7 +71,7 @@ interface Database {
         order by event.time desc
         limit 1
         """)
-    fun getLatestDag(@Bind("customer_id") customerId: CustomerId): Dag
+    fun getLatestDag(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)

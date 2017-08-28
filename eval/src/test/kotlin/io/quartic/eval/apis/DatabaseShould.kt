@@ -37,7 +37,7 @@ class DatabaseShould {
         val time = Instant.now()
         database.insertBuild(id, CustomerId(100L), triggerDetails, time)
         assertThat(database.getBuild(id), equalTo(
-            Database.Build(id, CustomerId(100), 1, triggerDetails, time)
+            Database.BuildRow(id, CustomerId(100), 1, triggerDetails, time)
         ))
     }
 
@@ -61,9 +61,9 @@ class DatabaseShould {
     fun insert_terminal_event() {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, Database.BuildResult.Success(steps), time)
+        database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, BuildResult.Success(steps), time)
         database.insertTerminalEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE,
-            Database.BuildResult.UserError(mapOf("foo" to "bar")), time)
+            BuildResult.UserError(mapOf("foo" to "bar")), time)
     }
 
     @Test
@@ -74,7 +74,7 @@ class DatabaseShould {
         val time = Instant.now()
         database.insertBuild(buildId, CustomerId(100L), triggerDetails, time)
         database.insertPhase(phaseId, buildId,"Thing", time)
-        database.insertTerminalEvent(eventId, phaseId, EventType.SUCCESS, Database.BuildResult.Success(steps), time)
+        database.insertTerminalEvent(eventId, phaseId, EventType.SUCCESS, BuildResult.Success(steps), time)
         val dag = database.getLatestDag(CustomerId(100L))
         assertThat(dag.message.dag, equalTo(steps))
     }

@@ -6,8 +6,8 @@ import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
-import io.quartic.eval.apis.Database.BuildResult
-import io.quartic.eval.apis.Database.BuildResult.*
+import io.quartic.eval.apis.BuildResult
+import io.quartic.eval.apis.BuildResult.*
 import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy

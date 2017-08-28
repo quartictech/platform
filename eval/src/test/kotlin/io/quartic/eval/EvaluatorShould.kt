@@ -5,9 +5,9 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.apis.Database
-import io.quartic.eval.apis.Database.BuildResult
-import io.quartic.eval.apis.Database.BuildResult.InternalError
-import io.quartic.eval.apis.Database.BuildResult.UserError
+import io.quartic.eval.apis.BuildResult
+import io.quartic.eval.apis.BuildResult.InternalError
+import io.quartic.eval.apis.BuildResult.UserError
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException

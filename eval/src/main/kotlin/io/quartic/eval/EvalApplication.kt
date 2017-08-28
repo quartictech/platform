@@ -42,7 +42,6 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-
     private fun notifier(config: EvalConfiguration) = Notifier(clientBuilder.retrofit(config.heyUrl))
 
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
@@ -64,7 +63,6 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             environment,
             SecretsCodec(config.masterKeyBase64)
         ).dao<Database>()
-
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)

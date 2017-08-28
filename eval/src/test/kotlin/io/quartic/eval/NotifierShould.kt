@@ -3,7 +3,7 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.apis.Database.BuildResult.*
+import io.quartic.eval.apis.BuildResult.*
 import io.quartic.hey.api.*
 import org.junit.Test
 import java.net.URI
