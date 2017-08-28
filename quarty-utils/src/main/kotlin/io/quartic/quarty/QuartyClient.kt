@@ -10,10 +10,13 @@ import java.util.concurrent.CompletableFuture
 import java.util.stream.Stream
 import kotlin.streams.toList
 
+// TODO: Fix this
+typealias QuartyErrorDetail = Any
+
 class QuartyClient(val quarty: Quarty) {
     sealed class QuartyResult {
-        data class Success(val log: String, val dag: List<Step>) : QuartyResult()
-        data class Failure(val log: String) : QuartyResult()
+        data class Success(val messages: List<QuartyMessage>, val result: List<Step>): QuartyResult()
+        data class Failure(val messages: List<QuartyMessage>, val detail: QuartyErrorDetail?) : QuartyResult()
     }
 
     constructor(clientBuilder: ClientBuilder, url: String) :
@@ -32,14 +35,11 @@ class QuartyClient(val quarty: Quarty) {
     fun getResult(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> = stream(repoUrl, repoCommit)
         .thenApply { stream ->
             val messages = stream.toList()
-            val log = messages.filter { message -> message is QuartyMessage.Log }
-                .map { message -> (message as QuartyMessage.Log).line }
-                .joinToString("\n")
 
             messages.map { message ->
                 when (message) {
-                    is QuartyMessage.Result -> QuartyResult.Success(log, message.result)
-                    is QuartyMessage.Error -> QuartyResult.Failure(log)
+                    is QuartyMessage.Result -> QuartyResult.Success(messages, message.result)
+                    is QuartyMessage.Error -> QuartyResult.Failure(messages, message.detail)
                     else -> null
                 }
             }.filterNotNull().first()

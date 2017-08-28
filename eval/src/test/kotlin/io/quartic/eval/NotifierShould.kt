@@ -3,7 +3,7 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.apis.Database.BuildResult.*
+import io.quartic.eval.model.BuildResult.*
 import io.quartic.hey.api.*
 import org.junit.Test
 import java.net.URI
@@ -23,7 +23,7 @@ class NotifierShould {
         repoId = 5678,
         repoName = "noob",
         cloneUrl = URI("https://noob.com/foo/bar"),
-        ref = "ref/heads/develop",
+        ref = "refs/heads/develop",
         commit = "abc123",
         timestamp = Instant.MIN
     )

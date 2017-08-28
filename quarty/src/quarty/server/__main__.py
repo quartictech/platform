@@ -4,7 +4,6 @@ import asyncio
 import logging
 import json
 from aiohttp import web
-from aiohttp_utils import run
 from quarty.common import initialise_repo, evaluate, QuartyException, PipelineException
 
 logging.basicConfig(level=logging.INFO)
@@ -70,4 +69,4 @@ async def pipeline(request):
 
 app = web.Application()
 app.router.add_get('/pipeline', pipeline)
-run(app, app_uri='quarty.server.__main__:app', reload=False, port=8080)
+web.run_app(app, port=8080)

@@ -1,25 +1,28 @@
 package io.quartic.qube
 
-import com.github.arteam.jdbi3.JdbiFactory
-import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.db.DatabaseBuilder
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource
 import io.quartic.qube.store.JobStore
-import io.quartic.qube.store.setupDbi
 import io.vertx.core.Vertx
-import java.io.File
 
 class QubeApplication : ApplicationBase<QubeConfiguration>() {
     private val LOG by logger()
     override fun runApplication(configuration: QubeConfiguration, environment: Environment) {
-        val jobStore = jobStore(environment, configuration.database, SecretsCodec(configuration.masterKeyBase64))
+        val databaseBuilder = DatabaseBuilder(
+            javaClass,
+            configuration.database,
+            environment,
+            SecretsCodec(configuration.masterKeyBase64)
+        )
+
+        val jobStore = databaseBuilder.dao<JobStore>()
 
         if (configuration.kubernetes.enable) {
             val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)
@@ -46,21 +49,6 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             register(BackChannelResource())
         }
 
-    }
-
-    private fun jobStore(environment: Environment, configuration: DatabaseConfiguration, secretsCodec: SecretsCodec): JobStore {
-         if (configuration.runEmbedded) {
-             LOG.warn("Postgres is running in embedded mode!!")
-             EmbeddedPostgres.builder()
-                 .setPort(configuration.dataSource.port)
-                 .setCleanDataDirectory(false)
-                 .setDataDirectory(File("./data"))
-                 .start()
-        }
-        val database = configuration.dataSource.dataSourceFactory(secretsCodec)
-        JobStore.migrate(database.build(environment.metrics(), "flyway"))
-        val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, database, "postgres")
-        return setupDbi(dbi).onDemand(JobStore::class.java)
     }
 
     companion object {
