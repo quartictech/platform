@@ -11,15 +11,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(QuartyMessage.Error::class, name = "error")
 )
 sealed class QuartyMessage {
-    @JsonSubTypes.Type(value = QuartyMessage.Progress::class, name = "progress")
     data class Progress(val message: String) : QuartyMessage()
 
-    @JsonSubTypes.Type(value = QuartyMessage.Log::class, name = "log")
     data class Log(val stream: String, val line: String) : QuartyMessage()
 
-    @JsonSubTypes.Type(value = QuartyMessage.Result::class, name = "result")
     data class Result(val result: List<Step>) : QuartyMessage()
 
-    @JsonSubTypes.Type(value = QuartyMessage.Error::class, name = "error")
     data class Error(val detail: Any) : QuartyMessage()
 }
