@@ -15,7 +15,7 @@ sealed class BuildResult {
 
     fun checkVersion() {
         if(version != VERSION) {
-            throw IllegalArgumentException("Version mismatch: ${version} != ${VERSION}")
+            throw IllegalStateException("Version mismatch: ${version} != ${VERSION}")
         }
     }
 
