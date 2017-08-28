@@ -75,7 +75,7 @@ interface Database {
         order by event.time desc
         limit 1
         """)
-    fun getLatestDag(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow
+    fun getLatestSuccess(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)

@@ -76,7 +76,7 @@ class DatabaseShould {
     }
 
     @Test
-    fun get_latest_dag() {
+    fun get_latest_success() {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         val eventId = UUID.randomUUID()
@@ -84,7 +84,7 @@ class DatabaseShould {
         database.insertBuild(buildId, CustomerId(100L), triggerDetails, time)
         database.insertPhase(phaseId, buildId,"Thing", time)
         database.insertTerminalEvent(eventId, phaseId, EventType.SUCCESS, BuildResult.Success(steps), time)
-        val dag = database.getLatestDag(CustomerId(100L))
+        val dag = database.getLatestSuccess(CustomerId(100L))
         assertThat(dag.message.steps, equalTo(steps))
     }
 
@@ -151,7 +151,7 @@ class DatabaseShould {
             .execute()
 
         assertThrows<IllegalStateException> {
-            database.getLatestDag(CustomerId(100))
+            database.getLatestSuccess(CustomerId(100))
         }
     }
 
