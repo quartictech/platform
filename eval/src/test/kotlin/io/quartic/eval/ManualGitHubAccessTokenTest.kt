@@ -21,11 +21,6 @@ class ManualGitHubAccessTokenTest {
     private val installationId: Long = 45267
 
     @Test
-    fun with_feign() {
-        println(client.accessToken(installationId))
-    }
-
-    @Test
     fun with_retrofit() {
         println(client.accessTokenAsync(installationId).get())
     }

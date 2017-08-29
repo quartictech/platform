@@ -1,9 +1,6 @@
 package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import feign.Headers
-import feign.Param
-import feign.RequestLine
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.client.ClientBuilder
@@ -11,6 +8,7 @@ import io.quartic.common.client.Retrofittable
 import io.quartic.common.secrets.UnsafeSecret
 import org.apache.commons.codec.binary.Base64
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 import java.net.URI
@@ -31,28 +29,17 @@ class GitHubInstallationClient(
         val token: UnsafeSecret
     )
 
-    // TODO - eliminate the non-async client, then rename the other one
-    interface GitHubInstallation {
-        @RequestLine("POST /installations/{installationId}/access_tokens")
-        @Headers("Authorization: Bearer {jwt}", "Accept: application/vnd.github.machine-man-preview+json")
-        fun installationAccessToken(
-            @Param("installationId") installationId: Long,
-            @Param("jwt") jwt: String
-        ): GitHubInstallationAccessToken
-    }
-
     @Retrofittable
     interface GitHubInstallationRetrofit {
         @POST("/installations/{installationId}/access_tokens")
-        @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
+        @Headers("Accept: application/vnd.github.machine-man-preview+json")
         fun installationAccessTokenAsync(
             @Path("installationId") installationId: Long,
             @Header("Authorization") auth: String
         ): CompletableFuture<GitHubInstallationAccessToken>
     }
 
-    private val github = clientBuilder.feign<GitHubInstallation>(githubApiRoot)
-    private val githubRetrofit = clientBuilder.retrofit<GitHubInstallationRetrofit>(githubApiRoot)
+    private val client = clientBuilder.retrofit<GitHubInstallationRetrofit>(githubApiRoot)
     private val privateKey: Key
 
     init {
@@ -74,8 +61,7 @@ class GitHubInstallationClient(
             .compact()
     }
 
-    fun accessToken(installationId: Long) = github.installationAccessToken(installationId, generateJwt())
-    fun accessTokenAsync(installationId: Long) = githubRetrofit.installationAccessTokenAsync(installationId, "Bearer ${generateJwt()}")
+    fun accessTokenAsync(installationId: Long) = client.installationAccessTokenAsync(installationId, "Bearer ${generateJwt()}")
 }
 
 
