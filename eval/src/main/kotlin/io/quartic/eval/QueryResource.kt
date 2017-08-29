@@ -43,5 +43,5 @@ class QueryResource(private val database: Database) : EvalQueryService {
         )
     }.toSet()
 
-    private val Dataset.title get() = "${namespace}::${datasetId}"
+    private val Dataset.title get() = "${namespace ?: ""}::${datasetId}"
 }
