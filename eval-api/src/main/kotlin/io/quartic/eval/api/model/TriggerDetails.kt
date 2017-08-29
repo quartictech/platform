@@ -13,4 +13,6 @@ data class TriggerDetails(
     val ref: String,
     val commit: String,
     val timestamp: Instant
-)
+) {
+    fun branch(): String = ref.removePrefix("refs/heads/")
+}

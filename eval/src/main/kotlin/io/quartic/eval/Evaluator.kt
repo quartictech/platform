@@ -67,19 +67,24 @@ class Evaluator(
         val customer = getCustomer(trigger)
 
         if (customer != null) {
-            val phaseId = insertBuild(customer.id, trigger, startTime)
+            val build = insertBuild(customer.id, trigger, startTime)
+            val phaseId = insertPhase(build.id, startTime)
             val output = runBuild(trigger)
-            notifier.notifyAbout(trigger, output.result)
+            notifier.notifyAbout(trigger, customer, build, output.result)
             insertEvents(phaseId, output)
         }
     }
 
-    private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails, startTime: Instant): UUID = run(threadPool) {
+    private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails, startTime: Instant): Database.BuildRow = run(threadPool) {
         val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        database.insertBuild(buildId, customerId, trigger, startTime)
-        database.insertPhase(phaseId, buildId, "Evaluating DAG", startTime)
-        phaseId
+        database.insertBuild(buildId, customerId, trigger.branch(), trigger, startTime)
+        database.getBuild(buildId)
+    }
+
+     private suspend fun insertPhase(buildId: UUID, startTime: Instant): UUID = run(threadPool) {
+         val phaseId = UUID.randomUUID()
+         database.insertPhase(phaseId, buildId, "Evaluating DAG", startTime)
+         phaseId
     }
 
     private suspend fun insertEvents(phaseId: UUID, output: Output) = run(threadPool) {

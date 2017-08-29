@@ -79,9 +79,10 @@ export function setActiveModal(activeModal) {
   };
 }
 
-export function fetchPipeline() {
+export function fetchPipeline(build: string) {
   return {
     type: constants.FETCH_PIPELINE,
+    build,
   };
 }
 
@@ -89,5 +90,11 @@ export function fetchPipelineSuccess(data) {
   return {
     type: constants.FETCH_PIPELINE_SUCCESS,
     data,
+  };
+}
+
+export function fetchPipelineNotFound() {
+  return {
+    type: constants.FETCH_PIPELINE_NOT_FOUND,
   };
 }

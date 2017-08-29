@@ -82,7 +82,7 @@ class OrchestratorShould {
     }
 
     @Test
-    fun handles_worker_exception() {
+    fun handle_worker_exception() {
         runBlocking {
             val job = async(CommonPool) {
                 throw RuntimeException("something was weird")
@@ -92,7 +92,7 @@ class OrchestratorShould {
             events.send(createClient())
             events.send(createPod())
             events.send(createPod())
-            verify(worker, timeout(500).times(2)).runAsync(any())
+            verify(worker, timeout(1000).times(2)).runAsync(any())
         }
     }
 
