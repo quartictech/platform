@@ -2,7 +2,7 @@
 set -eu
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-PAYLOAD_FILE=${DIR}/github_push_event.json
+PAYLOAD_FILE=${DIR}/github-push-event.json
 SECRET_TOKEN="JaXAybVPJmDaLk2Z7fMx"
 
 sig=$(openssl dgst -sha1 -hmac "${SECRET_TOKEN}" "${PAYLOAD_FILE}" | cut -f2 -d " ")

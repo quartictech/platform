@@ -27,5 +27,6 @@ dependencies {
     compile "org.jgrapht:jgrapht-core:1.0.1"
 
     testCompile project(":common-test")
+    testCompile libraries.embeddedPostgres
 }
 

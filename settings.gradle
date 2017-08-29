@@ -11,6 +11,8 @@ include "common-test"
 
 include "github"
 
+include "postgres"
+
 // Services
 
 include "catalogue"
