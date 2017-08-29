@@ -7,8 +7,8 @@ import * as constants from "../constants";
 
 import { checkedApiCall, watch } from "./utils";
 
-function* fetchPipeline(_action): SagaIterator {
-  const res = yield* checkedApiCall(api.fetchDag, _action.build);
+function* fetchPipeline(action): SagaIterator {
+  const res = yield* checkedApiCall(api.fetchDag, action.build);
   if (!res.err) {
     yield put(actions.fetchPipelineSuccess(res.data));
   } else if (res.err.status === 404) {

@@ -3,6 +3,7 @@ package io.quartic.eval
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
+import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -142,14 +143,8 @@ class DatabaseShould {
         val json = OBJECT_MAPPER.writeValueAsString(buildResult)
         val buildResultFudge = OBJECT_MAPPER.readValue<MutableMap<String, Any>>(json)
         buildResultFudge.set("version", -100)
-        val jsonFudge = OBJECT_MAPPER.writeValueAsString(buildResultFudge)
-
-        // Fudge the value in the DB
-        val pgObject = PGobject()
-        pgObject.type = "jsonb"
-        pgObject.value = jsonFudge
         DBI.open().createUpdate("update event set message = :message")
-            .bind("message", pgObject)
+            .bindJson("message", buildResultFudge)
             .execute()
 
         assertThrows<IllegalStateException> {
