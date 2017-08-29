@@ -6,11 +6,6 @@ import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 
 data class DatabaseConfiguration(
-    val runEmbedded: Boolean,
-    val dataSource: DataSourceConfiguration
-)
-
-data class DataSourceConfiguration(
     val user: String,
     val password: EncryptedSecret? = null,
     val hostName: String = "localhost",

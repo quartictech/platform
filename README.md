@@ -36,28 +36,17 @@
 
 ## Running the stack locally
 
-**Note:** The Scribe service writes to a real cloud bucket, even when running locally.
-
-1. Start the services (backend and frontend):
-
-   ```
-   SKIP_FRONTEND= ./gradlew run --parallel
-   ```
-
-2. Run data imports (using `weyl_imports` scripts in `dilectic` repo, or `scripts/import-pub-tour.sh`).
-
-## Variations
-
-To run a subset of services (example):
+In general, you won't want or need to run the entire stack locally, because it will be slow and may require too much
+memory.  So a subset of services can be run as in the following example:
 
 ```
-SKIP_FRONTEND= ./gradlew :catalogue:run :weyl:run --parallel
+SKIP_FRONTEND= ./gradlew home:run eval:run registry:run postgres:run --parallel
 ```
 
-To run a service with reduced memory (example):
+Frontend components are best run separately in development (to benefit from hot reloading).  So in another terminal:
 
 ```
-SKIP_FRONTEND= WEYL_MEMORY=4g ./gradlew run --parallel
+./gradlew home-front:run
 ```
 
 
@@ -75,6 +64,7 @@ entries to the `build.gradle` file for the relevant subproject.  `package.json` 
 
 Note that this will build the images with a registry name of `null` and a tag of `unknown`.  CircleCI overrides the
 `QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
+
 
 ## Documentation
 

@@ -11,9 +11,8 @@ kubernetes:
       restartPolicy: Never
 
 database:
-  runEmbedded: true
-  dataSource:
-    user: postgres
+  user: postgres
+  port: 15432
 
 websocketPort: 8202
 url:

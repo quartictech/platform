@@ -1,6 +1,12 @@
 import io.quartic.gradle.kotlin.KotlinPlugin
 
+plugins {
+    id "application"
+}
+
 apply plugin: KotlinPlugin
+
+mainClassName = "io.quartic.postgres.Postgres"
 
 dependencies {
     compile project(":common-core")
@@ -10,6 +16,8 @@ dependencies {
     compile "org.jdbi:jdbi3-kotlin:3.0.0-beta2"
     compile "org.jdbi:jdbi3-kotlin-sqlobject:3.0.0-beta2"
     compile "org.jdbi:jdbi3-postgres:3.0.0-beta2"
+
+    compile libraries.embeddedPostgres
 }
 
 

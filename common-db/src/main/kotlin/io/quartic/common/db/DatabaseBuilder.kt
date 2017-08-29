@@ -2,15 +2,11 @@ package io.quartic.common.db
 
 import com.github.arteam.jdbi3.JdbiFactory
 import com.github.arteam.jdbi3.strategies.TimedAnnotationNameStrategy
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import io.dropwizard.db.DataSourceFactory
 import io.dropwizard.setup.Environment
 import io.quartic.common.ApplicationDetails
-import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import org.flywaydb.core.Flyway
 import org.jdbi.v3.core.Jdbi
-import java.io.File
 import javax.sql.DataSource
 
 class DatabaseBuilder(
@@ -18,39 +14,19 @@ class DatabaseBuilder(
     val configuration: DatabaseConfiguration,
     val environment: Environment,
     val secretsCodec: SecretsCodec) {
-    val LOG by logger()
-
-    fun launchEmbeddedPostgres(): DataSourceFactory {
-            LOG.warn("\n" + """
-                #####################################################################
-                #                                                                   #
-                #               !!! RUNNING WITH EMBEDDED POSTGRES !!!              #
-                #                                                                   #
-                #####################################################################
-            """.trimIndent())
-            val postgres = EmbeddedPostgres.builder()
-                .setCleanDataDirectory(false)
-                .setDataDirectory(File("./data"))
-                .start()
-            return configuration.dataSource.dataSourceFactory(secretsCodec, postgres.port)
-    }
 
     inline fun <reified T> dao(): T {
-        val database = if (configuration.runEmbedded) {
-            launchEmbeddedPostgres()
-        } else {
-            configuration.dataSource.dataSourceFactory(secretsCodec)
-        }
+        val factory = configuration.dataSourceFactory(secretsCodec)
 
         val details = ApplicationDetails(owner)
-        database.validationQuery = "/* ${details.name} - ${details.version} Health Check */ SELECT 1"
-        database.properties = mutableMapOf(
+        factory.validationQuery = "/* ${details.name} - ${details.version} Health Check */ SELECT 1"
+        factory.properties = mutableMapOf(
             "ApplicationName" to "${details.name} - ${details.version}"
         )
 
-        migrate(owner, database.build(environment.metrics(), "flyway"))
+        migrate(owner, factory.build(environment.metrics(), "flyway"))
 
-        val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, database, "postgres")
+        val dbi = JdbiFactory(TimedAnnotationNameStrategy()).build(environment, factory, "postgres")
         return setupDbi(dbi).onDemand(T::class.java)
     }
 
