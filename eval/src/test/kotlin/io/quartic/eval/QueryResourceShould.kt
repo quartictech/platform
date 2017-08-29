@@ -74,11 +74,40 @@ class QueryResourceShould {
         ))
     }
 
-    private fun node(id: String, type: String) =
-        CytoscapeNode(CytoscapeNodeData("test::${id}", "test::${id}", type))
+    @Test
+    fun show_nothing_for_null_namespaces() {
+        val steps = listOf(
+            Step(
+                id = "123",
+                name = "foo",
+                description = "whatever",
+                file = "whatever",
+                lineRange = emptyList(),
+                inputs = listOf(dataset("A", null)),
+                outputs = listOf(dataset("B", null))
+            )
+        )
 
-    private fun edge(id: Long, source: String, target: String) =
-        CytoscapeEdge(CytoscapeEdgeData(id, "test::${source}", "test::${target}"))
+        whenever(database.getLatestSuccess(CustomerId("999"))).thenReturn(BuildResultSuccessRow(Success(steps)))
 
-    private fun dataset(id: String) = Dataset("test", id)
+        assertThat(resource.getDag(CustomerId("999")), equalTo(
+            CytoscapeDag(
+                setOf(
+                    node("A", "raw", ""),       // Note null becomes empty string
+                    node("B", "derived", "")
+                ),
+                setOf(
+                    edge(0, "A", "B", "")
+                )
+            )
+        ))
+    }
+
+    private fun node(id: String, type: String, namespace: String = "test") =
+        CytoscapeNode(CytoscapeNodeData("${namespace}::${id}", "${namespace}::${id}", type))
+
+    private fun edge(id: Long, source: String, target: String, namespace: String = "test") =
+        CytoscapeEdge(CytoscapeEdgeData(id, "${namespace}::${source}", "${namespace}::${target}"))
+
+    private fun dataset(id: String, namespace: String? = "test") = Dataset(namespace, id)
 }
