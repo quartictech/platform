@@ -20,8 +20,11 @@ import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
+import retrofit2.HttpException
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutionException
 import javax.annotation.security.PermitAll
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -40,11 +43,18 @@ class HomeResource(
     // TODO - frontend will need to cope with DatasetNamespace in request paths and GET /datasets response
 
     // TODO - how does frontend know what namespace to use for dataset creation?
-
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User) = eval.getDagAsync(user.customerId!!).get()
+    fun getLatestDag(@Auth user: User) = eval.getDagAsync(user.customerId!!)
+        .wrapNotFound("DAG", "latest")
+
+
+    @GET
+    @Path("/dag/{build}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getDag(@Auth user: User, @PathParam("build") build: Long) = eval.getDagAsync(user.customerId!!, build)
+        .wrapNotFound("DAG", build)
 
     @GET
     @Path("/datasets")
@@ -151,7 +161,18 @@ class HomeResource(
         }
     }
 
-    private fun notFoundException(type: String, name: String) = NotFoundException("$type '$name' not found")
+    private fun <T> CompletableFuture<T>.wrapNotFound(type: String, name: Any): T = try {
+        get()
+    } catch (e: ExecutionException) {
+        val cause = e.cause
+        if (cause is HttpException && cause.code() == 404) {
+            throw notFoundException(type, name)
+        } else {
+            throw cause!!
+        }
+    }
+
+    private fun notFoundException(type: String, name: Any) = NotFoundException("$type '$name' not found")
 
     private fun throwIfDatasetNotPresentOrNotAllowed(user: User, coords: DatasetCoordinates) {
         val datasets = getDatasets(user)    // These will already be filtered to those that the user is authorised for

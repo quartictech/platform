@@ -35,4 +35,10 @@ interface EvalQueryServiceClient {
     fun getDagAsync(
         @Path("customer_id") customerId: CustomerId
     ): CompletableFuture<CytoscapeDag>
+
+    @GET("query/dag/cytoscape/{customer_id}/{build_number}")
+    fun getDagAsync(
+        @Path("customer_id") customerId: CustomerId,
+        @Path("build_number") buildNumber: Long
+    ): CompletableFuture<CytoscapeDag>
 }

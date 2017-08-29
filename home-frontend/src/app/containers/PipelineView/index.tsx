@@ -1,19 +1,25 @@
 import * as React from "react";
 import { connect } from "react-redux";
+import { Link } from "react-router";
+import { Classes, Spinner } from "@blueprintjs/core";
 import * as cytoscape from "cytoscape";
 import * as cytoscapeDagre from "cytoscape-dagre";
 cytoscapeDagre(cytoscape);
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
+import { PipelineState, PipelineStatus } from "../../redux/reducers/pipeline";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
 // TODO - can be make this pure-render?
 
 interface IProps {
-  pipeline: any;
+  pipeline: PipelineState;
   fetchPipeline: any;
+  params: {
+    build: number;
+  };
 }
 
 class PipelineView extends React.Component<IProps, {}> {
@@ -24,26 +30,62 @@ class PipelineView extends React.Component<IProps, {}> {
     return (
       <div className={s.container}>
         <div className={s.main}>
-          <div id="cy" className={s.cy}/>
+          {this.renderPipeline()}
+        </div>
+      </div>
+    );
+  }
+
+  renderPipeline() {
+    switch (this.props.pipeline.status) {
+      case PipelineStatus.LOADED:
+        return <div id="cy" className={s.cy}/>;
+      case PipelineStatus.LOADING:
+        return <Spinner className={Classes.LARGE} />;
+      case PipelineStatus.NOT_FOUND:
+        return this.noBuildFound();
+      default: return null;
+    }
+  }
+
+  noBuildFound = () => {
+    const message = this.props.params.build ?
+      `Build #${this.props.params.build} did not generate a valid DAG}` :
+      `There are no valid DAGs for this project`;
+
+    return (
+      <div className="pt-non-ideal-state">
+        <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+          <span className="pt-icon pt-icon-folder-open" />
+        </div>
+        <h4 className="pt-non-ideal-state-title">{message}</h4>
+        <div className="pt-non-ideal-state-description">
+          Fix your DAG or view the <Link to="/pipeline/">latest version</Link>.
         </div>
       </div>
     );
   }
 
   componentDidMount() {
-    this.cy = this.configureCytoscape();
-    this.props.fetchPipeline();
+    this.props.fetchPipeline(this.props.params.build);
   }
 
   componentDidUpdate(prevProps: IProps) {
+    if (prevProps.params.build !== this.props.params.build) {
+      this.props.fetchPipeline(this.props.params.build);
+    }
+
     if (prevProps !== this.props) {
-      this.cy.elements().remove();
-      this.cy.add(this.props.pipeline);
-      this.cy.elements().layout({
-        name: "dagre",
-        rankDir: "TB",
-        fit: true,
-      }).run();
+      if (this.props.pipeline.status === PipelineStatus.LOADED) {
+        this.cy = this.configureCytoscape();
+        this.cy.elements().remove();
+        this.cy.add(this.props.pipeline.data);
+        this.cy.elements().layout({
+          name: "dagre",
+          rankDir: "TB",
+          fit: true,
+        }).run();
+      }
     }
   }
 

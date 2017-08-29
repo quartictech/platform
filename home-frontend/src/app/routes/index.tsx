@@ -13,7 +13,7 @@ function getRoutes() {
       <Route path="/" component={App}>
         <Route component={EnsureLoggedIn}>
           <Route path="/datasets" component={DatasetsView} />
-          <Route path="/pipeline" component={PipelineView} />
+          <Route path="/pipeline(/:build)" component={PipelineView} />
           <IndexRedirect to="/datasets" />
         </Route>
       </Route>
