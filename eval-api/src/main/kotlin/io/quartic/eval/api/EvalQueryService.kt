@@ -19,6 +19,14 @@ interface EvalQueryService {
     fun getDag(
         @PathParam("customer_id") customerId: CustomerId
     ): CytoscapeDag
+
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Path("/dag/cytoscape/{customer_id}/{build_number}")
+    fun getDag(
+        @PathParam("customer_id") customerId: CustomerId,
+        @PathParam("build_number") buildNumber: Long
+    ): CytoscapeDag
 }
 
 @Retrofittable
@@ -26,5 +34,11 @@ interface EvalQueryServiceClient {
     @GET("query/dag/cytoscape/{customer_id}")
     fun getDagAsync(
         @Path("customer_id") customerId: CustomerId
+    ): CompletableFuture<CytoscapeDag>
+
+    @GET("query/dag/cytoscape/{customer_id}/{build_number}")
+    fun getDagAsync(
+        @Path("customer_id") customerId: CustomerId,
+        @Path("build_number") buildNumber: Long
     ): CompletableFuture<CytoscapeDag>
 }

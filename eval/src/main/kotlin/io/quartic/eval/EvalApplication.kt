@@ -37,7 +37,10 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    private fun notifier(config: EvalConfiguration) = Notifier(clientBuilder.retrofit(config.heyUrl))
+    private fun notifier(config: EvalConfiguration) = Notifier(
+        clientBuilder.retrofit(config.heyUrl),
+        config.homeUrlFormat
+    )
 
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
         config.github.appId,

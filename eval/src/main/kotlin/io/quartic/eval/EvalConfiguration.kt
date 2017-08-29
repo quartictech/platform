@@ -9,6 +9,7 @@ import java.net.URI
 data class EvalConfiguration(
     val registryUrl: URI,
     val heyUrl: URI,
+    val homeUrlFormat: String,
     val qube: QubeConfiguration,
     val github: GitHubConfiguration,
     val database: DatabaseConfiguration

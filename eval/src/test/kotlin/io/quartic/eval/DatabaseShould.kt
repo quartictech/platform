@@ -3,6 +3,7 @@ package io.quartic.eval
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
+import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -32,13 +33,15 @@ import java.util.*
 
 class DatabaseShould {
     private val customerId = customerId()
+    val branch = "develop"
 
     @Test
     fun insert_build() {
         val id = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertBuild(id, customerId, triggerDetails, time)
-        assertThat(DATABASE.getBuild(id), equalTo(Database.BuildRow(id, customerId, 1, triggerDetails, time)))
+        DATABASE.insertBuild(id, customerId, branch, triggerDetails, time)
+        assertThat(DATABASE.getBuild(id), equalTo(Database.BuildRow(id, customerId, branch,
+            1, triggerDetails, time)))
     }
 
     @Test
@@ -71,7 +74,7 @@ class DatabaseShould {
         val phaseId = UUID.randomUUID()
         val eventId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, triggerDetails, time)
+        DATABASE.insertBuild(buildId, customerId, branch, triggerDetails, time)
         DATABASE.insertPhase(phaseId, buildId,"Thing", time)
         DATABASE.insertTerminalEvent(eventId, phaseId, SUCCESS, Success(steps), time)
         val dag = DATABASE.getLatestSuccess(customerId)
@@ -83,7 +86,7 @@ class DatabaseShould {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, triggerDetails, time)
+        DATABASE.insertBuild(buildId, customerId, branch, triggerDetails, time)
         DATABASE.insertPhase(phaseId, buildId,"Thing", time)
         assertThat(DATABASE.getLatestSuccess(customerId), nullValue())
     }
@@ -94,13 +97,13 @@ class DatabaseShould {
 
         (1..10).forEach { count ->
             val idA = UUID.randomUUID()
-            DATABASE.insertBuild(idA, customerId, triggerDetails, Instant.now())
+            DATABASE.insertBuild(idA, customerId, branch, triggerDetails, Instant.now())
             assertThat(DATABASE.getBuild(idA).buildNumber, equalTo(count.toLong()))
         }
 
         (1..5).forEach { count ->
             val idB = UUID.randomUUID()
-            DATABASE.insertBuild(idB, otherCustomerId, triggerDetails, Instant.now())
+            DATABASE.insertBuild(idB, otherCustomerId, branch, triggerDetails, Instant.now())
             assertThat(DATABASE.getBuild(idB).buildNumber, equalTo(count.toLong()))
         }
     }
@@ -109,10 +112,10 @@ class DatabaseShould {
     @Test
     fun disallow_duplicate_build_ids() {
         val id = UUID.randomUUID()
-        DATABASE.insertBuild(id, customerId, triggerDetails, Instant.now())
+        DATABASE.insertBuild(id, customerId, branch, triggerDetails, Instant.now())
 
         assertThrows<UnableToExecuteStatementException> {
-            DATABASE.insertBuild(id, customerId, triggerDetails, Instant.now())
+            DATABASE.insertBuild(id, customerId, branch, triggerDetails, Instant.now())
         }
     }
 
@@ -132,7 +135,7 @@ class DatabaseShould {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, triggerDetails, time)
+        DATABASE.insertBuild(buildId, customerId, branch, triggerDetails, time)
         DATABASE.insertPhase(phaseId, buildId, "noob", time)
         DATABASE.insertTerminalEvent(UUID.randomUUID(), phaseId, SUCCESS, buildResult, time)
 
@@ -140,14 +143,8 @@ class DatabaseShould {
         val json = OBJECT_MAPPER.writeValueAsString(buildResult)
         val buildResultFudge = OBJECT_MAPPER.readValue<MutableMap<String, Any>>(json)
         buildResultFudge.set("version", -100)
-        val jsonFudge = OBJECT_MAPPER.writeValueAsString(buildResultFudge)
-
-        // Fudge the value in the DB
-        val pgObject = PGobject()
-        pgObject.type = "jsonb"
-        pgObject.value = jsonFudge
         DBI.open().createUpdate("update event set message = :message")
-            .bind("message", pgObject)
+            .bindJson("message", buildResultFudge)
             .execute()
 
         assertThrows<IllegalStateException> {

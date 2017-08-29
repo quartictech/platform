@@ -30,6 +30,7 @@ interface Database {
         val id: UUID,
         @ColumnName("customer_id")
         val customerId: CustomerId,
+        val branch: String,
         @ColumnName("build_number")
         val buildNumber: Long,
         @ColumnName("trigger_details")
@@ -63,7 +64,7 @@ interface Database {
     }
 
 
-    @SqlQuery("select id, customer_id, build_number, trigger_details, time from build where id = :id")
+    @SqlQuery("select id, customer_id, branch, build_number, trigger_details, time from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
@@ -77,14 +78,27 @@ interface Database {
         """)
     fun getLatestSuccess(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow?
 
+    @SqlQuery("""
+        select message from event
+        left join phase on phase.id = event.phase_id
+        left join build on build.id = phase.build_id
+        where build.customer_id = :customer_id and
+        build.build_number = :build_number
+        and event.type = 'SUCCESS'
+        """)
+    fun getSuccess(@Bind("customer_id") customerId: CustomerId,
+                   @Bind("build_number") buildNumber: Long): BuildResultSuccessRow?
+
+
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)
-        insert into build(id, customer_id, build_number, trigger_details, time)
-        select :id, :customer_id, next.build_number, :trigger_details, :time
+        insert into build(id, customer_id, branch, build_number, trigger_details, time)
+        select :id, :customer_id, :branch, next.build_number, :trigger_details, :time
         from next
         """)
     fun insertBuild(@Bind("id") id: UUID,
                     @Bind("customer_id") customerId: CustomerId,
+                    @Bind("branch") branch: String,
                     @BindJson("trigger_details") triggerDetails: TriggerDetails,
                     @Bind("time") time: Instant)
 
