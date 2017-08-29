@@ -1,5 +1,5 @@
 kubernetes:
-  enable: true
+  enable: false
   namespace: qube
   numConcurrentJobs: 4
   jobTimeoutSeconds: 3600
