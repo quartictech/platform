@@ -28,6 +28,8 @@ import org.hamcrest.Matchers.instanceOf
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import java.net.URI
 import java.time.Instant
 import java.util.*
@@ -64,13 +66,16 @@ class EvaluatorShould {
     fun write_dag_to_db_and_notify_if_everything_is_ok() {
         evaluate()
 
+        val captor = argumentCaptor<UUID>()
+        verify(database).insertBuild(captor.capture(), eq(customer.id), eq(branch), eq(details), any())
+
         verify(database).insertTerminalEvent(
             any(),
             any(),
             eq(EventType.SUCCESS),
             eq(BuildResult.Success(steps)),
             any())
-        verify(notifier).notifyAbout(details, BuildResult.Success(steps))
+        verify(notifier).notifyAbout(details, customer, build(captor.firstValue), BuildResult.Success(steps))
         runBlocking { verify(container).close() }
     }
 
@@ -212,6 +217,15 @@ class EvaluatorShould {
         namespace = "noobhole"
     )
 
+    private fun build(id: UUID) = Database.BuildRow(
+        id = id,
+        customerId = customerId,
+        branch = branch,
+        buildNumber = 100,
+        time = Instant.MIN,
+        triggerDetails = details
+    )
+
     private val steps = mock<List<Step>>()
 
     private val registry = mock<RegistryServiceClient> {
@@ -244,5 +258,8 @@ class EvaluatorShould {
 
     init {
         whenever(dagIsValid.invoke(steps)).doReturn(true)
+        whenever(database.getBuild(any())).thenAnswer { invocation ->
+            build(invocation!!.arguments[0] as UUID)
+        }
     }
 }

@@ -5,7 +5,7 @@
 	"repoId": 99951423,
 	"repoName": "quartictech/playground",
 	"cloneUrl": "https://github.com/quartictech/playground.git",
-	"ref": "ref/heads/develop",
+	"ref": "refs/heads/develop",
 	"commit": "b3ddaf47eab8e05627a0da7672c4e229b49175e9",
 	"timestamp": 100000
 }

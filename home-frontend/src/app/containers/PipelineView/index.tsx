@@ -50,13 +50,13 @@ class PipelineView extends React.Component<IProps, {}> {
 
   noBuildFound = () => {
     const message = this.props.params.build ?
-      `Build #${this.props.params.build} did not generate a valid DAG}` :
-      `There are no valid DAGs for this project`;
+      `Build #${this.props.params.build} did not generate a valid DAG.` :
+      `There are no valid DAGs yet for this project.`;
 
     return (
       <div className="pt-non-ideal-state">
         <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-folder-open" />
+          <span className="pt-icon pt-icon-warning-sign" />
         </div>
         <h4 className="pt-non-ideal-state-title">{message}</h4>
         <div className="pt-non-ideal-state-description">
