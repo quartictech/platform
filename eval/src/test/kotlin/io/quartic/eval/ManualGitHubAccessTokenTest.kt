@@ -9,6 +9,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.net.URI
 
+
 @Ignore
 class ManualGitHubAccessTokenTest {
     private val client = GitHubInstallationClient(
