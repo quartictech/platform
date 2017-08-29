@@ -50,6 +50,16 @@ Frontend components are best run separately in development (to benefit from hot 
 ```
 
 
+## Setting up Postgres
+
+If you're running a service that requires Postgres, you'll need to first create the databases.  Once the Postgres
+service is running, invoke the following:
+
+```
+./scripts/db/create-databases.sh
+```
+
+
 ## Frontend dependencies
 
 Frontend dependencies aren't directly managed in `package.json`, because they're lame.  Instead, add `prod` and `dev`
