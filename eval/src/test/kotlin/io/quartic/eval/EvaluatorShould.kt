@@ -55,7 +55,7 @@ class EvaluatorShould {
         evaluate()
 
         val captor = argumentCaptor<UUID>()
-        verify(database).insertBuild(captor.capture(),  eq(customer.id), eq(details), any())
+        verify(database).insertBuild(captor.capture(),  eq(customer.id), eq(branch), eq(details), any())
         verify(database).insertPhase(any(), eq(captor.firstValue), eq("Evaluating DAG"), any())
         runBlocking { verify(container).close() }
     }
@@ -200,6 +200,8 @@ class EvaluatorShould {
         commit = "abc123",
         timestamp = Instant.MIN
     )
+
+    val branch = "develop"
 
     private val customer = Customer(
         id = customerId,

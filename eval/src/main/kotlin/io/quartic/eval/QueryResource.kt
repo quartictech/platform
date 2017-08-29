@@ -9,6 +9,11 @@ import io.quartic.quarty.model.Dataset
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
+    override fun getDag(customerId: CustomerId, buildNumber: Long) = convertToCytoscape(
+        database.getSuccess(customerId, buildNumber) ?:
+            throw NotFoundException("No DAG registered for ${customerId} with build number ${buildNumber}")
+    )
+
     override fun getDag(customerId: CustomerId) = convertToCytoscape(
         database.getLatestSuccess(customerId) ?: throw NotFoundException("No DAG registered for ${customerId}")
     )

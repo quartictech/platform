@@ -77,7 +77,7 @@ class Evaluator(
     private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails, startTime: Instant): UUID = run(threadPool) {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
-        database.insertBuild(buildId, customerId, trigger, startTime)
+        database.insertBuild(buildId, customerId, trigger.branch(), trigger, startTime)
         database.insertPhase(phaseId, buildId, "Evaluating DAG", startTime)
         phaseId
     }
