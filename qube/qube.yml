@@ -13,6 +13,7 @@ kubernetes:
 database:
   user: postgres
   port: 15432
+  databaseName: qube
 
 websocketPort: 8202
 url:

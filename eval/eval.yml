@@ -19,6 +19,7 @@ github:
 database:
   user: postgres
   port: 15432
+  databaseName: eval
 
 url:
   port: 8210
