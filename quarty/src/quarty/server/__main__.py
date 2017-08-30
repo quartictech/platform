@@ -4,7 +4,7 @@ import asyncio
 import logging
 import json
 from aiohttp import web
-from quarty.common import initialise_repo, evaluate, QuartyException, PipelineException
+from quarty.common import initialise_repo, install_requirements, evaluate, QuartyException, PipelineException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,8 +49,12 @@ async def pipeline(request):
         temp_path = tempfile.mkdtemp()
         os.chdir(temp_path)
 
-        config = await initialise_repo(repo_url, repo_commit)
         progress_message(resp, "Initialising repository")
+        config = await initialise_repo(repo_url, repo_commit)
+
+        progress_message(resp, "Installing requirements")
+        config = await install_requirements()
+
 
         result = await evaluate(config['pipeline_directory'],
                                 lambda l: log_message(resp, "stdout", l),

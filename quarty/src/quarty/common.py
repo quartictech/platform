@@ -58,6 +58,16 @@ async def initialise_repo(repo_url, repo_commit):
     if rc != 0:
         raise QuartyException("Exception while checking out commit: {}".format(repo_commit))
 
+    try:
+        # Load config
+        if not os.path.exists("quartic.yml"):
+            raise PipelineException("No quartic.yml present")
+
+        return load_config("quartic.yml")
+    except Exception as e:
+        raise QuartyException("Exception reading quartic.yml", e)
+
+async def install_requirements():
     # TODO: Hack move this elsewhere.
     if os.path.exists("requirements.txt"):
         logger.info("Installing requirements.txt")
@@ -67,15 +77,6 @@ async def initialise_repo(repo_url, repo_commit):
             raise QuartyException("Exception while installing requirements")
     else:
         logger.info("No requirements.txt found")
-
-    try:
-        # Load config
-        if not os.path.exists("quartic.yml"):
-            raise PipelineException("No quartic.yml present")
-
-        return load_config("quartic.yml")
-    except Exception as e:
-        raise QuartyException("Exception reading quartic.yml", e)
 
 async def evaluate(pipeline_dir, stdout_cb, stderr_cb):
     cmd = ["python", "-u", "-m", "quartic.pipeline.runner", "--evaluate",
