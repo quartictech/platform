@@ -1,21 +1,24 @@
 package io.quartic.eval.websocket
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
+import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.test.websocket.WebsocketServerRule
+import io.quartic.common.test.assertThrows
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient.Event.*
-import org.hamcrest.Matchers.*
+import io.quartic.eval.websocket.WebsocketFactory.Websocket
+import kotlinx.coroutines.experimental.CancellationException
+import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.runBlocking
+import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
-import org.junit.Rule
 import org.junit.Test
 import java.time.Duration
 
 class WebsocketClientImplShould {
-    @get:Rule
-    val server = WebsocketServerRule()
-
     data class SendMsg(val s: String)
     data class ReceiveMsg(val i: Int)
 
@@ -28,7 +31,7 @@ class WebsocketClientImplShould {
             ReceiveMsg(43),
             ReceiveMsg(44)
         )
-        serverShouldSend(expected)
+        server.willSend(expected)
 
         createClient().use { client ->
             runOrTimeout {
@@ -57,8 +60,7 @@ class WebsocketClientImplShould {
             }
         }
 
-        Thread.sleep(100)       // TODO: this is gross
-        assertThat(server.receivedMessages, equalTo(expected.map { OBJECT_MAPPER.writeValueAsString(it) }))
+        assertThat(server.awaitReceivedMessages(3), equalTo(expected.map { OBJECT_MAPPER.writeValueAsString(it) }))
     }
 
     @Test
@@ -68,7 +70,7 @@ class WebsocketClientImplShould {
             "gibberish",
             ReceiveMsg(44)
         )
-        serverShouldSend(expected)
+        server.willSend(expected)
 
         createClient().use { client ->
             runOrTimeout {
@@ -82,7 +84,7 @@ class WebsocketClientImplShould {
     @Test
     fun notify_consumer_when_connection_dropped() {
         createClient().use { client ->
-            runOrTimeout(2000) {
+            runOrTimeout {
                 client.awaitConnected()
 
                 server.dropConnections()
@@ -95,7 +97,7 @@ class WebsocketClientImplShould {
     @Test
     fun reconnect_then_continue_working_when_connection_dropped() {
         val expected = listOf(ReceiveMsg(42))
-        serverShouldSend(expected)
+        server.willSend(expected)
 
         createClient().use { client ->
             runOrTimeout {
@@ -124,11 +126,11 @@ class WebsocketClientImplShould {
             }
         }
 
-        Thread.sleep(100)
-        assertThat(server.receivedMessages, hasSize(0))
+        assertThrows<CancellationException> {
+            server.awaitReceivedMessages(1)
+        }
     }
 
-    @Ignore("This is extremely flaky on CI, given we're trying to verify something *doesn't* happen asynchronously")
     @Test
     fun disconnect_and_not_attempt_reconnect_on_close() {
         val client = createClient()
@@ -140,14 +142,15 @@ class WebsocketClientImplShould {
             }
         } catch (e: Exception) {}           // We're expecting a timeout
 
-        Thread.sleep(100)
-        assertThat(server.numConnections, equalTo(1))
-        assertThat(server.numDisconnections, equalTo(1))
+        runOrTimeout {
+            server.awaitDisconnection()
+            assertThat(server.numConnections, equalTo(1))
+        }
     }
 
     @Test
     fun close_gracefully_if_not_yet_connected() {
-        server.stop()   // Prevent connections
+        server.refuseConnections()
 
         val client = createClient()
         client.close()  // Should be no exceptions
@@ -159,16 +162,13 @@ class WebsocketClientImplShould {
         client.close()
 
         runOrTimeout {
+            client.events.receive() // Connection event
             assertThat(client.events.receiveOrNull(), nullValue())
             assertTrue(client.outbound.isClosedForSend)
         }
     }
 
-    private fun serverShouldSend(messages: List<Any>) {
-        server.messages = messages.map { OBJECT_MAPPER.writeValueAsString(it) }
-    }
-
-    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(server.uri, Duration.ofMillis(100))
+    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(mock(), Duration.ofMillis(100), server.websocketFactory)
 
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitReceivedMessages(num: Int): List<ReceiveMsg> {
         val received = mutableListOf<ReceiveMsg>()
@@ -188,5 +188,62 @@ class WebsocketClientImplShould {
         while (!clazz.isInstance(events.receive())) {}
     }
 
+
+    private class Server {
+        private var messagesToSend = emptyList<String>()
+        private var _numConnections = 0
+        private var acceptingConnections = true
+        private val rx = Channel<String>(Channel.UNLIMITED)
+        private val disconnections = Channel<Unit>(Channel.UNLIMITED)
+
+        private val websocket = mock<Websocket> {
+            on { writeTextMessage(any()) } doAnswer { invocation ->
+                runBlocking { rx.send(invocation.getArgument<String>(0)) }
+                Unit
+            }
+        }
+        private lateinit var closeHandler: () -> Unit
+
+        fun willSend(messages: List<Any>) {
+            messagesToSend = messages.map { OBJECT_MAPPER.writeValueAsString(it) }
+        }
+
+        fun dropConnections() {
+            closeHandler()
+        }
+
+        fun refuseConnections() {
+            acceptingConnections = false
+        }
+
+        fun awaitReceivedMessages(num: Int) = runOrTimeout { (0 until num).map { rx.receive() } }
+        fun awaitDisconnection() = runOrTimeout { disconnections.receive() }
+
+        val numConnections get() = _numConnections
+
+        val websocketFactory = mock<WebsocketFactory> {
+            on { create(any(), any(), any(), any(), any()) } doAnswer { invocation ->
+                val connectHandler = invocation.getArgument<(Websocket) -> Unit>(1)
+                val failureHandler = invocation.getArgument<(Throwable) -> Unit>(2)
+                val messageHandler = invocation.getArgument<(String) -> Unit>(3)
+
+                if (acceptingConnections) {
+                    closeHandler = invocation.getArgument(4)
+                    connectHandler(websocket)
+                    messagesToSend.forEach(messageHandler)
+                    _numConnections++
+                } else {
+                    failureHandler(RuntimeException("Not accepting connections"))
+                }
+                Unit
+            }
+            on { close() } doAnswer {
+                runBlocking { disconnections.send(Unit) }
+                Unit
+            }
+        }
+    }
+
+    private val server = Server()
 }
 
