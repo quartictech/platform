@@ -3,6 +3,7 @@ import { Classes } from "@blueprintjs/core";
 import { IDataset, IDatasetCoords, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
 import _ = require("underscore");
+import { Link } from "react-router";
 
 
 interface IDatasetListProps {
@@ -31,14 +32,11 @@ interface IDatasetRowProps {
 const DatasetRow = (props: IDatasetRowProps) => (
   <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
     <td style={{ wordWrap: "break-word" }}>
-      <b>{props.namespace}</b>
-      <p>{props.id}</p>
+      <Link to={`/datasets/${props.namespace}/${props.id}`}>
+        <b>{props.dataset.metadata.name}</b>
+       </Link>
     </td>
     <td style={{ wordWrap: "break-word" }}>
-      <b>{props.dataset.locator.type}</b>
-    </td>
-    <td style={{ wordWrap: "break-word" }}>
-      <b>{props.dataset.metadata.name}</b>
       {maybeDescription(props.dataset.metadata)}
     </td>
   </tr>
@@ -65,9 +63,8 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
           >
             <thead>
               <tr>
-                <th width="40%">Namespace / Id</th>
-                <th width="10%">Type</th>
-                <th width="50%">Name / Description</th>
+                <th width="30%">Name</th>
+                <th width="70%">Description</th>
               </tr>
             </thead>
             <tbody>
