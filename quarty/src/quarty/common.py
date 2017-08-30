@@ -50,6 +50,7 @@ async def initialise_repo(repo_url, repo_commit):
     if rc != 0:
         raise QuartyException("Exception while cloning code from respository: {}".format(repo_url))
 
+    # TODO: Use cwd in subprocess instead
     os.chdir("build")
 
     # Checkout revision
