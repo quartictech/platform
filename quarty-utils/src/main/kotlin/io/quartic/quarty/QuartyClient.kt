@@ -15,14 +15,16 @@ typealias QuartyErrorDetail = Any
 
 class QuartyClient(val quarty: Quarty) {
     sealed class QuartyResult {
-        data class Success(val messages: List<QuartyMessage>, val result: List<Step>): QuartyResult()
-        data class Failure(val messages: List<QuartyMessage>, val detail: QuartyErrorDetail?) : QuartyResult()
+        abstract val messages: List<QuartyMessage>
+
+        data class Success(override val messages: List<QuartyMessage>, val result: List<Step>): QuartyResult()
+        data class Failure(override val messages: List<QuartyMessage>, val detail: QuartyErrorDetail?) : QuartyResult()
     }
 
     constructor(clientBuilder: ClientBuilder, url: String) :
         this(clientBuilder.retrofit<Quarty>(url))
 
-    fun stream(repoUrl: URI, repoCommit: String): CompletableFuture<Stream<QuartyMessage>> = quarty
+    private fun stream(repoUrl: URI, repoCommit: String): CompletableFuture<Stream<QuartyMessage>> = quarty
         .getPipeline(repoUrl, repoCommit)
         .thenApply { responseBody ->
             responseBody.byteStream()
@@ -36,12 +38,12 @@ class QuartyClient(val quarty: Quarty) {
         .thenApply { stream ->
             val messages = stream.toList()
 
-            messages.map { message ->
+            messages.mapNotNull { message ->
                 when (message) {
                     is QuartyMessage.Result -> QuartyResult.Success(messages, message.result)
                     is QuartyMessage.Error -> QuartyResult.Failure(messages, message.detail)
                     else -> null
                 }
-            }.filterNotNull().first()
+            }.first()
         }
 }

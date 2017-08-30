@@ -4,7 +4,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildResult.*
 import io.quartic.hey.api.*
 import io.quartic.registry.api.model.Customer
 import org.junit.Test
@@ -53,7 +52,7 @@ class NotifierShould {
 
     @Test
     fun send_success_on_success() {
-        notifier.notifyAbout(trigger, customer, build, Success(emptyList()))
+        notifier.notifyAbout(trigger, customer, build, true)
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
@@ -71,14 +70,14 @@ class NotifierShould {
     }
 
     @Test
-    fun send_error_on_internal_error() {
-        notifier.notifyAbout(trigger, customer, build, InternalError(RuntimeException("Noob occurred")))
+    fun send_error_on_failure() {
+        notifier.notifyAbout(trigger, customer, build, false)
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #${build.buildNumber} failed",
                 titleLink = URI.create("http://noobhole/#/pipeline/${build.buildNumber}"),
-                text = "Noob occurred",
+                text = "Failure",
                 fields = listOf(
                     HeyField("Repo", "noob", true),
                     HeyField("Branch", "develop", true)
@@ -88,43 +87,4 @@ class NotifierShould {
             )
         )))
     }
-
-    @Test
-    fun send_error_with_default_message_on_internal_error_without_message() {
-        notifier.notifyAbout(trigger, customer, build, InternalError(RuntimeException()))
-
-        verify(hey).notifyAsync(HeyNotification(listOf(
-            HeyAttachment(
-                title = "Build #${build.buildNumber} failed",
-                titleLink = URI.create("http://noobhole/#/pipeline/${build.buildNumber}"),
-                text = "Internal error",
-                fields = listOf(
-                    HeyField("Repo", "noob", true),
-                    HeyField("Branch", "develop", true)
-                ),
-                timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = HeyColor.DANGER
-            )
-        )))
-    }
-
-    @Test
-    fun send_error_on_user_error() {
-        notifier.notifyAbout(trigger, customer, build, UserError("You caused a noob"))
-
-        verify(hey).notifyAsync(HeyNotification(listOf(
-            HeyAttachment(
-                title = "Build #${build.buildNumber} failed",
-                titleLink = URI.create("http://noobhole/#/pipeline/${build.buildNumber}"),
-                text = "You caused a noob",
-                fields = listOf(
-                    HeyField("Repo", "noob", true),
-                    HeyField("Branch", "develop", true)
-                ),
-                timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = HeyColor.DANGER
-            )
-        )))
-    }
-
 }

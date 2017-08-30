@@ -1,7 +1,6 @@
 package io.quartic.eval
 
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildResult
 import io.quartic.hey.api.*
 import io.quartic.registry.api.model.Customer
 import java.net.URI
@@ -13,31 +12,20 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    fun notifyAbout(trigger: TriggerDetails, customer: Customer, build: Database.BuildRow, result: BuildResult) {
-        // TODO - more useful description of internal vs. user errors
+    fun notifyAbout(trigger: TriggerDetails, customer: Customer, build: Database.BuildRow, success: Boolean) {
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
-                title = when (result) {
-                    is BuildResult.Success -> "Build #${build.buildNumber} succeeded"
-                    else -> "Build #${build.buildNumber} failed"
-                },
+                title = "Build #${build.buildNumber} ${if (success) "succeeded" else "failed"}",
                 titleLink = URI.create(
                     "${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${build.buildNumber}"
                 ),
-                text = when (result) {
-                    is BuildResult.Success -> "Success"
-                    is BuildResult.InternalError -> result.throwable.message ?: "Internal error"
-                    is BuildResult.UserError -> result.detail as? String ?: "Failure"
-                },
+                text = if (success) "Success" else "Failure",
                 fields = listOf(
                     HeyField("Repo", trigger.repoName, true),
                     HeyField("Branch", trigger.branch(), true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = when (result) {
-                    is BuildResult.Success -> HeyColor.GOOD
-                    else -> HeyColor.DANGER
-                }
+                color = if (success) HeyColor.GOOD else HeyColor.DANGER
             )
         )))
     }

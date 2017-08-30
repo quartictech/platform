@@ -6,6 +6,7 @@ import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildResult
 import io.quartic.quarty.model.QuartyMessage
 import org.jdbi.v3.core.mapper.ColumnMapper
@@ -51,13 +52,13 @@ interface Database {
     }
 
     class TriggerDetailsColumnMapper: ColumnMapper<TriggerDetails> {
-        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): TriggerDetails =
-            OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerDetails =
+            OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
 
     class BuildResultSuccessColumnMapper: ColumnMapper<BuildResult.Success> {
-        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success {
-            val buildResult = OBJECT_MAPPER.readValue<BuildResult.Success>(r!!.getString(columnNumber))
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildResult.Success {
+            val buildResult = OBJECT_MAPPER.readValue<BuildResult.Success>(r.getString(columnNumber))
             buildResult.checkVersion()
             return buildResult
         }
@@ -89,6 +90,19 @@ interface Database {
     fun getSuccess(@Bind("customer_id") customerId: CustomerId,
                    @Bind("build_number") buildNumber: Long): BuildResultSuccessRow?
 
+
+    @SqlUpdate("insert into event(id, build_id, time, payload) values(:id, :build_id, :time, :payload)")
+    fun insertEvent2(
+        @Bind("id") id: UUID,
+        @Bind("build_id") buildId: UUID,
+        @Bind("time") time: Instant,
+        @BindJson("payload") payload: BuildEvent
+    )
+
+
+    /////////////////////////////////////
+
+    // TODO - get rid of build time
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)

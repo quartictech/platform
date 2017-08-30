@@ -26,7 +26,6 @@ import org.jdbi.v3.core.statement.UnableToExecuteStatementException
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
-import org.postgresql.util.PGobject
 import java.net.URI
 import java.time.Instant
 import java.util.*
@@ -42,14 +41,6 @@ class DatabaseShould {
         DATABASE.insertBuild(id, customerId, branch, triggerDetails, time)
         assertThat(DATABASE.getBuild(id), equalTo(Database.BuildRow(id, customerId, branch,
             1, triggerDetails, time)))
-    }
-
-    @Test
-    fun insert_phase() {
-        val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        val time = Instant.now()
-        DATABASE.insertPhase(phaseId, buildId,"Thing", time)
     }
 
     @Test

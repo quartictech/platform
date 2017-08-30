@@ -2,13 +2,14 @@ package io.quartic.eval.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.quartic.eval.model.BuildResult.*
 import io.quartic.quarty.model.Step
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property="type")
 @JsonSubTypes(
-    JsonSubTypes.Type(BuildResult.Success::class, name = "success"),
-    JsonSubTypes.Type(BuildResult.InternalError::class, name = "internal_error"),
-    JsonSubTypes.Type(BuildResult.UserError::class, name = "user_error")
+    JsonSubTypes.Type(Success::class, name = "success"),
+    JsonSubTypes.Type(InternalError::class, name = "internal_error"),
+    JsonSubTypes.Type(UserError::class, name = "user_error")
 )
 sealed class BuildResult {
     var version: Int = 1

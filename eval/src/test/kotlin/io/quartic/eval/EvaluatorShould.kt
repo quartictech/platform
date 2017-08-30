@@ -3,11 +3,14 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
-import io.quartic.eval.Database.EventType
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildResult
-import io.quartic.eval.model.BuildResult.InternalError
-import io.quartic.eval.model.BuildResult.UserError
+import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.Companion.BUILD_FAILED
+import io.quartic.eval.model.BuildEvent.Companion.BUILD_SUCCEEDED
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -24,12 +27,8 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.Matchers.instanceOf
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThat
 import org.junit.Test
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
 import java.net.URI
 import java.time.Instant
 import java.util.*
@@ -37,7 +36,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
 class EvaluatorShould {
-    // TODO - distinguish registry 404s
 
     @Test
     fun run_multiple_evaluations_concurrently() = runBlocking {
@@ -53,29 +51,20 @@ class EvaluatorShould {
     }
 
     @Test
-    fun write_build_and_phase_to_db() {
-        evaluate()
-
-        val captor = argumentCaptor<UUID>()
-        verify(database).insertBuild(captor.capture(),  eq(customer.id), eq(branch), eq(details), any())
-        verify(database).insertPhase(any(), eq(captor.firstValue), eq("Evaluating DAG"), any())
-        runBlocking { verify(container).close() }
-    }
-
-    @Test
     fun write_dag_to_db_and_notify_if_everything_is_ok() {
         evaluate()
 
-        val captor = argumentCaptor<UUID>()
-        verify(database).insertBuild(captor.capture(), eq(customer.id), eq(branch), eq(details), any())
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verifyDatabaseInserts(buildId,
+            uuid(101) to TriggerReceived(details),
+            uuid(102) to ContainerAcquired("a.b.c"),
+            uuid(104) to PhaseStarted(phaseId, "Evaluating DAG"),
+            uuid(105) to PhaseCompleted(phaseId, Result.Success(EvaluationOutput(steps))),
+            uuid(106) to BUILD_SUCCEEDED
+        )
 
-        verify(database).insertTerminalEvent(
-            any(),
-            any(),
-            eq(EventType.SUCCESS),
-            eq(BuildResult.Success(steps)),
-            any())
-        verify(notifier).notifyAbout(details, customer, build(captor.firstValue), BuildResult.Success(steps))
+        verify(notifier).notifyAbout(details, customer, build(buildId), true)
         runBlocking { verify(container).close() }
     }
 
@@ -85,45 +74,41 @@ class EvaluatorShould {
 
         evaluate()
 
-        verify(database).insertTerminalEvent(
-            any(),
-            any(),
-            eq(EventType.USER_ERROR),
-            eq(UserError("DAG is invalid")),
-            any())
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verifyDatabaseInserts(buildId,
+            uuid(101) to TriggerReceived(details),
+            uuid(102) to ContainerAcquired("a.b.c"),
+            uuid(104) to PhaseStarted(phaseId, "Evaluating DAG"),
+            uuid(105) to PhaseCompleted(phaseId, Result.UserError("DAG is invalid")),
+            uuid(106) to BUILD_FAILED
+        )
+
         runBlocking { verify(container).close() }
     }
 
     @Test
     fun write_logs_to_db_if_user_code_failed() {
         val messages = listOf(
+            QuartyMessage.Progress("yeah yeah yeah"),
             QuartyMessage.Log("stdout", "some log message"),
-            QuartyMessage.Error("badness")
+            QuartyMessage.Error("badness")  // TODO - move this to a dedicated test to prove this is ignored
         )
         whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure(messages, "badness")))
 
         evaluate()
 
-         verify(database).insertEvent(
-             any(),
-             any(),
-             eq(EventType.MESSAGE),
-             eq(QuartyMessage.Log("stdout", "some log message")),
-             any())
-
-         verify(database).insertEvent(
-             any(),
-             any(),
-             eq(EventType.MESSAGE),
-             eq(QuartyMessage.Error("badness")),
-             any())
-
-         verify(database).insertTerminalEvent(
-             any(),
-             any(),
-             eq(EventType.USER_ERROR),
-             eq(UserError("badness")),
-             any())
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verifyDatabaseInserts(buildId,
+            uuid(101) to TriggerReceived(details),
+            uuid(102) to ContainerAcquired("a.b.c"),
+            uuid(104) to PhaseStarted(phaseId, "Evaluating DAG"),
+            uuid(105) to LogMessageReceived(phaseId, "progress", "yeah yeah yeah"),
+            uuid(106) to LogMessageReceived(phaseId, "stdout", "some log message"),
+            uuid(107) to PhaseCompleted(phaseId, Result.UserError("badness")),
+            uuid(108) to BUILD_FAILED
+        )
 
         runBlocking { verify(container).close() }
     }
@@ -147,8 +132,12 @@ class EvaluatorShould {
 
         evaluate()
 
+        val buildId = uuid(100)
+        verifyDatabaseInserts(buildId,
+            uuid(101) to TriggerReceived(details),
+            uuid(102) to BUILD_FAILED
+        )
         verifyZeroInteractions(github)
-        assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
     }
 
     @Test
@@ -157,14 +146,24 @@ class EvaluatorShould {
 
         evaluate()
 
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verifyDatabaseInserts(buildId,
+            uuid(101) to TriggerReceived(details),
+            uuid(102) to ContainerAcquired("a.b.c"),
+            uuid(104) to PhaseStarted(phaseId, "Evaluating DAG"),
+            uuid(105) to PhaseCompleted(phaseId, InternalError(EvaluatorException("Error while acquiring access token from GitHub"))),
+            uuid(106) to BUILD_FAILED
+        )
         verifyZeroInteractions(quartyBuilder)
-        assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
     }
 
     @Test
     fun cancel_async_behaviour_and_close_container_on_concurrent_qube_error() {
+        val containerError = QubeException("Stuff is bad")
+
         whenever(container.errors).thenReturn(produce(CommonPool) {
-            send(QubeException("Stuff is bad"))
+            send(containerError)
         })
 
         val ghFuture = CompletableFuture<GitHubInstallationAccessToken>()
@@ -172,11 +171,18 @@ class EvaluatorShould {
 
         evaluate()
 
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verifyDatabaseInserts(buildId,
+            uuid(101) to TriggerReceived(details),
+            uuid(102) to ContainerAcquired("a.b.c"),
+            uuid(104) to PhaseStarted(phaseId, "Evaluating DAG"),
+            uuid(105) to PhaseCompleted(phaseId, InternalError(containerError)),
+            uuid(106) to BUILD_FAILED
+        )
         verifyZeroInteractions(quartyBuilder)
-        assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
         runBlocking { verify(container).close() }
     }
-
 
     private fun evaluate() = runBlocking {
         evaluator.evaluateAsync(details).join()
@@ -186,10 +192,11 @@ class EvaluatorShould {
         completeExceptionally(RuntimeException("Sad"))
     }
 
-    private fun captureDatabaseResult(): Any {
-        val captor = argumentCaptor<BuildResult>()
-        verify(database).insertTerminalEvent(any(), any(), any(), captor.capture(), any())
-        return captor.firstValue
+    private fun verifyDatabaseInserts(buildId: UUID, vararg events: Pair<UUID, BuildEvent>) {
+        verify(database).insertBuild(eq(buildId),  eq(customer.id), eq(branch), eq(details), any())
+        events.forEach {
+            verify(database).insertEvent2(eq(it.first), eq(buildId), any(), eq(it.second))
+        }
     }
 
     private val customerId = CustomerId(999)
@@ -206,7 +213,7 @@ class EvaluatorShould {
         timestamp = Instant.MIN
     )
 
-    val branch = "develop"
+    private val branch = "develop"
 
     private val customer = Customer(
         id = customerId,
@@ -254,7 +261,19 @@ class EvaluatorShould {
     private val notifier = mock<Notifier>()
     private val database = mock<Database>()
     private val dagIsValid = mock<(List<Step>) -> Boolean>()
-    private val evaluator = Evaluator(registry, qube, github, database, notifier, dagIsValid, quartyBuilder)
+    private val evaluator = Evaluator(
+        registry,
+        qube,
+        github,
+        database,
+        notifier,
+        dagIsValid,
+        quartyBuilder,
+        { uuid(nextUuid++) }
+    )
+    private var nextUuid = 100
+
+    private fun uuid(uuid: Int) = UUID(0, uuid.toLong())
 
     init {
         whenever(dagIsValid.invoke(steps)).doReturn(true)
