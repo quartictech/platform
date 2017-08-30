@@ -6,8 +6,7 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.vertx.core.Vertx
-import io.vertx.core.http.WebSocket
+import io.quartic.eval.websocket.WebsocketFactory.Websocket
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
@@ -21,11 +20,12 @@ import java.time.Duration
 class WebsocketClientImpl<in TSend, out TReceive>(
     private val uri: URI,
     private val receiveClass: Class<TReceive>,
-    private val backoffPeriod: Duration
+    private val backoffPeriod: Duration,
+    private val websocketFactory: WebsocketFactory
 ) : WebsocketClient<TSend, TReceive> {
 
     private sealed class InternalEvent {
-        data class Connected(val websocket: WebSocket) : InternalEvent()
+        data class Connected(val websocket: Websocket) : InternalEvent()
         class FailedToConnect : InternalEvent()
         class Disconnected : InternalEvent()
         class BackoffCompleted : InternalEvent()
@@ -35,11 +35,10 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     private sealed class SocketState {
         class Disconnected : SocketState()
         class Connecting : SocketState()
-        data class Connected(val websocket: WebSocket) : SocketState()
+        data class Connected(val websocket: Websocket) : SocketState()
     }
 
     private val manager = StateManager()
-    private val httpClient = Vertx.vertx().createHttpClient()
     private val _outbound = Channel<TSend>(UNLIMITED)
     private val _events = Channel<Event<TReceive>>(UNLIMITED)
     private val internalEvents = Channel<InternalEvent>(UNLIMITED)
@@ -55,7 +54,7 @@ class WebsocketClientImpl<in TSend, out TReceive>(
             _outbound.close()
             _events.close()
             internalEvents.close()
-            httpClient.close()
+            websocketFactory.close()
         }
     }
 
@@ -83,17 +82,17 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     }
 
     private suspend fun attemptConnection() {
-        httpClient.websocket(uri.port, uri.host, uri.path,
-            {
+        websocketFactory.create(uri,
+            connectHandler = {
                 LOG.info("Connected to ${uri}")
                 InternalEvent.Connected(it).send()
-                it.handler { InternalEvent.MessageReceived(it.toString()).send() }
-                it.closeHandler { InternalEvent.Disconnected().send() }
             },
-            {
+            failureHandler = {
                 LOG.error("Failed to connect to ${uri}")
                 InternalEvent.FailedToConnect().send()
-            }
+            },
+            messageHandler = { InternalEvent.MessageReceived(it).send() },
+            closeHandler = { InternalEvent.Disconnected().send() }
         )
     }
 
@@ -166,7 +165,8 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     companion object {
         inline fun <TSend, reified TReceive> create(
             uri: URI,
-            backoffPeriod: Duration = Duration.ofSeconds(5)
-        ): WebsocketClient<TSend, TReceive> = WebsocketClientImpl(uri, TReceive::class.java, backoffPeriod)
+            backoffPeriod: Duration = Duration.ofSeconds(5),
+            websocketFactory: WebsocketFactory = WebsocketFactory()
+        ): WebsocketClient<TSend, TReceive> = WebsocketClientImpl(uri, TReceive::class.java, backoffPeriod, websocketFactory)
     }
 }
