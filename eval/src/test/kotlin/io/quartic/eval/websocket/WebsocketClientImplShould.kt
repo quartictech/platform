@@ -142,8 +142,10 @@ class WebsocketClientImplShould {
             }
         } catch (e: Exception) {}           // We're expecting a timeout
 
-        assertThat(server.numConnections, equalTo(1))
-        assertThat(server.numDisconnections, equalTo(1))
+        runOrTimeout {
+            server.awaitDisconnection()
+            assertThat(server.numConnections, equalTo(1))
+        }
     }
 
     @Test
@@ -190,9 +192,9 @@ class WebsocketClientImplShould {
     private class Server {
         private var messagesToSend = emptyList<String>()
         private var _numConnections = 0
-        private var _numDisconnections = 0
         private var acceptingConnections = true
         private val rx = Channel<String>(Channel.UNLIMITED)
+        private val disconnections = Channel<Unit>(Channel.UNLIMITED)
 
         private val websocket = mock<Websocket> {
             on { writeTextMessage(any()) } doAnswer { invocation ->
@@ -215,9 +217,9 @@ class WebsocketClientImplShould {
         }
 
         fun awaitReceivedMessages(num: Int) = runOrTimeout { (0 until num).map { rx.receive() } }
+        fun awaitDisconnection() = runOrTimeout { disconnections.receive() }
 
         val numConnections get() = _numConnections
-        val numDisconnections get() = _numDisconnections
 
         val websocketFactory = mock<WebsocketFactory> {
             on { create(any(), any(), any(), any(), any()) } doAnswer { invocation ->
@@ -235,7 +237,10 @@ class WebsocketClientImplShould {
                 }
                 Unit
             }
-            on { close() } doAnswer { _numDisconnections++; Unit }
+            on { close() } doAnswer {
+                runBlocking { disconnections.send(Unit) }
+                Unit
+            }
         }
     }
 
