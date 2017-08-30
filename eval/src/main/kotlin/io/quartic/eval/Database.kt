@@ -35,8 +35,7 @@ interface Database {
         @ColumnName("build_number")
         val buildNumber: Long,
         @ColumnName("trigger_details")
-        val triggerDetails: TriggerDetails,
-        val time: Instant
+        val triggerDetails: TriggerDetails
     )
 
     data class BuildResultSuccessRow(
@@ -65,7 +64,7 @@ interface Database {
     }
 
 
-    @SqlQuery("select id, customer_id, branch, build_number, trigger_details, time from build where id = :id")
+    @SqlQuery("select id, customer_id, branch, build_number, trigger_details from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
@@ -102,19 +101,16 @@ interface Database {
 
     /////////////////////////////////////
 
-    // TODO - get rid of build time
-
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)
-        insert into build(id, customer_id, branch, build_number, trigger_details, time)
-        select :id, :customer_id, :branch, next.build_number, :trigger_details, :time
+        insert into build(id, customer_id, branch, build_number, trigger_details)
+        select :id, :customer_id, :branch, next.build_number, :trigger_details
         from next
         """)
     fun insertBuild(@Bind("id") id: UUID,
                     @Bind("customer_id") customerId: CustomerId,
                     @Bind("branch") branch: String,
-                    @BindJson("trigger_details") triggerDetails: TriggerDetails,
-                    @Bind("time") time: Instant)
+                    @BindJson("trigger_details") triggerDetails: TriggerDetails)
 
     @SqlUpdate("insert into phase(id, build_id, name, time) values(:id, :build_id, :name, :time)")
     fun insertPhase(@Bind("id") id: UUID,

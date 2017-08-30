@@ -193,7 +193,7 @@ class EvaluatorShould {
     }
 
     private fun verifyDatabaseInserts(buildId: UUID, vararg events: Pair<UUID, BuildEvent>) {
-        verify(database).insertBuild(eq(buildId),  eq(customer.id), eq(branch), eq(details), any())
+        verify(database).insertBuild(eq(buildId),  eq(customer.id), eq(branch), eq(details))
         events.forEach {
             verify(database).insertEvent2(eq(it.first), eq(buildId), any(), eq(it.second))
         }
@@ -229,7 +229,6 @@ class EvaluatorShould {
         customerId = customerId,
         branch = branch,
         buildNumber = 100,
-        time = Instant.MIN,
         triggerDetails = details
     )
 

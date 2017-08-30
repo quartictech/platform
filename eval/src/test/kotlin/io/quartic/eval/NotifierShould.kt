@@ -46,7 +46,6 @@ class NotifierShould {
         customerId = customerId,
         branch = "develop",
         buildNumber = 100,
-        time = Instant.MIN,
         triggerDetails = trigger
     )
 

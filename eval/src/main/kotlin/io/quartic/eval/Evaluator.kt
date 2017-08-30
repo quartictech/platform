@@ -81,7 +81,7 @@ class Evaluator(
         private val buildId = uuidGen()
 
         suspend fun run(details: TriggerDetails, startTime: Instant) {
-            val build = insertBuild(customer.id, details, startTime)
+            val build = insertBuild(customer.id, details)
 
             TriggerReceived(details).insert(startTime)
 
@@ -136,8 +136,8 @@ class Evaluator(
             )
         }
 
-        private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails, startTime: Instant) = run(threadPool) {
-            database.insertBuild(buildId, customerId, trigger.branch(), trigger, startTime)
+        private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails) = run(threadPool) {
+            database.insertBuild(buildId, customerId, trigger.branch(), trigger)
             database.getBuild(buildId)
         }
 
