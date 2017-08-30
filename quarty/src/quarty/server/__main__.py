@@ -53,8 +53,7 @@ async def pipeline(request):
         config = await initialise_repo(repo_url, repo_commit)
 
         progress_message(resp, "Installing requirements")
-        config = await install_requirements()
-
+        await install_requirements()
 
         result = await evaluate(config['pipeline_directory'],
                                 lambda l: log_message(resp, "stdout", l),
