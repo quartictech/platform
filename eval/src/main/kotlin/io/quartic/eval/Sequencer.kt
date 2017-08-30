@@ -18,9 +18,9 @@ import java.util.*
 
 class Sequencer(
     private val qube: QubeProxy,
-    private val notifier: Notifier,
     private val database: Database,
-    private val uuidGen: () -> UUID
+    private val notifier: Notifier,
+    private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ) {
     private val threadPool = newFixedThreadPoolContext(2, "database")
 
@@ -50,36 +50,10 @@ class Sequencer(
             val build = insertBuild(customer.id, details)
             TriggerReceived(details).insert()
 
-            val success: Boolean = try {
+            val success = try {
                 qube.createContainer().use { container ->
                     ContainerAcquired(container.hostname).insert()
-
-                    block(object : SequenceBuilder {
-                        suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
-                            val phaseId = uuidGen()
-                            PhaseStarted(phaseId, description).insert()
-
-                            val result = try {
-                                block(object : PhaseBuilder {
-                                    override val phaseId get() = phaseId
-                                    override val container get() = container
-                                    override suspend fun log(stream: String, message: String) {
-                                        LogMessageReceived(phaseId, stream, message).insert()
-                                    }
-
-                                })
-                            } catch (e: Exception) {
-                                InternalError(e)
-                            }
-
-                            PhaseCompleted(phaseId, result).insert()
-
-                            if (result !is Success) {
-                                throw PhaseException()
-                            }
-                        }
-
-                    })
+                    block(SequenceBuilderImpl(container))
                 }
                 true
             } catch (e: Exception) {
@@ -87,6 +61,35 @@ class Sequencer(
             }
             (if (success) BuildEvent.BUILD_SUCCEEDED else BuildEvent.BUILD_FAILED).insert()
             notifier.notifyAbout(details, customer, build, success) // TODO - how about "failed on phase blah"?
+        }
+
+        private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
+            private val phaseId = uuidGen()
+
+            suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
+                PhaseStarted(phaseId, description).insert()
+
+                val result = try {
+                    block(PhaseBuilderImpl(phaseId, container))
+                } catch (e: Exception) {
+                    InternalError(e)
+                }
+
+                PhaseCompleted(phaseId, result).insert()
+
+                if (result !is Success) {
+                    throw PhaseException()
+                }
+            }
+        }
+
+        private inner class PhaseBuilderImpl(
+            override val phaseId: UUID,
+            override val container: QubeContainerProxy
+        ) : PhaseBuilder {
+            suspend override fun log(stream: String, message: String) {
+                LogMessageReceived(phaseId, stream, message).insert()
+            }
         }
 
         private suspend fun BuildEvent.insert(time: Instant = Instant.now()) = run(threadPool) {

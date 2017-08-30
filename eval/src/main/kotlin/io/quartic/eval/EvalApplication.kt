@@ -23,19 +23,23 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    private fun evaluator(configuration: EvalConfiguration, database: Database): ActorJob<TriggerDetails> {
+    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<TriggerDetails> {
         val evaluator = Evaluator(
-            clientBuilder.retrofit(configuration.registryUrl),
-            qube(configuration),
-            github(configuration),
-            database,
-            notifier(configuration),
+            sequencer(config, database),
+            clientBuilder.retrofit(config.registryUrl),
+            github(config),
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
             for (details in channel) evaluator.evaluateAsync(details)
         }
     }
+
+    private fun sequencer(config: EvalConfiguration, database: Database) = Sequencer(
+        qube(config),
+        database,
+        notifier(config)
+    )
 
     private fun notifier(config: EvalConfiguration) = Notifier(
         clientBuilder.retrofit(config.heyUrl),

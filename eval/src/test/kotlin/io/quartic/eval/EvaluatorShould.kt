@@ -260,15 +260,13 @@ class EvaluatorShould {
     private val notifier = mock<Notifier>()
     private val database = mock<Database>()
     private val dagIsValid = mock<(List<Step>) -> Boolean>()
+    private val sequencer = Sequencer(qube, database, notifier) { uuid(nextUuid++) }
     private val evaluator = Evaluator(
+        sequencer,
         registry,
-        qube,
         github,
-        database,
-        notifier,
         dagIsValid,
-        quartyBuilder,
-        { uuid(nextUuid++) }
+        quartyBuilder
     )
     private var nextUuid = 100
 

@@ -9,7 +9,6 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
-import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.quarty.QuartyClient
@@ -23,33 +22,29 @@ import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
-import java.util.*
 import java.util.concurrent.CompletableFuture
 
 // TODO - retries
 // TODO - timeouts
 class Evaluator(
+    private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
-    private val qube: QubeProxy,
     private val github: GitHubInstallationClient,
-    private val database: Database,
-    private val notifier: Notifier,
     private val dagIsValid: (List<Step>) -> Boolean,
-    private val quartyBuilder: (String) -> QuartyClient,
-    private val uuidGen: () -> UUID
+    private val quartyBuilder: (String) -> QuartyClient
 ) {
     constructor(
+        sequencer: Sequencer,
         registry: RegistryServiceClient,
-        qube: QubeProxy,
         github: GitHubInstallationClient,
-        database: Database,
-        notifier: Notifier,
         clientBuilder: ClientBuilder,
         quartyPort: Int = 8080
-    ) : this(registry, qube, github, database, notifier,
+    ) : this(
+        sequencer,
+        registry,
+        github,
         { steps -> Dag.fromSteps(steps).validate() },
-        { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") },
-        { UUID.randomUUID() }
+        { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
 
     private val LOG by logger()
@@ -63,8 +58,6 @@ class Evaluator(
         val customer = getCustomer(details)
 
         if (customer != null) {
-            val sequencer = Sequencer(qube, notifier, database, uuidGen)
-
             sequencer.sequence(details, customer) {
                 phase("Evaluating DAG") {
                     val output = getDagAsync(container, details).use { getDag ->
