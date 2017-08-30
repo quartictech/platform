@@ -57,6 +57,16 @@ async def initialise_repo(repo_url, repo_commit):
     if rc != 0:
         raise QuartyException("Exception while checking out commit: {}".format(repo_commit))
 
+    # TODO: Hack move this elsewhere.
+    if os.path.exists("requirements.txt"):
+        logger.info("Installing requirements.txt")
+        # Checkout revision
+        rc = await _run_subprocess(["pip", "install", "-r", "requirements.txt"])
+        if rc != 0:
+            raise QuartyException("Exception while installing requirements")
+    else:
+        logger.info("No requirements.txt found")
+
     try:
         # Load config
         if not os.path.exists("quartic.yml"):
@@ -73,8 +83,11 @@ async def evaluate(pipeline_dir, stdout_cb, stderr_cb):
     try:
         rc = await _stream_subprocess(cmd, stdout_cb, stderr_cb)
         if rc != 0:
-            exception = json.load(open("../exception.json"))
-            raise PipelineException(exception)
+            if os.path.exists("../exception.json"):
+                exception = json.load(open("../exception.json"))
+                raise PipelineException(exception)
+            else:
+                raise PipelineException("Unknown exception (no exception.json found).")
         else:
             return json.load(open("../steps.json"))
     except Exception as e:
