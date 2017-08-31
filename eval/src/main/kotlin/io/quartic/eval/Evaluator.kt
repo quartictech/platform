@@ -3,11 +3,12 @@ package io.quartic.eval
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
-import io.quartic.eval.Sequencer.PhaseBuilder
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
+import io.quartic.eval.sequencer.Sequencer
+import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient

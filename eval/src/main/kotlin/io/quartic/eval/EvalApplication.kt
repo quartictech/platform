@@ -6,6 +6,7 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
 import kotlinx.coroutines.experimental.CommonPool
@@ -35,7 +36,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    private fun sequencer(config: EvalConfiguration, database: Database) = Sequencer(
+    private fun sequencer(config: EvalConfiguration, database: Database) = SequencerImpl(
         qube(config),
         database,
         notifier(config)
