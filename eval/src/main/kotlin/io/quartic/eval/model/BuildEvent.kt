@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.quarty.model.Step
@@ -14,14 +15,14 @@ import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
-    Type(TriggerReceived::class, name = "trigger_received"),
-    Type(BuildCancelled::class, name = "build_cancelled"),
-    Type(BuildSucceeded::class, name = "build_succeeded"),
-    Type(BuildFailed::class, name = "build_failed"),
-    Type(ContainerAcquired::class, name = "container_acquired"),
-    Type(PhaseStarted::class, name = "phase_started"),
-    Type(PhaseCompleted::class, name = "phase_completed"),
-    Type(LogMessageReceived::class, name = "log_message_received")
+    Type(TriggerReceived::class, name = "trigger_received_${VERSION}"),
+    Type(BuildCancelled::class, name = "build_cancelled_${VERSION}"),
+    Type(BuildSucceeded::class, name = "build_succeeded_${VERSION}"),
+    Type(BuildFailed::class, name = "build_failed_${VERSION}"),
+    Type(ContainerAcquired::class, name = "container_acquired_${VERSION}"),
+    Type(PhaseStarted::class, name = "phase_started_${VERSION}"),
+    Type(PhaseCompleted::class, name = "phase_completed_${VERSION}"),
+    Type(LogMessageReceived::class, name = "log_message_received_${VERSION}")
 )
 sealed class BuildEvent {
     // TODO - have our own TriggerDetails to decouple DB schema
@@ -70,5 +71,7 @@ sealed class BuildEvent {
         val BUILD_CANCELLED = BuildCancelled()
         val BUILD_SUCCEEDED = BuildSucceeded()
         val BUILD_FAILED = BuildFailed()
+
+        const val VERSION = "1"
     }
 }

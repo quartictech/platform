@@ -6,7 +6,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.Database.ValidDag
+import io.quartic.eval.Database.ValidDagRow
 import io.quartic.eval.api.model.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.quarty.model.Dataset
@@ -18,7 +18,7 @@ import javax.ws.rs.NotFoundException
 
 class QueryResourceShould {
     private val database = mock<Database> {
-        on { getLatestValidDag(any()) } doReturn null as ValidDag?
+        on { getLatestValidDag(any()) } doReturn null as ValidDagRow?
     }
     private val resource = QueryResource(database)
 
@@ -52,7 +52,7 @@ class QueryResourceShould {
             )
         )
 
-        whenever(database.getLatestValidDag(CustomerId("999"))).thenReturn(ValidDag(EvaluationOutput(steps)))
+        whenever(database.getLatestValidDag(CustomerId("999"))).thenReturn(ValidDagRow(EvaluationOutput(steps)))
 
         assertThat(resource.getDag(CustomerId("999")), equalTo(
             CytoscapeDag(
@@ -88,7 +88,7 @@ class QueryResourceShould {
             )
         )
 
-        whenever(database.getLatestValidDag(CustomerId("999"))).thenReturn(ValidDag(EvaluationOutput(steps)))
+        whenever(database.getLatestValidDag(CustomerId("999"))).thenReturn(ValidDagRow(EvaluationOutput(steps)))
 
         assertThat(resource.getDag(CustomerId("999")), equalTo(
             CytoscapeDag(

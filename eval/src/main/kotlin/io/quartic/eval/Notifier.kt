@@ -12,6 +12,8 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
+    // TODO - this is currently triggered by build completion, so we lose the nuance of internal vs user errors
+    // on phases.  We could add this back in by taking the message from the last failing phase.
     fun notifyAbout(trigger: TriggerDetails, customer: Customer, buildNumber: Long, success: Boolean) {
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(

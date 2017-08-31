@@ -1,7 +1,7 @@
 package io.quartic.eval
 
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.Database.ValidDag
+import io.quartic.eval.Database.ValidDagRow
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
 import io.quartic.eval.model.Dag
@@ -19,7 +19,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
     )
 
     // TODO - We're assuming that the DAG was validated before being added to the database
-    private fun convertToCytoscape(success: ValidDag) = with(Dag.fromSteps(success.artifact.steps)) {
+    private fun convertToCytoscape(success: ValidDagRow) = with(Dag.fromSteps(success.artifact.steps)) {
         CytoscapeDag(nodesFrom(this), edgesFrom(this))
     }
 

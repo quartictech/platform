@@ -36,7 +36,7 @@ interface Database {
         val buildNumber: Long
     )
 
-    data class ValidDag(
+    data class ValidDagRow(
         @ColumnName("payload")
         val artifact: EvaluationOutput  // TODO - eliminate the hardcoded type
     )
@@ -64,23 +64,23 @@ interface Database {
         select payload from event
         left join build on build.id = event.build_id
         where build.customer_id = :customer_id
-        and event.payload @> '{"type": "phase_completed"}'
+        and event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}'
         order by event.time desc
         limit 1
         """)
-    fun getLatestValidDag(@Bind("customer_id") customerId: CustomerId): ValidDag?
+    fun getLatestValidDag(@Bind("customer_id") customerId: CustomerId): ValidDagRow?
 
     @SqlQuery("""
         select payload from event
         left join build on build.id = event.build_id
         where build.customer_id = :customer_id
         and build.build_number = :build_number
-        and event.payload @> '{"type": "phase_completed"}'
+        and event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}'
         """)
     fun getValidDag(
         @Bind("customer_id") customerId: CustomerId,
         @Bind("build_number") buildNumber: Long
-    ): ValidDag?
+    ): ValidDagRow?
 
 
     @SqlUpdate("""

@@ -38,25 +38,25 @@ class SequencerImpl(
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, details)
-            TriggerReceived(details).insert()
+            insert(TriggerReceived(details))
 
             val success = try {
                 qube.createContainer().use { container ->
-                    ContainerAcquired(container.hostname).insert()
+                    insert(ContainerAcquired(container.hostname))
                     block(SequenceBuilderImpl(container))
                 }
                 true
             } catch (e: Exception) {
                 false
             }
-            (if (success) BuildEvent.BUILD_SUCCEEDED else BuildEvent.BUILD_FAILED).insert()
+            insert((if (success) BuildEvent.BUILD_SUCCEEDED else BuildEvent.BUILD_FAILED))
             notifier.notifyAbout(details, customer, build.buildNumber, success) // TODO - how about "failed on phase blah"?
         }
 
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
             suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
                 val phaseId = uuidGen()
-                PhaseStarted(phaseId, description).insert(phaseId)
+                insert(PhaseStarted(phaseId, description), phaseId)
 
                 val result = try {
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
@@ -69,7 +69,7 @@ class SequencerImpl(
                     InternalError(e)
                 }
 
-                PhaseCompleted(phaseId, result).insert(phaseId)
+                insert(PhaseCompleted(phaseId, result), phaseId)
 
                 if (result !is Success) {
                     throw PhaseException()
@@ -82,14 +82,14 @@ class SequencerImpl(
             override val container: QubeContainerProxy
         ) : PhaseBuilder {
             suspend override fun log(stream: String, message: String) {
-                LogMessageReceived(phaseId, stream, message).insert(phaseId)
+                insert(LogMessageReceived(phaseId, stream, message), phaseId)
             }
         }
 
-        private suspend fun BuildEvent.insert(phaseId: UUID? = null) = run(threadPool) {
+        private suspend fun insert(event: BuildEvent, phaseId: UUID? = null) = run(threadPool) {
             database.insertEvent(
                 id = uuidGen(),
-                payload = this,
+                payload = event,
                 time = Instant.now(),
                 buildId = buildId,
                 phaseId = phaseId
