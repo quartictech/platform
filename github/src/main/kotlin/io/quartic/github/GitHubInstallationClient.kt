@@ -1,9 +1,6 @@
 package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import feign.Headers
-import feign.Param
-import feign.RequestLine
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.client.ClientBuilder
@@ -85,7 +82,8 @@ class GitHubInstallationClient(
         sha: String,
         status: StatusCreate,
         accessToken: GitHubInstallationAccessToken
-    ) = githubRetrofit.sendStatus(owner, repo, sha, "token ${accessToken.token.veryUnsafe}", status)
+    ) = githubRetrofit.sendStatus(owner, repo, sha,
+        "token ${accessToken.token.veryUnsafe}", status)
 }
 
 
