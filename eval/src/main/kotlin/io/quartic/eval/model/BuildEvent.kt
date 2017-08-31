@@ -1,11 +1,28 @@
 package io.quartic.eval.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.quarty.model.Step
 import java.util.*
 
-// TODO - Jackson polymorphism
-
+@JsonTypeInfo(use= NAME, include= PROPERTY, property="type")
+@JsonSubTypes(
+    Type(TriggerReceived::class, name = "trigger_received"),
+    Type(BuildCancelled::class, name = "build_cancelled"),
+    Type(BuildSucceeded::class, name = "build_succeeded"),
+    Type(BuildFailed::class, name = "build_failed"),
+    Type(ContainerAcquired::class, name = "container_acquired"),
+    Type(PhaseStarted::class, name = "phase_started"),
+    Type(PhaseCompleted::class, name = "phase_completed"),
+    Type(LogMessageReceived::class, name = "log_message_received")
+)
 sealed class BuildEvent {
     data class TriggerReceived(val details: TriggerDetails) : BuildEvent()
 
@@ -21,8 +38,19 @@ sealed class BuildEvent {
 
     data class PhaseCompleted(val phaseId: UUID, val result: Result) : BuildEvent() {
 
+        @JsonTypeInfo(use= NAME, include= PROPERTY, property="type")
+        @JsonSubTypes(
+            Type(Success::class, name = "success"),
+            Type(InternalError::class, name = "internal_error"),
+            Type(UserError::class, name = "user_error")
+        )
         sealed class Result {
             data class Success(val artifact: Artifact) : Result() {
+
+                @JsonTypeInfo(use= NAME, include= PROPERTY, property="type")
+                @JsonSubTypes(
+                    Type(EvaluationOutput::class, name = "evaluation_output")
+                )
                 sealed class Artifact {
                     data class EvaluationOutput(val steps: List<Step>) : Artifact()
                 }
