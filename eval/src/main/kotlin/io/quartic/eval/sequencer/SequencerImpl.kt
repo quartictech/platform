@@ -8,6 +8,7 @@ import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
@@ -49,13 +50,12 @@ class SequencerImpl(
                 false
             }
             (if (success) BuildEvent.BUILD_SUCCEEDED else BuildEvent.BUILD_FAILED).insert()
-            notifier.notifyAbout(details, customer, build, success) // TODO - how about "failed on phase blah"?
+            notifier.notifyAbout(details, customer, build.buildNumber, success) // TODO - how about "failed on phase blah"?
         }
 
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
-            private val phaseId = uuidGen()
-
             suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
+                val phaseId = uuidGen()
                 PhaseStarted(phaseId, description).insert()
 
                 val result = try {
@@ -66,7 +66,7 @@ class SequencerImpl(
                         }
                     }
                 } catch (e: Exception) {
-                    Result.InternalError(e)
+                    InternalError(e)
                 }
 
                 PhaseCompleted(phaseId, result).insert()
@@ -95,8 +95,8 @@ class SequencerImpl(
             )
         }
 
-        private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails) = run(threadPool) {
-            database.insertBuild(buildId, customerId, trigger.branch(), trigger)
+        private suspend fun insertBuild(customerId: CustomerId, details: TriggerDetails) = run(threadPool) {
+            database.insertBuild(buildId, customerId, details.branch(), details)
             database.getBuild(buildId)
         }
     }

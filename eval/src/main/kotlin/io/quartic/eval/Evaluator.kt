@@ -94,11 +94,11 @@ class Evaluator(
         }
     }
 
-    private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
-        block = { registry.getCustomerAsync(null, trigger.repoId).await() },
+    private suspend fun getCustomer(details: TriggerDetails) = cancellable(
+        block = { registry.getCustomerAsync(null, details.repoId).await() },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
-                LOG.warn("Repo ID ${trigger.repoId} not found in Registry")
+                LOG.warn("Repo ID ${details.repoId} not found in Registry")
             } else {
                 LOG.error("Error communicating with Registry", t)
             }

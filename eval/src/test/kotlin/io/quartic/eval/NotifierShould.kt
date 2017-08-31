@@ -12,7 +12,6 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.util.*
 
 class NotifierShould {
     private val hey = mock<HeyClient>()
@@ -41,22 +40,14 @@ class NotifierShould {
         namespace = "noobhole"
     )
 
-     private val build = Database.BuildRow(
-        id = UUID.randomUUID(),
-        customerId = customerId,
-        branch = "develop",
-        buildNumber = 100,
-        triggerDetails = trigger
-    )
-
     @Test
     fun send_success_on_success() {
-        notifier.notifyAbout(trigger, customer, build, true)
+        notifier.notifyAbout(trigger, customer, 100, true)
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
-                title = "Build #${build.buildNumber} succeeded",
-                titleLink = URI.create("http://noobhole/#/pipeline/${build.buildNumber}"),
+                title = "Build #100 succeeded",
+                titleLink = URI.create("http://noobhole/#/pipeline/100"),
                 text = "Success",
                 fields = listOf(
                     HeyField("Repo", "noob", true),
@@ -70,12 +61,12 @@ class NotifierShould {
 
     @Test
     fun send_error_on_failure() {
-        notifier.notifyAbout(trigger, customer, build, false)
+        notifier.notifyAbout(trigger, customer, 100, false)
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
-                title = "Build #${build.buildNumber} failed",
-                titleLink = URI.create("http://noobhole/#/pipeline/${build.buildNumber}"),
+                title = "Build #100 failed",
+                titleLink = URI.create("http://noobhole/#/pipeline/100"),
                 text = "Failure",
                 fields = listOf(
                     HeyField("Repo", "noob", true),
