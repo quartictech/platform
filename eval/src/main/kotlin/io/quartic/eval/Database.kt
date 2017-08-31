@@ -108,12 +108,6 @@ interface Database {
                     @Bind("customer_id") customerId: CustomerId,
                     @Bind("branch") branch: String)
 
-    @SqlUpdate("insert into phase(id, build_id, name, time) values(:id, :build_id, :name, :time)")
-    fun insertPhase(@Bind("id") id: UUID,
-                    @Bind("build_id") buildId: UUID,
-                    @Bind("name") name: String,
-                    @Bind("time") startTime: Instant)
-
     @SqlUpdate("insert into event(id, build_id, phase_id, type, message, time) values(:id, :build_id, :phase_id, :type, :message, :time)")
     fun insertEvent(@Bind("id") id: UUID,
                     @Bind("build_id") buildId: UUID,
