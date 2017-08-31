@@ -96,7 +96,7 @@ class SequencerImpl(
         }
 
         private suspend fun insertBuild(customerId: CustomerId, details: TriggerDetails) = run(threadPool) {
-            database.insertBuild(buildId, customerId, details.branch(), details)
+            database.insertBuild(buildId, customerId, details.branch())
             database.getBuild(buildId)
         }
     }

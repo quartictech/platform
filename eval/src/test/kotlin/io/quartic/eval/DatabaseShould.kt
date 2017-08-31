@@ -37,24 +37,26 @@ class DatabaseShould {
     @Test
     fun insert_build() {
         val id = UUID.randomUUID()
-        DATABASE.insertBuild(id, customerId, branch, triggerDetails)
-        assertThat(DATABASE.getBuild(id), equalTo(Database.BuildRow(id, customerId, branch, 1, triggerDetails)))
+        DATABASE.insertBuild(id, customerId, branch)
+        assertThat(DATABASE.getBuild(id), equalTo(Database.BuildRow(id, customerId, branch, 1)))
     }
 
     @Test
     fun insert_event() {
+        val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertEvent(UUID.randomUUID(), phaseId, MESSAGE, Log("stdout", "Hahaha"), time)
-        DATABASE.insertEvent(UUID.randomUUID(), phaseId, MESSAGE, Result(steps), time)
+        DATABASE.insertEvent(UUID.randomUUID(), buildId, phaseId, MESSAGE, Log("stdout", "Hahaha"), time)
+        DATABASE.insertEvent(UUID.randomUUID(), buildId, phaseId, MESSAGE, Result(steps), time)
     }
 
     @Test
     fun insert_terminal_event() {
+        val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertTerminalEvent(UUID.randomUUID(), phaseId, MESSAGE, Success(steps), time)
-        DATABASE.insertTerminalEvent(UUID.randomUUID(), phaseId, MESSAGE, UserError(mapOf("foo" to "bar")), time)
+        DATABASE.insertTerminalEvent(UUID.randomUUID(), buildId, phaseId, MESSAGE, Success(steps), time)
+        DATABASE.insertTerminalEvent(UUID.randomUUID(), buildId, phaseId, MESSAGE, UserError(mapOf("foo" to "bar")), time)
     }
 
     @Test
@@ -63,9 +65,8 @@ class DatabaseShould {
         val phaseId = UUID.randomUUID()
         val eventId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, branch, triggerDetails)
-        DATABASE.insertPhase(phaseId, buildId,"Thing", time)
-        DATABASE.insertTerminalEvent(eventId, phaseId, SUCCESS, Success(steps), time)
+        DATABASE.insertBuild(buildId, customerId, branch)
+        DATABASE.insertTerminalEvent(eventId, buildId, phaseId, SUCCESS, Success(steps), time)
         val dag = DATABASE.getLatestSuccess(customerId)
         assertThat(dag!!.message.steps, equalTo(steps))
     }
@@ -73,10 +74,7 @@ class DatabaseShould {
     @Test
     fun get_latest_success_fails_on_nonexistent() {
         val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, branch, triggerDetails)
-        DATABASE.insertPhase(phaseId, buildId,"Thing", time)
+        DATABASE.insertBuild(buildId, customerId, branch)
         assertThat(DATABASE.getLatestSuccess(customerId), nullValue())
     }
 
@@ -86,13 +84,13 @@ class DatabaseShould {
 
         (1..10).forEach { count ->
             val idA = UUID.randomUUID()
-            DATABASE.insertBuild(idA, customerId, branch, triggerDetails)
+            DATABASE.insertBuild(idA, customerId, branch)
             assertThat(DATABASE.getBuild(idA).buildNumber, equalTo(count.toLong()))
         }
 
         (1..5).forEach { count ->
             val idB = UUID.randomUUID()
-            DATABASE.insertBuild(idB, otherCustomerId, branch, triggerDetails)
+            DATABASE.insertBuild(idB, otherCustomerId, branch)
             assertThat(DATABASE.getBuild(idB).buildNumber, equalTo(count.toLong()))
         }
     }
@@ -101,10 +99,10 @@ class DatabaseShould {
     @Test
     fun disallow_duplicate_build_ids() {
         val id = UUID.randomUUID()
-        DATABASE.insertBuild(id, customerId, branch, triggerDetails)
+        DATABASE.insertBuild(id, customerId, branch)
 
         assertThrows<UnableToExecuteStatementException> {
-            DATABASE.insertBuild(id, customerId, branch, triggerDetails)
+            DATABASE.insertBuild(id, customerId, branch)
         }
     }
 
@@ -124,9 +122,8 @@ class DatabaseShould {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, branch, triggerDetails)
-        DATABASE.insertPhase(phaseId, buildId, "noob", time)
-        DATABASE.insertTerminalEvent(UUID.randomUUID(), phaseId, SUCCESS, buildResult, time)
+        DATABASE.insertBuild(buildId, customerId, branch)
+        DATABASE.insertTerminalEvent(UUID.randomUUID(), buildId, phaseId, SUCCESS, buildResult, time)
 
         // Tweak the JSON to change the version
         val json = OBJECT_MAPPER.writeValueAsString(buildResult)
