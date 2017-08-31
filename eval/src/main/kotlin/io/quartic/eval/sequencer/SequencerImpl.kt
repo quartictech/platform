@@ -56,7 +56,7 @@ class SequencerImpl(
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
             suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
                 val phaseId = uuidGen()
-                PhaseStarted(phaseId, description).insert()
+                PhaseStarted(phaseId, description).insert(phaseId)
 
                 val result = try {
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
@@ -69,7 +69,7 @@ class SequencerImpl(
                     InternalError(e)
                 }
 
-                PhaseCompleted(phaseId, result).insert()
+                PhaseCompleted(phaseId, result).insert(phaseId)
 
                 if (result !is Success) {
                     throw PhaseException()
@@ -82,16 +82,17 @@ class SequencerImpl(
             override val container: QubeContainerProxy
         ) : PhaseBuilder {
             suspend override fun log(stream: String, message: String) {
-                LogMessageReceived(phaseId, stream, message).insert()
+                LogMessageReceived(phaseId, stream, message).insert(phaseId)
             }
         }
 
-        private suspend fun BuildEvent.insert(time: Instant = Instant.now()) = run(threadPool) {
+        private suspend fun BuildEvent.insert(phaseId: UUID? = null) = run(threadPool) {
             database.insertEvent(
                 id = uuidGen(),
                 payload = this,
-                time = time,
-                buildId = buildId
+                time = Instant.now(),
+                buildId = buildId,
+                phaseId = phaseId
             )
         }
 
