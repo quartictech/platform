@@ -101,6 +101,7 @@ class SequencerImpl(
         }
     }
 
+    // TODO - we could run a single thread and send messages via a channel
     private val threadPool = newFixedThreadPoolContext(2, "database")
 
     private class PhaseException : RuntimeException()
