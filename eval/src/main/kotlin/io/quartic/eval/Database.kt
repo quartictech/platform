@@ -33,9 +33,7 @@ interface Database {
         val customerId: CustomerId,
         val branch: String,
         @ColumnName("build_number")
-        val buildNumber: Long,
-        @ColumnName("trigger_details")
-        val triggerDetails: TriggerDetails
+        val buildNumber: Long
     )
 
     data class BuildResultSuccessRow(
@@ -64,13 +62,12 @@ interface Database {
     }
 
 
-    @SqlQuery("select id, customer_id, branch, build_number, trigger_details from build where id = :id")
+    @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
         select message from event
-        left join phase on phase.id = event.phase_id
-        left join build on build.id = phase.build_id
+        left join build on build.id = event.build_id
         where build.customer_id = :customer_id
         and event.type = 'SUCCESS'
         order by event.time desc
@@ -103,14 +100,13 @@ interface Database {
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)
-        insert into build(id, customer_id, branch, build_number, trigger_details)
-        select :id, :customer_id, :branch, next.build_number, :trigger_details
+        insert into build(id, customer_id, branch, build_number)
+        select :id, :customer_id, :branch, next.build_number
         from next
         """)
     fun insertBuild(@Bind("id") id: UUID,
                     @Bind("customer_id") customerId: CustomerId,
-                    @Bind("branch") branch: String,
-                    @BindJson("trigger_details") triggerDetails: TriggerDetails)
+                    @Bind("branch") branch: String)
 
     @SqlUpdate("insert into phase(id, build_id, name, time) values(:id, :build_id, :name, :time)")
     fun insertPhase(@Bind("id") id: UUID,
@@ -118,15 +114,17 @@ interface Database {
                     @Bind("name") name: String,
                     @Bind("time") startTime: Instant)
 
-    @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
+    @SqlUpdate("insert into event(id, build_id, phase_id, type, message, time) values(:id, :build_id, :phase_id, :type, :message, :time)")
     fun insertEvent(@Bind("id") id: UUID,
+                    @Bind("build_id") buildId: UUID,
                     @Bind("phase_id") phaseId: UUID,
                     @Bind("type") type: EventType,
                     @BindJson("message") message: QuartyMessage,
                     @Bind("time") time: Instant)
 
-    @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
+    @SqlUpdate("insert into event(id, build_id, phase_id, type, message, time) values(:id, :build_id, :phase_id, :type, :message, :time)")
     fun insertTerminalEvent(@Bind("id") id: UUID,
+                            @Bind("build_id") buildId: UUID,
                             @Bind("phase_id") phaseId: UUID,
                             @Bind("type") type: EventType,
                             @BindJson("message") result: BuildResult,

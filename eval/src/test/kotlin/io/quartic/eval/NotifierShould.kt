@@ -45,8 +45,7 @@ class NotifierShould {
         id = UUID.randomUUID(),
         customerId = customerId,
         branch = "develop",
-        buildNumber = 100,
-        triggerDetails = trigger
+        buildNumber = 100
     )
 
     @Test

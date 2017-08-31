@@ -93,7 +93,7 @@ class SequencerImpl(
         }
 
         private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails) = kotlinx.coroutines.experimental.run(threadPool) {
-            database.insertBuild(buildId, customerId, trigger.branch(), trigger)
+            database.insertBuild(buildId, customerId, trigger.branch())
             database.getBuild(buildId)
         }
     }
