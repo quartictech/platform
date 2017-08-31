@@ -6,15 +6,18 @@ import io.quartic.eval.Database
 import io.quartic.eval.Notifier
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.SequenceBuilder
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
+import kotlinx.coroutines.experimental.run
 import kotlinx.coroutines.experimental.selects.select
 import java.time.Instant
 import java.util.*
@@ -34,11 +37,11 @@ class SequencerImpl(
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, details)
-            BuildEvent.TriggerReceived(details).insert()
+            TriggerReceived(details).insert()
 
             val success = try {
                 qube.createContainer().use { container ->
-                    BuildEvent.ContainerAcquired(container.hostname).insert()
+                    ContainerAcquired(container.hostname).insert()
                     block(SequenceBuilderImpl(container))
                 }
                 true
@@ -49,11 +52,11 @@ class SequencerImpl(
             notifier.notifyAbout(details, customer, build, success) // TODO - how about "failed on phase blah"?
         }
 
-        private inner class SequenceBuilderImpl(private val container: QubeProxy.QubeContainerProxy) : SequenceBuilder {
+        private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
             private val phaseId = uuidGen()
 
             suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
-                BuildEvent.PhaseStarted(phaseId, description).insert()
+                PhaseStarted(phaseId, description).insert()
 
                 val result = try {
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
@@ -66,7 +69,7 @@ class SequencerImpl(
                     Result.InternalError(e)
                 }
 
-                BuildEvent.PhaseCompleted(phaseId, result).insert()
+                PhaseCompleted(phaseId, result).insert()
 
                 if (result !is Success) {
                     throw PhaseException()
@@ -76,14 +79,14 @@ class SequencerImpl(
 
         private inner class PhaseBuilderImpl(
             private val phaseId: UUID,
-            override val container: QubeProxy.QubeContainerProxy
+            override val container: QubeContainerProxy
         ) : PhaseBuilder {
             suspend override fun log(stream: String, message: String) {
-                BuildEvent.LogMessageReceived(phaseId, stream, message).insert()
+                LogMessageReceived(phaseId, stream, message).insert()
             }
         }
 
-        private suspend fun BuildEvent.insert(time: Instant = Instant.now()) = kotlinx.coroutines.experimental.run(threadPool) {
+        private suspend fun BuildEvent.insert(time: Instant = Instant.now()) = run(threadPool) {
             database.insertEvent2(
                 id = uuidGen(),
                 buildId = buildId,
@@ -92,7 +95,7 @@ class SequencerImpl(
             )
         }
 
-        private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails) = kotlinx.coroutines.experimental.run(threadPool) {
+        private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails) = run(threadPool) {
             database.insertBuild(buildId, customerId, trigger.branch(), trigger)
             database.getBuild(buildId)
         }

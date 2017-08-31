@@ -48,8 +48,37 @@ class EvaluatorShould {
         assertFalse(a.isCompleted)
     }
 
-    // TODO - test build phase name
-    // TODO - test logs
+    @Test
+    fun use_the_correct_phase_description() {
+        evaluate()
+
+        runBlocking {
+            verify(sequenceBuilder).phase(eq("Evaluating DAG"), any())
+        }
+    }
+
+    @Test
+    fun log_only_relevant_quarty_messages() {
+        whenever(quarty.getResultAsync(any(), any())).thenReturn(completedFuture(
+            Success(
+                listOf(
+                    QuartyMessage.Result(steps),
+                    QuartyMessage.Log("noob", "Hello there"),
+                    QuartyMessage.Progress("Something happened"),
+                    QuartyMessage.Error("Oh dear")
+                ),
+                steps
+            )
+        ))
+
+        evaluate()
+
+        runBlocking {
+            verify(phaseBuilder, times(2)).log(any(), any())        // Other messages should be filtered out
+            verify(phaseBuilder).log("noob", "Hello there")
+            verify(phaseBuilder).log("progress", "Something happened")
+        }
+    }
 
     @Test
     fun produce_success_if_everything_works() {
@@ -150,9 +179,9 @@ class EvaluatorShould {
         on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
-        on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success(listOf(
-            QuartyMessage.Result(steps)
-        ), steps))
+        on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
+            Success(listOf(QuartyMessage.Result(steps)), steps)
+        )
     }
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty

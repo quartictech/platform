@@ -24,6 +24,7 @@ import java.util.*
     Type(LogMessageReceived::class, name = "log_message_received")
 )
 sealed class BuildEvent {
+    // TODO - have our own TriggerDetails to decouple DB schema
     data class TriggerReceived(val details: TriggerDetails) : BuildEvent()
 
     class BuildCancelled : BuildEvent()
