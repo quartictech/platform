@@ -72,6 +72,6 @@ sealed class BuildEvent {
         val BUILD_SUCCEEDED = BuildSucceeded()
         val BUILD_FAILED = BuildFailed()
 
-        const val VERSION = "1"
+        const val VERSION = "v1"
     }
 }
