@@ -87,11 +87,11 @@ class SequencerImpl(
         }
 
         private suspend fun BuildEvent.insert(time: Instant = Instant.now()) = run(threadPool) {
-            database.insertEvent2(
+            database.insertEvent(
                 id = uuidGen(),
-                buildId = buildId,
+                payload = this,
                 time = time,
-                payload = this
+                buildId = buildId
             )
         }
 

@@ -13,9 +13,9 @@ create table build(
 create table event(
   id uuid not null unique,
   build_id uuid not null,
-  phase_id uuid not null,
-  type varchar not null,
-  message jsonb,
+  phase_id uuid,  -- Can be null
+  payload jsonb,
   time timestamp not null
 );
 
+create index idxgintype on event USING gin ((payload -> 'type'));
