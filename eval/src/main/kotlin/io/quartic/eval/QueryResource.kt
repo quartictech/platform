@@ -1,7 +1,7 @@
 package io.quartic.eval
 
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.Database.BuildResultSuccessRow
+import io.quartic.eval.Database.ValidDagRow
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
 import io.quartic.eval.model.Dag
@@ -10,16 +10,16 @@ import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
     override fun getDag(customerId: CustomerId, buildNumber: Long) = convertToCytoscape(
-        database.getSuccess(customerId, buildNumber) ?:
+        database.getValidDag(customerId, buildNumber) ?:
             throw NotFoundException("No DAG registered for ${customerId} with build number ${buildNumber}")
     )
 
     override fun getDag(customerId: CustomerId) = convertToCytoscape(
-        database.getLatestSuccess(customerId) ?: throw NotFoundException("No DAG registered for ${customerId}")
+        database.getLatestValidDag(customerId) ?: throw NotFoundException("No DAG registered for ${customerId}")
     )
 
     // TODO - We're assuming that the DAG was validated before being added to the database
-    private fun convertToCytoscape(success: BuildResultSuccessRow) = with(Dag.fromSteps(success.message.steps)) {
+    private fun convertToCytoscape(success: ValidDagRow) = with(Dag.fromSteps(success.artifact.steps)) {
         CytoscapeDag(nodesFrom(this), edgesFrom(this))
     }
 
