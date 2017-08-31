@@ -5,6 +5,15 @@
     - name: Quickstart
       url: /quickstart
 
+- name: Setting up the platform
+  docs:
+    - name: Code repository
+      url: /code_repo
+    - name: Data connectors
+      url: /data_connectors
+    - name: Quartic Line Interface
+      url: /qli
+
 - name: The Quartic DSL
   docs:
     - name: Introduction to the DSL
