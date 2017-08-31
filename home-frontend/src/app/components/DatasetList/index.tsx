@@ -3,7 +3,7 @@ import { Classes } from "@blueprintjs/core";
 import { IDataset, IDatasetCoords, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
 import _ = require("underscore");
-import { Link } from "react-router";
+import { withRouter, InjectedRouter } from "react-router";
 
 
 interface IDatasetListProps {
@@ -12,6 +12,7 @@ interface IDatasetListProps {
   onSelect: (string) => void;
   searchString: string;
   selectedNamespace: string;
+  router?: InjectedRouter;
 }
 
 const comparison = (a: IDataset, b: IDataset) => {
@@ -30,11 +31,9 @@ interface IDatasetRowProps {
 
 // tslint:disable-next-line:variable-name
 const DatasetRow = (props: IDatasetRowProps) => (
-  <tr onClick={props.onSelect} style={props.active ? { fontWeight: "bold" } : {}}>
+  <tr onClick={()=>props.onSelect()}>
     <td style={{ wordWrap: "break-word" }}>
-      <Link to={`/datasets/${props.namespace}/${props.id}`}>
         <b>{props.dataset.metadata.name}</b>
-       </Link>
     </td>
     <td style={{ wordWrap: "break-word" }}>
       {maybeDescription(props.dataset.metadata)}
@@ -47,7 +46,7 @@ const maybeDescription = (metadata: IDatasetMetadata) =>
     ? null
     : <p>{metadata.description}</p>;
 
-export class DatasetList extends React.Component<IDatasetListProps, void> {
+class DatasetListInner extends React.Component<IDatasetListProps, void> {
   render() {
     return (
       <div
@@ -96,7 +95,7 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
           id={id}
           dataset={dataset}
           active={this.props.selected === { id, namespace }}
-          onSelect={() => this.props.onSelect({ namespace, id })}
+          onSelect={() => this.props.router.push(`/datasets/${namespace}/${id}`)}
         />
       ));
   }
@@ -116,3 +115,4 @@ export class DatasetList extends React.Component<IDatasetListProps, void> {
   }
 }
 
+export const DatasetList = withRouter(DatasetListInner);
