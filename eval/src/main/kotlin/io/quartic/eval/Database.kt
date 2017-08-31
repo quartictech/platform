@@ -6,8 +6,9 @@ import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildResult
-import io.quartic.quarty.model.QuartyMessage
+import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
@@ -32,93 +33,74 @@ interface Database {
         val customerId: CustomerId,
         val branch: String,
         @ColumnName("build_number")
-        val buildNumber: Long,
-        @ColumnName("trigger_details")
-        val triggerDetails: TriggerDetails,
-        val time: Instant
+        val buildNumber: Long
     )
 
-    data class BuildResultSuccessRow(
-        @ColumnName("message")
-        val message: BuildResult.Success
+    data class ValidDagRow(
+        @ColumnName("payload")
+        val artifact: EvaluationOutput  // TODO - eliminate the hardcoded type
     )
 
-    enum class EventType {
-        MESSAGE,
-        SUCCESS,
-        INTERNAL_ERROR,
-        USER_ERROR
+    class TriggerDetailsColumnMapper : ColumnMapper<TriggerDetails> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerDetails =
+            OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
 
-    class TriggerDetailsColumnMapper: ColumnMapper<TriggerDetails> {
-        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): TriggerDetails =
-            OBJECT_MAPPER.readValue(r!!.getString(columnNumber))
-    }
+    class BuildResultSuccessColumnMapper : ColumnMapper<EvaluationOutput> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): EvaluationOutput {
+            val payload = OBJECT_MAPPER.readValue<BuildEvent.PhaseCompleted>(r.getString(columnNumber))
 
-    class BuildResultSuccessColumnMapper: ColumnMapper<BuildResult.Success> {
-        override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): BuildResult.Success {
-            val buildResult = OBJECT_MAPPER.readValue<BuildResult.Success>(r!!.getString(columnNumber))
-            buildResult.checkVersion()
-            return buildResult
+            return (payload.result as Result.Success).artifact as EvaluationOutput
         }
     }
 
 
-    @SqlQuery("select id, customer_id, branch, build_number, trigger_details, time from build where id = :id")
+    @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
+    // TODO - getLatestValidDag and getLatestDag don't take PhaseCompleted != BuildSucceeded into account, nor multi-phase builds
+
     @SqlQuery("""
-        select message from event
-        left join phase on phase.id = event.phase_id
-        left join build on build.id = phase.build_id
+        select payload from event
+        left join build on build.id = event.build_id
         where build.customer_id = :customer_id
-        and event.type = 'SUCCESS'
+        and event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}'
         order by event.time desc
         limit 1
         """)
-    fun getLatestSuccess(@Bind("customer_id") customerId: CustomerId): BuildResultSuccessRow?
+    fun getLatestValidDag(@Bind("customer_id") customerId: CustomerId): ValidDagRow?
 
     @SqlQuery("""
-        select message from event
-        left join phase on phase.id = event.phase_id
-        left join build on build.id = phase.build_id
-        where build.customer_id = :customer_id and
-        build.build_number = :build_number
-        and event.type = 'SUCCESS'
+        select payload from event
+        left join build on build.id = event.build_id
+        where build.customer_id = :customer_id
+        and build.build_number = :build_number
+        and event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}'
         """)
-    fun getSuccess(@Bind("customer_id") customerId: CustomerId,
-                   @Bind("build_number") buildNumber: Long): BuildResultSuccessRow?
+    fun getValidDag(
+        @Bind("customer_id") customerId: CustomerId,
+        @Bind("build_number") buildNumber: Long
+    ): ValidDagRow?
 
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)
-        insert into build(id, customer_id, branch, build_number, trigger_details, time)
-        select :id, :customer_id, :branch, next.build_number, :trigger_details, :time
+        insert into build(id, customer_id, branch, build_number)
+        select :id, :customer_id, :branch, next.build_number
         from next
         """)
-    fun insertBuild(@Bind("id") id: UUID,
-                    @Bind("customer_id") customerId: CustomerId,
-                    @Bind("branch") branch: String,
-                    @BindJson("trigger_details") triggerDetails: TriggerDetails,
-                    @Bind("time") time: Instant)
+    fun insertBuild(
+        @Bind("id") id: UUID,
+        @Bind("customer_id") customerId: CustomerId,
+        @Bind("branch") branch: String
+    )
 
-    @SqlUpdate("insert into phase(id, build_id, name, time) values(:id, :build_id, :name, :time)")
-    fun insertPhase(@Bind("id") id: UUID,
-                    @Bind("build_id") buildId: UUID,
-                    @Bind("name") name: String,
-                    @Bind("time") startTime: Instant)
-
-    @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
-    fun insertEvent(@Bind("id") id: UUID,
-                    @Bind("phase_id") phaseId: UUID,
-                    @Bind("type") type: EventType,
-                    @BindJson("message") message: QuartyMessage,
-                    @Bind("time") time: Instant)
-
-    @SqlUpdate("insert into event(id, phase_id, type, message, time) values(:id, :phase_id, :type, :message, :time)")
-    fun insertTerminalEvent(@Bind("id") id: UUID,
-                            @Bind("phase_id") phaseId: UUID,
-                            @Bind("type") type: EventType,
-                            @BindJson("message") result: BuildResult,
-                            @Bind("time") time: Instant)
+    @SqlUpdate("insert into event(id, build_id, phase_id, time, payload) values(:id, :build_id, :phase_id, :time, :payload)")
+    fun insertEvent(
+        @Bind("id") id: UUID,
+        @BindJson("payload") payload: BuildEvent,
+        @Bind("time") time: Instant,
+        @Bind("build_id") buildId: UUID,
+        @Bind("phase_id") phaseId: UUID? = null
+    )
 }

@@ -45,6 +45,27 @@ class DatabaseMigrationsShould {
             .forEach { assertThat(it, equalTo("develop")) }
     }
 
+    @Test
+    fun v3_migrate() {
+        databaseVersion("3")
+        assertThat(checkTableExists("phase", "public"), equalTo(false))
+        assertThat(checkTableExists("build", "public"), equalTo(true))
+        assertThat(checkTableExists("event", "public"), equalTo(true))
+    }
+
+    fun checkTableExists(name: String, schema: String): Boolean =
+        DBI.open().createQuery(
+            """select exists(
+            select 1
+            from pg_tables
+            where schemaname = :schema_name
+            and tablename = :table_name
+            );""")
+            .bind("table_name", name)
+            .bind("schema_name", schema)
+            .mapTo(Boolean::class.java)
+            .findOnly()
+
     fun databaseVersion(version: String): Database = DatabaseBuilder
         .testDao(Database::class.java, PG.embeddedPostgres.postgresDatabase,
             MigrationVersion.fromVersion(version))
