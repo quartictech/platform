@@ -46,7 +46,14 @@ data class Repository(
     val fullName: String,
     val private: Boolean,
     @JsonProperty("clone_url")
-    val cloneUrl: URI
+    val cloneUrl: URI,
+
+    val owner: Owner
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Owner(
+    val name: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
