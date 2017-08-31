@@ -13,7 +13,7 @@ import kotlin.streams.toList
 // TODO: Fix this
 typealias QuartyErrorDetail = Any
 
-class QuartyClient(val quarty: Quarty) {
+class QuartyClient(private val quarty: Quarty) {
     sealed class QuartyResult {
         abstract val messages: List<QuartyMessage>
 
@@ -24,17 +24,7 @@ class QuartyClient(val quarty: Quarty) {
     constructor(clientBuilder: ClientBuilder, url: String) :
         this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 300))
 
-    private fun stream(repoUrl: URI, repoCommit: String): CompletableFuture<Stream<QuartyMessage>> = quarty
-        .getPipeline(repoUrl, repoCommit)
-        .thenApply { responseBody ->
-            responseBody.byteStream()
-                .bufferedReader()
-                .lines()
-                .filter { !it.isEmpty() }
-                .map { OBJECT_MAPPER.readValue<QuartyMessage>(it) }
-        }
-
-    fun getResultAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> = stream(repoUrl, repoCommit)
+    fun getResultAsync(repoUrl: URI, repoCommit: String): CompletableFuture<QuartyResult?> = stream(repoUrl, repoCommit)
         .thenApply { stream ->
             val messages = stream.toList()
 
@@ -44,6 +34,16 @@ class QuartyClient(val quarty: Quarty) {
                     is QuartyMessage.Error -> QuartyResult.Failure(messages, message.detail)
                     else -> null
                 }
-            }.first()
+            }.firstOrNull()
+        }
+
+    private fun stream(repoUrl: URI, repoCommit: String): CompletableFuture<Stream<QuartyMessage>> = quarty
+        .getPipeline(repoUrl, repoCommit)
+        .thenApply { responseBody ->
+            responseBody.byteStream()
+                .bufferedReader()
+                .lines()
+                .filter { !it.isEmpty() }
+                .map { OBJECT_MAPPER.readValue<QuartyMessage>(it) }
         }
 }
