@@ -90,6 +90,7 @@ data class Installation(
 
 data class StatusCreate(
     val state: String,
+    @JsonProperty("target_url")
     val targetUrl: URI,
     val description: String,
     val context: String
