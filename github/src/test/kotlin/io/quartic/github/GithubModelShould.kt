@@ -122,7 +122,7 @@ class GithubModelShould {
                     private = true,
                     cloneUrl = URI("https://github.com/quartictech/platform.git"),
                     owner = Owner(
-                        name = "choliver"
+                        name = "quartictech"
                     )
                 ),
                 installation = Installation(40737)
