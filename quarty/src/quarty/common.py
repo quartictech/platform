@@ -50,6 +50,7 @@ async def initialise_repo(repo_url, repo_commit):
     if rc != 0:
         raise QuartyException("Exception while cloning code from respository: {}".format(repo_url))
 
+    # TODO: Use cwd in subprocess instead
     os.chdir("build")
 
     # Checkout revision
@@ -66,6 +67,17 @@ async def initialise_repo(repo_url, repo_commit):
     except Exception as e:
         raise QuartyException("Exception reading quartic.yml", e)
 
+async def install_requirements():
+    # TODO: Hack move this elsewhere.
+    if os.path.exists("requirements.txt"):
+        logger.info("Installing requirements.txt")
+        # Checkout revision
+        rc = await _run_subprocess(["pip", "install", "-r", "requirements.txt"])
+        if rc != 0:
+            raise QuartyException("Exception while installing requirements")
+    else:
+        logger.info("No requirements.txt found")
+
 async def evaluate(pipeline_dir, stdout_cb, stderr_cb):
     cmd = ["python", "-u", "-m", "quartic.pipeline.runner", "--evaluate",
            "../steps.json", "--exception", "../exception.json", pipeline_dir]
@@ -73,8 +85,11 @@ async def evaluate(pipeline_dir, stdout_cb, stderr_cb):
     try:
         rc = await _stream_subprocess(cmd, stdout_cb, stderr_cb)
         if rc != 0:
-            exception = json.load(open("../exception.json"))
-            raise PipelineException(exception)
+            if os.path.exists("../exception.json"):
+                exception = json.load(open("../exception.json"))
+                raise PipelineException(exception)
+            else:
+                raise PipelineException("Unknown exception (no exception.json found).")
         else:
             return json.load(open("../steps.json"))
     except Exception as e:

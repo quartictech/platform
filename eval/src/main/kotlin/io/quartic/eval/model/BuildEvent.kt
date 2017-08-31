@@ -12,7 +12,7 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.E
 import io.quartic.quarty.model.Step
 import java.util.*
 
-@JsonTypeInfo(use= NAME, include= PROPERTY, property="type")
+@JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
     Type(TriggerReceived::class, name = "trigger_received"),
     Type(BuildCancelled::class, name = "build_cancelled"),
@@ -24,6 +24,7 @@ import java.util.*
     Type(LogMessageReceived::class, name = "log_message_received")
 )
 sealed class BuildEvent {
+    // TODO - have our own TriggerDetails to decouple DB schema
     data class TriggerReceived(val details: TriggerDetails) : BuildEvent()
 
     class BuildCancelled : BuildEvent()
@@ -38,7 +39,7 @@ sealed class BuildEvent {
 
     data class PhaseCompleted(val phaseId: UUID, val result: Result) : BuildEvent() {
 
-        @JsonTypeInfo(use= NAME, include= PROPERTY, property="type")
+        @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
         @JsonSubTypes(
             Type(Success::class, name = "success"),
             Type(InternalError::class, name = "internal_error"),
@@ -47,7 +48,7 @@ sealed class BuildEvent {
         sealed class Result {
             data class Success(val artifact: Artifact) : Result() {
 
-                @JsonTypeInfo(use= NAME, include= PROPERTY, property="type")
+                @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
                 @JsonSubTypes(
                     Type(EvaluationOutput::class, name = "evaluation_output")
                 )

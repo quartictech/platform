@@ -1,7 +1,6 @@
 package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
@@ -29,7 +28,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
-import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
@@ -48,8 +46,37 @@ class EvaluatorShould {
         assertFalse(a.isCompleted)
     }
 
-    // TODO - test build phase name
-    // TODO - test logs
+    @Test
+    fun use_the_correct_phase_description() {
+        evaluate()
+
+        runBlocking {
+            verify(sequenceBuilder).phase(eq("Evaluating DAG"), any())
+        }
+    }
+
+    @Test
+    fun log_only_relevant_quarty_messages() {
+        whenever(quarty.getResultAsync(any(), any())).thenReturn(completedFuture(
+            Success(
+                listOf(
+                    QuartyMessage.Result(steps),
+                    QuartyMessage.Log("noob", "Hello there"),
+                    QuartyMessage.Progress("Something happened"),
+                    QuartyMessage.Error("Oh dear")
+                ),
+                steps
+            )
+        ))
+
+        evaluate()
+
+        runBlocking {
+            verify(phaseBuilder, times(2)).log(any(), any())        // Other messages should be filtered out
+            verify(phaseBuilder).log("noob", "Hello there")
+            verify(phaseBuilder).log("progress", "Something happened")
+        }
+    }
 
     @Test
     fun produce_success_if_everything_works() {
@@ -112,28 +139,14 @@ class EvaluatorShould {
         completeExceptionally(RuntimeException("Sad"))
     }
 
-    private val customerId = CustomerId(999)
+    private val details = mock<TriggerDetails> {
+        on { repoId } doReturn 5678
+        on { installationId } doReturn 1234
+        on { commit } doReturn "abc123"
+        on { cloneUrl } doReturn URI("https://noob.com/foo/bar")
+    }
 
-    private val details = TriggerDetails(
-        type = "github",
-        deliveryId = "deadbeef",
-        installationId = 1234,
-        repoId = 5678,
-        repoName = "noob",
-        cloneUrl = URI("https://noob.com/foo/bar"),
-        ref = "develop",
-        commit = "abc123",
-        timestamp = Instant.MIN
-    )
-
-    private val customer = Customer(
-        id = customerId,
-        githubOrgId = 8765,
-        githubRepoId = 5678,
-        name = "Noobhole Ltd",
-        subdomain = "noobhole",
-        namespace = "noobhole"
-    )
+    private val customer = mock<Customer>()
 
     private val steps = mock<List<Step>>()
 
@@ -150,9 +163,9 @@ class EvaluatorShould {
         on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
-        on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success(listOf(
-            QuartyMessage.Result(steps)
-        ), steps))
+        on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
+            Success(listOf(QuartyMessage.Result(steps)), steps)
+        )
     }
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty

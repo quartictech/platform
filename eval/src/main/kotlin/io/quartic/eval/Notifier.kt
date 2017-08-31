@@ -12,12 +12,12 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    fun notifyAbout(trigger: TriggerDetails, customer: Customer, build: Database.BuildRow, success: Boolean) {
+    fun notifyAbout(trigger: TriggerDetails, customer: Customer, buildNumber: Long, success: Boolean) {
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
-                title = "Build #${build.buildNumber} ${if (success) "succeeded" else "failed"}",
+                title = "Build #${buildNumber} ${if (success) "succeeded" else "failed"}",
                 titleLink = URI.create(
-                    "${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${build.buildNumber}"
+                    "${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}"
                 ),
                 text = if (success) "Success" else "Failure",
                 fields = listOf(
