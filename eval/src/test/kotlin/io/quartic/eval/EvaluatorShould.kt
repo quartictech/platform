@@ -13,9 +13,9 @@ import io.quartic.eval.sequencer.Sequencer.SequenceBuilder
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
-import io.quartic.quarty.QuartyClient.QuartyResult.Failure
-import io.quartic.quarty.QuartyClient.QuartyResult.Success
-import io.quartic.quarty.model.QuartyMessage
+import io.quartic.quarty.model.QuartyResult
+import io.quartic.quarty.model.QuartyResult.Failure
+import io.quartic.quarty.model.QuartyResult.Success
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
@@ -28,6 +28,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
@@ -55,15 +56,17 @@ class EvaluatorShould {
         }
     }
 
+    // TODO - until we do true streaming, this may lead to non-monotonic events
     @Test
-    fun log_only_relevant_quarty_messages() {
+    fun log_quarty_log_events_with_original_timestamps() {
+        val instantA = mock<Instant>()
+        val instantB = mock<Instant>()
+
         whenever(quarty.getResultAsync(any(), any())).thenReturn(completedFuture(
             Success(
                 listOf(
-                    QuartyMessage.Result(steps),
-                    QuartyMessage.Log("noob", "Hello there"),
-                    QuartyMessage.Progress("Something happened"),
-                    QuartyMessage.Error("Oh dear")
+                    QuartyResult.LogEvent("foo", "Hello", instantA),
+                    QuartyResult.LogEvent("bar", "World", instantB)
                 ),
                 steps
             )
@@ -72,9 +75,9 @@ class EvaluatorShould {
         evaluate()
 
         runBlocking {
-            verify(phaseBuilder, times(2)).log(any(), any())        // Other messages should be filtered out
-            verify(phaseBuilder).log("noob", "Hello there")
-            verify(phaseBuilder).log("progress", "Something happened")
+            verify(phaseBuilder, times(2)).log(any(), any(), any())        // Other messages should be filtered out
+            verify(phaseBuilder).log("foo", "Hello", instantA)
+            verify(phaseBuilder).log("bar", "World", instantB)
         }
     }
 
@@ -164,7 +167,7 @@ class EvaluatorShould {
     }
     private val quarty = mock<QuartyClient> {
         on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
-            Success(listOf(QuartyMessage.Result(steps)), steps)
+            Success(emptyList(), steps)
         )
     }
     private val quartyBuilder = mock<(String) -> QuartyClient> {
