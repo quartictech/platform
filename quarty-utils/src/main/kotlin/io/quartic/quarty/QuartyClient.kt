@@ -22,7 +22,7 @@ class QuartyClient(val quarty: Quarty) {
     }
 
     constructor(clientBuilder: ClientBuilder, url: String) :
-        this(clientBuilder.retrofit<Quarty>(url))
+        this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 300))
 
     private fun stream(repoUrl: URI, repoCommit: String): CompletableFuture<Stream<QuartyMessage>> = quarty
         .getPipeline(repoUrl, repoCommit)

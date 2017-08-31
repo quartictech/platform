@@ -24,7 +24,7 @@ import java.io.InputStream
 import java.net.URI
 import java.net.URL
 import java.nio.charset.StandardCharsets
-
+import java.util.concurrent.TimeUnit
 
 @Target(AnnotationTarget.CLASS)
 annotation class Feignable
@@ -33,12 +33,15 @@ annotation class Retrofittable
 @Target(AnnotationTarget.CLASS)
 annotation class Jaxable
 
+val RETROFIT_DEFAULT_TIMEOUT: Long = 10
 
 class ClientBuilder(val owner: Class<*>) {
     inline fun <reified T> feign(url: String): T = client(owner, url)
     inline fun <reified T> feign(url: URI): T = feign(url.toString())
-    inline fun <reified T> retrofit(url: String): T = retrofitClient(owner, url)
-    inline fun <reified T> retrofit(url: URI): T = retrofit(url.toString())
+    inline fun <reified T> retrofit(url: String, timeoutSeconds: Long = RETROFIT_DEFAULT_TIMEOUT): T =
+        retrofitClient(owner, url, timeoutSeconds)
+    inline fun <reified T> retrofit(url: URI, timeoutSeconds: Long = RETROFIT_DEFAULT_TIMEOUT): T =
+        retrofit(url.toString(), timeoutSeconds)
 }
 
 
@@ -57,9 +60,10 @@ fun <T> client(target: Class<T>, owner: Class<*>, url: String, contract: Contrac
             .logLevel(BASIC)
             .target(target, url)
 
-inline fun <reified T> retrofitClient(owner: Class<*>, url: String): T = retrofitClient(T::class.java, owner, url)
+inline fun <reified T> retrofitClient(owner: Class<*>, url: String, timeoutSeconds: Long = RETROFIT_DEFAULT_TIMEOUT): T =
+    retrofitClient(T::class.java, owner, url, timeoutSeconds)
 
-fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
+fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String, timeoutSeconds: Long): T {
     if (!target.isAnnotationPresent(Retrofittable::class.java)) {
         throw IllegalArgumentException("${target.simpleName} is not marked as @${Retrofittable::class.simpleName}")
     }
@@ -68,6 +72,7 @@ fun <T> retrofitClient(target: Class<T>, owner: Class<*>, url: String): T {
     val interceptor = HttpLoggingInterceptor()
     interceptor.level = HttpLoggingInterceptor.Level.BASIC
     val client = OkHttpClient.Builder()
+        .readTimeout(timeoutSeconds, TimeUnit.SECONDS)
         .addInterceptor(interceptor)
         .addInterceptor { chain ->
             val original = chain.request()
