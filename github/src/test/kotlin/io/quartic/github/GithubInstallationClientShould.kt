@@ -4,6 +4,7 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
+import org.junit.Ignore
 import org.junit.Test
 import java.net.URI
 
@@ -18,6 +19,7 @@ class GithubInstallationClientShould {
         )
     )
 
+    @Ignore("Manually run this test")
     @Test
     fun send_status_updates() {
         val installationClient = GitHubInstallationClient(
