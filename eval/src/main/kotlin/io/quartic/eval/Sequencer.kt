@@ -11,8 +11,11 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.registry.api.model.Customer
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.selects.select
 import java.time.Instant
 import java.util.*
 
@@ -22,9 +25,9 @@ class Sequencer(
     private val notifier: Notifier,
     private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ) {
-    private val threadPool = newFixedThreadPoolContext(2, "database")
-
-    private class PhaseException : RuntimeException()
+    suspend fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+        SequenceContext(details, customer).execute(block)
+    }
 
     interface SequenceBuilder {
         suspend fun phase(description: String, block: suspend PhaseBuilder.() -> Result)
@@ -36,14 +39,7 @@ class Sequencer(
         suspend fun log(stream: String, message: String)
     }
 
-    suspend fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
-        SequenceContext(details, customer).execute(block)
-    }
-
-    private inner class SequenceContext(
-        private val details: TriggerDetails,
-        private val customer: Customer
-    ) {
+    private inner class SequenceContext(private val details: TriggerDetails, private val customer: Customer) {
         private val buildId = uuidGen()
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
@@ -70,7 +66,12 @@ class Sequencer(
                 PhaseStarted(phaseId, description).insert()
 
                 val result = try {
-                    block(PhaseBuilderImpl(phaseId, container))
+                    async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
+                        select<Result> {
+                            blockAsync.onAwait { it }
+                            container.errors.onReceive { throw it }
+                        }
+                    }
                 } catch (e: Exception) {
                     InternalError(e)
                 }
@@ -106,4 +107,8 @@ class Sequencer(
             database.getBuild(buildId)
         }
     }
+
+    private val threadPool = newFixedThreadPoolContext(2, "database")
+
+    private class PhaseException : RuntimeException()
 }

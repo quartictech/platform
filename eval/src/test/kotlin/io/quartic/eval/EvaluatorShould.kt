@@ -94,7 +94,7 @@ class EvaluatorShould {
             QuartyMessage.Log("stdout", "some log message"),
             QuartyMessage.Error("badness")  // TODO - move this to a dedicated test to prove this is ignored
         )
-        whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure(messages, "badness")))
+        whenever(quarty.getResultAsync(any(), any())).thenReturn(completedFuture(Failure(messages, "badness")))
 
         evaluate()
 
@@ -250,7 +250,7 @@ class EvaluatorShould {
         on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
-        on { getResult(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success(listOf(
+        on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success(listOf(
             QuartyMessage.Result(steps)
         ), steps))
     }

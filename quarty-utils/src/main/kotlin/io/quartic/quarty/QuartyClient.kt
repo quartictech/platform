@@ -34,7 +34,7 @@ class QuartyClient(val quarty: Quarty) {
                 .map { OBJECT_MAPPER.readValue<QuartyMessage>(it) }
         }
 
-    fun getResult(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> = stream(repoUrl, repoCommit)
+    fun getResultAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> = stream(repoUrl, repoCommit)
         .thenApply { stream ->
             val messages = stream.toList()
 
