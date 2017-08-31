@@ -10,6 +10,7 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.client.Retrofittable
 import io.quartic.common.secrets.UnsafeSecret
 import org.apache.commons.codec.binary.Base64
+import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -31,16 +32,6 @@ class GitHubInstallationClient(
         val token: UnsafeSecret
     )
 
-    // TODO - eliminate the non-async client, then rename the other one
-    interface GitHubInstallation {
-        @RequestLine("POST /installations/{installationId}/access_tokens")
-        @Headers("Authorization: Bearer {jwt}", "Accept: application/vnd.github.machine-man-preview+json")
-        fun installationAccessToken(
-            @Param("installationId") installationId: Long,
-            @Param("jwt") jwt: String
-        ): GitHubInstallationAccessToken
-    }
-
     @Retrofittable
     interface GitHubInstallationRetrofit {
         @POST("/installations/{installationId}/access_tokens")
@@ -49,9 +40,18 @@ class GitHubInstallationClient(
             @Path("installationId") installationId: Long,
             @Header("Authorization") auth: String
         ): CompletableFuture<GitHubInstallationAccessToken>
+
+        @POST("/repos/{owner}/{repo}/statuses/{sha}")
+        @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
+        fun sendStatus(
+            @Path("owner") owner: String,
+            @Path("repo") repo: String,
+            @Path("sha") sha: String,
+            @Header("Authorization") auth: String,
+            @Body status: StatusCreate
+        ): CompletableFuture<Void>
     }
 
-    private val github = clientBuilder.feign<GitHubInstallation>(githubApiRoot)
     private val githubRetrofit = clientBuilder.retrofit<GitHubInstallationRetrofit>(githubApiRoot)
     private val privateKey: Key
 
@@ -74,8 +74,18 @@ class GitHubInstallationClient(
             .compact()
     }
 
-    fun accessToken(installationId: Long) = github.installationAccessToken(installationId, generateJwt())
-    fun accessTokenAsync(installationId: Long) = githubRetrofit.installationAccessTokenAsync(installationId, "Bearer ${generateJwt()}")
+    fun accessTokenAsync(installationId: Long) = githubRetrofit.installationAccessTokenAsync(
+        installationId,
+        "Bearer ${generateJwt()}"
+    )
+
+    fun sendStatusAsync(
+        owner: String,
+        repo: String,
+        sha: String,
+        status: StatusCreate,
+        accessToken: GitHubInstallationAccessToken
+    ) = githubRetrofit.sendStatus(owner, repo, sha, "token ${accessToken.token.veryUnsafe}", status)
 }
 
 

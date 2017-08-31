@@ -80,3 +80,10 @@ data class Sender(
 data class Installation(
     val id: Long
 )
+
+data class StatusCreate(
+    val state: String,
+    val targetUrl: URI,
+    val description: String,
+    val context: String
+)
