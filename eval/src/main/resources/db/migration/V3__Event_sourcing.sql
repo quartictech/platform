@@ -6,6 +6,7 @@ drop table event;
 create table build(
   id uuid not null unique,
   customer_id bigint not null,
+  branch varchar not null,
   build_number bigint not null
 );
 
