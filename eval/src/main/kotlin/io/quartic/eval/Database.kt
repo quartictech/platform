@@ -5,6 +5,7 @@ import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.Database.*
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
@@ -23,10 +24,12 @@ import java.util.*
 
 
 @RegisterColumnMappers(
-    RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class),
-    RegisterColumnMapper(Database.BuildResultSuccessColumnMapper::class),
-    RegisterColumnMapper(CustomerIdColumnMapper::class))
+    RegisterColumnMapper(TriggerDetailsColumnMapper::class),
+    RegisterColumnMapper(BuildResultSuccessColumnMapper::class),
+    RegisterColumnMapper(CustomerIdColumnMapper::class),
+    RegisterColumnMapper(BuildEventColumnMapper::class))
 interface Database {
+
     data class BuildRow(
         val id: UUID,
         @ColumnName("customer_id")
@@ -34,6 +37,16 @@ interface Database {
         val branch: String,
         @ColumnName("build_number")
         val buildNumber: Long
+    )
+
+    data class EventRow(
+        val id: UUID,
+        @ColumnName("build_id")
+        val buildId: UUID,
+        @ColumnName("phase_id")
+        val phaseId: UUID?,
+        val time: Instant,
+        val payload: BuildEvent
     )
 
     data class ValidDagRow(
@@ -54,20 +67,17 @@ interface Database {
         }
     }
 
+    class BuildEventColumnMapper : ColumnMapper<BuildEvent> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent =
+            OBJECT_MAPPER.readValue(r.getString(columnNumber))
+    }
+
 
     @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
 
-    data class EventRow(
-        val id: UUID,
-        @ColumnName("build_id")
-        val buildId: UUID,
-        @ColumnName("phase_id")
-        val phaseId: UUID,
-        val time: Instant,
-        val payload: BuildEvent
-    )
+
 
     @SqlQuery("""
         SELECT * FROM event
@@ -76,7 +86,6 @@ interface Database {
                 build.customer_id = :customer_id AND
                 build.build_number = :build_number
             ORDER BY event.time ASC
-            LIMIT 1
         """)
     fun getEventsForBuild(
         @Bind("customer_id") customerId: CustomerId,

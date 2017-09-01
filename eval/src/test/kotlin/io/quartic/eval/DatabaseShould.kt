@@ -15,6 +15,7 @@ import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.nullValue
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.statement.UnableToExecuteStatementException
@@ -22,6 +23,7 @@ import org.junit.After
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -29,8 +31,9 @@ class DatabaseShould {
     private val customerId = customerId()
     private val branch = "develop"
 
-    private val buildId = uuid()
-    private val phaseId = uuid()
+    private val uuidGen = UuidGen()
+    private val buildId = uuidGen()
+    private val phaseId = uuidGen()
 
     @After
     fun after() {
@@ -47,8 +50,42 @@ class DatabaseShould {
 
     @Test
     fun insert_event() {
-        insertEvent(buildId, null, BuildEvent.BUILD_SUCCEEDED)
-        insertEvent(uuid(), phaseId, BuildEvent.BUILD_SUCCEEDED)
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(phaseId))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+            successfulPhase(phaseId) as BuildEvent
+        ))
+    }
+
+    @Test
+    fun get_events_for_build_in_chronological_order() {
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), Instant.now())
+        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), Instant.now() - Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), Instant.now() + Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), Instant.now() - Duration.ofSeconds(2))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+            successfulPhase(uuid(72)) as BuildEvent,
+            successfulPhase(uuid(70)) as BuildEvent,
+            successfulPhase(uuid(69)) as BuildEvent,
+            successfulPhase(uuid(71)) as BuildEvent
+        ))
+    }
+
+    @Test
+    fun get_events_for_only_specified_build() {
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(uuid(42)))
+
+        val otherBuildId = uuidGen()
+        insertBuild(otherBuildId)
+        insertEvent(otherBuildId, phaseId, successfulPhase(uuid(69)))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+            successfulPhase(uuid(42)) as BuildEvent
+        ))
     }
 
     @Test
@@ -63,13 +100,13 @@ class DatabaseShould {
 
     @Test
     fun ignore_failures_when_getting_latest_dag() {
-        val buildIdA = uuid()
-        val phaseIdA = uuid()
+        val buildIdA = uuidGen()
+        val phaseIdA = uuidGen()
         insertBuild(buildIdA)
         insertEvent(buildIdA, phaseIdA, successfulPhase(phaseIdA))
 
-        val buildIdB = uuid()
-        val phaseIdB = uuid()
+        val buildIdB = uuidGen()
+        val phaseIdB = uuidGen()
         insertBuild(buildIdB)
         insertEvent(buildIdB, phaseIdB, successfulPhase(phaseIdB))
 
@@ -109,14 +146,14 @@ class DatabaseShould {
         val otherCustomerId = customerId()
 
         (1..10).forEach { count ->
-            val idA = uuid()
+            val idA = uuidGen()
             insertBuild(idA)
 
             assertThat(DATABASE.getBuild(idA).buildNumber, equalTo(count.toLong()))
         }
 
         (1..5).forEach { count ->
-            val idB = uuid()
+            val idB = uuidGen()
             insertBuild(idB, otherCustomerId)
 
             assertThat(DATABASE.getBuild(idB).buildNumber, equalTo(count.toLong()))
@@ -136,11 +173,18 @@ class DatabaseShould {
         DATABASE.insertBuild(buildId, customerId, branch)
     }
 
-    private fun insertEvent(buildId: UUID, phaseId: UUID? = null, event: BuildEvent) {
-        DATABASE.insertEvent(uuid(), event, Instant.now(), buildId, phaseId)
+    private fun insertEvent(buildId: UUID, phaseId: UUID? = null, event: BuildEvent, time: Instant = Instant.now()) {
+        DATABASE.insertEvent(uuidGen(), event, time, buildId, phaseId)
     }
 
-    private fun uuid() = UUID.randomUUID()
+    private inner class UuidGen {
+        private var next = 100
+        operator fun invoke(): UUID = uuid(next++)
+    }
+
+
+
+    private fun uuid(x: Int) = UUID(0, x.toLong())
 
     private fun customerId() = CustomerId(Random().nextLong())
 
