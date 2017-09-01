@@ -54,7 +54,7 @@ class DatabaseShould {
     @Test
     fun get_latest_valid_dag() {
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, PhaseCompleted(phaseId, Success(EvaluationOutput(steps))))
+        insertEvent(buildId, phaseId, successfulPhase(phaseId))
 
         val dag = DATABASE.getLatestValidDag(customerId)
 
@@ -66,12 +66,12 @@ class DatabaseShould {
         val buildIdA = uuid()
         val phaseIdA = uuid()
         insertBuild(buildIdA)
-        insertEvent(buildIdA, phaseIdA, PhaseCompleted(phaseIdA, Success(EvaluationOutput(steps))))
+        insertEvent(buildIdA, phaseIdA, successfulPhase(phaseIdA))
 
         val buildIdB = uuid()
         val phaseIdB = uuid()
         insertBuild(buildIdB)
-        insertEvent(buildIdB, phaseIdB, PhaseCompleted(phaseIdB, Success(EvaluationOutput(steps))))
+        insertEvent(buildIdB, phaseIdB, successfulPhase(phaseIdB))
 
         val dag = DATABASE.getLatestValidDag(customerId)
         assertThat(dag!!.artifact.steps, equalTo(steps))
@@ -87,7 +87,7 @@ class DatabaseShould {
     @Test
     fun get_valid_dag() {
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, PhaseCompleted(phaseId, Success(EvaluationOutput(steps))))
+        insertEvent(buildId, phaseId, successfulPhase(phaseId))
 
         val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
 
@@ -143,6 +143,8 @@ class DatabaseShould {
     private fun uuid() = UUID.randomUUID()
 
     private fun customerId() = CustomerId(Random().nextLong())
+
+    private fun successfulPhase(phaseIdA: UUID) = PhaseCompleted(phaseIdA, Success(EvaluationOutput(steps)))
 
     private val steps = listOf(
         Step(

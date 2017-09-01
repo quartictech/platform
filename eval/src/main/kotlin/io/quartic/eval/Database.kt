@@ -58,6 +58,31 @@ interface Database {
     @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
+
+    data class EventRow(
+        val id: UUID,
+        @ColumnName("build_id")
+        val buildId: UUID,
+        @ColumnName("phase_id")
+        val phaseId: UUID,
+        val time: Instant,
+        val payload: BuildEvent
+    )
+
+    @SqlQuery("""
+        SELECT * FROM event
+            LEFT JOIN build ON build.id = event.build_id
+            WHERE
+                build.customer_id = :customer_id AND
+                build.build_number = :build_number
+            ORDER BY event.time ASC
+            LIMIT 1
+        """)
+    fun getEventsForBuild(
+        @Bind("customer_id") customerId: CustomerId,
+        @Bind("build_number") buildNumber: Long
+    ): List<EventRow>
+
     // TODO - getLatestValidDag and getLatestDag don't take PhaseCompleted != BuildSucceeded into account, nor multi-phase builds
 
     @SqlQuery("""
