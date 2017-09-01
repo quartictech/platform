@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
@@ -28,11 +29,11 @@ sealed class BuildEvent {
     // TODO - have our own TriggerDetails to decouple DB schema
     data class TriggerReceived(val details: TriggerDetails) : BuildEvent()
 
-    class BuildCancelled : BuildEvent()
-
-    class BuildSucceeded : BuildEvent()
-
-    class BuildFailed : BuildEvent()
+    sealed class BuildCompleted : BuildEvent() {
+        class BuildCancelled : BuildCompleted()
+        class BuildSucceeded : BuildCompleted()
+        data class BuildFailed(val message: String) : BuildCompleted()
+    }
 
     data class ContainerAcquired(val hostname: String) : BuildEvent()
 
@@ -70,7 +71,6 @@ sealed class BuildEvent {
         // To make testing easier given one can't have zero-arg data classes
         val BUILD_CANCELLED = BuildCancelled()
         val BUILD_SUCCEEDED = BuildSucceeded()
-        val BUILD_FAILED = BuildFailed()
 
         const val VERSION = "v1"
     }

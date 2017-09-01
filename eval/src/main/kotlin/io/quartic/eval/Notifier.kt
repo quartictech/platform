@@ -12,22 +12,37 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    // TODO - this is currently triggered by build completion, so we lose the nuance of internal vs user errors
-    // on phases.  We could add this back in by taking the message from the last failing phase.
-    fun notifyAbout(trigger: TriggerDetails, customer: Customer, buildNumber: Long, success: Boolean) {
+    sealed class Event {
+        abstract val message: String
+        data class Success(override val message: String) : Event()
+        data class Failure(override val message: String) : Event()
+    }
+
+    fun notifyAbout(
+        trigger: TriggerDetails,
+        customer: Customer,
+        buildNumber: Long,
+        event: Event
+    ) {
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
-                title = "Build #${buildNumber} ${if (success) "succeeded" else "failed"}",
+                title = when (event) {
+                    is Event.Success -> "Build #${buildNumber} succeeded"
+                    is Event.Failure -> "Build #${buildNumber} failed"
+                },
                 titleLink = URI.create(
                     "${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}"
                 ),
-                text = if (success) "Success" else "Failure",
+                text = event.message,
                 fields = listOf(
                     HeyField("Repo", trigger.repoName, true),
                     HeyField("Branch", trigger.branch(), true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = if (success) HeyColor.GOOD else HeyColor.DANGER
+                color = when (event) {
+                    is Event.Success -> HeyColor.GOOD
+                    is Event.Failure -> HeyColor.DANGER
+                }
             )
         )))
     }

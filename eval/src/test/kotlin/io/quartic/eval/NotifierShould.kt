@@ -1,8 +1,10 @@
 package io.quartic.eval
 
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import io.quartic.common.model.CustomerId
+import io.quartic.eval.Notifier.Event.Failure
+import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.hey.api.*
 import io.quartic.registry.api.model.Customer
@@ -17,38 +19,23 @@ class NotifierShould {
     private val hey = mock<HeyClient>()
     private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
     private val notifier = Notifier(hey, "http://%s", clock)
-    private val trigger = TriggerDetails(
-        type = "github",
-        deliveryId = "deadbeef",
-        installationId = 1234,
-        repoId = 5678,
-        repoName = "noob",
-        cloneUrl = URI("https://noob.com/foo/bar"),
-        ref = "refs/heads/develop",
-        commit = "abc123",
-        timestamp = Instant.MIN
-    )
-
-    private val customerId = CustomerId(100)
-
-    private val customer = Customer(
-        id = customerId,
-        githubOrgId = 8765,
-        githubRepoId = 5678,
-        name = "Noobhole Ltd",
-        subdomain = "noobhole",
-        namespace = "noobhole"
-    )
+    private val trigger = mock<TriggerDetails> {
+        on { repoName } doReturn "noob"
+        on { branch() } doReturn "develop"
+    }
+    private val customer = mock<Customer> {
+        on { subdomain } doReturn "noobhole"
+    }
 
     @Test
     fun send_success_on_success() {
-        notifier.notifyAbout(trigger, customer, 100, true)
+        notifier.notifyAbout(trigger, customer, 100, Success("Hello there"))
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 succeeded",
                 titleLink = URI.create("http://noobhole/#/pipeline/100"),
-                text = "Success",
+                text = "Hello there",
                 fields = listOf(
                     HeyField("Repo", "noob", true),
                     HeyField("Branch", "develop", true)
@@ -61,13 +48,13 @@ class NotifierShould {
 
     @Test
     fun send_error_on_failure() {
-        notifier.notifyAbout(trigger, customer, 100, false)
+        notifier.notifyAbout(trigger, customer, 100, Failure("Oh dear"))
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 failed",
                 titleLink = URI.create("http://noobhole/#/pipeline/100"),
-                text = "Failure",
+                text = "Oh dear",
                 fields = listOf(
                     HeyField("Repo", "noob", true),
                     HeyField("Branch", "develop", true)

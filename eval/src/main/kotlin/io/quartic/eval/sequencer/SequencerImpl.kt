@@ -3,13 +3,17 @@ package io.quartic.eval.sequencer
 import io.quartic.common.coroutines.use
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.Database
+import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.Notifier
+import io.quartic.eval.Notifier.Event.Failure
+import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.UserError
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
@@ -40,17 +44,21 @@ class SequencerImpl(
             val build = insertBuild(customer.id, details)
             insert(TriggerReceived(details))
 
-            val success = try {
-                qube.createContainer().use { container ->
-                    insert(ContainerAcquired(container.hostname))
-                    block(SequenceBuilderImpl(container))
-                }
-                true
-            } catch (e: Exception) {
-                false
+            val completionEvent = executeInContainer(block)
+            insert(completionEvent)
+            notifyAbout(build, completionEvent)
+        }
+
+        private suspend fun executeInContainer(block: suspend SequenceBuilder.() -> Unit) = try {
+            qube.createContainer().use { container ->
+                insert(ContainerAcquired(container.hostname))
+                block(SequenceBuilderImpl(container))
             }
-            insert((if (success) BuildEvent.BUILD_SUCCEEDED else BuildEvent.BUILD_FAILED))
-            notifier.notifyAbout(details, customer, build.buildNumber, success) // TODO - how about "failed on phase blah"?
+            BuildEvent.BUILD_SUCCEEDED
+        } catch (pe: PhaseException) {
+            BuildFailed(pe.message!!)
+        } catch (e: Exception) {
+            BuildFailed("Internal error")
         }
 
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
@@ -70,9 +78,14 @@ class SequencerImpl(
                 }
 
                 insert(PhaseCompleted(phaseId, result), phaseId)
+                throwIfUnsuccessful(result)
+            }
 
-                if (result !is Success) {
-                    throw PhaseException()
+            private fun throwIfUnsuccessful(result: Result) {
+                when (result) {
+                    is UserError -> throw PhaseException(result.detail.toString())
+                    is InternalError -> throw PhaseException("Internal error")
+                    else -> {}  // Do nothing
                 }
             }
         }
@@ -100,10 +113,23 @@ class SequencerImpl(
             database.insertBuild(buildId, customerId, details.branch())
             database.getBuild(buildId)
         }
+
+        private suspend fun notifyAbout(build: BuildRow, completionEvent: BuildCompleted) {
+            notifier.notifyAbout(
+                details,
+                customer,
+                build.buildNumber,
+                when (completionEvent) {
+                    is BuildSucceeded -> Success("Everything worked")
+                    is BuildFailed -> Failure(completionEvent.message)
+                    is BuildCancelled -> Failure("Cancelled") // TODO - we're not using this yet
+                }
+            )
+        }
     }
 
     // TODO - we could run a single thread and send messages via a channel
     private val threadPool = newFixedThreadPoolContext(2, "database")
 
-    private class PhaseException : RuntimeException()
+    private class PhaseException(message: String) : RuntimeException(message)
 }
