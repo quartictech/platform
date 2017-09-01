@@ -73,16 +73,16 @@ class Evaluator(
     private fun transformQuartyResult(result: QuartyResult?) = when (result) {
         is QuartyResult.Success -> {
             if (dagIsValid(result.result)) {
-                SuccessWithArtifact<Void>(EvaluationOutput(result.result))
+                SuccessWithArtifact(EvaluationOutput(result.result), Unit)
             } else {
-                UserError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+                UserError<Unit>("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
         is QuartyResult.Failure -> UserError(result.detail)
         null -> InternalError(EvaluatorException("Missing result or failure from Quarty"))
     }
 
-    private suspend fun PhaseBuilder.logMessages(result: QuartyResult?) {
+    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult?) {
         result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
     }
 

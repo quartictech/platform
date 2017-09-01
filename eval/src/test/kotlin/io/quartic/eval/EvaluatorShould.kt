@@ -51,7 +51,7 @@ class EvaluatorShould {
         evaluate()
 
         runBlocking {
-            verify(sequenceBuilder).phase(eq("Evaluating DAG"), any())
+            verify(sequenceBuilder).phase<Unit>(eq("Evaluating DAG"), any())
         }
     }
 
@@ -84,7 +84,7 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         evaluate()
 
-        assertThat(result, equalTo(SuccessWithArtifact<Void>(EvaluationOutput(steps)) as PhaseResult))
+        assertThat(result, equalTo(SuccessWithArtifact(EvaluationOutput(steps), Unit) as PhaseResult<Unit>))
     }
 
     @Test
@@ -93,7 +93,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError("DAG is invalid") as PhaseResult))
+        assertThat(result, equalTo(UserError<Unit>("DAG is invalid") as PhaseResult<Unit>))
     }
 
     @Test
@@ -102,7 +102,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError("badness") as PhaseResult))
+        assertThat(result, equalTo(UserError<Unit>("badness") as PhaseResult<Unit>))
     }
 
     @Test
@@ -176,7 +176,7 @@ class EvaluatorShould {
 
     private val sequencer = mock<Sequencer>()
     private val sequenceBuilder = mock<SequenceBuilder>()
-    private val phaseBuilder = mock<PhaseBuilder> {
+    private val phaseBuilder = mock<PhaseBuilder<Unit>> {
         on { container } doReturn quartyContainer
     }
 
@@ -188,7 +188,7 @@ class EvaluatorShould {
         quartyBuilder
     )
 
-    private lateinit var result: PhaseResult
+    private lateinit var result: PhaseResult<Unit>
     private lateinit var throwable: Throwable
 
     init {
@@ -203,10 +203,10 @@ class EvaluatorShould {
                 Unit
             }
 
-            whenever(sequenceBuilder.phase(any(), any())).then { invocation ->
+            whenever(sequenceBuilder.phase<Unit>(any(), any())).then { invocation ->
                 runBlocking {
                     try {
-                        result = (invocation.getArgument<suspend PhaseBuilder.() -> PhaseResult>(1))(phaseBuilder)
+                        result = (invocation.getArgument<suspend PhaseBuilder<Unit>.() -> PhaseResult<Unit>>(1))(phaseBuilder)
                     } catch (t: Throwable) {
                         throwable = t
                     }

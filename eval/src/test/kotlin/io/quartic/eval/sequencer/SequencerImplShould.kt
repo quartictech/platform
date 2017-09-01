@@ -14,7 +14,6 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
-import io.quartic.eval.sequencer.Sequencer.PhaseResult
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.Channel
@@ -47,7 +46,7 @@ class SequencerImplShould {
 
         sequencer.sequence(details, customer) {
             phase("Yes") {
-                PhaseResult.SuccessWithArtifact<Void>(artifact)
+                successWithArtifact(artifact, Unit)
             } // Do nothing
         }
 
@@ -62,7 +61,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 log("foo", "bar")
-                PhaseResult.Success<Void>()
+                success(Unit)
             }
         }
 
@@ -77,7 +76,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 log("foo", "bar", instant)
-                PhaseResult.Success<Void>()
+                success(Unit)
             }
         }
 
@@ -89,7 +88,7 @@ class SequencerImplShould {
     fun fail_build_if_phase_fails() = runBlocking {
         sequencer.sequence(details, customer) {
             phase("No") {
-                PhaseResult.InternalError(mock())
+                internalError(mock())
             }
         }
 
@@ -122,7 +121,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 delay(Long.MAX_VALUE)   // Effectively infinite
-                PhaseResult.Success<Void>()
+                success(Unit)
             }
         }
 
@@ -136,13 +135,13 @@ class SequencerImplShould {
         var c2: QubeContainerProxy? = null
 
         sequencer.sequence(details, customer) {
-            phase("First") {
+            phase<Unit>("First") {
                 c1 = container
-                PhaseResult.Success<Void>()
+                success(Unit)
             }
-            phase("Second") {
+            phase<Unit>("Second") {
                 c2 = container
-                PhaseResult.Success<Void>()
+                success(Unit)
             }
         }
 
@@ -155,12 +154,12 @@ class SequencerImplShould {
         var secondPhaseRun = false
 
         sequencer.sequence(details, customer) {
-            phase("First") {
-                PhaseResult.InternalError(mock())
+            phase<Unit>("First") {
+                internalError(mock())
             }
-            phase("Second") {
+            phase<Unit>("Second") {
                 secondPhaseRun = true
-                PhaseResult.Success<Void>()
+                success(Unit)
             }
         }
 
@@ -184,7 +183,7 @@ class SequencerImplShould {
     fun notify_on_failure() = runBlocking {
         sequencer.sequence(details, customer) {
             phase("No") {
-                PhaseResult.InternalError(mock())
+                internalError(mock())
             }
         }
 
