@@ -89,6 +89,21 @@ class DatabaseShould {
     }
 
     @Test
+    fun get_latest_successful_build_number() {
+        // Build #1
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, BuildEvent.BUILD_SUCCEEDED)
+        // Build #2
+        insertBuild(uuid(1000))
+        insertEvent(uuid(1000), phaseId, BuildEvent.BUILD_SUCCEEDED)
+        // Build #3
+        insertBuild(uuid(2000))
+        insertEvent(uuid(2000), phaseId, BuildEvent.BUILD_CANCELLED)
+
+        assertThat(DATABASE.getLatestSuccessfulBuildNumber(customerId), equalTo(2L))
+    }
+
+    @Test
     fun get_latest_valid_dag() {
         insertBuild(buildId)
         insertEvent(buildId, phaseId, successfulPhase(phaseId))
@@ -181,8 +196,6 @@ class DatabaseShould {
         private var next = 100
         operator fun invoke(): UUID = uuid(next++)
     }
-
-
 
     private fun uuid(x: Int) = UUID(0, x.toLong())
 

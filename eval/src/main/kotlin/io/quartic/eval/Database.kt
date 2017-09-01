@@ -8,6 +8,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.Database.*
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import org.jdbi.v3.core.mapper.ColumnMapper
@@ -92,6 +93,17 @@ interface Database {
         @Bind("build_number") buildNumber: Long
     ): List<EventRow>
 
+    @SqlQuery("""
+        SELECT build_number FROM build
+            LEFT JOIN event on build.id = event.build_id
+            WHERE event.payload @> '{"type": "build_succeeded_${VERSION}"}'
+            ORDER BY event.time DESC
+            LIMIT 1
+        """)
+    fun getLatestSuccessfulBuildNumber(
+        @Bind("customer_id") customerId: CustomerId
+    ): Long
+
     // TODO - getLatestValidDag and getLatestDag don't take PhaseCompleted != BuildSucceeded into account, nor multi-phase builds
 
     @SqlQuery("""
@@ -99,7 +111,7 @@ interface Database {
             LEFT JOIN build ON build.id = event.build_id
             WHERE
                 build.customer_id = :customer_id AND
-                event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}' AND
+                event.payload @> '{"type": "phase_completed_${VERSION}"}' AND
                 event.payload @> '{"result": {"type": "success"}}'
             ORDER BY event.time DESC
             LIMIT 1
@@ -112,7 +124,7 @@ interface Database {
             WHERE
                 build.customer_id = :customer_id AND
                 build.build_number = :build_number AND
-                event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}' AND
+                event.payload @> '{"type": "phase_completed_${VERSION}"}' AND
                 event.payload @> '{"result": {"type": "success"}}'
         """)
     fun getValidDag(
