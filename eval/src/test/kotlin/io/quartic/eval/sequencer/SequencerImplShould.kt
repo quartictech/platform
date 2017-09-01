@@ -57,6 +57,20 @@ class SequencerImplShould {
     }
 
     @Test
+    fun write_null_artifact_if_none_specified_in_phase_result() = runBlocking {
+        sequencer.sequence(details, customer) {
+            phase("Yes") {
+                success(Unit)
+            }
+        }
+
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success())), any(), eq(buildId), eq(phaseId))
+    }
+
+    @Test
     fun log_phase_messages() = runBlocking {
         sequencer.sequence(details, customer) {
             phase("Yes") {
@@ -127,6 +141,19 @@ class SequencerImplShould {
 
         val phaseId = uuid(103)
         verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any(), eq(phaseId))
+    }
+
+    @Test
+    fun return_result_from_phase() = runBlocking {
+        var x: Int? = null
+
+        sequencer.sequence(details, customer) {
+            x = phase("Yes") {
+                success(37)
+            }
+        }
+
+        assertThat(x, equalTo(37))
     }
 
     @Test

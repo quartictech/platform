@@ -47,12 +47,13 @@ class EvaluatorShould {
     }
 
     @Test
-    fun use_the_correct_phase_description() {
+    fun use_the_correct_phase_descriptions() {
         evaluate()
 
-        runBlocking {
-            verify(sequenceBuilder).phase<Unit>(eq("Evaluating DAG"), any())
-        }
+        assertThat(sequencer.descriptions, equalTo(listOf(
+            "Acquiring Git credentials",
+            "Evaluating DAG"
+        )))
     }
 
     // TODO - until we do true streaming, this may lead to non-monotonic events
@@ -73,18 +74,18 @@ class EvaluatorShould {
 
         evaluate()
 
-        runBlocking {
-            verify(phaseBuilder, times(2)).log(any(), any(), any())        // Other messages should be filtered out
-            verify(phaseBuilder).log("foo", "Hello", instantA)
-            verify(phaseBuilder).log("bar", "World", instantB)
-        }
+        // Other messages should be filtered out
+        assertThat(sequencer.logs, equalTo(listOf(
+            LogInvocation("foo", "Hello", instantA),
+            LogInvocation("bar", "World", instantB)
+        )))
     }
 
     @Test
     fun produce_success_if_everything_works() {
         evaluate()
 
-        assertThat(result, equalTo(SuccessWithArtifact(EvaluationOutput(steps), Unit) as PhaseResult<Unit>))
+        assertThat(sequencer.results[1], equalTo(SuccessWithArtifact(EvaluationOutput(steps), Unit) as PhaseResult<*>))
     }
 
     @Test
@@ -93,7 +94,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError<Unit>("DAG is invalid") as PhaseResult<Unit>))
+        assertThat(sequencer.results[1], equalTo(UserError<Any>("DAG is invalid") as PhaseResult<*>))
     }
 
     @Test
@@ -102,7 +103,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError<Unit>("badness") as PhaseResult<Unit>))
+        assertThat(sequencer.results[1], equalTo(UserError<Any>("badness") as PhaseResult<*>))
     }
 
     @Test
@@ -111,7 +112,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        verifyZeroInteractions(sequencer)
+        assertThat(sequencer.numSequences, equalTo(0))
     }
 
     @Test
@@ -120,7 +121,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(throwable, equalTo(EvaluatorException("Error while acquiring access token from GitHub") as Throwable))
+        assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while acquiring access token from GitHub") as Throwable))
         verifyZeroInteractions(quartyBuilder)
     }
 
@@ -130,7 +131,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(throwable, equalTo(EvaluatorException("Error while communicating with Quarty") as Throwable))
+        assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while communicating with Quarty") as Throwable))
     }
 
     private fun evaluate() = runBlocking {
@@ -174,11 +175,7 @@ class EvaluatorShould {
     }
     private val dagIsValid = mock<(List<Step>) -> Boolean>()
 
-    private val sequencer = mock<Sequencer>()
-    private val sequenceBuilder = mock<SequenceBuilder>()
-    private val phaseBuilder = mock<PhaseBuilder<Unit>> {
-        on { container } doReturn quartyContainer
-    }
+    private val sequencer = MySequencer()
 
     private val evaluator = Evaluator(
         sequencer,
@@ -188,31 +185,49 @@ class EvaluatorShould {
         quartyBuilder
     )
 
-    private lateinit var result: PhaseResult<Unit>
-    private lateinit var throwable: Throwable
+    private data class LogInvocation(val stream: String, val message: String, val timestamp: Instant)
+
+    private inner class MySequencer : Sequencer {
+        var numSequences = 0
+        val results = mutableListOf<PhaseResult<*>>()
+        val throwables = mutableListOf<Throwable>()
+        val descriptions = mutableListOf<String>()
+        val logs = mutableListOf<LogInvocation>()
+
+        suspend override fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+            numSequences++
+            block(MySequenceBuilder())
+        }
+
+        private inner class MySequenceBuilder : SequenceBuilder {
+            suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
+                descriptions += description
+                val result = try {
+                    block(MyPhaseBuilder())
+                } catch (t: Throwable) {
+                    throwables += t
+                    throw t
+                }
+
+                results += result
+                return when (result) {
+                    is PhaseResult.Success -> result.output
+                    is PhaseResult.SuccessWithArtifact -> result.output
+                    is PhaseResult.UserError, is PhaseResult.InternalError -> throw RuntimeException("noob")
+                }
+            }
+        }
+
+        private inner class MyPhaseBuilder<R> : PhaseBuilder<R> {
+            override val container = quartyContainer
+
+            suspend override fun log(stream: String, message: String, timestamp: Instant) {
+                logs += LogInvocation(stream, message, timestamp)
+            }
+        }
+    }
 
     init {
         whenever(dagIsValid.invoke(steps)).doReturn(true)
-
-        // Mock the Sequencer DSL
-        runBlocking {
-            whenever(sequencer.sequence(eq(details), eq(customer), any())).then { invocation ->
-                runBlocking {
-                    (invocation.getArgument<suspend SequenceBuilder.() -> Unit>(2))(sequenceBuilder)
-                }
-                Unit
-            }
-
-            whenever(sequenceBuilder.phase<Unit>(any(), any())).then { invocation ->
-                runBlocking {
-                    try {
-                        result = (invocation.getArgument<suspend PhaseBuilder<Unit>.() -> PhaseResult<Unit>>(1))(phaseBuilder)
-                    } catch (t: Throwable) {
-                        throwable = t
-                    }
-                }
-                Unit
-            }
-        }
     }
 }

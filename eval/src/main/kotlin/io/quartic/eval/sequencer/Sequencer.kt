@@ -3,6 +3,7 @@ package io.quartic.eval.sequencer
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
 import io.quartic.registry.api.model.Customer
 import java.time.Instant
 
@@ -18,12 +19,10 @@ interface Sequencer {
         suspend fun log(stream: String, message: String, timestamp: Instant = Instant.now())
 
         // Helpers
-//        fun success() = success(Unit)
-        fun success(output: R) = PhaseResult.Success(output)
-//        fun successWithArtifact(artifact: Artifact) = successWithArtifact(artifact, Unit)
-        fun successWithArtifact(artifact: Artifact, output: R) = PhaseResult.SuccessWithArtifact(artifact, output)
-        fun internalError(throwable: Throwable) = PhaseResult.InternalError<R>(throwable)
-        fun userError(detail: Any?) = PhaseResult.UserError<R>(detail)
+        fun success(output: R): PhaseResult<R> = Success(output)
+        fun successWithArtifact(artifact: Artifact, output: R): PhaseResult<R> = SuccessWithArtifact(artifact, output)
+        fun internalError(throwable: Throwable): PhaseResult<R> = InternalError(throwable)
+        fun userError(detail: Any?): PhaseResult<R> = UserError(detail)
     }
 
     sealed class PhaseResult<out R> {
