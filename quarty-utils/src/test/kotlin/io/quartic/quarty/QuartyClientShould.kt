@@ -48,7 +48,7 @@ class QuartyClientShould {
             Result(steps)
         ))
 
-        val result = client.getResultAsync(repoUrl, repoCommit).get()
+        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
 
         assertThat(result, equalTo(Success(
             emptyList(),
@@ -62,7 +62,7 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        val result = client.getResultAsync(repoUrl, repoCommit).get()
+        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
 
         assertThat(result, equalTo(Failure(
             emptyList(),
@@ -78,7 +78,7 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        val result = client.getResultAsync(repoUrl, repoCommit).get()
+        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
 
         assertThat(result, equalTo(Failure(
             listOf(
@@ -97,14 +97,14 @@ class QuartyClientShould {
             // No result or error here!
         ))
 
-        val result = client.getResultAsync(repoUrl, repoCommit).get()
+        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
 
         assertThat(result, nullValue())
     }
 
 
     private fun quartyWillSend(messages: List<QuartyMessage>) {
-        whenever(quarty.getPipeline(repoUrl, repoCommit)).thenReturn(completedFuture(
+        whenever(quarty.getPipelineAsync(repoUrl, repoCommit)).thenReturn(completedFuture(
             ResponseBody.create(
                 MediaType.parse("application/x-ndjson"),
                 messages.toNdJson()

@@ -57,7 +57,7 @@ class Evaluator(
                         .accessTokenAsync(details.installationId)
                         .awaitWrapped("acquiring access token from GitHub")
                     val quartyResult = quartyBuilder(container.hostname)
-                        .getResultAsync(cloneUrl(details, token), details.commit)
+                        .getPipelineAsync(cloneUrl(details, token), details.commit)
                         .awaitWrapped("communicating with Quarty")
 
                     logMessages(quartyResult)
