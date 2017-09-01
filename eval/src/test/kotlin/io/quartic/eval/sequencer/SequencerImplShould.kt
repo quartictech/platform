@@ -5,11 +5,12 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.Database
 import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.Notifier
+import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
+import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -88,7 +89,7 @@ class SequencerImplShould {
         }
 
         verify(database, never()).insertEvent(any(), eq(BuildEvent.BUILD_SUCCEEDED), any(), any(), eq(null))
-        verify(database).insertEvent(any(), eq(BuildEvent.BUILD_FAILED), any(), any(), eq(null))
+        verify(database).insertEvent(any(), eq(BuildFailed("Internal error")), any(), any(), eq(null))
     }
 
     @Test
@@ -158,31 +159,40 @@ class SequencerImplShould {
     }
 
     @Test
-    fun notify_on_success() = runBlocking {
+    fun send_start_notification_before_any_real_workon_success() = runBlocking {
         sequencer.sequence(details, customer) {}    // Do nothing
 
         inOrder(notifier, qube) {
             runBlocking {
                 verify(notifier).notifyStart(details)
-                verify(qube).createContainer()          // Ensure happens-before and after
-                verify(notifier).notifyComplete(details, customer, 1234, true)
+                verify(qube).createContainer()
             }
         }
     }
 
     @Test
-    fun notify_on_failure() = runBlocking {
+    fun notify_on_success() = runBlocking {
+        sequencer.sequence(details, customer) {}    // Do nothing
+
+        verify(notifier).notifyComplete(details, customer, 1234, Event.Success("Everything worked"))
+    }
+
+    @Test
+    fun notify_on_internal_error() = runBlocking {
         sequencer.sequence(details, customer) {
             phase("No") { InternalError(mock()) }
         }
 
-        inOrder(notifier, qube) {
-            runBlocking {
-                verify(notifier).notifyStart(details)
-                verify(qube).createContainer()          // Ensure happens-before and after
-                verify(notifier).notifyComplete(details, customer, 1234, false)
-            }
+        verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Internal error"))
+    }
+
+    @Test
+    fun notify_on_user_error() = runBlocking {
+        sequencer.sequence(details, customer) {
+            phase("No") { UserError("Bad things occurred") }
         }
+
+        verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Bad things occurred"))
     }
 
     private val details = mock<TriggerDetails> {

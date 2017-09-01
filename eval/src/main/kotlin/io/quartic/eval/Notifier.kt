@@ -15,40 +15,58 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
+    sealed class Event {
+        abstract val message: String
+        data class Success(override val message: String) : Event()
+        data class Failure(override val message: String) : Event()
+    }
 
     fun notifyStart(trigger: TriggerDetails) {
         sendGithubStatus(
             trigger = trigger,
             state = "pending",
             targetUrl = null,
-            description = "Quartic is validating your pipeline"
+            description = START_MESSAGE
         )
     }
 
-    // TODO - this is currently triggered by build completion, so we lose the nuance of internal vs user errors
-    // on phases.  We could add this back in by taking the message from the last failing phase.
-    fun notifyComplete(trigger: TriggerDetails, customer: Customer, buildNumber: Long, success: Boolean) {
+    fun notifyComplete(
+        trigger: TriggerDetails,
+        customer: Customer,
+        buildNumber: Long,
+        event: Event) {
         val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}")
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
-                title = "Build #${buildNumber} ${if (success) "succeeded" else "failed"}",
+                title = when (event) {
+                    is Event.Success -> "Build #${buildNumber} succeeded"
+                    is Event.Failure -> "Build #${buildNumber} failed"
+                },
                 titleLink = buildUri,
-                text = if (success) "Success" else "Failure",
+                text = event.message,
                 fields = listOf(
                     HeyField("Repo", trigger.repoFullName, true),
                     HeyField("Branch", trigger.branch(), true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = if (success) HeyColor.GOOD else HeyColor.DANGER
+                color = when (event) {
+                    is Event.Success -> HeyColor.GOOD
+                    is Event.Failure -> HeyColor.DANGER
+                }
             )
         )))
 
         sendGithubStatus(
             trigger = trigger,
-            state = if (success) "success" else "failure",
+            state = when (event) {
+                is Event.Success -> "success"
+                is Event.Failure -> "failure"
+            },
             targetUrl = buildUri,
-            description = if (success) "Quartic successfully validated your pipeline"
-                else "There are some problems with your pipeline"
+            description = when (event) {
+                is Event.Success -> SUCCESS_MESSAGE
+                is Event.Failure -> FAILURE_MESSAGE
+            }
         )
     }
 
@@ -60,4 +78,10 @@ class Notifier(
             StatusCreate(state, targetUrl, description, "quartic"),
             github.accessTokenAsync(trigger.installationId).get()
         )
+
+    companion object {
+        internal val START_MESSAGE = "Quartic is validating your pipeline"
+        internal val SUCCESS_MESSAGE = "Quartic successfully validated your pipeline"
+        internal val FAILURE_MESSAGE = "Quartic found some problems with your pipeline"
+    }
 }
