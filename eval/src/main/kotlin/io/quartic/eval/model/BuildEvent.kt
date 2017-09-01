@@ -32,7 +32,7 @@ sealed class BuildEvent {
     sealed class BuildCompleted : BuildEvent() {
         class BuildCancelled : BuildCompleted()
         class BuildSucceeded : BuildCompleted()
-        data class BuildFailed(val message: String) : BuildCompleted()
+        data class BuildFailed(val description: String) : BuildCompleted()
     }
 
     data class ContainerAcquired(val hostname: String) : BuildEvent()

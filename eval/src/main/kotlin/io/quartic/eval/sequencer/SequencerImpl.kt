@@ -121,7 +121,7 @@ class SequencerImpl(
                 build.buildNumber,
                 when (completionEvent) {
                     is BuildSucceeded -> Success("Everything worked")
-                    is BuildFailed -> Failure(completionEvent.message)
+                    is BuildFailed -> Failure(completionEvent.description)
                     is BuildCancelled -> Failure("Cancelled") // TODO - we're not using this yet
                 }
             )
