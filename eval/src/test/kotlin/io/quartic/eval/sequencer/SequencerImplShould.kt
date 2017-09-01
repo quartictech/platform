@@ -10,9 +10,11 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.eval.sequencer.Sequencer.PhaseResult
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.Channel
@@ -41,16 +43,18 @@ class SequencerImplShould {
 
     @Test
     fun write_phase_sequence_to_db() = runBlocking {
-        val result = Success(mock())
+        val artifact = mock<Artifact>()
 
         sequencer.sequence(details, customer) {
-            phase("Yes") { result } // Do nothing
+            phase("Yes") {
+                PhaseResult.SuccessWithArtifact<Void>(artifact)
+            } // Do nothing
         }
 
         val buildId = uuid(100)
         val phaseId = uuid(103)
         verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId), eq(phaseId))
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, result)), any(), eq(buildId), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success(artifact))), any(), eq(buildId), eq(phaseId))
     }
 
     @Test
@@ -58,7 +62,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 log("foo", "bar")
-                Success(mock())  // Irrelevant for this test
+                PhaseResult.Success<Void>()
             }
         }
 
@@ -73,7 +77,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 log("foo", "bar", instant)
-                Success(mock())  // Irrelevant for this test
+                PhaseResult.Success<Void>()
             }
         }
 
@@ -84,7 +88,9 @@ class SequencerImplShould {
     @Test
     fun fail_build_if_phase_fails() = runBlocking {
         sequencer.sequence(details, customer) {
-            phase("No") { InternalError(mock()) }
+            phase("No") {
+                PhaseResult.InternalError(mock())
+            }
         }
 
         verify(database, never()).insertEvent(any(), eq(BuildEvent.BUILD_SUCCEEDED), any(), any(), eq(null))
@@ -96,7 +102,9 @@ class SequencerImplShould {
         val exception = RuntimeException("Nooooo")
 
         sequencer.sequence(details, customer) {
-            phase("No") { throw exception }
+            phase("No") {
+                throw exception
+            }
         }
 
         val phaseId = uuid(103)
@@ -114,7 +122,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 delay(Long.MAX_VALUE)   // Effectively infinite
-                Success(mock())
+                PhaseResult.Success<Void>()
             }
         }
 
@@ -130,11 +138,11 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("First") {
                 c1 = container
-                Success(mock())
+                PhaseResult.Success<Void>()
             }
             phase("Second") {
                 c2 = container
-                Success(mock())
+                PhaseResult.Success<Void>()
             }
         }
 
@@ -147,10 +155,12 @@ class SequencerImplShould {
         var secondPhaseRun = false
 
         sequencer.sequence(details, customer) {
-            phase("First") { InternalError(mock()) }
+            phase("First") {
+                PhaseResult.InternalError(mock())
+            }
             phase("Second") {
                 secondPhaseRun = true
-                Success(mock())
+                PhaseResult.Success<Void>()
             }
         }
 
@@ -173,7 +183,9 @@ class SequencerImplShould {
     @Test
     fun notify_on_failure() = runBlocking {
         sequencer.sequence(details, customer) {
-            phase("No") { InternalError(mock()) }
+            phase("No") {
+                PhaseResult.InternalError(mock())
+            }
         }
 
         inOrder(notifier, qube) {

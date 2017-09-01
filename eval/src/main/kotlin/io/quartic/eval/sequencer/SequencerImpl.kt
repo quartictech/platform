@@ -12,8 +12,7 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
-import io.quartic.eval.sequencer.Sequencer.SequenceBuilder
+import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -55,27 +54,34 @@ class SequencerImpl(
         }
 
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
-            suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
+            suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> PhaseResult) {
                 val phaseId = uuidGen()
                 insert(PhaseStarted(phaseId, description), phaseId)
 
                 val result = try {
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
-                        select<Result> {
+                        select<PhaseResult> {
                             blockAsync.onAwait { it }
                             container.errors.onReceive { throw it }
                         }
                     }
                 } catch (e: Exception) {
-                    InternalError(e)
+                    PhaseResult.InternalError(e)
                 }
 
-                insert(PhaseCompleted(phaseId, result), phaseId)
+                insert(PhaseCompleted(phaseId, transformResult(result)), phaseId)
 
-                if (result !is Success) {
+                if (result !is PhaseResult.Success<*>) {
                     throw PhaseException()
                 }
             }
+        }
+
+        private fun transformResult(result: PhaseResult) = when (result) {
+            is PhaseResult.Success<*> -> Success()
+            is PhaseResult.SuccessWithArtifact<*> -> Success(result.artifact)
+            is PhaseResult.InternalError -> InternalError(result.throwable)
+            is PhaseResult.UserError -> Result.UserError(result.detail)
         }
 
         private inner class PhaseBuilderImpl(

@@ -4,11 +4,11 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
@@ -73,7 +73,7 @@ class Evaluator(
     private fun transformQuartyResult(result: QuartyResult?) = when (result) {
         is QuartyResult.Success -> {
             if (dagIsValid(result.result)) {
-                Success(EvaluationOutput(result.result))
+                SuccessWithArtifact<Void>(EvaluationOutput(result.result))
             } else {
                 UserError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }

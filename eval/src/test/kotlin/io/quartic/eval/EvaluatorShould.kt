@@ -3,13 +3,12 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
-import io.quartic.eval.sequencer.Sequencer.SequenceBuilder
+import io.quartic.eval.sequencer.Sequencer.*
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
@@ -85,7 +84,7 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         evaluate()
 
-        assertThat(result, equalTo(Success(EvaluationOutput(steps)) as Result))
+        assertThat(result, equalTo(SuccessWithArtifact<Void>(EvaluationOutput(steps)) as PhaseResult))
     }
 
     @Test
@@ -94,7 +93,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError("DAG is invalid") as Result))
+        assertThat(result, equalTo(UserError("DAG is invalid") as PhaseResult))
     }
 
     @Test
@@ -103,7 +102,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError("badness") as Result))
+        assertThat(result, equalTo(UserError("badness") as PhaseResult))
     }
 
     @Test
@@ -189,7 +188,7 @@ class EvaluatorShould {
         quartyBuilder
     )
 
-    private lateinit var result: Result
+    private lateinit var result: PhaseResult
     private lateinit var throwable: Throwable
 
     init {
@@ -207,7 +206,7 @@ class EvaluatorShould {
             whenever(sequenceBuilder.phase(any(), any())).then { invocation ->
                 runBlocking {
                     try {
-                        result = (invocation.getArgument<suspend PhaseBuilder.() -> Result>(1))(phaseBuilder)
+                        result = (invocation.getArgument<suspend PhaseBuilder.() -> PhaseResult>(1))(phaseBuilder)
                     } catch (t: Throwable) {
                         throwable = t
                     }
