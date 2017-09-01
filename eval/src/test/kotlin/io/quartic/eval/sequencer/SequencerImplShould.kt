@@ -23,6 +23,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.time.Instant
 import java.util.*
 
 class SequencerImplShould {
@@ -63,6 +64,21 @@ class SequencerImplShould {
 
         val phaseId = uuid(103)
         verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), any(), any(), eq(phaseId))
+    }
+
+    @Test
+    fun log_phase_messages_with_explicit_timestamps() = runBlocking {
+        val instant = Instant.EPOCH
+
+        sequencer.sequence(details, customer) {
+            phase("Yes") {
+                log("foo", "bar", instant)
+                Success(mock())  // Irrelevant for this test
+            }
+        }
+
+        val phaseId = uuid(103)
+        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(instant), any(), eq(phaseId))
     }
 
     @Test
