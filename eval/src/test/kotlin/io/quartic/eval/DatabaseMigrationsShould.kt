@@ -56,9 +56,6 @@ class DatabaseMigrationsShould {
     @Test
     fun v4_migrate() {
         databaseVersion("4")
-        assertThat(checkTableExists("phase", "public"), equalTo(false))
-        assertThat(checkTableExists("build", "public"), equalTo(true))
-        assertThat(checkTableExists("event", "public"), equalTo(true))
     }
 
     private fun checkTableExists(name: String, schema: String): Boolean =
