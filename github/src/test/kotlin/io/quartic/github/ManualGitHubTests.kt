@@ -1,16 +1,15 @@
-package io.quartic.eval
+package io.quartic.github
 
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.github.GitHubInstallationClient
 import org.junit.Ignore
 import org.junit.Test
 import java.net.URI
 
 @Ignore
-class ManualGitHubAccessTokenTest {
+class ManualGitHubTests {
     private val client = GitHubInstallationClient(
         appId = "4352",
         githubApiRoot = URI("https://api.github.com"),
@@ -21,12 +20,24 @@ class ManualGitHubAccessTokenTest {
     private val installationId: Long = 45267
 
     @Test
-    fun with_feign() {
-        println(client.accessToken(installationId))
-    }
-
-    @Test
     fun with_retrofit() {
         println(client.accessTokenAsync(installationId).get())
     }
+
+     @Test
+    fun send_status_updates() {
+         val accessToken = client.accessTokenAsync(45267).get()
+         client.sendStatusAsync(
+             "quartictech",
+             "playground",
+             "c98a7f98f6f05dd6ed5cf66aa9f07e10a78ba2c6",
+             StatusCreate(
+                 "success",
+                 URI.create("https://playground.quartic.io"),
+                 "success",
+                 "quartic"
+             ),
+             accessToken
+         ).join()
+     }
 }

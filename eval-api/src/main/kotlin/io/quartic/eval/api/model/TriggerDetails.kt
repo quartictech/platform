@@ -8,7 +8,9 @@ data class TriggerDetails(
     val deliveryId: String,     // For logging purposes
     val installationId: Long,
     val repoId: Long,
+    val repoFullName: String,
     val repoName: String,
+    val repoOwner: String,
     val cloneUrl: URI,
     val ref: String,
     val commit: String,
