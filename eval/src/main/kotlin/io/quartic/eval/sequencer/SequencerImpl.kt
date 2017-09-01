@@ -81,16 +81,20 @@ class SequencerImpl(
             private val phaseId: UUID,
             override val container: QubeContainerProxy
         ) : PhaseBuilder {
-            suspend override fun log(stream: String, message: String) {
-                insert(LogMessageReceived(phaseId, stream, message), phaseId)
+            suspend override fun log(stream: String, message: String, timestamp: Instant) {
+                insert(LogMessageReceived(phaseId, stream, message), phaseId, timestamp)
             }
         }
 
-        private suspend fun insert(event: BuildEvent, phaseId: UUID? = null) = run(threadPool) {
+        private suspend fun insert(
+            event: BuildEvent,
+            phaseId: UUID? = null,
+            time: Instant = Instant.now()
+        ) = run(threadPool) {
             database.insertEvent(
                 id = uuidGen(),
                 payload = event,
-                time = Instant.now(),
+                time = time,
                 buildId = buildId,
                 phaseId = phaseId
             )

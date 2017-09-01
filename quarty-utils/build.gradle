@@ -5,6 +5,8 @@ apply plugin: KotlinPlugin
 dependencies {
     compile project(":common-core")
     compile "javax.ws.rs:javax.ws.rs-api:2.0.1"
+
+    testCompile project(":common-test")
 }
 
 
