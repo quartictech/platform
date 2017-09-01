@@ -61,21 +61,25 @@ interface Database {
     // TODO - getLatestValidDag and getLatestDag don't take PhaseCompleted != BuildSucceeded into account, nor multi-phase builds
 
     @SqlQuery("""
-        select payload from event
-        left join build on build.id = event.build_id
-        where build.customer_id = :customer_id
-        and event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}'
-        order by event.time desc
-        limit 1
+        SELECT payload FROM event
+            LEFT JOIN build ON build.id = event.build_id
+            WHERE
+                build.customer_id = :customer_id AND
+                event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}' AND
+                event.payload @> '{"result": {"type": "success"}}'
+            ORDER BY event.time DESC
+            LIMIT 1
         """)
     fun getLatestValidDag(@Bind("customer_id") customerId: CustomerId): ValidDagRow?
 
     @SqlQuery("""
-        select payload from event
-        left join build on build.id = event.build_id
-        where build.customer_id = :customer_id
-        and build.build_number = :build_number
-        and event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}'
+        SELECT payload FROM event
+            LEFT JOIN build ON build.id = event.build_id
+            WHERE
+                build.customer_id = :customer_id AND
+                build.build_number = :build_number AND
+                event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}' AND
+                event.payload @> '{"result": {"type": "success"}}'
         """)
     fun getValidDag(
         @Bind("customer_id") customerId: CustomerId,
