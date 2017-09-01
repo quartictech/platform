@@ -145,7 +145,7 @@ class SequencerImplShould {
     fun notify_on_success() = runBlocking {
         sequencer.sequence(details, customer) {}    // Do nothing
 
-        verify(notifier).notifyAbout(details, customer, 1234, true)
+        verify(notifier).notifyComplete(details, customer, 1234, true)
     }
 
     @Test
@@ -154,7 +154,7 @@ class SequencerImplShould {
             phase("No") { InternalError(mock()) }
         }
 
-        verify(notifier).notifyAbout(details, customer, 1234, false)
+        verify(notifier).notifyComplete(details, customer, 1234, false)
     }
 
     private val details = mock<TriggerDetails> {

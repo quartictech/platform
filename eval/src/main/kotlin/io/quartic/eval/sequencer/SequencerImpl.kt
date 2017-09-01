@@ -39,6 +39,7 @@ class SequencerImpl(
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, details)
             insert(TriggerReceived(details))
+            notifier.notifyStart(details)
 
             val success = try {
                 qube.createContainer().use { container ->
@@ -50,7 +51,7 @@ class SequencerImpl(
                 false
             }
             insert((if (success) BuildEvent.BUILD_SUCCEEDED else BuildEvent.BUILD_FAILED))
-            notifier.notifyAbout(details, customer, build.buildNumber, success) // TODO - how about "failed on phase blah"?
+            notifier.notifyComplete(details, customer, build.buildNumber, success) // TODO - how about "failed on phase blah"?
         }
 
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {

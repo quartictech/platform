@@ -15,9 +15,19 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
+
+    fun notifyStart(trigger: TriggerDetails) {
+        sendGithubStatus(
+            trigger = trigger,
+            state = "pending",
+            targerUrl = null,
+            description = "Quartic is validating your pipeline"
+        )
+    }
+
     // TODO - this is currently triggered by build completion, so we lose the nuance of internal vs user errors
     // on phases.  We could add this back in by taking the message from the last failing phase.
-    fun notifyAbout(trigger: TriggerDetails, customer: Customer, buildNumber: Long, success: Boolean) {
+    fun notifyComplete(trigger: TriggerDetails, customer: Customer, buildNumber: Long, success: Boolean) {
         val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}")
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
@@ -32,18 +42,22 @@ class Notifier(
                 color = if (success) HeyColor.GOOD else HeyColor.DANGER
             )
         )))
-        val token = github.accessTokenAsync(trigger.installationId)
+
+        sendGithubStatus(
+            trigger = trigger,
+            state = if (success) "success" else "failure",
+            targerUrl = buildUri,
+            description = if (success) "Quartic successfully validated your pipeline"
+                else "There are some problems with your pipeline"
+        )
+    }
+
+    private fun sendGithubStatus(trigger: TriggerDetails, state: String, targerUrl: URI?, description: String) =
         github.sendStatusAsync(
             trigger.repoOwner,
             trigger.repoName,
             trigger.commit,
-            StatusCreate(
-                state =  if (success) "success" else "failure",
-                targetUrl = buildUri,
-                description = if (success) "Success" else "Failure",
-                context = "quartic"
-            ),
-            token.get()
+            StatusCreate(state, targerUrl, description, "quartic"),
+            github.accessTokenAsync(trigger.installationId).get()
         )
-    }
 }

@@ -6,8 +6,8 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.github.AccessToken
 import io.quartic.github.GitHubInstallationClient
+import io.quartic.github.StatusCreate
 import io.quartic.hey.api.*
 import io.quartic.registry.api.model.Customer
 import org.junit.Test
@@ -50,13 +50,33 @@ class NotifierShould {
         namespace = "noobhole"
     )
 
+    private val buildUri = URI.create("http://noobhole/#/pipeline/100")
+
     init {
         whenever(github.accessTokenAsync(any())).thenReturn(CompletableFuture.completedFuture(accessToken))
     }
 
     @Test
+    fun send_pending_on_start() {
+        notifier.notifyStart(trigger)
+        verify(github).sendStatusAsync(
+            owner = "noobing",
+            repo = "noob",
+            sha = trigger.commit,
+            status = StatusCreate(
+                "pending",
+                targetUrl = null,
+                description = "Quartic is validating your pipeline",
+                context = "quartic"
+            ),
+            accessToken = accessToken
+        )
+    }
+
+
+    @Test
     fun send_success_on_success() {
-        notifier.notifyAbout(trigger, customer, 100, true)
+        notifier.notifyComplete(trigger, customer, 100, true)
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
@@ -71,16 +91,29 @@ class NotifierShould {
                 color = HeyColor.GOOD
             )
         )))
+
+        verify(github).sendStatusAsync(
+            owner = "noobing",
+            repo = "noob",
+            sha = trigger.commit,
+            status = StatusCreate(
+                "success",
+                targetUrl = buildUri,
+                description = "Quartic successfully validated your pipeline",
+                context = "quartic"
+            ),
+            accessToken = accessToken
+        )
     }
 
     @Test
     fun send_error_on_failure() {
-        notifier.notifyAbout(trigger, customer, 100, false)
+        notifier.notifyComplete(trigger, customer, 100, false)
 
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 failed",
-                titleLink = URI.create("http://noobhole/#/pipeline/100"),
+                titleLink = buildUri,
                 text = "Failure",
                 fields = listOf(
                     HeyField("Repo", "noobing/noob", true),
@@ -90,5 +123,18 @@ class NotifierShould {
                 color = HeyColor.DANGER
             )
         )))
+
+        verify(github).sendStatusAsync(
+            owner = "noobing",
+            repo = "noob",
+            sha = trigger.commit,
+            status = StatusCreate(
+                "failure",
+                targetUrl = buildUri,
+                description = "There are some problems with your pipeline",
+                context = "quartic"
+            ),
+            accessToken = accessToken
+        )
     }
 }
