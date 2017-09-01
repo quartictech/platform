@@ -12,8 +12,7 @@ import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
-import io.quartic.quarty.QuartyClient.QuartyResult
-import io.quartic.quarty.model.QuartyMessage
+import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
@@ -84,14 +83,7 @@ class Evaluator(
     }
 
     private suspend fun PhaseBuilder.logMessages(result: QuartyResult?) {
-        result?.messages?.forEach {
-            when (it) {
-                is QuartyMessage.Progress -> log("progress", it.message)
-                is QuartyMessage.Log -> log(it.stream, it.line)
-                else -> {
-                }  // The other ones have already been turned into QuartyResults
-            }
-        }
+        result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
     }
 
     private suspend fun getCustomer(details: TriggerDetails) = cancellable(

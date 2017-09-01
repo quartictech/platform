@@ -43,10 +43,11 @@ class SequencerImpl(
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, details)
             insert(TriggerReceived(details))
+            notifier.notifyStart(details)
 
             val completionEvent = executeInContainer(block)
             insert(completionEvent)
-            notifyAbout(build, completionEvent)
+            notifyComplete(build, completionEvent)
         }
 
         private suspend fun executeInContainer(block: suspend SequenceBuilder.() -> Unit) = try {
@@ -94,16 +95,20 @@ class SequencerImpl(
             private val phaseId: UUID,
             override val container: QubeContainerProxy
         ) : PhaseBuilder {
-            suspend override fun log(stream: String, message: String) {
-                insert(LogMessageReceived(phaseId, stream, message), phaseId)
+            suspend override fun log(stream: String, message: String, timestamp: Instant) {
+                insert(LogMessageReceived(phaseId, stream, message), phaseId, timestamp)
             }
         }
 
-        private suspend fun insert(event: BuildEvent, phaseId: UUID? = null) = run(threadPool) {
+        private suspend fun insert(
+            event: BuildEvent,
+            phaseId: UUID? = null,
+            time: Instant = Instant.now()
+        ) = run(threadPool) {
             database.insertEvent(
                 id = uuidGen(),
                 payload = event,
-                time = Instant.now(),
+                time = time,
                 buildId = buildId,
                 phaseId = phaseId
             )
@@ -114,8 +119,8 @@ class SequencerImpl(
             database.getBuild(buildId)
         }
 
-        private suspend fun notifyAbout(build: BuildRow, completionEvent: BuildCompleted) {
-            notifier.notifyAbout(
+        private suspend fun notifyComplete(build: BuildRow, completionEvent: BuildCompleted) {
+            notifier.notifyComplete(
                 details,
                 customer,
                 build.buildNumber,

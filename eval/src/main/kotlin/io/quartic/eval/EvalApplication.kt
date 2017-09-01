@@ -44,6 +44,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
     private fun notifier(config: EvalConfiguration) = Notifier(
         clientBuilder.retrofit(config.heyUrl),
+        github(config),
         config.homeUrlFormat
     )
 

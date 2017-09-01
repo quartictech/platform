@@ -24,6 +24,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.time.Instant
 import java.util.*
 
 class SequencerImplShould {
@@ -64,6 +65,21 @@ class SequencerImplShould {
 
         val phaseId = uuid(103)
         verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), any(), any(), eq(phaseId))
+    }
+
+    @Test
+    fun log_phase_messages_with_explicit_timestamps() = runBlocking {
+        val instant = Instant.EPOCH
+
+        sequencer.sequence(details, customer) {
+            phase("Yes") {
+                log("foo", "bar", instant)
+                Success(mock())  // Irrelevant for this test
+            }
+        }
+
+        val phaseId = uuid(103)
+        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(instant), any(), eq(phaseId))
     }
 
     @Test
@@ -143,10 +159,22 @@ class SequencerImplShould {
     }
 
     @Test
+    fun send_start_notification_before_any_real_workon_success() = runBlocking {
+        sequencer.sequence(details, customer) {}    // Do nothing
+
+        inOrder(notifier, qube) {
+            runBlocking {
+                verify(notifier).notifyStart(details)
+                verify(qube).createContainer()
+            }
+        }
+    }
+
+    @Test
     fun notify_on_success() = runBlocking {
         sequencer.sequence(details, customer) {}    // Do nothing
 
-        verify(notifier).notifyAbout(details, customer, 1234, Event.Success("Everything worked"))
+        verify(notifier).notifyComplete(details, customer, 1234, Event.Success("Everything worked"))
     }
 
     @Test
@@ -155,7 +183,7 @@ class SequencerImplShould {
             phase("No") { InternalError(mock()) }
         }
 
-        verify(notifier).notifyAbout(details, customer, 1234, Event.Failure("Internal error"))
+        verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Internal error"))
     }
 
     @Test
@@ -164,7 +192,7 @@ class SequencerImplShould {
             phase("No") { UserError("Bad things occurred") }
         }
 
-        verify(notifier).notifyAbout(details, customer, 1234, Event.Failure("Bad things occurred"))
+        verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Bad things occurred"))
     }
 
     private val details = mock<TriggerDetails> {
