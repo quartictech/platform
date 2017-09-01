@@ -20,7 +20,7 @@ class Notifier(
         sendGithubStatus(
             trigger = trigger,
             state = "pending",
-            targerUrl = null,
+            targetUrl = null,
             description = "Quartic is validating your pipeline"
         )
     }
@@ -46,18 +46,18 @@ class Notifier(
         sendGithubStatus(
             trigger = trigger,
             state = if (success) "success" else "failure",
-            targerUrl = buildUri,
+            targetUrl = buildUri,
             description = if (success) "Quartic successfully validated your pipeline"
                 else "There are some problems with your pipeline"
         )
     }
 
-    private fun sendGithubStatus(trigger: TriggerDetails, state: String, targerUrl: URI?, description: String) =
+    private fun sendGithubStatus(trigger: TriggerDetails, state: String, targetUrl: URI?, description: String) =
         github.sendStatusAsync(
             trigger.repoOwner,
             trigger.repoName,
             trigger.commit,
-            StatusCreate(state, targerUrl, description, "quartic"),
+            StatusCreate(state, targetUrl, description, "quartic"),
             github.accessTokenAsync(trigger.installationId).get()
         )
 }
