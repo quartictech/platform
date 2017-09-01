@@ -48,9 +48,7 @@ class QuartyClientShould {
             Result(steps)
         ))
 
-        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
-
-        assertThat(result, equalTo(Success(
+        assertThat(invokeQuarty(), equalTo(Success(
             emptyList(),
             steps
         ) as QuartyResult))
@@ -62,9 +60,7 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
-
-        assertThat(result, equalTo(Failure(
+        assertThat(invokeQuarty(), equalTo(Failure(
             emptyList(),
             "Big problems"
         ) as QuartyResult))
@@ -78,9 +74,7 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
-
-        assertThat(result, equalTo(Failure(
+        assertThat(invokeQuarty(), equalTo(Failure(
             listOf(
                 LogEvent("stdout", "Yeah", instantA),
                 LogEvent("progress", "Lovely time", instantB)
@@ -97,11 +91,10 @@ class QuartyClientShould {
             // No result or error here!
         ))
 
-        val result = client.getPipelineAsync(repoUrl, repoCommit).get()
-
-        assertThat(result, nullValue())
+        assertThat(invokeQuarty(), nullValue())
     }
 
+    private fun invokeQuarty() = client.invokeAsync { getPipelineAsync(repoUrl, repoCommit) }.get()
 
     private fun quartyWillSend(messages: List<QuartyMessage>) {
         whenever(quarty.getPipelineAsync(repoUrl, repoCommit)).thenReturn(completedFuture(

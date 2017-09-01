@@ -6,6 +6,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.*
+import okhttp3.ResponseBody
 import java.net.URI
 import java.time.Clock
 import java.util.concurrent.CompletableFuture
@@ -17,15 +18,19 @@ class QuartyClient(
     private val quarty: Quarty,
     private val clock: Clock
 ) {
-
     constructor(
         clientBuilder: ClientBuilder,
         url: String,
         clock: Clock = Clock.systemUTC()
     ) : this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 300), clock)
 
-    fun getPipelineAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> = quarty
-        .getPipelineAsync(repoUrl, repoCommit)
+    fun getPipelineAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> =
+        invokeAsync { getPipelineAsync(repoUrl, repoCommit) }
+
+    fun executeAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> =
+        invokeAsync { executeAsync(repoUrl, repoCommit) }
+
+    fun invokeAsync(block: Quarty.() -> CompletableFuture<ResponseBody>): CompletableFuture<QuartyResult?> = block(quarty)
         .thenApply { responseBody ->
             val logEvents = mutableListOf<LogEvent>()
             var finaliser: () -> QuartyResult? = { null }
