@@ -159,10 +159,9 @@ class WebsocketClientImplShould {
     @Test
     fun close_channels_on_close() {
         val client = createClient()
-        client.close()
-
         runOrTimeout {
             client.events.receive() // Connection event
+            client.close()
             assertThat(client.events.receiveOrNull(), nullValue())
             assertTrue(client.outbound.isClosedForSend)
         }

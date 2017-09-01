@@ -1,11 +1,14 @@
 package io.quartic.eval
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -58,6 +61,27 @@ class DatabaseMigrationsShould {
         databaseVersion("4")
     }
 
+    @Test
+    fun v5_migrate() {
+        DBI.open().createUpdate("""
+            INSERT INTO event(id, build_id, time, payload)
+                VALUES(:id, :build_id, :time, :payload)
+        """)
+            .bind("id", UUID.randomUUID())
+            .bind("build_id", UUID.randomUUID())
+            .bind("time", Instant.now())
+            .bindJson("payload", mapOf("type" to "build_failed_v1"))
+            .execute()
+
+        databaseVersion("5")
+
+        val results = DBI.open().createQuery("SELECT payload FROM event")
+            .mapTo(String::class.java)
+            .map { OBJECT_MAPPER.readValue<BuildFailed>(it) }
+
+        assertThat(results[0], equalTo(BuildFailed("Unknown error")))
+    }
+
     private fun checkTableExists(name: String, schema: String): Boolean =
         DBI.open().createQuery(
             """select exists(
@@ -82,7 +106,9 @@ class DatabaseMigrationsShould {
         deliveryId = "id",
         installationId = 100,
         repoId = 100,
+        repoFullName = "my/repo",
         repoName = "repo",
+        repoOwner = "my",
         cloneUrl = URI.create("ref"),
         ref = "refs/heads/${branch}",
         commit = "commit",
