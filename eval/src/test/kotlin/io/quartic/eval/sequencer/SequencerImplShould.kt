@@ -145,9 +145,12 @@ class SequencerImplShould {
     fun notify_on_success() = runBlocking {
         sequencer.sequence(details, customer) {}    // Do nothing
 
-        inOrder(notifier) {
-            verify(notifier).notifyStart(details)
-            verify(notifier).notifyComplete(details, customer, 1234, true)
+        inOrder(notifier, qube) {
+            runBlocking {
+                verify(notifier).notifyStart(details)
+                verify(qube).createContainer()          // Ensure happens-before and after
+                verify(notifier).notifyComplete(details, customer, 1234, true)
+            }
         }
     }
 
@@ -157,9 +160,12 @@ class SequencerImplShould {
             phase("No") { InternalError(mock()) }
         }
 
-        inOrder(notifier) {
-            verify(notifier).notifyStart(details)
-            verify(notifier).notifyComplete(details, customer, 1234, false)
+        inOrder(notifier, qube) {
+            runBlocking {
+                verify(notifier).notifyStart(details)
+                verify(qube).createContainer()          // Ensure happens-before and after
+                verify(notifier).notifyComplete(details, customer, 1234, false)
+            }
         }
     }
 
