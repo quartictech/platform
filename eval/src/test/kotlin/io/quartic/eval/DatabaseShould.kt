@@ -9,6 +9,7 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.UserError
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import org.hamcrest.CoreMatchers.equalTo
@@ -46,31 +47,56 @@ class DatabaseShould {
     fun get_latest_valid_dag() {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
-        val eventId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(eventId, PhaseCompleted(phaseId, Success(EvaluationOutput(steps))), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseId, Success(EvaluationOutput(steps))), time, buildId, phaseId)
         val dag = DATABASE.getLatestValidDag(customerId)
         assertThat(dag!!.artifact.steps, equalTo(steps))
+    }
+
+    @Test
+    fun ignore_failures_when_getting_latest_dag() {
+        val buildIdA = UUID.randomUUID()
+        val phaseIdA = UUID.randomUUID()
+        DATABASE.insertBuild(buildIdA, customerId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseIdA, Success(EvaluationOutput(steps))), Instant.now(), buildIdA, phaseIdA)
+
+        val buildIdB = UUID.randomUUID()
+        val phaseIdB = UUID.randomUUID()
+        DATABASE.insertBuild(buildIdB, customerId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseIdB, UserError("Noob")), Instant.now(), buildIdA, phaseIdB)
+
+        val dag = DATABASE.getLatestValidDag(customerId)
+        assertThat(dag!!.artifact.steps, equalTo(steps))
+    }
+
+    @Test
+    fun fail_to_get_latest_if_nonexistent() {
+        val buildId = UUID.randomUUID()
+        DATABASE.insertBuild(buildId, customerId, branch)
+        assertThat(DATABASE.getLatestValidDag(customerId), nullValue())
     }
 
     @Test
     fun get_valid_dag() {
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
-        val eventId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(eventId, PhaseCompleted(phaseId, Success(EvaluationOutput(steps))), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseId, Success(EvaluationOutput(steps))), time, buildId, phaseId)
         val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
         assertThat(dag!!.artifact.steps, equalTo(steps))
     }
 
     @Test
-    fun get_latest_fails_on_nonexistent() {
+    fun fail_to_get_valid_dag_if_not_actually_valid() {
         val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        assertThat(DATABASE.getLatestValidDag(customerId), nullValue())
+        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseId, UserError("Noob")), time, buildId, phaseId)
+        val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
+        assertThat(dag, nullValue())
     }
 
     @Test

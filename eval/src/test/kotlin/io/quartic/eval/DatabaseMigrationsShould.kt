@@ -7,6 +7,8 @@ import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.TriggerDetails
 import org.flywaydb.core.api.MigrationVersion
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -16,8 +18,6 @@ import org.junit.runners.MethodSorters
 import java.net.URI
 import java.time.Instant
 import java.util.*
-import org.hamcrest.MatcherAssert.*
-import org.hamcrest.CoreMatchers.*
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class DatabaseMigrationsShould {
@@ -53,7 +53,12 @@ class DatabaseMigrationsShould {
         assertThat(checkTableExists("event", "public"), equalTo(true))
     }
 
-    fun checkTableExists(name: String, schema: String): Boolean =
+    @Test
+    fun v4_migrate() {
+        databaseVersion("4")
+    }
+
+    private fun checkTableExists(name: String, schema: String): Boolean =
         DBI.open().createQuery(
             """select exists(
             select 1
@@ -66,12 +71,12 @@ class DatabaseMigrationsShould {
             .mapTo(Boolean::class.java)
             .findOnly()
 
-    fun databaseVersion(version: String): Database = DatabaseBuilder
+    private fun databaseVersion(version: String): Database = DatabaseBuilder
         .testDao(Database::class.java, PG.embeddedPostgres.postgresDatabase,
             MigrationVersion.fromVersion(version))
 
-    val customerId = CustomerId(100)
-    val branch = "develop"
+    private val customerId = CustomerId(100)
+    private val branch = "develop"
     private val triggerDetails = TriggerDetails(
         type = "wat",
         deliveryId = "id",
