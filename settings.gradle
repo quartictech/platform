@@ -38,17 +38,8 @@ include "quarty-utils"
 include "qube"
 include "qube-api"
 
-include "rain"
-
 include "registry"
 include "registry-api"
-
-include "scribe"
-
-include "weyl"
-include "weyl-api"
-include "weyl-core"
-include "weyl-frontend"
 
 include "zeus"
 include "zeus-frontend"
