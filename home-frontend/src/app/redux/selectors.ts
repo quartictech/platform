@@ -25,5 +25,6 @@ export const selectProfile = (state) => {
 };
 export const selectDatasets = state => state.get("datasets").toJS();
 export const selectPipeline = state => (state.get("pipeline").toJS()) as PipelineState;
+export const selectBuilds = state => (state.get("builds").toJS())
 export const selectNamespaces = state => Object.keys(state.get("datasets").toJS());
 export const selectUi = state => state.get("ui").toJS();

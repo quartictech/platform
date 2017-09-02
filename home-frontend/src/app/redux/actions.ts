@@ -98,3 +98,16 @@ export function fetchPipelineNotFound() {
     type: constants.FETCH_PIPELINE_NOT_FOUND,
   };
 }
+
+export function fetchBuilds() {
+  return {
+    type: constants.FETCH_BUILDS,
+  };
+}
+
+export function fetchBuildsSuccess(data) {
+  return {
+    type: constants.FETCH_BUILDS_SUCCESS,
+    data,
+  };
+}

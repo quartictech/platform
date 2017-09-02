@@ -1,0 +1,42 @@
+
+.container {
+  width: 100%;
+  display: flex;
+  padding: 20px;
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.feedItem {
+  padding-bottom: 15px;
+  min-width: 500px;
+}
+
+.cardIcon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: 15px;
+  margin-left: 15px;
+  color: #5C7080;
+}
+
+.cardBody {
+  margin-left: 30px;
+}
+
+.statusText {
+  position:absolute !important;
+  top:0;
+  right:0;
+  margin-top: 15px;
+  margin-right: 15px;
+}
+
+.feedCard {
+  position: relative;
+  padding-top: 15px !important;
+}

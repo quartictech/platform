@@ -5,6 +5,7 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
@@ -20,12 +21,25 @@ import org.jdbi.v3.core.statement.UnableToExecuteStatementException
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import java.net.URI
 import java.time.Instant
 import java.util.*
 
 class DatabaseShould {
     private val customerId = customerId()
     private val branch = "develop"
+
+    private val trigger = TriggerDetails(
+        type = "github",
+        deliveryId = "deadbeef",
+        installationId = 1234,
+        repoId = 5678,
+        repoName = "noob",
+        cloneUrl = URI("https://noob.com/foo/bar"),
+        ref = "refs/heads/develop",
+        commit = "abc123",
+        timestamp = Instant.MIN
+    )
 
     @Test
     fun insert_build() {
@@ -124,6 +138,23 @@ class DatabaseShould {
         assertThrows<UnableToExecuteStatementException> {
             DATABASE.insertBuild(id, customerId, branch)
         }
+    }
+
+    @Test
+    fun get_builds() {
+        val customerId = customerId()
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        DATABASE.insertBuild(buildId, customerId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BuildSucceeded(), time, buildId, phaseId)
+        DBI.open().createQuery("select * from event")
+            .mapToMap().forEach { println(it) }
+
+
+        val builds = DATABASE.getBuilds(customerId)
+        assertThat(builds.size, equalTo(1))
     }
 
     private fun customerId() = CustomerId(Random().nextLong())

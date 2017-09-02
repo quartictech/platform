@@ -6,14 +6,17 @@ import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.Build
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import org.jdbi.v3.core.mapper.ColumnMapper
+import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
 import org.jdbi.v3.sqlobject.config.RegisterColumnMapper
 import org.jdbi.v3.sqlobject.config.RegisterColumnMappers
+import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
@@ -25,7 +28,9 @@ import java.util.*
 @RegisterColumnMappers(
     RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class),
     RegisterColumnMapper(Database.BuildResultSuccessColumnMapper::class),
-    RegisterColumnMapper(CustomerIdColumnMapper::class))
+    RegisterColumnMapper(CustomerIdColumnMapper::class),
+    RegisterColumnMapper(Database.BuildEventColumnMapper::class)
+)
 interface Database {
     data class BuildRow(
         val id: UUID,
@@ -54,6 +59,11 @@ interface Database {
         }
     }
 
+    class BuildEventColumnMapper : ColumnMapper<BuildEvent> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent {
+            return OBJECT_MAPPER.readValue(r.getString(columnNumber))
+        }
+    }
 
     @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
@@ -107,4 +117,35 @@ interface Database {
         @Bind("build_id") buildId: UUID,
         @Bind("phase_id") phaseId: UUID? = null
     )
+
+
+    data class BuildStatusRow(
+        val id: UUID,
+        @ColumnName("build_number")
+        val buildNumber: Long,
+        val branch: String,
+        @ColumnName("customer_id")
+        val customerId: CustomerId,
+        val trigger: TriggerDetails,
+        val status: String
+    )
+
+    @SqlQuery("""
+        SELECT
+            build.*,
+            (CASE eterm.payload->>'type'
+                WHEN 'build_succeeded_${BuildEvent.VERSION}' THEN 'success'
+                WHEN 'build_failed_${BuildEvent.VERSION}' THEN 'failure'
+                WHEN null THEN 'running'
+            END) AS status,
+            etrigger.payload->>'details' as trigger
+        FROM build
+        LEFT JOIN event eterm ON eterm.build_id = build.id
+        LEFT JOIN event etrigger ON etrigger.build_id = build.id
+            WHERE
+            eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}' AND
+            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}'
+        LIMIT 20
+        """)
+    fun getBuilds(customerId: CustomerId): List<BuildStatusRow>
 }
