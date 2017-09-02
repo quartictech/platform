@@ -13,8 +13,8 @@ jobs:
       - restore_cache:
           keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
-            - platform-v2-{{ .Branch }}-gradle
-            - platform-v2-develop-gradle
+            - platform-v3-{{ .Branch }}-gradle
+            - platform-v3-develop-gradle
 
       # We don't install Yarn in parallel because NPM is raging
       - run:
@@ -33,7 +33,7 @@ jobs:
           command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > ~/gradle.txt
 
       - save_cache:
-          key: platform-v2-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
+          key: platform-v3-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
           paths:
             - ~/.gradle
 
