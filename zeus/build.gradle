@@ -19,7 +19,7 @@ dependencies {
         compile project(":zeus-frontend")
     }
 
-    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
+    compile libraries.dropwizard.assets
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:${versions.jackson}"
 
     testCompile project(":common-test")

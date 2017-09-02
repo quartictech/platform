@@ -5,14 +5,14 @@ apply plugin: KotlinPlugin
 dependencies {
     compile project(":common-core")
     compile libraries.jjwt
-    compile "io.dropwizard:dropwizard-core:${versions.dropwizard}"
-    compile "io.dropwizard:dropwizard-auth:${versions.dropwizard}"
-    compile "de.thomaskrille:dropwizard-template-config:1.4.0"
+    compile libraries.dropwizard.core
+    compile libraries.dropwizard.auth
+    compile libraries.dropwizard.templateConfig
 
-    runtime libraries.dropwizardMetricsInfluxdb
+    runtime libraries.dropwizard.metricsInfluxdb
 
     testCompile project(":common-test")
-    testCompile libraries.dropwizardTesting
+    testCompile libraries.dropwizard.testing
 }
 
 
