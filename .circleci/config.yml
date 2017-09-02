@@ -16,13 +16,6 @@ jobs:
             - platform-v3-{{ .Branch }}-gradle
             - platform-v3-develop-gradle
 
-      # We don't install Yarn in parallel because NPM is raging
-      - run:
-          name: Install dependencies
-          command: |
-            ./gradlew installYarn --build-cache --console=plain
-            ./gradlew resolveConfigurations installDependencies installRubyDependencies --build-cache --parallel --console=plain
-
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
           name: Run tests
