@@ -17,7 +17,6 @@ include "postgres"
 
 include "catalogue"
 include "catalogue-api"
-include "catalogue-utils"
 
 include "eval"
 include "eval-api"

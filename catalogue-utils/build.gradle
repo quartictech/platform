@@ -1,9 +1,0 @@
-import io.quartic.gradle.kotlin.KotlinPlugin
-
-apply plugin: KotlinPlugin
-
-dependencies {
-    compile project(":catalogue-api")
-
-    testCompile project(":common-test")
-}
