@@ -6,7 +6,7 @@ import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.User
 import io.quartic.common.auth.extractSubdomain
-import io.quartic.common.client.client
+import io.quartic.common.client.ClientBuilder
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.uid.Uid
@@ -35,9 +35,21 @@ class AuthResource(
     private val secretsCodec: SecretsCodec,
     private val tokenGenerator: TokenGenerator,
     private val registry: RegistryServiceClient,
-    private val gitHubOAuth: GitHubOAuth = client<GitHubOAuth>(AuthResource::class.java, gitHubConfig.oauthApiRoot),
-    private val gitHubApi: GitHub = client<GitHub>(AuthResource::class.java, gitHubConfig.apiRoot)
+    private val gitHubOAuth: GitHubOAuth,
+    private val gitHubApi: GitHub
 ) {
+    constructor(
+        gitHubConfig: GithubConfiguration,
+        cookiesConfig: CookiesConfiguration,
+        secretsCodec: SecretsCodec,
+        tokenGenerator: TokenGenerator,
+        registry: RegistryServiceClient,
+        clientBuilder: ClientBuilder
+    ) : this(gitHubConfig, cookiesConfig, secretsCodec, tokenGenerator, registry,
+        clientBuilder.feign(gitHubConfig.oauthApiRoot),
+        clientBuilder.feign(gitHubConfig.apiRoot)
+    )
+
     class NonceId(uid: String) : Uid(uid)
 
     private val LOG by logger()

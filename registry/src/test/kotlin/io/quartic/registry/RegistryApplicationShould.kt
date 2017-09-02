@@ -2,7 +2,7 @@ package io.quartic.registry
 
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.client.retrofitClient
+import io.quartic.common.client.ClientBuilder
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.registry.api.RegistryServiceClient
@@ -15,7 +15,7 @@ import retrofit2.HttpException
 import java.util.concurrent.CompletionException
 
 class RegistryApplicationShould {
-    private val client = retrofitClient<RegistryServiceClient>(this::class.java, "http://localhost:${APP.localPort}/api/")
+    private val client = ClientBuilder(this).retrofit<RegistryServiceClient>("http://localhost:${APP.localPort}/api/")
 
     @Test
     fun finds_test_customer() {

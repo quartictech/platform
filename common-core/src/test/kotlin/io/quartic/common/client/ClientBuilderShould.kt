@@ -1,13 +1,11 @@
-package io.quartic.common
+package io.quartic.common.client
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import feign.Param
 import feign.RequestLine
-import io.quartic.common.client.ClientBuilder
-import io.quartic.common.client.Retrofittable
-import io.quartic.common.client.client
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.test.assertThrows
 import org.junit.Rule
 import org.junit.Test
@@ -24,11 +22,13 @@ class ClientUtilsShould {
     @Rule
     var wireMockRule = WireMockRule(DYNAMIC_PORT)
 
+    private val clientBuilder = ClientBuilder(javaClass)
+
     @Test
     fun encode_slashes_in_path_params() {
         stubFor(get(urlMatching("/ooh/(.*)")).willReturn(aResponse().withBody(""""hello"""")))
 
-        val service = client<MyService>(javaClass, "http://localhost:${wireMockRule.port()}")
+        val service = clientBuilder.feign<MyService>("http://localhost:${wireMockRule.port()}")
 
         service.getStuff("abc/def")
 
@@ -40,7 +40,7 @@ class ClientUtilsShould {
     @Test
     fun prevent_retrofitting_non_retrofit_interface() {
         assertThrows<IllegalArgumentException> {
-            ClientBuilder(javaClass).retrofit<NoobNonRetrofit>("http://noob.com")
+            clientBuilder.retrofit<NoobNonRetrofit>("http://noob.com")
         }
     }
 
@@ -49,6 +49,6 @@ class ClientUtilsShould {
 
     @Test
     fun allow_retrofitting_non_retrofit_interface() {
-        ClientBuilder(javaClass).retrofit<NoobRetrofit>("http://noob.com")
+        clientBuilder.retrofit<NoobRetrofit>("http://noob.com")
     }
 }

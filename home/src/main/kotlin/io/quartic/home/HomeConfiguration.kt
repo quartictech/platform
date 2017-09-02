@@ -5,8 +5,8 @@ import io.quartic.common.secrets.EncryptedSecret
 import java.net.URI
 
 data class GithubConfiguration(
-    val oauthApiRoot: String = "https://github.com",
-    val apiRoot: String = "https://api.github.com",
+    val oauthApiRoot: URI = URI("https://github.com"),
+    val apiRoot: URI = URI("https://api.github.com"),
     val clientId: String,
     val clientSecretEncrypted: EncryptedSecret,
     val trampolineUrl: URI,

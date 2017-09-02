@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.client.ClientBuilder
-import io.quartic.common.client.Retrofittable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.secrets.UnsafeSecret
 import org.apache.commons.codec.binary.Base64
 import retrofit2.http.Body
