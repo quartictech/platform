@@ -16,8 +16,7 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.UserError
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
-import io.quartic.eval.sequencer.Sequencer.SequenceBuilder
+import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -63,38 +62,44 @@ class SequencerImpl(
         }
 
         private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
-            suspend override fun phase(description: String, block: suspend PhaseBuilder.() -> Result) {
+            suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
                 val phaseId = uuidGen()
                 insert(PhaseStarted(phaseId, description), phaseId)
 
                 val result = try {
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
-                        select<Result> {
+                        select<PhaseResult<R>> {
                             blockAsync.onAwait { it }
                             container.errors.onReceive { throw it }
                         }
                     }
                 } catch (e: Exception) {
-                    InternalError(e)
+                    PhaseResult.InternalError<R>(e)
                 }
 
-                insert(PhaseCompleted(phaseId, result), phaseId)
-                throwIfUnsuccessful(result)
-            }
-
-            private fun throwIfUnsuccessful(result: Result) {
-                when (result) {
-                    is UserError -> throw PhaseException(result.detail.toString())
-                    is InternalError -> throw PhaseException("Internal error")
-                    else -> {}  // Do nothing
-                }
+                insert(PhaseCompleted(phaseId, transformResult(result)), phaseId)
+                return extractOutput(result)
             }
         }
 
-        private inner class PhaseBuilderImpl(
+        private fun transformResult(result: PhaseResult<*>) = when (result) {
+            is PhaseResult.Success -> Result.Success()
+            is PhaseResult.SuccessWithArtifact -> Result.Success(result.artifact)
+            is PhaseResult.InternalError -> Result.InternalError(result.throwable)
+            is PhaseResult.UserError -> Result.UserError(result.detail)
+        }
+
+        private fun <R> extractOutput(result: PhaseResult<R>) = when (result) {
+            is PhaseResult.Success -> result.output
+            is PhaseResult.SuccessWithArtifact -> result.output
+            is PhaseResult.InternalError -> throw PhaseException("Internal error")
+            is PhaseResult.UserError -> throw PhaseException(result.detail.toString())
+        }
+
+        private inner class PhaseBuilderImpl<R>(
             private val phaseId: UUID,
             override val container: QubeContainerProxy
-        ) : PhaseBuilder {
+        ) : PhaseBuilder<R> {
             suspend override fun log(stream: String, message: String, timestamp: Instant) {
                 insert(LogMessageReceived(phaseId, stream, message), phaseId, timestamp)
             }

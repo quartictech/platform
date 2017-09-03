@@ -9,8 +9,10 @@ import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
 import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -42,16 +44,32 @@ class SequencerImplShould {
 
     @Test
     fun write_phase_sequence_to_db() = runBlocking {
-        val result = Success(mock())
+        val artifact = mock<Artifact>()
 
         sequencer.sequence(details, customer) {
-            phase("Yes") { result } // Do nothing
+            phase("Yes") {
+                successWithArtifact(artifact, Unit)
+            } // Do nothing
         }
 
         val buildId = uuid(100)
         val phaseId = uuid(103)
         verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId), eq(phaseId))
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, result)), any(), eq(buildId), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success(artifact))), any(), eq(buildId), eq(phaseId))
+    }
+
+    @Test
+    fun write_null_artifact_if_none_specified_in_phase_result() = runBlocking {
+        sequencer.sequence(details, customer) {
+            phase("Yes") {
+                success(Unit)
+            }
+        }
+
+        val buildId = uuid(100)
+        val phaseId = uuid(103)
+        verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success())), any(), eq(buildId), eq(phaseId))
     }
 
     @Test
@@ -59,7 +77,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 log("foo", "bar")
-                Success(mock())  // Irrelevant for this test
+                success(Unit)
             }
         }
 
@@ -74,7 +92,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 log("foo", "bar", instant)
-                Success(mock())  // Irrelevant for this test
+                success(Unit)
             }
         }
 
@@ -85,7 +103,9 @@ class SequencerImplShould {
     @Test
     fun fail_build_if_phase_fails() = runBlocking {
         sequencer.sequence(details, customer) {
-            phase("No") { InternalError(mock()) }
+            phase("No") {
+                internalError(mock())
+            }
         }
 
         verify(database, never()).insertEvent(any(), eq(BuildEvent.BUILD_SUCCEEDED), any(), any(), eq(null))
@@ -97,7 +117,9 @@ class SequencerImplShould {
         val exception = RuntimeException("Nooooo")
 
         sequencer.sequence(details, customer) {
-            phase("No") { throw exception }
+            phase("No") {
+                throw exception
+            }
         }
 
         val phaseId = uuid(103)
@@ -115,7 +137,7 @@ class SequencerImplShould {
         sequencer.sequence(details, customer) {
             phase("Yes") {
                 delay(Long.MAX_VALUE)   // Effectively infinite
-                Success(mock())
+                success(Unit)
             }
         }
 
@@ -124,18 +146,31 @@ class SequencerImplShould {
     }
 
     @Test
+    fun return_result_from_phase() = runBlocking {
+        var x: Int? = null
+
+        sequencer.sequence(details, customer) {
+            x = phase("Yes") {
+                success(37)
+            }
+        }
+
+        assertThat(x, equalTo(37))
+    }
+
+    @Test
     fun provide_access_to_container_during_all_phases() = runBlocking {
         var c1: QubeContainerProxy? = null
         var c2: QubeContainerProxy? = null
 
         sequencer.sequence(details, customer) {
-            phase("First") {
+            phase<Unit>("First") {
                 c1 = container
-                Success(mock())
+                success(Unit)
             }
-            phase("Second") {
+            phase<Unit>("Second") {
                 c2 = container
-                Success(mock())
+                success(Unit)
             }
         }
 
@@ -148,10 +183,12 @@ class SequencerImplShould {
         var secondPhaseRun = false
 
         sequencer.sequence(details, customer) {
-            phase("First") { InternalError(mock()) }
-            phase("Second") {
+            phase<Unit>("First") {
+                internalError(mock())
+            }
+            phase<Unit>("Second") {
                 secondPhaseRun = true
-                Success(mock())
+                success(Unit)
             }
         }
 
@@ -180,7 +217,9 @@ class SequencerImplShould {
     @Test
     fun notify_on_internal_error() = runBlocking {
         sequencer.sequence(details, customer) {
-            phase("No") { InternalError(mock()) }
+            phase("No") {
+                internalError(mock())
+            }
         }
 
         verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Internal error"))
@@ -189,7 +228,7 @@ class SequencerImplShould {
     @Test
     fun notify_on_user_error() = runBlocking {
         sequencer.sequence(details, customer) {
-            phase("No") { UserError("Bad things occurred") }
+            phase("No") { userError("Bad things occurred") }
         }
 
         verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Bad things occurred"))
