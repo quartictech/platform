@@ -12,6 +12,8 @@ import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.quarty.model.Step
+import java.net.URI
+import java.time.Instant
 import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -26,8 +28,20 @@ import java.util.*
     Type(LogMessageReceived::class, name = "log_message_received_${VERSION}")
 )
 sealed class BuildEvent {
-    // TODO - have our own TriggerDetails to decouple DB schema
-    data class TriggerReceived(val details: TriggerDetails) : BuildEvent()
+    data class TriggerReceived(
+        val triggerType: String,
+        val deliveryId: String,     // For logging purposes
+        val installationId: Long,
+        val repoId: Long,
+        val repoFullName: String,
+        val repoName: String,
+        val repoOwner: String,
+        val cloneUrl: URI,
+        val ref: String,
+        val commit: String,
+        val timestamp: Instant,
+        val rawWebhook: Map<String, Any> = emptyMap()
+    ) : BuildEvent()
 
     sealed class BuildCompleted : BuildEvent() {
         class BuildCancelled : BuildCompleted()

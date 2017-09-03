@@ -12,8 +12,7 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
 import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.UserError
+import io.quartic.eval.model.toTriggerReceived
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
@@ -41,7 +40,7 @@ class SequencerImpl(
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, details)
-            insert(TriggerReceived(details))
+            insert(details.toTriggerReceived())
             notifier.notifyStart(details)
 
             val completionEvent = executeInContainer(block)

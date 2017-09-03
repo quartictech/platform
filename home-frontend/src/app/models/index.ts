@@ -73,11 +73,13 @@ export interface Build {
   triggerDetails: {
     repoFullName: string;
   };
+  time: number;
 }
 
 export interface Other {
   type: string;
   id: string;
+  time: number;
 }
 
 export type FeedItem = Build | Other;

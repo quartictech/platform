@@ -58,8 +58,8 @@ interface Database {
         val artifact: EvaluationOutput  // TODO - eliminate the hardcoded type
     )
 
-    class TriggerDetailsColumnMapper : ColumnMapper<TriggerDetails> {
-        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerDetails =
+    class TriggerDetailsColumnMapper : ColumnMapper<BuildEvent.TriggerReceived> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent.TriggerReceived =
             OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
 
@@ -162,8 +162,9 @@ interface Database {
         val branch: String,
         @ColumnName("customer_id")
         val customerId: CustomerId,
-        val trigger: TriggerDetails,
-        val status: String
+        val status: String,
+        val time: Instant,
+        val trigger: BuildEvent.TriggerReceived
     )
 
     @SqlQuery("""
@@ -174,7 +175,8 @@ interface Database {
                 WHEN 'build_failed_${BuildEvent.VERSION}' THEN 'failure'
                 WHEN null THEN 'running'
             END) AS status,
-            etrigger.payload->>'details' as trigger
+            etrigger.time AS time,
+            etrigger.payload as trigger
         FROM build
         LEFT JOIN event eterm ON eterm.build_id = build.id
         LEFT JOIN event etrigger ON etrigger.build_id = build.id

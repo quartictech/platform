@@ -4,8 +4,8 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.Database.ValidDagRow
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
-import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.Dag
+import io.quartic.eval.model.toTriggerDetails
 import io.quartic.quarty.model.Dataset
 import javax.ws.rs.NotFoundException
 
@@ -17,8 +17,9 @@ class QueryResource(private val database: Database) : EvalQueryService {
                 buildNumber = buildRow.buildNumber,
                 branch = buildRow.branch,
                 customerId = buildRow.customerId,
-                triggerDetails = buildRow.trigger,
-                status = buildRow.status
+                triggerDetails = buildRow.trigger.toTriggerDetails(),
+                status = buildRow.status,
+                time = buildRow.time
             )
         }
 

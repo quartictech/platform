@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
+import java.time.Instant
 
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -19,5 +20,6 @@ data class Build(
     val branch: String,
     val customerId: CustomerId,
     val triggerDetails: TriggerDetails,
-    val status: String
+    val status: String,
+    val time: Instant
 )

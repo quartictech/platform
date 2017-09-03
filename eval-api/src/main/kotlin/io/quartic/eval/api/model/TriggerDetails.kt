@@ -14,7 +14,8 @@ data class TriggerDetails(
     val cloneUrl: URI,
     val ref: String,
     val commit: String,
-    val timestamp: Instant
+    val timestamp: Instant,
+    val rawWebhook: Map<String, Any> = emptyMap()
 ) {
     fun branch(): String = ref.removePrefix("refs/heads/")
 }

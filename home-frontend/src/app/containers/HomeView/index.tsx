@@ -4,6 +4,8 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import * as classNames from "classnames";
 
+import * as moment from "moment";
+
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
@@ -48,7 +50,10 @@ class HomeView extends React.Component<IProps, {}> {
 
             <div className={s.cardBody}>
               <h5>
-                <Link to={`/pipeline/${item.buildNumber}`}>Build {item.buildNumber}</Link>
+                <Link to={`/pipeline/${item.buildNumber}`}>
+                  Build {item.buildNumber}
+                </Link>
+                <small>{moment.unix(item.time).fromNow()}</small>
               </h5>
               <b>Branch</b> {item.branch}
             </div>

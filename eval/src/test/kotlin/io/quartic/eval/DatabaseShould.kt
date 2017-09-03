@@ -12,6 +12,7 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.UserError
+import io.quartic.eval.model.toTriggerReceived
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import org.hamcrest.CoreMatchers.equalTo
@@ -206,7 +207,7 @@ class DatabaseShould {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildId, phaseId)
         DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
         DBI.open().createQuery("select * from event")
             .mapToMap().forEach { println(it) }
