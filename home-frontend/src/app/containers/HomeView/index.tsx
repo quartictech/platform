@@ -52,7 +52,7 @@ class HomeView extends React.Component<IProps, {}> {
               <h5>
                 <Link to={`/pipeline/${item.buildNumber}`}>
                   Build {item.buildNumber}
-                </Link>
+                </Link>&nbsp;
                 <small>{moment.unix(item.time).fromNow()}</small>
               </h5>
               <b>Branch</b> {item.branch}
