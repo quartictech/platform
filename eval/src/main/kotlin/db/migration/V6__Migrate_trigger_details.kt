@@ -1,6 +1,5 @@
 package db.migration
 
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
