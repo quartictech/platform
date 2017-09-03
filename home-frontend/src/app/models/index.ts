@@ -72,7 +72,7 @@ export interface Build {
   status: string;
   triggerDetails: {
     repoFullName: string;
-  }
+  };
 }
 
 export interface Other {
@@ -80,6 +80,4 @@ export interface Other {
   id: string;
 }
 
-
-
-export type FeedItem = Build | Other
+export type FeedItem = Build | Other;

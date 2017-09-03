@@ -17,7 +17,7 @@ interface IProps {
 }
 
 export function isBuild(item: FeedItem): item is Build {
-  return item.type == "build"
+  return item.type === "build";
 }
 
 // const feedItems = [
@@ -40,26 +40,25 @@ class HomeView extends React.Component<IProps, {}> {
 
   renderItem = (item: FeedItem) => {
     if (isBuild(item)) {
-        return (
-          <div className={s.feedItem} key={item.id}>
-            <div className={classNames("pt-card", s.feedCard)}>
-              <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-build")} />
-              <div className={classNames("pt-tag", this.intentForStatus(item.status), s.statusText)}>{item.status}</div>
+      return (
+        <div className={s.feedItem} key={item.id}>
+          <div className={classNames("pt-card", s.feedCard)}>
+            <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-build")} />
+            <div className={classNames("pt-tag", this.intentForStatus(item.status), s.statusText)}>{item.status}</div>
 
-              <div className={s.cardBody}>
+            <div className={s.cardBody}>
               <h5>
                 <Link to={`/pipeline/${item.buildNumber}`}>Build {item.buildNumber}</Link>
               </h5>
               <b>Branch</b> {item.branch}
-              </div>
             </div>
           </div>
-        );
+        </div>
+      );
     }
   }
 
   render() {
-    console.log(this.props.builds);
     return (
       <div className={s.container}>
         <div className={s.feed}>

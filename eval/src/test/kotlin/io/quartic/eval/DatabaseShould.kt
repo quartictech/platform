@@ -6,6 +6,7 @@ import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
@@ -15,13 +16,16 @@ import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.nullValue
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.statement.UnableToExecuteStatementException
+import org.junit.After
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
 import java.net.URI
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -35,50 +39,106 @@ class DatabaseShould {
         installationId = 1234,
         repoId = 5678,
         repoName = "noob",
+        repoFullName = "noobing/noob",
+        repoOwner = "noobing",
         cloneUrl = URI("https://noob.com/foo/bar"),
         ref = "refs/heads/develop",
         commit = "abc123",
         timestamp = Instant.MIN
     )
+    private val uuidGen = UuidGen()
+    private val buildId = uuidGen()
+    private val phaseId = uuidGen()
+
+    @After
+    fun after() {
+        DBI.open().createUpdate("DELETE FROM build").execute()
+        DBI.open().createUpdate("DELETE FROM event").execute()
+    }
 
     @Test
     fun insert_build() {
-        val id = UUID.randomUUID()
-        DATABASE.insertBuild(id, customerId, branch)
-        assertThat(DATABASE.getBuild(id), equalTo(Database.BuildRow(id, customerId, branch, 1)))
+        insertBuild(buildId)
+
+        assertThat(DATABASE.getBuild(buildId), equalTo(BuildRow(buildId, customerId, branch, 1)))
     }
 
     @Test
     fun insert_event() {
-        val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        val time = Instant.now()
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(phaseId))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+            successfulPhase(phaseId) as BuildEvent
+        ))
+    }
+
+    @Test
+    fun get_events_for_build_in_chronological_order() {
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), Instant.now())
+        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), Instant.now() - Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), Instant.now() + Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), Instant.now() - Duration.ofSeconds(2))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+            successfulPhase(uuid(72)) as BuildEvent,
+            successfulPhase(uuid(70)) as BuildEvent,
+            successfulPhase(uuid(69)) as BuildEvent,
+            successfulPhase(uuid(71)) as BuildEvent
+        ))
+    }
+
+    @Test
+    fun get_events_for_only_specified_build() {
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(uuid(42)))
+
+        val otherBuildId = uuidGen()
+        insertBuild(otherBuildId)
+        insertEvent(otherBuildId, phaseId, successfulPhase(uuid(69)))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+            successfulPhase(uuid(42)) as BuildEvent
+        ))
+    }
+
+    @Test
+    fun get_latest_successful_build_number() {
+        // Build #1
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, BuildEvent.BUILD_SUCCEEDED)
+        // Build #2
+        insertBuild(uuid(1000))
+        insertEvent(uuid(1000), phaseId, BuildEvent.BUILD_SUCCEEDED)
+        // Build #3
+        insertBuild(uuid(2000))
+        insertEvent(uuid(2000), phaseId, BuildEvent.BUILD_CANCELLED)
+
+        assertThat(DATABASE.getLatestSuccessfulBuildNumber(customerId), equalTo(2L))
     }
 
     @Test
     fun get_latest_valid_dag() {
-        val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseId, Success(EvaluationOutput(steps))), time, buildId, phaseId)
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(phaseId))
+
         val dag = DATABASE.getLatestValidDag(customerId)
+
         assertThat(dag!!.artifact.steps, equalTo(steps))
     }
 
     @Test
     fun ignore_failures_when_getting_latest_dag() {
-        val buildIdA = UUID.randomUUID()
-        val phaseIdA = UUID.randomUUID()
-        DATABASE.insertBuild(buildIdA, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseIdA, Success(EvaluationOutput(steps))), Instant.now(), buildIdA, phaseIdA)
+        val buildIdA = uuidGen()
+        val phaseIdA = uuidGen()
+        insertBuild(buildIdA)
+        insertEvent(buildIdA, phaseIdA, successfulPhase(phaseIdA))
 
-        val buildIdB = UUID.randomUUID()
-        val phaseIdB = UUID.randomUUID()
-        DATABASE.insertBuild(buildIdB, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseIdB, UserError("Noob")), Instant.now(), buildIdA, phaseIdB)
+        val buildIdB = uuidGen()
+        val phaseIdB = uuidGen()
+        insertBuild(buildIdB)
+        insertEvent(buildIdB, phaseIdB, successfulPhase(phaseIdB))
 
         val dag = DATABASE.getLatestValidDag(customerId)
         assertThat(dag!!.artifact.steps, equalTo(steps))
@@ -86,30 +146,28 @@ class DatabaseShould {
 
     @Test
     fun fail_to_get_latest_if_nonexistent() {
-        val buildId = UUID.randomUUID()
-        DATABASE.insertBuild(buildId, customerId, branch)
+        insertBuild(buildId)
+
         assertThat(DATABASE.getLatestValidDag(customerId), nullValue())
     }
 
     @Test
     fun get_valid_dag() {
-        val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseId, Success(EvaluationOutput(steps))), time, buildId, phaseId)
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, successfulPhase(phaseId))
+
         val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
+
         assertThat(dag!!.artifact.steps, equalTo(steps))
     }
 
     @Test
     fun fail_to_get_valid_dag_if_not_actually_valid() {
-        val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
-        val time = Instant.now()
-        DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), PhaseCompleted(phaseId, UserError("Noob")), time, buildId, phaseId)
+        insertBuild(buildId)
+        insertEvent(buildId, phaseId, PhaseCompleted(phaseId, UserError("Noob")))
+
         val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
+
         assertThat(dag, nullValue())
     }
 
@@ -118,25 +176,26 @@ class DatabaseShould {
         val otherCustomerId = customerId()
 
         (1..10).forEach { count ->
-            val idA = UUID.randomUUID()
-            DATABASE.insertBuild(idA, customerId, branch)
+            val idA = uuidGen()
+            insertBuild(idA)
+
             assertThat(DATABASE.getBuild(idA).buildNumber, equalTo(count.toLong()))
         }
 
         (1..5).forEach { count ->
-            val idB = UUID.randomUUID()
-            DATABASE.insertBuild(idB, otherCustomerId, branch)
+            val idB = uuidGen()
+            insertBuild(idB, otherCustomerId)
+
             assertThat(DATABASE.getBuild(idB).buildNumber, equalTo(count.toLong()))
         }
     }
 
     @Test
     fun disallow_duplicate_build_ids() {
-        val id = UUID.randomUUID()
-        DATABASE.insertBuild(id, customerId, branch)
+        insertBuild(buildId)
 
         assertThrows<UnableToExecuteStatementException> {
-            DATABASE.insertBuild(id, customerId, branch)
+            insertBuild(buildId)
         }
     }
 
@@ -148,7 +207,7 @@ class DatabaseShould {
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
         DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BuildSucceeded(), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
         DBI.open().createQuery("select * from event")
             .mapToMap().forEach { println(it) }
 
@@ -157,7 +216,24 @@ class DatabaseShould {
         assertThat(builds.size, equalTo(1))
     }
 
+    private fun insertBuild(buildId: UUID, customerId: CustomerId = this.customerId) {
+        DATABASE.insertBuild(buildId, customerId, branch)
+    }
+
+    private fun insertEvent(buildId: UUID, phaseId: UUID? = null, event: BuildEvent, time: Instant = Instant.now()) {
+        DATABASE.insertEvent(uuidGen(), event, time, buildId, phaseId)
+    }
+
+    private inner class UuidGen {
+        private var next = 100
+        operator fun invoke(): UUID = uuid(next++)
+    }
+
+    private fun uuid(x: Int) = UUID(0, x.toLong())
+
     private fun customerId() = CustomerId(Random().nextLong())
+
+    private fun successfulPhase(phaseIdA: UUID) = PhaseCompleted(phaseIdA, Success(EvaluationOutput(steps)))
 
     private val steps = listOf(
         Step(
