@@ -4,7 +4,6 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.sequencer.Sequencer
@@ -52,12 +51,15 @@ class Evaluator(
 
         if (customer != null) {
             sequencer.sequence(details, customer) {
-                phase("Evaluating DAG") {
-                    val token = github
+                val token: GitHubInstallationAccessToken = phase("Acquiring Git credentials") {
+                    success(github
                         .accessTokenAsync(details.installationId)
-                        .awaitWrapped("acquiring access token from GitHub")
+                        .awaitWrapped("acquiring access token from GitHub"))
+                }
+
+                phase("Evaluating DAG") {
                     val quartyResult = quartyBuilder(container.hostname)
-                        .getResultAsync(cloneUrl(details, token), details.commit)
+                        .getPipelineAsync(cloneUrl(details, token), details.commit)
                         .awaitWrapped("communicating with Quarty")
 
                     logMessages(quartyResult)
@@ -70,19 +72,19 @@ class Evaluator(
     private fun cloneUrl(details: TriggerDetails, token: GitHubInstallationAccessToken) =
         URIBuilder(details.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
 
-    private fun transformQuartyResult(result: QuartyResult?) = when (result) {
+    private fun PhaseBuilder<Unit>.transformQuartyResult(result: QuartyResult?) = when (result) {
         is QuartyResult.Success -> {
             if (dagIsValid(result.result)) {
-                Success(EvaluationOutput(result.result))
+                successWithArtifact(EvaluationOutput(result.result), Unit)
             } else {
-                UserError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+                userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
-        is QuartyResult.Failure -> UserError(result.detail)
-        null -> InternalError(EvaluatorException("Missing result or failure from Quarty"))
+        is QuartyResult.Failure -> userError(result.detail)
+        null -> internalError(EvaluatorException("Missing result or failure from Quarty"))
     }
 
-    private suspend fun PhaseBuilder.logMessages(result: QuartyResult?) {
+    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult?) {
         result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
     }
 

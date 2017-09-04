@@ -3,13 +3,12 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
-import io.quartic.eval.sequencer.Sequencer.SequenceBuilder
+import io.quartic.eval.sequencer.Sequencer.*
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
@@ -48,12 +47,13 @@ class EvaluatorShould {
     }
 
     @Test
-    fun use_the_correct_phase_description() {
+    fun use_the_correct_phase_descriptions() {
         evaluate()
 
-        runBlocking {
-            verify(sequenceBuilder).phase(eq("Evaluating DAG"), any())
-        }
+        assertThat(sequencer.descriptions, equalTo(listOf(
+            "Acquiring Git credentials",
+            "Evaluating DAG"
+        )))
     }
 
     // TODO - until we do true streaming, this may lead to non-monotonic events
@@ -62,7 +62,7 @@ class EvaluatorShould {
         val instantA = mock<Instant>()
         val instantB = mock<Instant>()
 
-        whenever(quarty.getResultAsync(any(), any())).thenReturn(completedFuture(
+        whenever(quarty.getPipelineAsync(any(), any())).thenReturn(completedFuture(
             Success(
                 listOf(
                     QuartyResult.LogEvent("foo", "Hello", instantA),
@@ -74,18 +74,18 @@ class EvaluatorShould {
 
         evaluate()
 
-        runBlocking {
-            verify(phaseBuilder, times(2)).log(any(), any(), any())        // Other messages should be filtered out
-            verify(phaseBuilder).log("foo", "Hello", instantA)
-            verify(phaseBuilder).log("bar", "World", instantB)
-        }
+        // Other messages should be filtered out
+        assertThat(sequencer.logs, equalTo(listOf(
+            LogInvocation("foo", "Hello", instantA),
+            LogInvocation("bar", "World", instantB)
+        )))
     }
 
     @Test
     fun produce_success_if_everything_works() {
         evaluate()
 
-        assertThat(result, equalTo(Success(EvaluationOutput(steps)) as Result))
+        assertThat(sequencer.results[1], equalTo(SuccessWithArtifact(EvaluationOutput(steps), Unit) as PhaseResult<*>))
     }
 
     @Test
@@ -94,16 +94,16 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(result, equalTo(UserError("DAG is invalid") as Result))
+        assertThat(sequencer.results[1], equalTo(UserError<Any>("DAG is invalid") as PhaseResult<*>))
     }
 
     @Test
     fun produce_user_error_if_user_code_failed() {
-        whenever(quarty.getResultAsync(any(), any())).thenReturn(completedFuture(Failure(emptyList(), "badness")))
+        whenever(quarty.getPipelineAsync(any(), any())).thenReturn(completedFuture(Failure(emptyList(), "badness")))
 
         evaluate()
 
-        assertThat(result, equalTo(UserError("badness") as Result))
+        assertThat(sequencer.results[1], equalTo(UserError<Any>("badness") as PhaseResult<*>))
     }
 
     @Test
@@ -112,7 +112,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        verifyZeroInteractions(sequencer)
+        assertThat(sequencer.numSequences, equalTo(0))
     }
 
     @Test
@@ -121,17 +121,17 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(throwable, equalTo(EvaluatorException("Error while acquiring access token from GitHub") as Throwable))
+        assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while acquiring access token from GitHub") as Throwable))
         verifyZeroInteractions(quartyBuilder)
     }
 
     @Test
     fun throw_error_if_quarty_interaction_fails() {
-        whenever(quarty.getResultAsync(any(), any())).thenReturn(exceptionalFuture())
+        whenever(quarty.getPipelineAsync(any(), any())).thenReturn(exceptionalFuture())
 
         evaluate()
 
-        assertThat(throwable, equalTo(EvaluatorException("Error while communicating with Quarty") as Throwable))
+        assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while communicating with Quarty") as Throwable))
     }
 
     private fun evaluate() = runBlocking {
@@ -166,7 +166,7 @@ class EvaluatorShould {
         on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
-        on { getResultAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
+        on { getPipelineAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
             Success(emptyList(), steps)
         )
     }
@@ -175,11 +175,7 @@ class EvaluatorShould {
     }
     private val dagIsValid = mock<(List<Step>) -> Boolean>()
 
-    private val sequencer = mock<Sequencer>()
-    private val sequenceBuilder = mock<SequenceBuilder>()
-    private val phaseBuilder = mock<PhaseBuilder> {
-        on { container } doReturn quartyContainer
-    }
+    private val sequencer = MySequencer()
 
     private val evaluator = Evaluator(
         sequencer,
@@ -189,31 +185,49 @@ class EvaluatorShould {
         quartyBuilder
     )
 
-    private lateinit var result: Result
-    private lateinit var throwable: Throwable
+    private data class LogInvocation(val stream: String, val message: String, val timestamp: Instant)
+
+    private inner class MySequencer : Sequencer {
+        var numSequences = 0
+        val results = mutableListOf<PhaseResult<*>>()
+        val throwables = mutableListOf<Throwable>()
+        val descriptions = mutableListOf<String>()
+        val logs = mutableListOf<LogInvocation>()
+
+        suspend override fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+            numSequences++
+            block(MySequenceBuilder())
+        }
+
+        private inner class MySequenceBuilder : SequenceBuilder {
+            suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
+                descriptions += description
+                val result = try {
+                    block(MyPhaseBuilder())
+                } catch (t: Throwable) {
+                    throwables += t
+                    throw t
+                }
+
+                results += result
+                return when (result) {
+                    is PhaseResult.Success -> result.output
+                    is PhaseResult.SuccessWithArtifact -> result.output
+                    is PhaseResult.UserError, is PhaseResult.InternalError -> throw RuntimeException("noob")
+                }
+            }
+        }
+
+        private inner class MyPhaseBuilder<R> : PhaseBuilder<R> {
+            override val container = quartyContainer
+
+            suspend override fun log(stream: String, message: String, timestamp: Instant) {
+                logs += LogInvocation(stream, message, timestamp)
+            }
+        }
+    }
 
     init {
         whenever(dagIsValid.invoke(steps)).doReturn(true)
-
-        // Mock the Sequencer DSL
-        runBlocking {
-            whenever(sequencer.sequence(eq(details), eq(customer), any())).then { invocation ->
-                runBlocking {
-                    (invocation.getArgument<suspend SequenceBuilder.() -> Unit>(2))(sequenceBuilder)
-                }
-                Unit
-            }
-
-            whenever(sequenceBuilder.phase(any(), any())).then { invocation ->
-                runBlocking {
-                    try {
-                        result = (invocation.getArgument<suspend PhaseBuilder.() -> Result>(1))(phaseBuilder)
-                    } catch (t: Throwable) {
-                        throwable = t
-                    }
-                }
-                Unit
-            }
-        }
     }
 }
