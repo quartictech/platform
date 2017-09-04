@@ -6,19 +6,15 @@ import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.Database.*
-import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.api.model.Build
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import org.jdbi.v3.core.mapper.ColumnMapper
-import org.jdbi.v3.core.mapper.RowMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
 import org.jdbi.v3.sqlobject.config.RegisterColumnMapper
 import org.jdbi.v3.sqlobject.config.RegisterColumnMappers
-import org.jdbi.v3.sqlobject.config.RegisterRowMapper
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
@@ -28,7 +24,7 @@ import java.util.*
 
 
 @RegisterColumnMappers(
-    RegisterColumnMapper(TriggerDetailsColumnMapper::class),
+    RegisterColumnMapper(TriggerReceivedColumnMapper::class),
     RegisterColumnMapper(BuildResultSuccessColumnMapper::class),
     RegisterColumnMapper(CustomerIdColumnMapper::class),
     RegisterColumnMapper(BuildEventColumnMapper::class))
@@ -53,12 +49,19 @@ interface Database {
         val payload: BuildEvent
     )
 
-    data class ValidDagRow(
-        @ColumnName("payload")
-        val artifact: EvaluationOutput  // TODO - eliminate the hardcoded type
+    data class BuildStatusRow(
+        val id: UUID,
+        @ColumnName("build_number")
+        val buildNumber: Long,
+        val branch: String,
+        @ColumnName("customer_id")
+        val customerId: CustomerId,
+        val status: String,
+        val time: Instant,
+        val trigger: BuildEvent.TriggerReceived
     )
 
-    class TriggerDetailsColumnMapper : ColumnMapper<BuildEvent.TriggerReceived> {
+    class TriggerReceivedColumnMapper : ColumnMapper<BuildEvent.TriggerReceived> {
         override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent.TriggerReceived =
             OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
@@ -124,19 +127,6 @@ interface Database {
         @Bind("time") time: Instant,
         @Bind("build_id") buildId: UUID,
         @Bind("phase_id") phaseId: UUID? = null
-    )
-
-
-    data class BuildStatusRow(
-        val id: UUID,
-        @ColumnName("build_number")
-        val buildNumber: Long,
-        val branch: String,
-        @ColumnName("customer_id")
-        val customerId: CustomerId,
-        val status: String,
-        val time: Instant,
-        val trigger: BuildEvent.TriggerReceived
     )
 
     @SqlQuery("""
