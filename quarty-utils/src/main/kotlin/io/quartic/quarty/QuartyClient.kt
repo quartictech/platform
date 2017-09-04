@@ -27,8 +27,8 @@ class QuartyClient(
     fun getPipelineAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> =
         invokeAsync { getPipelineAsync(repoUrl, repoCommit) }
 
-    fun executeAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult?> =
-        invokeAsync { executeAsync(repoUrl, repoCommit) }
+    fun executeAsync(repoUrl: URI, repoCommit: String, stepId: String): CompletableFuture<out QuartyResult?> =
+        invokeAsync { executeAsync(repoUrl, repoCommit, stepId) }
 
     fun invokeAsync(block: Quarty.() -> CompletableFuture<ResponseBody>): CompletableFuture<QuartyResult?> = block(quarty)
         .thenApply { responseBody ->

@@ -22,6 +22,7 @@ interface Quarty {
     @POST("execute")
     fun executeAsync(
         @Query("repo_url") repoUrl: URI,
-        @Query("repo_commit") repoCommit: String
+        @Query("repo_commit") repoCommit: String,
+        @Query("step_id") stepId: String
     ): CompletableFuture<ResponseBody>
 }

@@ -27,7 +27,7 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val dagIsValid: (List<Step>) -> Boolean,
+    private val extractDag: (List<Step>) -> Dag?,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
     constructor(
@@ -40,7 +40,13 @@ class Evaluator(
         sequencer,
         registry,
         github,
-        { steps -> Dag.fromSteps(steps).validate() },
+        { steps ->
+            try {
+                Dag.fromSteps(steps)
+            } catch (e: Exception) {
+                null
+            }
+        },
         { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
 
@@ -57,7 +63,7 @@ class Evaluator(
                         .awaitWrapped("acquiring access token from GitHub"))
                 }
 
-                phase("Evaluating DAG") {
+                val dag = phase("Evaluating DAG") {
                     val quartyResult = quartyBuilder(container.hostname)
                         .getPipelineAsync(cloneUrl(details, token), details.commit)
                         .awaitWrapped("communicating with Quarty")
@@ -65,6 +71,8 @@ class Evaluator(
                     logMessages(quartyResult)
                     transformQuartyResult(quartyResult)
                 }
+
+                dag.forEach {  }
             }
         }
     }
@@ -72,10 +80,11 @@ class Evaluator(
     private fun cloneUrl(details: TriggerDetails, token: GitHubInstallationAccessToken) =
         URIBuilder(details.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
 
-    private fun PhaseBuilder<Unit>.transformQuartyResult(result: QuartyResult?) = when (result) {
+    private fun PhaseBuilder<Dag>.transformQuartyResult(result: QuartyResult?) = when (result) {
         is QuartyResult.Success -> {
-            if (dagIsValid(result.result)) {
-                successWithArtifact(EvaluationOutput(result.result), Unit)
+            val dag = extractDag(result.result)
+            if (dag != null) {
+                successWithArtifact(EvaluationOutput(result.result), dag)
             } else {
                 userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }

@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.Dag
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
@@ -85,12 +86,12 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         evaluate()
 
-        assertThat(sequencer.results[1], equalTo(SuccessWithArtifact(EvaluationOutput(steps), Unit) as PhaseResult<*>))
+        assertThat(sequencer.results[1], equalTo(SuccessWithArtifact(EvaluationOutput(steps), dag) as PhaseResult<*>))
     }
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(dagIsValid.invoke(steps)).doReturn(false)
+        whenever(extractDag.invoke(steps)).doReturn(null as Dag?)
 
         evaluate()
 
@@ -152,6 +153,7 @@ class EvaluatorShould {
     private val customer = mock<Customer>()
 
     private val steps = mock<List<Step>>()
+    private val dag = mock<Dag>()
 
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
@@ -173,7 +175,7 @@ class EvaluatorShould {
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty
     }
-    private val dagIsValid = mock<(List<Step>) -> Boolean>()
+    private val extractDag = mock<(List<Step>) -> Dag?>()
 
     private val sequencer = MySequencer()
 
@@ -181,7 +183,7 @@ class EvaluatorShould {
         sequencer,
         registry,
         github,
-        dagIsValid,
+        extractDag,
         quartyBuilder
     )
 
@@ -228,6 +230,6 @@ class EvaluatorShould {
     }
 
     init {
-        whenever(dagIsValid.invoke(steps)).doReturn(true)
+        whenever(extractDag.invoke(steps)).doReturn(dag)
     }
 }
