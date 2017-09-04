@@ -169,6 +169,21 @@ class DatabaseShould {
     }
 
     @Test
+    fun get_builds_failed() {
+        val customerId = customerId()
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        DATABASE.insertBuild(buildId, customerId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BuildCompleted.BuildFailed("noob"), time, buildId, phaseId)
+
+        val builds = DATABASE.getBuilds(customerId)
+        assertThat(builds.size, equalTo(1))
+        assertThat(builds[0].status, equalTo("failure"))
+    }
+
+    @Test
     fun get_builds_running() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()

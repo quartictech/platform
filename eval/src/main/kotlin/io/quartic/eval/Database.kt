@@ -145,7 +145,10 @@ interface Database {
         FROM build
         LEFT JOIN event eterm ON (
             eterm.build_id = build.id AND
-            eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}'
+            (
+                eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}' OR
+                eterm.payload @> '{"type": "build_failed_${BuildEvent.VERSION}"}'
+            )
         )
         LEFT JOIN event etrigger ON etrigger.build_id = build.id
         WHERE
