@@ -61,6 +61,7 @@ class HomeView extends React.Component<IProps, {}> {
   render() {
     return (
       <div className={s.container}>
+        <h1>Activity</h1>
         <div className={s.feed}>
           {this.props.feedItems.map(item => this.renderItem(item))}
         </div>
