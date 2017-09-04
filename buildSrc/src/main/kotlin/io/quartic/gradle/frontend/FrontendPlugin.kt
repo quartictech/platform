@@ -84,7 +84,8 @@ class FrontendPlugin : Plugin<Project> {
             // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
             commandLine = listOf(
                 yarnExecutable,
-                "--mutex", "network"
+                "--mutex", "network",
+                "--non-interactive"
             ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
         }
 

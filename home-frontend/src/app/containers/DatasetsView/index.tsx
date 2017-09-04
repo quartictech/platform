@@ -18,6 +18,7 @@ interface IProps {
   createDataset: (any) => any;
   fetchDatasets: any;
   closeNewDatasetModal: any;
+  showNewDatasetModal: any;
   deleteDataset: (string) => void;
 }
 
@@ -52,17 +53,27 @@ class DatasetsView extends React.Component<IProps, IState> {
           createDataset={this.props.createDataset}
           closeNewDatasetClick={this.props.closeNewDatasetModal}
         />
-        <div className={s.main}>
-          <DatasetList
-            searchString={this.props.ui.searchString}
-            datasets={this.props.datasets}
-            onSelect={this.selectDataset}
-            selected={this.state.datasetCoords}
-            selectedNamespace={this.props.ui.namespace}
-          />
+        <div className={s.toolbar}>
+          <button
+              onClick={this.props.showNewDatasetModal}
+              className="pt-button pt-icon-cloud-upload"
+          >
+            Upload Data
+          </button>
         </div>
+        <div className={s.main}>
+          <div className={s.left}>
+            <DatasetList
+              searchString={this.props.ui.searchString}
+              datasets={this.props.datasets}
+              onSelect={this.selectDataset}
+              selected={this.state.datasetCoords}
+              selectedNamespace={this.props.ui.namespace}
+            />
+          </div>
 
         {this.maybeDatasetInfo()}
+        </div>
       </div>
     );
   }
@@ -91,6 +102,7 @@ class DatasetsView extends React.Component<IProps, IState> {
 export { DatasetsView };
 
 const mapDispatchToProps = {
+  showNewDatasetModal: () => actions.setActiveModal("newDataset"),
   fetchDatasets: actions.fetchDatasets,
   createDataset: actions.createDataset,
   deleteDataset: actions.deleteDataset,

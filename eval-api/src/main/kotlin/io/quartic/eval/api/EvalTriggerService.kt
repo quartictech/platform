@@ -16,5 +16,5 @@ interface EvalTriggerService {
     @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    fun trigger(trigger: TriggerDetails)
+    fun trigger(triggerDetails: TriggerDetails)
 }

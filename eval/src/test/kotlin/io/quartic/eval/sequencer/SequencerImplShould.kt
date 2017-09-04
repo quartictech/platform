@@ -13,6 +13,7 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
 import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
+import io.quartic.eval.model.toTriggerReceived
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -26,6 +27,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.net.URI
 import java.time.Instant
 import java.util.*
 
@@ -37,7 +39,7 @@ class SequencerImplShould {
 
         val buildId = uuid(100)
         verify(database).insertBuild(buildId, CustomerId(999), "lovely")
-        verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details)), any(), eq(buildId), eq(null))
+        verify(database).insertEvent(eq(uuid(101)), eq(details.toTriggerReceived()), any(), eq(buildId), eq(null))
         verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired("a.b.c")), any(), eq(buildId), eq(null))
         verify(database).insertEvent(eq(uuid(103)), eq(BuildEvent.BUILD_SUCCEEDED), any(), eq(buildId), eq(null))
     }
@@ -234,9 +236,19 @@ class SequencerImplShould {
         verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Bad things occurred"))
     }
 
-    private val details = mock<TriggerDetails> {
-        on { branch() } doReturn "lovely"
-    }
+    private val details = TriggerDetails(
+        type = "github",
+        deliveryId = "deadbeef",
+        installationId = 1234,
+        repoId = 5678,
+        repoName = "noob",
+        repoFullName = "noobing/noob",
+        repoOwner = "noobing",
+        cloneUrl = URI("https://noob.com/foo/bar"),
+        ref = "refs/heads/lovely",
+        commit = "abc123",
+        timestamp = Instant.MIN
+    )
 
     private val customer = mock<Customer> {
         on { id } doReturn CustomerId(999)

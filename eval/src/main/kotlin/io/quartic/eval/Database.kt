@@ -6,7 +6,6 @@ import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.Database.*
-import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
@@ -25,7 +24,7 @@ import java.util.*
 
 
 @RegisterColumnMappers(
-    RegisterColumnMapper(TriggerDetailsColumnMapper::class),
+    RegisterColumnMapper(TriggerReceivedColumnMapper::class),
     RegisterColumnMapper(BuildResultSuccessColumnMapper::class),
     RegisterColumnMapper(CustomerIdColumnMapper::class),
     RegisterColumnMapper(BuildEventColumnMapper::class))
@@ -50,8 +49,20 @@ interface Database {
         val payload: BuildEvent
     )
 
-    class TriggerDetailsColumnMapper : ColumnMapper<TriggerDetails> {
-        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerDetails =
+    data class BuildStatusRow(
+        val id: UUID,
+        @ColumnName("build_number")
+        val buildNumber: Long,
+        val branch: String,
+        @ColumnName("customer_id")
+        val customerId: CustomerId,
+        val status: String,
+        val time: Instant,
+        val trigger: BuildEvent.TriggerReceived
+    )
+
+    class TriggerReceivedColumnMapper : ColumnMapper<BuildEvent.TriggerReceived> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent.TriggerReceived =
             OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
 
@@ -117,4 +128,25 @@ interface Database {
         @Bind("build_id") buildId: UUID,
         @Bind("phase_id") phaseId: UUID? = null
     )
+
+    @SqlQuery("""
+        SELECT
+            build.*,
+            (CASE eterm.payload->>'type'
+                WHEN 'build_succeeded_${BuildEvent.VERSION}' THEN 'success'
+                WHEN 'build_failed_${BuildEvent.VERSION}' THEN 'failure'
+                WHEN null THEN 'running'
+            END) AS status,
+            etrigger.time AS time,
+            etrigger.payload as trigger
+        FROM build
+        LEFT JOIN event eterm ON eterm.build_id = build.id
+        LEFT JOIN event etrigger ON etrigger.build_id = build.id
+            WHERE
+            eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}' AND
+            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}'
+        ORDER BY etrigger.time DESC
+        LIMIT 20
+        """)
+    fun getBuilds(customerId: CustomerId): List<BuildStatusRow>
 }

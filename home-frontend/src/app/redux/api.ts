@@ -60,6 +60,10 @@ export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
+export function fetchFeed() {
+  return fetchUtil(`${apiRootUrl}/builds`);
+}
+
 export function fetchDag(build: string) {
   if (build != null) {
     return fetchUtil(`${apiRootUrl}/dag/${build}`);
