@@ -1,7 +1,7 @@
 import { LOCATION_CHANGE } from "react-router-redux";
 import { datasetsReducer } from "./datasets";
 import { pipelineReducer } from "./pipeline";
-import { buildsReducer } from "./builds";
+import { feedReducer } from "./feed";
 import { userReducer } from "./user";
 import { uiReducer } from "./ui";
 import { combineReducers } from "redux-immutable";
@@ -33,7 +33,7 @@ const rootReducer: Redux.Reducer<any> = combineReducers({
   user: userReducer,
   datasets: datasetsReducer,
   pipeline: pipelineReducer,
-  builds: buildsReducer,
+  feed: feedReducer,
   ui: uiReducer,
 });
 

@@ -8,12 +8,12 @@ import * as constants from "../constants";
 import { checkedApiCall, watch } from "./utils";
 
 function* fetchBuilds(_action): SagaIterator {
-  const res = yield* checkedApiCall(api.fetchBuilds);
+  const res = yield* checkedApiCall(api.fetchFeed);
   if (!res.err) {
-    yield put(actions.fetchBuildsSuccess(res.data));
+    yield put(actions.fetchFeedSuccess(res.data));
   }
 }
 
-export function* manageBuilds(): SagaIterator {
-  yield fork(watch(constants.FETCH_BUILDS, fetchBuilds));
+export function* manageFeed(): SagaIterator {
+  yield fork(watch(constants.FETCH_FEED, fetchBuilds));
 }

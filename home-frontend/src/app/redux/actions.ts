@@ -99,15 +99,15 @@ export function fetchPipelineNotFound() {
   };
 }
 
-export function fetchBuilds() {
+export function fetchFeed() {
   return {
-    type: constants.FETCH_BUILDS,
+    type: constants.FETCH_FEED,
   };
 }
 
-export function fetchBuildsSuccess(data) {
+export function fetchFeedSuccess(data) {
   return {
-    type: constants.FETCH_BUILDS_SUCCESS,
+    type: constants.FETCH_FEED_SUCCESS,
     data,
   };
 }

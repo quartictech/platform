@@ -60,7 +60,7 @@ export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
-export function fetchBuilds() {
+export function fetchFeed() {
   return fetchUtil(`${apiRootUrl}/builds`);
 }
 

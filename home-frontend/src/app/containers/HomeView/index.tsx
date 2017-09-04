@@ -14,22 +14,17 @@ const s = require("./style.css");
 import { FeedItem, Build } from "../../models";
 
 interface IProps {
-  fetchBuilds: Function;
-  builds: FeedItem[];
+  fetchFeed: Function;
+  feedItems: FeedItem[];
 }
 
 export function isBuild(item: FeedItem): item is Build {
   return item.type === "build";
 }
 
-// const feedItems = [
-//   {type: FeedItemType.BUILD, id: "0", buildNumber: 100, status: "running" },
-//   {type: FeedItemType.BUILD, id: "1", buildNumber: 101, status: "success" },
-// ];
-
 class HomeView extends React.Component<IProps, {}> {
   componentDidMount() {
-    this.props.fetchBuilds();
+    this.props.fetchFeed();
   }
 
   intentForStatus = (status) => {
@@ -67,7 +62,7 @@ class HomeView extends React.Component<IProps, {}> {
     return (
       <div className={s.container}>
         <div className={s.feed}>
-          {this.props.builds.map(item => this.renderItem(item))}
+          {this.props.feedItems.map(item => this.renderItem(item))}
         </div>
       </div>
     );
@@ -77,12 +72,12 @@ class HomeView extends React.Component<IProps, {}> {
 export { HomeView };
 
 const mapDispatchToProps = {
-  fetchBuilds: actions.fetchBuilds,
+  fetchFeed: actions.fetchFeed,
 };
 
 const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi,
-  builds: selectors.selectBuilds,
+  feedItems: selectors.selectFeed,
 });
 
 export default connect(
