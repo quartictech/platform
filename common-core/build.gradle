@@ -40,7 +40,7 @@ dependencies {
     testCompile libraries.wiremock
     testCompile libraries.tyrus.server
     testCompile libraries.tyrus.containerServer
-    testCompile "io.dropwizard:dropwizard-core:${versions.dropwizard}"  // For correct JAX-RS headers
+    testCompile libraries.dropwizard.core  // For correct JAX-RS headers
 }
 
 mainClassName = "io.quartic.common.secrets.SecretsCli"

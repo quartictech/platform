@@ -25,10 +25,10 @@ dependencies {
     }
 
     compile "org.apache.commons:commons-csv:1.3"
-    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
+    compile libraries.dropwizard.assets
 
     testCompile project(":common-test")
-    testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile libraries.dropwizard.testing
     testCompile libraries.wiremock
 }
 
