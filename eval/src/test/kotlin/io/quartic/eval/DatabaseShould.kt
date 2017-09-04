@@ -152,7 +152,7 @@ class DatabaseShould {
     }
 
     @Test
-    fun get_builds() {
+    fun get_builds_succeeded() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
         val phaseId = UUID.randomUUID()
@@ -162,6 +162,37 @@ class DatabaseShould {
         DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
 
         val builds = DATABASE.getBuilds(customerId)
+        assertThat(builds.size, equalTo(1))
+        assertThat(builds[0].status, equalTo("success"))
+    }
+
+    @Test
+    fun get_builds_running() {
+        val customerId = customerId()
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        DATABASE.insertBuild(buildId, customerId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildId, phaseId)
+        val builds = DATABASE.getBuilds(customerId)
+
+        assertThat(builds.size, equalTo(1))
+    }
+
+    @Test
+    fun get_builds_only_for_customer() {
+        val customerAId = customerId()
+        val customerBId = customerId()
+        val buildAId = UUID.randomUUID()
+        val buildBId = UUID.randomUUID()
+        val time = Instant.now()
+        DATABASE.insertBuild(buildAId, customerAId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildAId, UUID.randomUUID())
+
+        DATABASE.insertBuild(buildBId, customerBId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildBId, UUID.randomUUID())
+
+        val builds = DATABASE.getBuilds(customerAId)
         assertThat(builds.size, equalTo(1))
     }
 

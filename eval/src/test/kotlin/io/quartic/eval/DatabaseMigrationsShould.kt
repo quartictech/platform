@@ -1,14 +1,11 @@
 package io.quartic.eval
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
-import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
