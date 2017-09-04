@@ -8,20 +8,20 @@ Quartic can read and write data from a variety of sources, including S3 storage 
 To maximise security, the Quartic platform accesses your S3 bucket without any long-term credentials being shared.  This is achieved as follows:
  - You create a dedicated S3 bucket under your AWS account.
  - You create a dedicated role under your AWS account.
- - You allow Quartic’s AWS account to assume that role for operations associated with that particular bucket (“delegate access” in AWS terminology).
+ - You allow Quartic’s AWS account to assume that role for operations associated with that particular bucket ("delegate access" in AWS terminology).
 
-Before you begin the process below, Quartic will supply you with a unique “external ID” (needed for Step #2 below).  Once you’re done, you’ll need to provide Quartic with the following:
+Before you begin the process below, Quartic will supply you with a unique "external ID" (needed for Step #2 below).  Once you're done, you'll need to provide Quartic with the following:
  - The __name__ and __region__ of your chosen S3 bucket (in Step #1 below).
  - The __ARN__ of the IAM role you create (in Step #2 below).
 
 The Quartic engineering team will then test and confirm configuration.
 
 # Configuration process
-In these steps, we’ll assume you’re using the __AWS Management Console__, but all of this may be done programmatically through the __AWS CLI__.
+In these steps, we'll assume you're using the __AWS Management Console__, but all of this may be done programmatically through the __AWS CLI__.
 ## 1. Create a dedicated S3 bucket in your AWS account
 1. Go to __S3 → Create bucket__.
 2. Fill in the required details.
-   1. The bucket name can be anything that fits your organisation’s naming scheme (but we recommend something like `quartic-data.your-domain.com`).
+   1. The bucket name can be anything that fits your organisation's naming scheme (but we recommend something like `quartic-data.your-domain.com`).
    2. The chosen region should take __Personally Identifiable Information (PII)__ regulations into account.
    3. Feel free to enable or disable versioning, logging, and tags.
 
@@ -30,13 +30,13 @@ In these steps, we’ll assume you’re using the __AWS Management Console__, bu
 1. Go to __IAM → Roles → Create new role → Role for cross-account access → Provide access between your AWS account and a 3rd party AWS account__.
 2. Fill in the following details:
    ```
-   Account ID = 555071496850 (Quartic’s AWS account ID)
+   Account ID = 555071496850 (Quartic's AWS account ID)
    External ID = <External ID provided separately>
    Require MFA = Unticked
    ```
-3. Don’t attach any policies.
+3. Don't attach any policies.
 4. Set the role name (can be anything, but we recommend something like `quartic-access`).
-5. Once created, the summary page for the role will show a unique __“Role ARN”__ (of the form `arn:aws:iam::123456789012:role/xxxx`).
+5. Once created, the summary page for the role will show a unique __Role ARN__ (of the form `arn:aws:iam::123456789012:role/xxxx`).
 
 ## 3. Create a policy allowing the IAM role full access to the bucket:
 1. Go to __IAM → Roles → role_name → Permissions → Inline Policies → Create Role Policy → Policy Generator__ (where `role_name` is the name you chose in Step #2).
