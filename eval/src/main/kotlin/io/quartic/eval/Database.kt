@@ -5,8 +5,10 @@ import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.Database.*
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import org.jdbi.v3.core.mapper.ColumnMapper
@@ -23,10 +25,12 @@ import java.util.*
 
 
 @RegisterColumnMappers(
-    RegisterColumnMapper(Database.TriggerDetailsColumnMapper::class),
-    RegisterColumnMapper(Database.BuildResultSuccessColumnMapper::class),
-    RegisterColumnMapper(CustomerIdColumnMapper::class))
+    RegisterColumnMapper(TriggerDetailsColumnMapper::class),
+    RegisterColumnMapper(BuildResultSuccessColumnMapper::class),
+    RegisterColumnMapper(CustomerIdColumnMapper::class),
+    RegisterColumnMapper(BuildEventColumnMapper::class))
 interface Database {
+
     data class BuildRow(
         val id: UUID,
         @ColumnName("customer_id")
@@ -34,6 +38,16 @@ interface Database {
         val branch: String,
         @ColumnName("build_number")
         val buildNumber: Long
+    )
+
+    data class EventRow(
+        val id: UUID,
+        @ColumnName("build_id")
+        val buildId: UUID,
+        @ColumnName("phase_id")
+        val phaseId: UUID?,
+        val time: Instant,
+        val payload: BuildEvent
     )
 
     data class ValidDagRow(
@@ -54,9 +68,41 @@ interface Database {
         }
     }
 
+    class BuildEventColumnMapper : ColumnMapper<BuildEvent> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent =
+            OBJECT_MAPPER.readValue(r.getString(columnNumber))
+    }
+
 
     @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
+
+
+
+
+    @SqlQuery("""
+        SELECT * FROM event
+            LEFT JOIN build ON build.id = event.build_id
+            WHERE
+                build.customer_id = :customer_id AND
+                build.build_number = :build_number
+            ORDER BY event.time ASC
+        """)
+    fun getEventsForBuild(
+        @Bind("customer_id") customerId: CustomerId,
+        @Bind("build_number") buildNumber: Long
+    ): List<EventRow>
+
+    @SqlQuery("""
+        SELECT build_number FROM build
+            LEFT JOIN event on build.id = event.build_id
+            WHERE event.payload @> '{"type": "build_succeeded_${VERSION}"}'
+            ORDER BY event.time DESC
+            LIMIT 1
+        """)
+    fun getLatestSuccessfulBuildNumber(
+        @Bind("customer_id") customerId: CustomerId
+    ): Long
 
     // TODO - getLatestValidDag and getLatestDag don't take PhaseCompleted != BuildSucceeded into account, nor multi-phase builds
 
@@ -65,7 +111,7 @@ interface Database {
             LEFT JOIN build ON build.id = event.build_id
             WHERE
                 build.customer_id = :customer_id AND
-                event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}' AND
+                event.payload @> '{"type": "phase_completed_${VERSION}"}' AND
                 event.payload @> '{"result": {"type": "success"}}'
             ORDER BY event.time DESC
             LIMIT 1
@@ -78,7 +124,7 @@ interface Database {
             WHERE
                 build.customer_id = :customer_id AND
                 build.build_number = :build_number AND
-                event.payload @> '{"type": "phase_completed_${BuildEvent.VERSION}"}' AND
+                event.payload @> '{"type": "phase_completed_${VERSION}"}' AND
                 event.payload @> '{"result": {"type": "success"}}'
         """)
     fun getValidDag(

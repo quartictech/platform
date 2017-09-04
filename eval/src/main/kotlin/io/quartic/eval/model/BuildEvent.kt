@@ -48,7 +48,7 @@ sealed class BuildEvent {
             Type(UserError::class, name = "user_error")
         )
         sealed class Result {
-            data class Success(val artifact: Artifact) : Result() {
+            data class Success(val artifact: Artifact? = null) : Result() {
 
                 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
                 @JsonSubTypes(
