@@ -63,23 +63,7 @@ class DatabaseMigrationsShould {
 
     @Test
     fun v5_migrate() {
-        DBI.open().createUpdate("""
-            INSERT INTO event(id, build_id, time, payload)
-                VALUES(:id, :build_id, :time, :payload)
-        """)
-            .bind("id", UUID.randomUUID())
-            .bind("build_id", UUID.randomUUID())
-            .bind("time", Instant.now())
-            .bindJson("payload", mapOf("type" to "build_failed_v1"))
-            .execute()
-
         databaseVersion("5")
-
-        val results = DBI.open().createQuery("SELECT payload FROM event")
-            .mapTo(String::class.java)
-            .map { OBJECT_MAPPER.readValue<BuildFailed>(it) }
-
-        assertThat(results[0], equalTo(BuildFailed("Unknown error")))
     }
 
     private fun checkTableExists(name: String, schema: String): Boolean =
