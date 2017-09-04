@@ -132,21 +132,27 @@ interface Database {
     @SqlQuery("""
         SELECT
             build.*,
-            (CASE eterm.payload->>'type'
-                WHEN 'build_succeeded_${BuildEvent.VERSION}' THEN 'success'
-                WHEN 'build_failed_${BuildEvent.VERSION}' THEN 'failure'
-                WHEN null THEN 'running'
-            END) AS status,
+            COALESCE(
+                (
+                    CASE eterm.payload->>'type'
+                        WHEN 'build_succeeded_${BuildEvent.VERSION}' THEN 'success'
+                        WHEN 'build_failed_${BuildEvent.VERSION}' THEN 'failure'
+                    END
+                ),
+                'running') AS status,
             etrigger.time AS time,
             etrigger.payload as trigger
         FROM build
-        LEFT JOIN event eterm ON eterm.build_id = build.id
+        LEFT JOIN event eterm ON (
+            eterm.build_id = build.id AND
+            eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}'
+        )
         LEFT JOIN event etrigger ON etrigger.build_id = build.id
-            WHERE
-            eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}' AND
-            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}'
+        WHERE
+            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}' AND
+            build.customer_id = :customer_id
         ORDER BY etrigger.time DESC
         LIMIT 20
         """)
-    fun getBuilds(customerId: CustomerId): List<BuildStatusRow>
+    fun getBuilds(@Bind("customer_id") customerId: CustomerId): List<BuildStatusRow>
 }
