@@ -12,16 +12,20 @@ import java.util.concurrent.CompletableFuture
 @Retrofittable
 interface Quarty {
     @Streaming
-    @GET("pipeline")
-    fun getPipelineAsync(
+    @GET("init")
+    fun initAsync(
         @Query("repo_url") repoUrl: URI,
         @Query("repo_commit") repoCommit: String
     ): CompletableFuture<ResponseBody>
 
     @Streaming
+    @GET("evaluate")
+    fun evaluateAsync(): CompletableFuture<ResponseBody>
+
+    @Streaming
     @POST("execute")
     fun executeAsync(
-        @Query("repo_url") repoUrl: URI,
-        @Query("repo_commit") repoCommit: String
+        @Query("step") step: String,
+        @Query("namespace") namespace: String
     ): CompletableFuture<ResponseBody>
 }

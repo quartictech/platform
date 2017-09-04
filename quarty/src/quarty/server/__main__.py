@@ -76,7 +76,7 @@ async def init(request, resp):
     await install_requirements(build_path)
 
 @wrapped
-async def pipeline(request, resp):
+async def evaluate(request, resp):
     check_initialised()
     result = await evaluate_pipeline(config['pipeline_directory'],
                                      build_path,
@@ -103,6 +103,6 @@ async def execute(request, resp):
 
 app = web.Application()
 app.router.add_get('/init', init)
-app.router.add_get('/pipeline', pipeline)
+app.router.add_get('/evaluate', evaluate)
 app.router.add_get('/execute', execute)
 web.run_app(app, port=8080)

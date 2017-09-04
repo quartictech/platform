@@ -62,7 +62,7 @@ class EvaluatorShould {
         val instantA = mock<Instant>()
         val instantB = mock<Instant>()
 
-        whenever(quarty.getPipelineAsync(any(), any())).thenReturn(completedFuture(
+        whenever(quarty.evaluateAsync(any(), any())).thenReturn(completedFuture(
             Success(
                 listOf(
                     QuartyResult.LogEvent("foo", "Hello", instantA),
@@ -99,7 +99,7 @@ class EvaluatorShould {
 
     @Test
     fun produce_user_error_if_user_code_failed() {
-        whenever(quarty.getPipelineAsync(any(), any())).thenReturn(completedFuture(Failure(emptyList(), "badness")))
+        whenever(quarty.evaluateAsync(any(), any())).thenReturn(completedFuture(Failure(emptyList(), "badness")))
 
         evaluate()
 
@@ -127,7 +127,7 @@ class EvaluatorShould {
 
     @Test
     fun throw_error_if_quarty_interaction_fails() {
-        whenever(quarty.getPipelineAsync(any(), any())).thenReturn(exceptionalFuture())
+        whenever(quarty.evaluateAsync(any(), any())).thenReturn(exceptionalFuture())
 
         evaluate()
 
@@ -166,7 +166,7 @@ class EvaluatorShould {
         on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
     }
     private val quarty = mock<QuartyClient> {
-        on { getPipelineAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
+        on { evaluateAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
             Success(emptyList(), steps)
         )
     }
