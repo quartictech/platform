@@ -94,10 +94,16 @@ class QuartyClientShould {
         assertThat(invokeQuarty(), nullValue())
     }
 
-    private fun invokeQuarty() = client.invokeAsync { getPipelineAsync(repoUrl, repoCommit) }.get()
+    private fun invokeQuarty() = client.invokeAsync { initAsync(repoUrl, repoCommit).thenComposeAsync { evaluateAsync() } }.get()
 
     private fun quartyWillSend(messages: List<QuartyMessage>) {
-        whenever(quarty.getPipelineAsync(repoUrl, repoCommit)).thenReturn(completedFuture(
+        whenever(quarty.initAsync(repoUrl, repoCommit)).thenReturn(completedFuture(
+            ResponseBody.create(
+                MediaType.parse("application/x-ndjson"),
+                listOf<QuartyMessage>().toNdJson()
+            )
+        ))
+        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
             ResponseBody.create(
                 MediaType.parse("application/x-ndjson"),
                 messages.toNdJson()
