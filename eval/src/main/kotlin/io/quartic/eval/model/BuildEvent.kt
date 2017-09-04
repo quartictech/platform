@@ -69,6 +69,7 @@ sealed class BuildEvent {
                     Type(EvaluationOutput::class, name = "evaluation_output")
                 )
                 sealed class Artifact {
+                    // TODO - have our own Step to decouple DB schema
                     data class EvaluationOutput(val steps: List<Step>) : Artifact()
                 }
             }

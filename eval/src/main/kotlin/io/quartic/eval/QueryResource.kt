@@ -1,12 +1,15 @@
 package io.quartic.eval
 
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.Database.ValidDagRow
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
+import io.quartic.eval.model.BuildEvent.PhaseCompleted
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.model.toTriggerDetails
 import io.quartic.quarty.model.Dataset
+import io.quartic.quarty.model.Step
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -23,17 +26,28 @@ class QueryResource(private val database: Database) : EvalQueryService {
             )
         }
 
-    override fun getDag(customerId: CustomerId, buildNumber: Long) = convertToCytoscape(
-        database.getValidDag(customerId, buildNumber) ?:
-            throw NotFoundException("No DAG registered for ${customerId} with build number ${buildNumber}")
-    )
+    override fun getDag(customerId: CustomerId): CytoscapeDag {
+        val buildNumber = database.getLatestSuccessfulBuildNumber(customerId) ?:
+            throw NotFoundException("No successful builds for ${customerId}")
 
-    override fun getDag(customerId: CustomerId) = convertToCytoscape(
-        database.getLatestValidDag(customerId) ?: throw NotFoundException("No DAG registered for ${customerId}")
-    )
+        return getDag(customerId, buildNumber)
+    }
+
+    override fun getDag(customerId: CustomerId, buildNumber: Long): CytoscapeDag {
+        // TODO - this linear scan is going to be expensive
+        val output = database.getEventsForBuild(customerId, buildNumber)
+            .mapNotNull { row ->
+                ((row.payload as? PhaseCompleted)
+                    ?.result as? Success)
+                    ?.artifact as? EvaluationOutput
+            }
+            .firstOrNull() ?: throw NotFoundException("No DAG found for ${customerId} with build number ${buildNumber}")
+
+        return convertToCytoscape(output.steps)
+    }
 
     // TODO - We're assuming that the DAG was validated before being added to the database
-    private fun convertToCytoscape(success: ValidDagRow) = with(Dag.fromSteps(success.artifact.steps)) {
+    private fun convertToCytoscape(steps: List<Step>) = with(Dag.fromSteps(steps)) {
         CytoscapeDag(nodesFrom(this), edgesFrom(this))
     }
 
