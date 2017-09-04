@@ -13,12 +13,12 @@ import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-import { FeedItem, Build } from "../../models";
+import { FeedItem, Build, LoadingState } from "../../models";
 
 interface IProps {
   fetchFeed: Function;
   feed: {
-    state: string;
+    state: LoadingState;
     items: FeedItem[];
   };
 }
@@ -88,13 +88,13 @@ class HomeView extends React.Component<IProps, {}> {
 
   renderContainer() {
     switch (this.props.feed.state) {
-      case "loading":
+      case LoadingState.LOADING:
         return (
           <div className={s.noItems}>
             <Spinner className={Classes.LARGE} />
           </div>
         );
-      case "loaded":
+      case LoadingState.LOADED:
         if (this.props.feed.items.length > 0) {
           return this.renderFeed();
         } else {

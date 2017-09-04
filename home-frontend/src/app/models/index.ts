@@ -82,4 +82,10 @@ export interface Other {
   time: number;
 }
 
+export enum LoadingState {
+  NOT_LOADED,
+  LOADING,
+  LOADED,
+}
+
 export type FeedItem = Build | Other;
