@@ -50,11 +50,6 @@ interface Database {
         val payload: BuildEvent
     )
 
-    data class ValidDagRow(
-        @ColumnName("payload")
-        val artifact: EvaluationOutput  // TODO - eliminate the hardcoded type
-    )
-
     class TriggerDetailsColumnMapper : ColumnMapper<TriggerDetails> {
         override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerDetails =
             OBJECT_MAPPER.readValue(r.getString(columnNumber))
@@ -76,9 +71,6 @@ interface Database {
 
     @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
     fun getBuild(@Bind("id") id: UUID): BuildRow
-
-
-
 
     @SqlQuery("""
         SELECT * FROM event
@@ -102,35 +94,7 @@ interface Database {
         """)
     fun getLatestSuccessfulBuildNumber(
         @Bind("customer_id") customerId: CustomerId
-    ): Long
-
-    // TODO - getLatestValidDag and getLatestDag don't take PhaseCompleted != BuildSucceeded into account, nor multi-phase builds
-
-    @SqlQuery("""
-        SELECT payload FROM event
-            LEFT JOIN build ON build.id = event.build_id
-            WHERE
-                build.customer_id = :customer_id AND
-                event.payload @> '{"type": "phase_completed_${VERSION}"}' AND
-                event.payload @> '{"result": {"type": "success"}}'
-            ORDER BY event.time DESC
-            LIMIT 1
-        """)
-    fun getLatestValidDag(@Bind("customer_id") customerId: CustomerId): ValidDagRow?
-
-    @SqlQuery("""
-        SELECT payload FROM event
-            LEFT JOIN build ON build.id = event.build_id
-            WHERE
-                build.customer_id = :customer_id AND
-                build.build_number = :build_number AND
-                event.payload @> '{"type": "phase_completed_${VERSION}"}' AND
-                event.payload @> '{"result": {"type": "success"}}'
-        """)
-    fun getValidDag(
-        @Bind("customer_id") customerId: CustomerId,
-        @Bind("build_number") buildNumber: Long
-    ): ValidDagRow?
+    ): Long?
 
 
     @SqlUpdate("""

@@ -10,7 +10,6 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.UserError
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import org.hamcrest.CoreMatchers.equalTo
@@ -104,56 +103,8 @@ class DatabaseShould {
     }
 
     @Test
-    fun get_latest_valid_dag() {
-        insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(phaseId))
-
-        val dag = DATABASE.getLatestValidDag(customerId)
-
-        assertThat(dag!!.artifact.steps, equalTo(steps))
-    }
-
-    @Test
-    fun ignore_failures_when_getting_latest_dag() {
-        val buildIdA = uuidGen()
-        val phaseIdA = uuidGen()
-        insertBuild(buildIdA)
-        insertEvent(buildIdA, phaseIdA, successfulPhase(phaseIdA))
-
-        val buildIdB = uuidGen()
-        val phaseIdB = uuidGen()
-        insertBuild(buildIdB)
-        insertEvent(buildIdB, phaseIdB, successfulPhase(phaseIdB))
-
-        val dag = DATABASE.getLatestValidDag(customerId)
-        assertThat(dag!!.artifact.steps, equalTo(steps))
-    }
-
-    @Test
-    fun fail_to_get_latest_if_nonexistent() {
-        insertBuild(buildId)
-
-        assertThat(DATABASE.getLatestValidDag(customerId), nullValue())
-    }
-
-    @Test
-    fun get_valid_dag() {
-        insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(phaseId))
-
-        val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
-
-        assertThat(dag!!.artifact.steps, equalTo(steps))
-    }
-
-    @Test
-    fun fail_to_get_valid_dag_if_not_actually_valid() {
-        insertBuild(buildId)
-        insertEvent(buildId, phaseId, PhaseCompleted(phaseId, UserError("Noob")))
-
-        val dag = DATABASE.getValidDag(customerId, DATABASE.getBuild(buildId).buildNumber)
-
-        assertThat(dag, nullValue())
+    fun return_null_if_no_successful_builds_for_customer() {
+        assertThat(DATABASE.getLatestSuccessfulBuildNumber(customerId), nullValue())
     }
 
     @Test
