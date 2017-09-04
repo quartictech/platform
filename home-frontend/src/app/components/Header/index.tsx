@@ -17,7 +17,6 @@ const style = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
-  newDatasetClick: any;
   searchBoxChange: any;
   selectedNamespace: string;
   namespaceSelectChange: any;
@@ -78,12 +77,7 @@ class Header extends React.Component<IProps, void> {
             Pipeline
           </Link>
 
-          <button
-            onClick={this.props.newDatasetClick}
-            className="pt-button pt-minimal pt-icon-cloud-upload"
-          >
-            Upload Data
-          </button>
+
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>

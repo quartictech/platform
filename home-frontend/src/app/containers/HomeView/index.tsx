@@ -39,7 +39,7 @@ class HomeView extends React.Component<IProps, {}> {
     if (isBuild(item)) {
       return (
         <div className={s.feedItem} key={item.id}>
-          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-build")} />
+          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-git-commit")} />
           <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
             {item.status}
           </div>
