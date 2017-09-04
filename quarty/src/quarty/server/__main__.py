@@ -1,13 +1,18 @@
 import tempfile
-import os
-import asyncio
 import logging
 import json
 from aiohttp import web
-from quarty.common import initialise_repo, install_requirements, evaluate, QuartyException, PipelineException
+from quarty.common import initialise_repo, install_requirements, evaluate_pipeline, execute_pipeline
+from quarty.utils import QuartyException, PipelineException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Global state variables
+repo_url = None
+repo_commit = None
+build_path = None
+config = None
 
 def send_message(resp, j):
     resp.write("{}\n".format(json.dumps(j)).encode())
@@ -37,39 +42,67 @@ def error_message(resp, error):
         "detail": error
     })
 
-async def pipeline(request):
+def check_initialised():
+    if not (repo_url and repo_commit and build_path and config):
+        raise QuartyException("Must initialise Quarty first")
+
+def wrapped(f):
+    async def inner(request):
+        resp = web.StreamResponse(status=200, reason='OK',
+                              headers={'Content-Type': 'application/x-ndjson'})
+        await resp.prepare(request)
+        try:
+            await f(request, resp)
+        except PipelineException as e:
+            error_message(resp, e.args[0])
+            raise e
+        except (QuartyException, Exception) as e:
+            error_message(resp, "Quarty exception: {}".format(e))
+            raise e
+        return resp
+    return inner
+
+@wrapped
+async def init(request, resp):
+    global repo_url, repo_commit, build_path, config
     repo_url = request.query["repo_url"]
     repo_commit = request.query["repo_commit"]
-    resp = web.StreamResponse(status=200, reason='OK',
-                              headers={'Content-Type': 'application/x-ndjson'})
-    await resp.prepare(request)
-    progress_message(resp, "Cloning repository")
 
-    try:
-        temp_path = tempfile.mkdtemp()
-        os.chdir(temp_path)
+    build_path = tempfile.mkdtemp()
+    progress_message(resp, "Initialising repository")
+    config = await initialise_repo(repo_url, repo_commit, build_path)
 
-        progress_message(resp, "Initialising repository")
-        config = await initialise_repo(repo_url, repo_commit)
+    progress_message(resp, "Installing requirements")
+    await install_requirements(build_path)
 
-        progress_message(resp, "Installing requirements")
-        await install_requirements()
+@wrapped
+async def pipeline(request, resp):
+    check_initialised()
+    result = await evaluate_pipeline(config['pipeline_directory'],
+                                     build_path,
+                                     lambda l: log_message(resp, "stdout", l),
+                                     lambda l: log_message(resp, "stderr", l))
 
-        result = await evaluate(config['pipeline_directory'],
-                                lambda l: log_message(resp, "stdout", l),
-                                lambda l: log_message(resp, "stderr", l))
+    result_message(resp, result)
+    return resp
 
-        result_message(resp, result)
-    # TODO: Clarify how we are handling these exceptions/passing them on
-    except PipelineException as e:
-        error_message(resp, e.args[0])
+@wrapped
+async def execute(request, resp):
+    check_initialised()
+    step = request.query["step"]
+    namespace = request.query["namespace"]
+    result = await execute_pipeline(config['pipeline_directory'],
+                                    build_path,
+                                    step,
+                                    namespace,
+                                    lambda l: log_message(resp, "stdout", l),
+                                    lambda l: log_message(resp, "stderr", l))
 
-    except (QuartyException, Exception) as e:
-        logger.exception("An exception occurred while evaluating pipeline")
-        error_message(resp, "Quarty exception: {}".format(type(e).__name__))
-
+    result_message(resp, result)
     return resp
 
 app = web.Application()
+app.router.add_get('/init', init)
 app.router.add_get('/pipeline', pipeline)
+app.router.add_get('/execute', execute)
 web.run_app(app, port=8080)
