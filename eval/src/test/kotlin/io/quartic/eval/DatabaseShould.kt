@@ -75,11 +75,12 @@ class DatabaseShould {
 
     @Test
     fun get_events_for_build_in_chronological_order() {
+        val time = Instant.now()
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), Instant.now())
-        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), Instant.now() - Duration.ofSeconds(1))
-        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), Instant.now() + Duration.ofSeconds(1))
-        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), Instant.now() - Duration.ofSeconds(2))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), time)
+        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), time - Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), time + Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), time - Duration.ofSeconds(2))
 
         assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
             successfulPhase(uuid(72)) as BuildEvent,
@@ -150,8 +151,6 @@ class DatabaseShould {
             insertBuild(buildId)
         }
     }
-
-
 
     @Test
     fun get_builds_succeeded() {
