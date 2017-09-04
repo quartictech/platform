@@ -1,7 +1,7 @@
 package io.quartic.hey.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import io.quartic.common.client.Retrofittable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import retrofit2.http.Body
 import retrofit2.http.POST
 import java.net.URI

@@ -57,7 +57,7 @@ interface GitHub {
 }
 
 fun oauthUrl(
-    oauthRoot: String,
+    oauthRoot: URI,
     clientId: String,
     redirectUri: String,
     scopes: List<String>,

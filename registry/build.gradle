@@ -18,5 +18,5 @@ dependencies {
     compile project(":registry-api")
 
     testCompile project(":common-test")
-    testCompile libraries.dropwizardTesting
+    testCompile libraries.dropwizard.testing
 }

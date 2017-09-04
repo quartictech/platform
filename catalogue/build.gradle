@@ -20,10 +20,10 @@ dependencies {
     compile("com.google.cloud:google-cloud-datastore:0.8.0-beta") {
         exclude group: "javax.servlet", module: "servlet-api"   // Conflicts with Dropwizard ecosystem
     }
-    compile libraries.dropwizardWebsockets
+    compile libraries.dropwizard.websockets
 
     testCompile project(":common-test")
-    testCompile libraries.dropwizardTesting
+    testCompile libraries.dropwizard.testing
 }
 
 

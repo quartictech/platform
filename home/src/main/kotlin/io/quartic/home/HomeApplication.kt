@@ -7,7 +7,7 @@ import io.quartic.catalogue.api.CatalogueService
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenGenerator
-import io.quartic.common.client.userAgentFor
+import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.home.resource.AuthResource
@@ -36,7 +36,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         )
 
         with (environment.jersey()) {
-            register(UserResource(configuration.github))
+            register(UserResource(clientBuilder.feign(configuration.github.apiRoot)))
             register(HomeResource(
                 catalogue,
                 howl,
@@ -48,7 +48,8 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
                 configuration.cookies,
                 configuration.secretsCodec,
                 tokenGenerator,
-                registry
+                registry,
+                clientBuilder
             ))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(clientBuilder, configuration.catalogueUrl))
