@@ -1,9 +1,11 @@
 
 .container {
-  width: 400px;
+  width: 600px;
   display: flex;
   padding: 20px;
   flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .feed {
@@ -13,7 +15,10 @@
 
 .feedItem {
   padding-bottom: 15px;
-  min-width: 500px;
+  width: 100%;
+  position: relative;
+  padding-top: 15px;
+  border-bottom:0.1pt solid #CED9E0;
 }
 
 .cardIcon {
@@ -25,8 +30,16 @@
   color: #5C7080;
 }
 
+.cardTime {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin-right: 15px;
+  margin-bottom: 15px;
+}
+
 .cardBody {
-  margin-left: 30px;
+  margin-left: 50px;
 }
 
 .statusText {
@@ -35,9 +48,4 @@
   right:0;
   margin-top: 15px;
   margin-right: 15px;
-}
-
-.feedCard {
-  position: relative;
-  padding-top: 15px !important;
 }

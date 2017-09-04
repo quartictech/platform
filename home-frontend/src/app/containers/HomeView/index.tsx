@@ -39,19 +39,21 @@ class HomeView extends React.Component<IProps, {}> {
     if (isBuild(item)) {
       return (
         <div className={s.feedItem} key={item.id}>
-          <div className={classNames("pt-card", s.feedCard)}>
-            <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-build")} />
-            <div className={classNames("pt-tag", this.intentForStatus(item.status), s.statusText)}>{item.status}</div>
+          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-build")} />
+          <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
+            {item.status}
+          </div>
+          <div className={s.cardTime}>
+              <small>{moment.unix(item.time).fromNow()}</small>
+          </div>
 
-            <div className={s.cardBody}>
-              <h5>
-                <Link to={`/pipeline/${item.buildNumber}`}>
-                  Build {item.buildNumber}
-                </Link>&nbsp;
-                <small>{moment.unix(item.time).fromNow()}</small>
-              </h5>
-              <b>Branch</b> {item.branch}
-            </div>
+          <div className={s.cardBody}>
+            <h5>
+              <Link to={`/pipeline/${item.buildNumber}`}>
+                Build {item.buildNumber}
+              </Link>
+            </h5>
+            <b>Branch</b> {item.branch}
           </div>
         </div>
       );
@@ -61,7 +63,7 @@ class HomeView extends React.Component<IProps, {}> {
   render() {
     return (
       <div className={s.container}>
-        <h1>Activity</h1>
+        <h2>Activity</h2>
         <div className={s.feed}>
           {this.props.feedItems.map(item => this.renderItem(item))}
         </div>

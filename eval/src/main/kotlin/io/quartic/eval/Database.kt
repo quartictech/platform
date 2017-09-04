@@ -183,6 +183,7 @@ interface Database {
             WHERE
             eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}' AND
             etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}'
+        ORDER BY etrigger.time DESC
         LIMIT 20
         """)
     fun getBuilds(customerId: CustomerId): List<BuildStatusRow>
