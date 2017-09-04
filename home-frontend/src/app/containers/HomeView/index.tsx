@@ -50,7 +50,7 @@ class HomeView extends React.Component<IProps, {}> {
           <div className={s.cardBody}>
             <h5>
               <Link to={`/pipeline/${item.buildNumber}`}>
-                Build {item.buildNumber}
+                Build #{item.buildNumber}
               </Link>
             </h5>
             <b>Branch</b> {item.branch}

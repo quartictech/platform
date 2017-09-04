@@ -160,9 +160,6 @@ class DatabaseShould {
         DATABASE.insertBuild(buildId, customerId, branch)
         DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildId, phaseId)
         DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
-        DBI.open().createQuery("select * from event")
-            .mapToMap().forEach { println(it) }
-
 
         val builds = DATABASE.getBuilds(customerId)
         assertThat(builds.size, equalTo(1))
