@@ -151,6 +151,8 @@ class DatabaseShould {
         }
     }
 
+
+
     @Test
     fun get_builds_succeeded() {
         val customerId = customerId()
@@ -194,6 +196,15 @@ class DatabaseShould {
 
         val builds = DATABASE.getBuilds(customerAId)
         assertThat(builds.size, equalTo(1))
+    }
+
+    @Test
+    fun filter_builds_without_trigger() {
+        val customerId = customerId()
+        val buildId = UUID.randomUUID()
+        DATABASE.insertBuild(buildId, customerId, branch)
+        val builds = DATABASE.getBuilds(customerId)
+        assertThat(builds.size, equalTo(0))
     }
 
     private fun insertBuild(buildId: UUID, customerId: CustomerId = this.customerId) {

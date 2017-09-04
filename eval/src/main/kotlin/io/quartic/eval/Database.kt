@@ -147,11 +147,9 @@ interface Database {
             eterm.build_id = build.id AND
             eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}'
         )
-        LEFT JOIN event etrigger ON (
-            etrigger.build_id = build.id AND
-            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}'
-        )
+        LEFT JOIN event etrigger ON etrigger.build_id = build.id
         WHERE
+            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}' AND
             build.customer_id = :customer_id
         ORDER BY etrigger.time DESC
         LIMIT 20
