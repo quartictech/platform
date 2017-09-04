@@ -1,6 +1,6 @@
 package io.quartic.quarty
 
-import io.quartic.common.client.Retrofittable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.POST

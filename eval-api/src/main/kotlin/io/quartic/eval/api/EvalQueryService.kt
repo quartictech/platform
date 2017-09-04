@@ -1,7 +1,7 @@
 package io.quartic.eval.api
 
-import io.quartic.common.client.Jaxable
-import io.quartic.common.client.Retrofittable
+import io.quartic.common.client.ClientBuilder.Companion.Jaxable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.CytoscapeDag
 import retrofit2.http.GET
