@@ -34,7 +34,7 @@ class QuartyClient(
     fun executeAsync(step: String, namespace: String): CompletableFuture<out QuartyResult<Unit>?> =
         invokeAsync { executeAsync(step, namespace) }
 
-    inline fun <reified R : Any> invokeAsync(
+    inline fun <reified R : Any?> invokeAsync(
         block: Quarty.() -> CompletableFuture<ResponseBody>
     ): CompletableFuture<QuartyResult<R>?> =
         block(quarty)

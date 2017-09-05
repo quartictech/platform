@@ -1,12 +1,10 @@
 package io.quartic.quarty
 
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.model.Pipeline
-import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.QuartyMessage.*
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.*
@@ -95,13 +93,17 @@ class QuartyClientShould {
 
     @Test
     fun allow_null_payloads_for_success_messages() {
-        OBJECT_MAPPER.readValue<Result>("""{ "type": "result", "result": null }""")
+        quartyWillSend(listOf(
+            mapOf("type" to "result", "result" to null)
+        ))
+
+        invokeQuarty()
         // No error
     }
 
     private fun invokeQuarty() = client.invokeAsync<Pipeline> { evaluateAsync() }.get()
 
-    private fun quartyWillSend(messages: List<QuartyMessage>) {
+    private fun quartyWillSend(messages: List<Any>) {
         whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
             ResponseBody.create(
                 MediaType.parse("application/x-ndjson"),
@@ -110,5 +112,5 @@ class QuartyClientShould {
         ))
     }
 
-    private fun List<QuartyMessage>.toNdJson() = map(OBJECT_MAPPER::writeValueAsString).joinToString("\n")
+    private fun List<Any>.toNdJson() = map(OBJECT_MAPPER::writeValueAsString).joinToString("\n")
 }
