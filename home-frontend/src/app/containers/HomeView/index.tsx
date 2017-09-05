@@ -6,16 +6,21 @@ import * as classNames from "classnames";
 
 import * as moment from "moment";
 
+import { Spinner, Classes } from "@blueprintjs/core";
+
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-import { FeedItem, Build } from "../../models";
+import { FeedItem, Build, LoadingState } from "../../models";
 
 interface IProps {
   fetchFeed: Function;
-  feedItems: FeedItem[];
+  feed: {
+    state: LoadingState;
+    items: FeedItem[];
+  };
 }
 
 export function isBuild(item: FeedItem): item is Build {
@@ -60,13 +65,50 @@ class HomeView extends React.Component<IProps, {}> {
     }
   }
 
+  renderNoItems = () => (
+    <div className={classNames("pt-non-ideal-state", s.noItems)}>
+      <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+        <span className="pt-icon pt-icon-lightbulb"/>
+      </div>
+      <h4 className="pt-non-ideal-state-title">You haven't run any builds yet.</h4>
+      <div className="pt-non-ideal-state-description">
+        Push your code or manually trigger a build to get started.
+      </div>
+    </div>
+  )
+
+  renderFeed = () => (
+    <div>
+      <h2>Activity</h2>
+      <div className={s.feed}>
+        {this.props.feed.items.map(item => this.renderItem(item))}
+      </div>
+    </div>
+  )
+
+  renderContainer() {
+    switch (this.props.feed.state) {
+      case LoadingState.LOADING:
+        return (
+          <div className={s.noItems}>
+            <Spinner className={Classes.LARGE} />
+          </div>
+        );
+      case LoadingState.LOADED:
+        if (this.props.feed.items.length > 0) {
+          return this.renderFeed();
+        } else {
+          return this.renderNoItems();
+        }
+      default:
+        return null;
+    }
+  }
+
   render() {
     return (
       <div className={s.container}>
-        <h2>Activity</h2>
-        <div className={s.feed}>
-          {this.props.feedItems.map(item => this.renderItem(item))}
-        </div>
+        {this.renderContainer()}
       </div>
     );
   }
@@ -80,7 +122,7 @@ const mapDispatchToProps = {
 
 const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi,
-  feedItems: selectors.selectFeed,
+  feed: selectors.selectFeed,
 });
 
 export default connect(
