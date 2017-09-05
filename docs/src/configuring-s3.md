@@ -8,7 +8,7 @@ Quartic can read and write data from a variety of sources, including S3 storage 
 To maximise security, the Quartic platform accesses your S3 bucket without any long-term credentials being shared.  This is achieved as follows:
  - You create a dedicated S3 bucket under your AWS account.
  - You create a dedicated role under your AWS account.
- - You allow Quartic’s AWS account to assume that role for operations associated with that particular bucket ("delegate access" in AWS terminology).
+ - You allow Quartic's AWS account to assume that role for operations associated with that particular bucket ("delegate access" in AWS terminology).
 
 Before you begin the process below, Quartic will supply you with a unique "external ID" (needed for Step #2 below).  Once you're done, you'll need to provide Quartic with the following:
  - The __name__ and __region__ of your chosen S3 bucket (in Step #1 below).
