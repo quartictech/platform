@@ -36,7 +36,7 @@ class HomeView extends React.Component<IProps, {}> {
     switch (status) {
       case "running": return "pt-intent-primary";
       case "success": return "pt-intent-success";
-      case "error": return "pt-intent-danger";
+      case "failure": return "pt-intent-danger";
     }
   }
 
@@ -49,7 +49,7 @@ class HomeView extends React.Component<IProps, {}> {
             {item.status}
           </div>
           <div className={s.cardTime}>
-              <small>{moment.min(moment.unix(item.time), moment.now()).fromNow()}</small>
+              <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
           </div>
 
           <div className={s.cardBody}>
