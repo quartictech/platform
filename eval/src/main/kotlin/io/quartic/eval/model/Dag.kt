@@ -22,7 +22,7 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
     fun inDegreeOf(node: Node) = dag.inDegreeOf(node)
     fun outDegreeOf(node: Node) = dag.outDegreeOf(node)
 
-    override fun iterator() = TopologicalOrderIterator(dag)
+    override fun iterator(): Iterator<Node> = TopologicalOrderIterator(dag)
 
     companion object {
         fun fromSteps(steps: List<Step>): Dag {

@@ -5,6 +5,7 @@ import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
+import io.quartic.eval.model.Dag.Node
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
@@ -24,6 +25,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
@@ -52,10 +54,10 @@ class EvaluatorShould {
     fun use_the_correct_phase_descriptions() {
         evaluate()
 
-        assertThat(sequencer.descriptions, equalTo(listOf(
+        assertThat(sequencer.descriptions, contains(
             "Acquiring Git credentials",
             "Evaluating DAG"
-        )))
+        ))
     }
 
     // TODO - until we do true streaming, this may lead to non-monotonic events
@@ -77,10 +79,10 @@ class EvaluatorShould {
         evaluate()
 
         // Other messages should be filtered out
-        assertThat(sequencer.logs, equalTo(listOf(
+        assertThat(sequencer.logs, contains(
             LogInvocation("foo", "Hello", instantA),
             LogInvocation("bar", "World", instantB)
-        )))
+        ))
     }
 
     @Test
@@ -136,6 +138,60 @@ class EvaluatorShould {
         assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while communicating with Quarty") as Throwable))
     }
 
+    @Test
+    fun execute_steps_from_dag() {
+        val stepX = mock<Step> {
+            on { name } doReturn "X"
+            on { id } doReturn "abc"
+        }
+        val stepY = mock<Step> {
+            on { name } doReturn "Y"
+            on { id } doReturn "def"
+        }
+
+        whenever(dag.iterator()).thenReturn(
+            listOf(
+                Node(mock(), stepX),
+                Node(mock(), stepY)
+            ).iterator()
+        )
+
+        evaluate()
+
+        assertThat(sequencer.descriptions, contains(
+            "Acquiring Git credentials",
+            "Evaluating DAG",
+            "Executing step: X",
+            "Executing step: Y"
+        ))
+
+        inOrder(quarty) {
+            verify(quarty).executeAsync(any(), any(), eq("abc"))
+            verify(quarty).executeAsync(any(), any(), eq("def"))
+        }
+    }
+
+    @Test
+    fun skip_execution_of_raw_datasets() {
+        val stepY = mock<Step> {
+            on { name } doReturn "Y"
+            on { id } doReturn "def"
+        }
+
+        whenever(dag.iterator()).thenReturn(
+            listOf(
+                Node(mock(), null),     // Raw
+                Node(mock(), stepY)
+            ).iterator()
+        )
+
+        evaluate()
+
+        inOrder(quarty) {
+            verify(quarty).executeAsync(any(), any(), eq("def"))
+        }
+    }
+
     private fun evaluate() = runBlocking {
         evaluator.evaluateAsync(details).join()
     }
@@ -144,11 +200,17 @@ class EvaluatorShould {
         completeExceptionally(RuntimeException("Sad"))
     }
 
+    private val commitId = "abc123"
+    private val containerHostname = "a.b.c"
+    private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
+    private val githubCloneUrl = URI("https://noob.com/foo/bar")
+    private val githubCloneUrlWithCreds = URI("https://x-access-token:${githubToken.token.veryUnsafe}@noob.com/foo/bar")
+
     private val details = mock<TriggerDetails> {
         on { repoId } doReturn 5678
         on { installationId } doReturn 1234
-        on { commit } doReturn "abc123"
-        on { cloneUrl } doReturn URI("https://noob.com/foo/bar")
+        on { commit } doReturn commitId
+        on { cloneUrl } doReturn githubCloneUrl
     }
 
     private val customer = mock<Customer>()
@@ -160,23 +222,31 @@ class EvaluatorShould {
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
     }
+
     private val quartyContainer = mock<QubeContainerProxy> {
-        on { hostname } doReturn "a.b.c"
+        on { hostname } doReturn containerHostname
         on { errors } doReturn produce(CommonPool) {
             delay(500)  // To prevent closure
         }
     }
+
     private val github = mock<GitHubInstallationClient> {
-        on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
+        on { accessTokenAsync(1234) } doReturn completedFuture(githubToken)
     }
+
     private val quarty = mock<QuartyClient> {
-        on { getPipelineAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
+        on { getPipelineAsync(githubCloneUrlWithCreds, commitId) } doReturn completedFuture(
             Success(emptyList(), pipeline)
         )
+        on { executeAsync(eq(githubCloneUrlWithCreds), eq(commitId), any()) } doReturn completedFuture(
+            Success(emptyList(), Unit)
+        )
     }
+
     private val quartyBuilder = mock<(String) -> QuartyClient> {
-        on { invoke("a.b.c") } doReturn quarty
+        on { invoke(containerHostname) } doReturn quarty
     }
+
     private val extractDag = mock<(Pipeline) -> Dag?> {
         on { invoke(pipeline) } doReturn dag
     }

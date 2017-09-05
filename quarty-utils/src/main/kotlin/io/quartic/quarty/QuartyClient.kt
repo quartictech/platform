@@ -29,7 +29,7 @@ class QuartyClient(
         invokeAsync { getPipelineAsync(repoUrl, repoCommit) }
 
     // TODO - return type
-    fun executeAsync(repoUrl: URI, repoCommit: String, stepId: String): CompletableFuture<out QuartyResult<Void>?> =
+    fun executeAsync(repoUrl: URI, repoCommit: String, stepId: String): CompletableFuture<out QuartyResult<Unit>?> =
         invokeAsync { executeAsync(repoUrl, repoCommit, stepId) }
 
     inline fun <reified R : Any> invokeAsync(
