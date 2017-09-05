@@ -49,7 +49,7 @@ class HomeView extends React.Component<IProps, {}> {
             {item.status}
           </div>
           <div className={s.cardTime}>
-              <small>{moment.unix(item.time).fromNow()}</small>
+              <small>{moment.min(moment.unix(item.time), moment.now()).fromNow()}</small>
           </div>
 
           <div className={s.cardBody}>
