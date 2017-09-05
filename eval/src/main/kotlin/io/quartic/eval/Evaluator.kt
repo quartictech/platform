@@ -64,9 +64,16 @@ class Evaluator(
                         .awaitWrapped("acquiring access token from GitHub"))
                 }
 
+                phase<Unit>("Cloning repository") {
+                    extractPhaseResult(
+                        fromQuarty { initAsync(cloneUrl(details, token), details.commit) },
+                        { success(Unit) }
+                    )
+                }
+
                 val dag = phase("Evaluating DAG") {
                     extractPhaseResult(
-                        fromQuarty { getPipelineAsync(cloneUrl(details, token), details.commit) },
+                        fromQuarty { evaluateAsync() },
                         { pipeline -> extractDagFromPipeline(pipeline) }
                     )
                 }
@@ -76,7 +83,7 @@ class Evaluator(
                     .forEach { step ->
                         phase<Unit>("Executing step: ${step.name}") {
                             extractPhaseResult(
-                                fromQuarty { executeAsync(cloneUrl(details, token), details.commit, step.id) },
+                                fromQuarty { executeAsync(step.id, customer.namespace) },
                                 { success(Unit) }
                             )
                         }

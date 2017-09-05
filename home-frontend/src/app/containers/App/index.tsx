@@ -35,7 +35,6 @@ export class App extends React.Component<IProps, void> {
       <div>
         <section className={s.App}>
           <Header
-            newDatasetClick={this.props.showNewDatasetModal}
             searchBoxChange={this.props.searchDatasets}
             selectedNamespace={this.props.ui.namespace}
             namespaceSelectChange={this.props.selectNamespace}
@@ -53,7 +52,6 @@ export class App extends React.Component<IProps, void> {
 }
 
 const mapDispatchToProps = {
-  showNewDatasetModal: () => actions.setActiveModal("newDataset"),
   searchDatasets: actions.searchDatasets,
   selectNamespace: actions.selectNamespace,
   logout: actions.userLogout,

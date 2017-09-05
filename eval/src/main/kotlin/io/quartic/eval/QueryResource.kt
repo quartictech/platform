@@ -7,11 +7,25 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
+import io.quartic.eval.model.toTriggerDetails
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
+    override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId)
+        .map { buildRow ->
+            Build(
+                id = buildRow.id,
+                buildNumber = buildRow.buildNumber,
+                branch = buildRow.branch,
+                customerId = buildRow.customerId,
+                triggerDetails = buildRow.trigger.toTriggerDetails(),
+                status = buildRow.status,
+                time = buildRow.time
+            )
+        }
+
     override fun getDag(customerId: CustomerId): CytoscapeDag {
         val buildNumber = database.getLatestSuccessfulBuildNumber(customerId) ?:
             throw NotFoundException("No successful builds for ${customerId}")
@@ -39,11 +53,11 @@ class QueryResource(private val database: Database) : EvalQueryService {
 
     private fun nodesFrom(dag: Dag) = dag.nodes.map {
         CytoscapeNode(
-                CytoscapeNodeData(
-                    id = it.dataset.title,
-                    title = it.dataset.title,
-                    type = if (dag.inDegreeOf(it) > 0) "derived" else "raw"
-                )
+            CytoscapeNodeData(
+                id = it.dataset.title,
+                title = it.dataset.title,
+                type = if (dag.inDegreeOf(it) > 0) "derived" else "raw"
+            )
         )
     }.toSet()
 

@@ -1,12 +1,23 @@
 
 .container {
-  background-color: #f5f8fa;
   width: 100%;
-  height: 100%;
   display: flex;
+  flex-direction: column;
+  height: calc(100vh - 50px);
+}
+
+.toolbar {
+  padding-left: 10px;
+  padding-top: 10px;
 }
 
 .main {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.left {
   width: 50%;
   height: 100%;
   padding: 10px;

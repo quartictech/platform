@@ -25,12 +25,14 @@ class QuartyClient(
         clock: Clock = Clock.systemUTC()
     ) : this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 300), clock)
 
-    fun getPipelineAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult<Pipeline>?> =
-        invokeAsync { getPipelineAsync(repoUrl, repoCommit) }
+    fun initAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult<Unit>?> =
+        invokeAsync { initAsync(repoUrl, repoCommit) }
 
-    // TODO - return type
-    fun executeAsync(repoUrl: URI, repoCommit: String, stepId: String): CompletableFuture<out QuartyResult<Unit>?> =
-        invokeAsync { executeAsync(repoUrl, repoCommit, stepId) }
+    fun evaluateAsync(): CompletableFuture<out QuartyResult<Pipeline>?> =
+        invokeAsync { evaluateAsync() }
+
+    fun executeAsync(step: String, namespace: String): CompletableFuture<out QuartyResult<Unit>?> =
+        invokeAsync { executeAsync(step, namespace) }
 
     inline fun <reified R : Any> invokeAsync(
         block: Quarty.() -> CompletableFuture<ResponseBody>
@@ -61,6 +63,7 @@ class QuartyClient(
                         }
                     }
 
-                finaliser()
+                    finaliser()
             }
 }
+

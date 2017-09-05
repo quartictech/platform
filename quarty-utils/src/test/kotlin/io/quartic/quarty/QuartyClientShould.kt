@@ -4,9 +4,9 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.QuartyMessage.*
-import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.*
 import io.quartic.quarty.model.Step
@@ -17,7 +17,6 @@ import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
-import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.CompletableFuture.completedFuture
@@ -26,9 +25,6 @@ class QuartyClientShould {
     private val clock = mock<Clock>()
     private val quarty = mock<Quarty>()
     private val client = QuartyClient(quarty, clock)
-
-    private val repoUrl = URI("http://noob.com")
-    private val repoCommit = "1234"
 
     private val instantA = mock<Instant>()
     private val instantB = mock<Instant>()
@@ -96,10 +92,10 @@ class QuartyClientShould {
         assertThat(invokeQuarty(), nullValue())
     }
 
-    private fun invokeQuarty() = client.invokeAsync<Pipeline> { getPipelineAsync(repoUrl, repoCommit) }.get()
+    private fun invokeQuarty() = client.invokeAsync<Pipeline> { evaluateAsync() }.get()
 
     private fun quartyWillSend(messages: List<QuartyMessage>) {
-        whenever(quarty.getPipelineAsync(repoUrl, repoCommit)).thenReturn(completedFuture(
+        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
             ResponseBody.create(
                 MediaType.parse("application/x-ndjson"),
                 messages.toNdJson()

@@ -49,8 +49,9 @@ class GithubResource(
             validateSignature()
 
             // TODO - handle PingEvent, InstallationEvent, and InstallationRepositoriesEvent
+            val rawEvent = OBJECT_MAPPER.readValue<Map<String, Any>>(payload)
             when (eventType) {
-                "push" -> handlePushEvent(parseEvent(payload, deliveryId))
+                "push" -> handlePushEvent(parseEvent(payload, deliveryId), rawEvent)
                 else -> LOG.info("Ignored event of type '$eventType'".nicely())
             }
         }
@@ -70,7 +71,7 @@ class GithubResource(
             }
         }
 
-        private fun handlePushEvent(event: PushEvent) {
+        private fun handlePushEvent(event: PushEvent, rawEvent: Map<String, Any>) {
             fun String.toMessage() = "Trigger $this (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')".nicely()
 
             try {
@@ -85,7 +86,8 @@ class GithubResource(
                     cloneUrl = event.repository.cloneUrl,
                     ref = event.ref,
                     commit = event.headCommit.id,
-                    timestamp = clock.instant()
+                    timestamp = clock.instant(),
+                    rawWebhook = rawEvent
                 ))
                 LOG.info("success".toMessage())
             } catch (e: Exception) {
