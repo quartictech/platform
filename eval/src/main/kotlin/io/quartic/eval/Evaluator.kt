@@ -64,11 +64,9 @@ class Evaluator(
                         .awaitWrapped("acquiring access token from GitHub"))
                 }
 
-                val dag = phase<Dag>("Evaluating DAG") {
+                val dag = phase("Evaluating DAG") {
                     extractPhaseResult(
-                        fromQuarty {
-                            getPipelineAsync(cloneUrl(details, token), details.commit)
-                        },
+                        fromQuarty { getPipelineAsync(cloneUrl(details, token), details.commit) },
                         { pipeline -> extractDagFromPipeline(pipeline) }
                     )
                 }
@@ -77,15 +75,10 @@ class Evaluator(
                     .mapNotNull { it.step }    // TODO - what about raw datasets?
                     .forEach { step ->
                         phase<Unit>("Executing step: ${step.name}") {
-                            val result = fromQuarty {
-                                executeAsync(cloneUrl(details, token), details.commit, step.id)
-                            }
-
-                            when (result) {
-                                is QuartyResult.Success -> success(Unit)
-                                is QuartyResult.Failure -> userError(result.detail)
-                                null -> internalError(EvaluatorException("Missing result or failure from Quarty"))  // TODO - dedupe
-                            }
+                            extractPhaseResult(
+                                fromQuarty { executeAsync(cloneUrl(details, token), details.commit, step.id) },
+                                { success(Unit) }
+                            )
                         }
                     }
             }
@@ -110,11 +103,12 @@ class Evaluator(
         result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
 
     private fun PhaseBuilder<Dag>.extractDagFromPipeline(pipeline: Pipeline): PhaseResult<Dag> {
-        with(extractDag(pipeline)) { dag ->
+        val dag = extractDag(pipeline)
+        return with(dag) {
             if (dag != null) {
-                return successWithArtifact<Dag>(EvaluationOutput(pipeline.steps), dag)
+                successWithArtifact(EvaluationOutput(pipeline.steps), dag)
             } else {
-                return userError<Dag>("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+                userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
     }
