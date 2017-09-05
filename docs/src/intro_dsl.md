@@ -8,7 +8,7 @@ It provides a powerful and intuitive way to describe nodes and edges in a graph 
 Strictly speaking the graph is a Directed Acyclic Graph or DAG.
 This document is a basic introduction to the core concepts of the language and associated DAG concepts.
 
-#### Building blocks of the DSL
+## Building blocks of the DSL
 
 QDSL is designed for use with Python3.
 
@@ -36,7 +36,7 @@ def run(survey: "raw/survey") -> "clean/survey":
 ```
 
 
-#### Defining steps
+## Defining steps
 
 The `@step` decorator is used to define every node in the DAG:
 
@@ -47,7 +47,7 @@ The `@step` decorator is used to define every node in the DAG:
 This means that the function is a first-class step in the DAG. This means it will be executed
 as part of a build sequence, with appropriate routing of inputs and outputs, and will appear as a node in the data pipeline.
 
-#### Annotating I/O
+## Annotating I/O
 
 ```py
 def run(survey: "raw/survey") -> "clean/survey"
@@ -60,7 +60,7 @@ Input and output annotations specify the names of the datasets within the DAG. T
 These are optional - if present, Quartic uses them to
 implicitly define nodes and edges in the DAG. If they're omitted, the user is expected to connect the nodes explicitly.
 
-#### Accessing data
+## Accessing data
 
 Input datasets contain data and associated [metadata]({{root}}/metadata). These can be accessed independently using the corresponding `.data()` and `.meta()` methods:
 
@@ -71,7 +71,7 @@ survey_data = survey.data()
 The result of a `.data()` call will return an object dependent on the underlying materialisation format. Where possible, the underlying file (e.g. Parquet) is
 automatically converted to a Pandas dataframe for easier manipulation.
 
-#### Manipulating data
+## Manipulating data
 
 ```py
 for i in range(1, 4):
@@ -84,7 +84,7 @@ for i in range(1, 4):
 
 The above code block uses Pandas to manipulate the data. In this case, datetime columns are being replaced with Unix timestamps.
 
-#### Producing datasets
+## Producing datasets
 
 ```py
 return writer("Cleaned survey").json({...})
