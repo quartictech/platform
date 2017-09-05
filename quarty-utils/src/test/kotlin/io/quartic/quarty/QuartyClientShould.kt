@@ -1,6 +1,7 @@
 package io.quartic.quarty
 
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -90,6 +91,12 @@ class QuartyClientShould {
         ))
 
         assertThat(invokeQuarty(), nullValue())
+    }
+
+    @Test
+    fun allow_null_payloads_for_success_messages() {
+        OBJECT_MAPPER.readValue<Result>("""{ "type": "result", "result": null }""")
+        // No error
     }
 
     private fun invokeQuarty() = client.invokeAsync<Pipeline> { evaluateAsync() }.get()
