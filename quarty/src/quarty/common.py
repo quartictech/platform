@@ -17,7 +17,7 @@ async def initialise_repo(repo_url, repo_commit, root_path):
     logger.info("Cloning repo: %s", repo_url)
 
     await run_subprocess_checked(["git", "clone", repo_url, root_path],
-                                  "Error while cloning code from respository: {}".format(repo_url))
+                                 "Error while cloning code from respository: {}".format(repo_url))
 
     # Checkout revision
     logger.info("Checking out commit: %s", repo_commit)
@@ -44,24 +44,27 @@ async def install_requirements(path):
     else:
         logger.info("No requirements.txt found")
 
+async def run_wrapped(cmd, stdout_cb, stderr_cb, cwd, exception_file, action):
+    try:
+        rc = await stream_subprocess(cmd, stdout_cb, stderr_cb, cwd=cwd)
+        if rc != 0:
+            if os.path.exists(exception_file):
+                exception = json.load(open(exception_file))
+                raise PipelineException(exception)
+            else:
+                raise PipelineException(
+                    "Unknown exception (no exception.json found).")
+    except Exception as e:
+        raise QuartyException("Exception while: {}".format(action), e)
+
 async def evaluate_pipeline(pipeline_dir, root_path, stdout_cb, stderr_cb):
     steps_file = tempfile.mkstemp()[1]
     exception_file = tempfile.mkstemp()[1]
     cmd = ["python", "-u", "-m", "quartic.pipeline.runner", "--evaluate",
            steps_file, "--exception", exception_file, pipeline_dir]
     logger.info("Executing: %s", cmd)
-    try:
-        rc = await stream_subprocess(cmd, stdout_cb, stderr_cb, cwd=root_path)
-        if rc != 0:
-            if os.path.exists(exception_file):
-                exception = json.load(open(exception_file))
-                raise PipelineException(exception)
-            else:
-                raise PipelineException("Unknown exception (no exception.json found).")
-        else:
-            return json.load(open(steps_file))
-    except Exception as e:
-        raise QuartyException("Exception while evaluating pipeline", e)
+    await run_wrapped(cmd, stdout_cb, stderr_cb, root_path, exception_file, "evaluating pipeline")
+    return json.load(open(steps_file))
 
 async def execute_pipeline(pipeline_dir, root_path, step_id, namespace, stdout_cb, stderr_cb):
     exception_file = tempfile.mkstemp()[1]
@@ -71,14 +74,6 @@ async def execute_pipeline(pipeline_dir, root_path, step_id, namespace, stdout_c
            "--namespace", namespace,
            pipeline_dir]
     logger.info("Executing: %s", cmd)
-    try:
-        rc = await stream_subprocess(cmd, stdout_cb, stderr_cb, cwd=root_path)
-        if rc != 0:
-            if os.path.exists(exception_file):
-                exception = json.load(open(exception_file))
-                raise PipelineException(exception)
-            else:
-                raise PipelineException("Unknown exception (no exception.json found).")
-    except Exception as e:
-        raise QuartyException("Exception while executing pipeline pipeline", e)
+    await run_wrapped(cmd, stdout_cb, stderr_cb, root_path, exception_file, "executing pipeline")
+    
 

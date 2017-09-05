@@ -55,10 +55,8 @@ def wrapped(f):
             await f(request, resp)
         except PipelineException as e:
             error_message(resp, e.args[0])
-            raise e
         except (QuartyException, Exception) as e:
             error_message(resp, "Quarty exception: {}".format(e))
-            raise e
         return resp
     return inner
 
@@ -74,6 +72,7 @@ async def init(request, resp):
 
     progress_message(resp, "Installing requirements")
     await install_requirements(build_path)
+    result_message(resp, None)
 
 @wrapped
 async def evaluate(request, resp):
@@ -84,22 +83,20 @@ async def evaluate(request, resp):
                                      lambda l: log_message(resp, "stderr", l))
 
     result_message(resp, result)
-    return resp
 
 @wrapped
 async def execute(request, resp):
     check_initialised()
     step = request.query["step"]
     namespace = request.query["namespace"]
-    result = await execute_pipeline(config['pipeline_directory'],
-                                    build_path,
-                                    step,
-                                    namespace,
-                                    lambda l: log_message(resp, "stdout", l),
-                                    lambda l: log_message(resp, "stderr", l))
+    await execute_pipeline(config['pipeline_directory'],
+                           build_path,
+                           step,
+                           namespace,
+                           lambda l: log_message(resp, "stdout", l),
+                           lambda l: log_message(resp, "stderr", l))
 
-    result_message(resp, result)
-    return resp
+    result_message(resp, None)
 
 app = web.Application()
 app.router.add_get('/init', init)

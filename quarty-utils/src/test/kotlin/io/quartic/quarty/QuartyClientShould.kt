@@ -25,9 +25,6 @@ class QuartyClientShould {
     private val quarty = mock<Quarty>()
     private val client = QuartyClient(quarty, clock)
 
-    private val repoUrl = URI("http://noob.com")
-    private val repoCommit = "1234"
-
     private val instantA = mock<Instant>()
     private val instantB = mock<Instant>()
 
@@ -94,15 +91,9 @@ class QuartyClientShould {
         assertThat(invokeQuarty(), nullValue())
     }
 
-    private fun invokeQuarty() = client.invokeAsync { initAsync(repoUrl, repoCommit).thenComposeAsync { evaluateAsync() } }.get()
+    private fun invokeQuarty() = client.invokeAsync { evaluateAsync() }.get()
 
     private fun quartyWillSend(messages: List<QuartyMessage>) {
-        whenever(quarty.initAsync(repoUrl, repoCommit)).thenReturn(completedFuture(
-            ResponseBody.create(
-                MediaType.parse("application/x-ndjson"),
-                listOf<QuartyMessage>().toNdJson()
-            )
-        ))
         whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
             ResponseBody.create(
                 MediaType.parse("application/x-ndjson"),
