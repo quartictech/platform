@@ -1,10 +1,12 @@
 package io.quartic.quarty
 
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.model.QuartyMessage
 import io.quartic.quarty.model.QuartyMessage.*
+import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.*
 import io.quartic.quarty.model.Step
@@ -40,18 +42,18 @@ class QuartyClientShould {
 
     @Test
     fun return_success_if_quarty_returns_result() {
-        val steps = listOf(
+        val pipeline = Pipeline(listOf(
             Step("123", "Foo", "Bar", "file/yeah.py", listOf(1, 2), emptyList(), emptyList())
-        )
+        ))
 
         quartyWillSend(listOf(
-            Result(steps)
+            Result(OBJECT_MAPPER.convertValue(pipeline))
         ))
 
         assertThat(invokeQuarty(), equalTo(Success(
             emptyList(),
-            steps
-        ) as QuartyResult))
+            pipeline
+        ) as QuartyResult<*>))
     }
 
     @Test
@@ -60,10 +62,10 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        assertThat(invokeQuarty(), equalTo(Failure(
+        assertThat(invokeQuarty(), equalTo(Failure<Any>(
             emptyList(),
             "Big problems"
-        ) as QuartyResult))
+        ) as QuartyResult<*>))
     }
 
     @Test
@@ -74,13 +76,13 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        assertThat(invokeQuarty(), equalTo(Failure(
+        assertThat(invokeQuarty(), equalTo(Failure<Any>(
             listOf(
                 LogEvent("stdout", "Yeah", instantA),
                 LogEvent("progress", "Lovely time", instantB)
             ),
             "Big problems"
-        ) as QuartyResult))
+        ) as QuartyResult<*>))
     }
 
     @Test
@@ -94,7 +96,7 @@ class QuartyClientShould {
         assertThat(invokeQuarty(), nullValue())
     }
 
-    private fun invokeQuarty() = client.invokeAsync { getPipelineAsync(repoUrl, repoCommit) }.get()
+    private fun invokeQuarty() = client.invokeAsync<Pipeline> { getPipelineAsync(repoUrl, repoCommit) }.get()
 
     private fun quartyWillSend(messages: List<QuartyMessage>) {
         whenever(quarty.getPipelineAsync(repoUrl, repoCommit)).thenReturn(completedFuture(

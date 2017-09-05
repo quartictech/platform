@@ -11,8 +11,8 @@ import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
+import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
-import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -27,7 +27,7 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (List<Step>) -> Dag?,
+    private val extractDag: (Pipeline) -> Dag?,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
     constructor(
@@ -40,9 +40,9 @@ class Evaluator(
         sequencer,
         registry,
         github,
-        { steps ->
+        { pipeline ->
             try {
-                Dag.fromSteps(steps)
+                Dag.fromSteps(pipeline.steps)
             } catch (e: Exception) {
                 null
             }
@@ -64,15 +64,30 @@ class Evaluator(
                 }
 
                 val dag = phase("Evaluating DAG") {
-                    val quartyResult = quartyBuilder(container.hostname)
-                        .getPipelineAsync(cloneUrl(details, token), details.commit)
-                        .awaitWrapped("communicating with Quarty")
-
-                    logMessages(quartyResult)
-                    transformQuartyResult(quartyResult)
+                    extractDag(
+                        fromQuarty {
+                            getPipelineAsync(cloneUrl(details, token), details.commit)
+                        }
+                    )
                 }
 
-                dag.forEach {  }
+                dag
+                    .mapNotNull { it.step }    // TODO - what about raw datasets?
+                    .forEach { step ->
+                        phase<Unit>("Executing step: ${step.name}") {
+                            val result = fromQuarty {
+                                executeAsync(cloneUrl(details, token), details.commit, step.id)
+                            }
+
+//                            when (result) {
+//                                is QuartyResult.Success -> {}
+//                                is QuartyResult.Failure -> userError(result.detail)
+//                                null -> internalError(EvaluatorException("Missing result or failure from Quarty"))  // TODO - dedupe
+//                            }
+
+                            success(Unit)
+                        }
+                    }
             }
         }
     }
@@ -80,21 +95,25 @@ class Evaluator(
     private fun cloneUrl(details: TriggerDetails, token: GitHubInstallationAccessToken) =
         URIBuilder(details.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
 
-    private fun PhaseBuilder<Dag>.transformQuartyResult(result: QuartyResult?) = when (result) {
+    private suspend fun <R> PhaseBuilder<*>.fromQuarty(block: QuartyClient.() -> CompletableFuture<out QuartyResult<R>?>) =
+        block(quartyBuilder(container.hostname))
+            .awaitWrapped("communicating with Quarty")
+            .apply { logMessages(this) }
+
+    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult<*>?) =
+        result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
+
+    private fun PhaseBuilder<Dag>.extractDag(result: QuartyResult<Pipeline>?) = when (result) {
         is QuartyResult.Success -> {
             val dag = extractDag(result.result)
             if (dag != null) {
-                successWithArtifact(EvaluationOutput(result.result), dag)
+                successWithArtifact(EvaluationOutput(result.result.steps), dag)
             } else {
                 userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
         is QuartyResult.Failure -> userError(result.detail)
         null -> internalError(EvaluatorException("Missing result or failure from Quarty"))
-    }
-
-    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult?) {
-        result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
     }
 
     private suspend fun getCustomer(details: TriggerDetails) = cancellable(

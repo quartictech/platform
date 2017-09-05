@@ -13,6 +13,7 @@ import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
+import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.Failure
 import io.quartic.quarty.model.QuartyResult.Success
@@ -69,7 +70,7 @@ class EvaluatorShould {
                     QuartyResult.LogEvent("foo", "Hello", instantA),
                     QuartyResult.LogEvent("bar", "World", instantB)
                 ),
-                steps
+                pipeline
             )
         ))
 
@@ -91,7 +92,7 @@ class EvaluatorShould {
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(extractDag.invoke(steps)).doReturn(null as Dag?)
+        whenever(extractDag.invoke(pipeline)).doReturn(null as Dag?)
 
         evaluate()
 
@@ -153,6 +154,7 @@ class EvaluatorShould {
     private val customer = mock<Customer>()
 
     private val steps = mock<List<Step>>()
+    private val pipeline = Pipeline(steps)
     private val dag = mock<Dag>()
 
     private val registry = mock<RegistryServiceClient> {
@@ -169,13 +171,15 @@ class EvaluatorShould {
     }
     private val quarty = mock<QuartyClient> {
         on { getPipelineAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
-            Success(emptyList(), steps)
+            Success(emptyList(), pipeline)
         )
     }
     private val quartyBuilder = mock<(String) -> QuartyClient> {
         on { invoke("a.b.c") } doReturn quarty
     }
-    private val extractDag = mock<(List<Step>) -> Dag?>()
+    private val extractDag = mock<(Pipeline) -> Dag?> {
+        on { invoke(pipeline) } doReturn dag
+    }
 
     private val sequencer = MySequencer()
 
@@ -227,9 +231,5 @@ class EvaluatorShould {
                 logs += LogInvocation(stream, message, timestamp)
             }
         }
-    }
-
-    init {
-        whenever(extractDag.invoke(steps)).doReturn(dag)
     }
 }
