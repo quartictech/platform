@@ -58,8 +58,12 @@ class Evaluator(
                 }
 
                 phase("Evaluating DAG") {
+                    quartyBuilder(container.hostname)
+                        .initAsync(cloneUrl(details, token), details.commit)
+                        .awaitWrapped("communicating with Quarty")
+
                     val quartyResult = quartyBuilder(container.hostname)
-                        .getPipelineAsync(cloneUrl(details, token), details.commit)
+                        .evaluateAsync()
                         .awaitWrapped("communicating with Quarty")
 
                     logMessages(quartyResult)
