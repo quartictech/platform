@@ -56,6 +56,15 @@ class EvaluatorShould {
         )))
     }
 
+    @Test
+    fun quarty_init_before_evaluation() {
+        evaluate()
+        inOrder(quarty) {
+            verify(quarty).initAsync(any(), any())
+            verify(quarty).evaluateAsync()
+        }
+    }
+
     // TODO - until we do true streaming, this may lead to non-monotonic events
     @Test
     fun log_quarty_log_events_with_original_timestamps() {
