@@ -11,7 +11,7 @@ For finer grained control of the DAG, specifically orchestration, monitoring, an
 Advanced features regarding access controls, geographic region control, user assignments and so on are left to the end.
 
 
-#### Accessing metadata on a node
+## Accessing metadata on a node
 
 Metadata on a node and dataset is accessed via the associated method `.meta()` which will return a Python dictionary-like object.
 Values within the metadata object may be accessed as expected, i.e.:
@@ -26,7 +26,7 @@ It is important at this point to understand the distinction between the node, th
 The DAG is comprised of nodes containing datasets and described by metadata.
 This means the metadata is distinct from the data, although some of the entries (read-only) are produced when the node computation is evaluated.
 
-##### Default key-value pairs on metadata
+### Default key-value pairs on metadata
 
 A number of default key/value pairs are set on the metadata object.
 Additionally, some of these are read-only. 
@@ -48,7 +48,7 @@ The default list and corresponding keys and return types are as follows:
 
 Non-default entries may be set by, and accessed by the user as needed to pass around variables and values that are not part of the actual data.
 
-#### Setting node configuration via metadata
+## Setting node configuration via metadata
 
 Fine grained control over the DAG can be achieved by specifying a configuration for some or all of the individual nodes in the DAG.
 

@@ -75,11 +75,12 @@ class DatabaseShould {
 
     @Test
     fun get_events_for_build_in_chronological_order() {
+        val time = Instant.now()
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), Instant.now())
-        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), Instant.now() - Duration.ofSeconds(1))
-        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), Instant.now() + Duration.ofSeconds(1))
-        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), Instant.now() - Duration.ofSeconds(2))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), time)
+        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), time - Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), time + Duration.ofSeconds(1))
+        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), time - Duration.ofSeconds(2))
 
         assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
             successfulPhase(uuid(72)) as BuildEvent,
@@ -151,8 +152,6 @@ class DatabaseShould {
         }
     }
 
-
-
     @Test
     fun get_builds_succeeded() {
         val customerId = customerId()
@@ -166,6 +165,21 @@ class DatabaseShould {
         val builds = DATABASE.getBuilds(customerId)
         assertThat(builds.size, equalTo(1))
         assertThat(builds[0].status, equalTo("success"))
+    }
+
+    @Test
+    fun get_builds_failed() {
+        val customerId = customerId()
+        val buildId = UUID.randomUUID()
+        val phaseId = UUID.randomUUID()
+        val time = Instant.now()
+        DATABASE.insertBuild(buildId, customerId, branch)
+        DATABASE.insertEvent(UUID.randomUUID(), trigger.toTriggerReceived(), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BuildCompleted.BuildFailed("noob"), time, buildId, phaseId)
+
+        val builds = DATABASE.getBuilds(customerId)
+        assertThat(builds.size, equalTo(1))
+        assertThat(builds[0].status, equalTo("failure"))
     }
 
     @Test
