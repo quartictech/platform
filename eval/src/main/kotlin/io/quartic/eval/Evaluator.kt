@@ -81,7 +81,7 @@ class Evaluator(
                 dag
                     .mapNotNull { it.step }    // TODO - what about raw datasets?
                     .forEach { step ->
-                        phase<Unit>("Executing step: ${step.name}") {
+                        phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
                             extractPhaseResult(
                                 fromQuarty { executeAsync(step.id, customer.namespace) },
                                 { success(Unit) }

@@ -1,12 +1,16 @@
 package io.quartic.quarty.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Dataset(
     val namespace: String?,
     @JsonProperty("dataset_id")
     val datasetId: String
-)
+) {
+    @get:JsonIgnore
+    val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
+}
 
 data class Step(
     val id: String,
