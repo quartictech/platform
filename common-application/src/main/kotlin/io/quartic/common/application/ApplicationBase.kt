@@ -13,6 +13,8 @@ import io.quartic.common.auth.createAuthFilter
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.logging.logger
 import io.quartic.common.pingpong.PingPongResource
+import io.quartic.common.secrets.EncryptedSecret
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.configureObjectMapper
 import org.apache.commons.io.IOUtils.toInputStream
 import org.apache.commons.io.IOUtils.toString
@@ -27,6 +29,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     private val LOG by logger()
     private val details = ApplicationDetails(javaClass)
     protected val clientBuilder = ClientBuilder(javaClass)
+    protected lateinit var secretsCodec: SecretsCodec
 
     final override fun initialize(bootstrap: Bootstrap<T>) {
         with (bootstrap) {
@@ -47,6 +50,7 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     final override fun run(configuration: T, environment: Environment) {
         LOG.info("Running " + details.name + " " + details.version + " (Java " + details.javaVersion + ")")
         warnIfDevMasterKey(configuration)
+        secretsCodec = configuration.secretsCodec
 
         // TODO - CORS settings
         // TODO - check Origin and Referer headers
@@ -77,6 +81,8 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     protected open fun initializeApplication(bootstrap: Bootstrap<T>) = Unit
 
     protected abstract fun runApplication(configuration: T, environment: Environment)
+
+    protected fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
 
     // TODO: this string substitution is gross, should come up with something better
     private val baseConfig: String
