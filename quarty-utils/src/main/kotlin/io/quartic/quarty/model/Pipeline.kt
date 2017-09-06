@@ -1,5 +1,6 @@
 package io.quartic.quarty.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Dataset(
@@ -7,6 +8,7 @@ data class Dataset(
     @JsonProperty("dataset_id")
     val datasetId: String
 ) {
+    @get:JsonIgnore
     val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
 }
 
