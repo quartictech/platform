@@ -6,7 +6,9 @@ data class Dataset(
     val namespace: String?,
     @JsonProperty("dataset_id")
     val datasetId: String
-)
+) {
+    val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
+}
 
 data class Step(
     val id: String,

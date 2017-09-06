@@ -14,6 +14,7 @@ import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
+import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.Failure
@@ -57,8 +58,8 @@ class EvaluatorShould {
             "Acquiring Git credentials",
             "Cloning and preparing repository",
             "Evaluating DAG",
-            "Executing step: X",
-            "Executing step: Y"
+            "Executing step for dataset [::X]",
+            "Executing step for dataset [::Y]"
         ))
     }
 
@@ -191,12 +192,12 @@ class EvaluatorShould {
     private val githubCloneUrlWithCreds = URI("https://x-access-token:${githubToken.token.veryUnsafe}@noob.com/foo/bar")
 
     private val stepX = mock<Step> {
-        on { name } doReturn "X"
         on { id } doReturn "abc"
+        on { outputs } doReturn listOf(Dataset(null, "X"))
     }
     private val stepY = mock<Step> {
-        on { name } doReturn "Y"
         on { id } doReturn "def"
+        on { outputs } doReturn listOf(Dataset(null, "Y"))
     }
 
     private val details = mock<TriggerDetails> {
