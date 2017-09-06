@@ -97,13 +97,15 @@ class QuartyClientShould {
     }
 
     @Test
-    fun allow_null_payloads_for_success_messages() {
+    fun ignore_payload_for_success_messages_if_type_is_unit() {
         quartyWillSend(listOf(
             mapOf("type" to "result", "result" to null)
         ))
 
-        invokeQuarty()
-        // No error
+        assertThat(
+            client.invokeAsync<Unit> { evaluateAsync() }.get(),
+            equalTo(Success(emptyList(), Unit) as QuartyResult<*>)
+        )
     }
 
     private fun invokeQuarty() = client.invokeAsync<Pipeline> { evaluateAsync() }.get()

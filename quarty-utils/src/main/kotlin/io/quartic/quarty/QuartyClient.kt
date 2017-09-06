@@ -34,7 +34,7 @@ class QuartyClient(
     fun executeAsync(step: String, namespace: String): CompletableFuture<out QuartyResult<Unit>> =
         invokeAsync { executeAsync(step, namespace) }
 
-    inline fun <reified R : Any?> invokeAsync(
+    inline fun <reified R : Any> invokeAsync(
         block: Quarty.() -> CompletableFuture<ResponseBody>
     ): CompletableFuture<QuartyResult<R>> =
         block(quarty)
@@ -56,8 +56,15 @@ class QuartyClient(
                             is QuartyMessage.Progress ->
                                 logEvents += LogEvent("progress", it.message, clock.instant())
                             is QuartyMessage.Result ->
-                                // For impenetrable reasons, Kotlin convertValue<> extension doesn't work properly
-                                finaliser = { Success(logEvents, OBJECT_MAPPER.convertValue(it.result, R::class.java)) }
+                                finaliser = {
+                                    Success(
+                                        logEvents,
+                                        when (R::class) {
+                                            Unit::class -> Unit as R
+                                            else -> OBJECT_MAPPER.convertValue(it.result, R::class.java)    // For impenetrable reasons, Kotlin convertValue<> extension doesn't work properly
+                                        }
+                                    )
+                                }
                             is QuartyMessage.Error ->
                                 finaliser = { Failure(logEvents, it.detail) }
                         }
