@@ -47,7 +47,8 @@ class Notifier(
                 titleLink = buildUri,
                 text = event.message,
                 fields = listOf(
-                    HeyField("Branch", trigger.branch(), true)
+                    HeyField("Branch", trigger.branch(), true),
+                    HeyField("Customer", customer.name, true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = when (event) {

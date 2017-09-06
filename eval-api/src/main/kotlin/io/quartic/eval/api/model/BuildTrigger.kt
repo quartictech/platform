@@ -15,6 +15,11 @@ import java.time.Instant
 sealed class BuildTrigger {
     abstract fun branch(): String
 
+    enum class TriggerType {
+        EVALUATE,
+        EXECUTE
+    }
+
     data class GithubWebhook(
         val deliveryId: String,
         val repoId: Long,
@@ -33,7 +38,8 @@ sealed class BuildTrigger {
        val user: String,
        val timestamp: Instant,
        val customerId: CustomerId,
-       val branch: String
+       val branch: String,
+       val triggerType: TriggerType
     ): BuildTrigger() {
         override fun branch() = branch
     }

@@ -5,6 +5,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
@@ -32,7 +33,11 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
-            for (details in channel) evaluator.evaluateAsync(details)
+            for (trigger in channel) evaluator.evaluateAsync(trigger,
+                when (trigger) {
+                    is Manual -> trigger.triggerType
+                    is GithubWebhook -> TriggerType.EVALUATE
+                })
         }
     }
 

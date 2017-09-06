@@ -34,6 +34,7 @@ class NotifierShould {
     }
     private val customer = mock<Customer> {
         on { subdomain } doReturn "noobhole"
+        on { name } doReturn "noob co"
     }
 
     private val buildUri = URI.create("http://noobhole/#/pipeline/100")
@@ -66,7 +67,8 @@ class NotifierShould {
                 titleLink = URI.create("http://noobhole/#/pipeline/100"),
                 text = "Hello there",
                 fields = listOf(
-                    HeyField("Branch", "develop", true)
+                    HeyField("Branch", "develop", true),
+                    HeyField("Customer", customer.name, true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = HeyColor.GOOD
@@ -97,7 +99,8 @@ class NotifierShould {
                 titleLink = URI.create("http://noobhole/#/pipeline/100"),
                 text = "Oh dear",
                 fields = listOf(
-                    HeyField("Branch", "develop", true)
+                    HeyField("Branch", "develop", true),
+                    HeyField("Customer", customer.name, true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = HeyColor.DANGER

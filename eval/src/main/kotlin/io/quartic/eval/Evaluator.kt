@@ -55,7 +55,7 @@ class Evaluator(
 
     private val LOG by logger()
 
-    suspend fun evaluateAsync(trigger: BuildTrigger) = async(CommonPool) {
+    suspend fun evaluateAsync(trigger: BuildTrigger, triggerType: TriggerType) = async(CommonPool) {
         val customer = getCustomer(trigger)
 
         if (customer != null) {
@@ -83,16 +83,19 @@ class Evaluator(
                     )
                 }
 
-                dag
-                    .mapNotNull { it.step }    // TODO - what about raw datasets?
-                    .forEach { step ->
-                        phase<Unit>("Executing step: ${step.name}") {
-                            extractPhaseResult(
-                                fromQuarty { executeAsync(step.id, customer.namespace) },
-                                { success(Unit) }
-                            )
+                // Only do this for manual launch
+                if (triggerType == TriggerType.EXECUTE) {
+                    dag
+                        .mapNotNull { it.step }    // TODO - what about raw datasets?
+                        .forEach { step ->
+                            phase<Unit>("Executing step: ${step.name}") {
+                                extractPhaseResult(
+                                    fromQuarty { executeAsync(step.id, customer.namespace) },
+                                    { success(Unit) }
+                                )
+                            }
                         }
-                    }
+                }
             }
         }
     }
