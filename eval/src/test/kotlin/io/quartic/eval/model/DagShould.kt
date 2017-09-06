@@ -2,10 +2,13 @@ package io.quartic.eval.model
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.common.test.assertThrows
+import io.quartic.eval.model.Dag.Node
+import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
+import org.hamcrest.Matchers.containsInAnyOrder
+import org.junit.Assert.assertThat
 import org.junit.Test
-import org.hamcrest.Matchers.*
-import org.hamcrest.MatcherAssert.*
 
 class DagShould {
     fun readSteps(file: String) =
@@ -13,19 +16,57 @@ class DagShould {
 
     @Test
     fun build_basic_dag() {
-        val dag = Dag.fromSteps(readSteps("/steps.json"))
-        assertThat(dag.validate(), equalTo(true))
+        Dag.fromSteps(readSteps("/steps.json"))
+        // No errors
     }
 
     @Test
     fun detect_cyclic_dag() {
-        val dag = Dag.fromSteps(readSteps("/steps_cyclic.json"))
-        assertThat(dag.validate(), equalTo(false))
+        assertThrows<IllegalArgumentException> {
+            Dag.fromSteps(readSteps("/steps_cyclic.json"))
+        }
     }
 
     @Test
     fun detect_multiple_steps_per_output() {
-        val dag = Dag.fromSteps(readSteps("/steps_duplicate_outputs.json"))
-        assertThat(dag.validate(), equalTo(false))
+        assertThrows<IllegalArgumentException> {
+            Dag.fromSteps(readSteps("/steps_duplicate_outputs.json"))
+        }
     }
+
+    @Test
+    fun generate_correct_edges() {
+        val stepX = Step(
+            id = "123",
+            name = "foo",
+            description = "whatever",
+            file = "whatever",
+            lineRange = emptyList(),
+            inputs = listOf(dataset("A"), dataset("B")),
+            outputs = listOf(dataset("D"))
+        )
+
+        val stepY = Step(
+            id = "456",
+            name = "bar",
+            description = "whatever",
+            file = "whatever",
+            lineRange = emptyList(),
+            inputs = listOf(dataset("B"), dataset("C"), dataset("D")),
+            outputs = listOf(dataset("E"))
+        )
+
+
+        val steps = listOf(stepX, stepY)
+
+        assertThat(Dag.fromSteps(steps).edges, containsInAnyOrder(
+            Node(dataset("A")) to Node(dataset("D"), stepX),
+            Node(dataset("B")) to Node(dataset("D"), stepX),
+            Node(dataset("B")) to Node(dataset("E"), stepY),
+            Node(dataset("C")) to Node(dataset("E"), stepY),
+            Node(dataset("D"), stepX) to Node(dataset("E"), stepY)
+        ))
+    }
+
+    private fun dataset(id: String) = Dataset(null, id)
 }

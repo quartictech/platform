@@ -54,8 +54,8 @@ class QueryResource(private val database: Database) : EvalQueryService {
     private fun nodesFrom(dag: Dag) = dag.nodes.map {
         CytoscapeNode(
             CytoscapeNodeData(
-                id = it.title,
-                title = it.title,
+                id = it.dataset.title,
+                title = it.dataset.title,
                 type = if (dag.inDegreeOf(it) > 0) "derived" else "raw"
             )
         )
@@ -65,8 +65,8 @@ class QueryResource(private val database: Database) : EvalQueryService {
         CytoscapeEdge(
             CytoscapeEdgeData(
                 id = i.toLong(),
-                source = it.source.title,
-                target = it.target.title
+                source = it.first.dataset.title,
+                target = it.second.dataset.title
             )
         )
     }.toSet()

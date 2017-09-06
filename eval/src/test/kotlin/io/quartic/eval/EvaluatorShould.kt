@@ -4,6 +4,8 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.Dag
+import io.quartic.eval.model.Dag.Node
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
@@ -12,6 +14,7 @@ import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.quarty.QuartyClient
+import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.Failure
 import io.quartic.quarty.model.QuartyResult.Success
@@ -22,7 +25,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -50,10 +53,13 @@ class EvaluatorShould {
     fun use_the_correct_phase_descriptions() {
         evaluate()
 
-        assertThat(sequencer.descriptions, equalTo(listOf(
+        assertThat(sequencer.descriptions, contains(
             "Acquiring Git credentials",
-            "Evaluating DAG"
-        )))
+            "Cloning and preparing repository",
+            "Evaluating DAG",
+            "Executing step: X",
+            "Executing step: Y"
+        ))
     }
 
     @Test
@@ -77,33 +83,33 @@ class EvaluatorShould {
                     QuartyResult.LogEvent("foo", "Hello", instantA),
                     QuartyResult.LogEvent("bar", "World", instantB)
                 ),
-                steps
+                pipeline
             )
         ))
 
         evaluate()
 
         // Other messages should be filtered out
-        assertThat(sequencer.logs, equalTo(listOf(
+        assertThat(sequencer.logs, contains(
             LogInvocation("foo", "Hello", instantA),
             LogInvocation("bar", "World", instantB)
-        )))
+        ))
     }
 
     @Test
     fun produce_success_if_everything_works() {
         evaluate()
 
-        assertThat(sequencer.results[1], equalTo(SuccessWithArtifact(EvaluationOutput(steps), Unit) as PhaseResult<*>))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(steps), dag)))
     }
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(dagIsValid.invoke(steps)).doReturn(false)
+        whenever(extractDag.invoke(pipeline)).doReturn(null as Dag?)
 
         evaluate()
 
-        assertThat(sequencer.results[1], equalTo(UserError<Any>("DAG is invalid") as PhaseResult<*>))
+        assertThat(sequencer.results, hasItem(UserError<Any>("DAG is invalid")))
     }
 
     @Test
@@ -112,7 +118,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(sequencer.results[1], equalTo(UserError<Any>("badness") as PhaseResult<*>))
+        assertThat(sequencer.results, hasItem(UserError<Any>("badness")))
     }
 
     @Test
@@ -130,7 +136,7 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while acquiring access token from GitHub") as Throwable))
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while acquiring access token from GitHub")))
         verifyZeroInteractions(quartyBuilder)
     }
 
@@ -140,7 +146,33 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(sequencer.throwables[0], equalTo(EvaluatorException("Error while communicating with Quarty") as Throwable))
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while communicating with Quarty")))
+    }
+
+    @Test
+    fun execute_steps_from_dag_in_order() {
+        evaluate()
+
+        inOrder(quarty) {
+            verify(quarty).executeAsync("abc", customerNamespace)
+            verify(quarty).executeAsync("def", customerNamespace)
+        }
+    }
+
+    @Test
+    fun skip_execution_of_raw_datasets() {
+        whenever(dag.iterator()).thenReturn(
+            listOf(
+                Node(mock(), null),     // Raw
+                Node(mock(), stepY)
+            ).iterator()
+        )
+
+        evaluate()
+
+
+        verify(quarty, times(1)).executeAsync(any(), any())
+        verify(quarty).executeAsync("def", customerNamespace)
     }
 
     private fun evaluate() = runBlocking {
@@ -151,42 +183,70 @@ class EvaluatorShould {
         completeExceptionally(RuntimeException("Sad"))
     }
 
+    private val customerNamespace = "raging"
+    private val commitId = "abc123"
+    private val containerHostname = "a.b.c"
+    private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
+    private val githubCloneUrl = URI("https://noob.com/foo/bar")
+    private val githubCloneUrlWithCreds = URI("https://x-access-token:${githubToken.token.veryUnsafe}@noob.com/foo/bar")
+
+    private val stepX = mock<Step> {
+        on { name } doReturn "X"
+        on { id } doReturn "abc"
+    }
+    private val stepY = mock<Step> {
+        on { name } doReturn "Y"
+        on { id } doReturn "def"
+    }
+
     private val details = mock<TriggerDetails> {
         on { repoId } doReturn 5678
         on { installationId } doReturn 1234
-        on { commit } doReturn "abc123"
-        on { cloneUrl } doReturn URI("https://noob.com/foo/bar")
+        on { commit } doReturn commitId
+        on { cloneUrl } doReturn githubCloneUrl
     }
 
-    private val customer = mock<Customer>()
+    private val customer = mock<Customer> {
+        on { namespace } doReturn customerNamespace
+    }
 
     private val steps = mock<List<Step>>()
+    private val pipeline = Pipeline(steps)
+    private val dag = mock<Dag> {
+        on { iterator() } doReturn listOf(
+            Node(mock(), stepX),
+            Node(mock(), stepY)
+        ).iterator()
+    }
 
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
     }
+
     private val quartyContainer = mock<QubeContainerProxy> {
-        on { hostname } doReturn "a.b.c"
+        on { hostname } doReturn containerHostname
         on { errors } doReturn produce(CommonPool) {
             delay(500)  // To prevent closure
         }
     }
-    private val github = mock<GitHubInstallationClient> {
-        on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
-    }
-    private val quarty = mock<QuartyClient> {
-        on { initAsync(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(
-            null
-        )
 
-        on { evaluateAsync() } doReturn completedFuture(
-            Success(emptyList(), steps)
-        )
+    private val github = mock<GitHubInstallationClient> {
+        on { accessTokenAsync(1234) } doReturn completedFuture(githubToken)
     }
+
+    private val quarty = mock<QuartyClient> {
+        on { initAsync(githubCloneUrlWithCreds, commitId) } doReturn completedFuture(Success(emptyList(), Unit))
+        on { evaluateAsync() } doReturn completedFuture(Success(emptyList(), pipeline))
+        on { executeAsync(any(), any()) } doReturn completedFuture(Success(emptyList(), Unit))
+    }
+
     private val quartyBuilder = mock<(String) -> QuartyClient> {
-        on { invoke("a.b.c") } doReturn quarty
+        on { invoke(containerHostname) } doReturn quarty
     }
-    private val dagIsValid = mock<(List<Step>) -> Boolean>()
+
+    private val extractDag = mock<(Pipeline) -> Dag?> {
+        on { invoke(pipeline) } doReturn dag
+    }
 
     private val sequencer = MySequencer()
 
@@ -194,7 +254,7 @@ class EvaluatorShould {
         sequencer,
         registry,
         github,
-        dagIsValid,
+        extractDag,
         quartyBuilder
     )
 
@@ -238,9 +298,5 @@ class EvaluatorShould {
                 logs += LogInvocation(stream, message, timestamp)
             }
         }
-    }
-
-    init {
-        whenever(dagIsValid.invoke(steps)).doReturn(true)
     }
 }

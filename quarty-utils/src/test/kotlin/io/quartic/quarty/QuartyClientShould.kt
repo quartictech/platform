@@ -1,9 +1,9 @@
 package io.quartic.quarty
 
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.quarty.model.QuartyMessage
+import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyMessage.*
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.*
@@ -11,11 +11,9 @@ import io.quartic.quarty.model.Step
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
-import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.CompletableFuture.completedFuture
@@ -28,6 +26,8 @@ class QuartyClientShould {
     private val instantA = mock<Instant>()
     private val instantB = mock<Instant>()
 
+    private lateinit var responseBody: ResponseBody
+
     @Before
     fun before() {
         whenever(clock.instant())
@@ -37,18 +37,18 @@ class QuartyClientShould {
 
     @Test
     fun return_success_if_quarty_returns_result() {
-        val steps = listOf(
+        val pipeline = Pipeline(listOf(
             Step("123", "Foo", "Bar", "file/yeah.py", listOf(1, 2), emptyList(), emptyList())
-        )
+        ))
 
         quartyWillSend(listOf(
-            Result(steps)
+            Result(OBJECT_MAPPER.convertValue(pipeline))
         ))
 
         assertThat(invokeQuarty(), equalTo(Success(
             emptyList(),
-            steps
-        ) as QuartyResult))
+            pipeline
+        ) as QuartyResult<*>))
     }
 
     @Test
@@ -57,10 +57,10 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        assertThat(invokeQuarty(), equalTo(Failure(
+        assertThat(invokeQuarty(), equalTo(Failure<Any>(
             emptyList(),
             "Big problems"
-        ) as QuartyResult))
+        ) as QuartyResult<*>))
     }
 
     @Test
@@ -71,36 +71,94 @@ class QuartyClientShould {
             Error("Big problems")
         ))
 
-        assertThat(invokeQuarty(), equalTo(Failure(
+        assertThat(invokeQuarty(), equalTo(Failure<Any>(
             listOf(
                 LogEvent("stdout", "Yeah", instantA),
                 LogEvent("progress", "Lovely time", instantB)
             ),
             "Big problems"
-        ) as QuartyResult))
+        ) as QuartyResult<*>))
     }
 
     @Test
-    fun return_null_if_no_result_or_error() {
+    fun return_internal_error_if_no_result_or_failure() {
         quartyWillSend(listOf(
             Log("stdout", "Yeah"),
             Progress("Lovely time")
             // No result or error here!
         ))
 
-        assertThat(invokeQuarty(), nullValue())
+        assertThat(invokeQuarty(), equalTo(InternalError<Any>(
+            listOf(
+                LogEvent("stdout", "Yeah", instantA),
+                LogEvent("progress", "Lovely time", instantB)
+            ),
+            "No terminating message received"
+        ) as QuartyResult<*>))
     }
 
-    private fun invokeQuarty() = client.invokeAsync { evaluateAsync() }.get()
-
-    private fun quartyWillSend(messages: List<QuartyMessage>) {
-        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
-            ResponseBody.create(
-                MediaType.parse("application/x-ndjson"),
-                messages.toNdJson()
-            )
+    @Test
+    fun ignore_payload_for_success_messages_if_type_is_unit() {
+        quartyWillSend(listOf(
+            mapOf("type" to "result", "result" to null)
         ))
+
+        assertThat(
+            client.initAsync(mock(), "yeah").get(),
+            equalTo(Success(emptyList(), Unit) as QuartyResult<*>)
+        )
     }
 
-    private fun List<QuartyMessage>.toNdJson() = map(OBJECT_MAPPER::writeValueAsString).joinToString("\n")
+    @Test
+    fun return_internal_error_if_parsing_fails() {
+        quartyWillSend(listOf(
+            Log("stdout", "Yeah"),
+            mapOf("type" to "gibberish"),
+            Log("stdout", "Oh yeah")
+        ))
+
+        assertThat(invokeQuarty(), equalTo(InternalError<Any>(
+            listOf(
+                LogEvent("stdout", "Yeah", instantA)
+                // Second log message not captured
+            ),
+            "Error invoking Quarty"
+        ) as QuartyResult<*>))
+    }
+
+    @Test
+    fun close_response_body_when_completing_normally() {
+        quartyWillSend(listOf(
+            Error("Oh dear")
+        ))
+
+        invokeQuarty()
+
+        verify(responseBody).close()
+    }
+
+    @Test
+    fun close_response_body_when_something_bad_happened() {
+        quartyWillSend(listOf(
+            mapOf("type" to "gibberish")
+        ))
+
+        invokeQuarty()
+
+        verify(responseBody).close()
+    }
+
+    private fun invokeQuarty() = client.evaluateAsync().get()
+
+    private fun quartyWillSend(messages: List<Any>) {
+        responseBody = spy(ResponseBody.create(
+            MediaType.parse("application/x-ndjson"),
+            messages.toNdJson()
+        ))
+
+        whenever(quarty.initAsync(any(), any())).thenReturn(completedFuture(responseBody))
+        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(responseBody))
+    }
+
+    private fun List<Any>.toNdJson() = map(OBJECT_MAPPER::writeValueAsString).joinToString("\n")
 }

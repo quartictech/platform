@@ -18,3 +18,7 @@ data class Step(
     val inputs: List<Dataset>,
     val outputs: List<Dataset>
 )
+
+data class Pipeline(
+    val steps: List<Step>
+)
