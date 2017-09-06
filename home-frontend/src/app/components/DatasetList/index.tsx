@@ -114,5 +114,5 @@ class DatasetListInner extends React.Component<IDatasetListProps, void> {
       );
   }
 }
-
-export const datasetList = withRouter(DatasetListInner);
+// tslint:disable-next-line:variable-name
+export const DatasetList = withRouter(DatasetListInner);
