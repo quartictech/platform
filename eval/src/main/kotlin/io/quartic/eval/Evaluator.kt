@@ -64,7 +64,7 @@ class Evaluator(
                         .awaitWrapped("acquiring access token from GitHub"))
                 }
 
-                phase<Unit>("Cloning repository") {
+                phase<Unit>("Cloning and preparing repository") {
                     extractPhaseResult(
                         fromQuarty { initAsync(cloneUrl(details, token), details.commit) },
                         { success(Unit) }
@@ -126,7 +126,7 @@ class Evaluator(
             if (t is HttpException && t.code() == 404) {
                 LOG.warn("Repo ID ${details.repoId} not found in Registry")
             } else {
-                LOG.error("Error communicating with Registry", t)
+                LOG.error("Error while communicating with Registry", t)
             }
             null
         }

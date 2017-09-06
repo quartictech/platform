@@ -25,7 +25,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
@@ -56,7 +55,7 @@ class EvaluatorShould {
 
         assertThat(sequencer.descriptions, contains(
             "Acquiring Git credentials",
-            "Cloning repository",
+            "Cloning and preparing repository",
             "Evaluating DAG",
             "Executing step: X",
             "Executing step: Y"
