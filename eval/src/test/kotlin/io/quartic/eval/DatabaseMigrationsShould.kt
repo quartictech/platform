@@ -7,6 +7,8 @@ import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.TriggerDetails
 import org.flywaydb.core.api.MigrationVersion
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -16,8 +18,6 @@ import org.junit.runners.MethodSorters
 import java.net.URI
 import java.time.Instant
 import java.util.*
-import org.hamcrest.MatcherAssert.*
-import org.hamcrest.CoreMatchers.*
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class DatabaseMigrationsShould {
@@ -45,18 +45,51 @@ class DatabaseMigrationsShould {
             .forEach { assertThat(it, equalTo("develop")) }
     }
 
-    fun databaseVersion(version: String): Database = DatabaseBuilder
+    @Test
+    fun v3_migrate() {
+        databaseVersion("3")
+        assertThat(checkTableExists("phase", "public"), equalTo(false))
+        assertThat(checkTableExists("build", "public"), equalTo(true))
+        assertThat(checkTableExists("event", "public"), equalTo(true))
+    }
+
+    @Test
+    fun v4_migrate() {
+        databaseVersion("4")
+    }
+
+    @Test
+    fun v5_migrate() {
+        databaseVersion("5")
+    }
+
+    private fun checkTableExists(name: String, schema: String): Boolean =
+        DBI.open().createQuery(
+            """select exists(
+            select 1
+            from pg_tables
+            where schemaname = :schema_name
+            and tablename = :table_name
+            );""")
+            .bind("table_name", name)
+            .bind("schema_name", schema)
+            .mapTo(Boolean::class.java)
+            .findOnly()
+
+    private fun databaseVersion(version: String): Database = DatabaseBuilder
         .testDao(Database::class.java, PG.embeddedPostgres.postgresDatabase,
             MigrationVersion.fromVersion(version))
 
-    val customerId = CustomerId(100)
-    val branch = "develop"
+    private val customerId = CustomerId(100)
+    private val branch = "develop"
     private val triggerDetails = TriggerDetails(
         type = "wat",
         deliveryId = "id",
         installationId = 100,
         repoId = 100,
+        repoFullName = "my/repo",
         repoName = "repo",
+        repoOwner = "my",
         cloneUrl = URI.create("ref"),
         ref = "refs/heads/${branch}",
         commit = "commit",

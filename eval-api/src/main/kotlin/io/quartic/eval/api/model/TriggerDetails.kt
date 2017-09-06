@@ -8,11 +8,14 @@ data class TriggerDetails(
     val deliveryId: String,     // For logging purposes
     val installationId: Long,
     val repoId: Long,
+    val repoFullName: String,
     val repoName: String,
+    val repoOwner: String,
     val cloneUrl: URI,
     val ref: String,
     val commit: String,
-    val timestamp: Instant
+    val timestamp: Instant,
+    val rawWebhook: Map<String, Any> = emptyMap()
 ) {
     fun branch(): String = ref.removePrefix("refs/heads/")
 }

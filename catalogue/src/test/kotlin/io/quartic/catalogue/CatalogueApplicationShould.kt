@@ -7,7 +7,7 @@ import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.catalogue.api.model.DatasetNamespace
-import io.quartic.common.client.client
+import io.quartic.common.client.ClientBuilder
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
@@ -18,7 +18,7 @@ class CatalogueApplicationShould {
 
     @Test
     fun retrieve_registered_datasets() {
-        val catalogue = client<CatalogueService>(javaClass, "http://localhost:" + RULE.localPort + "/api")
+        val catalogue = ClientBuilder(this).feign<CatalogueService>("http://localhost:" + RULE.localPort + "/api")
 
         val config = DatasetConfig(
                 DatasetMetadata("Foo", "Bar", "Arlo", null),

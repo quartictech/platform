@@ -1,8 +1,9 @@
 package io.quartic.eval.api
 
-import io.quartic.common.client.Jaxable
-import io.quartic.common.client.Retrofittable
+import io.quartic.common.client.ClientBuilder.Companion.Jaxable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.model.CustomerId
+import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.CytoscapeDag
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -27,6 +28,13 @@ interface EvalQueryService {
         @PathParam("customer_id") customerId: CustomerId,
         @PathParam("build_number") buildNumber: Long
     ): CytoscapeDag
+
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Path("/builds/{customer_id}")
+    fun getBuilds(
+        @PathParam("customer_id") customerId: CustomerId
+    ): List<Build>
 }
 
 @Retrofittable
@@ -41,4 +49,7 @@ interface EvalQueryServiceClient {
         @Path("customer_id") customerId: CustomerId,
         @Path("build_number") buildNumber: Long
     ): CompletableFuture<CytoscapeDag>
+
+    @GET("query/builds/{customer_id}")
+    fun getBuildsAsync(@Path("customer_id") customerId: CustomerId): CompletableFuture<List<Build>>
 }

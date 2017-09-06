@@ -1,8 +1,6 @@
 package io.quartic.catalogue
 
 import io.quartic.catalogue.api.model.*
-import io.quartic.common.test.entry
-import io.quartic.common.test.map
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test
@@ -39,10 +37,10 @@ abstract class StorageBackendTests {
         backend[coords("foo", "B")] = datasetB
         backend[coords("bar", "C")] = datasetC
 
-        assertThat(backend.getAll(), equalTo(map(
-                entry(coords("foo", "A"), datasetA),
-                entry(coords("foo", "B"), datasetB),
-                entry(coords("bar", "C"), datasetC)
+        assertThat(backend.getAll(), equalTo(mapOf(
+                coords("foo", "A") to datasetA,
+                coords("foo", "B") to datasetB,
+                coords("bar", "C") to datasetC
         )))
     }
 
@@ -77,7 +75,7 @@ abstract class StorageBackendTests {
         backend[coords] = dataset
         backend.remove(coords)
 
-        assertThat(backend.getAll(), equalTo<Map<out Any, Any>>(emptyMap<Any, Any>()))
+        assertThat(backend.getAll(), equalTo(emptyMap()))
     }
 
     protected fun dataset(name: String): DatasetConfig {

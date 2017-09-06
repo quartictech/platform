@@ -29,7 +29,7 @@ dependencies {
 
     testCompile project(":common-test")
     testCompile libraries.embeddedPostgres
-    testCompile "io.dropwizard:dropwizard-testing:${versions.dropwizard}"
+    testCompile libraries.dropwizard.testing
 }
 
 idea {

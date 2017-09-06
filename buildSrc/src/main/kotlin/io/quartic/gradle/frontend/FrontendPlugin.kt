@@ -84,7 +84,8 @@ class FrontendPlugin : Plugin<Project> {
             // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
             commandLine = listOf(
                 yarnExecutable,
-                "--mutex", "network"
+                "--mutex", "network",
+                "--non-interactive"
             ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
         }
 
@@ -125,16 +126,6 @@ class FrontendPlugin : Plugin<Project> {
                 File(project.rootDir, "tslint.json"),
                 "*.ts{,x}",
                 "-t", "stylish"))
-            dependsOn(createLintTask(installDeps,
-                "eslint",
-                File(nodeModulesDir, "eslint/bin/eslint.js"),
-                File(project.rootDir, "eslint.json"),
-                "*.js{,x}"))
-            dependsOn(createLintTask(installDeps,
-                "stylelint",
-                File(nodeModulesDir, "stylelint/dist/cli.js"),
-                File(project.projectDir, "stylelint.json"),  // TODO - get this moved to rootDir
-                "*.css"))
         }
 
         private fun createLintTask(

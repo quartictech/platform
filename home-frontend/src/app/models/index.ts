@@ -63,3 +63,29 @@ export interface Profile {
   name: string;
   avatarUrl: string;
 }
+
+export interface Build {
+  type: string;
+  id: string;
+  buildNumber: number;
+  branch: string;
+  status: string;
+  triggerDetails: {
+    repoFullName: string;
+  };
+  time: number;
+}
+
+export interface Other {
+  type: string;
+  id: string;
+  time: number;
+}
+
+export enum LoadingState {
+  NOT_LOADED,
+  LOADING,
+  LOADED,
+}
+
+export type FeedItem = Build | Other;

@@ -2,7 +2,7 @@ package io.quartic.eval.api
 
 import feign.Headers
 import feign.RequestLine
-import io.quartic.common.client.Jaxable
+import io.quartic.common.client.ClientBuilder.Companion.Jaxable
 import io.quartic.eval.api.model.TriggerDetails
 import javax.ws.rs.Consumes
 import javax.ws.rs.POST
@@ -16,5 +16,5 @@ interface EvalTriggerService {
     @Headers("Content-Type: ${MediaType.APPLICATION_JSON}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    fun trigger(trigger: TriggerDetails)
+    fun trigger(triggerDetails: TriggerDetails)
 }

@@ -1,11 +1,19 @@
 personal_ws-1.1 en 0
 API
 APIs
+ARN
+AWS
+CLI
 DAGs
 DSL
+GCP
+IAM
 namespace
+PII
+programmatically
 reproducibility
 Quartic
+Quartic's
 quickstart
 dataset
 datasets
@@ -21,4 +29,5 @@ Github
 metadata
 Metadata
 versioned
+versioning
 timestamps

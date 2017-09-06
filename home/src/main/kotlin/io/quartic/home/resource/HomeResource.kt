@@ -49,6 +49,11 @@ class HomeResource(
     fun getLatestDag(@Auth user: User) = eval.getDagAsync(user.customerId!!)
         .wrapNotFound("DAG", "latest")
 
+    @GET
+    @Path("/builds")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getBuilds(@Auth user: User) = eval.getBuildsAsync(user.customerId!!)
+        .wrapNotFound("Builds", user.customerId!!)
 
     @GET
     @Path("/dag/{build}")

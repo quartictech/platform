@@ -1,6 +1,6 @@
 package io.quartic.registry.api
 
-import io.quartic.common.client.Retrofittable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.model.CustomerId
 import io.quartic.registry.api.model.Customer
 import retrofit2.http.Query

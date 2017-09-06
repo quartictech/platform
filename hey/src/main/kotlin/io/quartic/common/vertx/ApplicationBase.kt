@@ -1,7 +1,7 @@
 package io.quartic.common.vertx
 
 import com.google.common.base.Throwables.getRootCause
-import io.quartic.common.client.userAgentFor
+import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec

@@ -4,8 +4,6 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.catalogue.api.model.*
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
-import io.quartic.common.test.entry
-import io.quartic.common.test.map
 import io.quartic.common.uid.sequenceGenerator
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
@@ -140,9 +138,9 @@ class CatalogueResourceShould {
 
     private fun coords(namespace: DatasetNamespace, id: DatasetId) = DatasetCoordinates(namespace, id)
 
-    private fun loadsOfDatasets(): Map<DatasetCoordinates, DatasetConfig> = map(
-            entry(coords(namespace, mock()), mock()),
-            entry(coords(namespace, mock()), mock()),
-            entry(coords(DatasetNamespace("bar"), mock()), mock())  // Prove that multiple namespaces work ok
+    private fun loadsOfDatasets(): Map<DatasetCoordinates, DatasetConfig> = mapOf(
+            coords(namespace, mock()) to mock(),
+            coords(namespace, mock()) to mock(),
+            coords(DatasetNamespace("bar"), mock()) to mock()  // Prove that multiple namespaces work ok
     )
 }

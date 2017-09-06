@@ -1,5 +1,6 @@
 package io.quartic.glisten
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -67,11 +68,14 @@ class GithubResourceShould {
             deliveryId = "abc",
             installationId = 12345,
             repoId = 66666,
-            repoName = "noobhole/noobing",
+            repoFullName = "noobhole/noobing",
+            repoName = "noobing",
+            repoOwner = "noobhole",
             cloneUrl = URI("https://github.com/noobhole/noobing.git"),
             ref = "refs/heads/master",
             commit = "fc6206fd27761a1e03383287e213801105f01a25",
-            timestamp = clock.instant()
+            timestamp = clock.instant(),
+            rawWebhook = OBJECT_MAPPER.readValue(payload)
         ))
     }
 
@@ -134,7 +138,10 @@ class GithubResourceShould {
             name = "noobing",
             fullName = "noobhole/noobing",
             private = true,
-            cloneUrl = URI("https://github.com/noobhole/noobing.git")
+            cloneUrl = URI("https://github.com/noobhole/noobing.git"),
+            owner = Owner(
+                name = "noobhole"
+            )
         ),
         installation = Installation(12345)
     )
