@@ -28,13 +28,14 @@ class WorkerShould {
         .endSpec()
         .build()
 
+    val uuid = UUID.randomUUID()
     val jobStore = mock<JobStore>()
-    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true)
+    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true, { -> uuid })
 
     val key = PodKey(UUID.randomUUID(), "test")
     val pod = PodBuilder(podTemplate)
         .editOrNewMetadata()
-        .withName("${key.client}-${key.name}")
+        .withName("$uuid")
         .withNamespace("noob")
         .endMetadata()
         .editOrNewSpec()
@@ -72,7 +73,7 @@ class WorkerShould {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
 
-            verify(client, timeout(1000)).watchPod(eq("${key.client}-${key.name}"))
+            verify(client, timeout(1000)).watchPod(eq("$uuid"))
         }
     }
 
@@ -92,7 +93,7 @@ class WorkerShould {
             podEvents.send(runningPod(true))
 
             verify(returnChannel, timeout(1000)).send(
-                QubeResponse.Running(key.name, "100.100.100.100", any())
+                QubeResponse.Running(key.name, "100.100.100.100", uuid)
             )
         }
     }
@@ -104,7 +105,7 @@ class WorkerShould {
             podEvents.send(runningPod(false))
 
             verify(returnChannel, timeout(1000).times(0)).send(
-                QubeResponse.Running(any(), any(), any())
+                isA<QubeResponse.Running>()
             )
         }
     }

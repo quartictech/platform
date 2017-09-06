@@ -24,12 +24,12 @@ class WorkerImpl(
     val namespace: String,
     val jobStore: JobStore,
     val timeoutSeconds: Long,
-    val deletePods: Boolean
+    val deletePods: Boolean,
+    val uuidGen: () -> UUID = { UUID.randomUUID() }
 ): Worker {
     private val threadPool = newFixedThreadPoolContext(4, "Worker-Thread-Pool")
     private val LOG by logger()
 
-    fun podName(key: PodKey) = "${key.client}-${key.name}"
     private suspend fun createPod(pod: Pod) = run(threadPool) {
         client.createPod(pod)
         LOG.info("[{}] Pod created", pod.metadata.name)
@@ -70,9 +70,9 @@ class WorkerImpl(
         }
 
     private suspend fun run(create: QubeEvent.CreatePod) {
-        val podName = podName(create.key)
+        val podId = uuidGen()
+        val podName = podId.toString()
         val watch = client.watchPod(podName)
-        val podId = UUID.randomUUID()
 
         val startTime = Instant.now()
         cancellable(
