@@ -1,6 +1,7 @@
 package io.quartic.eval.sequencer
 
 import io.quartic.common.coroutines.use
+import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.Database
 import io.quartic.eval.Database.BuildRow
@@ -31,6 +32,8 @@ class SequencerImpl(
     private val notifier: Notifier,
     private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ) : Sequencer {
+    private val LOG by logger()
+
     override suspend fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
         SequenceContext(details, customer).execute(block)
     }
@@ -109,6 +112,7 @@ class SequencerImpl(
             phaseId: UUID? = null,
             time: Instant = Instant.now()
         ) = run(threadPool) {
+            LOG.info("Event: ${event}")
             database.insertEvent(
                 id = uuidGen(),
                 payload = event,

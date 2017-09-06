@@ -88,11 +88,11 @@ class QueryResourceShould {
                     node("E", "derived")
                 ),
                 setOf(
-                    edge(0, "A", "D"),
-                    edge(1, "B", "D"),
-                    edge(2, "B", "E"),
-                    edge(3, "C", "E"),
-                    edge(4, "D", "E")
+                    edge(1, "A", "D"),
+                    edge(2, "B", "D"),
+                    edge(3, "B", "E"),
+                    edge(4, "C", "E"),
+                    edge(0, "D", "E")
                 )
             )
         ))

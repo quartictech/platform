@@ -14,6 +14,6 @@ import io.quartic.quarty.model.QuartyMessage.*
 sealed class QuartyMessage {
     data class Progress(val message: String) : QuartyMessage()
     data class Log(val stream: String, val line: String) : QuartyMessage()
-    data class Result(val result: List<Step>) : QuartyMessage()
+    data class Result(val result: Any?) : QuartyMessage()
     data class Error(val detail: Any) : QuartyMessage()
 }
