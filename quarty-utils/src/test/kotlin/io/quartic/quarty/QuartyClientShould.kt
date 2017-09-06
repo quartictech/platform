@@ -1,8 +1,7 @@
 package io.quartic.quarty
 
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyMessage.*
@@ -26,6 +25,8 @@ class QuartyClientShould {
 
     private val instantA = mock<Instant>()
     private val instantB = mock<Instant>()
+
+    private lateinit var responseBody: ResponseBody
 
     @Before
     fun before() {
@@ -103,20 +104,60 @@ class QuartyClientShould {
         ))
 
         assertThat(
-            client.invokeAsync<Unit> { evaluateAsync() }.get(),
+            client.initAsync(mock(), "yeah").get(),
             equalTo(Success(emptyList(), Unit) as QuartyResult<*>)
         )
     }
 
-    private fun invokeQuarty() = client.invokeAsync<Pipeline> { evaluateAsync() }.get()
+    @Test
+    fun return_internal_error_if_parsing_fails() {
+        quartyWillSend(listOf(
+            Log("stdout", "Yeah"),
+            mapOf("type" to "gibberish"),
+            Log("stdout", "Oh yeah")
+        ))
+
+        assertThat(invokeQuarty(), equalTo(InternalError<Any>(
+            listOf(
+                LogEvent("stdout", "Yeah", instantA)
+                // Second log message not captured
+            ),
+            "Error invoking Quarty"
+        ) as QuartyResult<*>))
+    }
+
+    @Test
+    fun close_response_body_when_completing_normally() {
+        quartyWillSend(listOf(
+            Error("Oh dear")
+        ))
+
+        invokeQuarty()
+
+        verify(responseBody).close()
+    }
+
+    @Test
+    fun close_response_body_when_something_bad_happened() {
+        quartyWillSend(listOf(
+            mapOf("type" to "gibberish")
+        ))
+
+        invokeQuarty()
+
+        verify(responseBody).close()
+    }
+
+    private fun invokeQuarty() = client.evaluateAsync().get()
 
     private fun quartyWillSend(messages: List<Any>) {
-        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
-            ResponseBody.create(
-                MediaType.parse("application/x-ndjson"),
-                messages.toNdJson()
-            )
+        responseBody = spy(ResponseBody.create(
+            MediaType.parse("application/x-ndjson"),
+            messages.toNdJson()
         ))
+
+        whenever(quarty.initAsync(any(), any())).thenReturn(completedFuture(responseBody))
+        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(responseBody))
     }
 
     private fun List<Any>.toNdJson() = map(OBJECT_MAPPER::writeValueAsString).joinToString("\n")

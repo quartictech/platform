@@ -2,6 +2,7 @@ package io.quartic.quarty
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.client.ClientBuilder
+import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyMessage
@@ -16,9 +17,11 @@ import java.util.concurrent.CompletableFuture
 typealias QuartyErrorDetail = Any
 
 class QuartyClient(
-    val quarty: Quarty,
-    val clock: Clock
+    private val quarty: Quarty,
+    private val clock: Clock
 ) {
+    private val LOG by logger()
+
     constructor(
         clientBuilder: ClientBuilder,
         url: String,
@@ -34,7 +37,7 @@ class QuartyClient(
     fun executeAsync(step: String, namespace: String): CompletableFuture<out QuartyResult<Unit>> =
         invokeAsync { executeAsync(step, namespace) }
 
-    inline fun <reified R : Any> invokeAsync(
+    private inline fun <reified R : Any> invokeAsync(
         block: Quarty.() -> CompletableFuture<ResponseBody>
     ): CompletableFuture<QuartyResult<R>> =
         block(quarty)
@@ -42,35 +45,37 @@ class QuartyClient(
                 val logEvents = mutableListOf<LogEvent>()
                 var finaliser: () -> QuartyResult<R> = { InternalError(logEvents, "No terminating message received") }
 
-                // TODO - error handling for Jackson errors
-                responseBody
-                    .byteStream()
-                    .bufferedReader()
-                    .lines()
-                    .filter { !it.isEmpty() }
-                    .map { OBJECT_MAPPER.readValue<QuartyMessage>(it) }
-                    .forEach {
-                        when (it) {
-                            is QuartyMessage.Log ->
-                                logEvents += LogEvent(it.stream, it.line, clock.instant())
-                            is QuartyMessage.Progress ->
-                                logEvents += LogEvent("progress", it.message, clock.instant())
-                            is QuartyMessage.Result ->
-                                finaliser = {
-                                    Success(
-                                        logEvents,
-                                        when (R::class) {
+                try {
+                    responseBody.use {
+                        it.byteStream()
+                            .bufferedReader()
+                            .lines()
+                            .filter { !it.isEmpty() }
+                            .map { OBJECT_MAPPER.readValue<QuartyMessage>(it) }
+                            .forEach {
+                                when (it) {
+                                    is QuartyMessage.Log ->
+                                        logEvents += LogEvent(it.stream, it.line, clock.instant())
+                                    is QuartyMessage.Progress ->
+                                        logEvents += LogEvent("progress", it.message, clock.instant())
+                                    is QuartyMessage.Result -> {
+                                        val result = when (R::class) {
                                             Unit::class -> Unit as R
                                             else -> OBJECT_MAPPER.convertValue(it.result, R::class.java)    // For impenetrable reasons, Kotlin convertValue<> extension doesn't work properly
                                         }
-                                    )
+                                        finaliser = { Success(logEvents, result) }
+                                    }
+                                    is QuartyMessage.Error ->
+                                        finaliser = { Failure(logEvents, it.detail) }
                                 }
-                            is QuartyMessage.Error ->
-                                finaliser = { Failure(logEvents, it.detail) }
-                        }
+                            }
                     }
+                } catch (e: Exception) {
+                    LOG.error("Error invoking Quarty", e)
+                    finaliser = { InternalError(logEvents, "Error invoking Quarty") }
+                }
 
-                    finaliser()
+                finaliser()
             }
 }
 
