@@ -26,7 +26,7 @@ class QuartyClient(
         clientBuilder: ClientBuilder,
         url: String,
         clock: Clock = Clock.systemUTC()
-    ) : this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 300), clock)
+    ) : this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 60 * 60), clock)
 
     fun initAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult<Unit>> =
         invokeAsync { initAsync(repoUrl, repoCommit) }
