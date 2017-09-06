@@ -1,8 +1,8 @@
 import * as React from "react";
-import { 
+import {
   Classes,
   Intent,
-  Button
+  Button,
 } from "@blueprintjs/core";
 import { IDataset, IDatasetCoords, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";

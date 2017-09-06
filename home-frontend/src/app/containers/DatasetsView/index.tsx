@@ -1,2 +1,2 @@
-import DatasetsView from './DatasetsView'
-export default DatasetsView
+import DatasetsView from "./DatasetsView";
+export default DatasetsView;

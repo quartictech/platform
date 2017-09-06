@@ -9,7 +9,7 @@ import {
   Button,
   Intent,
   Dialog,
-  Classes
+  Classes,
 } from "@blueprintjs/core";
 
 import { IDataset, IDatasetCoords } from "../../models";
@@ -36,7 +36,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
   public render() {
     return (
       <div>
-        <h3>{this.props.dataset.metadata.name} 
+        <h3>{this.props.dataset.metadata.name}
           <Button
             style={{ marginLeft: "10px" }}
             className="pt-minimal"

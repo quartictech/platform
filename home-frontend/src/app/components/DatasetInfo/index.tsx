@@ -1,1 +1,1 @@
-export { DatasetInfo } from "./DatasetInfo"
+export { DatasetInfo } from "./DatasetInfo";
