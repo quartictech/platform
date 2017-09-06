@@ -99,7 +99,7 @@ async def execute(request, resp):
     result_message(resp, None)
 
 app = web.Application()
-app.router.add_get('/init', init)
+app.router.add_post('/init', init)
 app.router.add_get('/evaluate', evaluate)
-app.router.add_get('/execute', execute)
+app.router.add_post('/execute', execute)
 web.run_app(app, port=8080)
