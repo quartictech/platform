@@ -25,7 +25,7 @@ class DatasetView extends React.Component<IProps, {}> {
 
   render() {
     return (
-      <div className={s.right}>
+      <div className={s.center}>
         <DatasetInfo
           coords={this.props.params}
           dataset={this.props.datasets[this.props.params.namespace][this.props.params.id]}

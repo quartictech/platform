@@ -62,7 +62,7 @@ class DatasetsView extends React.Component<IProps, IState> {
           </button>
         </div>
         <div className={s.main}>
-          <div className={s.left}>
+          <div className={s.center}>
             <DatasetList
               searchString={this.props.ui.searchString}
               datasets={this.props.datasets}

@@ -49,15 +49,12 @@ const maybeDescription = (metadata: IDatasetMetadata) =>
 class DatasetListInner extends React.Component<IDatasetListProps, void> {
   render() {
     return (
-      <div
-        className={classNames(Classes.CARD, Classes.ELEVATION_4)}
-        style={{ height: "100%" }}
-      >
+      <div>
         <h3>Datasets</h3>
 
-        <div style={{ height: "98%", overflow: "auto" }}>
+        <div style={{ height: "100%", overflow: "auto" }}>
           <table
-            className={classNames(Classes.TABLE, Classes.INTERACTIVE, Classes.TABLE_STRIPED, Classes.TABLE_CONDENSED)}
+            className={classNames(Classes.TABLE, Classes.INTERACTIVE)}
             style={{ width: "100%", tableLayout: "fixed" }}
           >
             <thead>

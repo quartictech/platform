@@ -35,7 +35,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
 
   public render() {
     return (
-      <div className="pt-card pt-elevation-4">
+      <div>
         <h3>{this.props.dataset.metadata.name}</h3>
         <h5 className="pt-monospace-text">{this.props.coords.namespace}::{this.props.coords.id}</h5>
         <Tabs>
@@ -46,17 +46,17 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
             <Tab>Admin</Tab>
           </TabList>
           <TabPanel>
-            <div className="pt-callout pt-elevation-2">
+            <div>
               <PropertiesTable props={this.props.dataset.metadata} />
             </div>
           </TabPanel>
           <TabPanel>
-            <div className="pt-callout pt-elevation-2">
+            <div>
               <PropertiesTable props={this.props.dataset.locator} />
             </div>
           </TabPanel>
           <TabPanel>
-            <pre className="pt-elevation-2">
+            <pre>
               {JSON.stringify(this.props.dataset, null, "  ")}
             </pre>
           </TabPanel>

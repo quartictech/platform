@@ -27,3 +27,9 @@
   width: 50%;
   padding: 10px;
 }
+
+.center {
+  width: 80%;
+  margin: 0 auto;
+  padding: 10px;
+}
