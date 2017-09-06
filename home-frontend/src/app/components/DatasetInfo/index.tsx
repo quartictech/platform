@@ -38,7 +38,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
       <div>
         <h3>{this.props.dataset.metadata.name} 
           <Button
-            className="pt-button pt-minimal"
+            className="pt-minimal"
             text="Delete"
             intent={Intent.DANGER}
             onClick={() => this.setState({ isDeleteDialogOpen: true })}
