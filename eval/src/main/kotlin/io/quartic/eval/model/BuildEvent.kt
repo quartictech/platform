@@ -1,5 +1,6 @@
 package io.quartic.eval.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -74,6 +75,7 @@ sealed class BuildEvent {
                 }
             }
 
+            @JsonIgnoreProperties(ignoreUnknown = true)
             data class InternalError(val throwable: Throwable) : Result()
 
             data class UserError(val detail: Any?) : Result()
