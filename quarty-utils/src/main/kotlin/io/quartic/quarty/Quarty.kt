@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture
 @Retrofittable
 interface Quarty {
     @Streaming
-    @GET("init")
+    @POST("init")
     fun initAsync(
         @Query("repo_url") repoUrl: URI,
         @Query("repo_commit") repoCommit: String
