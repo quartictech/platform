@@ -6,11 +6,6 @@
   height: calc(100vh - 50px);
 }
 
-.toolbar {
-  padding-left: 10px;
-  padding-top: 10px;
-}
-
 .main {
   display: flex;
   flex-direction: row;

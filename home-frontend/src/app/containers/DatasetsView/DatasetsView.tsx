@@ -53,14 +53,6 @@ class DatasetsView extends React.Component<IProps, IState> {
           createDataset={this.props.createDataset}
           closeNewDatasetClick={this.props.closeNewDatasetModal}
         />
-        <div className={s.toolbar}>
-          <button
-              onClick={this.props.showNewDatasetModal}
-              className="pt-button pt-icon-cloud-upload"
-          >
-            Upload Data
-          </button>
-        </div>
         <div className={s.main}>
           <div className={s.center}>
             <DatasetList
@@ -69,6 +61,7 @@ class DatasetsView extends React.Component<IProps, IState> {
               onSelect={this.selectDataset}
               selected={this.state.datasetCoords}
               selectedNamespace={this.props.ui.namespace}
+              showNewDatasetModal={this.props.showNewDatasetModal}
             />
           </div>
 

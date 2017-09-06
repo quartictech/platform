@@ -1,6 +1,8 @@
 import * as React from "react";
 import { 
-  Classes
+  Classes,
+  Intent,
+  Button
 } from "@blueprintjs/core";
 import { IDataset, IDatasetCoords, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
@@ -14,10 +16,7 @@ interface IDatasetListProps {
   searchString: string;
   selectedNamespace: string;
   router?: InjectedRouter;
-  // createDataset: (any) => any;
-  // ui: Ui;
-  // showNewDatasetModal: any;
-  // closeNewDatasetModal: any;
+  showNewDatasetModal: any;
 }
 
 const comparison = (a: IDataset, b: IDataset) => {
@@ -55,7 +54,16 @@ class DatasetListInner extends React.Component<IDatasetListProps, void> {
   render() {
     return (
       <div>
-        <h3>Datasets
+        <h3>
+          Datasets
+          <Button
+            style={{ marginLeft: "10px" }}
+            text="Upload"
+            className={Classes.MINIMAL}
+            iconName="cloud-upload"
+            intent={Intent.PRIMARY}
+            onClick={this.props.showNewDatasetModal}
+          />
         </h3>
         <div style={{ height: "100%", overflow: "auto" }}>
           <table
