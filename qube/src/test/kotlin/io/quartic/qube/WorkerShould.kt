@@ -17,7 +17,6 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
-import org.hamcrest.CoreMatchers
 import java.util.*
 
 class WorkerShould {
@@ -93,7 +92,7 @@ class WorkerShould {
             podEvents.send(runningPod(true))
 
             verify(returnChannel, timeout(1000)).send(
-                QubeResponse.Running(key.name, "100.100.100.100")
+                QubeResponse.Running(key.name, "100.100.100.100", any())
             )
         }
     }
@@ -105,7 +104,7 @@ class WorkerShould {
             podEvents.send(runningPod(false))
 
             verify(returnChannel, timeout(1000).times(0)).send(
-                QubeResponse.Running(key.name, "${key.name}.${key.client}.noob")
+                QubeResponse.Running(any(), any(), any())
             )
         }
     }
