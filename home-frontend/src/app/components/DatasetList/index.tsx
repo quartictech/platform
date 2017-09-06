@@ -31,7 +31,7 @@ interface IDatasetRowProps {
 
 // tslint:disable-next-line:variable-name
 const DatasetRow = (props: IDatasetRowProps) => (
-  <tr onClick={()=>props.onSelect()}>
+  <tr onClick={() => props.onSelect()}>
     <td style={{ wordWrap: "break-word" }}>
         <b>{props.dataset.metadata.name}</b>
     </td>
@@ -115,4 +115,4 @@ class DatasetListInner extends React.Component<IDatasetListProps, void> {
   }
 }
 
-export const DatasetList = withRouter(DatasetListInner);
+export const datasetList = withRouter(DatasetListInner);
