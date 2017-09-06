@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.storage.S3StorageFactory.Config
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import java.io.InputStream
@@ -8,11 +9,11 @@ import java.util.*
 import javax.ws.rs.core.MediaType
 
 fun main(args: Array<String>) {
-    val storage = S3Storage(S3Storage.Config(
-            region = args[0],
-            bucket = args[1],
-            roleArn = args[2],
-            externalId = args[3]
+    val storage = S3StorageFactory().create(Config(
+        region = args[0],
+        bucket = args[1],
+        roleArn = args[2],
+        externalId = args[3]
     ))
 
     val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")
