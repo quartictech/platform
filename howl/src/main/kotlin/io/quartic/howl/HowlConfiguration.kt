@@ -5,10 +5,11 @@ import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.howl.storage.StorageConfig
 
 data class HowlConfiguration(
-    val s3: S3Configuration? = null,
+    val aws: AwsConfiguration? = null,
     val namespaces: Map<String, StorageConfig> = emptyMap()
 ) : ConfigurationBase() {
-    data class S3Configuration(
+    data class AwsConfiguration(
+        val region: String,
         val accessKeyId: String,
         val secretAccessKeyEncrypted: EncryptedSecret
     )

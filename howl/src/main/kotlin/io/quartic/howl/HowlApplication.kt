@@ -2,13 +2,13 @@ package io.quartic.howl
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.regions.AwsRegionProvider
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.websocket.serverEndpointConfig
-import io.quartic.howl.HowlConfiguration.S3Configuration
+import io.quartic.howl.HowlConfiguration.AwsConfiguration
 import io.quartic.howl.storage.GcsStorageFactory
 import io.quartic.howl.storage.ObservableStorage
 import io.quartic.howl.storage.RoutingStorage
@@ -25,7 +25,7 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
     public override fun runApplication(configuration: HowlConfiguration, environment: Environment) {
         val storage = ObservableStorage(RoutingStorage(
             GcsStorageFactory(),
-            S3StorageFactory(s3CredentialsProvider(configuration.s3)),
+            s3StorageFactory(configuration.aws),
             configuration.namespaces
         ))
         environment.jersey().register(HowlResource(storage))
@@ -35,15 +35,21 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
         ))
     }
 
-    private fun s3CredentialsProvider(config: S3Configuration?) = if (config == null) {
-        DefaultAWSCredentialsProviderChain()
+    private fun s3StorageFactory(config: AwsConfiguration?) = if (config == null) {
+        S3StorageFactory()
     } else {
-        AWSStaticCredentialsProvider(
-            BasicAWSCredentials(
-                config.accessKeyId,
-                config.secretAccessKeyEncrypted.decrypt().veryUnsafe
-            )
+        S3StorageFactory(
+            AWSStaticCredentialsProvider(
+                BasicAWSCredentials(
+                    config.accessKeyId,
+                    config.secretAccessKeyEncrypted.decrypt().veryUnsafe
+                )
+            ),
+            object : AwsRegionProvider() {
+                override fun getRegion() = config.region
+            }
         )
+
     }
 
     companion object {

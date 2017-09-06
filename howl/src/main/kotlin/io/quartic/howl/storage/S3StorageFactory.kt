@@ -3,6 +3,8 @@ package io.quartic.howl.storage
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider
+import com.amazonaws.regions.AwsRegionProvider
+import com.amazonaws.regions.DefaultAwsRegionProviderChain
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectMetadata
@@ -10,7 +12,10 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
-class S3StorageFactory(credsProvider: AWSCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance()) {
+class S3StorageFactory(
+    credsProvider: AWSCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance(),
+    regionProvider: AwsRegionProvider = DefaultAwsRegionProviderChain()
+) {
     data class Config(
         val region: String,
         val bucket: String,
@@ -20,6 +25,7 @@ class S3StorageFactory(credsProvider: AWSCredentialsProvider = DefaultAWSCredent
 
     private val stsClient = AWSSecurityTokenServiceClientBuilder
         .standard()
+        .withRegion(regionProvider.region)
         .withCredentials(credsProvider)
         .build()
 
