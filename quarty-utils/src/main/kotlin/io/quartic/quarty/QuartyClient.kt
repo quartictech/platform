@@ -25,22 +25,22 @@ class QuartyClient(
         clock: Clock = Clock.systemUTC()
     ) : this(clientBuilder.retrofit<Quarty>(url, timeoutSeconds = 300), clock)
 
-    fun initAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult<Unit>?> =
+    fun initAsync(repoUrl: URI, repoCommit: String): CompletableFuture<out QuartyResult<Unit>> =
         invokeAsync { initAsync(repoUrl, repoCommit) }
 
-    fun evaluateAsync(): CompletableFuture<out QuartyResult<Pipeline>?> =
+    fun evaluateAsync(): CompletableFuture<out QuartyResult<Pipeline>> =
         invokeAsync { evaluateAsync() }
 
-    fun executeAsync(step: String, namespace: String): CompletableFuture<out QuartyResult<Unit>?> =
+    fun executeAsync(step: String, namespace: String): CompletableFuture<out QuartyResult<Unit>> =
         invokeAsync { executeAsync(step, namespace) }
 
     inline fun <reified R : Any?> invokeAsync(
         block: Quarty.() -> CompletableFuture<ResponseBody>
-    ): CompletableFuture<QuartyResult<R>?> =
+    ): CompletableFuture<QuartyResult<R>> =
         block(quarty)
             .thenApply { responseBody ->
                 val logEvents = mutableListOf<LogEvent>()
-                var finaliser: () -> QuartyResult<R>? = { null }
+                var finaliser: () -> QuartyResult<R> = { InternalError(logEvents, "No terminating message received") }
 
                 // TODO - error handling for Jackson errors
                 responseBody

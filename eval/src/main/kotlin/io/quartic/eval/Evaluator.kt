@@ -95,19 +95,19 @@ class Evaluator(
     private fun cloneUrl(details: TriggerDetails, token: GitHubInstallationAccessToken) =
         URIBuilder(details.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
 
-    private fun <T, R> PhaseBuilder<R>.extractPhaseResult(result: QuartyResult<T>?, block: (T) -> PhaseResult<R>) = when(result) {
+    private fun <T, R> PhaseBuilder<R>.extractPhaseResult(result: QuartyResult<T>, block: (T) -> PhaseResult<R>) = when(result) {
         is QuartyResult.Success -> block(result.result)
         is QuartyResult.Failure -> userError(result.detail)
-        null -> internalError(EvaluatorException("Missing result or failure from Quarty"))
+        is QuartyResult.InternalError -> internalError(EvaluatorException(result.details))
     }
 
-    private suspend fun <R> PhaseBuilder<*>.fromQuarty(block: QuartyClient.() -> CompletableFuture<out QuartyResult<R>?>) =
+    private suspend fun <R> PhaseBuilder<*>.fromQuarty(block: QuartyClient.() -> CompletableFuture<out QuartyResult<R>>) =
         block(quartyBuilder(container.hostname))
             .awaitWrapped("communicating with Quarty")
             .apply { logMessages(this) }
 
-    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult<*>?) =
-        result?.messages?.forEach { log(it.stream, it.message, it.timestamp) }
+    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult<*>) =
+        result.messages.forEach { log(it.stream, it.message, it.timestamp) }
 
     private fun PhaseBuilder<Dag>.extractDagFromPipeline(pipeline: Pipeline): PhaseResult<Dag> {
         val dag = extractDag(pipeline)

@@ -14,4 +14,5 @@ sealed class QuartyResult<R> {
 
     data class Success<R>(override val messages: List<LogEvent>, val result: R): QuartyResult<R>()
     data class Failure<R>(override val messages: List<LogEvent>, val detail: QuartyErrorDetail?) : QuartyResult<R>()
+    data class InternalError<R>(override val messages: List<LogEvent>, val details: String) : QuartyResult<R>()
 }

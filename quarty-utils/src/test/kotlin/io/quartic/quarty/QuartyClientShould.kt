@@ -12,7 +12,6 @@ import io.quartic.quarty.model.Step
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -81,14 +80,20 @@ class QuartyClientShould {
     }
 
     @Test
-    fun return_null_if_no_result_or_error() {
+    fun return_internal_error_if_no_result_or_failure() {
         quartyWillSend(listOf(
             Log("stdout", "Yeah"),
             Progress("Lovely time")
             // No result or error here!
         ))
 
-        assertThat(invokeQuarty(), nullValue())
+        assertThat(invokeQuarty(), equalTo(InternalError<Any>(
+            listOf(
+                LogEvent("stdout", "Yeah", instantA),
+                LogEvent("progress", "Lovely time", instantB)
+            ),
+            "No terminating message received"
+        ) as QuartyResult<*>))
     }
 
     @Test
