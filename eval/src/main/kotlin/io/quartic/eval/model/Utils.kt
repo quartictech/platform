@@ -1,8 +1,9 @@
 package io.quartic.eval.model
 
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.TriggerDetails
 
-fun TriggerDetails.toTriggerReceived() = BuildEvent.TriggerReceived(
+fun BuildTrigger.toTriggerReceived() = BuildEvent.TriggerReceived(
     triggerType = this.type,
     deliveryId = this.deliveryId,
     installationId = this.installationId,

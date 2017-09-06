@@ -48,6 +48,9 @@ data class Repository(
     @JsonProperty("clone_url")
     val cloneUrl: URI,
 
+    @JsonProperty("default_branch")
+    val defaultBranch: String,
+
     val owner: Owner
 )
 

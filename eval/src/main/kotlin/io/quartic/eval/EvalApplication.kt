@@ -4,6 +4,7 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.SequencerImpl
@@ -24,7 +25,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<TriggerDetails> {
+    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<BuildTrigger> {
         val evaluator = Evaluator(
             sequencer(config, database),
             clientBuilder.retrofit(config.registryUrl),

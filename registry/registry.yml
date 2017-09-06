@@ -5,6 +5,7 @@ customers:
     namespace: noobhole
     githubOrgId: 30663321
     githubRepoId: 71576535
+    githubInstallationId: 45267
 
 url:
   port: 8190

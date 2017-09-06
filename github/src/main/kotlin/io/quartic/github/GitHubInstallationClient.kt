@@ -26,8 +26,11 @@ class GitHubInstallationClient(
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class GitHubInstallationAccessToken(
-        val token: UnsafeSecret
-    )
+        private val token: UnsafeSecret
+    ) {
+        fun token() = "token ${token.veryUnsafe}"
+        fun xAccessToken() = "x-access-token:${token.veryUnsafe}"
+    }
 
     @Retrofittable
     interface GitHubInstallationRetrofit {
@@ -47,6 +50,13 @@ class GitHubInstallationClient(
             @Header("Authorization") auth: String,
             @Body status: StatusCreate
         ): CompletableFuture<Void>
+
+        @POST("/repositories/{repodId}")
+        @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
+        fun getRepository(
+            @Path("repoId") repoId: Long,
+            @Header("Authorization") auth: String
+        ): CompletableFuture<Repository>
     }
 
     private val githubRetrofit = clientBuilder.retrofit<GitHubInstallationRetrofit>(githubApiRoot)
@@ -82,8 +92,10 @@ class GitHubInstallationClient(
         sha: String,
         status: StatusCreate,
         accessToken: GitHubInstallationAccessToken
-    ) = githubRetrofit.sendStatus(owner, repo, sha,
-        "token ${accessToken.token.veryUnsafe}", status)
+    ) = githubRetrofit.sendStatus(owner, repo, sha, accessToken.token(), status)
+
+    fun getRepositoryAsync(repoId: Long, accessToken: GitHubInstallationAccessToken) =
+        githubRetrofit.getRepository(repoId, accessToken.token())
 }
 
 
