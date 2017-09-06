@@ -5,7 +5,7 @@ import io.quartic.common.logging.logger
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.EvalTriggerService
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.PushEvent
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
@@ -75,20 +75,19 @@ class GithubResource(
             fun String.toMessage() = "Trigger $this (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')".nicely()
 
             try {
-                trigger.trigger(TriggerDetails(
-                    type = "github",
-                    deliveryId = deliveryId,
-                    installationId = event.installation.id,
-                    repoId = event.repository.id,
-                    repoName = event.repository.name,
-                    repoOwner = event.repository.owner.name,
-                    repoFullName = event.repository.fullName,
-                    cloneUrl = event.repository.cloneUrl,
-                    ref = event.ref,
-                    commit = event.headCommit.id,
-                    timestamp = clock.instant(),
-                    rawWebhook = rawEvent
-                ))
+                trigger.trigger(
+                    BuildTrigger.GithubWebhook(
+                        deliveryId = deliveryId,
+                        repoId = event.repository.id,
+                        repoName = event.repository.name,
+                        repoOwner = event.repository.owner.name,
+                        installationId = event.installation.id,
+                        ref = event.ref,
+                        commit = event.headCommit.id,
+                        timestamp = clock.instant(),
+                        rawWebhook = rawEvent
+                    )
+                )
                 LOG.info("success".toMessage())
             } catch (e: Exception) {
                 LOG.warn("failed".toMessage(), e)

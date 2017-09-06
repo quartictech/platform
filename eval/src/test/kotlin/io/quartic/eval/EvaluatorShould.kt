@@ -2,7 +2,7 @@ package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.secrets.UnsafeSecret
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.model.Dag.Node
@@ -13,6 +13,8 @@ import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.Owner
+import io.quartic.github.Repository
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
@@ -188,7 +190,7 @@ class EvaluatorShould {
     private val containerHostname = "a.b.c"
     private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
-    private val githubCloneUrlWithCreds = URI("https://x-access-token:${githubToken.token.veryUnsafe}@noob.com/foo/bar")
+    private val githubCloneUrlWithCreds = URI("https://${githubToken.xAccessToken()}@noob.com/foo/bar")
 
     private val stepX = mock<Step> {
         on { name } doReturn "X"
@@ -199,15 +201,34 @@ class EvaluatorShould {
         on { id } doReturn "def"
     }
 
-    private val details = mock<TriggerDetails> {
-        on { repoId } doReturn 5678
-        on { installationId } doReturn 1234
-        on { commit } doReturn commitId
-        on { cloneUrl } doReturn githubCloneUrl
-    }
+    private val githubRepoId: Long = 5678
+    private val githubInstallationId: Long = 1234
+    private val details = BuildTrigger.GithubWebhook(
+        deliveryId = "1",
+        repoId = githubRepoId,
+        installationId = githubInstallationId,
+        commit = commitId,
+        repoOwner = "noob",
+        repoName = "noobery",
+        ref = "refs/heads/wat",
+        timestamp = Instant.MIN,
+        rawWebhook = emptyMap()
+    )
+
+    private val repo = Repository(
+        id = githubRepoId,
+        name = "noobery",
+        fullName = "noob/noobery",
+        private = true,
+        cloneUrl = githubCloneUrl,
+        defaultBranch = "master",
+        owner = Owner("noob")
+    )
 
     private val customer = mock<Customer> {
         on { namespace } doReturn customerNamespace
+        on { githubRepoId } doReturn githubRepoId
+        on { githubInstallationId } doReturn githubInstallationId
     }
 
     private val steps = mock<List<Step>>()
@@ -232,6 +253,7 @@ class EvaluatorShould {
 
     private val github = mock<GitHubInstallationClient> {
         on { accessTokenAsync(1234) } doReturn completedFuture(githubToken)
+        on { getRepositoryAsync(githubRepoId, githubToken) } doReturn completedFuture(repo)
     }
 
     private val quarty = mock<QuartyClient> {
@@ -267,7 +289,7 @@ class EvaluatorShould {
         val descriptions = mutableListOf<String>()
         val logs = mutableListOf<LogInvocation>()
 
-        suspend override fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+        suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
             numSequences++
             block(MySequenceBuilder())
         }

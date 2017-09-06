@@ -5,15 +5,13 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.model.BuildEvent.*
 import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.quarty.model.Step
-import java.net.URI
-import java.time.Instant
 import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -29,18 +27,7 @@ import java.util.*
 )
 sealed class BuildEvent {
     data class TriggerReceived(
-        val triggerType: String,
-        val deliveryId: String,     // For logging purposes
-        val installationId: Long,
-        val repoId: Long,
-        val repoFullName: String,
-        val repoName: String,
-        val repoOwner: String,
-        val cloneUrl: URI,
-        val ref: String,
-        val commit: String,
-        val timestamp: Instant,
-        val rawWebhook: Map<String, Any> = emptyMap()
+        val trigger: BuildTrigger
     ) : BuildEvent()
 
     sealed class BuildCompleted : BuildEvent() {

@@ -7,7 +7,6 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
-import io.quartic.eval.model.toTriggerDetails
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import javax.ws.rs.NotFoundException
@@ -20,7 +19,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
                 buildNumber = buildRow.buildNumber,
                 branch = buildRow.branch,
                 customerId = buildRow.customerId,
-                triggerDetails = buildRow.trigger.toTriggerDetails(),
+                trigger = buildRow.trigger.trigger,
                 status = buildRow.status,
                 time = buildRow.time
             )

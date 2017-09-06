@@ -6,7 +6,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.StatusCreate
 import io.quartic.hey.api.*
@@ -27,10 +27,9 @@ class NotifierShould {
         on { accessTokenAsync(any()) } doReturn completedFuture(accessToken)
     }
     private val notifier = Notifier(hey, github, "http://%s", clock)
-    private val trigger = mock<TriggerDetails> {
+    private val trigger = mock<BuildTrigger.GithubWebhook> {
         on { repoOwner } doReturn "noobing"
         on { repoName } doReturn "noob"
-        on { repoFullName } doReturn "noobing/noob"
         on { branch() } doReturn "develop"
     }
     private val customer = mock<Customer> {
@@ -67,7 +66,6 @@ class NotifierShould {
                 titleLink = URI.create("http://noobhole/#/pipeline/100"),
                 text = "Hello there",
                 fields = listOf(
-                    HeyField("Repo", "noobing/noob", true),
                     HeyField("Branch", "develop", true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
@@ -99,7 +97,6 @@ class NotifierShould {
                 titleLink = URI.create("http://noobhole/#/pipeline/100"),
                 text = "Oh dear",
                 fields = listOf(
-                    HeyField("Repo", "noobing/noob", true),
                     HeyField("Branch", "develop", true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),

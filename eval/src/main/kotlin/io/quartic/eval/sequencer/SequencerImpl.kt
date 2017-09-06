@@ -8,13 +8,11 @@ import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
-import io.quartic.eval.api.model.BuildSpec
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
 import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
-import io.quartic.eval.model.toTriggerReceived
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
@@ -44,7 +42,7 @@ class SequencerImpl(
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, trigger)
-            insert(trigger.toTriggerReceived())
+            insert(TriggerReceived(trigger))
             notifier.notifyStart(trigger)
 
             val completionEvent = executeInContainer(block)
@@ -123,8 +121,8 @@ class SequencerImpl(
             )
         }
 
-        private suspend fun insertBuild(customerId: CustomerId, buildSpec: BuildSpec) = run(threadPool) {
-            database.insertBuild(buildId, customerId, buildSpec.branch)
+        private suspend fun insertBuild(customerId: CustomerId, trigger: BuildTrigger) = run(threadPool) {
+            database.insertBuild(buildId, customerId, trigger.branch())
             database.getBuild(buildId)
         }
 

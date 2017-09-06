@@ -3,7 +3,6 @@ package io.quartic.eval
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
-import io.quartic.eval.api.model.BuildSpec
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
@@ -13,7 +12,6 @@ import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.PhaseResult
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
-import io.quartic.github.Repository
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
@@ -71,10 +69,9 @@ class Evaluator(
                 phase<Unit>("Cloning and preparing repository") {
                     val repo = github.getRepositoryAsync(customer.githubRepoId, token)
                         .awaitWrapped("fetching repository details from GitHub")
-                    val buildSpec = buildSpec(trigger, repo)
 
                     extractPhaseResult(
-                        fromQuarty { initAsync(cloneUrl(repo.cloneUrl, token), buildSpec.commit) },
+                        fromQuarty { initAsync(cloneUrl(repo.cloneUrl, token), commit(trigger)) },
                         { success(Unit) }
                     )
                 }
@@ -100,17 +97,9 @@ class Evaluator(
         }
     }
 
-    private fun buildSpec(trigger: BuildTrigger, repository: Repository) = when (trigger) {
-        is GithubWebhook -> BuildSpec(
-            repository.cloneUrl,
-            trigger.branch(),
-            trigger.commit
-        )
-        is Manual -> BuildSpec(
-            repository.cloneUrl,
-            repository.defaultBranch,
-            repository.defaultBranch
-        )
+    private fun commit(trigger: BuildTrigger) = when (trigger) {
+        is GithubWebhook -> trigger.commit
+        is Manual -> trigger.branch
     }
 
     private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =

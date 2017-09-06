@@ -5,7 +5,7 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -15,7 +15,6 @@ import org.junit.ClassRule
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runners.MethodSorters
-import java.net.URI
 import java.time.Instant
 import java.util.*
 
@@ -34,7 +33,7 @@ class DatabaseMigrationsShould {
             """)
             .bind("id", UUID.randomUUID())
             .bind("customer_id", customerId)
-            .bindJson("trigger_details", triggerDetails)
+            .bindJson("trigger_details", buildTrigger)
             .bind("build_number", 1)
             .bind("time", Instant.now())
             .execute()
@@ -82,18 +81,16 @@ class DatabaseMigrationsShould {
 
     private val customerId = CustomerId(100)
     private val branch = "develop"
-    private val triggerDetails = TriggerDetails(
-        type = "wat",
+    private val buildTrigger = BuildTrigger.GithubWebhook(
         deliveryId = "id",
         installationId = 100,
         repoId = 100,
-        repoFullName = "my/repo",
         repoName = "repo",
         repoOwner = "my",
-        cloneUrl = URI.create("ref"),
         ref = "refs/heads/${branch}",
         commit = "commit",
-        timestamp = Instant.now()
+        timestamp = Instant.now(),
+        rawWebhook = emptyMap()
     )
 
 

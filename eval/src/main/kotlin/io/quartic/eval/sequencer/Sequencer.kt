@@ -8,7 +8,7 @@ import io.quartic.registry.api.model.Customer
 import java.time.Instant
 
 interface Sequencer {
-    suspend fun sequence(details: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit)
+    suspend fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit)
 
     interface SequenceBuilder {
         suspend fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R
