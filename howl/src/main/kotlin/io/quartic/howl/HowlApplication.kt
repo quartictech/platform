@@ -36,9 +36,10 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
     }
 
     private fun s3StorageFactory(config: AwsConfiguration?) = if (config == null) {
-        S3StorageFactory()
+        S3StorageFactory(secretsCodec)
     } else {
         S3StorageFactory(
+            secretsCodec,
             AWSStaticCredentialsProvider(
                 BasicAWSCredentials(
                     config.accessKeyId,

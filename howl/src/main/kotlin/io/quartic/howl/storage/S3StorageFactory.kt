@@ -9,18 +9,21 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
+import io.quartic.common.secrets.EncryptedSecret
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
 class S3StorageFactory(
+    private val secretsCodec: SecretsCodec,
     credsProvider: AWSCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance(),
     regionProvider: AwsRegionProvider = DefaultAwsRegionProviderChain()
 ) {
     data class Config(
         val region: String,
-        val bucket: String,
-        val roleArn: String,
-        val externalId: String
+        val bucketEncrypted: EncryptedSecret,
+        val roleArnEncrypted: EncryptedSecret,
+        val externalIdEncrypted: EncryptedSecret
     ) : StorageConfig
 
     private val stsClient = AWSSecurityTokenServiceClientBuilder
@@ -35,8 +38,8 @@ class S3StorageFactory(
 
     fun create(config: Config) = object : Storage {
         private val s3 by lazy {
-            val stsProvider = STSAssumeRoleSessionCredentialsProvider.Builder(config.roleArn, ROLE_SESSION_NAME)
-                .withExternalId(config.externalId)
+            val stsProvider = STSAssumeRoleSessionCredentialsProvider.Builder(config.roleArnEncrypted.decrypt().veryUnsafe, ROLE_SESSION_NAME)
+                .withExternalId(config.externalIdEncrypted.decrypt().veryUnsafe)
                 .withStsClient(stsClient)
                 .build()
 
@@ -47,9 +50,11 @@ class S3StorageFactory(
                 .build()
         }
 
+        private val bucket = config.bucketEncrypted.decrypt()
+
         override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
             try {
-                val s3obj = s3.getObject(config.bucket, coords.objectKey)
+                val s3obj = s3.getObject(bucket.veryUnsafe, coords.objectKey)
                 return InputStreamWithContentType(s3obj.objectMetadata.contentType, s3obj.objectContent)
             } catch (e: AmazonS3Exception) {
                 if (e.errorCode != "NoSuchKey") {
@@ -67,11 +72,13 @@ class S3StorageFactory(
                     metadata.contentLength = contentLength.toLong()
                 }
                 metadata.contentType = contentType
-                s3.putObject(config.bucket, coords.objectKey, s, metadata)
+                s3.putObject(bucket.veryUnsafe, coords.objectKey, s, metadata)
             }
             return PutResult(null)  // TODO - no versioning for now
         }
     }
+
+    protected fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
 
     private val StorageCoords.objectKey get() = "$identityNamespace/$objectName"
 
