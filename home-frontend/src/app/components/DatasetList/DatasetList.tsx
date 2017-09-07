@@ -105,7 +105,7 @@ class DatasetListInner extends React.Component<IDatasetListProps, void> {
           id={id}
           dataset={dataset}
           active={this.props.selected === { id, namespace }}
-          onSelect={() => this.props.router.push(`/datasets/${namespace}/${id}`)}
+          onSelect={() => this.props.router.push(`/datasets/${namespace}/${encodeURIComponent(id)}`)}
         />
       ));
   }
