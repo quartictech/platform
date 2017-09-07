@@ -40,7 +40,7 @@ sealed class QubeResponse {
     }
 
     data class Waiting(override val name: String): QubeResponse()
-    data class Running(override val name: String, val hostname: String, val clientId: UUID): QubeResponse()
+    data class Running(override val name: String, val hostname: String, val containerId: UUID): QubeResponse()
 
 
 }
