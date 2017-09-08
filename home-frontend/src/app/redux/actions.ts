@@ -111,3 +111,9 @@ export function fetchFeedSuccess(data) {
     data,
   };
 }
+
+export function buildPipeline() {
+  return {
+    type: constants.BUILD_PIPELINE,
+  };
+}

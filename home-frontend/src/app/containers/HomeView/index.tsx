@@ -6,7 +6,7 @@ import * as classNames from "classnames";
 
 import * as moment from "moment";
 
-import { Spinner, Classes } from "@blueprintjs/core";
+import { Button, Spinner, Classes, Intent } from "@blueprintjs/core";
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
@@ -17,6 +17,7 @@ import { FeedItem, Build, LoadingState } from "../../models";
 
 interface IProps {
   fetchFeed: Function;
+  buildPipeline: Function;
   feed: {
     state: LoadingState;
     items: FeedItem[];
@@ -79,6 +80,13 @@ class HomeView extends React.Component<IProps, {}> {
 
   renderFeed = () => (
     <div>
+      <Button
+        text="Build Pipeline"
+        iconName="play"
+        intent={Intent.SUCCESS}
+        style={{ float: "right" }}
+        onClick={() => this.props.buildPipeline()}
+      />
       <h2>Activity</h2>
       <div className={s.feed}>
         {this.props.feed.items.map(item => this.renderItem(item))}
@@ -118,6 +126,7 @@ export { HomeView };
 
 const mapDispatchToProps = {
   fetchFeed: actions.fetchFeed,
+  buildPipeline: actions.buildPipeline,
 };
 
 const mapStateToProps = createStructuredSelector({

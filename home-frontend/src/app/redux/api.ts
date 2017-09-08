@@ -92,6 +92,12 @@ export function uploadFile(namespace: string, files: any[]) {
   });
 }
 
+export function buildPipeline() {
+  return fetchUtil(`${apiRootUrl}/build`, {
+    method: "POST",
+  });
+}
+
 // TODO: wire through namespace
 export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string, fileType: string) {
   return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(namespace)}`, {

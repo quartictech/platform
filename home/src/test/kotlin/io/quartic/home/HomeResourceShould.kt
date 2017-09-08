@@ -9,6 +9,7 @@ import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalQueryServiceClient
+import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.home.resource.HomeResource
 import io.quartic.howl.api.HowlService
 import io.quartic.registry.api.RegistryServiceClient
@@ -44,9 +45,10 @@ class HomeResourceShould {
     private val catalogue = mock<CatalogueService>()
     private val howl = mock<HowlService>()
     private val registry = mock<RegistryServiceClient>()
-    private val eval = mock<EvalQueryServiceClient>()
+    private val evalQuery = mock<EvalQueryServiceClient>()
+    private val evalTrigger = mock<EvalTriggerServiceClient>()
 
-    private val resource = HomeResource(catalogue, howl, eval, registry)
+    private val resource = HomeResource(catalogue, howl, evalQuery, evalTrigger, registry)
 
     @Before
     fun before() {

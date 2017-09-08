@@ -16,6 +16,12 @@ function* fetchPipeline(action): SagaIterator {
   }
 }
 
+function* buildPipeline(): SagaIterator {
+  yield* checkedApiCall(api.buildPipeline);
+  yield put(actions.fetchFeed());
+}
+
 export function* managePipeline(): SagaIterator {
   yield fork(watch(constants.FETCH_PIPELINE, fetchPipeline));
+  yield fork(watch(constants.BUILD_PIPELINE, buildPipeline));
 }

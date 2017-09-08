@@ -10,6 +10,7 @@ import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
+import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.HomeResource
 import io.quartic.home.resource.UserResource
@@ -27,7 +28,8 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = clientBuilder.feign<CatalogueService>(configuration.catalogueUrl)
         val registry = clientBuilder.retrofit<RegistryServiceClient>(configuration.registryUrl)
-        val eval = clientBuilder.retrofit<EvalQueryServiceClient>(configuration.evalUrl)
+        val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(configuration.evalUrl)
+        val evalTrigger = clientBuilder.retrofit<EvalTriggerServiceClient>(configuration.evalUrl)
 
         val tokenGenerator = TokenGenerator(
             configuration.auth as TokenAuthConfiguration,
@@ -40,7 +42,8 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
             register(HomeResource(
                 catalogue,
                 howl,
-                eval,
+                evalQuery,
+                evalTrigger,
                 registry
             ))
             register(AuthResource(
