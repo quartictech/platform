@@ -19,7 +19,7 @@ data class Build(
     val buildNumber: Long,
     val branch: String,
     val customerId: CustomerId,
-    val triggerDetails: TriggerDetails,
+    val trigger: BuildTrigger,
     val status: String,
     val time: Instant
 )

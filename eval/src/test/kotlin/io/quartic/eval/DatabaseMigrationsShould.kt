@@ -6,11 +6,12 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.ContainerAcquired
 import org.flywaydb.core.api.MigrationVersion
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
@@ -18,7 +19,6 @@ import org.junit.ClassRule
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runners.MethodSorters
-import java.net.URI
 import java.time.Instant
 import java.util.*
 
@@ -37,7 +37,7 @@ class DatabaseMigrationsShould {
             """)
             .bind("id", UUID.randomUUID())
             .bind("customer_id", customerId)
-            .bindJson("trigger_details", triggerDetails)
+            .bindJson("trigger_details", buildTrigger)
             .bind("build_number", 1)
             .bind("time", Instant.now())
             .execute()
@@ -88,6 +88,33 @@ class DatabaseMigrationsShould {
         assertThat(results[0], equalTo(ContainerAcquired(UUID(0, 0), "a.b.c")))
     }
 
+    @Test
+    fun v7_migrate() {
+        databaseVersion("6")
+        val oldTriggerFormat = javaClass.getResource("/trigger_received.json").readText()
+        val id = UUID.randomUUID()
+        DBI.open().createUpdate("""
+            INSERT INTO event(id, build_id, time, payload)
+            VALUES(:id, :build_id, :time, :payload)
+            """)
+            .bind("id", id)
+            .bind("build_id", UUID.randomUUID())
+            .bind("time", Instant.now())
+            .bindJson("payload", OBJECT_MAPPER.readValue(oldTriggerFormat))
+            .execute()
+
+        databaseVersion("7")
+
+        val trigger = OBJECT_MAPPER.readValue<BuildEvent.TriggerReceived>(DBI.open()
+            .createQuery("select payload from event where id = :id")
+            .bind("id", id)
+            .mapTo(String::class.java)
+            .findOnly())
+
+        val githubWebhook: BuildTrigger.GithubWebhook = trigger.trigger as BuildTrigger.GithubWebhook
+        assertThat(githubWebhook, notNullValue())
+    }
+
 
 
     private fun checkTableExists(name: String, schema: String): Boolean =
@@ -109,18 +136,16 @@ class DatabaseMigrationsShould {
 
     private val customerId = CustomerId(100)
     private val branch = "develop"
-    private val triggerDetails = TriggerDetails(
-        type = "wat",
+    private val buildTrigger = BuildTrigger.GithubWebhook(
         deliveryId = "id",
         installationId = 100,
         repoId = 100,
-        repoFullName = "my/repo",
         repoName = "repo",
         repoOwner = "my",
-        cloneUrl = URI.create("ref"),
         ref = "refs/heads/${branch}",
         commit = "commit",
-        timestamp = Instant.now()
+        timestamp = Instant.now(),
+        rawWebhook = emptyMap()
     )
 
 

@@ -1,6 +1,7 @@
 package io.quartic.eval
 
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.StatusCreate
 import io.quartic.hey.api.*
@@ -21,21 +22,22 @@ class Notifier(
         data class Failure(override val message: String) : Event()
     }
 
-    fun notifyStart(trigger: TriggerDetails) {
+    fun notifyStart(trigger: BuildTrigger) = if (trigger is GithubWebhook) {
         sendGithubStatus(
             trigger = trigger,
             state = "pending",
             targetUrl = null,
             description = START_MESSAGE
         )
-    }
+    } else null
 
     fun notifyComplete(
-        trigger: TriggerDetails,
+        trigger: BuildTrigger,
         customer: Customer,
         buildNumber: Long,
         event: Event) {
         val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}")
+
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = when (event) {
@@ -45,8 +47,8 @@ class Notifier(
                 titleLink = buildUri,
                 text = event.message,
                 fields = listOf(
-                    HeyField("Repo", trigger.repoFullName, true),
-                    HeyField("Branch", trigger.branch(), true)
+                    HeyField("Branch", trigger.branch(), true),
+                    HeyField("Customer", customer.name, true)
                 ),
                 timestamp = clock.instant().atOffset(ZoneOffset.UTC),
                 color = when (event) {
@@ -56,21 +58,23 @@ class Notifier(
             )
         )))
 
-        sendGithubStatus(
-            trigger = trigger,
-            state = when (event) {
-                is Event.Success -> "success"
-                is Event.Failure -> "failure"
-            },
-            targetUrl = buildUri,
-            description = when (event) {
-                is Event.Success -> SUCCESS_MESSAGE
-                is Event.Failure -> FAILURE_MESSAGE
-            }
-        )
+        if (trigger is GithubWebhook) {
+            sendGithubStatus(
+                trigger = trigger,
+                state = when (event) {
+                    is Event.Success -> "success"
+                    is Event.Failure -> "failure"
+                },
+                targetUrl = buildUri,
+                description = when (event) {
+                    is Event.Success -> SUCCESS_MESSAGE
+                    is Event.Failure -> FAILURE_MESSAGE
+                }
+            )
+        }
     }
 
-    private fun sendGithubStatus(trigger: TriggerDetails, state: String, targetUrl: URI?, description: String) =
+    private fun sendGithubStatus(trigger: GithubWebhook, state: String, targetUrl: URI?, description: String) =
         github.sendStatusAsync(
             trigger.repoOwner,
             trigger.repoName,
