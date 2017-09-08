@@ -2,7 +2,8 @@ package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.secrets.UnsafeSecret
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.api.model.BuildTrigger.TriggerType
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.model.Dag.Node
@@ -13,6 +14,8 @@ import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.Owner
+import io.quartic.github.Repository
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Pipeline
@@ -42,8 +45,8 @@ class EvaluatorShould {
         whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
         whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
 
-        val a = evaluator.evaluateAsync(details)
-        val b = evaluator.evaluateAsync(details.copy(repoId = 7777))
+        val a = evaluator.evaluateAsync(details, TriggerType.EXECUTE)
+        val b = evaluator.evaluateAsync(details.copy(repoId = 7777), TriggerType.EXECUTE)
 
         b.join()                                                // But we can still complete this one
 
@@ -52,10 +55,11 @@ class EvaluatorShould {
 
     @Test
     fun use_the_correct_phase_descriptions() {
-        evaluate()
+        execute()
 
         assertThat(sequencer.descriptions, contains(
             "Acquiring Git credentials",
+            "Fetching repository details",
             "Cloning and preparing repository",
             "Evaluating DAG",
             "Executing step for dataset [::X]",
@@ -65,7 +69,7 @@ class EvaluatorShould {
 
     @Test
     fun quarty_init_before_evaluation() {
-        evaluate()
+        execute()
         inOrder(quarty) {
             verify(quarty).initAsync(any(), any())
             verify(quarty).evaluateAsync()
@@ -88,7 +92,7 @@ class EvaluatorShould {
             )
         ))
 
-        evaluate()
+        execute()
 
         // Other messages should be filtered out
         assertThat(sequencer.logs, contains(
@@ -99,7 +103,7 @@ class EvaluatorShould {
 
     @Test
     fun produce_success_if_everything_works() {
-        evaluate()
+        execute()
 
         assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(steps), dag)))
     }
@@ -108,7 +112,7 @@ class EvaluatorShould {
     fun produce_user_error_if_dag_is_invalid() {
         whenever(extractDag.invoke(pipeline)).doReturn(null as Dag?)
 
-        evaluate()
+        execute()
 
         assertThat(sequencer.results, hasItem(UserError<Any>("DAG is invalid")))
     }
@@ -117,7 +121,7 @@ class EvaluatorShould {
     fun produce_user_error_if_user_code_failed() {
         whenever(quarty.evaluateAsync()).thenReturn(completedFuture(Failure(emptyList(), "badness")))
 
-        evaluate()
+        execute()
 
         assertThat(sequencer.results, hasItem(UserError<Any>("badness")))
     }
@@ -126,7 +130,7 @@ class EvaluatorShould {
     fun do_nothing_if_customer_lookup_failed() {
         whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
 
-        evaluate()
+        execute()
 
         assertThat(sequencer.numSequences, equalTo(0))
     }
@@ -135,7 +139,7 @@ class EvaluatorShould {
     fun throw_error_and_do_nothing_more_if_github_token_request_fails() {
         whenever(github.accessTokenAsync(any())).thenReturn(exceptionalFuture())
 
-        evaluate()
+        execute()
 
         assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while acquiring access token from GitHub")))
         verifyZeroInteractions(quartyBuilder)
@@ -145,19 +149,26 @@ class EvaluatorShould {
     fun throw_error_if_quarty_interaction_fails() {
         whenever(quarty.evaluateAsync()).thenReturn(exceptionalFuture())
 
-        evaluate()
+        execute()
 
         assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while communicating with Quarty")))
     }
 
     @Test
     fun execute_steps_from_dag_in_order() {
-        evaluate()
+        execute()
 
         inOrder(quarty) {
             verify(quarty).executeAsync("abc", customerNamespace)
             verify(quarty).executeAsync("def", customerNamespace)
         }
+    }
+
+    @Test
+    fun evaluate_only() {
+        evaluate()
+
+        verify(quarty, times(0)).executeAsync(any(), any())
     }
 
     @Test
@@ -169,16 +180,21 @@ class EvaluatorShould {
             ).iterator()
         )
 
-        evaluate()
+        execute()
 
 
         verify(quarty, times(1)).executeAsync(any(), any())
         verify(quarty).executeAsync("def", customerNamespace)
     }
 
-    private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(details).join()
+    private fun execute() = runBlocking {
+        evaluator.evaluateAsync(details, TriggerType.EXECUTE).join()
     }
+
+    private fun evaluate() = runBlocking {
+        evaluator.evaluateAsync(details, TriggerType.EVALUATE).join()
+    }
+
 
     private fun <R> exceptionalFuture() = CompletableFuture<R>().apply {
         completeExceptionally(RuntimeException("Sad"))
@@ -189,7 +205,7 @@ class EvaluatorShould {
     private val containerHostname = "a.b.c"
     private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
-    private val githubCloneUrlWithCreds = URI("https://x-access-token:${githubToken.token.veryUnsafe}@noob.com/foo/bar")
+    private val githubCloneUrlWithCreds = URI("https://${githubToken.urlCredentials()}@noob.com/foo/bar")
 
     private val stepX = mock<Step> {
         on { id } doReturn "abc"
@@ -200,15 +216,34 @@ class EvaluatorShould {
         on { outputs } doReturn listOf(Dataset(null, "Y"))
     }
 
-    private val details = mock<TriggerDetails> {
-        on { repoId } doReturn 5678
-        on { installationId } doReturn 1234
-        on { commit } doReturn commitId
-        on { cloneUrl } doReturn githubCloneUrl
-    }
+    private val githubRepoId: Long = 5678
+    private val githubInstallationId: Long = 1234
+    private val details = BuildTrigger.GithubWebhook(
+        deliveryId = "1",
+        repoId = githubRepoId,
+        installationId = githubInstallationId,
+        commit = commitId,
+        repoOwner = "noob",
+        repoName = "noobery",
+        ref = "refs/heads/wat",
+        timestamp = Instant.MIN,
+        rawWebhook = emptyMap()
+    )
+
+    private val repo = Repository(
+        id = githubRepoId,
+        name = "noobery",
+        fullName = "noob/noobery",
+        private = true,
+        cloneUrl = githubCloneUrl,
+        defaultBranch = "master",
+        owner = Owner("noob")
+    )
 
     private val customer = mock<Customer> {
         on { namespace } doReturn customerNamespace
+        on { githubRepoId } doReturn githubRepoId
+        on { githubInstallationId } doReturn githubInstallationId
     }
 
     private val steps = mock<List<Step>>()
@@ -233,6 +268,7 @@ class EvaluatorShould {
 
     private val github = mock<GitHubInstallationClient> {
         on { accessTokenAsync(1234) } doReturn completedFuture(githubToken)
+        on { getRepositoryAsync(githubRepoId, githubToken) } doReturn completedFuture(repo)
     }
 
     private val quarty = mock<QuartyClient> {
@@ -268,7 +304,7 @@ class EvaluatorShould {
         val descriptions = mutableListOf<String>()
         val logs = mutableListOf<LogInvocation>()
 
-        suspend override fun sequence(details: TriggerDetails, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+        suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
             numSequences++
             block(MySequenceBuilder())
         }

@@ -25,11 +25,12 @@ class HomeResourceShould {
     private val arlo = User(1234, 5678)
     private val quartic = Customer(
         CustomerId(5678),
-        1,
-        1,
-        "quartic",
-        "quartic",
-        "foo"
+        githubOrgId = 1,
+        githubRepoId = 1,
+        githubInstallationId = 123,
+        name = "quartic",
+        namespace = "foo",
+        subdomain = "foo"
     )
 
     private val foo = DatasetNamespace("foo")

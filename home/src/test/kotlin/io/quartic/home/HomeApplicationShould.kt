@@ -86,6 +86,7 @@ class HomeApplicationShould {
                         id = CustomerId(4321),
                         githubOrgId = 5678,
                         githubRepoId = 8765,
+                        githubInstallationId = 123,
                         name = "localhost",
                         subdomain = "localhost",
                         namespace = "localhost"

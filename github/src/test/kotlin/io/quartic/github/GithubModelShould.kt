@@ -63,7 +63,8 @@ class GithubModelShould {
                         name = "choliver"
                     ),
                     private = false,
-                    cloneUrl = URI("https://github.com/choliver/test.git")
+                    cloneUrl = URI("https://github.com/choliver/test.git"),
+                    defaultBranch = "master"
                 ),
                 installation = Installation(40706)
             )
@@ -123,7 +124,8 @@ class GithubModelShould {
                     cloneUrl = URI("https://github.com/quartictech/platform.git"),
                     owner = Owner(
                         name = "quartictech"
-                    )
+                    ),
+                    defaultBranch = "develop"
                 ),
                 installation = Installation(40737)
             )
