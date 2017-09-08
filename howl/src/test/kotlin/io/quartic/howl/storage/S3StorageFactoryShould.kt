@@ -1,5 +1,8 @@
 package io.quartic.howl.storage
 
+import io.quartic.common.application.DEV_MASTER_KEY_BASE64
+import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.howl.storage.S3StorageFactory.Config
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -37,12 +40,14 @@ class S3StorageFactoryShould {
             = this.bufferedReader(charset).use { it.readText() }
 
     companion object {
-        private val storage = S3StorageFactory()
+        private val codec = SecretsCodec(DEV_MASTER_KEY_BASE64)
+
+        private val storage = S3StorageFactory(codec)
             .create(Config(
                 "eu-west-1",
-                "test-howl",
-                "arn:aws:iam::555071496850:role/Test-Bucket-Accessor",
-                "696969"
+                codec.encrypt(UnsafeSecret("test-howl")),
+                codec.encrypt(UnsafeSecret("arn:aws:iam::555071496850:role/Test-Bucket-Accessor")),
+                codec.encrypt(UnsafeSecret("696969"))
             ))
     }
 }

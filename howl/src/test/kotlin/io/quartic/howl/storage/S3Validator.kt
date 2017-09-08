@@ -1,5 +1,8 @@
 package io.quartic.howl.storage
 
+import io.quartic.common.application.DEV_MASTER_KEY_BASE64
+import io.quartic.common.secrets.EncryptedSecret
+import io.quartic.common.secrets.SecretsCodec
 import io.quartic.howl.storage.S3StorageFactory.Config
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
@@ -9,11 +12,11 @@ import java.util.*
 import javax.ws.rs.core.MediaType
 
 fun main(args: Array<String>) {
-    val storage = S3StorageFactory().create(Config(
+    val storage = S3StorageFactory(SecretsCodec(DEV_MASTER_KEY_BASE64)).create(Config(
         region = args[0],
-        bucket = args[1],
-        roleArn = args[2],
-        externalId = args[3]
+        bucketEncrypted = EncryptedSecret(args[1]),
+        roleArnEncrypted = EncryptedSecret(args[2]),
+        externalIdEncrypted = EncryptedSecret(args[3])
     ))
 
     val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")

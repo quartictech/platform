@@ -29,7 +29,7 @@ interface CatalogueService {
     /**
      * Registers a dataset (or updates an existing dataset) in a specified namespace, with a specified [DatasetId].
      */
-    @RequestLine("POST /datasets/{namespace}/{id}", decodeSlash=false)
+    @RequestLine("PUT /datasets/{namespace}/{id}", decodeSlash=false)
     @Headers("Content-Type: " + MediaType.APPLICATION_JSON)
     @PUT
     @Path("/{namespace}/{id}")
