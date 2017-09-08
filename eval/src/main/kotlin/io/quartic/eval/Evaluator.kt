@@ -56,12 +56,13 @@ class Evaluator(
 
     private val LOG by logger()
 
-    suspend fun evaluateAsync(trigger: BuildTrigger) = when(trigger) {
-        is Manual -> evaluateAsync(trigger, trigger.triggerType)
-        is GithubWebhook -> evaluateAsync(trigger, TriggerType.EVALUATE)
+    private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
+        is Manual -> trigger.triggerType
+        is GithubWebhook -> TriggerType.EVALUATE
     }
 
-    suspend fun evaluateAsync(trigger: BuildTrigger, triggerType: TriggerType) = async(CommonPool) {
+    suspend fun evaluateAsync(trigger: BuildTrigger) = async(CommonPool) {
+        val triggerType = getTriggerType(trigger)
         val customer = getCustomer(trigger)
 
         if (customer != null) {
