@@ -17,7 +17,8 @@ import java.io.InputStream
 class S3StorageFactory(
     private val secretsCodec: SecretsCodec,
     credsProvider: AWSCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance(),
-    regionProvider: AwsRegionProvider = DefaultAwsRegionProviderChain()
+    regionProvider: AwsRegionProvider = DefaultAwsRegionProviderChain(),
+    private val keyMapper: (StorageCoords) -> String = ::mapForS3
 ) {
     data class Config(
         val region: String,
@@ -54,7 +55,7 @@ class S3StorageFactory(
 
         override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
             try {
-                val s3obj = s3.getObject(bucket.veryUnsafe, coords.objectKey)
+                val s3obj = s3.getObject(bucket.veryUnsafe, keyMapper(coords))
                 return InputStreamWithContentType(s3obj.objectMetadata.contentType, s3obj.objectContent)
             } catch (e: AmazonS3Exception) {
                 if (e.errorCode != "NoSuchKey") {
@@ -72,15 +73,13 @@ class S3StorageFactory(
                     metadata.contentLength = contentLength.toLong()
                 }
                 metadata.contentType = contentType
-                s3.putObject(bucket.veryUnsafe, coords.objectKey, s, metadata)
+                s3.putObject(bucket.veryUnsafe, keyMapper(coords), s, metadata)
             }
             return PutResult(null)  // TODO - no versioning for now
         }
     }
 
-    protected fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
-
-    private val StorageCoords.objectKey get() = "$identityNamespace/$objectName"
+    private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
 
     companion object {
         private val ROLE_SESSION_NAME = "quartic"

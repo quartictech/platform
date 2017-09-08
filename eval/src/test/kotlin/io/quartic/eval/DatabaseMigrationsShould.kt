@@ -1,11 +1,15 @@
 package io.quartic.eval
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.ContainerAcquired
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -61,6 +65,56 @@ class DatabaseMigrationsShould {
     fun v5_migrate() {
         databaseVersion("5")
     }
+
+    @Test
+    fun v6_migrate() {
+
+        DBI.open().createUpdate("""
+            INSERT INTO event(id, build_id, time, payload)
+                VALUES(:id, :build_id, :time, :payload)
+        """)
+            .bind("id", UUID.randomUUID())
+            .bind("build_id", UUID.randomUUID())
+            .bind("time", Instant.now())
+            .bindJson("payload", mapOf("type" to "container_acquired_v1", "hostname" to "a.b.c"))
+            .execute()
+
+        databaseVersion("6")
+
+        val results = DBI.open().createQuery("SELECT payload FROM event")
+            .mapTo(String::class.java)
+            .map { OBJECT_MAPPER.readValue<ContainerAcquired>(it) }
+
+        assertThat(results[0], equalTo(ContainerAcquired(UUID(0, 0), "a.b.c")))
+    }
+
+    @Test
+    fun v7_migrate() {
+        databaseVersion("6")
+        val oldTriggerFormat = javaClass.getResource("/trigger_received.json").readText()
+        val id = UUID.randomUUID()
+        DBI.open().createUpdate("""
+            INSERT INTO event(id, build_id, time, payload)
+            VALUES(:id, :build_id, :time, :payload)
+            """)
+            .bind("id", id)
+            .bind("build_id", UUID.randomUUID())
+            .bind("time", Instant.now())
+            .bindJson("payload", OBJECT_MAPPER.readValue(oldTriggerFormat))
+            .execute()
+
+        databaseVersion("7")
+
+        val trigger = OBJECT_MAPPER.readValue<BuildEvent.TriggerReceived>(DBI.open()
+            .createQuery("select payload from event where id = :id")
+            .bind("id", id)
+            .mapTo(String::class.java)
+            .findOnly())
+
+
+    }
+
+
 
     private fun checkTableExists(name: String, schema: String): Boolean =
         DBI.open().createQuery(

@@ -36,7 +36,7 @@ sealed class BuildEvent {
         data class BuildFailed(val description: String) : BuildCompleted()
     }
 
-    data class ContainerAcquired(val hostname: String) : BuildEvent()
+    data class ContainerAcquired(val containerId: UUID, val hostname: String) : BuildEvent()
 
     data class PhaseStarted(val phaseId: UUID, val description: String) : BuildEvent()
 

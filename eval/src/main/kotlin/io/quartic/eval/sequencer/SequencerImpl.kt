@@ -52,7 +52,7 @@ class SequencerImpl(
 
         private suspend fun executeInContainer(block: suspend SequenceBuilder.() -> Unit) = try {
             qube.createContainer().use { container ->
-                insert(ContainerAcquired(container.hostname))
+                insert(ContainerAcquired(container.id, container.hostname))
                 block(SequenceBuilderImpl(container))
             }
             BuildEvent.BUILD_SUCCEEDED

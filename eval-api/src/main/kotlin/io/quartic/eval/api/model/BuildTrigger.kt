@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.quartic.common.model.CustomerId
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
+import io.quartic.eval.api.model.BuildTrigger.Companion.VERSION
 import java.time.Instant
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(BuildTrigger.GithubWebhook::class, name = "github_webhook"),
-    JsonSubTypes.Type(BuildTrigger.Manual::class, name = "manual")
+    JsonSubTypes.Type(BuildTrigger.GithubWebhook::class, name = "github_webhook_${VERSION}"),
+    JsonSubTypes.Type(BuildTrigger.Manual::class, name = "manual_${VERSION}")
 )
 sealed class BuildTrigger {
     abstract fun branch(): String
@@ -42,6 +43,10 @@ sealed class BuildTrigger {
        val triggerType: TriggerType
     ): BuildTrigger() {
         override fun branch() = branch
+    }
+
+    companion object {
+        const val VERSION = "v1"
     }
 }
 
