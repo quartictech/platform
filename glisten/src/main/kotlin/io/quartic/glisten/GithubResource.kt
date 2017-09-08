@@ -88,7 +88,7 @@ class GithubResource(
                         timestamp = clock.instant(),
                         rawWebhook = rawEvent
                     )
-                ).join()
+                )
                 LOG.info("success".toMessage())
             } catch (e: Exception) {
                 LOG.warn("failed".toMessage(), e)
