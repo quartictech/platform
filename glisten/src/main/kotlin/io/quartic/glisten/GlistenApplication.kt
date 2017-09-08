@@ -9,7 +9,7 @@ class GlistenApplication : ApplicationBase<GlistenConfiguration>() {
         val trigger = clientBuilder.feign<EvalTriggerService>(configuration.evalUrl)
 
         environment.jersey().register(GithubResource(
-            configuration.secretsCodec.decrypt(configuration.webhookSecretEncrypted),
+            configuration.webhookSecretEncrypted.decrypt(),
             trigger
         ))
     }

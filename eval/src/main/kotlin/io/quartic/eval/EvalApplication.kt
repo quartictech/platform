@@ -52,7 +52,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
         config.github.appId,
         config.github.apiRootUrl,
-        config.secretsCodec.decrypt(config.github.privateKeyEncrypted),
+        config.github.privateKeyEncrypted.decrypt(),
         clientBuilder
     )
 

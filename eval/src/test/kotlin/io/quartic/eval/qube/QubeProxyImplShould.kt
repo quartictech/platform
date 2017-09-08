@@ -256,7 +256,7 @@ class QubeProxyImplShould {
         (0 until num).map {
             val request = outbound.receive()
             if (request is Create) {
-                events.send(MessageReceived(Running(request.name, "noob")))
+                events.send(MessageReceived(Running(request.name, "noob", UUID.randomUUID())))
             }
             request
         }

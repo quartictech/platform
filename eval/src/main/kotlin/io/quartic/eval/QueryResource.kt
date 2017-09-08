@@ -7,7 +7,6 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
-import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import javax.ws.rs.NotFoundException
 
@@ -53,8 +52,8 @@ class QueryResource(private val database: Database) : EvalQueryService {
     private fun nodesFrom(dag: Dag) = dag.nodes.map {
         CytoscapeNode(
             CytoscapeNodeData(
-                id = it.dataset.title,
-                title = it.dataset.title,
+                id = it.dataset.fullyQualifiedName,
+                title = it.dataset.fullyQualifiedName,
                 type = if (dag.inDegreeOf(it) > 0) "derived" else "raw"
             )
         )
@@ -64,11 +63,9 @@ class QueryResource(private val database: Database) : EvalQueryService {
         CytoscapeEdge(
             CytoscapeEdgeData(
                 id = i.toLong(),
-                source = it.first.dataset.title,
-                target = it.second.dataset.title
+                source = it.first.dataset.fullyQualifiedName,
+                target = it.second.dataset.fullyQualifiedName
             )
         )
     }.toSet()
-
-    private val Dataset.title get() = "${namespace ?: ""}::${datasetId}"
 }
