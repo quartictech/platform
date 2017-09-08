@@ -16,14 +16,14 @@ import javax.sql.DataSource
 class DatabaseBuilder(
     private val migrationDatasource: DataSource,
     private val dbi: Jdbi,
-    private val migrationVersion: MigrationVersion = MigrationVersion.LATEST
+    private val migrationVersion: MigrationVersion
 ) {
     private val LOG by logger()
 
     constructor(
         datasourceFactory: DataSourceFactory,
         environment: Environment,
-        migrationVersion: MigrationVersion = MigrationVersion.LATEST
+        migrationVersion: MigrationVersion
     ) : this(
         datasourceFactory.build(environment.metrics(), "flyway"),
         JdbiFactory(TimedAnnotationNameStrategy()).build(environment, datasourceFactory, "postgres"),
