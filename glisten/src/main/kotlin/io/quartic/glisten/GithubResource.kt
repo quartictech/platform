@@ -4,9 +4,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.api.EvalTriggerService
+import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.PushEvent
+import kotlinx.coroutines.experimental.future.await
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
 import java.time.Clock
@@ -18,7 +19,7 @@ import javax.ws.rs.core.MediaType
 @Path("/hooks/github")
 class GithubResource(
     private val secret: UnsafeSecret,
-    private val trigger: EvalTriggerService,
+    private val trigger: EvalTriggerServiceClient,
     private val clock: Clock = Clock.systemUTC()
 ) {
     // TODO - handle DoS due to massive payload causing OOM
@@ -75,7 +76,7 @@ class GithubResource(
             fun String.toMessage() = "Trigger $this (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')".nicely()
 
             try {
-                trigger.trigger(
+                trigger.triggerAsync(
                     BuildTrigger.GithubWebhook(
                         deliveryId = deliveryId,
                         repoId = event.repository.id,
@@ -87,7 +88,7 @@ class GithubResource(
                         timestamp = clock.instant(),
                         rawWebhook = rawEvent
                     )
-                )
+                ).join()
                 LOG.info("success".toMessage())
             } catch (e: Exception) {
                 LOG.warn("failed".toMessage(), e)
