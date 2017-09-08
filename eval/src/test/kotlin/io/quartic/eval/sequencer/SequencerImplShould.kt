@@ -9,10 +9,10 @@ import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.TriggerDetails
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.*
+import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
-import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
 import io.quartic.eval.model.toTriggerReceived
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
@@ -40,7 +40,7 @@ class SequencerImplShould {
         val buildId = uuid(100)
         verify(database).insertBuild(buildId, CustomerId(999), "lovely")
         verify(database).insertEvent(eq(uuid(101)), eq(details.toTriggerReceived()), any(), eq(buildId), eq(null))
-        verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired("a.b.c")), any(), eq(buildId), eq(null))
+        verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId), eq(null))
         verify(database).insertEvent(eq(uuid(103)), eq(BuildEvent.BUILD_SUCCEEDED), any(), eq(buildId), eq(null))
     }
 
@@ -263,6 +263,7 @@ class SequencerImplShould {
     private var uuid = 100
 
     private val qubeContainer = mock<QubeContainerProxy> {
+        on { id } doReturn uuid(9999)
         on { hostname } doReturn "a.b.c"
         on { errors } doReturn Channel()
     }

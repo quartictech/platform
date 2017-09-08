@@ -3,18 +3,18 @@ package io.quartic.eval.qube
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.coroutines.use
-import io.quartic.qube.api.QubeRequest
-import io.quartic.qube.api.QubeRequest.Create
-import io.quartic.qube.api.QubeRequest.Destroy
-import io.quartic.qube.api.QubeResponse
-import io.quartic.qube.api.QubeResponse.Terminated
-import io.quartic.qube.api.QubeResponse.Running
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
+import io.quartic.qube.api.QubeRequest
+import io.quartic.qube.api.QubeRequest.Create
+import io.quartic.qube.api.QubeRequest.Destroy
+import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.QubeResponse.Running
+import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
@@ -30,6 +30,7 @@ class QubeProxyImplShould {
     private val outbound = Channel<QubeRequest>(2)
     private val events = Channel<Event<QubeResponse>>(2)
     private var nextUuid = 100
+    private val containerId = UUID.randomUUID()
     private val client = mock<WebsocketClient<QubeRequest, QubeResponse>> {
         on { outbound } doReturn outbound
         on { events } doReturn events
@@ -52,13 +53,14 @@ class QubeProxyImplShould {
     }
 
     @Test
-    fun return_hostname_if_qube_successfully_creates_container() {
+    fun return_hostname_and_id_if_qube_successfully_creates_container() {
         runOrTimeout {
             qubeIsConnected()
             qubeWillCreateAsync()
 
             val container = qube.createContainer()
 
+            assertThat(container.id, equalTo(containerId))
             assertThat(container.hostname, equalTo("noob"))
         }
     }
@@ -256,7 +258,7 @@ class QubeProxyImplShould {
         (0 until num).map {
             val request = outbound.receive()
             if (request is Create) {
-                events.send(MessageReceived(Running(request.name, "noob", UUID.randomUUID())))
+                events.send(MessageReceived(Running(request.name, "noob", containerId)))
             }
             request
         }
