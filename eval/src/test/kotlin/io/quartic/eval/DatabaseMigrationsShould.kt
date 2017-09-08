@@ -77,8 +77,7 @@ class DatabaseMigrationsShould {
             .findOnly()
 
     private fun databaseVersion(version: String): Database = DatabaseBuilder
-        .testDao(Database::class.java, PG.embeddedPostgres.postgresDatabase,
-            MigrationVersion.fromVersion(version))
+        .testDao(PG.embeddedPostgres.postgresDatabase, MigrationVersion.fromVersion(version))
 
     private val customerId = CustomerId(100)
     private val branch = "develop"

@@ -263,7 +263,7 @@ class DatabaseShould {
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            DATABASE = DatabaseBuilder.testDao(Database::class.java, PG.embeddedPostgres.postgresDatabase)
+            DATABASE = DatabaseBuilder.testDao(PG.embeddedPostgres.postgresDatabase)
             DBI = setupDbi(Jdbi.create(PG.embeddedPostgres.postgresDatabase))
         }
     }
