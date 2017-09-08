@@ -1,9 +1,6 @@
 package io.quartic.eval
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.*
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.BuildTrigger
@@ -32,12 +29,16 @@ class NotifierShould {
         on { repoName } doReturn "noob"
         on { branch() } doReturn "develop"
     }
+
+    private  val manualTrigger  = mock<BuildTrigger.Manual>()
+
     private val customer = mock<Customer> {
         on { subdomain } doReturn "noobhole"
         on { name } doReturn "noob co"
     }
 
     private val buildUri = URI.create("http://noobhole/#/pipeline/100")
+
 
     @Test
     fun send_pending_on_start() {
@@ -55,6 +56,13 @@ class NotifierShould {
             accessToken = accessToken
         )
     }
+
+    @Test
+    fun not_send_pending_for_manual_trigger() {
+        notifier.notifyStart(manualTrigger)
+        verifyZeroInteractions(github)
+    }
+
 
 
     @Test

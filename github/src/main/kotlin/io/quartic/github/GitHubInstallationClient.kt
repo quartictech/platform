@@ -28,8 +28,8 @@ class GitHubInstallationClient(
     data class GitHubInstallationAccessToken(
         private val token: UnsafeSecret
     ) {
-        fun token() = "token ${token.veryUnsafe}"
-        fun xAccessToken() = "x-access-token:${token.veryUnsafe}"
+        fun authorizationCredentials() = "token ${token.veryUnsafe}"
+        fun urlCredentials() = "x-access-token:${token.veryUnsafe}"
     }
 
     @Retrofittable
@@ -92,10 +92,10 @@ class GitHubInstallationClient(
         sha: String,
         status: StatusCreate,
         accessToken: GitHubInstallationAccessToken
-    ) = githubRetrofit.sendStatus(owner, repo, sha, accessToken.token(), status)
+    ) = githubRetrofit.sendStatus(owner, repo, sha, accessToken.authorizationCredentials(), status)
 
     fun getRepositoryAsync(repoId: Long, accessToken: GitHubInstallationAccessToken) =
-        githubRetrofit.getRepository(repoId, accessToken.token())
+        githubRetrofit.getRepository(repoId, accessToken.authorizationCredentials())
 }
 
 

@@ -33,11 +33,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
-            for (trigger in channel) evaluator.evaluateAsync(trigger,
-                when (trigger) {
-                    is Manual -> trigger.triggerType
-                    is GithubWebhook -> TriggerType.EVALUATE
-                })
+            for (trigger in channel) evaluator.evaluateAsync(trigger)
         }
     }
 

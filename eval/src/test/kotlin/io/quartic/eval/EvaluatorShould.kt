@@ -58,6 +58,7 @@ class EvaluatorShould {
 
         assertThat(sequencer.descriptions, contains(
             "Acquiring Git credentials",
+            "Fetching repository details",
             "Cloning and preparing repository",
             "Evaluating DAG",
             "Executing step: X",
@@ -203,7 +204,7 @@ class EvaluatorShould {
     private val containerHostname = "a.b.c"
     private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
-    private val githubCloneUrlWithCreds = URI("https://${githubToken.xAccessToken()}@noob.com/foo/bar")
+    private val githubCloneUrlWithCreds = URI("https://${githubToken.urlCredentials()}@noob.com/foo/bar")
 
     private val stepX = mock<Step> {
         on { name } doReturn "X"

@@ -28,7 +28,7 @@ class HomeResourceShould {
         githubOrgId = 1,
         githubRepoId = 1,
         githubInstallationId = 123,
-        name ="quartic",
+        name = "quartic",
         namespace = "foo",
         subdomain = "foo"
     )

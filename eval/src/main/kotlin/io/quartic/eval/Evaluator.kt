@@ -12,6 +12,7 @@ import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.PhaseResult
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.Repository
 import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.model.Pipeline
 import io.quartic.quarty.model.QuartyResult
@@ -55,6 +56,11 @@ class Evaluator(
 
     private val LOG by logger()
 
+    suspend fun evaluateAsync(trigger: BuildTrigger) = when(trigger) {
+        is Manual -> trigger.triggerType
+        is GithubWebhook -> TriggerType.EVALUATE
+    }
+
     suspend fun evaluateAsync(trigger: BuildTrigger, triggerType: TriggerType) = async(CommonPool) {
         val customer = getCustomer(trigger)
 
@@ -66,10 +72,12 @@ class Evaluator(
                         .awaitWrapped("acquiring access token from GitHub"))
                 }
 
-                phase<Unit>("Cloning and preparing repository") {
-                    val repo = github.getRepositoryAsync(customer.githubRepoId, token)
-                        .awaitWrapped("fetching repository details from GitHub")
+                val repo: Repository = phase("Fetching repository details") {
+                    success(github.getRepositoryAsync(customer.githubRepoId, token)
+                        .awaitWrapped("fetching repository details from GitHub"))
+                }
 
+                phase<Unit>("Cloning and preparing repository") {
                     extractPhaseResult(
                         fromQuarty { initAsync(cloneUrl(repo.cloneUrl, token), commit(trigger)) },
                         { success(Unit) }
@@ -106,7 +114,7 @@ class Evaluator(
     }
 
     private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =
-        URIBuilder(cloneUrl).apply { userInfo = token.xAccessToken() }.build()
+        URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
     private fun <T, R> PhaseBuilder<R>.extractPhaseResult(result: QuartyResult<T>, block: (T) -> PhaseResult<R>) = when(result) {
         is QuartyResult.Success -> block(result.result)
@@ -144,7 +152,12 @@ class Evaluator(
         },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
-                LOG.warn("No customer found for trigger: $trigger")
+                when (trigger) {
+                    is GithubWebhook ->
+                        LOG.warn("No customer found for webhook (repoId = ${trigger.repoId})")
+                    is Manual ->
+                        LOG.warn("No customer found for manual trigger (customerId = ${trigger.customerId})")
+                }
             } else {
                 LOG.error("Error while communicating with Registry", t)
             }
