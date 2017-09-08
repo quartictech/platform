@@ -11,7 +11,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.ContainerAcquired
 import org.flywaydb.core.api.MigrationVersion
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
@@ -111,7 +111,8 @@ class DatabaseMigrationsShould {
             .mapTo(String::class.java)
             .findOnly())
 
-
+        val githubWebhook: BuildTrigger.GithubWebhook = trigger.trigger as BuildTrigger.GithubWebhook
+        assertThat(githubWebhook, notNullValue())
     }
 
 
