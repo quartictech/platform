@@ -3,6 +3,7 @@ import * as React from "react";
 import {
   Classes,
   IconContents,
+  IconName,
   InputGroup,
   Intent,
   Keys,
@@ -43,8 +44,8 @@ interface CategorisedEntries {
 
 export interface PickerProps {
   className?: string;
-  iconName?: string;
-  defaultEntryIconName?: string;
+  iconName?: IconName;
+  defaultEntryIconName?: IconName;
   placeholder?: string;
   entries: PickerEntry[];
   selectedKey: string;
@@ -293,7 +294,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           disabled={entry.disabled}
           text={this.entryText(entry, isHighlighted) as any}
           label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
-          iconName={entry.iconName || this.props.defaultEntryIconName}
+          iconName={entry.iconName as IconName || this.props.defaultEntryIconName}
         />
       </div>
     );

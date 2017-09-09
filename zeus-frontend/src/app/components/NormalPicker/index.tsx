@@ -6,13 +6,14 @@ import {
   Menu,
   MenuItem,
   Popover,
+  IconName,
   Position,
 } from "@blueprintjs/core";
 
 const s = require("./style.css");
 
 interface NormalPickerProps {
-  iconName?: string;
+  iconName?: IconName;
   position?: Position;
   selected: string;
   entries: string[];

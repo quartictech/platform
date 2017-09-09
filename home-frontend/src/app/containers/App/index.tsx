@@ -28,7 +28,7 @@ interface IProps {
   profile?: Profile;
 }
 
-export class App extends React.Component<IProps, void> {
+export class App extends React.Component<IProps, {}> {
   render() {
     const { children } = this.props;
     return (

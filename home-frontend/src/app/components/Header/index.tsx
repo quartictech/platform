@@ -25,7 +25,7 @@ interface IProps {
   profile?: Profile;
 }
 
-class Header extends React.Component<IProps, void> {
+class Header extends React.Component<IProps, {}> {
   constructor(props: IProps) {
     super(props);
     this.onSearch = this.onSearch.bind(this);

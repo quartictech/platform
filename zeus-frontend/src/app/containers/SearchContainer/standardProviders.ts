@@ -1,8 +1,8 @@
 import * as _ from "underscore";
+import { Intent } from "@blueprintjs/core";
 import { SearchProvider } from "./index";
 import * as selectors from "../../redux/selectors";
 import { toTitleCase } from "../../helpers/Utils";
-import { Intent } from "@blueprintjs/core";
 import { toaster } from "../../containers/App/toaster";
 import {
   resourceActions,

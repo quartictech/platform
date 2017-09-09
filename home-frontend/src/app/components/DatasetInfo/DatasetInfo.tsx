@@ -80,10 +80,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
           </div>
           <div className={Classes.DIALOG_FOOTER}>
             <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-              <Button
-                onClick={() => this.setState({ isDeleteDialogOpen: false })}
-                iconName=""
-              >
+              <Button onClick={() => this.setState({ isDeleteDialogOpen: false })}>
                 No
               </Button>
               <Button
