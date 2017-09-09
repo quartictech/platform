@@ -28,7 +28,7 @@ export interface PickerEntry {
   description?: string;
   extra?: string;
   category?: string;
-  iconName?: IconName;
+  iconName?: string;
   disabled?: boolean;
   href?: string;
 }
@@ -294,7 +294,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           disabled={entry.disabled}
           text={this.entryText(entry, isHighlighted) as any}
           label={(this.props.selectedKey === entry.key) ? IconContents.TICK : ""}
-          iconName={entry.iconName || this.props.defaultEntryIconName}
+          iconName={entry.iconName as IconName || this.props.defaultEntryIconName}
         />
       </div>
     );
