@@ -6,11 +6,8 @@ import { syncHistoryWithStore } from "react-router-redux";
 import { configureStore } from "./redux/store";
 import { getRoutes, appHistory } from "./routes";
 
-import { apiRootUrl } from "./redux/api";
-
-import { ApolloClient, createNetworkInterface, ApolloProvider } from "react-apollo";
-
-import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "./helpers/Utils";
+import { ApolloProvider } from "react-apollo";
+import { client } from "./redux/apollo";
 
 import "@blueprintjs/core/dist/blueprint.css";
 
@@ -25,26 +22,6 @@ const history = syncHistoryWithStore(appHistory, store, {
   selectLocationState: selectLocationState(),
 });
 
-const networkInterface = createNetworkInterface({
-  uri: `${apiRootUrl}/graphql/execute`,
-  opts: {
-    credentials: "same-origin",
-  },
-});
-
-networkInterface.use([{
-  applyMiddleware(req, next) {
-    if (!req.options.headers) {
-      req.options.headers = {};  // Create the header object if needed.
-    }
-    // get the authentication token from local storage if it exists
-    const token = localStorage.getItem(QUARTIC_XSRF);
-    req.options.headers[QUARTIC_XSRF_HEADER] = token;
-    next();
-  },
-}]);
-
-const client = new ApolloClient({ networkInterface });
 
 const component = (
   <Router history={history}>

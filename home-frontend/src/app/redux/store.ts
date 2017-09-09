@@ -11,13 +11,15 @@ import { sagas } from "./sagas";
 import createSagaMiddleware from "redux-saga";
 const sagaMiddleware = createSagaMiddleware();
 
+import { client } from "./apollo";
+
 /**
  * Creates a Redux Store from the given initialState
  */
  // TODO: fix type!
 export function configureStore(initialState?: Object): Redux.Store<any> {
   const env: string = process.env.NODE_ENV;
-  const middlewares: any[] = [router, sagaMiddleware];
+  const middlewares: any[] = [client.middleware(), router, sagaMiddleware];
 
   /** Final Redux Store!!! */
   // TODO: fix type!

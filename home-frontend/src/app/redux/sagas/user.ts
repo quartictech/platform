@@ -35,6 +35,12 @@ function* loginGithub(action): SagaIterator {
   }
 }
 
+function* apolloQueryError(action) {
+  if (action.error.status === 401) {
+    yield* logout(action);
+  }
+}
+
 export function* manageUser(): SagaIterator {
   if (localStorage.getItem(QUARTIC_XSRF)) {
     yield put(actions.userLoginSuccess());
@@ -43,4 +49,5 @@ export function* manageUser(): SagaIterator {
 
   yield fork(watch(constants.USER_LOGIN_GITHUB, loginGithub));
   yield fork(watch(constants.USER_LOGOUT, logout));
+  yield fork(watch("APOLLO_QUERY_ERROR", apolloQueryError));
 }

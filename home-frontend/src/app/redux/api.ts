@@ -4,7 +4,7 @@ import { IDatasetMetadata, IDatasetCoords } from "../models";
 
 import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "../helpers/Utils";
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
   constructor(m: string, status: number) {
     super(m);

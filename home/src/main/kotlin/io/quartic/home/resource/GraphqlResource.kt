@@ -11,10 +11,7 @@ import io.quartic.common.auth.User
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.home.graphql.Query
-import javax.ws.rs.Consumes
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 @Path("/graphql")
