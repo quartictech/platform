@@ -3,6 +3,7 @@ import * as React from "react";
 import {
   Classes,
   IconContents,
+  IconName,
   InputGroup,
   Intent,
   Keys,
@@ -27,7 +28,7 @@ export interface PickerEntry {
   description?: string;
   extra?: string;
   category?: string;
-  iconName?: string;
+  iconName?: IconName;
   disabled?: boolean;
   href?: string;
 }
@@ -43,8 +44,8 @@ interface CategorisedEntries {
 
 export interface PickerProps {
   className?: string;
-  iconName?: string;
-  defaultEntryIconName?: string;
+  iconName?: IconName;
+  defaultEntryIconName?: IconName;
   placeholder?: string;
   entries: PickerEntry[];
   selectedKey: string;

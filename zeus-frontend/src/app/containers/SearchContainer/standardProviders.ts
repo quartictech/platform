@@ -1,8 +1,8 @@
 import * as _ from "underscore";
+import { Intent, IconClasses } from "@blueprintjs/core";
 import { SearchProvider } from "./index";
 import * as selectors from "../../redux/selectors";
 import { toTitleCase } from "../../helpers/Utils";
-import { Intent } from "@blueprintjs/core";
 import { toaster } from "../../containers/App/toaster";
 import {
   resourceActions,
@@ -38,7 +38,7 @@ const datasetProvider = () => {
       _.map(datasets, (v, k) => ({
         key: k,
         name: v.prettyName,
-        iconName: "database",
+        iconName: IconClasses.DATABASE,
         href: `/explorer/${encodeURIComponent(k)}`,
       })),
       onResultChange,
@@ -79,14 +79,14 @@ const standardProviders: { [id: string] : SearchProvider } = {
   people: staticProvider(["people"], _.map(["Arlo", "Alex", "Oliver"], p => ({
     key: p,
     name: p,
-    iconName: "person",
+    iconName: IconClasses.PERSON,
     onSelect: () => toaster.show({ iconName: "person", intent: Intent.SUCCESS, message: `${p} clicked` }),
   }))),
 
   insights: staticProvider(["insights"], _.map(insights, (insight, name) => ({
     key: name,
     name: insight.title,
-    iconName: "layout-auto",
+    iconName: IconClasses.LAYOUT_AUTO,
     disabled: insight.disabled,
     href: `/insights/${encodeURIComponent(name)}`,
   }))),

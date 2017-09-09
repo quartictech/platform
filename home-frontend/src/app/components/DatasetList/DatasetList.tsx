@@ -50,7 +50,7 @@ const maybeDescription = (metadata: IDatasetMetadata) =>
     ? null
     : <p>{metadata.description}</p>;
 
-class DatasetListInner extends React.Component<IDatasetListProps, void> {
+class DatasetListInner extends React.Component<IDatasetListProps, {}> {
   render() {
     return (
       <div>

@@ -20,6 +20,7 @@ module.exports = {
         use: [
           "source-map-loader",
         ],
+        exclude: [/node_modules/, /build/, /__test__/],
       },
       // See (for TS -> Babel): http://www.jbrantly.com/es6-modules-with-typescript-and-webpack/
       // See http://jamesknelson.com/using-es6-in-the-browser-with-babel-6-and-webpack/

@@ -16,7 +16,7 @@ val standardDependencies = mapOf(
     "source-map-loader" to "0.1.5",
     "style-loader" to "0.13.1",
     "ts-loader" to "2.3.4",
-    "typescript" to "2.1.5",
+    "typescript" to "2.5.0",
     "url-loader" to "0.5.7",
     "webpack" to "2.6.1",
     "webpack-merge" to "4.1.0",

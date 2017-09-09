@@ -196,7 +196,7 @@ class FrontendPlugin : Plugin<Project> {
     }
 
     companion object {
-        val YARN_VERSION = "0.27.5"
+        val YARN_VERSION = "1.0.1"
 
         val GROUP = "Frontend"
         val EXTENSION = "frontend"

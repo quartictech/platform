@@ -10,6 +10,7 @@ import {
   Intent,
   Dialog,
   Classes,
+  IconClasses
 } from "@blueprintjs/core";
 
 import { IDataset, IDatasetCoords } from "../../models";
@@ -41,7 +42,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
             style={{ marginLeft: "10px" }}
             className="pt-minimal"
             text="Delete"
-            iconName="trash"
+            iconName={IconClasses.TRASH}
             intent={Intent.DANGER}
             onClick={() => this.setState({ isDeleteDialogOpen: true })}
           />
@@ -80,10 +81,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
           </div>
           <div className={Classes.DIALOG_FOOTER}>
             <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-              <Button
-                onClick={() => this.setState({ isDeleteDialogOpen: false })}
-                iconName=""
-              >
+              <Button onClick={() => this.setState({ isDeleteDialogOpen: false })}>
                 No
               </Button>
               <Button

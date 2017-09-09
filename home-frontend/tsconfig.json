@@ -2,6 +2,7 @@
 	"compileOnSave": false,
 	"buildOnSave": false,
   "compilerOptions": {
+    "baseUrl": ".",
     "outDir": "./public/",
     "module": "commonjs",
     "target": "es6",
@@ -14,10 +15,14 @@
 		"noUnusedParameters": true,
     "removeComments": true,
     "jsx": "react",
-		"types": ["node", "redux"]
-  },
-  "exclude": [
-    "node_modules",
+    "types": ["node", "redux"],
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18484
+    "paths": {
+      "react": ["node_modules/@types/react"]
+    }
+},
+"exclude": [
+  "node_modules",
     "public"
   ]
 }
