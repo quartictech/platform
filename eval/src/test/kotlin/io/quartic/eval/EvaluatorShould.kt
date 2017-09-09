@@ -1,9 +1,9 @@
 package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
+import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.api.model.BuildTrigger.TriggerType
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.model.Dag.Node
@@ -45,8 +45,8 @@ class EvaluatorShould {
         whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
         whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
 
-        val a = evaluator.evaluateAsync(details, TriggerType.EXECUTE)
-        val b = evaluator.evaluateAsync(details.copy(repoId = 7777), TriggerType.EXECUTE)
+        val a = evaluator.evaluateAsync(webhookTrigger)
+        val b = evaluator.evaluateAsync(webhookTrigger.copy(repoId = 7777))
 
         b.join()                                                // But we can still complete this one
 
@@ -130,7 +130,7 @@ class EvaluatorShould {
     fun do_nothing_if_customer_lookup_failed() {
         whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
 
-        execute()
+        evaluate()
 
         assertThat(sequencer.numSequences, equalTo(0))
     }
@@ -188,11 +188,11 @@ class EvaluatorShould {
     }
 
     private fun execute() = runBlocking {
-        evaluator.evaluateAsync(details, TriggerType.EXECUTE).join()
+        evaluator.evaluateAsync(manualTrigger).join()
     }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(details, TriggerType.EVALUATE).join()
+        evaluator.evaluateAsync(webhookTrigger).join()
     }
 
 
@@ -201,7 +201,9 @@ class EvaluatorShould {
     }
 
     private val customerNamespace = "raging"
+    private val customerId = CustomerId(100)
     private val commitId = "abc123"
+    private val branch = "master"
     private val containerHostname = "a.b.c"
     private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
@@ -218,7 +220,7 @@ class EvaluatorShould {
 
     private val githubRepoId: Long = 5678
     private val githubInstallationId: Long = 1234
-    private val details = BuildTrigger.GithubWebhook(
+    private val webhookTrigger = BuildTrigger.GithubWebhook(
         deliveryId = "1",
         repoId = githubRepoId,
         installationId = githubInstallationId,
@@ -228,6 +230,14 @@ class EvaluatorShould {
         ref = "refs/heads/wat",
         timestamp = Instant.MIN,
         rawWebhook = emptyMap()
+    )
+
+    private val manualTrigger = BuildTrigger.Manual(
+        "me",
+        Instant.now(),
+        customerId,
+        "master",
+        BuildTrigger.TriggerType.EXECUTE
     )
 
     private val repo = Repository(
@@ -257,6 +267,7 @@ class EvaluatorShould {
 
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
+        on { getCustomerByIdAsync(customerId) } doReturn completedFuture(customer)
     }
 
     private val quartyContainer = mock<QubeContainerProxy> {
@@ -273,6 +284,7 @@ class EvaluatorShould {
 
     private val quarty = mock<QuartyClient> {
         on { initAsync(githubCloneUrlWithCreds, commitId) } doReturn completedFuture(Success(emptyList(), Unit))
+        on { initAsync(githubCloneUrlWithCreds, branch) } doReturn completedFuture(Success(emptyList(), Unit))
         on { evaluateAsync() } doReturn completedFuture(Success(emptyList(), pipeline))
         on { executeAsync(any(), any()) } doReturn completedFuture(Success(emptyList(), Unit))
     }
