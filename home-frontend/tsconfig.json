@@ -11,8 +11,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noImplicitAny": false,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "removeComments": true,
     "jsx": "react",
     "types": ["node", "redux"],
@@ -31,14 +31,15 @@
       "es2015.symbol.wellknown",
       "esnext.asynciterable"
     ],
-
     // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18484
     "paths": {
-      "react": ["node_modules/@types/react"]
+      "react": [
+        "node_modules/@types/react"
+      ]
     }
-},
-"exclude": [
-  "node_modules",
+  },
+  "exclude": [
+    "node_modules",
     "public"
   ]
 }
