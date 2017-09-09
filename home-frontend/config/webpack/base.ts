@@ -20,6 +20,7 @@ module.exports = {
         use: [
           "source-map-loader",
         ],
+        // Needed to suppress warnings from apollo-client
         exclude: [/node_modules/, /build/, /__test__/],
       },
       // See (for TS -> Babel): http://www.jbrantly.com/es6-modules-with-typescript-and-webpack/

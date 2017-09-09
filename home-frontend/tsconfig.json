@@ -1,6 +1,6 @@
 {
-	"compileOnSave": false,
-	"buildOnSave": false,
+  "compileOnSave": false,
+  "buildOnSave": false,
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./public/",
