@@ -17,6 +17,8 @@ import org.junit.Test
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import org.hamcrest.CoreMatchers.*
+import org.hamcrest.MatcherAssert.*
 
 class GraphQLResourceShould {
     val eval = mock<EvalQueryServiceClient> {
@@ -37,18 +39,13 @@ class GraphQLResourceShould {
         )))
     }
 
+    val resource = GraphqlResource(eval)
+
 
     @Test
     fun be_regular() {
-        val queryType = GraphQLAnnotations.`object`(GraphqlResource.Query::class.java)
-        val graphQLSchema = GraphQLSchema.newSchema()
-            .query(queryType).build()
-        val gql = GraphQL.newGraphQL(graphQLSchema)
-            .build()
-
         val user = User("alex", CustomerId(100))
-        val executionResult = gql.execute("{ last20Builds { id, number } }", GraphqlResource.Context(user, eval), emptyMap())
-        println(executionResult.getData<List<Build>>())
-        println(executionResult.errors)
+        val result = resource.execute(user, GraphqlResource.Request( "{ feed { id } }"))
+        assertThat(result.errors, equalTo(emptyList()))
     }
 }

@@ -9,18 +9,14 @@ data class Build(
     val id: String,
 
     @GraphQLField
-    @GraphQLName("number")
     val number: Long,
 
     @GraphQLField
-    @GraphQLName("status")
     val status: String,
 
     @GraphQLField
-    @GraphQLName("time")
     val time: Long,
 
     @GraphQLField
-    @GraphQLName("type")
     val type: String = "build"
 )

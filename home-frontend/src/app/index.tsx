@@ -8,7 +8,7 @@ import { getRoutes, appHistory } from "./routes";
 
 import { apiRootUrl } from "./redux/api";
 
-import { ApolloClient, createNetworkInterface, ApolloProvider } from 'react-apollo';
+import { ApolloClient, createNetworkInterface, ApolloProvider } from "react-apollo";
 
 import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "./helpers/Utils";
 
@@ -28,7 +28,7 @@ const history = syncHistoryWithStore(appHistory, store, {
 const networkInterface = createNetworkInterface({
   uri: `${apiRootUrl}/graphql/execute`,
   opts: {
-    credentials: 'same-origin',
+    credentials: "same-origin",
   },
 });
 
@@ -41,7 +41,7 @@ networkInterface.use([{
     const token = localStorage.getItem(QUARTIC_XSRF);
     req.options.headers[QUARTIC_XSRF_HEADER] = token;
     next();
-  }
+  },
 }]);
 
 const client = new ApolloClient({ networkInterface });

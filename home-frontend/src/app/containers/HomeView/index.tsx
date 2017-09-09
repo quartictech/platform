@@ -1,27 +1,22 @@
 import * as React from "react";
 import { connect } from "react-redux";
-
 import { Link } from "react-router";
 import * as classNames from "classnames";
-
 import * as moment from "moment";
-
 import { Button, Spinner, Classes, Intent } from "@blueprintjs/core";
-
 import { createStructuredSelector } from "reselect";
-import * as selectors from "../../redux/selectors";
+import { gql, graphql } from "react-apollo";
+
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
-
 import { FeedItem, Build } from "../../models";
-import { gql, graphql } from 'react-apollo';
 
 interface IProps {
   data: {
     loading: boolean;
     feed: FeedItem[];
     error: any;
-  }
+  };
   buildPipeline: Function;
 }
 
@@ -95,19 +90,18 @@ class HomeView extends React.Component<IProps, {}> {
   )
 
   renderContainer() {
-    console.log(this.props.data)
     if (this.props.data.loading) {
-        return (
-          <div className={s.noItems}>
-            <Spinner className={Classes.LARGE} />
-          </div>
-        );
+      return (
+        <div className={s.noItems}>
+          <Spinner className={Classes.LARGE} />
+        </div>
+      );
     } else if (this.props.data.feed) {
-        if (this.props.data.feed.length > 0) {
-          return this.renderFeed();
-        } else {
-          return this.renderNoItems();
-        }
+      if (this.props.data.feed.length > 0) {
+        return this.renderFeed();
+      } else {
+        return this.renderNoItems();
+      }
     }
   }
 
@@ -120,19 +114,16 @@ class HomeView extends React.Component<IProps, {}> {
   }
 }
 
-export { HomeView };
-
 const mapDispatchToProps = {
-  fetchFeed: actions.fetchFeed,
   buildPipeline: actions.buildPipeline,
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi,
-  feed: selectors.selectFeed,
 });
 
-const query = gql`{ feed { type, id, time, status, number } }`
+const query = gql`{
+  feed { type, id, time, status, number }
+}`;
 
 export default graphql(query)(connect(
   mapStateToProps,
