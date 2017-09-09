@@ -14,6 +14,8 @@ import io.quartic.common.auth.User
 import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryServiceClient
+import io.quartic.home.graphql.Build
+import io.quartic.home.graphql.Query
 import java.lang.reflect.AnnotatedType
 import java.time.Instant
 import javax.ws.rs.Consumes
@@ -42,42 +44,6 @@ class GraphqlResource(val eval: EvalQueryServiceClient) {
         val eval: EvalQueryServiceClient
     )
 
-    class InstantTypeFunction : TypeFunction {
-        override fun canBuildType(aClass: Class<*>?, annotatedType: AnnotatedType?) = aClass == Instant::class.java
-
-        override fun buildType(typeName: String?, aClass: Class<*>?, annotatedType: AnnotatedType?): GraphQLType {
-            return object: GraphQLType {
-                override fun getName(): String {
-                    return "Instant"
-                }
-
-            }
-        }
-
-    }
-
-    data class Build(
-        @GraphQLField
-        @GraphQLName("id")
-        val id: String,
-
-        @GraphQLField
-        @GraphQLName("number")
-        val number: Long,
-
-        @GraphQLField
-        @GraphQLName("status")
-        val status: String,
-
-        @GraphQLField
-        @GraphQLName("time")
-        val time: Long,
-
-        @GraphQLField
-        @GraphQLName("type")
-        val type: String = "build"
-    )
-
     class BuildsFetcher : DataFetcher<List<Build>> {
         override fun get(env: DataFetchingEnvironment?): List<Build> {
             val context = env!!.getContext<Context>()
@@ -86,20 +52,11 @@ class GraphqlResource(val eval: EvalQueryServiceClient) {
         }
     }
 
-    interface Query {
-        @GraphQLField
-        @GraphQLName("feed")
-        @GraphQLDataFetcher(BuildsFetcher::class)
-        fun feed(): List<Build>
-    }
-
-
     @POST
     @Path("/execute")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun execute(@Auth user: User, request: Request): Result {
-        GraphQLAnnotations.register(InstantTypeFunction())
         val queryType = GraphQLAnnotations.`object`(Query::class.java)
         val graphQLSchema = GraphQLSchema.newSchema()
             .query(queryType).build()
