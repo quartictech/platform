@@ -1,5 +1,6 @@
 package io.quartic.qube.pods
 
+import io.fabric8.kubernetes.api.model.ContainerBuilder
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodBuilder
@@ -105,32 +106,40 @@ class WorkerImpl(
         )
     }
 
-    private fun pod(podName: String, create: QubeEvent.CreatePod) =
-        PodBuilder(podTemplate)
+    private fun pod(podName: String, create: QubeEvent.CreatePod): Pod {
+        val podBuilder = PodBuilder(podTemplate)
             .editOrNewMetadata()
             .withName(podName)
             .withNamespace(namespace)
             .endMetadata()
             .editOrNewSpec()
-            .editFirstContainer()
-            .withImage(create.container.image)
-            .withCommand(create.container.command)
+            .withContainers(listOf())
 
-            .addNewPort()
-            .withContainerPort(create.container.port)
-            .endPort()
+            create.pod.containers.forEach { container ->
+                podBuilder
+                    .addToContainers(
+                        ContainerBuilder()
+                            .withImage(container.image)
+                            .withCommand(container.command)
 
-            .editOrNewReadinessProbe()
-            .withNewTcpSocket()
-            .withPort(IntOrString(create.container.port))
-            .endTcpSocket()
-            .withInitialDelaySeconds(3)
-            .withPeriodSeconds(3)
-            .endReadinessProbe()
+                            .addNewPort()
+                            .withContainerPort(container.port)
+                            .endPort()
 
-            .endContainer()
-            .endSpec()
-            .build()
+                            .editOrNewReadinessProbe()
+                            .withNewTcpSocket()
+                            .withPort(IntOrString(container.port))
+                            .endTcpSocket()
+                            .withInitialDelaySeconds(3)
+                            .withPeriodSeconds(3)
+                            .endReadinessProbe()
+                            .build())
+            }
+
+        return podBuilder.endSpec().build()
+    }
+
+
 
     override fun runAsync(create: QubeEvent.CreatePod) = async(CommonPool) { run(create) }
 
@@ -147,7 +156,7 @@ class WorkerImpl(
                 id = podId,
                 client = create.key.client,
                 podName = create.key.name,
-                createPod = QubeRequest.Create(create.key.name, create.container),
+                createPod = QubeRequest.Create(create.key.name, create.pod),
                 log = logs,
                 startTime = startTime,
                 endTime = endTime,

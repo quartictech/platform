@@ -3,6 +3,7 @@ package io.quartic.qube
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import io.quartic.qube.pods.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
@@ -97,7 +98,7 @@ class OrchestratorShould {
     }
 
     fun createPod() = QubeEvent.CreatePod(podKey, returnChannel,
-        ContainerSpec("dummy:1", listOf("true"), 8000))
+        PodSpec(listOf(ContainerSpec("dummy:1", listOf("true"), 8000))))
     fun cancelPod() = QubeEvent.CancelPod(podKey)
     fun createClient() = QubeEvent.CreateClient(podKey.client)
     fun cancelClient() = QubeEvent.CancelClient(podKey.client)

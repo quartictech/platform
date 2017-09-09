@@ -8,6 +8,7 @@ import io.quartic.qube.store.JobStore
 import io.quartic.common.db.setupDbi
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +40,7 @@ class JobStoreShould {
         val uuid = UUID.randomUUID()
         val client = UUID.randomUUID()
         val request = QubeRequest.Create("blah",
-            ContainerSpec("dummy:1", listOf("true"), 8000))
+            PodSpec(listOf(ContainerSpec("dummy:1", listOf("true"), 8000))))
         jobStore.insertJob(
             uuid,
             client,

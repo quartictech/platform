@@ -44,7 +44,7 @@ class Qubicle(
                         QubeEvent.CreatePod(
                             PodKey(clientUUID, message.name),
                             returnChannel,
-                            message.container
+                            message.pod
                         )
                     )
                     is QubeRequest.Destroy -> events.offer(

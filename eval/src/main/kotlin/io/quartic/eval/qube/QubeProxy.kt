@@ -4,7 +4,7 @@ import io.quartic.common.coroutines.SuspendedAutoCloseable
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
-import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.util.*
 
@@ -25,6 +25,6 @@ interface QubeProxy {
 
     companion object {
         fun create(client: WebsocketClient<QubeRequest, QubeResponse>,
-                   container: ContainerSpec) = QubeProxyImpl(client, container)
+                   container: PodSpec) = QubeProxyImpl(client, container)
     }
 }

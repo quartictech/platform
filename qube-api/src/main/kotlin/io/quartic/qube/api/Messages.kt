@@ -2,7 +2,7 @@ package io.quartic.qube.api
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import java.util.*
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -15,7 +15,7 @@ sealed class QubeRequest {
 
     data class Create(
         override val name: String,
-        val container: ContainerSpec
+        val pod: PodSpec
     ): QubeRequest()
     data class Destroy(override val name: String): QubeRequest()
 }

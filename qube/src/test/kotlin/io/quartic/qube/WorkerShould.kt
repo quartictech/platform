@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.PodKey
 import io.quartic.qube.pods.QubeEvent
@@ -58,10 +59,10 @@ class WorkerShould {
         .build()
     val returnChannel = mock<Channel<QubeResponse>>()
     val podEvents = Channel<Pod>(UNLIMITED)
-    val containerSpec = ContainerSpec(
+    val containerSpec = PodSpec(listOf(ContainerSpec(
         "la-dispute-discography-docker:1",
         listOf("great music"),
-        8000)
+        8000)))
 
     init {
         whenever(client.watchPod(any()))

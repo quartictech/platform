@@ -16,6 +16,7 @@ import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Running
 import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
@@ -36,7 +37,7 @@ class QubeProxyImplShould {
         on { events } doReturn events
     }
 
-    private val containerSpec = ContainerSpec("noobout:1", listOf("true"), 8080)
+    private val containerSpec = PodSpec(listOf(ContainerSpec("noobout:1", listOf("true"), 8080)))
     private val qube = QubeProxyImpl(client, containerSpec) { uuid(nextUuid++) }
 
     @Test
