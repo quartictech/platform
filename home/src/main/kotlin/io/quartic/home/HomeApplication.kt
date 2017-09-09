@@ -12,6 +12,7 @@ import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.home.resource.AuthResource
+import io.quartic.home.resource.GraphqlResource
 import io.quartic.home.resource.HomeResource
 import io.quartic.home.resource.UserResource
 import io.quartic.howl.api.HowlClient
@@ -38,6 +39,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         )
 
         with (environment.jersey()) {
+            register(GraphqlResource(evalQuery))
             register(UserResource(clientBuilder.feign(configuration.github.apiRoot)))
             register(HomeResource(
                 catalogue,

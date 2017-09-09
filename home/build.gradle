@@ -24,8 +24,12 @@ dependencies {
         compile project(":home-frontend")
     }
 
+
+//    compile "com.graphql-java:graphql-java:4.1"
+    compile "com.graphql-java:graphql-java-annotations:3.0.3"
     compile "org.apache.commons:commons-csv:1.3"
     compile libraries.dropwizard.assets
+
 
     testCompile project(":common-test")
     testCompile libraries.dropwizard.testing

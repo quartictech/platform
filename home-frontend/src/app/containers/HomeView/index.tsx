@@ -13,15 +13,16 @@ import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-import { FeedItem, Build, LoadingState } from "../../models";
+import { FeedItem, Build } from "../../models";
+import { gql, graphql } from 'react-apollo';
 
 interface IProps {
-  fetchFeed: Function;
+  data: {
+    loading: boolean;
+    feed: FeedItem[];
+    error: any;
+  }
   buildPipeline: Function;
-  feed: {
-    state: LoadingState;
-    items: FeedItem[];
-  };
 }
 
 export function isBuild(item: FeedItem): item is Build {
@@ -30,7 +31,6 @@ export function isBuild(item: FeedItem): item is Build {
 
 class HomeView extends React.Component<IProps, {}> {
   componentDidMount() {
-    this.props.fetchFeed();
   }
 
   intentForStatus = (status) => {
@@ -55,8 +55,8 @@ class HomeView extends React.Component<IProps, {}> {
 
           <div className={s.cardBody}>
             <h5>
-              <Link to={`/pipeline/${item.buildNumber}`}>
-                Build #{item.buildNumber}
+              <Link to={`/pipeline/${item.number}`}>
+                Build #{item.number}
               </Link>
             </h5>
             <b>Branch</b> {item.branch}
@@ -89,27 +89,25 @@ class HomeView extends React.Component<IProps, {}> {
       />
       <h2>Activity</h2>
       <div className={s.feed}>
-        {this.props.feed.items.map(item => this.renderItem(item))}
+        {this.props.data.feed.map(item => this.renderItem(item))}
       </div>
     </div>
   )
 
   renderContainer() {
-    switch (this.props.feed.state) {
-      case LoadingState.LOADING:
+    console.log(this.props.data)
+    if (this.props.data.loading) {
         return (
           <div className={s.noItems}>
             <Spinner className={Classes.LARGE} />
           </div>
         );
-      case LoadingState.LOADED:
-        if (this.props.feed.items.length > 0) {
+    } else if (this.props.data.feed) {
+        if (this.props.data.feed.length > 0) {
           return this.renderFeed();
         } else {
           return this.renderNoItems();
         }
-      default:
-        return null;
     }
   }
 
@@ -134,7 +132,9 @@ const mapStateToProps = createStructuredSelector({
   feed: selectors.selectFeed,
 });
 
-export default connect(
+const query = gql`{ feed { type, id, time, status, number } }`
+
+export default graphql(query)(connect(
   mapStateToProps,
   mapDispatchToProps,
-)(HomeView);
+)(HomeView));

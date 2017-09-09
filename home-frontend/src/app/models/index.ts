@@ -67,7 +67,7 @@ export interface Profile {
 export interface Build {
   type: string;
   id: string;
-  buildNumber: number;
+  number: number;
   branch: string;
   status: string;
   triggerDetails: {
