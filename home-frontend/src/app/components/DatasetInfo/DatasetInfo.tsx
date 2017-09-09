@@ -10,7 +10,7 @@ import {
   Intent,
   Dialog,
   Classes,
-  IconClasses
+  IconClasses,
 } from "@blueprintjs/core";
 
 import { IDataset, IDatasetCoords } from "../../models";
