@@ -53,7 +53,6 @@ export class App extends React.Component<IProps, {}> {
 
 const mapDispatchToProps = {
   searchDatasets: actions.searchDatasets,
-  selectNamespace: actions.selectNamespace,
   logout: actions.userLogout,
 };
 
