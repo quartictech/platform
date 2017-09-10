@@ -4,6 +4,7 @@ apply plugin: FrontendPlugin
 
 frontend {
     prod "@blueprintjs/core", "1.27.0"
+    prod "react-addons-css-transition-group", "15.4.0"
     prod "classnames", "2.2.5"
     prod "cytoscape", "3.1.4"
     prod "cytoscape-dagre", "1.6.0"

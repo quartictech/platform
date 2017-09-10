@@ -22,17 +22,17 @@ val standardDependencies = mapOf(
     "webpack-merge" to "4.1.0",
 
     // Lint
-    "tslint" to "5.4.3",
+    "tslint" to "5.7.0",
     "tslint-config-airbnb" to "5.2.1",
-    "tslint-react" to "3.0.0",
+    "tslint-react" to "3.2.0",
 
     // Dev server
-    "ts-node" to "3.2.0",
-    "express" to "4.13.4",
-    "webpack-dev-middleware" to "1.11.0",
-    "webpack-dev-server" to "2.5.0",
-    "webpack-hot-middleware" to "2.18.0",
-    "http-proxy-middleware" to "0.17.3",
+    "ts-node" to "3.3.0",
+    "express" to "4.15.4",
+    "webpack-dev-middleware" to "1.12.0",
+    "webpack-dev-server" to "2.7.1",
+    "webpack-hot-middleware" to "2.19.1",
+    "http-proxy-middleware" to "0.17.4",
 
     // Other
     "redux-devtools-extension" to "2.13.2"

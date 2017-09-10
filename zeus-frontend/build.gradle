@@ -5,6 +5,8 @@ apply plugin: FrontendPlugin
 frontend {
     prod "@blueprintjs/core", "1.27.0"
     prod "@blueprintjs/table", "1.24.1"
+    prod "react-addons-css-transition-group", "15.4.0"
+
     prod "@mapbox/geojson-extent", "0.3.2"
     prod "babel-polyfill", "^6.23.0"
     prod "babel-runtime", "^6.23.0"
