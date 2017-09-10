@@ -18,10 +18,7 @@ const logo = require("./quartic.svg");
 
 interface IProps {
   searchBoxChange: any;
-  selectedNamespace: string;
-  namespaceSelectChange: any;
   onLogOutClick: () => void;
-  namespaces: string[];
   profile?: Profile;
 }
 

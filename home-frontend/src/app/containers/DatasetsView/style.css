@@ -12,17 +12,6 @@
   height: 100%;
 }
 
-.left {
-  width: 50%;
-  height: 100%;
-  padding: 10px;
-}
-
-.right {
-  width: 50%;
-  padding: 10px;
-}
-
 .center {
   width: 80%;
   margin: 0 auto;
