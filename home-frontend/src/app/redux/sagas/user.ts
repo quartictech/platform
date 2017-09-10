@@ -8,14 +8,7 @@ import * as constants from "../constants";
 
 import { QUARTIC_XSRF } from "../../helpers/Utils";
 
-import { checkedApiCall, watch } from "./utils";
-
-function* fetchProfile(): SagaIterator {
-  const res = yield* checkedApiCall(api.fetchProfile);
-  if (!res.err) {
-    yield put(actions.userFetchProfileSuccess(res.data));
-  }
-}
+import { watch } from "./utils";
 
 function* logout(_action): SagaIterator {
   localStorage.removeItem(QUARTIC_XSRF);
@@ -29,7 +22,6 @@ function* loginGithub(action): SagaIterator {
     localStorage.setItem(QUARTIC_XSRF, res.xsrfToken);
     yield put(actions.userLoginSuccess());
     yield put(push("/"));
-    yield* fetchProfile();  // TODO - what if profile fetching fails?
   } else {
     yield put(push("/login"));  // TODO - go to a "you are noob, try again page"
   }
@@ -44,7 +36,6 @@ function* apolloQueryError(action) {
 export function* manageUser(): SagaIterator {
   if (localStorage.getItem(QUARTIC_XSRF)) {
     yield put(actions.userLoginSuccess());
-    yield fork(fetchProfile);   // Do this async
   }
 
   yield fork(watch(constants.USER_LOGIN_GITHUB, loginGithub));

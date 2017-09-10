@@ -3,7 +3,7 @@ import { apiRootUrl, ApiError } from "./api";
 import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "../helpers/Utils";
 
 const networkInterface = createNetworkInterface({
-  uri: `${apiRootUrl}/graphql/execute`,
+  uri: `${apiRootUrl}/gql`,
   opts: {
     credentials: "same-origin",
   },

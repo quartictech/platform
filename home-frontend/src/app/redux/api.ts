@@ -52,16 +52,8 @@ export function fetchAuth(url, options?) {
     .catch(err => ({ err }));
 }
 
-export function fetchProfile() {
-  return fetchUtil(`${apiRootUrl}/profile`);
-}
-
 export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
-}
-
-export function fetchFeed() {
-  return fetchUtil(`${apiRootUrl}/builds`);
 }
 
 export function fetchDag(build: string) {

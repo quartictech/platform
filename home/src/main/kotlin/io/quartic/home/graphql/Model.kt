@@ -23,7 +23,14 @@ data class Build(
 
     @GraphQLField
     val type: String = "build"
+)
 
+data class User(
+    @GraphQLField
+    val name: String,
+
+    @GraphQLField
+    val avatarUrl: String
 )
 
 @GraphQLUnion(possibleTypes = arrayOf(BuildEvent.Default::class))
@@ -39,5 +46,3 @@ interface BuildEvent {
         override fun time() = time
     }
 }
-
-

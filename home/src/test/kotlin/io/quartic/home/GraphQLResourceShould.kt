@@ -10,7 +10,7 @@ import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.home.resource.GraphqlResource
+import io.quartic.home.resource.GraphQLResource
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -59,12 +59,12 @@ class GraphQLResourceShould {
         on { getBuildEventsAsync(any(), any()) } doReturn CompletableFuture.completedFuture(events)
     }
 
-    val resource = GraphqlResource(eval)
+    val resource = GraphQLResource(eval)
     val user = User("alex", CustomerId(100))
 
     @Test
     fun list_builds() {
-        val result = resource.execute(user, GraphqlResource.Request( """
+        val result = resource.execute(user, GraphQLResource.Request( """
             {
                 feed {
                     id,
@@ -83,7 +83,7 @@ class GraphQLResourceShould {
     @Test
     fun fetch_build() {
         val buildNumber = "\$buildNumber"
-        val result = resource.execute(user, GraphqlResource.Request( """
+        val result = resource.execute(user, GraphQLResource.Request( """
             query FetchById($buildNumber: Long) {
                 build(buildNumber: $buildNumber) {
                     id,

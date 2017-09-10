@@ -9,8 +9,9 @@ import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
+import io.quartic.github.GitHub
 import io.quartic.home.resource.AuthResource
-import io.quartic.home.resource.GraphqlResource
+import io.quartic.home.resource.GraphQLResource
 import io.quartic.home.resource.HomeResource
 import io.quartic.home.resource.UserResource
 import io.quartic.howl.api.HowlClient
@@ -25,6 +26,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val registry = clientBuilder.retrofit<RegistryServiceClient>(configuration.registryUrl)
         val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(configuration.evalUrl)
         val evalTrigger = clientBuilder.retrofit<EvalTriggerServiceClient>(configuration.evalUrl)
+        val github = clientBuilder.feign<GitHub>(configuration.github.apiRoot)
 
         val tokenGenerator = TokenGenerator(
             configuration.auth as TokenAuthConfiguration,
@@ -33,7 +35,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         )
 
         with (environment.jersey()) {
-            register(GraphqlResource(evalQuery))
+            register(GraphQLResource(evalQuery, github))
             register(UserResource(clientBuilder.feign(configuration.github.apiRoot)))
             register(HomeResource(
                 catalogue,
