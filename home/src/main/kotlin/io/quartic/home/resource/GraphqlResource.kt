@@ -41,12 +41,10 @@ class GraphqlResource(val eval: EvalQueryServiceClient) {
         val graphQLSchema = GraphQLSchema.newSchema()
             .query(queryType)
             .build()
-        println(SchemaPrinter().print(graphQLSchema))
         gql = GraphQL.newGraphQL(graphQLSchema)
             .build()
 
     }
-
 
     @POST
     @Path("/execute")
