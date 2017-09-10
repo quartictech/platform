@@ -41,7 +41,7 @@ interface Props {
   datasetInfo: ResourceState<{ [id: string] : DatasetInfo}>;
 }
 
-class Header extends React.Component<Props, void> {
+class Header extends React.Component<Props, {}> {
   componentDidMount() {
     this.props.sessionInfoRequired();
     this.props.datasetInfoRequired();

@@ -67,7 +67,7 @@ class ServicePlugin : Plugin<Project> {
             image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
             content = copySpec {
                 it.from(tasks.getByName(TASK_DIST_TAR_NAME).outputs)
-                it.from(resources.text.fromString(javaClass.getResource("/Dockerfile").readText()).asFile()) {
+                it.from(resources.text.fromString(dockerfileTemplate).asFile()) {
                     it.rename { _ -> "Dockerfile" }
                     it.filter {
                         replace(it, mapOf(
@@ -80,6 +80,8 @@ class ServicePlugin : Plugin<Project> {
             }
         }
     }
+
+    private val dockerfileTemplate = javaClass.getResource("Dockerfile").readText()
 
     private fun replace(original: String, replacements: Map<String, Any>) = replacements
         .entries

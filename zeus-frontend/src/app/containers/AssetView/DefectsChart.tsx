@@ -4,6 +4,7 @@ import {
   Position,
   Button,
   Classes,
+  IconClasses,
 } from "@blueprintjs/core";
 
 import * as naturalsort from "javascript-natural-sort";
@@ -100,7 +101,7 @@ class DefectsChart extends React.Component<DefectsChartProps, State> {
   }
 
   private nonIdeal() {
-    return <NonIdealState visual="info" title="No survey data available" />;
+    return <NonIdealState visual={IconClasses.INFO_SIGN} title="No survey data available" />;
   }
 
   private computeTimeSeries(ts): TimeSeriesPoint[] {

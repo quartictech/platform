@@ -40,7 +40,7 @@ In general, you won't want or need to run the entire stack locally, because it w
 memory.  So a subset of services can be run as in the following example:
 
 ```
-SKIP_FRONTEND= ./gradlew home:run eval:run registry:run postgres:run --parallel
+./gradlew home:run eval:run registry:run postgres:run --parallel
 ```
 
 Frontend components are best run separately in development (to benefit from hot reloading).  So in another terminal:

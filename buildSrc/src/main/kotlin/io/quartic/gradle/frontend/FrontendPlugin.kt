@@ -1,15 +1,15 @@
 package io.quartic.gradle.frontend
 
+import io.quartic.gradle.docker.DockerExtension
+import io.quartic.gradle.docker.DockerPlugin
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Exec
-import org.gradle.api.tasks.bundling.Jar
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.io.File
@@ -18,185 +18,201 @@ import java.io.FileOutputStream
 @Suppress("unused")
 class FrontendPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        Applier(project)
-    }
-    private class Applier(val project: Project) {
-        private val ext = project.extensions.create(EXTENSION, FrontendExtension::class.java)
+        with (project) {
+            extensions.create(EXTENSION, FrontendExtension::class.java)
 
-        private val yarnDir = File(project.buildDir, "yarn")
-        private val lintDir = File(project.buildDir, "lint")
-        private val nodeModulesDir = project.file("node_modules")
-        private val srcDir = project.file("src")
-        private val configDir = project.file("config")
-
-        // TODO - switch to symlinks in .bin once Gradle build cache supports symlinks
-        private val yarnExecutable = File(yarnDir, "lib/node_modules/yarn/bin/yarn.js")
-        private val tsNodeExecutable = File(nodeModulesDir, "ts-node/dist/bin.js")
-        private val webpackExecutable = File(nodeModulesDir, "webpack/bin/webpack.js")
-
-        init {
             val packageJson = createPackageJsonGenerationTask()
             val installYarn = createInstallYarnTask()
             val installDeps = createInstallDependenciesTask(installYarn, packageJson)
             val bundle = createBundleTask(installDeps)
+            configureDockerPlugin(bundle)
             createRunTask(installDeps)
             val lint = createLintTasks(installDeps)
+            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(lint)
             configureIdeaPlugin()
-            configureJavaPlugin(bundle, lint)
-        }
-
-        private fun createPackageJsonGenerationTask() = task<PackageJsonGenerationTask>(
-            CREATE_PACKAGE_JSON,
-            "Generates package.json."
-        ) {
-            project.afterEvaluate {
-                prod = ext.prod
-                dev = ext.dev + (if (ext.includeStandardDeps) standardDependencies else emptyMap())
-            }
-            packageJson = project.file("package.json")
-        }
-
-        private fun createInstallYarnTask() = task<Exec>(
-            INSTALL_YARN,
-            "Installs local Yarn."
-        ) {
-            inputs.property("version", YARN_VERSION)
-
-            outputs.dir(yarnDir)
-            outputs.cacheIf { true }
-
-            commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", yarnDir, "yarn@$YARN_VERSION")
-        }
-
-        private fun createInstallDependenciesTask(installYarn: Task, packageJson: Task) = task<Exec>(
-            INSTALL_DEPENDENCIES,
-            "Installs node_modules dependencies."
-        ) {
-            inputs.files(installYarn.outputs)
-            inputs.files(packageJson.outputs)
-            inputs.file(project.file("yarn.lock"))
-
-            outputs.dir(nodeModulesDir)
-            outputs.cacheIf { true }
-
-            // --frozen-lockfile -> CI catches cases where we forget to regenerate/commit yarn.lock
-            // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
-            // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
-            commandLine = listOf(
-                yarnExecutable,
-                "--mutex", "network",
-                "--non-interactive"
-            ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
-        }
-
-        private fun createBundleTask(installDeps: Task) = task<Exec>(
-            BUNDLE,
-            "Creates asset bundle."
-        ) {
-            configureCommonInputs(installDeps)
-
-            outputs.dir(File(project.buildDir, "bundle"))
-            outputs.cacheIf { true }                    // TODO - build-cache is going to be weird due to injecting project.version
-
-            environment["NODE_ENV"] = "production"      // TODO: this can probably be handled inside Webpack configuration
-            environment["BUILD_VERSION"] = project.version
-
-            commandLine = listOf(webpackExecutable,
-                "--config", File(configDir, "webpack/prod.ts"),
-                "--profile", "--colors"
-            )
-        }
-
-        private fun createRunTask(installDeps: Task) = task<Exec>(
-            RUN,
-            "Runs development server."
-        ) {
-            configureCommonInputs(installDeps)
-
-            commandLine = listOf(tsNodeExecutable, File(srcDir, "server"))
-        }
-
-        private fun createLintTasks(installDeps: Task) = task<DefaultTask>(
-            LINT,
-            "Runs linting checks."
-        ) {
-            dependsOn(createLintTask(installDeps,
-                "tslint",
-                File(nodeModulesDir, "tslint/bin/tslint"),
-                File(project.rootDir, "tslint.json"),
-                "*.ts{,x}",
-                "-t", "stylish"))
-        }
-
-        private fun createLintTask(
-            installDeps: Task,
-            name: String,
-            executable: File,
-            configFile: File,
-            pattern: String,
-            vararg args: String
-        ) = task<Exec>(
-            name,
-            "Runs $name linting check."
-        ) {
-            val outputLog = File(lintDir, "$name.out")
-
-            inputs.files(installDeps.outputs)
-            inputs.file(configFile)
-            inputs.dir(srcDir)
-
-            outputs.file(outputLog)
-            outputs.cacheIf { true }
-
-            commandLine = listOf(executable, "--config", configFile) +
-                    args.toList() +
-                    File(srcDir, "**/$pattern")
-
-            // See https://stackoverflow.com/a/27053294/129570
-            doFirst {
-                lintDir.mkdirs()
-                standardOutput = TeeOutputStream(FileOutputStream(outputLog), System.out);
-            }
-
-            // TODO - this isn't quite right - this is only created when dependency is executed
-            onlyIf { executable.exists() }
-        }
-
-        private fun Exec.configureCommonInputs(installDeps: Task) {
-            inputs.files(installDeps.outputs)
-            inputs.file(project.file("tsconfig.json"))
-            inputs.dir(configDir)
-            inputs.dir(srcDir)
-        }
-
-        private fun configureIdeaPlugin() {
-            project.plugins.apply(IdeaPlugin::class.java)
-            val ext = project.extensions.getByType(IdeaModel::class.java)
-            ext.module {
-                val ed = it.excludeDirs
-                ed.add(nodeModulesDir)
-                it.excludeDirs = ed
-            }
-        }
-
-        private fun configureJavaPlugin(bundle: Task, lint: Task) {
-            project.plugins.apply(JavaPlugin::class.java)
-
-            (project.tasks.getByName(JAR_TASK_NAME) as Jar).from(bundle)
-            project.tasks.getByName(CHECK_TASK_NAME).dependsOn(lint)
-        }
-
-        private inline fun <reified T : Task> task(name: String, description: String, block: T.() -> Unit): T {
-            val task = project.tasks.create(name, T::class.java)
-            task.group = GROUP
-            task.description = description
-            block.invoke(task)
-            return task
         }
     }
 
+    private fun Project.createPackageJsonGenerationTask() = task<PackageJsonGenerationTask>(
+        CREATE_PACKAGE_JSON,
+        "Generates package.json."
+    ) {
+        afterEvaluate {
+            prod = ext.prod
+            dev = ext.dev + (if (ext.includeStandardDeps) standardDependencies else emptyMap())
+        }
+        packageJson = file("package.json")
+    }
+
+    private fun Project.createInstallYarnTask() = task<Exec>(
+        INSTALL_YARN,
+        "Installs local Yarn."
+    ) {
+        inputs.property("version", YARN_VERSION)
+
+        outputs.dir(yarnDir)
+        outputs.cacheIf { true }
+
+        commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", yarnDir, "yarn@$YARN_VERSION")
+    }
+
+    private fun Project.createInstallDependenciesTask(installYarn: Task, packageJson: Task) = task<Exec>(
+        INSTALL_DEPENDENCIES,
+        "Installs node_modules dependencies."
+    ) {
+        inputs.files(installYarn.outputs)
+        inputs.files(packageJson.outputs)
+        inputs.file(project.file("yarn.lock"))
+
+        outputs.dir(nodeModulesDir)
+        outputs.cacheIf { true }
+
+        // --frozen-lockfile -> CI catches cases where we forget to regenerate/commit yarn.lock
+        // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
+        // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
+        commandLine = listOf(
+            yarnExecutable,
+            "--mutex", "network",
+            "--non-interactive"
+        ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
+    }
+
+    private fun Project.createBundleTask(installDeps: Task) = task<Exec>(
+        BUNDLE,
+        "Creates asset bundle."
+    ) {
+        configureCommonInputs(this, installDeps)
+
+        outputs.dir(File(project.buildDir, "bundle"))
+        outputs.cacheIf { true }                    // TODO - build-cache is going to be weird due to injecting project.version
+
+        environment["NODE_ENV"] = "production"      // TODO: this can probably be handled inside Webpack configuration
+        environment["BUILD_VERSION"] = project.version
+
+        commandLine = listOf(webpackExecutable,
+            "--config", File(configDir, "webpack/prod.ts"),
+            "--profile", "--colors"
+        )
+    }
+
+    private fun Project.createRunTask(installDeps: Task) = task<Exec>(
+        RUN,
+        "Runs development server."
+    ) {
+        configureCommonInputs(this, installDeps)
+
+        commandLine = listOf(tsNodeExecutable, File(srcDir, "server"))
+    }
+
+    private fun Project.createLintTasks(installDeps: Task) = task<DefaultTask>(
+        LINT,
+        "Runs linting checks."
+    ) {
+        dependsOn(createLintTask(installDeps,
+            "tslint",
+            File(nodeModulesDir, "tslint/bin/tslint"),
+            File(project.rootDir, "tslint.json"),
+            "*.ts{,x}",
+            "-t", "stylish"))
+    }
+
+    private fun Project.createLintTask(
+        installDeps: Task,
+        name: String,
+        executable: File,
+        configFile: File,
+        pattern: String,
+        vararg args: String
+    ) = task<Exec>(
+        name,
+        "Runs $name linting check."
+    ) {
+        val outputLog = File(lintDir, "$name.out")
+
+        inputs.files(installDeps.outputs)
+        inputs.file(configFile)
+        inputs.dir(srcDir)
+
+        outputs.file(outputLog)
+        outputs.cacheIf { true }
+
+        commandLine = listOf(executable, "--config", configFile) +
+                args.toList() +
+                File(srcDir, "**/$pattern")
+
+        // See https://stackoverflow.com/a/27053294/129570
+        doFirst {
+            lintDir.mkdirs()
+            standardOutput = TeeOutputStream(FileOutputStream(outputLog), System.out);
+        }
+
+        // TODO - this isn't quite right - this is only created when dependency is executed
+        onlyIf { executable.exists() }
+    }
+
+    private fun Project.configureCommonInputs(target: Exec, installDeps: Task) {
+        with (target) {
+            inputs.files(installDeps.outputs)
+            inputs.file(file("tsconfig.json"))
+            inputs.dir(configDir)
+            inputs.dir(srcDir)
+        }
+    }
+
+    private fun Project.configureIdeaPlugin() {
+        plugins.apply(IdeaPlugin::class.java)
+        val ext = extensions.getByType(IdeaModel::class.java)
+        ext.module {
+            val ed = it.excludeDirs
+            ed.add(nodeModulesDir)
+            it.excludeDirs = ed
+        }
+    }
+
+    private fun Project.configureDockerPlugin(bundle: Task) {
+        plugins.apply(DockerPlugin::class.java)
+
+        fun CopySpec.fromResource(name: String) =
+            from(resources.text.fromString(this@FrontendPlugin.javaClass.getResource(name).readText()).asFile()) {
+                it.rename { _ -> name }
+            }
+
+        extensions.getByType(DockerExtension::class.java).apply {
+            image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
+            content = copySpec {
+                it.from(bundle.outputs) {
+                    it.into("bundle")
+                }
+                it.fromResource("Dockerfile")
+                it.fromResource("default.conf")
+            }
+        }
+    }
+
+    private inline fun <reified T : Task> Project.task(name: String, description: String, block: T.() -> Unit): T {
+        val task = tasks.create(name, T::class.java)
+        task.group = GROUP
+        task.description = description
+        block.invoke(task)
+        return task
+    }
+
+    private val Project.ext get() = extensions.getByType(FrontendExtension::class.java)
+
+    private val Project.yarnDir get() = File(buildDir, "yarn")
+    private val Project.lintDir get() = File(buildDir, "lint")
+    private val Project.nodeModulesDir get() = file("node_modules")
+    private val Project.srcDir get() = file("src")
+    private val Project.configDir get() = file("config")
+
+    // TODO - switch to symlinks in .bin once Gradle build cache supports symlinks
+    private val Project.yarnExecutable get() = File(yarnDir, "lib/node_modules/yarn/bin/yarn.js")
+    private val Project.tsNodeExecutable get() = File(nodeModulesDir, "ts-node/dist/bin.js")
+    private val Project.webpackExecutable get() = File(nodeModulesDir, "webpack/bin/webpack.js")
+
+
     companion object {
-        val YARN_VERSION = "0.27.5"
+        val YARN_VERSION = "1.0.1"
 
         val GROUP = "Frontend"
         val EXTENSION = "frontend"
