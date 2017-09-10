@@ -2,7 +2,7 @@ import * as path from "path";
 
 module.exports = {
   output: {
-    path: path.resolve("build", "bundle", "assets"),
+    path: path.resolve("build", "bundle"),
     filename: "bundle.js"
   },
 

@@ -1,7 +1,5 @@
 package io.quartic.home
 
-import io.dropwizard.assets.AssetsBundle
-import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.common.application.ApplicationBase
@@ -20,10 +18,6 @@ import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
 class HomeApplication : ApplicationBase<HomeConfiguration>() {
-
-    public override fun initializeApplication(bootstrap: Bootstrap<HomeConfiguration>) {
-        bootstrap.addBundle(AssetsBundle("/assets", "/", "index.html"))
-    }
 
     public override fun runApplication(configuration: HomeConfiguration, environment: Environment) {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
