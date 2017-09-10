@@ -180,7 +180,9 @@ class FrontendPlugin : Plugin<Project> {
         extensions.getByType(DockerExtension::class.java).apply {
             image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
             content = copySpec {
-                it.from(bundle.outputs)
+                it.from(bundle.outputs) {
+                    it.into("bundle")
+                }
                 it.fromResource("Dockerfile")
                 it.fromResource("default.conf")
             }
