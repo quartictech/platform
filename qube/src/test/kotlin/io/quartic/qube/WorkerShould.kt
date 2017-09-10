@@ -8,12 +8,9 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.ContainerState
 import io.quartic.qube.api.model.PodSpec
-import io.quartic.qube.pods.KubernetesClient
-import io.quartic.qube.pods.PodKey
-import io.quartic.qube.pods.QubeEvent
-import io.quartic.qube.pods.WorkerImpl
-import io.quartic.qube.store.JobStore
+import io.quartic.qube.pods.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
@@ -30,7 +27,7 @@ class WorkerShould {
         .build()
 
     val uuid = UUID.randomUUID()
-    val jobStore = mock<JobStore>()
+    val jobStore = mock<Database>()
     val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true, { -> uuid })
 
     val key = PodKey(UUID.randomUUID(), "test")
@@ -41,6 +38,7 @@ class WorkerShould {
         .endMetadata()
         .editOrNewSpec()
         .editFirstContainer()
+        .withName("leet-band")
         .withImage("la-dispute-discography-docker:1")
         .withCommand(listOf("great music"))
         .addNewPort()
@@ -60,6 +58,7 @@ class WorkerShould {
     val returnChannel = mock<Channel<QubeResponse>>()
     val podEvents = Channel<Pod>(UNLIMITED)
     val containerSpec = PodSpec(listOf(ContainerSpec(
+        "leet-band",
         "la-dispute-discography-docker:1",
         listOf("great music"),
         8000)))
@@ -119,7 +118,7 @@ class WorkerShould {
             podEvents.send(podTerminated(1))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Failed(key.name, "reason")
+                Terminated.Failed(key.name, WorkerImpl.SOME_CONTAINERS_FAILED)
             )
         }
     }
@@ -131,7 +130,7 @@ class WorkerShould {
             podEvents.send(podTerminated(0))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Succeeded(key.name, "reason")
+                Terminated.Succeeded(key.name, WorkerImpl.ALL_CONTAINERS_SUCCEEDED)
             )
         }
     }
@@ -164,10 +163,7 @@ class WorkerShould {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
-                anyOrNull(),
-                anyOrNull(),
-                anyOrNull(),
-                eq(0)
+                anyOrNull()
             )
         }
     }
@@ -188,10 +184,9 @@ class WorkerShould {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
-                anyOrNull(),
-                anyOrNull(),
-                anyOrNull(),
-                eq(0)
+                eq(mapOf(
+                    "leet-band" to ContainerState(0, "reason", "noobout", null)
+                ))
             )
         }
     }
@@ -200,9 +195,8 @@ class WorkerShould {
     fun handle_postgres_exception() {
         whenever(client.getPod(any())).thenReturn(podTerminated(0))
         whenever(jobStore.insertJob(
-            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(),
-            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
-            .thenThrow(RuntimeException("noobhole"))
+            anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()
+        )).thenThrow(RuntimeException("noobhole"))
         runBlocking {
             val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
             podEvents.send(podTerminated(0))

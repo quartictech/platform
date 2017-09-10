@@ -4,10 +4,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.db.DatabaseBuilder
-import io.quartic.qube.store.JobStore
 import io.quartic.common.db.setupDbi
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.ContainerState
 import io.quartic.qube.api.model.PodSpec
 import org.junit.Before
 import org.junit.Rule
@@ -21,18 +21,18 @@ import java.time.Instant
 import java.util.*
 
 
-class JobStoreShould {
+class DatabaseShould {
     @JvmField
     @Rule
     var pg = EmbeddedPostgresRules.singleInstance()
 
-    private lateinit var jobStore: JobStore
+    private lateinit var database: Database
     private lateinit var dbi: Jdbi
 
     @Before
     fun setUp() {
         dbi = setupDbi(Jdbi.create(pg.embeddedPostgres.postgresDatabase))
-        jobStore = DatabaseBuilder.testDao(javaClass, pg.embeddedPostgres.postgresDatabase)
+        database = DatabaseBuilder.testDao(javaClass, pg.embeddedPostgres.postgresDatabase)
     }
 
     @Test
@@ -40,18 +40,15 @@ class JobStoreShould {
         val uuid = UUID.randomUUID()
         val client = UUID.randomUUID()
         val request = QubeRequest.Create("blah",
-            PodSpec(listOf(ContainerSpec("dummy:1", listOf("true"), 8000))))
-        jobStore.insertJob(
+            PodSpec(listOf(ContainerSpec("noob", "dummy:1", listOf("true"), 8000))))
+        database.insertJob(
             uuid,
             client,
             "blah",
             request,
-            "some log",
             Instant.now(),
             Instant.now().plusMillis(1000),
-            "Completed",
-            "Wat",
-            0
+            mapOf("noob" to ContainerState(0, "wat", "wat", "logs"))
         )
 
         val result = dbi.open().createQuery("select * from job")

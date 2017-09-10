@@ -6,7 +6,7 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
-import io.quartic.qube.store.JobStore
+import io.quartic.qube.Database
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import kotlinx.coroutines.experimental.*
@@ -22,12 +22,12 @@ class Qubicle(
     concurrentJobs: Int,
     jobTimeoutSeconds: Long,
     deletePods: Boolean,
-    jobStore: JobStore
+    database: Database
 ) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>(UNLIMITED)
 
-    private val worker = WorkerImpl(client, podTemplate, namespace, jobStore, jobTimeoutSeconds, deletePods)
+    private val worker = WorkerImpl(client, podTemplate, namespace, database, jobTimeoutSeconds, deletePods)
     private val orchestrator = Orchestrator(events, worker, concurrentJobs)
 
     private fun setupWebsocket(websocket: ServerWebSocket) {

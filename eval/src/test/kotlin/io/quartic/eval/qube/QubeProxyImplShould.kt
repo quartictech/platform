@@ -37,7 +37,7 @@ class QubeProxyImplShould {
         on { events } doReturn events
     }
 
-    private val containerSpec = PodSpec(listOf(ContainerSpec("noobout:1", listOf("true"), 8080)))
+    private val containerSpec = PodSpec(listOf(ContainerSpec("wat", "noobout:1", listOf("true"), 8080)))
     private val qube = QubeProxyImpl(client, containerSpec) { uuid(nextUuid++) }
 
     @Test
