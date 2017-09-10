@@ -1,15 +1,15 @@
 package io.quartic.gradle.frontend
 
+import io.quartic.gradle.docker.DockerExtension
+import io.quartic.gradle.docker.DockerPlugin
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Exec
-import org.gradle.api.tasks.bundling.Jar
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.io.File
@@ -25,10 +25,11 @@ class FrontendPlugin : Plugin<Project> {
             val installYarn = createInstallYarnTask()
             val installDeps = createInstallDependenciesTask(installYarn, packageJson)
             val bundle = createBundleTask(installDeps)
+            configureDockerPlugin(bundle)
             createRunTask(installDeps)
             val lint = createLintTasks(installDeps)
+            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(lint)
             configureIdeaPlugin()
-            configureJavaPlugin(bundle, lint)
         }
     }
 
@@ -168,11 +169,22 @@ class FrontendPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureJavaPlugin(bundle: Task, lint: Task) {
-        plugins.apply(JavaPlugin::class.java)
+    private fun Project.configureDockerPlugin(bundle: Task) {
+        plugins.apply(DockerPlugin::class.java)
 
-        (tasks.getByName(JAR_TASK_NAME) as Jar).from(bundle)
-        tasks.getByName(CHECK_TASK_NAME).dependsOn(lint)
+        fun CopySpec.fromResource(name: String) =
+            from(resources.text.fromString(this@FrontendPlugin.javaClass.getResource(name).readText()).asFile()) {
+                it.rename { _ -> name }
+            }
+
+        extensions.getByType(DockerExtension::class.java).apply {
+            image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
+            content = copySpec {
+                it.from(bundle.outputs)
+                it.fromResource("Dockerfile")
+                it.fromResource("default.conf")
+            }
+        }
     }
 
     private inline fun <reified T : Task> Project.task(name: String, description: String, block: T.() -> Unit): T {
