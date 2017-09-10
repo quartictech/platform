@@ -158,5 +158,5 @@ interface Database {
         ORDER BY etrigger.time DESC
         LIMIT 20
         """)
-    fun getBuilds(@Bind("customer_id") customerId: CustomerId, @Bind("build_number") buildNumber: Long?): List<BuildStatusRow>
+    fun getBuilds(@Bind("customer_id") customerId: CustomerId, @Bind("build_number") buildNumber: Long? = null): List<BuildStatusRow>
 }

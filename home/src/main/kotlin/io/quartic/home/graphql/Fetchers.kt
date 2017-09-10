@@ -2,37 +2,30 @@ package io.quartic.home.graphql
 
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
-import io.quartic.common.logging.logger
 import io.quartic.home.resource.GraphqlResource
-import java.time.Instant
 
-class BuildsFetcher: DataFetcher<List<Build>> {
-    val LOG by logger()
+abstract class Fetcher<T> : DataFetcher<T> {
+    override fun get(environment: DataFetchingEnvironment): T =
+        get(environment.getContext(), environment)
 
-    override fun get(env: DataFetchingEnvironment?): List<Build> {
-        val context = env!!.getContext<GraphqlResource.Context>()
-        val buildNumber: Long? = env.getArgument<Long>("buildNumber")
-        LOG.info("fetching: ${buildNumber}")
-        val x = context.eval.getBuildsAsync(context.user.customerId!!, buildNumber).get()
-            .map { Build(it.id.toString(), it.buildNumber, it.status, it.time.epochSecond, emptyList()) }
-        println(x)
-        return x
-    }
+    abstract fun get(context: GraphqlResource.Context, env: DataFetchingEnvironment): T
 }
 
-class BuildFetcher: DataFetcher<Build> {
-    override fun get(env: DataFetchingEnvironment?): Build {
-        val context = env!!.getContext<GraphqlResource.Context>()
-        val buildNumber: Long? = env.getArgument<Long>("buildNumber")
-        return context.eval.getBuildsAsync(context.user.customerId!!, buildNumber).get()
+class BuildsFetcher: Fetcher<List<Build>>() {
+    override fun get(context: GraphqlResource.Context, env: DataFetchingEnvironment): List<Build> =
+        context.eval.getBuildsAsync(context.user.customerId!!, null).get()
+            .map { Build(it.id.toString(), it.buildNumber, it.status, it.time.epochSecond, emptyList()) }
+}
+
+class BuildFetcher: Fetcher<Build>() {
+    override fun get(context: GraphqlResource.Context, env: DataFetchingEnvironment): Build =
+        context.eval.getBuildsAsync(context.user.customerId!!, env.getArgument<Long>("buildNumber")).get()
             .map { Build(it.id.toString(), it.buildNumber, it.status, it.time.epochSecond, emptyList()) }
             .first()
-    }
 }
 
-class EventsFetcher: DataFetcher<List<IBuildEvent>> {
-    override fun get(env: DataFetchingEnvironment?): List<IBuildEvent> {
-        println("fetching events")
+class EventsFetcher: DataFetcher<List<BuildEvent>> {
+    override fun get(env: DataFetchingEnvironment?): List<BuildEvent> {
         val build = env!!.getSource<Build>()
         val context = env.getContext<GraphqlResource.Context>()
         return context.eval.getBuildEventsAsync(context.user.customerId!!, build.number).get()

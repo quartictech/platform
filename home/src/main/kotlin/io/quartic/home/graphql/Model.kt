@@ -19,25 +19,25 @@ data class Build(
 
     @GraphQLField
     @GraphQLDataFetcher(EventsFetcher::class)
-    val events: List<IBuildEvent>,
+    val events: List<BuildEvent>,
 
     @GraphQLField
     val type: String = "build"
 
 )
 
-@GraphQLUnion(possibleTypes = arrayOf(BuildEvent.Default::class, BuildEvent.Noob2::class))
-interface IBuildEvent {
+@GraphQLUnion(possibleTypes = arrayOf(BuildEvent.Default::class))
+interface BuildEvent {
     @GraphQLField
     fun time(): Long
-}
 
-sealed class BuildEvent : IBuildEvent {
-    data class Default(val time: Long): BuildEvent() {
+    @GraphQLField
+    fun type(): String
+
+    data class Default(val time: Long): BuildEvent {
+        override fun type() = "default"
         override fun time() = time
     }
-
-    data class Noob2(val time: Long): BuildEvent() {
-        override fun time() = time
-    }
 }
+
+

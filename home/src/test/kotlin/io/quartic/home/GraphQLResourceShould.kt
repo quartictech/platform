@@ -1,9 +1,9 @@
 package io.quartic.home
 
-import com.nhaarman.mockito_kotlin.*
-import graphql.GraphQL
-import graphql.annotations.GraphQLAnnotations
-import graphql.schema.GraphQLSchema
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.anyOrNull
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryServiceClient
@@ -11,13 +11,12 @@ import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.home.resource.GraphqlResource
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.MatcherAssert.*
-import org.mockito.invocation.InvocationOnMock
 
 class GraphQLResourceShould {
     val builds = listOf(Build(
@@ -69,7 +68,7 @@ class GraphQLResourceShould {
             {
                 feed {
                     id,
-                    #events {
+                    events #{
                     #    ... on Default {
                     #        time
                     #    }
