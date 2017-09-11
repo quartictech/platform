@@ -5,7 +5,6 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
@@ -58,7 +57,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
     private fun qube(config: EvalConfiguration) = QubeProxy.create(
         WebsocketClientImpl.create(config.qube.url),
-        config.qube.container
+        config.qube.pod
     )
 
     private fun database(config: EvalConfiguration, environment: Environment) =

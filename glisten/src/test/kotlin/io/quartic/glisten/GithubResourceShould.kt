@@ -140,7 +140,7 @@ class GithubResourceShould {
             private = true,
             cloneUrl = URI("https://github.com/noobhole/noobing.git"),
             owner = Owner(
-                name = "noobhole"
+                login = "noobhole"
             ),
             defaultBranch = "develop"
         ),

@@ -24,7 +24,9 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
 
     private val namespacedClient = client.inNamespace(namespace)
 
-    fun getLogs(podName: String) = namespacedClient.pods().withName(podName).getLog(true)
+    fun getLogs(podName: String, containerName:String) =
+        namespacedClient.pods().withName(podName).inContainer(containerName).getLog(true)
+
     fun ensureNamespaceExists() = client.namespaces().createOrReplace(
         NamespaceBuilder()
             .editOrNewMetadata()

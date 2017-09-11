@@ -4,13 +4,14 @@ homeUrlFormat: "http://%s:3010"
 
 qube:
   url: ws://localhost:8202
-  container:
-    image: eu.gcr.io/quartictech/jupyter:53
-    command:
+  pod:
+   - name: quarty
+     image: eu.gcr.io/quartictech/jupyter:53
+     command:
       - "python"
       - "-m"
       - "http.server"
-    port: 8000
+     port: 8000
 
 github:
   appId: 4352

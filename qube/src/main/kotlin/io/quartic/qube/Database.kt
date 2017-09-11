@@ -1,50 +1,40 @@
-package io.quartic.qube.store
+package io.quartic.qube
 
 import io.quartic.common.db.BindJson
 import io.quartic.qube.api.QubeRequest
-import org.flywaydb.core.Flyway
+import io.quartic.qube.api.model.ContainerState
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import java.time.Instant
 import java.util.*
-import javax.sql.DataSource
 
 /**
  * Job here represents a run of a Kubernetes Pod and *not* an actual Kubernetes Job.
  */
-interface JobStore {
+interface Database {
     @SqlUpdate("""insert into job(
         id,
         client,
         name,
         create_spec,
-        log,
         start_time,
         end_time,
-        reason,
-        message,
-        exit_code
+        containers
     ) values(
         :id,
         :client,
         :name,
         :create_spec,
-        :log,
         :start_time,
         :end_time,
-        :reason,
-        :message,
-        :exit_code)""")
+        :containers)""")
     fun insertJob(
         @Bind("id") id: UUID,
         @Bind("client") client: UUID,
         @Bind("name") podName: String,
         @BindJson("create_spec") createPod: QubeRequest.Create,
-        @Bind("log") log: String?,
         @Bind("start_time") startTime: Instant,
         @Bind("end_time") endTime: Instant,
-        @Bind("reason") reason: String?,
-        @Bind("message") message: String?,
-        @Bind("exit_code") exitCode: Int?
+        @BindJson("containers") containers: Map<String, ContainerState>
     )
 }
