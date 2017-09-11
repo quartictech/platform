@@ -3,7 +3,7 @@ layout: default
 title: Quartic documentation
 ---
 
-### What is Quartic?
+## What is Quartic?
 
 Quartic provides a framework to build, manage, orchestrate, and monitor data transformations and pipelines.
 

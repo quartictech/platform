@@ -1,5 +1,6 @@
 package io.quartic.glisten
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -8,7 +9,8 @@ import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalTriggerService
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.EvalTriggerServiceClient
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.*
 import org.apache.commons.codec.binary.Hex
 import org.hamcrest.Matchers.containsString
@@ -31,7 +33,7 @@ class GithubResourceShould {
     private val pingPayload = javaClass.getResource("/ping_event.json").readText()
     private val pingSignature = "sha1=62c3f51e3b54b13036a062f0fb21759837280481"
 
-    private val trigger = mock<EvalTriggerService>()
+    private val trigger = mock<EvalTriggerServiceClient>()
     private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
     private val resource = GithubResource(secret, trigger, clock)
 
@@ -62,22 +64,24 @@ class GithubResourceShould {
         val payload = OBJECT_MAPPER.writeValueAsString(pushEvent())
         resource.handleEvent("push", "abc", calculateSignature(payload), payload)
 
-        verify(trigger).trigger(TriggerDetails(
-            type = "github",
-            deliveryId = "abc",
-            installationId = 12345,
-            repoId = 66666,
-            repoName = "noobhole/noobing",
-            cloneUrl = URI("https://github.com/noobhole/noobing.git"),
-            ref = "refs/heads/master",
-            commit = "fc6206fd27761a1e03383287e213801105f01a25",
-            timestamp = clock.instant()
-        ))
+        verify(trigger).triggerAsync(
+            BuildTrigger.GithubWebhook(
+                deliveryId = "abc",
+                repoId = 66666,
+                installationId = 12345,
+                repoName = "noobing",
+                repoOwner = "noobhole",
+                ref = "refs/heads/master",
+                commit = "fc6206fd27761a1e03383287e213801105f01a25",
+                timestamp = clock.instant(),
+                rawWebhook = OBJECT_MAPPER.readValue(payload)
+            )
+        )
     }
 
     @Test
     fun succeed_even_if_trigger_throws_error() {
-        whenever(trigger.trigger(any())).thenThrow(ServerErrorException("Server is noob", 500))
+        whenever(trigger.triggerAsync(any())).thenThrow(ServerErrorException("Server is noob", 500))
 
         val payload = OBJECT_MAPPER.writeValueAsString(pushEvent())
         resource.handleEvent("push", "abc", calculateSignature(payload), payload)
@@ -134,7 +138,11 @@ class GithubResourceShould {
             name = "noobing",
             fullName = "noobhole/noobing",
             private = true,
-            cloneUrl = URI("https://github.com/noobhole/noobing.git")
+            cloneUrl = URI("https://github.com/noobhole/noobing.git"),
+            owner = Owner(
+                name = "noobhole"
+            ),
+            defaultBranch = "develop"
         ),
         installation = Installation(12345)
     )

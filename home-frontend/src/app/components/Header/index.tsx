@@ -17,16 +17,12 @@ const style = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
-  newDatasetClick: any;
   searchBoxChange: any;
-  selectedNamespace: string;
-  namespaceSelectChange: any;
   onLogOutClick: () => void;
-  namespaces: string[];
   profile?: Profile;
 }
 
-class Header extends React.Component<IProps, void> {
+class Header extends React.Component<IProps, {}> {
   constructor(props: IProps) {
     super(props);
     this.onSearch = this.onSearch.bind(this);
@@ -65,14 +61,6 @@ class Header extends React.Component<IProps, void> {
 
           <span className={Classes.NAVBAR_DIVIDER} />
 
-          <NamespaceList
-            namespaces={this.props.namespaces}
-            selectedNamespace={this.props.selectedNamespace}
-            onChange={this.props.namespaceSelectChange}
-          />
-
-          <span className={Classes.NAVBAR_DIVIDER} />
-
           <Link
             className="pt-button pt-minimal pt-icon-database"
             to="/datasets"
@@ -86,12 +74,7 @@ class Header extends React.Component<IProps, void> {
             Pipeline
           </Link>
 
-          <button
-            onClick={this.props.newDatasetClick}
-            className="pt-button pt-minimal pt-icon-cloud-upload"
-          >
-            Upload Data
-          </button>
+
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
@@ -116,14 +99,15 @@ class Header extends React.Component<IProps, void> {
             >
               <div style={{ height: "100%", display: "block" }}>
                 <Button
-                  className={Classes.MINIMAL}
+                  className={classNames(Classes.MINIMAL)}
+                  style={{ lineHeight: "50px" }}
                   rightIconName="chevron-down"
+                  text={this.props.profile.name}
                 >
                   <img
                     className={style.profile}
                     src={this.props.profile.avatarUrl}
                   />
-                  {this.props.profile.name}
                 </Button>
               </div>
             </Tooltip>
@@ -150,42 +134,5 @@ class Header extends React.Component<IProps, void> {
     );
   }
 }
-
-interface INamespaceListProps {
-  namespaces: string[];
-  selectedNamespace: string;
-  onChange: any;
-}
-
-class NamespaceList extends React.Component<INamespaceListProps, {}> {
-  constructor() {
-    super();
-  }
-
-  renderNamespaceMenu() {
-    return this.props.namespaces.map(ns => <MenuItem key={ns} onClick={() => this.props.onChange(ns)} text={ns} />);
-  }
-
-  public render() {
-    const content = (
-      <Menu>
-        <MenuItem text="All" onClick={() => this.props.onChange(null)} />
-        <MenuDivider />
-        {this.renderNamespaceMenu()}
-      </Menu>
-    );
-    return (
-      <Popover
-        content={content}
-        position={Position.BOTTOM}
-      >
-        <Button text={this.props.selectedNamespace || "All"} />
-      </Popover>
-    );
-  }
-}
-
-
-
 
 export { Header };

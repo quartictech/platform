@@ -46,7 +46,17 @@ data class Repository(
     val fullName: String,
     val private: Boolean,
     @JsonProperty("clone_url")
-    val cloneUrl: URI
+    val cloneUrl: URI,
+
+    @JsonProperty("default_branch")
+    val defaultBranch: String,
+
+    val owner: Owner
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Owner(
+    val name: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -79,4 +89,12 @@ data class Sender(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Installation(
     val id: Long
+)
+
+data class StatusCreate(
+    val state: String,
+    @JsonProperty("target_url")
+    val targetUrl: URI?,
+    val description: String,
+    val context: String
 )

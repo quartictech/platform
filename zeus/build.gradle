@@ -15,11 +15,6 @@ service {
 
 dependencies {
     compile project(":common-application")
-    if (System.env.SKIP_FRONTEND == null) {
-        compile project(":zeus-frontend")
-    }
-
-    compile "io.dropwizard:dropwizard-assets:${versions.dropwizard}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:${versions.jackson}"
 
     testCompile project(":common-test")

@@ -11,6 +11,8 @@ import io.quartic.common.auth.User
 import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.EvalQueryServiceClient
+import io.quartic.eval.api.EvalTriggerServiceClient
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.home.CreateDatasetRequest
 import io.quartic.home.CreateStaticDatasetRequest
 import io.quartic.home.FileType
@@ -23,6 +25,7 @@ import org.apache.commons.io.IOUtils.copy
 import retrofit2.HttpException
 import java.io.IOException
 import java.io.InputStream
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import javax.annotation.security.PermitAll
@@ -36,7 +39,8 @@ import javax.ws.rs.core.MediaType
 class HomeResource(
     private val catalogue: CatalogueService,
     private val howl: HowlService,
-    private val eval: EvalQueryServiceClient,
+    private val evalQuery: EvalQueryServiceClient,
+    private val evalTrigger: EvalTriggerServiceClient,
     private val registry: RegistryServiceClient
 ) {
     private val LOG by logger()
@@ -46,14 +50,29 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getLatestDag(@Auth user: User) = eval.getDagAsync(user.customerId!!)
+    fun getLatestDag(@Auth user: User) = evalQuery.getDagAsync(user.customerId!!)
         .wrapNotFound("DAG", "latest")
 
+    @POST
+    @Path("/build")
+    fun build(@Auth user: User) = evalTrigger.triggerAsync(BuildTrigger.Manual(
+        user = user.name,
+        customerId = user.customerId!!,
+        branch = "develop",
+        triggerType = BuildTrigger.TriggerType.EXECUTE,
+        timestamp = Instant.now()
+    )).join()
+
+    @GET
+    @Path("/builds")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getBuilds(@Auth user: User) = evalQuery.getBuildsAsync(user.customerId!!)
+        .wrapNotFound("Builds", user.customerId!!)
 
     @GET
     @Path("/dag/{build}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User, @PathParam("build") build: Long) = eval.getDagAsync(user.customerId!!, build)
+    fun getDag(@Auth user: User, @PathParam("build") build: Long) = evalQuery.getDagAsync(user.customerId!!, build)
         .wrapNotFound("DAG", build)
 
     @GET

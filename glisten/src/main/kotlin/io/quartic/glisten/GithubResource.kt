@@ -4,9 +4,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.api.EvalTriggerService
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.EvalTriggerServiceClient
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.PushEvent
+import kotlinx.coroutines.experimental.future.await
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
 import java.time.Clock
@@ -18,7 +19,7 @@ import javax.ws.rs.core.MediaType
 @Path("/hooks/github")
 class GithubResource(
     private val secret: UnsafeSecret,
-    private val trigger: EvalTriggerService,
+    private val trigger: EvalTriggerServiceClient,
     private val clock: Clock = Clock.systemUTC()
 ) {
     // TODO - handle DoS due to massive payload causing OOM
@@ -49,8 +50,9 @@ class GithubResource(
             validateSignature()
 
             // TODO - handle PingEvent, InstallationEvent, and InstallationRepositoriesEvent
+            val rawEvent = OBJECT_MAPPER.readValue<Map<String, Any>>(payload)
             when (eventType) {
-                "push" -> handlePushEvent(parseEvent(payload, deliveryId))
+                "push" -> handlePushEvent(parseEvent(payload, deliveryId), rawEvent)
                 else -> LOG.info("Ignored event of type '$eventType'".nicely())
             }
         }
@@ -70,21 +72,23 @@ class GithubResource(
             }
         }
 
-        private fun handlePushEvent(event: PushEvent) {
+        private fun handlePushEvent(event: PushEvent, rawEvent: Map<String, Any>) {
             fun String.toMessage() = "Trigger $this (repoId = '${event.repository.id} (${event.repository.fullName}), ref = '${event.ref}')".nicely()
 
             try {
-                trigger.trigger(TriggerDetails(
-                    type = "github",
-                    deliveryId = deliveryId,
-                    installationId = event.installation.id,
-                    repoId = event.repository.id,
-                    repoName = event.repository.fullName,
-                    cloneUrl = event.repository.cloneUrl,
-                    ref = event.ref,
-                    commit = event.headCommit.id,
-                    timestamp = clock.instant()
-                ))
+                trigger.triggerAsync(
+                    BuildTrigger.GithubWebhook(
+                        deliveryId = deliveryId,
+                        repoId = event.repository.id,
+                        repoName = event.repository.name,
+                        repoOwner = event.repository.owner.name,
+                        installationId = event.installation.id,
+                        ref = event.ref,
+                        commit = event.headCommit.id,
+                        timestamp = clock.instant(),
+                        rawWebhook = rawEvent
+                    )
+                )
                 LOG.info("success".toMessage())
             } catch (e: Exception) {
                 LOG.warn("failed".toMessage(), e)

@@ -40,7 +40,7 @@ In general, you won't want or need to run the entire stack locally, because it w
 memory.  So a subset of services can be run as in the following example:
 
 ```
-SKIP_FRONTEND= ./gradlew home:run eval:run registry:run postgres:run --parallel
+./gradlew home:run eval:run registry:run postgres:run --parallel
 ```
 
 Frontend components are best run separately in development (to benefit from hot reloading).  So in another terminal:
@@ -149,13 +149,13 @@ Also needs to be stored in our GitHub (non-OAuth) app settings.
 
 Service        | Port (backend) | Port (frontend dev)  | Description
 ---------------|----------------|----------------------|-----------------
-Weyl           | 8080           | 3000                 | Map UI
+~~Weyl~~       | ~~8080~~       | ~~3000~~             | ~~Map UI~~
 Catalogue      | 8090           |                      | Dataset catalogue
 Home           | 8100           | 3010                 | Home UI
 Howl           | 8120           |                      | Cloud storage abstraction
 ~~Terminator~~ | ~~8130~~       |                      |
-Scribe         | 8140           |                      | PubSub -> file storage batching
-Rain           | 8150           |                      | Howl-to-live-layer converter
+~~Scribe~~     | ~~8140~~       |                      | ~~PubSub -> file storage batching~~
+~~Rain~~       | ~~8150~~       |                      | ~~Howl-to-live-layer converter~~
 Zeus           | 8160           | 3020                 | Asset 360 UI
 Glisten        | 8170           |                      | GitHub webhook listener
 ~~Orf~~        | ~~8180~~       |                      | ~~Authentication~~

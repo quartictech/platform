@@ -3,6 +3,7 @@ package io.quartic.qube.api
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.quartic.qube.api.model.ContainerSpec
+import java.util.*
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -39,7 +40,7 @@ sealed class QubeResponse {
     }
 
     data class Waiting(override val name: String): QubeResponse()
-    data class Running(override val name: String, val hostname: String): QubeResponse()
+    data class Running(override val name: String, val hostname: String, val containerId: UUID): QubeResponse()
 
 
 }

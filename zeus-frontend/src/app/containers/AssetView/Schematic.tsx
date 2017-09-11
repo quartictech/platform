@@ -7,6 +7,7 @@ import {
   NonIdealState,
   Tab2,
   Tabs2,
+  IconClasses,
 } from "@blueprintjs/core";
 
 import Pane from "../../components/Pane";
@@ -59,7 +60,7 @@ class Schematic extends React.Component<SchematicProps, State> {
   }
 
   private nonIdeal() {
-    return <NonIdealState visual="info" title="No survey data available" />;
+    return <NonIdealState visual={IconClasses.INFO_SIGN} title="No survey data available" />;
   }
 
   private defectsCallout(section: RoadSchematicSection) {

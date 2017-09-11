@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-curl -H Content-Type:application/json -XPOST http://localhost:8090/api/datasets/noobhole -d '{
+curl -H Content-Type:application/json -XPUT http://localhost:8090/api/datasets/noobhole/abc%2fdef -d '{
     "metadata": {
       "name": "Pub Tour",
       "description": "Arlo and Alex go wild",

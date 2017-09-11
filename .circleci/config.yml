@@ -1,0 +1,53 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: quartic/uber-builder:89
+
+    working_directory: ~/platform
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            # Can't specify an exact match, so hopefully branch + latest is good enough
+            - platform-v4-{{ .Branch }}-gradle
+            - platform-v4-develop-gradle
+
+      # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
+      - run:
+          name: Run tests
+          command: ./gradlew build --build-cache --console=plain --profile
+
+      - run:
+          name: Calculate Gradle checksum file
+          command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > ~/gradle.txt
+
+      - save_cache:
+          key: platform-v4-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
+          paths:
+            - ~/.gradle
+
+      - run:
+          name: Collect test results
+          command: |
+            mkdir -p ~/test-results
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/ \;
+          when: always
+
+      - store_test_results:
+          path: ~/test-results/
+
+      - store_artifacts:
+          path: ~/platform/build/reports/profile
+          destination: profile
+
+      - setup_remote_docker:
+          reusable: true
+
+      - deploy:
+          command: |
+            gcloud-auth --with-docker
+            ./gradlew dockerPush --parallel --console=plain

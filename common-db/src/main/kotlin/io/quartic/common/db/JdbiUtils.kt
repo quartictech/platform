@@ -37,7 +37,7 @@ class BindJsonFactory : SqlStatementCustomizerFactory {
 }
 
 class CustomerIdColumnMapper : ColumnMapper<CustomerId> {
-    override fun map(r: ResultSet?, columnNumber: Int, ctx: StatementContext?): CustomerId = CustomerId(r!!.getLong(columnNumber))
+    override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): CustomerId = CustomerId(r.getLong(columnNumber))
 }
 
 

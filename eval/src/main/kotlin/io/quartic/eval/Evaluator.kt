@@ -2,155 +2,172 @@ package io.quartic.eval
 
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.coroutines.cancellable
-import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
-import io.quartic.common.model.CustomerId
-import io.quartic.eval.Database.EventType
-import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildResult
-import io.quartic.eval.model.BuildResult.*
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.api.model.BuildTrigger.*
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
-import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.sequencer.Sequencer
+import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
+import io.quartic.eval.sequencer.Sequencer.PhaseResult
 import io.quartic.github.GitHubInstallationClient
+import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.Repository
 import io.quartic.quarty.QuartyClient
-import io.quartic.quarty.QuartyClient.QuartyResult
-import io.quartic.quarty.model.QuartyMessage
-import io.quartic.quarty.model.Step
+import io.quartic.quarty.model.Pipeline
+import io.quartic.quarty.model.QuartyResult
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
-import kotlinx.coroutines.experimental.newFixedThreadPoolContext
-import kotlinx.coroutines.experimental.run
-import kotlinx.coroutines.experimental.selects.select
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
-import java.time.Instant
-import java.util.*
+import java.net.URI
 import java.util.concurrent.CompletableFuture
 
 // TODO - retries
 // TODO - timeouts
 class Evaluator(
+    private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
-    private val qube: QubeProxy,
     private val github: GitHubInstallationClient,
-    private val database: Database,
-    private val notifier: Notifier,
-    private val dagIsValid: (List<Step>) -> Boolean,
+    private val extractDag: (Pipeline) -> Dag?,
     private val quartyBuilder: (String) -> QuartyClient
 ) {
     constructor(
+        sequencer: Sequencer,
         registry: RegistryServiceClient,
-        qube: QubeProxy,
         github: GitHubInstallationClient,
-        database: Database,
-        notifier: Notifier,
         clientBuilder: ClientBuilder,
         quartyPort: Int = 8080
-    ) : this(registry, qube, github, database, notifier,
-        { steps -> Dag.fromSteps(steps).validate() },
+    ) : this(
+        sequencer,
+        registry,
+        github,
+        { pipeline ->
+            try {
+                Dag.fromSteps(pipeline.steps)
+            } catch (e: Exception) {
+                null
+            }
+        },
         { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
     )
 
-    private val threadPool = newFixedThreadPoolContext(2, "database")
     private val LOG by logger()
 
-    data class Output(
-        val result: BuildResult,
-        val messages: List<QuartyMessage> = listOf()
-    )
+    private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
+        is Manual -> trigger.triggerType
+        is GithubWebhook -> TriggerType.EVALUATE
+    }
 
-    suspend fun evaluateAsync(trigger: TriggerDetails) = async(CommonPool) {
-        val startTime = Instant.now()
+    suspend fun evaluateAsync(trigger: BuildTrigger) = async(CommonPool) {
+        val triggerType = getTriggerType(trigger)
         val customer = getCustomer(trigger)
 
         if (customer != null) {
-            val build = insertBuild(customer.id, trigger, startTime)
-            val phaseId = insertPhase(build.id, startTime)
-            val output = runBuild(trigger)
-            notifier.notifyAbout(trigger, customer, build, output.result)
-            insertEvents(phaseId, output)
+            sequencer.sequence(trigger, customer) {
+                val token: GitHubInstallationAccessToken = phase("Acquiring Git credentials") {
+                    success(github
+                        .accessTokenAsync(customer.githubInstallationId)
+                        .awaitWrapped("acquiring access token from GitHub"))
+                }
+
+                val repo: Repository = phase("Fetching repository details") {
+                    success(github.getRepositoryAsync(customer.githubRepoId, token)
+                        .awaitWrapped("fetching repository details from GitHub"))
+                }
+
+                phase<Unit>("Cloning and preparing repository") {
+                    extractPhaseResult(
+                        fromQuarty { initAsync(cloneUrl(repo.cloneUrl, token), commit(trigger)) },
+                        { success(Unit) }
+                    )
+                }
+
+                val dag = phase("Evaluating DAG") {
+                    extractPhaseResult(
+                        fromQuarty { evaluateAsync() },
+                        { pipeline -> extractDagFromPipeline(pipeline) }
+                    )
+                }
+
+                // Only do this for manual launch
+                if (triggerType == TriggerType.EXECUTE) {
+                    dag
+                        .mapNotNull { it.step }    // TODO - what about raw datasets?
+                        .forEach { step ->
+                            phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
+                                extractPhaseResult(
+                                    fromQuarty { executeAsync(step.id, customer.namespace) },
+                                    { success(Unit) }
+                                )
+                            }
+                        }
+                }
+            }
         }
     }
 
-    private suspend fun insertBuild(customerId: CustomerId, trigger: TriggerDetails, startTime: Instant): Database.BuildRow = run(threadPool) {
-        val buildId = UUID.randomUUID()
-        database.insertBuild(buildId, customerId, trigger.branch(), trigger, startTime)
-        database.getBuild(buildId)
+    private fun commit(trigger: BuildTrigger) = when (trigger) {
+        is GithubWebhook -> trigger.commit
+        is Manual -> trigger.branch
     }
 
-     private suspend fun insertPhase(buildId: UUID, startTime: Instant): UUID = run(threadPool) {
-         val phaseId = UUID.randomUUID()
-         database.insertPhase(phaseId, buildId, "Evaluating DAG", startTime)
-         phaseId
+    private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =
+        URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
+
+    private fun <T, R> PhaseBuilder<R>.extractPhaseResult(result: QuartyResult<T>, block: (T) -> PhaseResult<R>) = when(result) {
+        is QuartyResult.Success -> block(result.result)
+        is QuartyResult.Failure -> userError(result.detail)
+        is QuartyResult.InternalError -> internalError(EvaluatorException(result.details))
     }
 
-    private suspend fun insertEvents(phaseId: UUID, output: Output) = run(threadPool) {
-        val now = Instant.now()
-        output.messages
-            .forEach { message -> database.insertEvent(UUID.randomUUID(), phaseId, EventType.MESSAGE, message, now) }
+    private suspend fun <R> PhaseBuilder<*>.fromQuarty(block: QuartyClient.() -> CompletableFuture<out QuartyResult<R>>) =
+        block(quartyBuilder(container.hostname))
+            .awaitWrapped("communicating with Quarty")
+            .apply { logMessages(this) }
 
+    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult<*>) =
+        result.messages.forEach { log(it.stream, it.message, it.timestamp) }
 
-        val eventType = when (output.result) {
-            is BuildResult.Success -> EventType.SUCCESS
-            is BuildResult.UserError -> EventType.USER_ERROR
-            is BuildResult.InternalError -> EventType.INTERNAL_ERROR
+    private fun PhaseBuilder<Dag>.extractDagFromPipeline(pipeline: Pipeline): PhaseResult<Dag> {
+        val dag = extractDag(pipeline)
+        return with(dag) {
+            if (dag != null) {
+                successWithArtifact(EvaluationOutput(pipeline.steps), dag)
+            } else {
+                userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
+            }
         }
-        database.insertTerminalEvent(UUID.randomUUID(), phaseId, eventType, output.result, now)
     }
 
-    private suspend fun getCustomer(trigger: TriggerDetails) = cancellable(
-        block = { registry.getCustomerAsync(null, trigger.repoId).await() },
+    private suspend fun getCustomer(trigger: BuildTrigger) = cancellable(
+        block = {
+            when (trigger) {
+                is GithubWebhook ->
+                    registry.getCustomerAsync(null, trigger.repoId)
+                is Manual ->
+                    registry.getCustomerByIdAsync(trigger.customerId)
+            }.await()
+        },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
-                LOG.warn("Repo ID ${trigger.repoId} not found in Registry")
+                when (trigger) {
+                    is GithubWebhook ->
+                        LOG.warn("No customer found for webhook (repoId = ${trigger.repoId})")
+                    is Manual ->
+                        LOG.warn("No customer found for manual trigger (customerId = ${trigger.customerId})")
+                }
             } else {
-                LOG.error("Error communicating with Registry", t)
+                LOG.error("Error while communicating with Registry", t)
             }
             null
         }
     )
 
-    private suspend fun runBuild(trigger: TriggerDetails): Output = cancellable(
-        block = {
-            qube.createContainer().use { container ->
-                getDagAsync(container, trigger).use { getDag ->
-                    select<Output> {
-                        getDag.onAwait { transformQuartyResult(it) }
-                        container.errors.onReceive { throw it }
-                    }
-                }
-            }
-        },
-        onThrow = { t ->
-            LOG.error("Build failure", t)
-            Output(BuildResult.InternalError(t))
-        }
-    )
-
-    private fun transformQuartyResult(it: QuartyClient.QuartyResult?) = when (it) {
-        is QuartyResult.Success -> {
-            if (dagIsValid(it.result)) {
-                Output(Success(it.result), it.messages)
-            } else {
-                Output(UserError("DAG is invalid"), it.messages)     // TODO - we probably want a useful diagnostic message from the DAG validator
-            }
-        }
-        is QuartyResult.Failure -> Output(UserError(it.detail), it.messages)
-        null -> Output(InternalError(RuntimeException("Missing result or failure from Quarty")))
-    }
-
-    private fun getDagAsync(container: QubeContainerProxy, trigger: TriggerDetails) = async(CommonPool) {
-        val token = github.accessTokenAsync(trigger.installationId).awaitWrapped("acquiring access token from GitHub")
-
-        val cloneUrl = URIBuilder(trigger.cloneUrl).apply { userInfo = "x-access-token:${token.token.veryUnsafe}" }.build()
-        quartyBuilder(container.hostname).getResult(cloneUrl, trigger.commit).awaitWrapped("communicating with Quarty")
-    }
-
     private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = cancellable(
         block = { await() },
-        onThrow = { throw RuntimeException("Error while ${action}", it) }
+        onThrow = { throw EvaluatorException("Error while ${action}", it) }
     )
 }

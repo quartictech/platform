@@ -2,6 +2,7 @@
   docs:
     - name: Signing up
       url: /signing-up
+
     - name: Quickstart
       url: /quickstart
 
@@ -11,8 +12,10 @@
       url: /code_repo
     - name: Data connectors
       url: /data_connectors
-    - name: Quartic Line Interface
+    - name: Quartic Interface
       url: /qli
+    - name: Configuring Amazon S3
+      url: /configuring-s3
 
 - name: The Quartic DSL
   docs:

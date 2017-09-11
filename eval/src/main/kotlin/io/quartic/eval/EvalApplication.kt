@@ -4,8 +4,10 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.eval.api.model.TriggerDetails
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
 import kotlinx.coroutines.experimental.CommonPool
@@ -23,29 +25,34 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    private fun evaluator(configuration: EvalConfiguration, database: Database): ActorJob<TriggerDetails> {
+    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<BuildTrigger> {
         val evaluator = Evaluator(
-            clientBuilder.retrofit(configuration.registryUrl),
-            qube(configuration),
-            github(configuration),
-            database,
-            notifier(configuration),
+            sequencer(config, database),
+            clientBuilder.retrofit(config.registryUrl),
+            github(config),
             clientBuilder
         )
         return actor(CommonPool, UNLIMITED) {
-            for (details in channel) evaluator.evaluateAsync(details)
+            for (trigger in channel) evaluator.evaluateAsync(trigger)
         }
     }
 
+    private fun sequencer(config: EvalConfiguration, database: Database) = SequencerImpl(
+        qube(config),
+        database,
+        notifier(config)
+    )
+
     private fun notifier(config: EvalConfiguration) = Notifier(
         clientBuilder.retrofit(config.heyUrl),
+        github(config),
         config.homeUrlFormat
     )
 
     private fun github(config: EvalConfiguration) = GitHubInstallationClient(
         config.github.appId,
         config.github.apiRootUrl,
-        config.secretsCodec.decrypt(config.github.privateKeyEncrypted),
+        config.github.privateKeyEncrypted.decrypt(),
         clientBuilder
     )
 

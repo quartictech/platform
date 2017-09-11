@@ -2,8 +2,6 @@ package io.quartic.eval.qube
 
 import com.google.common.base.Preconditions.checkState
 import io.quartic.common.logging.logger
-import io.quartic.qube.api.QubeResponse.Running
-import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
 import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Create
@@ -12,6 +10,8 @@ import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
+import io.quartic.qube.api.QubeResponse.Running
+import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
@@ -128,7 +128,7 @@ class QubeProxyImpl(
             else -> {
                 val channel = Channel<QubeException>(UNLIMITED)
                 active[response.name] = channel
-                pending.response.complete(QubeContainerProxy(response.hostname, channel) {
+                pending.response.complete(QubeContainerProxy(response.containerId, response.hostname, channel) {
                     fromClients.send(Destroy(response.name))
                     channel.close()
                 })

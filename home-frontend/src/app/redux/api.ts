@@ -60,6 +60,10 @@ export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
 }
 
+export function fetchFeed() {
+  return fetchUtil(`${apiRootUrl}/builds`);
+}
+
 export function fetchDag(build: string) {
   if (build != null) {
     return fetchUtil(`${apiRootUrl}/dag/${build}`);
@@ -85,6 +89,12 @@ export function uploadFile(namespace: string, files: any[]) {
     },
     method: "POST",
     body: files[0],
+  });
+}
+
+export function buildPipeline() {
+  return fetchUtil(`${apiRootUrl}/build`, {
+    method: "POST",
   });
 }
 

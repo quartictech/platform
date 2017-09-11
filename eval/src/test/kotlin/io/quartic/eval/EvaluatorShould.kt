@@ -3,20 +3,25 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
-import io.quartic.eval.Database.EventType
-import io.quartic.eval.api.model.TriggerDetails
-import io.quartic.eval.model.BuildResult
-import io.quartic.eval.model.BuildResult.InternalError
-import io.quartic.eval.model.BuildResult.UserError
-import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.Dag
+import io.quartic.eval.model.Dag.Node
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.eval.sequencer.Sequencer
+import io.quartic.eval.sequencer.Sequencer.*
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
+import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
+import io.quartic.github.Owner
+import io.quartic.github.Repository
 import io.quartic.quarty.QuartyClient
-import io.quartic.quarty.QuartyClient.QuartyResult.Failure
-import io.quartic.quarty.QuartyClient.QuartyResult.Success
-import io.quartic.quarty.model.QuartyMessage
+import io.quartic.quarty.model.Dataset
+import io.quartic.quarty.model.Pipeline
+import io.quartic.quarty.model.QuartyResult
+import io.quartic.quarty.model.QuartyResult.Failure
+import io.quartic.quarty.model.QuartyResult.Success
 import io.quartic.quarty.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
@@ -24,28 +29,24 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.Matchers.instanceOf
+import org.hamcrest.Matchers.*
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
 import java.net.URI
 import java.time.Instant
-import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
 class EvaluatorShould {
-    // TODO - distinguish registry 404s
 
     @Test
     fun run_multiple_evaluations_concurrently() = runBlocking {
         whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
         whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
 
-        val a = evaluator.evaluateAsync(details)
-        val b = evaluator.evaluateAsync(details.copy(repoId = 7777))
+        val a = evaluator.evaluateAsync(webhookTrigger)
+        val b = evaluator.evaluateAsync(webhookTrigger.copy(repoId = 7777))
 
         b.join()                                                // But we can still complete this one
 
@@ -53,213 +54,298 @@ class EvaluatorShould {
     }
 
     @Test
-    fun write_build_and_phase_to_db() {
-        evaluate()
+    fun use_the_correct_phase_descriptions() {
+        execute()
 
-        val captor = argumentCaptor<UUID>()
-        verify(database).insertBuild(captor.capture(),  eq(customer.id), eq(branch), eq(details), any())
-        verify(database).insertPhase(any(), eq(captor.firstValue), eq("Evaluating DAG"), any())
-        runBlocking { verify(container).close() }
+        assertThat(sequencer.descriptions, contains(
+            "Acquiring Git credentials",
+            "Fetching repository details",
+            "Cloning and preparing repository",
+            "Evaluating DAG",
+            "Executing step for dataset [::X]",
+            "Executing step for dataset [::Y]"
+        ))
     }
 
     @Test
-    fun write_dag_to_db_and_notify_if_everything_is_ok() {
-        evaluate()
+    fun quarty_init_before_evaluation() {
+        execute()
+        inOrder(quarty) {
+            verify(quarty).initAsync(any(), any())
+            verify(quarty).evaluateAsync()
+        }
+    }
 
-        val captor = argumentCaptor<UUID>()
-        verify(database).insertBuild(captor.capture(), eq(customer.id), eq(branch), eq(details), any())
+    // TODO - until we do true streaming, this may lead to non-monotonic events
+    @Test
+    fun log_quarty_log_events_with_original_timestamps() {
+        val instantA = mock<Instant>()
+        val instantB = mock<Instant>()
 
-        verify(database).insertTerminalEvent(
-            any(),
-            any(),
-            eq(EventType.SUCCESS),
-            eq(BuildResult.Success(steps)),
-            any())
-        verify(notifier).notifyAbout(details, customer, build(captor.firstValue), BuildResult.Success(steps))
-        runBlocking { verify(container).close() }
+        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
+            Success(
+                listOf(
+                    QuartyResult.LogEvent("foo", "Hello", instantA),
+                    QuartyResult.LogEvent("bar", "World", instantB)
+                ),
+                pipeline
+            )
+        ))
+
+        execute()
+
+        // Other messages should be filtered out
+        assertThat(sequencer.logs, contains(
+            LogInvocation("foo", "Hello", instantA),
+            LogInvocation("bar", "World", instantB)
+        ))
     }
 
     @Test
-    fun write_error_to_db_if_dag_is_invalid() {
-        whenever(dagIsValid.invoke(steps)).doReturn(false)
+    fun produce_success_if_everything_works() {
+        execute()
 
-        evaluate()
-
-        verify(database).insertTerminalEvent(
-            any(),
-            any(),
-            eq(EventType.USER_ERROR),
-            eq(UserError("DAG is invalid")),
-            any())
-        runBlocking { verify(container).close() }
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(steps), dag)))
     }
 
     @Test
-    fun write_logs_to_db_if_user_code_failed() {
-        val messages = listOf(
-            QuartyMessage.Log("stdout", "some log message"),
-            QuartyMessage.Error("badness")
-        )
-        whenever(quarty.getResult(any(), any())).thenReturn(completedFuture(Failure(messages, "badness")))
+    fun produce_user_error_if_dag_is_invalid() {
+        whenever(extractDag.invoke(pipeline)).doReturn(null as Dag?)
 
-        evaluate()
+        execute()
 
-         verify(database).insertEvent(
-             any(),
-             any(),
-             eq(EventType.MESSAGE),
-             eq(QuartyMessage.Log("stdout", "some log message")),
-             any())
-
-         verify(database).insertEvent(
-             any(),
-             any(),
-             eq(EventType.MESSAGE),
-             eq(QuartyMessage.Error("badness")),
-             any())
-
-         verify(database).insertTerminalEvent(
-             any(),
-             any(),
-             eq(EventType.USER_ERROR),
-             eq(UserError("badness")),
-             any())
-
-        runBlocking { verify(container).close() }
+        assertThat(sequencer.results, hasItem(UserError<Any>("DAG is invalid")))
     }
 
     @Test
-    fun do_nothing_more_nor_write_to_db_if_customer_lookup_fails() {
+    fun produce_user_error_if_user_code_failed() {
+        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(Failure(emptyList(), "badness")))
+
+        execute()
+
+        assertThat(sequencer.results, hasItem(UserError<Any>("badness")))
+    }
+
+    @Test
+    fun do_nothing_if_customer_lookup_failed() {
         whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
 
         evaluate()
 
-        verifyZeroInteractions(qube)
-        verifyZeroInteractions(database)    // This is the only case where we *don't* record the result
-        verifyZeroInteractions(notifier)
+        assertThat(sequencer.numSequences, equalTo(0))
     }
 
     @Test
-    fun do_nothing_more_if_qube_fails_to_create_container() {
-        runBlocking {
-            whenever(qube.createContainer()).thenThrow(QubeException("Stuff is bad"))
-        }
-
-        evaluate()
-
-        verifyZeroInteractions(github)
-        assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
-    }
-
-    @Test
-    fun do_nothing_more_if_github_token_request_fails() {
+    fun throw_error_and_do_nothing_more_if_github_token_request_fails() {
         whenever(github.accessTokenAsync(any())).thenReturn(exceptionalFuture())
 
-        evaluate()
+        execute()
 
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while acquiring access token from GitHub")))
         verifyZeroInteractions(quartyBuilder)
-        assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
     }
 
     @Test
-    fun cancel_async_behaviour_and_close_container_on_concurrent_qube_error() {
-        whenever(container.errors).thenReturn(produce(CommonPool) {
-            send(QubeException("Stuff is bad"))
-        })
+    fun throw_error_if_quarty_interaction_fails() {
+        whenever(quarty.evaluateAsync()).thenReturn(exceptionalFuture())
 
-        val ghFuture = CompletableFuture<GitHubInstallationAccessToken>()
-        whenever(github.accessTokenAsync(any())).thenReturn(ghFuture)
+        execute()
 
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while communicating with Quarty")))
+    }
+
+    @Test
+    fun execute_steps_from_dag_in_order() {
+        execute()
+
+        inOrder(quarty) {
+            verify(quarty).executeAsync("abc", customerNamespace)
+            verify(quarty).executeAsync("def", customerNamespace)
+        }
+    }
+
+    @Test
+    fun evaluate_only() {
         evaluate()
 
-        verifyZeroInteractions(quartyBuilder)
-        assertThat(captureDatabaseResult(), instanceOf(InternalError::class.java))
-        runBlocking { verify(container).close() }
+        verify(quarty, times(0)).executeAsync(any(), any())
     }
 
+    @Test
+    fun skip_execution_of_raw_datasets() {
+        whenever(dag.iterator()).thenReturn(
+            listOf(
+                Node(mock(), null),     // Raw
+                Node(mock(), stepY)
+            ).iterator()
+        )
+
+        execute()
+
+
+        verify(quarty, times(1)).executeAsync(any(), any())
+        verify(quarty).executeAsync("def", customerNamespace)
+    }
+
+    private fun execute() = runBlocking {
+        evaluator.evaluateAsync(manualTrigger).join()
+    }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(details).join()
+        evaluator.evaluateAsync(webhookTrigger).join()
     }
+
 
     private fun <R> exceptionalFuture() = CompletableFuture<R>().apply {
         completeExceptionally(RuntimeException("Sad"))
     }
 
-    private fun captureDatabaseResult(): Any {
-        val captor = argumentCaptor<BuildResult>()
-        verify(database).insertTerminalEvent(any(), any(), any(), captor.capture(), any())
-        return captor.firstValue
+    private val customerNamespace = "raging"
+    private val customerId = CustomerId(100)
+    private val commitId = "abc123"
+    private val branch = "master"
+    private val containerHostname = "a.b.c"
+    private val githubToken = GitHubInstallationAccessToken(UnsafeSecret("yeah"))
+    private val githubCloneUrl = URI("https://noob.com/foo/bar")
+    private val githubCloneUrlWithCreds = URI("https://${githubToken.urlCredentials()}@noob.com/foo/bar")
+
+    private val stepX = mock<Step> {
+        on { id } doReturn "abc"
+        on { outputs } doReturn listOf(Dataset(null, "X"))
+    }
+    private val stepY = mock<Step> {
+        on { id } doReturn "def"
+        on { outputs } doReturn listOf(Dataset(null, "Y"))
     }
 
-    private val customerId = CustomerId(999)
-
-    private val details = TriggerDetails(
-        type = "github",
-        deliveryId = "deadbeef",
-        installationId = 1234,
-        repoId = 5678,
-        repoName = "noob",
-        cloneUrl = URI("https://noob.com/foo/bar"),
-        ref = "develop",
-        commit = "abc123",
-        timestamp = Instant.MIN
+    private val githubRepoId: Long = 5678
+    private val githubInstallationId: Long = 1234
+    private val webhookTrigger = BuildTrigger.GithubWebhook(
+        deliveryId = "1",
+        repoId = githubRepoId,
+        installationId = githubInstallationId,
+        commit = commitId,
+        repoOwner = "noob",
+        repoName = "noobery",
+        ref = "refs/heads/wat",
+        timestamp = Instant.MIN,
+        rawWebhook = emptyMap()
     )
 
-    val branch = "develop"
-
-    private val customer = Customer(
-        id = customerId,
-        githubOrgId = 8765,
-        githubRepoId = 5678,
-        name = "Noobhole Ltd",
-        subdomain = "noobhole",
-        namespace = "noobhole"
+    private val manualTrigger = BuildTrigger.Manual(
+        "me",
+        Instant.now(),
+        customerId,
+        "master",
+        BuildTrigger.TriggerType.EXECUTE
     )
 
-    private fun build(id: UUID) = Database.BuildRow(
-        id = id,
-        customerId = customerId,
-        branch = branch,
-        buildNumber = 100,
-        time = Instant.MIN,
-        triggerDetails = details
+    private val repo = Repository(
+        id = githubRepoId,
+        name = "noobery",
+        fullName = "noob/noobery",
+        private = true,
+        cloneUrl = githubCloneUrl,
+        defaultBranch = "master",
+        owner = Owner("noob")
     )
+
+    private val customer = mock<Customer> {
+        on { namespace } doReturn customerNamespace
+        on { githubRepoId } doReturn githubRepoId
+        on { githubInstallationId } doReturn githubInstallationId
+    }
 
     private val steps = mock<List<Step>>()
+    private val pipeline = Pipeline(steps)
+    private val dag = mock<Dag> {
+        on { iterator() } doReturn listOf(
+            Node(mock(), stepX),
+            Node(mock(), stepY)
+        ).iterator()
+    }
 
     private val registry = mock<RegistryServiceClient> {
         on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
+        on { getCustomerByIdAsync(customerId) } doReturn completedFuture(customer)
     }
-    private val container = mock<QubeContainerProxy> {
-        on { hostname } doReturn "a.b.c"
+
+    private val quartyContainer = mock<QubeContainerProxy> {
+        on { hostname } doReturn containerHostname
         on { errors } doReturn produce(CommonPool) {
             delay(500)  // To prevent closure
         }
     }
-    private val qube = mock<QubeProxy> {
-        on { runBlocking { createContainer() } } doReturn container
-    }
-    private val github = mock<GitHubInstallationClient> {
-        on { accessTokenAsync(1234) } doReturn completedFuture(GitHubInstallationAccessToken(UnsafeSecret("yeah")))
-    }
-    private val quarty = mock<QuartyClient> {
-        on { getResult(URI("https://x-access-token:yeah@noob.com/foo/bar"), "abc123") } doReturn completedFuture(Success(listOf(
-            QuartyMessage.Result(steps)
-        ), steps))
-    }
-    private val quartyBuilder = mock<(String) -> QuartyClient> {
-        on { invoke("a.b.c") } doReturn quarty
-    }
-    private val notifier = mock<Notifier>()
-    private val database = mock<Database>()
-    private val dagIsValid = mock<(List<Step>) -> Boolean>()
-    private val evaluator = Evaluator(registry, qube, github, database, notifier, dagIsValid, quartyBuilder)
 
-    init {
-        whenever(dagIsValid.invoke(steps)).doReturn(true)
-        whenever(database.getBuild(any())).thenAnswer { invocation ->
-            build(invocation!!.arguments[0] as UUID)
+    private val github = mock<GitHubInstallationClient> {
+        on { accessTokenAsync(1234) } doReturn completedFuture(githubToken)
+        on { getRepositoryAsync(githubRepoId, githubToken) } doReturn completedFuture(repo)
+    }
+
+    private val quarty = mock<QuartyClient> {
+        on { initAsync(githubCloneUrlWithCreds, commitId) } doReturn completedFuture(Success(emptyList(), Unit))
+        on { initAsync(githubCloneUrlWithCreds, branch) } doReturn completedFuture(Success(emptyList(), Unit))
+        on { evaluateAsync() } doReturn completedFuture(Success(emptyList(), pipeline))
+        on { executeAsync(any(), any()) } doReturn completedFuture(Success(emptyList(), Unit))
+    }
+
+    private val quartyBuilder = mock<(String) -> QuartyClient> {
+        on { invoke(containerHostname) } doReturn quarty
+    }
+
+    private val extractDag = mock<(Pipeline) -> Dag?> {
+        on { invoke(pipeline) } doReturn dag
+    }
+
+    private val sequencer = MySequencer()
+
+    private val evaluator = Evaluator(
+        sequencer,
+        registry,
+        github,
+        extractDag,
+        quartyBuilder
+    )
+
+    private data class LogInvocation(val stream: String, val message: String, val timestamp: Instant)
+
+    private inner class MySequencer : Sequencer {
+        var numSequences = 0
+        val results = mutableListOf<PhaseResult<*>>()
+        val throwables = mutableListOf<Throwable>()
+        val descriptions = mutableListOf<String>()
+        val logs = mutableListOf<LogInvocation>()
+
+        suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+            numSequences++
+            block(MySequenceBuilder())
+        }
+
+        private inner class MySequenceBuilder : SequenceBuilder {
+            suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
+                descriptions += description
+                val result = try {
+                    block(MyPhaseBuilder())
+                } catch (t: Throwable) {
+                    throwables += t
+                    throw t
+                }
+
+                results += result
+                return when (result) {
+                    is PhaseResult.Success -> result.output
+                    is PhaseResult.SuccessWithArtifact -> result.output
+                    is PhaseResult.UserError, is PhaseResult.InternalError -> throw RuntimeException("noob")
+                }
+            }
+        }
+
+        private inner class MyPhaseBuilder<R> : PhaseBuilder<R> {
+            override val container = quartyContainer
+
+            suspend override fun log(stream: String, message: String, timestamp: Instant) {
+                logs += LogInvocation(stream, message, timestamp)
+            }
         }
     }
 }

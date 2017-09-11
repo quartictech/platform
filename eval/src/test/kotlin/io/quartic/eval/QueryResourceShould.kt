@@ -1,32 +1,54 @@
 package io.quartic.eval
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.Database.BuildResultSuccessRow
+import io.quartic.eval.Database.EventRow
 import io.quartic.eval.api.model.*
-import io.quartic.eval.model.BuildResult.Success
+import io.quartic.eval.model.BuildEvent
+import io.quartic.eval.model.BuildEvent.PhaseCompleted
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
+import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.quarty.model.Dataset
 import io.quartic.quarty.model.Step
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
+import java.time.Instant
+import java.util.*
 import javax.ws.rs.NotFoundException
 
 class QueryResourceShould {
-    private val database = mock<Database> {
-        on { getLatestSuccess(any()) } doReturn null as BuildResultSuccessRow?
-    }
+    private val database = mock<Database>()
     private val resource = QueryResource(database)
 
+    private val customerId = CustomerId("999")
+
     @Test
-    fun throw_404_if_not_found() {
+    fun throw_404_if_no_rows_found() {
         assertThrows<NotFoundException> {
-            resource.getDag(CustomerId("999"))
+            resource.getDag(customerId, 1234)
         }
+    }
+
+    @Test
+    fun throw_404_if_no_latest_build_found() {
+        assertThrows<NotFoundException> {
+            resource.getDag(customerId)
+        }
+    }
+
+    @Test
+    fun query_latest_build_number_and_use_in_subsequent_query() {
+        whenever(database.getLatestSuccessfulBuildNumber(customerId)).thenReturn(5678)
+
+        try {
+            resource.getDag(customerId)
+        } catch(e: Exception) {}   // Swallow
+
+        verify(database).getEventsForBuild(customerId, 5678)
     }
 
     @Test
@@ -52,9 +74,11 @@ class QueryResourceShould {
             )
         )
 
-        whenever(database.getLatestSuccess(CustomerId("999"))).thenReturn(BuildResultSuccessRow(Success(steps)))
+        whenever(database.getEventsForBuild(customerId, 1234)).thenReturn(listOf(
+            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(steps))))
+        ))
 
-        assertThat(resource.getDag(CustomerId("999")), equalTo(
+        assertThat(resource.getDag(customerId, 1234), equalTo(
             CytoscapeDag(
                 setOf(
                     node("A", "raw"),
@@ -64,11 +88,11 @@ class QueryResourceShould {
                     node("E", "derived")
                 ),
                 setOf(
-                    edge(0, "A", "D"),
-                    edge(1, "B", "D"),
-                    edge(2, "B", "E"),
-                    edge(3, "C", "E"),
-                    edge(4, "D", "E")
+                    edge(1, "A", "D"),
+                    edge(2, "B", "D"),
+                    edge(3, "B", "E"),
+                    edge(4, "C", "E"),
+                    edge(0, "D", "E")
                 )
             )
         ))
@@ -88,9 +112,11 @@ class QueryResourceShould {
             )
         )
 
-        whenever(database.getLatestSuccess(CustomerId("999"))).thenReturn(BuildResultSuccessRow(Success(steps)))
+        whenever(database.getEventsForBuild(customerId, 1234)).thenReturn(listOf(
+            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(steps))))
+        ))
 
-        assertThat(resource.getDag(CustomerId("999")), equalTo(
+        assertThat(resource.getDag(customerId, 1234), equalTo(
             CytoscapeDag(
                 setOf(
                     node("A", "raw", ""),       // Note null becomes empty string
@@ -110,4 +136,7 @@ class QueryResourceShould {
         CytoscapeEdge(CytoscapeEdgeData(id, "${namespace}::${source}", "${namespace}::${target}"))
 
     private fun dataset(id: String, namespace: String? = "test") = Dataset(namespace, id)
+
+    private fun eventRow(event: BuildEvent) =
+        EventRow(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Instant.now(), event)
 }
