@@ -22,7 +22,7 @@ data class EvalConfiguration(
 
     data class QubeConfiguration(
         val url: URI,
-        val container: PodSpec
+        val pod: PodSpec
     )
 }
 

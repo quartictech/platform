@@ -25,6 +25,6 @@ interface QubeProxy {
 
     companion object {
         fun create(client: WebsocketClient<QubeRequest, QubeResponse>,
-                   container: PodSpec) = QubeProxyImpl(client, container)
+                   pod: PodSpec) = QubeProxyImpl(client, pod)
     }
 }

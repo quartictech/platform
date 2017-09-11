@@ -24,7 +24,7 @@ import java.util.*
 
 class QubeProxyImpl(
     private val qube: WebsocketClient<QubeRequest, QubeResponse>,
-    private val container: PodSpec,
+    private val pod: PodSpec,
     private val nextUuid: () -> QubeId = { UUID.randomUUID().toString() }
 ) : QubeProxy {
     private sealed class ClientRequest {
@@ -78,7 +78,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        qube.outbound.send(QubeRequest.Create(uuid, container))
+        qube.outbound.send(QubeRequest.Create(uuid, pod))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {
