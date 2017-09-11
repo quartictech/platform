@@ -170,5 +170,7 @@ class WebsocketClientImpl<in TSend, out TReceive>(
             backoffPeriod: Duration = Duration.ofSeconds(5),
             websocketFactory: WebsocketFactory = WebsocketFactory()
         ): WebsocketClient<TSend, TReceive> = WebsocketClientImpl(uri, TReceive::class.java, backoffPeriod, websocketFactory)
+
+        val NO_RECONNECTION: Duration = Duration.ZERO
     }
 }

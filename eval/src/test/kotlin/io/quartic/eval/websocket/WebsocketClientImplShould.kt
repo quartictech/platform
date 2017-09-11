@@ -114,7 +114,7 @@ class WebsocketClientImplShould {
         val expected = listOf(ReceiveMsg(42))
         server.willSend(expected)
 
-        createClient(Duration.ZERO).use { client ->
+        createClient(WebsocketClientImpl.NO_RECONNECTION).use { client ->
             runOrTimeout {
                 client.awaitConnected()
                 server.dropConnections()

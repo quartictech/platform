@@ -24,7 +24,9 @@ interface QubeProxy {
     suspend fun createContainer(): QubeContainerProxy
 
     companion object {
-        fun create(client: WebsocketClient<QubeRequest, QubeResponse>,
-                   container: ContainerSpec) = QubeProxyImpl(client, container)
+        fun create(
+            client: WebsocketClient<QubeRequest, QubeResponse>,
+            container: ContainerSpec
+        ) = QubeProxyImpl(client, container)
     }
 }

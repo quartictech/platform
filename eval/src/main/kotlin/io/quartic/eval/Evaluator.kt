@@ -1,3 +1,5 @@
+@file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
+
 package io.quartic.eval
 
 import io.quartic.common.client.ClientBuilder
@@ -74,7 +76,8 @@ class Evaluator(
                 }
 
                 val repo: Repository = phase("Fetching repository details") {
-                    success(github.getRepositoryAsync(customer.githubRepoId, token)
+                    success(github
+                        .getRepositoryAsync(customer.githubRepoId, token)
                         .awaitWrapped("fetching repository details from GitHub"))
                 }
 
