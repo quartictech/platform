@@ -12,7 +12,7 @@
       url: /code_repo
     - name: Data connectors
       url: /data_connectors
-    - name: Quartic Interface
+    - name: Quartic interface
       url: /qli
     - name: Configuring Amazon S3
       url: /configuring-s3
