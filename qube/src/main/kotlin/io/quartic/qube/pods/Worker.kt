@@ -55,10 +55,10 @@ class WorkerImpl(
 
                 when {
                     anyTerminated -> {
-                        if (states.all { state -> state.terminated.exitCode == 0 }) {
-                            responses.send(Terminated.Succeeded(key.name, ALL_CONTAINERS_SUCCEEDED))
+                        if (states.all { state -> state?.terminated == null || state.terminated?.exitCode == 0 }) {
+                            responses.send(Terminated.Succeeded(key.name, ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE))
                         } else {
-                            responses.send(Terminated.Failed(key.name, SOME_CONTAINERS_FAILED_OR_DIDNT_TERMINATE))
+                            responses.send(Terminated.Failed(key.name, SOME_CONTAINERS_FAILED))
                         }
                         LOG.info("[{}] terminated {}", podName, states)
                         return@withTimeout
@@ -183,8 +183,8 @@ class WorkerImpl(
     }
 
     companion object {
-        const val ALL_CONTAINERS_SUCCEEDED = "All pods terminated successfully"
-        const val SOME_CONTAINERS_FAILED_OR_DIDNT_TERMINATE = "Some pods had non-zero exit status or didn't terminate"
+        const val ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE = "All containers either finished with success or didn't terminate"
+        const val SOME_CONTAINERS_FAILED = "Some containers terminated with non-zero exit status"
     }
 
 }

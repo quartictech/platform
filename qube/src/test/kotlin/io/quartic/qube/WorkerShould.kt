@@ -80,7 +80,10 @@ class WorkerShould {
     fun send_status_on_pod_running_and_ready() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(runningPod(listOf(true, true)))
+            podEvents.send(pods(
+                PodState(true, true),
+                PodState(true, true))
+            )
 
             verify(returnChannel, timeout(1000)).send(
                 QubeResponse.Running(key.name, "100.100.100.100", uuid)
@@ -92,7 +95,10 @@ class WorkerShould {
     fun not_send_status_on_pod_running_not_ready() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(runningPod(listOf(true, false)))
+            podEvents.send(pods(
+                PodState(true, false),
+                PodState(true, true))
+            )
 
             verify(returnChannel, timeout(1000).times(0)).send(
                 isA<QubeResponse.Running>()
@@ -100,12 +106,14 @@ class WorkerShould {
         }
     }
 
-
     @Test
     fun send_status_on_pod_failed() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(podTerminated(listOf(0, 1)))
+            podEvents.send(pods(
+                PodState(false, false, 1),
+                PodState(true, true)
+            ))
 
             verify(returnChannel, timeout(1000)).send(
                 Terminated.Failed(key.name, WorkerImpl.SOME_CONTAINERS_FAILED)
@@ -113,14 +121,18 @@ class WorkerShould {
         }
     }
 
-     @Test
+    @Test
     fun send_status_on_pod_success() {
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(podTerminated(listOf(0, 0)))
+            podEvents.send(
+                pods(
+                    PodState(false, false, 0),
+                    PodState(true, true)
+                ))
 
             verify(returnChannel, timeout(1000)).send(
-                Terminated.Succeeded(key.name, WorkerImpl.ALL_CONTAINERS_SUCCEEDED)
+                Terminated.Succeeded(key.name, WorkerImpl.ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE)
             )
         }
     }
@@ -130,7 +142,10 @@ class WorkerShould {
         whenever(client.createPod(any())).thenThrow(KubernetesClientException("Noob"))
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(podTerminated(listOf(0, 0)))
+            podEvents.send(pods(
+                PodState(false, false, 0),
+                PodState(false, false, 0)
+            ))
 
             verify(returnChannel, timeout(1000)).send(
                 Terminated.Exception(key.name, anyOrNull())
@@ -140,10 +155,16 @@ class WorkerShould {
 
     @Test
     fun store_to_postgres_on_success() {
-        whenever(client.getPod(any())).thenReturn(podTerminated(listOf(0, 0)))
+        whenever(client.getPod(any())).thenReturn(pods(
+            PodState(false, false, 0),
+            PodState(false, false, 0)
+        ))
         runBlocking {
             worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(podTerminated(listOf(0, 0)))
+            podEvents.send(pods(
+                PodState(false, false, 0),
+                PodState(false, false, 0)
+            ))
 
             verify(jobStore, timeout(1000)).insertJob(
                 any(),
@@ -159,7 +180,10 @@ class WorkerShould {
 
     @Test
     fun store_to_postgres_on_cancel() {
-        whenever(client.getPod(any())).thenReturn(podTerminated(listOf(0, 0)))
+        whenever(client.getPod(any())).thenReturn(pods(
+            PodState(false, false, 0),
+            PodState(false, false, 0)
+        ))
         runBlocking {
             val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             verify(client, timeout(1000)).createPod(eq(pod))
@@ -183,37 +207,66 @@ class WorkerShould {
 
     @Test
     fun handle_postgres_exception() {
-        whenever(client.getPod(any())).thenReturn(podTerminated(listOf(0, 0)))
+        whenever(client.getPod(any())).thenReturn(pods(
+            PodState(false, false, 0),
+            PodState(false, false, 0)
+        ))
         whenever(jobStore.insertJob(
             anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()
         )).thenThrow(RuntimeException("noobhole"))
         runBlocking {
             val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
-            podEvents.send(podTerminated(listOf(0, 0)))
+            podEvents.send(pods(
+                PodState(false, false, 0),
+                PodState(false, false, 0)
+            ))
+
             job.await()
             verify(returnChannel, times(0))
                 .send(Terminated.Exception(key.name, any()))
         }
     }
 
-    fun runningPod(ready: List<Boolean>) = PodBuilder(pod).editOrNewStatus()
-        .withContainerStatuses(ready.map {
-            ContainerStatusBuilder().withReady(it).editOrNewState()
-                .editOrNewRunning().endRunning().endState().build()
+    data class PodState(
+        val running: Boolean,
+        val ready: Boolean,
+        val exitCode: Int? = null
+    )
+
+    fun pods(vararg podStates: PodState) = PodBuilder(pod).editOrNewStatus()
+        .withContainerStatuses(podStates.map { podState ->
+            if (podState.running) {
+                ContainerStatusBuilder().withReady(podState.ready).editOrNewState()
+                    .editOrNewRunning().endRunning().endState().build()
+            } else {
+                ContainerStatusBuilder().editOrNewState().editOrNewTerminated().withExitCode(podState.exitCode)
+                    .withMessage("noobout")
+                    .withReason("reason")
+                    .endTerminated()
+                    .endState().build()
+            }
         })
         .withPodIP("100.100.100.100")
         .endStatus()
         .build()
 
-    fun podTerminated(exitCode: List<Int>) = PodBuilder(pod).editOrNewStatus()
-        .withContainerStatuses(exitCode.map {
-            ContainerStatusBuilder().editOrNewState().editOrNewTerminated().withExitCode(it)
-                .withMessage("noobout")
-                .withReason("reason")
-                .endTerminated()
-                .endState().build()})
-        .endStatus()
-        .build()
+//    fun podTerminated(exitCode: List<Int?>) = PodBuilder(pod).editOrNewStatus()
+//        .withContainerStatuses(exitCode.map {
+//            if (it != null) {
+//                ContainerStatusBuilder().editOrNewState().editOrNewTerminated().withExitCode(it)
+//                    .withMessage("noobout")
+//                    .withReason("reason")
+//                    .endTerminated()
+//                    .endState().build()
+//            } else {
+//                ContainerStatusBuilder().withReady(true).editOrNewState().editOrNewRunning()
+//                    .withReason("reason")
+//                    .endTerminated()
+//                    .endState().build()
+//            }
+//            })
+//        .endStatus()
+//        .build()
 
     fun container(name: String, port: Int) = ContainerBuilder()
         .withName(name)
