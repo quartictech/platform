@@ -26,7 +26,7 @@ class GitHubInstallationClient(
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class GitHubInstallationAccessToken(
-        private val token: UnsafeSecret
+        val token: UnsafeSecret
     ) {
         fun authorizationCredentials() = "token ${token.veryUnsafe}"
         fun urlCredentials() = "x-access-token:${token.veryUnsafe}"
