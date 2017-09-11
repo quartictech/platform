@@ -1,42 +1,38 @@
-@file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
-
 package io.quartic.eval.quarty
 
-import com.google.common.base.Throwables.getRootCause
-import io.quartic.common.logging.logger
-import io.quartic.common.serdes.OBJECT_MAPPER
+import com.google.common.base.Preconditions.checkState
+import io.quartic.eval.EvaluatorException
+import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.quartic.eval.websocket.WebsocketClientImpl
-import io.quartic.quarty.model.QuartyMessage
-import io.quartic.quarty.model.QuartyMessage.Progress
-import io.quartic.quarty.model.QuartyResult
-import io.quartic.quarty.model.QuartyResult.*
+import io.quartic.quarty.model.QuartyRequest
+import io.quartic.quarty.model.QuartyResponse
+import io.quartic.quarty.model.QuartyResponse.*
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.launch
-import java.net.URI
-import java.time.Clock
-import kotlin.reflect.KClass
+import kotlinx.coroutines.experimental.selects.select
+import java.time.Instant
 
-class QuartyProxy<R : Any>(
-    private val quarty: WebsocketClient<Unit, QuartyMessage>,
-    private val clock: Clock,
-    private val clazz: KClass<R>
+private class QuartyProxy(
+    hostname: String,
+    quartyBuilder: (String) -> WebsocketClient<QuartyRequest, QuartyResponse>
 ) : AutoCloseable {
-    private val LOG by logger()
+    private data class Context(
+        val request: QuartyRequest,
+        val log: suspend (String, String) -> Unit,
+        val result: CompletableDeferred<Complete>
+    )
 
-    private var complete = false
-    private val _results = Channel<QuartyResult<R>>(Channel.UNLIMITED)
-    val results: ReceiveChannel<QuartyResult<R>> = _results
-    private val logEvents = mutableListOf<LogEvent>()
+    private val requests = Channel<Context>(Channel.UNLIMITED)
+    private val quarty = quartyBuilder(hostname)
     private val job = launch(CommonPool) {
         try {
             runEventLoop()
         } finally {
             quarty.close()
-            _results.close()
+            requests.close()
         }
     }
 
@@ -44,56 +40,46 @@ class QuartyProxy<R : Any>(
         job.cancel()
     }
 
+    // TODO - get rid of direct dependency on PhaseBuilder
+    suspend fun request(phase: PhaseBuilder<*>, request: QuartyRequest) =
+        CompletableDeferred<Complete>().apply {
+            requests.send(Context(
+                request,
+                { stream, message -> phase.log(stream, message, Instant.now()) },
+                this
+            ))
+        }.await()
+
     private suspend fun runEventLoop() {
-        while (!complete) {
-            val event = quarty.events.receive()
-            when (event) {
-                is Connected -> {}
-                is Disconnected -> { handleDisconnected() }
-                is MessageReceived -> { handleMessageReceived(event.message) }
+        var context: Context? = null
+
+        while (true) {
+            select<Unit> {
+                quarty.events.onReceive {
+                    when (it) {
+                        is Connected -> {}        // TODO - we need to wait for this to happen
+                        is Disconnected -> throw EvaluatorException("Connection to Quarty closed unexpectedly") // TODO - will this propagate to caller?
+                        is MessageReceived -> {
+                            checkState(context != null, "Message received unexpectedly: ${it}")
+
+                            when (it.message) {
+                                is Progress -> context!!.log("progress", it.message.message)
+                                is Log -> context!!.log(it.message.stream, it.message.line)
+                                is Complete -> {
+                                    context!!.result.complete(it.message)
+                                    context = null
+                                }
+                            }
+                        }
+                    }
+                }
+
+                requests.onReceive {
+                    checkState(context == null, "Request received unexpectedly: ${it}")
+                    quarty.outbound.send(it.request)
+                    context = it
+                }
             }
         }
-    }
-
-    private suspend fun handleDisconnected() {
-        sendResult(InternalError(logEvents, "No terminating message received"))
-    }
-
-    private suspend fun handleMessageReceived(message: QuartyMessage) {
-        when (message) {
-            is Progress ->
-                logEvents += LogEvent("progress", message.message, clock.instant())
-            is QuartyMessage.Log ->
-                logEvents += LogEvent(message.stream, message.line, clock.instant())
-            is QuartyMessage.Result -> {
-                sendResult(try {
-                    Success(logEvents, convertResult(message))
-                } catch (e: Exception) {
-                    LOG.error("Error parsing result", getRootCause(e))
-                    InternalError<R>(logEvents, "Error parsing reuslt from Quarty")
-                })
-            }
-            is QuartyMessage.Error ->
-                sendResult(Failure(logEvents, message.detail))
-        }
-    }
-
-    private suspend fun sendResult(result: QuartyResult<R>) {
-        _results.send(result)
-        complete = true
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun convertResult(message: QuartyMessage.Result) = when (clazz) {
-        Unit::class -> Unit as R
-        else -> OBJECT_MAPPER.convertValue(message.result, clazz.java)  // For impenetrable reasons, Kotlin convertValue<> extension doesn't work properly
-    }
-
-    companion object {
-        inline fun <reified R : Any> create(hostname: String): QuartyProxy<R> = QuartyProxy(
-            WebsocketClientImpl.create(URI(hostname), WebsocketClientImpl.NO_RECONNECTION),
-            Clock.systemUTC(),
-            R::class
-        )
     }
 }

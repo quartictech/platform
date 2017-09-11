@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.model.Pipeline
-import io.quartic.quarty.model.QuartyMessage.*
+import io.quartic.quarty.model.QuartyResponse.*
 import io.quartic.quarty.model.QuartyResult
 import io.quartic.quarty.model.QuartyResult.*
 import io.quartic.quarty.model.Step

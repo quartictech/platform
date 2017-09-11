@@ -2,24 +2,34 @@
 
 package io.quartic.eval
 
-import io.quartic.common.client.ClientBuilder
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
+import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.PhaseResult
+import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
-import io.quartic.quarty.QuartyClient
 import io.quartic.quarty.model.Pipeline
-import io.quartic.quarty.model.QuartyResult
+import io.quartic.quarty.model.QuartyRequest
+import io.quartic.quarty.model.QuartyRequest.*
+import io.quartic.quarty.model.QuartyResponse
+import io.quartic.quarty.model.QuartyResponse.*
+import io.quartic.quarty.model.QuartyResponse.Complete.Error
+import io.quartic.quarty.model.QuartyResponse.Complete.Result
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
 import org.apache.http.client.utils.URIBuilder
@@ -34,13 +44,12 @@ class Evaluator(
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
     private val extractDag: (Pipeline) -> Dag?,
-    private val quartyBuilder: (String) -> QuartyClient
+    private val quartyBuilder: (String) -> WebsocketClient<QuartyRequest, QuartyResponse>
 ) {
     constructor(
         sequencer: Sequencer,
         registry: RegistryServiceClient,
         github: GitHubInstallationClient,
-        clientBuilder: ClientBuilder,
         quartyPort: Int = 8080
     ) : this(
         sequencer,
@@ -53,7 +62,7 @@ class Evaluator(
                 null
             }
         },
-        { hostname -> QuartyClient(clientBuilder, "http://${hostname}:${quartyPort}") }
+        { hostname -> WebsocketClientImpl.create(URI("http://${hostname}:${quartyPort}"), WebsocketClientImpl.NO_RECONNECTION) }
     )
 
     private val LOG by logger()
@@ -81,18 +90,18 @@ class Evaluator(
                         .awaitWrapped("fetching repository details from GitHub"))
                 }
 
+                val quarty = QuartyProxy("noobhole", quartyBuilder)    // TODO - hostname
+
                 phase<Unit>("Cloning and preparing repository") {
-                    extractPhaseResult(
-                        fromQuarty { initAsync(cloneUrl(repo.cloneUrl, token), commit(trigger)) },
-                        { success(Unit) }
-                    )
+                    extractPhaseResult(quarty.request(this, Initialise(cloneUrl(repo.cloneUrl, token), commit(trigger)))) {
+                        success(Unit)
+                    }
                 }
 
-                val dag = phase("Evaluating DAG") {
-                    extractPhaseResult(
-                        fromQuarty { evaluateAsync() },
-                        { pipeline -> extractDagFromPipeline(pipeline) }
-                    )
+                val dag = phase<Dag>("Evaluating DAG") {
+                    extractPhaseResult(quarty.request(this, Evaluate())) {
+                        extractDagFromPipeline(it)
+                    }
                 }
 
                 // Only do this for manual launch
@@ -101,15 +110,19 @@ class Evaluator(
                         .mapNotNull { it.step }    // TODO - what about raw datasets?
                         .forEach { step ->
                             phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
-                                extractPhaseResult(
-                                    fromQuarty { executeAsync(step.id, customer.namespace) },
-                                    { success(Unit) }
-                                )
+                                extractPhaseResult(quarty.request(this, Execute(step.id, customer.namespace))) {
+                                    success(Unit)
+                                }
                             }
                         }
                 }
             }
         }
+    }
+
+    private fun <R> PhaseBuilder<R>.extractPhaseResult(result: Complete, block: (Any?) -> PhaseResult<R>) = when (result) {
+        is Result -> block(result.result)
+        is Error -> userError(result.detail)
     }
 
     private fun commit(trigger: BuildTrigger) = when (trigger) {
@@ -120,21 +133,13 @@ class Evaluator(
     private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
-    private fun <T, R> PhaseBuilder<R>.extractPhaseResult(result: QuartyResult<T>, block: (T) -> PhaseResult<R>) = when(result) {
-        is QuartyResult.Success -> block(result.result)
-        is QuartyResult.Failure -> userError(result.detail)
-        is QuartyResult.InternalError -> internalError(EvaluatorException(result.details))
-    }
+    private fun PhaseBuilder<Dag>.extractDagFromPipeline(raw: Any?): PhaseResult<Dag> {
+        val pipeline = try {
+            OBJECT_MAPPER.convertValue<Pipeline>(raw!!)
+        } catch (e: Exception) {
+            throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
+        }
 
-    private suspend fun <R> PhaseBuilder<*>.fromQuarty(block: QuartyClient.() -> CompletableFuture<out QuartyResult<R>>) =
-        block(quartyBuilder(container.hostname))
-            .awaitWrapped("communicating with Quarty")
-            .apply { logMessages(this) }
-
-    private suspend fun PhaseBuilder<*>.logMessages(result: QuartyResult<*>) =
-        result.messages.forEach { log(it.stream, it.message, it.timestamp) }
-
-    private fun PhaseBuilder<Dag>.extractDagFromPipeline(pipeline: Pipeline): PhaseResult<Dag> {
         val dag = extractDag(pipeline)
         return with(dag) {
             if (dag != null) {

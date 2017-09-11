@@ -17,6 +17,8 @@ import kotlinx.coroutines.experimental.selects.select
 import java.net.URI
 import java.time.Duration
 
+// TODO - set user-agent
+
 class WebsocketClientImpl<in TSend, out TReceive>(
     private val uri: URI,
     private val receiveClass: Class<TReceive>,
