@@ -1,9 +1,6 @@
 package io.quartic.qube.pods
 
-import io.fabric8.kubernetes.api.model.ContainerBuilder
-import io.fabric8.kubernetes.api.model.IntOrString
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.PodBuilder
+import io.fabric8.kubernetes.api.model.*
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.qube.api.QubeRequest
@@ -11,6 +8,7 @@ import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerState
 import io.quartic.qube.Database
+import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.Channel
@@ -122,29 +120,37 @@ class WorkerImpl(
             .editOrNewSpec()
             .withContainers(listOf())
 
-            create.pod.containers.forEach { container ->
-                podBuilder
-                    .addToContainers(
-                        ContainerBuilder()
-                            .withName(container.name)
-                            .withImage(container.image)
-                            .withCommand(container.command)
-
-                            .addNewPort()
-                            .withContainerPort(container.port)
-                            .endPort()
-
-                            .editOrNewReadinessProbe()
-                            .withNewTcpSocket()
-                            .withPort(IntOrString(container.port))
-                            .endTcpSocket()
-                            .withInitialDelaySeconds(3)
-                            .withPeriodSeconds(3)
-                            .endReadinessProbe()
-                            .build())
-            }
+        create.pod.containers.forEach { container ->
+            podBuilder.addToContainers(buildContainer(container))
+        }
 
         return podBuilder.endSpec().build()
+    }
+
+    private fun buildContainer(container: ContainerSpec): Container {
+         val builder = ContainerBuilder().withName(container.name)
+             .withImage(container.image)
+
+        if (container.command != null) {
+            builder.withCommand(container.command)
+        }
+
+        builder.withEnv(container.env.map { entry ->
+            EnvVar(entry.key, entry.value, null)
+        })
+
+        return builder.addNewPort()
+            .withContainerPort(container.port)
+            .endPort()
+
+            .editOrNewReadinessProbe()
+            .withNewTcpSocket()
+            .withPort(IntOrString(container.port))
+            .endTcpSocket()
+            .withInitialDelaySeconds(3)
+            .withPeriodSeconds(3)
+            .endReadinessProbe()
+            .build()
     }
 
 
