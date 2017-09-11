@@ -11,7 +11,7 @@ import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.model.Step
+import io.quartic.quarty.api.model.Step
 import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")

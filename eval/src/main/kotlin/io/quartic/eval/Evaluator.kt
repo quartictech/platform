@@ -18,11 +18,11 @@ import io.quartic.eval.sequencer.Sequencer.PhaseResult
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
-import io.quartic.quarty.model.Pipeline
-import io.quartic.quarty.model.QuartyRequest.*
-import io.quartic.quarty.model.QuartyResponse.Complete
-import io.quartic.quarty.model.QuartyResponse.Complete.Error
-import io.quartic.quarty.model.QuartyResponse.Complete.Result
+import io.quartic.quarty.api.model.Pipeline
+import io.quartic.quarty.api.model.QuartyRequest.*
+import io.quartic.quarty.api.model.QuartyResponse.Complete
+import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
+import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async

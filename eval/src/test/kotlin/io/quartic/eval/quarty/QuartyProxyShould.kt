@@ -12,9 +12,9 @@ import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.quartic.quarty.model.QuartyRequest
-import io.quartic.quarty.model.QuartyResponse
-import io.quartic.quarty.model.QuartyResponse.*
+import io.quartic.quarty.api.model.QuartyRequest
+import io.quartic.quarty.api.model.QuartyResponse
+import io.quartic.quarty.api.model.QuartyResponse.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.runBlocking

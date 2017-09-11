@@ -7,9 +7,9 @@ import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.eval.websocket.WebsocketClientImpl
-import io.quartic.quarty.model.QuartyRequest
-import io.quartic.quarty.model.QuartyResponse
-import io.quartic.quarty.model.QuartyResponse.*
+import io.quartic.quarty.api.model.QuartyRequest
+import io.quartic.quarty.api.model.QuartyResponse
+import io.quartic.quarty.api.model.QuartyResponse.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
