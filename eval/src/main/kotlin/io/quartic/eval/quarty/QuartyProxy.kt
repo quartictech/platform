@@ -5,6 +5,7 @@ import io.quartic.eval.EvaluatorException
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
+import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.quarty.model.QuartyRequest
 import io.quartic.quarty.model.QuartyResponse
 import io.quartic.quarty.model.QuartyResponse.*
@@ -13,12 +14,16 @@ import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.selects.select
-import java.time.Instant
+import java.net.URI
 
-private class QuartyProxy(
-    hostname: String,
-    quartyBuilder: (String) -> WebsocketClient<QuartyRequest, QuartyResponse>
-) : AutoCloseable {
+class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyResponse>) : AutoCloseable {
+    constructor(hostname: String) : this(
+        WebsocketClientImpl.create(
+            URI("http://${hostname}:${QUARTY_PORT}"),
+            WebsocketClientImpl.NO_RECONNECTION
+        )
+    )
+
     private data class Context(
         val request: QuartyRequest,
         val log: suspend (String, String) -> Unit,
@@ -26,7 +31,6 @@ private class QuartyProxy(
     )
 
     private val requests = Channel<Context>(Channel.UNLIMITED)
-    private val quarty = quartyBuilder(hostname)
     private val job = launch(CommonPool) {
         try {
             runEventLoop()
@@ -45,7 +49,7 @@ private class QuartyProxy(
         CompletableDeferred<Complete>().apply {
             requests.send(Context(
                 request,
-                { stream, message -> phase.log(stream, message, Instant.now()) },
+                { stream, message -> phase.log(stream, message) },
                 this
             ))
         }.await()
@@ -81,5 +85,9 @@ private class QuartyProxy(
                 }
             }
         }
+    }
+
+    companion object {
+        val QUARTY_PORT = 8080
     }
 }

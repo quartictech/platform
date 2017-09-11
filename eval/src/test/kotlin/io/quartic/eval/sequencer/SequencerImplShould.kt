@@ -26,8 +26,9 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
-import java.net.URI
+import java.time.Clock
 import java.time.Instant
+import java.time.ZoneId
 import java.util.*
 
 class SequencerImplShould {
@@ -88,17 +89,15 @@ class SequencerImplShould {
 
     @Test
     fun log_phase_messages_with_explicit_timestamps() = runBlocking {
-        val instant = Instant.EPOCH
-
         sequencer.sequence(details, customer) {
             phase("Yes") {
-                log("foo", "bar", instant)
+                log("foo", "bar")
                 success(Unit)
             }
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(instant), any(), eq(phaseId))
+        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(Instant.EPOCH), any(), eq(phaseId))
     }
 
     @Test
@@ -160,23 +159,14 @@ class SequencerImplShould {
     }
 
     @Test
-    fun provide_access_to_container_during_all_phases() = runBlocking {
-        var c1: QubeContainerProxy? = null
-        var c2: QubeContainerProxy? = null
+    fun provide_access_to_container() = runBlocking {
+        var c: QubeContainerProxy? = null
 
         sequencer.sequence(details, customer) {
-            phase<Unit>("First") {
-                c1 = container
-                success(Unit)
-            }
-            phase<Unit>("Second") {
-                c2 = container
-                success(Unit)
-            }
+            c = container
         }
 
-        assertThat(c1, equalTo(qubeContainer))
-        assertThat(c2, equalTo(qubeContainer))
+        assertThat(c, equalTo(qubeContainer))
     }
 
     @Test
@@ -275,5 +265,7 @@ class SequencerImplShould {
 
     private val notifier = mock<Notifier>()
 
-    private val sequencer = SequencerImpl(qube, database, notifier) { uuid(uuid++) }
+    private val clock = Clock.fixed(Instant.EPOCH, ZoneId.systemDefault())
+
+    private val sequencer = SequencerImpl(qube, database, notifier, clock) { uuid(uuid++) }
 }

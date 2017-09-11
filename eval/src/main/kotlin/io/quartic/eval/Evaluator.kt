@@ -15,21 +15,16 @@ import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.PhaseResult
-import io.quartic.eval.websocket.WebsocketClient
-import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
 import io.quartic.quarty.model.Pipeline
-import io.quartic.quarty.model.QuartyRequest
 import io.quartic.quarty.model.QuartyRequest.*
-import io.quartic.quarty.model.QuartyResponse
-import io.quartic.quarty.model.QuartyResponse.*
+import io.quartic.quarty.model.QuartyResponse.Complete
 import io.quartic.quarty.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.model.QuartyResponse.Complete.Result
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
 import org.apache.http.client.utils.URIBuilder
@@ -44,13 +39,12 @@ class Evaluator(
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
     private val extractDag: (Pipeline) -> Dag?,
-    private val quartyBuilder: (String) -> WebsocketClient<QuartyRequest, QuartyResponse>
+    private val quartyBuilder: (String) -> QuartyProxy
 ) {
     constructor(
         sequencer: Sequencer,
         registry: RegistryServiceClient,
-        github: GitHubInstallationClient,
-        quartyPort: Int = 8080
+        github: GitHubInstallationClient
     ) : this(
         sequencer,
         registry,
@@ -62,7 +56,7 @@ class Evaluator(
                 null
             }
         },
-        { hostname -> WebsocketClientImpl.create(URI("http://${hostname}:${quartyPort}"), WebsocketClientImpl.NO_RECONNECTION) }
+        { hostname -> QuartyProxy(hostname) }
     )
 
     private val LOG by logger()
@@ -90,31 +84,31 @@ class Evaluator(
                         .awaitWrapped("fetching repository details from GitHub"))
                 }
 
-                val quarty = QuartyProxy("noobhole", quartyBuilder)    // TODO - hostname
-
-                phase<Unit>("Cloning and preparing repository") {
-                    extractPhaseResult(quarty.request(this, Initialise(cloneUrl(repo.cloneUrl, token), commit(trigger)))) {
-                        success(Unit)
+                quartyBuilder(container.hostname).use { quarty ->
+                    phase<Unit>("Cloning and preparing repository") {
+                        extractPhaseResult(quarty.request(this, Initialise(cloneUrl(repo.cloneUrl, token), commit(trigger)))) {
+                            success(Unit)
+                        }
                     }
-                }
 
-                val dag = phase<Dag>("Evaluating DAG") {
-                    extractPhaseResult(quarty.request(this, Evaluate())) {
-                        extractDagFromPipeline(it)
+                    val dag = phase<Dag>("Evaluating DAG") {
+                        extractPhaseResult(quarty.request(this, Evaluate())) {
+                            extractDagFromPipeline(it)
+                        }
                     }
-                }
 
-                // Only do this for manual launch
-                if (triggerType == TriggerType.EXECUTE) {
-                    dag
-                        .mapNotNull { it.step }    // TODO - what about raw datasets?
-                        .forEach { step ->
-                            phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
-                                extractPhaseResult(quarty.request(this, Execute(step.id, customer.namespace))) {
-                                    success(Unit)
+                    // Only do this for manual launch
+                    if (triggerType == TriggerType.EXECUTE) {
+                        dag
+                            .mapNotNull { it.step }    // TODO - what about raw datasets?
+                            .forEach { step ->
+                                phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
+                                    extractPhaseResult(quarty.request(this, Execute(step.id, customer.namespace))) {
+                                        success(Unit)
+                                    }
                                 }
                             }
-                        }
+                    }
                 }
             }
         }
@@ -134,12 +128,7 @@ class Evaluator(
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
     private fun PhaseBuilder<Dag>.extractDagFromPipeline(raw: Any?): PhaseResult<Dag> {
-        val pipeline = try {
-            OBJECT_MAPPER.convertValue<Pipeline>(raw!!)
-        } catch (e: Exception) {
-            throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
-        }
-
+        val pipeline = parseRawPipeline(raw)
         val dag = extractDag(pipeline)
         return with(dag) {
             if (dag != null) {
@@ -148,6 +137,12 @@ class Evaluator(
                 userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
         }
+    }
+
+    private fun parseRawPipeline(raw: Any?) = try {
+        OBJECT_MAPPER.convertValue<Pipeline>(raw!!)
+    } catch (e: Exception) {
+        throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
 
     private suspend fun getCustomer(trigger: BuildTrigger) = cancellable(
