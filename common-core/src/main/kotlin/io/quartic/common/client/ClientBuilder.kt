@@ -51,7 +51,7 @@ class ClientBuilder(val owner: Class<*>) {
 
         val urlWithSlash = if(url.endsWith("/")) url else url + "/"
         val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BODY
+        interceptor.level = HttpLoggingInterceptor.Level.BASIC
         val client = OkHttpClient.Builder()
             .readTimeout(timeoutSeconds, TimeUnit.SECONDS)
             .addInterceptor(interceptor)
