@@ -51,7 +51,7 @@ class GitHubInstallationClient(
             @Body status: StatusCreate
         ): CompletableFuture<Void>
 
-        @POST("/repositories/{repodId}")
+        @POST("/repositories/{repoId}")
         @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
         fun getRepository(
             @Path("repoId") repoId: Long,
