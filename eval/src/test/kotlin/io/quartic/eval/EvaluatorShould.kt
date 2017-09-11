@@ -142,12 +142,12 @@ class EvaluatorShould {
     @Test
     fun throw_error_if_quarty_interaction_fails() {
         runBlocking {
-            whenever(quarty.request(any(), isA<Evaluate>())).thenThrow(RuntimeException("Sad"))
+            whenever(quarty.request(any(), isA<Evaluate>())).thenThrow(EvaluatorException("Noobhole occurred"))
         }
 
         execute()
 
-        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while communicating with Quarty")))
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Noobhole occurred")))
     }
 
     @Test
