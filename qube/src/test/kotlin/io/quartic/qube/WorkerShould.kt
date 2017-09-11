@@ -35,13 +35,12 @@ class WorkerShould {
         .withNamespace("noob")
         .endMetadata()
         .editOrNewSpec()
-        .withContainers()
         .withContainers(container("leet-band", 8000), container("awesome-music", 8001))
         .endSpec()
         .build()
     val returnChannel = mock<Channel<QubeResponse>>()
     val podEvents = Channel<Pod>(UNLIMITED)
-    val containerSpec = PodSpec(listOf(
+    val podSpec = PodSpec(listOf(
         ContainerSpec(
         "leet-band",
         "la-dispute-discography-docker:1",
@@ -62,7 +61,7 @@ class WorkerShould {
     @Test
     fun watch_pod() {
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
 
             verify(client, timeout(1000)).watchPod(eq("$uuid"))
         }
@@ -71,7 +70,7 @@ class WorkerShould {
     @Test
     fun create_pod() {
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
 
             verify(client, timeout(1000)).createPod(eq(pod))
         }
@@ -80,7 +79,7 @@ class WorkerShould {
     @Test
     fun send_status_on_pod_running_and_ready() {
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(runningPod(listOf(true, true)))
 
             verify(returnChannel, timeout(1000)).send(
@@ -92,7 +91,7 @@ class WorkerShould {
     @Test
     fun not_send_status_on_pod_running_not_ready() {
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(runningPod(listOf(true, false)))
 
             verify(returnChannel, timeout(1000).times(0)).send(
@@ -105,7 +104,7 @@ class WorkerShould {
     @Test
     fun send_status_on_pod_failed() {
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(podTerminated(listOf(0, 1)))
 
             verify(returnChannel, timeout(1000)).send(
@@ -117,7 +116,7 @@ class WorkerShould {
      @Test
     fun send_status_on_pod_success() {
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(podTerminated(listOf(0, 0)))
 
             verify(returnChannel, timeout(1000)).send(
@@ -130,7 +129,7 @@ class WorkerShould {
     fun send_status_on_kube_failure() {
         whenever(client.createPod(any())).thenThrow(KubernetesClientException("Noob"))
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(podTerminated(listOf(0, 0)))
 
             verify(returnChannel, timeout(1000)).send(
@@ -143,7 +142,7 @@ class WorkerShould {
     fun store_to_postgres_on_success() {
         whenever(client.getPod(any())).thenReturn(podTerminated(listOf(0, 0)))
         runBlocking {
-            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(podTerminated(listOf(0, 0)))
 
             verify(jobStore, timeout(1000)).insertJob(
@@ -162,7 +161,7 @@ class WorkerShould {
     fun store_to_postgres_on_cancel() {
         whenever(client.getPod(any())).thenReturn(podTerminated(listOf(0, 0)))
         runBlocking {
-            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             verify(client, timeout(1000)).createPod(eq(pod))
 
             job.cancel()
@@ -189,7 +188,7 @@ class WorkerShould {
             anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()
         )).thenThrow(RuntimeException("noobhole"))
         runBlocking {
-            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, containerSpec))
+            val job = worker.runAsync(QubeEvent.CreatePod(key, returnChannel, podSpec))
             podEvents.send(podTerminated(listOf(0, 0)))
             job.await()
             verify(returnChannel, times(0))

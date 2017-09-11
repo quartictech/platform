@@ -46,31 +46,30 @@ class WorkerImpl(
         withTimeout(timeoutSeconds, TimeUnit.SECONDS) {
             val podName = podId.toString()
             for (message in channel) {
-
-                message.status.containerStatuses.map { containerStatus ->
-
-                }
                 val states = message.status.containerStatuses.map { it.state }
+
                 val allReady = message.status.containerStatuses.all { it.ready ?: false }
+                val anyTerminated = states.any { state -> state.terminated != null }
+                val anyWaiting = states.any { state -> state.waiting != null }
+                val allRunning = states.all { state -> state.running != null }
 
                 when {
-                    states.any { state -> state.terminated != null } -> {
+                    anyTerminated -> {
                         if (states.all { state -> state.terminated.exitCode == 0 }) {
                             responses.send(Terminated.Succeeded(key.name, ALL_CONTAINERS_SUCCEEDED))
                         } else {
-                            responses.send(Terminated.Failed(key.name, SOME_CONTAINERS_FAILED))
+                            responses.send(Terminated.Failed(key.name, SOME_CONTAINERS_FAILED_OR_DIDNT_TERMINATE))
                         }
                         LOG.info("[{}] terminated {}", podName, states)
                         return@withTimeout
                     }
-                    states.any { state -> state.waiting != null } -> {
+                    anyWaiting -> {
                         LOG.info("[{}] Pod waiting", podName)
                         responses.send(QubeResponse.Waiting(key.name))
                     }
-                    states.all { state -> state.running != null } && allReady && message.status.podIP != null -> {
+                    allRunning && allReady && message.status.podIP != null -> {
                         responses.send(QubeResponse.Running(key.name, message.status.podIP, podId))
                     }
-
                 }
             }
         }
@@ -185,7 +184,7 @@ class WorkerImpl(
 
     companion object {
         const val ALL_CONTAINERS_SUCCEEDED = "All pods terminated successfully"
-        const val SOME_CONTAINERS_FAILED = "Some pods had non-zero exit status"
+        const val SOME_CONTAINERS_FAILED_OR_DIDNT_TERMINATE = "Some pods had non-zero exit status or didn't terminate"
     }
 
 }
