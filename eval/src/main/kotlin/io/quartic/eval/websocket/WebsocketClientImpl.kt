@@ -75,9 +75,11 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     }
 
     private suspend fun backoff() {
-        async(CommonPool) {
-            delay(backoffPeriod.toMillis())
-            InternalEvent.BackoffCompleted().send()
+        if (backoffPeriod > Duration.ZERO) {
+            async(CommonPool) {
+                delay(backoffPeriod.toMillis())
+                InternalEvent.BackoffCompleted().send()
+            }
         }
     }
 

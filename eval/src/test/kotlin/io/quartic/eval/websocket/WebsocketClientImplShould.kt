@@ -5,6 +5,7 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.eval.websocket.WebsocketFactory.Websocket
@@ -86,9 +87,7 @@ class WebsocketClientImplShould {
         createClient().use { client ->
             runOrTimeout {
                 client.awaitConnected()
-
                 server.dropConnections()
-
                 client.awaitDisconnected()
             }
         }
@@ -102,12 +101,28 @@ class WebsocketClientImplShould {
         createClient().use { client ->
             runOrTimeout {
                 client.awaitConnected()
-
                 server.dropConnections()
-
                 client.awaitConnected()
 
                 assertThat(client.awaitReceivedMessages(1), equalTo(expected))
+            }
+        }
+    }
+
+    @Test
+    fun not_reconnect_when_connection_dropped_if_backoff_duration_is_zero() {
+        val expected = listOf(ReceiveMsg(42))
+        server.willSend(expected)
+
+        createClient(Duration.ZERO).use { client ->
+            runOrTimeout {
+                client.awaitConnected()
+                server.dropConnections()
+                client.awaitDisconnected()
+            }
+
+            runAndExpectToTimeout {
+                client.awaitConnected()
             }
         }
     }
@@ -134,6 +149,7 @@ class WebsocketClientImplShould {
     @Test
     fun disconnect_and_not_attempt_reconnect_on_close() {
         val client = createClient()
+
         try {
             runOrTimeout {
                 client.awaitConnected()
@@ -167,7 +183,8 @@ class WebsocketClientImplShould {
         }
     }
 
-    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(mock(), Duration.ofMillis(100), server.websocketFactory)
+    private fun createClient(backoffPeriod: Duration = Duration.ofMillis(100)) =
+        WebsocketClientImpl.create<SendMsg, ReceiveMsg>(mock(), backoffPeriod, server.websocketFactory)
 
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitReceivedMessages(num: Int): List<ReceiveMsg> {
         val received = mutableListOf<ReceiveMsg>()
