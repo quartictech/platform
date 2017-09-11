@@ -7,10 +7,7 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.secrets.UnsafeSecret
 import org.apache.commons.codec.binary.Base64
-import retrofit2.http.Body
-import retrofit2.http.Header
-import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.*
 import java.net.URI
 import java.security.Key
 import java.security.KeyFactory
@@ -51,7 +48,7 @@ class GitHubInstallationClient(
             @Body status: StatusCreate
         ): CompletableFuture<Void>
 
-        @POST("/repositories/{repoId}")
+        @GET("/repositories/{repoId}")
         @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
         fun getRepository(
             @Path("repoId") repoId: Long,
