@@ -4,17 +4,14 @@ import {
   Intent,
   Button,
 } from "@blueprintjs/core";
-import { IDataset, IDatasetCoords, IDatasetMetadata, DatasetMap } from "../../models";
+import { IDataset, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
 import _ = require("underscore");
 import { withRouter, InjectedRouter } from "react-router";
 
 interface IDatasetListProps {
   datasets: DatasetMap;
-  selected: IDatasetCoords;
-  onSelect: (string) => void;
   searchString: string;
-  selectedNamespace: string;
   router?: InjectedRouter;
   showNewDatasetModal: any;
 }
@@ -88,8 +85,7 @@ class DatasetListInner extends React.Component<IDatasetListProps, {}> {
   private datasetRows() {
     return _.map(
       this.props.datasets,
-      (datasets, namespace) => (!this.props.selectedNamespace || (this.props.selectedNamespace === namespace))
-       ? this.renderDatasetsInNamespace(namespace, datasets) : null,
+      (datasets, namespace) => this.renderDatasetsInNamespace(namespace, datasets),
     );
   }
 
@@ -104,7 +100,7 @@ class DatasetListInner extends React.Component<IDatasetListProps, {}> {
           namespace={namespace}
           id={id}
           dataset={dataset}
-          active={this.props.selected === { id, namespace }}
+          active={false}
           onSelect={() => this.props.router.push(`/datasets/${namespace}/${encodeURIComponent(id)}`)}
         />
       ));

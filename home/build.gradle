@@ -20,12 +20,7 @@ dependencies {
     compile project(":registry-api")
     compile project(":eval-api")
     compile project(":github")
-    if (System.env.SKIP_FRONTEND == null) {
-        compile project(":home-frontend")
-    }
-
     compile "org.apache.commons:commons-csv:1.3"
-    compile libraries.dropwizard.assets
 
     testCompile project(":common-test")
     testCompile libraries.dropwizard.testing

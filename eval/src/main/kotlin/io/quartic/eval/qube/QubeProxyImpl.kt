@@ -12,7 +12,7 @@ import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Running
 import io.quartic.qube.api.QubeResponse.Terminated
-import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
@@ -24,7 +24,7 @@ import java.util.*
 
 class QubeProxyImpl(
     private val qube: WebsocketClient<QubeRequest, QubeResponse>,
-    private val container: ContainerSpec,
+    private val pod: PodSpec,
     private val nextUuid: () -> QubeId = { UUID.randomUUID().toString() }
 ) : QubeProxy {
     private sealed class ClientRequest {
@@ -78,7 +78,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        qube.outbound.send(QubeRequest.Create(uuid, container))
+        qube.outbound.send(QubeRequest.Create(uuid, pod))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {

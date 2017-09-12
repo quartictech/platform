@@ -6,7 +6,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.EvaluatorException
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient
@@ -31,12 +30,12 @@ class QuartyProxyShould {
         on { events } doReturn events
     }
     private val quarty = QuartyProxy(client)
-    private val phaseBuilder = mock<PhaseBuilder<*>>()
+    private val log = mock<(String, String) -> Unit>()
 
     @Test
     fun do_nothing_until_connection_open() {
         runAndExpectToTimeout {
-            quarty.request(phaseBuilder, mock())
+            quarty.request(mock(), log)
         }
 
         assertTrue(outbound.isEmpty)    // Because we haven't got as far as sending the request
@@ -51,7 +50,7 @@ class QuartyProxyShould {
                 mock<Complete>()
             ))
 
-            quarty.request(phaseBuilder, expected)
+            quarty.request(expected, log)
 
             assertThat(outbound.receive(), equalTo(expected))
         }
@@ -67,13 +66,11 @@ class QuartyProxyShould {
                 mock<Complete>()
             ))
 
-            quarty.request(phaseBuilder, mock())
+            quarty.request(mock(), log)
 
-            inOrder(phaseBuilder) {
-                runBlocking {
-                    verify(phaseBuilder).log("noob", "hole")
-                    verify(phaseBuilder).log("progress", "yeah")
-                }
+            inOrder(log) {
+                verify(log)("noob", "hole")
+                verify(log)("progress", "yeah")
             }
         }
     }
@@ -87,7 +84,7 @@ class QuartyProxyShould {
                 expected
             ))
 
-            val result = quarty.request(phaseBuilder, mock())
+            val result = quarty.request(mock(), log)
 
             assertThat(result, equalTo(expected))
         }
@@ -101,7 +98,7 @@ class QuartyProxyShould {
 
             assertThrows<EvaluatorException> {
                 runBlocking {
-                    quarty.request(phaseBuilder, mock())
+                    quarty.request(mock(), log)
                 }
             }
         }
@@ -114,10 +111,21 @@ class QuartyProxyShould {
             quartyIsDisconnected()
 
             try {
-                quarty.request(phaseBuilder, mock())
+                quarty.request(mock(), log)
             } catch (e: Exception) {}   // We already know the first one fails
+        }
+    }
 
+    @Test
+    fun throw_if_previously_aborted() {
+        runOrTimeout {
+            quartyIsAborted()
 
+            assertThrows<EvaluatorException> {
+                runBlocking {
+                    quarty.request(mock(), log)
+                }
+            }
         }
     }
 
@@ -126,13 +134,16 @@ class QuartyProxyShould {
         runOrTimeout {
             quartyIsConnected()
             quarty.close()
-
-            verify(client).close()
         }
+
+        Thread.sleep(100)   // Gross
+
+        verify(client).close()
     }
 
     private suspend fun quartyIsConnected() = events.send(Connected())
     private suspend fun quartyIsDisconnected() = events.send(Disconnected())
+    private suspend fun quartyIsAborted() = events.send(Aborted())
     private suspend fun quartyWillRespondWith(responses: List<QuartyResponse>) =
         responses.forEach { events.send(MessageReceived(it)) }
 }

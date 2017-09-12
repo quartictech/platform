@@ -2,7 +2,6 @@ package io.quartic.eval.quarty
 
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.quarty.QuartyProxy.State.*
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.eval.websocket.WebsocketClientImpl
@@ -25,7 +24,7 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
 
     private data class Context(
         val request: QuartyRequest,
-        val log: suspend (String, String) -> Unit,
+        val log: (String, String) -> Unit,
         val result: CompletableDeferred<Complete>
     )
 
@@ -51,15 +50,12 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
         job.cancel()
     }
 
-    // TODO - get rid of direct dependency on PhaseBuilder
-    suspend fun request(phase: PhaseBuilder<*>, request: QuartyRequest) =
-        CompletableDeferred<Complete>().apply {
-            requests.send(Context(
-                request,
-                { stream, message -> phase.log(stream, message) },
-                this
-            ))
-        }.await()
+    suspend fun request(
+        request: QuartyRequest,
+        log: (String, String) -> Unit
+    ) = CompletableDeferred<Complete>()
+        .apply { requests.send(Context(request, log, this)) }
+        .await()
 
     private suspend fun runEventLoop() {
         while (true) {

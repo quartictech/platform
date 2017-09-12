@@ -1,15 +1,16 @@
 package io.quartic.qube.pods
 
-import io.fabric8.kubernetes.api.model.IntOrString
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.PodBuilder
+import io.fabric8.kubernetes.api.model.*
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Terminated
-import io.quartic.qube.store.JobStore
+import io.quartic.qube.api.model.ContainerState
+import io.quartic.qube.Database
+import io.quartic.qube.api.model.ContainerSpec
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.Channel
 import java.time.Instant
 import java.util.*
@@ -22,7 +23,7 @@ class WorkerImpl(
     val client: KubernetesClient,
     val podTemplate: Pod,
     val namespace: String,
-    val jobStore: JobStore,
+    val database: Database,
     val timeoutSeconds: Long,
     val deletePods: Boolean,
     val uuidGen: () -> UUID = { UUID.randomUUID() }
@@ -45,25 +46,29 @@ class WorkerImpl(
         withTimeout(timeoutSeconds, TimeUnit.SECONDS) {
             val podName = podId.toString()
             for (message in channel) {
-                val state = message.status.containerStatuses.firstOrNull()?.state
-                val ready = message.status.containerStatuses.firstOrNull()?.ready
+                val states = message.status.containerStatuses.map { it.state }
+
+                val allReady = message.status.containerStatuses.all { it.ready ?: false }
+                val anyTerminated = states.any { state -> state.terminated != null }
+                val anyWaiting = states.any { state -> state.waiting != null }
+                val allRunning = states.all { state -> state.running != null }
 
                 when {
-                    state?.waiting != null -> {
+                    anyTerminated -> {
+                        if (states.all { state -> state?.terminated == null || state.terminated?.exitCode == 0 }) {
+                            responses.send(Terminated.Succeeded(key.name, ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE))
+                        } else {
+                            responses.send(Terminated.Failed(key.name, SOME_CONTAINERS_FAILED))
+                        }
+                        LOG.info("[{}] terminated {}", podName, states)
+                        return@withTimeout
+                    }
+                    anyWaiting -> {
                         LOG.info("[{}] Pod waiting", podName)
                         responses.send(QubeResponse.Waiting(key.name))
                     }
-                    state?.running != null && ready != null && ready && message.status.podIP != null -> {
+                    allRunning && allReady && message.status.podIP != null -> {
                         responses.send(QubeResponse.Running(key.name, message.status.podIP, podId))
-                    }
-                    state?.terminated != null -> {
-                        if (state.terminated.exitCode == 0) {
-                            responses.send(Terminated.Succeeded(key.name, state.terminated.reason))
-                        } else {
-                            responses.send(Terminated.Failed(key.name, state.terminated.reason))
-                        }
-                        LOG.info("[{}] terminated {}", podName, state)
-                        return@withTimeout
                     }
                 }
             }
@@ -105,32 +110,49 @@ class WorkerImpl(
         )
     }
 
-    private fun pod(podName: String, create: QubeEvent.CreatePod) =
-        PodBuilder(podTemplate)
+    private fun pod(podName: String, create: QubeEvent.CreatePod): Pod {
+        val podBuilder = PodBuilder(podTemplate)
             .editOrNewMetadata()
             .withName(podName)
             .withNamespace(namespace)
             .endMetadata()
             .editOrNewSpec()
-            .editFirstContainer()
-            .withImage(create.container.image)
-            .withCommand(create.container.command)
+            .withContainers(listOf())
 
-            .addNewPort()
-            .withContainerPort(create.container.port)
+        create.pod.containers.forEach { container ->
+            podBuilder.addToContainers(buildContainer(container))
+        }
+
+        return podBuilder.endSpec().build()
+    }
+
+    private fun buildContainer(container: ContainerSpec): Container {
+         val builder = ContainerBuilder().withName(container.name)
+             .withImage(container.image)
+
+        if (container.command != null) {
+            builder.withCommand(container.command)
+        }
+
+        builder.withEnv(container.env.map { entry ->
+            EnvVar(entry.key, entry.value, null)
+        })
+
+        return builder.addNewPort()
+            .withContainerPort(container.port)
             .endPort()
 
             .editOrNewReadinessProbe()
             .withNewTcpSocket()
-            .withPort(IntOrString(create.container.port))
+            .withPort(IntOrString(container.port))
             .endTcpSocket()
             .withInitialDelaySeconds(3)
             .withPeriodSeconds(3)
             .endReadinessProbe()
-
-            .endContainer()
-            .endSpec()
             .build()
+    }
+
+
 
     override fun runAsync(create: QubeEvent.CreatePod) = async(CommonPool) { run(create) }
 
@@ -139,25 +161,30 @@ class WorkerImpl(
                                     startTime: Instant, endTime: Instant) = run(threadPool) {
         try {
             val pod = client.getPod(podName)
-            val logs = client.getLogs(podName)
 
-            val terminatedState = pod.status.containerStatuses.firstOrNull()?.state?.terminated
-
-            jobStore.insertJob(
+            database.insertJob(
                 id = podId,
                 client = create.key.client,
                 podName = create.key.name,
-                createPod = QubeRequest.Create(create.key.name, create.container),
-                log = logs,
+                createPod = QubeRequest.Create(create.key.name, create.pod),
                 startTime = startTime,
                 endTime = endTime,
-                reason = terminatedState?.reason,
-                message = terminatedState?.message,
-                exitCode = terminatedState?.exitCode
+                containers = pod.spec.containers.zip(pod.status.containerStatuses).associateTo(mutableMapOf()) {
+                    (container, status) -> container.name to ContainerState(
+                    status.state?.terminated?.exitCode,
+                    status.state?.terminated?.reason,
+                    status.state?.terminated?.message,
+                    client.getLogs(podName, container.name))
+                }
             )
         } catch (e: Exception) {
             LOG.error("[{}] Exception storing to postgres", podName, e)
         }
+    }
+
+    companion object {
+        const val ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE = "All containers either finished with success or didn't terminate"
+        const val SOME_CONTAINERS_FAILED = "Some containers terminated with non-zero exit status"
     }
 
 }

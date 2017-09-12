@@ -1,7 +1,7 @@
 package io.quartic.qube.pods
 
 import io.quartic.qube.api.QubeResponse
-import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.channels.Channel
 import java.util.*
 
@@ -26,6 +26,6 @@ sealed class QubeEvent {
     data class CreatePod(
         val key: PodKey,
         val returnChannel: Channel<QubeResponse>,
-        val container: ContainerSpec
+        val pod: PodSpec
     ): QubeEvent()
 }
