@@ -107,7 +107,7 @@ async def websocket_handler(request):
     except CancelledError:
         pass
     except (QuartyException, Exception) as e:
-        log.exception("Something weird happenned")
+        log.exception("Something strange happened")
         error_message(ws, "Quarty exception: {}".format(e))
     finally:
         log.info("Closing WebSocket connection")
