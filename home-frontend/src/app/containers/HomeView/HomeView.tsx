@@ -67,13 +67,19 @@ class HomeView extends React.Component<IProps, {}> {
   }
 
   renderNoItems = () => (
-    <div className={classNames("pt-non-ideal-state", s.noItems)}>
-      <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-        <span className="pt-icon pt-icon-lightbulb"/>
-      </div>
-      <h4 className="pt-non-ideal-state-title">You haven't run any builds yet.</h4>
-      <div className="pt-non-ideal-state-description">
-        Push your code or manually trigger a build to get started.
+    <div>
+      <div className={classNames("pt-non-ideal-state", s.noItems)}>
+        <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+          <span className="pt-icon pt-icon-lightbulb"/>
+        </div>
+        <h4 className="pt-non-ideal-state-title">You haven't run any builds yet.</h4>
+        <div className="pt-non-ideal-state-description">
+          Push your code or
+              <a onClick={() => this.props.buildPipeline()}>
+              &nbsp;manually trigger&nbsp;
+              </a>
+          a build to get started.
+        </div>
       </div>
     </div>
   )
