@@ -19,14 +19,15 @@ import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
 import io.quartic.quarty.api.model.Pipeline
+import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyRequest.*
-import io.quartic.quarty.api.model.QuartyResponse.Complete
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
 import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
+import kotlinx.coroutines.experimental.runBlocking
 import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
 import java.net.URI
@@ -86,13 +87,13 @@ class Evaluator(
 
                 quartyBuilder(container.hostname).use { quarty ->
                     phase<Unit>("Cloning and preparing repository") {
-                        extractPhaseResult(quarty.request(this, Initialise(cloneUrl(repo.cloneUrl, token), commit(trigger)))) {
+                        extractResultFrom(quarty, Initialise(cloneUrl(repo.cloneUrl, token), commit(trigger))) {
                             success(Unit)
                         }
                     }
 
                     val dag = phase<Dag>("Evaluating DAG") {
-                        extractPhaseResult(quarty.request(this, Evaluate())) {
+                        extractResultFrom(quarty, Evaluate()) {
                             extractDagFromPipeline(it)
                         }
                     }
@@ -103,7 +104,7 @@ class Evaluator(
                             .mapNotNull { it.step }    // TODO - what about raw datasets?
                             .forEach { step ->
                                 phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
-                                    extractPhaseResult(quarty.request(this, Execute(step.id, customer.namespace))) {
+                                    extractResultFrom(quarty, Execute(step.id, customer.namespace)) {
                                         success(Unit)
                                     }
                                 }
@@ -114,9 +115,15 @@ class Evaluator(
         }
     }
 
-    private fun <R> PhaseBuilder<R>.extractPhaseResult(result: Complete, block: (Any?) -> PhaseResult<R>) = when (result) {
-        is Result -> block(result.result)
-        is Error -> userError(result.detail)
+    private suspend fun <R> PhaseBuilder<R>.extractResultFrom(
+        quarty: QuartyProxy,
+        request: QuartyRequest,
+        block: (Any?) -> PhaseResult<R>
+    ) = with(quarty.request(request) { stream, message -> runBlocking { log(stream, message) } }) {
+        when(this) {
+            is Result -> block(result)
+            is Error -> userError(detail)
+        }
     }
 
     private fun commit(trigger: BuildTrigger) = when (trigger) {

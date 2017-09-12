@@ -74,8 +74,8 @@ class EvaluatorShould {
 
         inOrder(quarty) {
             runBlocking {
-                verify(quarty).request(any(), isA<Initialise>())
-                verify(quarty).request(any(), isA<Evaluate>())
+                verify(quarty).request(isA<Initialise>(), any())
+                verify(quarty).request(isA<Evaluate>(), any())
             }
         }
     }
@@ -99,7 +99,7 @@ class EvaluatorShould {
     @Test
     fun throw_if_pipeline_is_unparsable() {
         runBlocking {
-            whenever(quarty.request(any(), isA<Evaluate>())).doReturn(Result(mapOf("noob" to "hole")))
+            whenever(quarty.request(isA<Evaluate>(), any())).doReturn(Result(mapOf("noob" to "hole")))
         }
 
         execute()
@@ -110,7 +110,7 @@ class EvaluatorShould {
     @Test
     fun produce_user_error_if_user_code_failed() {
         runBlocking {
-            whenever(quarty.request(any(), isA<Evaluate>())).thenReturn(Error("badness"))
+            whenever(quarty.request(isA<Evaluate>(), any())).thenReturn(Error("badness"))
         }
 
         execute()
@@ -142,7 +142,7 @@ class EvaluatorShould {
     @Test
     fun throw_error_if_quarty_interaction_fails() {
         runBlocking {
-            whenever(quarty.request(any(), isA<Evaluate>())).thenThrow(EvaluatorException("Noobhole occurred"))
+            whenever(quarty.request(isA<Evaluate>(), any())).thenThrow(EvaluatorException("Noobhole occurred"))
         }
 
         execute()
@@ -153,7 +153,7 @@ class EvaluatorShould {
     @Test
     fun close_quarty_even_if_something_fails() {
         runBlocking {
-            whenever(quarty.request(any(), isA<Evaluate>())).thenThrow(RuntimeException("Sad"))
+            whenever(quarty.request(isA<Evaluate>(), any())).thenThrow(RuntimeException("Sad"))
         }
 
         execute()
@@ -167,8 +167,8 @@ class EvaluatorShould {
 
         inOrder(quarty) {
             runBlocking {
-                verify(quarty).request(any(), eq(Execute("abc", customerNamespace)))
-                verify(quarty).request(any(), eq(Execute("def", customerNamespace)))
+                verify(quarty).request(eq(Execute("abc", customerNamespace)), any())
+                verify(quarty).request(eq(Execute("def", customerNamespace)), any())
             }
         }
     }
@@ -178,7 +178,7 @@ class EvaluatorShould {
         evaluate()
 
         runBlocking {
-            verify(quarty, times(0)).request(any(), isA<Execute>())
+            verify(quarty, times(0)).request(isA<Execute>(), any())
         }
     }
 
@@ -194,8 +194,8 @@ class EvaluatorShould {
         execute()
 
         runBlocking {
-            verify(quarty, times(1)).request(any(), isA<Execute>())
-            verify(quarty).request(any(), eq(Execute("def", customerNamespace)))
+            verify(quarty, times(1)).request(isA<Execute>(), any())
+            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
         }
     }
 
@@ -296,10 +296,10 @@ class EvaluatorShould {
 
     private val quarty = mock<QuartyProxy> {
         // TODO - get rid of this duplication
-        on { runBlocking { request(any(), eq(Initialise(githubCloneUrlWithCreds, commitId))) } } doReturn Result(null)
-        on { runBlocking { request(any(), eq(Initialise(githubCloneUrlWithCreds, branch))) } } doReturn Result(null)
-        on { runBlocking { request(any(), isA<Evaluate>()) } } doReturn Result(pipeline)
-        on { runBlocking { request(any(), isA<Execute>()) } } doReturn Result(null)
+        on { runBlocking { request(eq(Initialise(githubCloneUrlWithCreds, commitId)), any()) } } doReturn Result(null)
+        on { runBlocking { request(eq(Initialise(githubCloneUrlWithCreds, branch)), any()) } } doReturn Result(null)
+        on { runBlocking { request(isA<Evaluate>(), any()) } } doReturn Result(pipeline)
+        on { runBlocking { request(isA<Execute>(), any()) } } doReturn Result(null)
     }
 
     private val quartyBuilder = mock<(String) -> QuartyProxy> {
