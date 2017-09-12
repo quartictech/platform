@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { IDatasetCoords, DatasetMap, Ui } from "../../models";
+import { DatasetMap, Ui } from "../../models";
 
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
@@ -9,7 +9,6 @@ import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
 import { DatasetList } from "../../components/DatasetList";
-import { DatasetInfo } from "../../components/DatasetInfo";
 import { NewDataset } from "../../components/NewDataset";
 
 interface IProps {
@@ -23,26 +22,11 @@ interface IProps {
 }
 
 interface IState {
-  datasetCoords: IDatasetCoords;
 }
 
 class DatasetsView extends React.Component<IProps, IState> {
-  public state : IState = {
-    datasetCoords: null,
-  };
-
   componentDidMount() {
     this.props.fetchDatasets();
-  }
-
-  componentWillReceiveProps(props: IProps) {
-    if (this.state.datasetCoords) {
-      const ns = this.state.datasetCoords.namespace;
-      const id = this.state.datasetCoords.id;
-      if (!(ns in props.datasets) || !(id in props.datasets[ns])) {
-        this.setState({ datasetCoords: null });
-      }
-    }
   }
 
   render() {
@@ -58,41 +42,15 @@ class DatasetsView extends React.Component<IProps, IState> {
             <DatasetList
               searchString={this.props.ui.searchString}
               datasets={this.props.datasets}
-              onSelect={this.selectDataset}
-              selected={this.state.datasetCoords}
-              selectedNamespace={this.props.ui.namespace}
               showNewDatasetModal={this.props.showNewDatasetModal}
             />
           </div>
 
-        {this.maybeDatasetInfo()}
         </div>
       </div>
     );
   }
-
-  private maybeDatasetInfo() {
-    if (this.state.datasetCoords === null) {
-      return null;
-    }
-
-    return (
-      <div className={s.right}>
-        <DatasetInfo
-          coords={this.state.datasetCoords}
-          dataset={this.props.datasets[this.state.datasetCoords.namespace][this.state.datasetCoords.id]}
-          deleteClick={this.props.deleteDataset}
-        />
-      </div>
-    );
-  }
-
-  private selectDataset = (coords: IDatasetCoords) => {
-    this.setState({ datasetCoords: coords });
-  }
 }
-
-export { DatasetsView };
 
 const mapDispatchToProps = {
   showNewDatasetModal: () => actions.setActiveModal("newDataset"),

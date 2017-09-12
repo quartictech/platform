@@ -1,11 +1,9 @@
-import io.quartic.gradle.docker.DockerPlugin
 import io.quartic.gradle.frontend.FrontendPlugin
 
 plugins {
     id "idea"
 }
 
-apply plugin: DockerPlugin
 apply plugin: FrontendPlugin
 
 def gulpExecutable = file("node_modules/gulp-cli/bin/gulp.js")
@@ -91,21 +89,3 @@ task checkSpelling(type: Exec) {
 }
 
 check.dependsOn checkSpelling
-
-docker {
-    image   "${System.env.QUARTIC_DOCKER_REPOSITORY}/docs:${project.version}"
-
-    content copySpec {
-        from "Dockerfile"
-        from "default.conf"
-        from(bundle) {
-            into "bundle"
-        }
-    }
-}
-
-idea {
-    module {
-        excludeDirs += [file("node_modules")]
-    }
-}

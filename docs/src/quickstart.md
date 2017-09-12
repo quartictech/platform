@@ -3,7 +3,7 @@ title: Quickstart
 subtitle: Building your first pipeline
 ---
 
-The following is a shortcut recipe to start building data pipelines within Quartic.
+The following is a shortcut guide to start building data pipelines within Quartic.
 This is intended to skim over features and functionality of the platform and focus only on getting you up and running with an example.
 
 The following assume you have already created an account. If not, you can do that here.
@@ -43,9 +43,15 @@ def run(input_dataset: "input_dataset_name") -> "output_dataset_name"
 to manipulate the input dataset(s) and produce an output dataset.
 Note, this does not yet run the pipeline nor write anything anywhere.
 
+Multiple datasets may be manipulated by adding these as arguments to your function:
+
+```py
+def run(input1: "the_first_input", input2: "the_second_input") ...
+```
+
 ### Running the pipeline
 
-Hit the play button somewhere.
+The pipeline can be evaluated and executed using either the web interface, or the CLI.
 
 ### Next steps
 

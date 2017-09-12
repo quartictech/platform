@@ -56,7 +56,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
     private fun qube(config: EvalConfiguration) = QubeProxy.create(
         WebsocketClientImpl.create(config.qube.url),
-        config.qube.container
+        config.qube.pod
     )
 
     private fun database(config: EvalConfiguration, environment: Environment) =

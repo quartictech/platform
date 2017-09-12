@@ -77,6 +77,7 @@ class SequencerImpl(
                         }
                     }
                 } catch (e: Exception) {
+                    LOG.error("InternalError", e)
                     PhaseResult.InternalError<R>(e)
                 }
 
