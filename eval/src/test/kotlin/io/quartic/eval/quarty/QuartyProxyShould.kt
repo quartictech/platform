@@ -108,24 +108,24 @@ class QuartyProxyShould {
     }
 
     @Test
-    fun close_on_close() {
-        runOrTimeout {
-            quartyIsConnected()
-            quarty.close()
-
-            verify(client).close()
-        }
-    }
-
-    @Test
-    fun close_on_error() {
+    fun throw_if_previously_disconnected() {
         runOrTimeout {
             quartyIsConnected()
             quartyIsDisconnected()
 
             try {
                 quarty.request(phaseBuilder, mock())
-            } catch (e: Exception) {}
+            } catch (e: Exception) {}   // We already know the first one fails
+
+
+        }
+    }
+
+    @Test
+    fun close_on_close() {
+        runOrTimeout {
+            quartyIsConnected()
+            quarty.close()
 
             verify(client).close()
         }

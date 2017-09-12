@@ -1,6 +1,5 @@
 package io.quartic.eval.quarty
 
-import com.google.common.base.Preconditions.checkState
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.quarty.QuartyProxy.State.*
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
@@ -34,6 +33,7 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
         class Unopened : State()
         class AwaitingRequest : State()
         class ServicingRequest(val context: Context) : State()
+        class Failed : State()
     }
 
     private var state: State = Unopened()
@@ -63,13 +63,14 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
 
     private suspend fun runEventLoop() {
         while (true) {
-            // TODO - we have no mechanism to detect failing to connect - need to modify WebsocketClientImpl
             val state = state
             when (state) {
                 is Unopened -> {
                     val event = quarty.events.receive()
-                    checkState(event is Connected, "First websocket event is not Connected")
-                    this.state = AwaitingRequest()
+                    when (event) {
+                        is Connected -> this.state = AwaitingRequest()
+                        else -> this.state = Failed()
+                    }
                 }
 
                 is AwaitingRequest -> {
@@ -84,17 +85,22 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
                         is Connected -> {}  // This should never happen
                         is Disconnected -> {
                             handleDisconnected(state.context)
-                            return
+                            this.state = Failed()
                         }
-                        is MessageReceived -> { handleMessage(state.context, event.message) }
+                        is MessageReceived -> handleMessage(state.context, event.message)
                     }
+                }
+
+                is Failed -> {
+                    val context = requests.receive()
+                    handleDisconnected(context) // Fail immediately
                 }
             }
         }
     }
 
     private suspend fun handleDisconnected(context: Context) {
-        context.result.completeExceptionally(EvaluatorException("Connection to Quarty closed unexpectedly"))
+        context.result.completeExceptionally(EvaluatorException("Connection to Quarty unavailable"))
     }
 
     private suspend fun handleMessage(context: Context, message: QuartyResponse) {
