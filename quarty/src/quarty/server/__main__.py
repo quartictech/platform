@@ -10,7 +10,6 @@ from quarty.utils import QuartyException, PipelineException
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-# States
 class States:
     START = 0
     INITIALISE = 1
@@ -33,6 +32,11 @@ def result_message(ws, result):
 
 def error_message(ws, error):
     send_message(ws, "error", detail=error)
+
+def assert_state(state, *expected):
+    if state not in set(expected):
+        raise QuartyException("Expected state {} but is {}".format(
+            " | ".join(expected), state))
 
 async def initialise(build_path, repo_url, repo_commit, ws):
     progress_message(ws, "Initialising repository")
@@ -80,6 +84,7 @@ async def websocket_handler(request):
             log.info("Received message: %s", raw_msg)
             msg = await decode_message(raw_msg)
             if msg["type"] == "initialise":
+                assert_state(state, States.START)
                 repo_url = msg["repo_url"]
                 repo_commit = msg["repo_commit"]
                 config = await initialise(build_path, repo_url, repo_commit, ws)
@@ -87,9 +92,11 @@ async def websocket_handler(request):
                 state = States.INITIALISE
                 log.info("done")
             elif msg["type"] == "evaluate":
+                assert_state(state, States.INITIALISE)
                 await evaluate(config, build_path, ws)
                 state = States.EVALUATE
             elif msg["type"] == "execute":
+                assert_state(state, States.EVALUATE, States.EXECUTE)
                 step = msg["step"]
                 namespace = msg["namespace"]
                 await execute(config, build_path, step, namespace, ws)
