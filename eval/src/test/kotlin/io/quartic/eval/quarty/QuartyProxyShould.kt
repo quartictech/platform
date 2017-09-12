@@ -116,8 +116,19 @@ class QuartyProxyShould {
             try {
                 quarty.request(phaseBuilder, mock())
             } catch (e: Exception) {}   // We already know the first one fails
+        }
+    }
 
+    @Test
+    fun throw_if_previously_aborted() {
+        runOrTimeout {
+            quartyIsAborted()
 
+            assertThrows<EvaluatorException> {
+                runBlocking {
+                    quarty.request(phaseBuilder, mock())
+                }
+            }
         }
     }
 
@@ -133,6 +144,7 @@ class QuartyProxyShould {
 
     private suspend fun quartyIsConnected() = events.send(Connected())
     private suspend fun quartyIsDisconnected() = events.send(Disconnected())
+    private suspend fun quartyIsAborted() = events.send(Aborted())
     private suspend fun quartyWillRespondWith(responses: List<QuartyResponse>) =
         responses.forEach { events.send(MessageReceived(it)) }
 }
