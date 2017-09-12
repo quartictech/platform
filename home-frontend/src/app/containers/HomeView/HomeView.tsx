@@ -13,7 +13,7 @@ import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-import { FeedItem, Build, LoadingState } from "../../models";
+import { FeedItem, Validate, Execute, LoadingState } from "../../models";
 
 interface IProps {
   fetchFeed: Function;
@@ -24,8 +24,12 @@ interface IProps {
   };
 }
 
-export function isBuild(item: FeedItem): item is Build {
-  return item.type === "build";
+export function isValidate(item: FeedItem): item is Validate {
+  return (item as any).trigger.type === "github_webhook_v1";
+}
+
+export function isExecute(item: FeedItem): item is Execute {
+  return (item as any).trigger.type === "manual_v1";
 }
 
 class HomeView extends React.Component<IProps, {}> {
@@ -42,10 +46,32 @@ class HomeView extends React.Component<IProps, {}> {
   }
 
   renderItem = (item: FeedItem) => {
-    if (isBuild(item)) {
+    if (isValidate(item)) {
       return (
         <div className={s.feedItem} key={item.id}>
-          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-git-commit")} />
+          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-upload")} />
+          <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
+            {item.status}
+          </div>
+          <div className={s.cardTime}>
+              <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
+          </div>
+
+          <div className={s.cardBody}>
+            <h5>
+              <Link to={`/pipeline/${item.buildNumber}`}>
+                Validate #{item.buildNumber}
+              </Link>
+            </h5>
+            <b>Branch</b> {item.branch}
+          </div>
+        </div>
+      );
+    }
+    if (isExecute(item)) {
+      return (
+        <div className={s.feedItem} key={item.id}>
+          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-graph")} />
           <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
             {item.status}
           </div>
