@@ -21,7 +21,7 @@ dependencies {
     compile project(":hey-api")
     compile project(":qube-api")
     compile project(":github")
-    compile project(":quarty-utils")
+    compile project(":quarty-api")
 
     compile libraries.vertx.core
     compile "org.jgrapht:jgrapht-core:1.0.1"

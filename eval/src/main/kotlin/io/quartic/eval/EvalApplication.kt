@@ -28,8 +28,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         val evaluator = Evaluator(
             sequencer(config, database),
             clientBuilder.retrofit(config.registryUrl),
-            github(config),
-            clientBuilder
+            github(config)
         )
         return actor(CommonPool, UNLIMITED) {
             for (trigger in channel) evaluator.evaluateAsync(trigger)

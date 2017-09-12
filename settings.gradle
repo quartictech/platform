@@ -2,8 +2,6 @@
 
 include "docs"
 
-include "quarty"
-
 include "common-application"
 include "common-core"
 include "common-db"
@@ -32,7 +30,8 @@ include "home-frontend"
 include "howl"
 include "howl-api"
 
-include "quarty-utils"
+include "quarty"
+include "quarty-api"
 
 include "qube"
 include "qube-api"
