@@ -134,9 +134,11 @@ class QuartyProxyShould {
         runOrTimeout {
             quartyIsConnected()
             quarty.close()
-
-            verify(client).close()
         }
+
+        Thread.sleep(100)   // Gross
+
+        verify(client).close()
     }
 
     private suspend fun quartyIsConnected() = events.send(Connected())
