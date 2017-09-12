@@ -20,7 +20,7 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
     constructor(hostname: String) : this(
         WebsocketClientImpl.create(
             URI("http://${hostname}:${QUARTY_PORT}"),
-            WebsocketClientImpl.NO_RECONNECTION
+            WebsocketClientImpl.ABORT_ON_FAILURE
         )
     )
 

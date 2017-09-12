@@ -23,7 +23,7 @@ class WebsocketClientImplShould {
     data class SendMsg(val s: String)
     data class ReceiveMsg(val i: Int)
 
-    // TODO - bias toward internal events
+    // TODO - test bias toward internal events
 
     @Test
     fun receive_messages() {
@@ -110,15 +110,27 @@ class WebsocketClientImplShould {
     }
 
     @Test
-    fun not_reconnect_when_connection_dropped_if_backoff_duration_is_zero() {
-        val expected = listOf(ReceiveMsg(42))
-        server.willSend(expected)
-
-        createClient(WebsocketClientImpl.NO_RECONNECTION).use { client ->
+    fun abort_if_connect_dropped_when_duration_is_zeo() {
+        createClient(WebsocketClientImpl.ABORT_ON_FAILURE).use { client ->
             runOrTimeout {
                 client.awaitConnected()
                 server.dropConnections()
                 client.awaitDisconnected()
+                client.awaitAborted()
+            }
+
+            runAndExpectToTimeout {
+                client.awaitConnected()
+            }
+        }
+    }
+
+    @Test
+    fun abort_if_first_connection_attempt_failed_when_duration_is_zeo() {
+        server.refuseConnections()
+        createClient(WebsocketClientImpl.ABORT_ON_FAILURE).use { client ->
+            runOrTimeout {
+                client.awaitAborted()
             }
 
             runAndExpectToTimeout {
@@ -199,6 +211,7 @@ class WebsocketClientImplShould {
 
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitConnected() = await(Connected::class.java)
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitDisconnected() = await(Disconnected::class.java)
+    private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitAborted() = await(Aborted::class.java)
 
     private suspend fun <T : WebsocketClient.Event<*>> WebsocketClient<SendMsg, ReceiveMsg>.await(clazz: Class<T>) {
         while (!clazz.isInstance(events.receive())) {}

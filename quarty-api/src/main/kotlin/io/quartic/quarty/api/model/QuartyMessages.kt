@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
-import io.quartic.quarty.model.QuartyRequest.*
-import io.quartic.quarty.model.QuartyResponse.Complete.Error
-import io.quartic.quarty.model.QuartyResponse.Complete.Result
-import io.quartic.quarty.model.QuartyResponse.Log
-import io.quartic.quarty.model.QuartyResponse.Progress
+import io.quartic.quarty.api.model.QuartyRequest.*
+import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
+import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
+import io.quartic.quarty.api.model.QuartyResponse.Log
+import io.quartic.quarty.api.model.QuartyResponse.Progress
 import java.net.URI
 
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
