@@ -1,5 +1,3 @@
-@file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
-
 package io.quartic.eval
 
 import com.fasterxml.jackson.module.kotlin.convertValue
