@@ -9,7 +9,7 @@ Quartic requires only two things within your pipelines repository:
 
 Both of these can be checked for and configured using the Quartic Command Line Interface (QLI).
 
-## Setting up a repo
+### Setting up a repo
 
 Your code is assumed to be in a Git repository and additionally hosted in a Github repository you have access to.
 

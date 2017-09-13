@@ -7,17 +7,17 @@
   docs:
     - name: Code repository
       url: /code_repo
-    - name: Data connectors
-      url: /data_connectors
+    # - name: Data connectors
+    #   url: /data_connectors
     - name: Quartic Command Line Interface
       url: /qli
     - name: Configuring Amazon S3
       url: /configuring-s3
 
-- name: The Quartic DSL
-  docs:
-    - name: Introduction to the DSL
-      url: /intro_dsl
+# - name: The Quartic DSL
+#   docs:
+#     - name: Introduction to the DSL
+#       url: /intro_dsl
 
-    - name: Metadata
-      url: /metadata
+#     - name: Metadata
+#       url: /metadata
