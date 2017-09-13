@@ -1,9 +1,7 @@
 import * as React from "react";
 import { Header } from "../../components";
 
-import { Ui, Profile } from "../../models";
-
-import * as selectors from "../../redux/selectors";
+import { Profile } from "../../models";
 
 import { createStructuredSelector } from "reselect";
 import * as actions from "../../redux/actions";
@@ -25,8 +23,6 @@ interface IProps {
     profile?: Profile;
     error: any;
   };
-  ui: Ui;
-  showNewDatasetModal: any;
   searchDatasets: any;
   logout: () => void;
 }
@@ -57,13 +53,11 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  ui: selectors.selectUi,
 });
 
 const PROFILE_QUERY = gql`{
   profile { name, avatarUrl }
-}
-`
+}`;
 
 export default graphql(PROFILE_QUERY)(connect(
   mapStateToProps,

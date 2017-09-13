@@ -9,7 +9,6 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource
-import io.quartic.qube.store.JobStore
 import io.vertx.core.Vertx
 
 class QubeApplication : ApplicationBase<QubeConfiguration>() {
@@ -22,7 +21,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             SecretsCodec(configuration.masterKeyBase64)
         )
 
-        val jobStore = databaseBuilder.dao<JobStore>()
+        val jobStore = databaseBuilder.dao<Database>()
 
         if (configuration.kubernetes.enable) {
             val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)

@@ -24,7 +24,7 @@ class ManualGitHubTests {
         println(client.accessTokenAsync(installationId).get())
     }
 
-     @Test
+    @Test
     fun send_status_updates() {
          val accessToken = client.accessTokenAsync(45267).get()
          client.sendStatusAsync(
@@ -39,5 +39,12 @@ class ManualGitHubTests {
              ),
              accessToken
          ).join()
+     }
+
+    @Test
+    fun fetch_repository() {
+        val accessToken = client.accessTokenAsync(45267).get()
+        val repo = client.getRepositoryAsync(78424428, accessToken).get()
+        println(repo)
      }
 }

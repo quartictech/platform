@@ -56,7 +56,7 @@ data class Repository(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Owner(
-    val name: String
+    val login: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

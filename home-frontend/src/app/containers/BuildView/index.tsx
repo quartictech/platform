@@ -60,8 +60,7 @@ class BuildView extends React.Component<IProps, {}> {
 
   render() {
     return (
-      <div className={s.container}>
-      </div>
+      <div className={s.container} />
     );
   }
 }
@@ -80,5 +79,5 @@ const query = gql`
 
 export default graphql<any, IProps>(query, {
   options: ({ params }) => (
-    {variables: { buildNumber: params.build }}
+    { variables: { buildNumber: params.build } }
   )})(BuildView);

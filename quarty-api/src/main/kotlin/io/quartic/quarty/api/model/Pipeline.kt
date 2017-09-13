@@ -1,4 +1,4 @@
-package io.quartic.quarty.model
+package io.quartic.quarty.api.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty

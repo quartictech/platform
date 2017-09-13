@@ -6,6 +6,14 @@
     - name: Quickstart
       url: /quickstart
 
+- name: Setting up the platform
+  docs:
+    - name: Code repository
+      url: /code_repo
+    - name: Data connectors
+      url: /data_connectors
+    - name: Quartic interface
+      url: /qli
     - name: Configuring Amazon S3
       url: /configuring-s3
 

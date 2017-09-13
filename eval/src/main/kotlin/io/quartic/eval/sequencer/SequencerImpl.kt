@@ -22,6 +22,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.run
 import kotlinx.coroutines.experimental.selects.select
+import java.time.Clock
 import java.time.Instant
 import java.util.*
 
@@ -29,6 +30,7 @@ class SequencerImpl(
     private val qube: QubeProxy,
     private val database: Database,
     private val notifier: Notifier,
+    private val clock: Clock = Clock.systemUTC(),
     private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ) : Sequencer {
     private val LOG by logger()
@@ -62,19 +64,20 @@ class SequencerImpl(
             BuildFailed("Internal error")
         }
 
-        private inner class SequenceBuilderImpl(private val container: QubeContainerProxy) : SequenceBuilder {
+        private inner class SequenceBuilderImpl(override val container: QubeContainerProxy) : SequenceBuilder {
             suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
                 val phaseId = uuidGen()
                 insert(PhaseStarted(phaseId, description), phaseId)
 
                 val result = try {
-                    async(CommonPool) { block(PhaseBuilderImpl(phaseId, container)) }.use { blockAsync ->
+                    async(CommonPool) { block(PhaseBuilderImpl(phaseId)) }.use { blockAsync ->
                         select<PhaseResult<R>> {
                             blockAsync.onAwait { it }
                             container.errors.onReceive { throw it }
                         }
                     }
                 } catch (e: Exception) {
+                    LOG.error("InternalError", e)
                     PhaseResult.InternalError<R>(e)
                 }
 
@@ -97,12 +100,9 @@ class SequencerImpl(
             is PhaseResult.UserError -> throw PhaseException(result.detail.toString())
         }
 
-        private inner class PhaseBuilderImpl<R>(
-            private val phaseId: UUID,
-            override val container: QubeContainerProxy
-        ) : PhaseBuilder<R> {
-            suspend override fun log(stream: String, message: String, timestamp: Instant) {
-                insert(LogMessageReceived(phaseId, stream, message), phaseId, timestamp)
+        private inner class PhaseBuilderImpl<R>(private val phaseId: UUID) : PhaseBuilder<R> {
+            suspend override fun log(stream: String, message: String) {
+                insert(LogMessageReceived(phaseId, stream, message), phaseId, clock.instant())
             }
         }
 

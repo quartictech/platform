@@ -5,7 +5,6 @@ import org.apache.commons.io.IOUtils.copy
 import javax.ws.rs.*
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.StreamingOutput
-import io.quartic.qube.store.JobStore
 
 @Path("/backchannel")
 class BackChannelResource {
