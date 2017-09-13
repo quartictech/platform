@@ -2,6 +2,7 @@ package io.quartic.home.graphql
 
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import io.quartic.eval.api.model.BuildTrigger
 
 abstract class Fetcher<T> : DataFetcher<T> {
     override fun get(environment: DataFetchingEnvironment): T =
@@ -13,14 +14,29 @@ abstract class Fetcher<T> : DataFetcher<T> {
 class BuildsFetcher: Fetcher<List<Build>>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): List<Build> =
         context.eval.getBuildsAsync(context.user.customerId!!).get()
-            .map { Build(it.id.toString(), it.buildNumber, it.status, it.time.epochSecond, emptyList()) }
+            .map { it.toGraphQL() }
 }
 
 class BuildFetcher: Fetcher<Build>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment) =
         context.eval.getBuildAsync(context.user.customerId!!, env.getArgument<Long>("number"))
             .get()
-            .let { Build(it.id.toString(), it.buildNumber, it.status, it.time.epochSecond, emptyList()) }
+            .let { it.toGraphQL() }
+}
+
+fun io.quartic.eval.api.model.Build.toGraphQL(): Build =
+    Build(
+        this.id.toString(),
+        this.buildNumber,
+        this.branch,
+        this.status,
+        this.time.epochSecond,
+        this.trigger.toGraphQL(),
+        emptyList())
+
+fun BuildTrigger.toGraphQL() = when (this) {
+    is BuildTrigger.Manual -> Trigger("manual")
+    is BuildTrigger.GithubWebhook -> Trigger("github_webhook")
 }
 
 class EventsFetcher: Fetcher<List<BuildEvent>>() {

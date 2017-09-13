@@ -12,10 +12,16 @@ data class Build(
     val number: Long,
 
     @GraphQLField
+    val branch: String,
+
+    @GraphQLField
     val status: String,
 
     @GraphQLField
     val time: Long,
+
+    @GraphQLField
+    val trigger: Trigger,
 
     @GraphQLField
     @GraphQLDataFetcher(EventsFetcher::class)
@@ -23,6 +29,11 @@ data class Build(
 
     @GraphQLField
     val type: String = "build"
+)
+
+data class Trigger(
+    @GraphQLField
+    val type: String
 )
 
 data class User(

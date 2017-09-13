@@ -20,6 +20,5 @@ export const selectLocationState = () => {
 export const selectLoggedIn = state => state.getIn(["user", "loggedIn"]) as boolean;
 export const selectDatasets = state => state.get("datasets").toJS();
 export const selectPipeline = state => (state.get("pipeline").toJS()) as PipelineState;
-export const selectFeed = state => (state.get("feed").toJS());
 export const selectNamespaces = state => Object.keys(state.get("datasets").toJS());
 export const selectUi = state => state.get("ui").toJS();
