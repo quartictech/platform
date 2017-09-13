@@ -129,7 +129,7 @@ interface Database {
         @Bind("phase_id") phaseId: UUID? = null
     )
 
-    @SqlQuery("""
+      @SqlQuery("""
         SELECT
             build.*,
             COALESCE(
@@ -153,9 +153,10 @@ interface Database {
         LEFT JOIN event etrigger ON etrigger.build_id = build.id
         WHERE
             etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}' AND
-            build.customer_id = :customer_id
+            build.customer_id = :customer_id AND
+            (:build_number is null or build.build_number = :build_number)
         ORDER BY etrigger.time DESC
         LIMIT 20
         """)
-    fun getBuilds(@Bind("customer_id") customerId: CustomerId): List<BuildStatusRow>
+    fun getBuilds(@Bind("customer_id") customerId: CustomerId, @Bind("build_number") buildNumber: Long? = null): List<BuildStatusRow>
 }

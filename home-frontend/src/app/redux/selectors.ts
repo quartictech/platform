@@ -1,4 +1,3 @@
-import { Profile } from "../models";
 import { PipelineState } from "../redux/reducers/pipeline";
 
 // selectLocationState expects a plain JS object for the routing state
@@ -19,10 +18,6 @@ export const selectLocationState = () => {
 };
 
 export const selectLoggedIn = state => state.getIn(["user", "loggedIn"]) as boolean;
-export const selectProfile = (state) => {
-  const p = state.getIn(["user", "profile"]);
-  return p ? p.toJS() as Profile : null;
-};
 export const selectDatasets = state => state.get("datasets").toJS();
 export const selectPipeline = state => (state.get("pipeline").toJS()) as PipelineState;
 export const selectFeed = state => (state.get("feed").toJS());
