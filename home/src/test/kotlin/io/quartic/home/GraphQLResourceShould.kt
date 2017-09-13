@@ -2,6 +2,7 @@ package io.quartic.home
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
@@ -10,10 +11,12 @@ import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.GitHub
+import io.quartic.github.GitHubUser
 import io.quartic.home.resource.GraphQLResource
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.net.URI
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -50,20 +53,27 @@ class GraphQLResourceShould {
             time = Instant.now()
         )
         )
-    val events = listOf(
+    private val events = listOf(
         BuildEvent(Instant.now())
     )
 
-    val eval = mock<EvalQueryServiceClient> {
+    private val eval = mock<EvalQueryServiceClient> {
         on { getBuildsAsync(any()) } doReturn CompletableFuture.completedFuture(builds)
         on { getBuildAsync(any(), any()) } doReturn CompletableFuture.completedFuture(builds[0])
         on { getBuildEventsAsync(any(), any()) } doReturn CompletableFuture.completedFuture(events)
     }
 
-    val github = mock<GitHub>()
+    private val github = mock<GitHub>() {
+        on { user(eq(111)) } doReturn GitHubUser(
+            111,
+            "bigmo",
+            "Big Monad",
+            URI.create("http://noob.gif")
+        )
+    }
 
-    val resource = GraphQLResource(eval, github)
-    val user = User("alex", CustomerId(100))
+    private val resource = GraphQLResource(eval, github)
+    private val user = User("111", CustomerId(100))
 
     @Test
     fun list_builds() {
@@ -73,9 +83,9 @@ class GraphQLResourceShould {
             }"""))
 
         assertThat(result.errors, equalTo(emptyList()))
-        val data = result.data as Map<*, *>
-        val feed = data.get("feed") as List<*>
+        val feed = result.data["feed"] as List<Map<String, *>>
         assertThat(feed.size, equalTo(2))
+        assertThat(feed[0].keys, equalTo(setOf("type", "id", "time", "status", "number")))
     }
 
     @Test
@@ -97,5 +107,20 @@ class GraphQLResourceShould {
             ))
 
         assertThat(result.errors.size, equalTo(0))
+        val data = result.data["build"] as Map<String, *>
+        assertThat(data.keys, equalTo(setOf<String>("id", "number", "events")))
+    }
+
+    @Test
+    fun fetch_profile() {
+        val result = resource.execute(user, GraphQLResource.Request(
+            "{ profile { name, avatarUrl } }",
+            emptyMap()
+        ))
+
+        assertThat(result.errors.size, equalTo(0))
+        val data: Map<String, Any> = result.data["profile"] as Map<String, Any>
+        val expected: Map<String, Any> = mapOf("name" to "Big Monad", "avatarUrl" to "http://noob.gif")
+        assertThat(data, equalTo(expected))
     }
 }

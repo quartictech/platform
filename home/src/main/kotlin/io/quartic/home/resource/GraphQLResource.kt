@@ -29,7 +29,7 @@ class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHub) {
     )
 
     data class Result(
-        val data: Any?,
+        val data: Map<String, *>,
         val errors: List<GraphQLError>
     )
 

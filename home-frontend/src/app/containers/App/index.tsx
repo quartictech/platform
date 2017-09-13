@@ -12,12 +12,6 @@ const s = require("./style.css");
 
 interface IProps {
   children?: any;
-  location?: {
-    pathname: string,
-  };
-  params?: {
-    node: string,
-  };
   data: {
     loading: boolean;
     profile?: Profile;
