@@ -7,6 +7,8 @@ classes/
 build/
 generated_src
 generated_testSrc
+lib/
+*.sql
 
 # Generate by Gradle
 package.json
