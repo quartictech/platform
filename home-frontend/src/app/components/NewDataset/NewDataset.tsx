@@ -24,7 +24,6 @@ interface IState {
   namespace: string;
   name?: string;
   description?: string;
-  fileType?: string;
 }
 
 // tslint:disable-next-line:variable-name
@@ -52,7 +51,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       name: "",
       description: "",
       files: [],
-      fileType: "geojson",
     };
 
     this.toggleDialog = this.toggleDialog.bind(this);
@@ -60,7 +58,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     this.onChangeName = this.onChangeName.bind(this);
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onDrop = this.onDrop.bind(this);
-    this.onFileTypeClick = this.onFileTypeClick.bind(this);
     this.onSave = this.onSave.bind(this);
   }
 
@@ -74,7 +71,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       },
       {
         files: this.state.files,
-        fileType: this.state.fileType,
+        fileType: "RAW",
       },
     );
   }
@@ -109,10 +106,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
   isDescriptionValid() {
     return this.state.description.length !== 0;
-  }
-
-  onFileTypeClick(fileType) {
-    this.setState({ fileType });
   }
 
   public render() {
