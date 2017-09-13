@@ -2,6 +2,7 @@ package io.quartic.home.graphql
 
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.BuildTrigger
 
 abstract class Fetcher<T> : DataFetcher<T> {
@@ -43,8 +44,15 @@ class EventsFetcher: Fetcher<List<BuildEvent>>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): List<BuildEvent> {
         val build = env.getSource<Build>()
         return context.eval.getBuildEventsAsync(context.user.customerId!!, build.number).get()
-            .map { event -> BuildEvent.Default(event.time.epochSecond) }
+            .map { it.toGraphQL() }
     }
+}
+
+fun ApiBuildEvent.toGraphQL() = when (this) {
+    is ApiBuildEvent.Log ->
+        BuildEvent.Log(this.phaseId.toString(), this.stream, this.message, this.time.epochSecond)
+    else ->
+        BuildEvent.Other(this.time.epochSecond)
 }
 
 class UserFetcher: Fetcher<User>() {

@@ -70,21 +70,17 @@ export interface FeedItem {
   time: number;
 }
 
-export interface Validate extends FeedItem {
+export interface Build extends FeedItem {
   number: number;
   branch: string;
   status: string;
   trigger: {
     type: string;
   };
+  events: any[];
 }
 
-export interface Execute extends FeedItem {
-  number: number;
-  branch: string;
-  status: string;
-  trigger: {
-    type: string;
-  };
-}
+export interface Validate extends Build { }
+
+export interface Execute extends Build { }
 

@@ -3,6 +3,7 @@ package io.quartic.eval
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
+import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
@@ -21,9 +22,19 @@ class QueryResource(private val database: Database) : EvalQueryService {
         } else return builds.first().toBuild()
     }
 
-    override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<BuildEvent> =
+    override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<ApiBuildEvent> =
         database.getEventsForBuild(customerId, buildNumber)
-            .map { BuildEvent(it.time) }
+            .map { println(it); it.toApi() }
+
+    private fun Database.EventRow.toApi() = when (this.payload) {
+        is BuildEvent.LogMessageReceived -> ApiBuildEvent.Log(
+            message = this.payload.message,
+            phaseId = this.payload.phaseId,
+            time = this.time,
+            stream = this.payload.stream
+        )
+        else -> ApiBuildEvent.Other(this.time)
+    }
 
     override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
         .map { it.toBuild() }

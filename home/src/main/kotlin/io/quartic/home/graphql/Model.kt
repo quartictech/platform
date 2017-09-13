@@ -1,8 +1,7 @@
 package io.quartic.home.graphql
 
-import graphql.annotations.GraphQLDataFetcher
-import graphql.annotations.GraphQLField
-import graphql.annotations.GraphQLUnion
+import graphql.annotations.*
+import java.util.*
 
 data class Build(
     @GraphQLField
@@ -44,7 +43,7 @@ data class User(
     val avatarUrl: String
 )
 
-@GraphQLUnion(possibleTypes = arrayOf(BuildEvent.Default::class))
+@GraphQLUnion(possibleTypes = arrayOf(BuildEvent.Log::class, BuildEvent.Other::class))
 interface BuildEvent {
     @GraphQLField
     fun time(): Long
@@ -52,8 +51,26 @@ interface BuildEvent {
     @GraphQLField
     fun type(): String
 
-    data class Default(val time: Long): BuildEvent {
-        override fun type() = "default"
+    data class Log(
+        @GraphQLField
+        @GraphQLName("phase_id")
+        val phaseId: String,
+
+        @GraphQLField
+        val stream: String,
+
+        @GraphQLField
+        val message: String,
+
+        private val time: Long): BuildEvent {
+        override fun type() = "log"
         override fun time() = time
     }
+
+    data class Other(private val time: Long): BuildEvent {
+        override fun time(): Long = time
+
+        override fun type(): String = "other"
+    }
+
 }
