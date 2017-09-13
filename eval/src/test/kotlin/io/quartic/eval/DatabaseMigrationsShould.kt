@@ -6,12 +6,13 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.ContainerAcquired
 import org.flywaydb.core.api.MigrationVersion
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
@@ -68,7 +69,6 @@ class DatabaseMigrationsShould {
 
     @Test
     fun v6_migrate() {
-
         DBI.open().createUpdate("""
             INSERT INTO event(id, build_id, time, payload)
                 VALUES(:id, :build_id, :time, :payload)
@@ -90,7 +90,6 @@ class DatabaseMigrationsShould {
 
     @Test
     fun v7_migrate() {
-        databaseVersion("6")
         val oldTriggerFormat = javaClass.getResource("/trigger_received.json").readText()
         val id = UUID.randomUUID()
         DBI.open().createUpdate("""
@@ -114,6 +113,53 @@ class DatabaseMigrationsShould {
         val githubWebhook: BuildTrigger.GithubWebhook = trigger.trigger as BuildTrigger.GithubWebhook
         assertThat(githubWebhook, notNullValue())
     }
+
+    @Test
+    fun v8_migrate() {
+        databaseVersion("7")    // TODO - remove
+
+        val oldPayload = mapOf(
+            "type" to "phase_completed_v1",
+            "phaseId" to "12345",
+            "result" to mapOf(
+                "type" to "success",
+                "artifact" to mapOf(
+                    "type" to "evaluation_output",
+                    "steps" to listOf(
+                        mapOf(
+                            "foo" to "bar",
+                            "inputs" to listOf(
+                                mapOf("datasetId" to "a"),
+                                mapOf("datasetId" to "b")
+                            ),
+                            "outputs" to listOf(
+                                mapOf("datasetId" to "c")
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        println("=======================================")
+
+        DBI.open().createUpdate("""
+            INSERT INTO event(id, build_id, time, payload)
+            VALUES(:id, :build_id, :time, :payload)
+            """)
+            .bind("id", UUID.randomUUID())
+            .bind("build_id", UUID.randomUUID())
+            .bind("time", Instant.now())
+            .bindJson("payload", oldPayload)
+            .execute()
+
+        databaseVersion("8")
+
+        val completed = DBI.open().createQuery("SELECT payload FROM event")
+            .mapTo(String::class.java)
+            .map { OBJECT_MAPPER.readValue<BuildEvent.PhaseCompleted>(it) }
+    }
+
 
 
 
