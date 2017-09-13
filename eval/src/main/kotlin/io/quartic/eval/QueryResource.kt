@@ -38,7 +38,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
         time = this.time
     )
 
-    override fun getDag(customerId: CustomerId): CytoscapeDag {
+    override fun getLatestDag(customerId: CustomerId): CytoscapeDag {
         val buildNumber = database.getLatestSuccessfulBuildNumber(customerId) ?:
             throw NotFoundException("No successful builds for ${customerId}")
 

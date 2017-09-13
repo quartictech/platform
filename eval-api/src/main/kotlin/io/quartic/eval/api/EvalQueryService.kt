@@ -8,10 +8,8 @@ import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.CytoscapeDag
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 import java.util.concurrent.CompletableFuture
 import javax.ws.rs.PathParam
-import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
 
 @Jaxable
@@ -20,7 +18,7 @@ interface EvalQueryService {
     @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     @javax.ws.rs.Path("/dag/cytoscape/{customer_id}")
-    fun getDag(
+    fun getLatestDag(
         @PathParam("customer_id") customerId: CustomerId
     ): CytoscapeDag
 
@@ -59,14 +57,14 @@ interface EvalQueryService {
 @Retrofittable
 interface EvalQueryServiceClient {
     @GET("query/dag/cytoscape/{customer_id}")
-    fun getDagAsync(
+    fun getLatestDayAsync(
         @Path("customer_id") customerId: CustomerId
     ): CompletableFuture<CytoscapeDag>
 
     @GET("query/dag/cytoscape/{customer_id}/{build_number}")
     fun getDagAsync(
         @Path("customer_id") customerId: CustomerId,
-        @Path("build_number") buildNumber: Long? = null
+        @Path("build_number") buildNumber: Long
     ): CompletableFuture<CytoscapeDag>
 
     @GET("query/build/{customer_id}")
