@@ -11,7 +11,7 @@ import io.quartic.eval.model.BuildEvent.BuildCompleted.*
 import io.quartic.eval.model.BuildEvent.Companion.VERSION
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.*
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.api.model.Step
+import io.quartic.quarty.api.model.Pipeline.Node
 import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -56,8 +56,8 @@ sealed class BuildEvent {
                     Type(EvaluationOutput::class, name = "evaluation_output")
                 )
                 sealed class Artifact {
-                    // TODO - have our own Step to decouple DB schema
-                    data class EvaluationOutput(val steps: List<Step>) : Artifact()
+                    // TODO - have our own Node to decouple DB schema
+                    data class EvaluationOutput(val nodes: List<Node>) : Artifact()
                 }
             }
 

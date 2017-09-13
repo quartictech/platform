@@ -7,7 +7,7 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
-import io.quartic.quarty.api.model.Step
+import io.quartic.quarty.api.model.Pipeline.Node
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -41,20 +41,20 @@ class QueryResource(private val database: Database) : EvalQueryService {
             }
             .firstOrNull() ?: throw NotFoundException("No DAG found for ${customerId} with build number ${buildNumber}")
 
-        return convertToCytoscape(output.steps)
+        return convertToCytoscape(output.nodes)
     }
 
     // TODO - We're assuming that the DAG was validated before being added to the database
-    private fun convertToCytoscape(steps: List<Step>) = with(Dag.fromSteps(steps)) {
+    private fun convertToCytoscape(nodes: List<Node>) = with(Dag.fromRaw(nodes)) {
         CytoscapeDag(nodesFrom(this), edgesFrom(this))
     }
 
     private fun nodesFrom(dag: Dag) = dag.nodes.map {
         CytoscapeNode(
             CytoscapeNodeData(
-                id = it.dataset.fullyQualifiedName,
-                title = it.dataset.fullyQualifiedName,
-                type = if (dag.inDegreeOf(it) > 0) "derived" else "raw"
+                id = it.output.fullyQualifiedName,
+                title = it.output.fullyQualifiedName,
+                type = if (it is Node.Raw) "raw" else "derived"
             )
         )
     }.toSet()
@@ -63,8 +63,8 @@ class QueryResource(private val database: Database) : EvalQueryService {
         CytoscapeEdge(
             CytoscapeEdgeData(
                 id = i.toLong(),
-                source = it.first.dataset.fullyQualifiedName,
-                target = it.second.dataset.fullyQualifiedName
+                source = it.first.output.fullyQualifiedName,
+                target = it.second.output.fullyQualifiedName
             )
         )
     }.toSet()

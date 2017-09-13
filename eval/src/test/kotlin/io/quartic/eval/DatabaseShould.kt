@@ -11,8 +11,9 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.api.model.Dataset
-import io.quartic.quarty.api.model.Step
+import io.quartic.quarty.api.model.Pipeline
+import io.quartic.quarty.api.model.Pipeline.Dataset
+import io.quartic.quarty.api.model.Pipeline.Node.Step
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
@@ -239,12 +240,14 @@ class DatabaseShould {
     private val steps = listOf(
         Step(
             "something",
-            "name",
-            "a step",
-            "something.py",
-            listOf(0, 1000),
+            Pipeline.LexicalInfo(
+                "name",
+                "a step",
+                "something.py",
+                listOf(0, 1000)
+            ),
             listOf(Dataset("wat", "ds")),
-            listOf(Dataset("some", "w"))
+            Dataset("some", "w")
         )
     )
 

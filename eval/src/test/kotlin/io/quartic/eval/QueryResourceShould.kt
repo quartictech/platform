@@ -11,8 +11,9 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.api.model.Dataset
-import io.quartic.quarty.api.model.Step
+import io.quartic.quarty.api.model.Pipeline.Dataset
+import io.quartic.quarty.api.model.Pipeline.Node.Raw
+import io.quartic.quarty.api.model.Pipeline.Node.Step
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -53,29 +54,27 @@ class QueryResourceShould {
 
     @Test
     fun convert_dag_to_cytoscape() {
-        val steps = listOf(
-            Step(
-                id = "123",
-                name = "foo",
-                description = "whatever",
-                file = "whatever",
-                lineRange = emptyList(),
-                inputs = listOf(dataset("A"), dataset("B")),
-                outputs = listOf(dataset("D"))
-            ),
-            Step(
-                id = "456",
-                name = "bar",
-                description = "whatever",
-                file = "whatever",
-                lineRange = emptyList(),
-                inputs = listOf(dataset("B"), dataset("C"), dataset("D")),
-                outputs = listOf(dataset("E"))
-            )
+        val a = Raw("111", mock(), mock(),
+            dataset("A")
         )
+        val b = Raw("222", mock(), mock(),
+            dataset("B")
+        )
+        val c = Raw("333", mock(), mock(),
+            dataset("C")
+        )
+        val d = Step("444", mock(),
+            listOf(dataset("A"), dataset("B")),
+            dataset("D")
+        )
+        val e = Step("555", mock(),
+            listOf(dataset("B"), dataset("C"), dataset("D")),
+            dataset("E")
+        )
+        val nodes = listOf(a, b, c, d, e)
 
         whenever(database.getEventsForBuild(customerId, 1234)).thenReturn(listOf(
-            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(steps))))
+            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(nodes))))
         ))
 
         assertThat(resource.getDag(customerId, 1234), equalTo(
@@ -88,11 +87,11 @@ class QueryResourceShould {
                     node("E", "derived")
                 ),
                 setOf(
-                    edge(1, "A", "D"),
-                    edge(2, "B", "D"),
-                    edge(3, "B", "E"),
-                    edge(4, "C", "E"),
-                    edge(0, "D", "E")
+                    edge(0, "A", "D"),
+                    edge(1, "B", "D"),
+                    edge(2, "B", "E"),
+                    edge(3, "C", "E"),
+                    edge(4, "D", "E")
                 )
             )
         ))
@@ -100,31 +99,25 @@ class QueryResourceShould {
 
     @Test
     fun show_nothing_for_null_namespaces() {
-        val steps = listOf(
-            Step(
+        val nodes = listOf(
+            Raw(
                 id = "123",
-                name = "foo",
-                description = "whatever",
-                file = "whatever",
-                lineRange = emptyList(),
-                inputs = listOf(dataset("A", null)),
-                outputs = listOf(dataset("B", null))
+                info = mock(),
+                output = dataset("A", null),
+                source = mock()
             )
         )
 
         whenever(database.getEventsForBuild(customerId, 1234)).thenReturn(listOf(
-            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(steps))))
+            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(nodes))))
         ))
 
         assertThat(resource.getDag(customerId, 1234), equalTo(
             CytoscapeDag(
                 setOf(
-                    node("A", "raw", ""),       // Note null becomes empty string
-                    node("B", "derived", "")
+                    node("A", "raw", "")        // Note null becomes empty string
                 ),
-                setOf(
-                    edge(0, "A", "B", "")
-                )
+                emptySet()
             )
         ))
     }

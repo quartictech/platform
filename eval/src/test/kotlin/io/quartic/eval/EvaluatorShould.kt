@@ -6,7 +6,6 @@ import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
-import io.quartic.eval.model.Dag.Node
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
@@ -17,12 +16,13 @@ import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Owner
 import io.quartic.github.Repository
-import io.quartic.quarty.api.model.Dataset
 import io.quartic.quarty.api.model.Pipeline
+import io.quartic.quarty.api.model.Pipeline.Dataset
+import io.quartic.quarty.api.model.Pipeline.Node.Raw
+import io.quartic.quarty.api.model.Pipeline.Node.Step
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
-import io.quartic.quarty.api.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
@@ -63,7 +63,7 @@ class EvaluatorShould {
             "Fetching repository details",
             "Cloning and preparing repository",
             "Evaluating DAG",
-            "Executing step for dataset [::X]",
+            "Acquiring raw data for dataset [::X]",
             "Executing step for dataset [::Y]"
         ))
     }
@@ -182,23 +182,6 @@ class EvaluatorShould {
         }
     }
 
-    @Test
-    fun skip_execution_of_raw_datasets() {
-        whenever(dag.iterator()).thenReturn(
-            listOf(
-                Node(mock(), null),     // Raw
-                Node(mock(), stepY)
-            ).iterator()
-        )
-
-        execute()
-
-        runBlocking {
-            verify(quarty, times(1)).request(isA<Execute>(), any())
-            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
-        }
-    }
-
     private fun execute() = runBlocking {
         evaluator.evaluateAsync(manualTrigger).join()
     }
@@ -221,13 +204,13 @@ class EvaluatorShould {
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
     private val githubCloneUrlWithCreds = URI("https://${githubToken.urlCredentials()}@noob.com/foo/bar")
 
-    private val stepX = mock<Step> {
+    private val rawX = mock<Raw> {
         on { id } doReturn "abc"
-        on { outputs } doReturn listOf(Dataset(null, "X"))
+        on { output } doReturn Dataset(null, "X")
     }
     private val stepY = mock<Step> {
         on { id } doReturn "def"
-        on { outputs } doReturn listOf(Dataset(null, "Y"))
+        on { output } doReturn listOf(Dataset(null, "Y"))
     }
 
     private val githubRepoId: Long = 5678
@@ -271,10 +254,7 @@ class EvaluatorShould {
     private val steps = mock<List<Step>>()
     private val pipeline = Pipeline(steps)
     private val dag = mock<Dag> {
-        on { iterator() } doReturn listOf(
-            Node(mock(), stepX),
-            Node(mock(), stepY)
-        ).iterator()
+        on { iterator() } doReturn listOf(rawX, stepY).iterator()
     }
 
     private val registry = mock<RegistryServiceClient> {

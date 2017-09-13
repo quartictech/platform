@@ -17,6 +17,8 @@ import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
 import io.quartic.quarty.api.model.Pipeline
+import io.quartic.quarty.api.model.Pipeline.Node.Raw
+import io.quartic.quarty.api.model.Pipeline.Node.Step
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
@@ -50,7 +52,7 @@ class Evaluator(
         github,
         { pipeline ->
             try {
-                Dag.fromSteps(pipeline.steps)
+                Dag.fromRaw(pipeline.steps)
             } catch (e: Exception) {
                 null
             }
@@ -99,10 +101,13 @@ class Evaluator(
                     // Only do this for manual launch
                     if (triggerType == TriggerType.EXECUTE) {
                         dag
-                            .mapNotNull { it.step }    // TODO - what about raw datasets?
-                            .forEach { step ->
-                                phase<Unit>("Executing step for dataset [${step.outputs[0].fullyQualifiedName}]") {
-                                    extractResultFrom(quarty, Execute(step.id, customer.namespace)) {
+                            .forEach { node ->
+                                val action = when (node) {
+                                    is Step -> "Executing step"
+                                    is Raw -> "Acquiring raw data"
+                                }
+                                phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
+                                    extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
                                         success(Unit)
                                     }
                                 }
