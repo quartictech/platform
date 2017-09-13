@@ -11,7 +11,7 @@ import io.quartic.quarty.api.model.Step
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
-    override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId)
+    override fun getBuilds(customerId: CustomerId, buildNumber: Long?) = database.getBuilds(customerId, buildNumber)
         .map { buildRow ->
             Build(
                 id = buildRow.id,

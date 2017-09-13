@@ -4,11 +4,14 @@ import io.quartic.common.client.ClientBuilder.Companion.Jaxable
 import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.Build
+import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.CytoscapeDag
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 import java.util.concurrent.CompletableFuture
 import javax.ws.rs.PathParam
+import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
 
 @Jaxable
@@ -33,7 +36,8 @@ interface EvalQueryService {
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     @javax.ws.rs.Path("/builds/{customer_id}")
     fun getBuilds(
-        @PathParam("customer_id") customerId: CustomerId
+        @PathParam("customer_id") customerId: CustomerId,
+        @QueryParam("build_number") buildNumber: Long?
     ): List<Build>
 }
 
@@ -47,9 +51,12 @@ interface EvalQueryServiceClient {
     @GET("query/dag/cytoscape/{customer_id}/{build_number}")
     fun getDagAsync(
         @Path("customer_id") customerId: CustomerId,
-        @Path("build_number") buildNumber: Long
+        @Path("build_number") buildNumber: Long? = null
     ): CompletableFuture<CytoscapeDag>
 
     @GET("query/builds/{customer_id}")
-    fun getBuildsAsync(@Path("customer_id") customerId: CustomerId): CompletableFuture<List<Build>>
+    fun getBuildsAsync(@Path("customer_id") customerId: CustomerId, @Query("build_number") buildNumber: Long? = null): CompletableFuture<List<Build>>
+
+    @GET("query/build_events/{customer_id}")
+    fun getBuildEventsAsync(@Path("customer_id") customerId: CustomerId, @Query("build_number") buildNumber: Long): CompletableFuture<List<BuildEvent>>
 }
