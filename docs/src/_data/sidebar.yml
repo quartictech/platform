@@ -1,8 +1,5 @@
 - name: Getting started
   docs:
-    - name: Signing up
-      url: /signing-up
-
     - name: Quickstart
       url: /quickstart
 
@@ -24,23 +21,3 @@
 
     - name: Metadata
       url: /metadata
-
-- name: Platform concepts
-  docs:
-    - name: Data stores
-      url: /data-stores
-
-    - name: Catalogue
-      url: /catalogue
-
-    - name: Pipeline graph
-      url: /pipelines
-
-    - name: Orchestration
-      url: /orchestration
-
-    - name: Monitoring
-      url: /monitoring
-
-    - name: Execution sandboxes
-      url: /execution-sandboxes

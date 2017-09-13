@@ -7,7 +7,7 @@ Quartic requires only two things within your pipelines repository:
 - a `quartic.yml` file exists at the top level.
 - explicit pipeline steps are in a module folder (`__init__.py` exists.)
 
-Both of these can be checked for and configured using the Quartic Line Interface (QLI).
+Both of these can be checked for and configured using the Quartic Command Line Interface (QLI).
 
 ## Setting up a repo
 
@@ -17,7 +17,9 @@ Your code is assumed to be in a Git repository and additionally hosted in a Gith
 
 We strongly recommend you develop locally within a virtualenv. You should also be using Python3.
 
-You can install Quartic bindings and QLI by running `pip install quartic`, though this isn't necessary if you don't want locally available Quartic tools.
+You should (but don't have to) install Quartic bindings and QLI by running `pip install quartic`. This will provide a more
+pleasant local development experience and speed up validating your pipeline. Linting/IDE configuration 
+is also easier in this case.
 
 You're repository should be structured as follows (as far as Quartic related code):
 
