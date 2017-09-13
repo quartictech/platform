@@ -1,6 +1,6 @@
 package io.quartic.eval.model.noob
 
-class LegacyEventA private constructor() {
+class LegacyTriggerReceived private constructor() {
 
     // Add a field and associated type
     data class V2(
