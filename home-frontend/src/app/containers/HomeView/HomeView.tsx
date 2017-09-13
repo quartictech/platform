@@ -42,50 +42,58 @@ class HomeView extends React.Component<IProps, {}> {
     }
   }
 
+  renderValidate(item: Validate) {
+    return (
+      <div className={s.feedItem} key={item.id}>
+        <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-upload")} />
+        <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
+          {item.status}
+        </div>
+        <div className={s.cardTime}>
+            <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
+        </div>
+
+        <div className={s.cardBody}>
+          <h5>
+            <Link to={`/pipeline/${item.number}`}>
+              Validate #{item.number}
+            </Link>
+          </h5>
+          <b>Branch</b> {item.branch}
+        </div>
+      </div>
+    );
+  }
+
+  renderExecute(item: Execute) {
+    return (
+      <div className={s.feedItem} key={item.id}>
+        <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-graph")} />
+        <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
+          {item.status}
+        </div>
+        <div className={s.cardTime}>
+            <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
+        </div>
+
+        <div className={s.cardBody}>
+          <h5>
+            <Link to={`/pipeline/${item.number}`}>
+              Build #{item.number}
+            </Link>
+          </h5>
+          <b>Branch</b> {item.branch}
+        </div>
+      </div>
+    );
+  }
+
   renderItem = (item: FeedItem) => {
     if (isValidate(item)) {
-      return (
-        <div className={s.feedItem} key={item.id}>
-          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-upload")} />
-          <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
-            {item.status}
-          </div>
-          <div className={s.cardTime}>
-              <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
-          </div>
-
-          <div className={s.cardBody}>
-            <h5>
-              <Link to={`/pipeline/${item.number}`}>
-                Validate #{item.number}
-              </Link>
-            </h5>
-            <b>Branch</b> {item.branch}
-          </div>
-        </div>
-      );
+      this.renderValidate(item);
     }
     if (isExecute(item)) {
-      return (
-        <div className={s.feedItem} key={item.id}>
-          <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-graph")} />
-          <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
-            {item.status}
-          </div>
-          <div className={s.cardTime}>
-              <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
-          </div>
-
-          <div className={s.cardBody}>
-            <h5>
-              <Link to={`/pipeline/${item.number}`}>
-                Build #{item.number}
-              </Link>
-            </h5>
-            <b>Branch</b> {item.branch}
-          </div>
-        </div>
-      );
+      this.renderExecute(item);
     }
   }
 
