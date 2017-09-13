@@ -4,6 +4,7 @@ import io.quartic.common.client.ClientBuilder.Companion.Jaxable
 import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.Build
+import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.CytoscapeDag
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -17,7 +18,7 @@ interface EvalQueryService {
     @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     @javax.ws.rs.Path("/dag/cytoscape/{customer_id}")
-    fun getDag(
+    fun getLatestDag(
         @PathParam("customer_id") customerId: CustomerId
     ): CytoscapeDag
 
@@ -31,16 +32,32 @@ interface EvalQueryService {
 
     @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
-    @javax.ws.rs.Path("/builds/{customer_id}")
+    @javax.ws.rs.Path("/build/{customer_id}")
     fun getBuilds(
         @PathParam("customer_id") customerId: CustomerId
     ): List<Build>
+
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Path("/build/{customer_id}/{build_number}")
+    fun getBuild(
+        @PathParam("customer_id") customerId: CustomerId,
+        @PathParam("build_number") buildNumber: Long
+    ): Build
+
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Path("/build/{customer_id}/{build_number}/events")
+    fun getBuildEvents(
+        @PathParam("customer_id") customerId: CustomerId,
+        @PathParam("build_number") buildNumber: Long
+    ): List<BuildEvent>
 }
 
 @Retrofittable
 interface EvalQueryServiceClient {
     @GET("query/dag/cytoscape/{customer_id}")
-    fun getDagAsync(
+    fun getLatestDayAsync(
         @Path("customer_id") customerId: CustomerId
     ): CompletableFuture<CytoscapeDag>
 
@@ -50,6 +67,20 @@ interface EvalQueryServiceClient {
         @Path("build_number") buildNumber: Long
     ): CompletableFuture<CytoscapeDag>
 
-    @GET("query/builds/{customer_id}")
-    fun getBuildsAsync(@Path("customer_id") customerId: CustomerId): CompletableFuture<List<Build>>
+    @GET("query/build/{customer_id}")
+    fun getBuildsAsync(
+        @Path("customer_id") customerId: CustomerId
+    ): CompletableFuture<List<Build>>
+
+    @GET("query/build/{customer_id}/{build_number}")
+    fun getBuildAsync(
+        @Path("customer_id") customerId: CustomerId,
+        @Path("build_number") buildNumber: Long
+    ): CompletableFuture<Build>
+
+    @GET("query/build/{customer_id}/{build_number}/events")
+    fun getBuildEventsAsync(
+        @Path("customer_id") customerId: CustomerId,
+        @Path("build_number") buildNumber: Long
+    ): CompletableFuture<List<BuildEvent>>
 }

@@ -36,7 +36,7 @@ class QueryResourceShould {
     @Test
     fun throw_404_if_no_latest_build_found() {
         assertThrows<NotFoundException> {
-            resource.getDag(customerId)
+            resource.getLatestDag(customerId)
         }
     }
 
@@ -45,7 +45,7 @@ class QueryResourceShould {
         whenever(database.getLatestSuccessfulBuildNumber(customerId)).thenReturn(5678)
 
         try {
-            resource.getDag(customerId)
+            resource.getLatestDag(customerId)
         } catch(e: Exception) {}   // Swallow
 
         verify(database).getEventsForBuild(customerId, 5678)

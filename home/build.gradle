@@ -20,6 +20,8 @@ dependencies {
     compile project(":registry-api")
     compile project(":eval-api")
     compile project(":github")
+
+    compile "com.graphql-java:graphql-java-annotations:3.0.3"
     compile "org.apache.commons:commons-csv:1.3"
 
     testCompile project(":common-test")
