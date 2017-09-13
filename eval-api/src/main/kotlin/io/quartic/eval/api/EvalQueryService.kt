@@ -34,11 +34,26 @@ interface EvalQueryService {
 
     @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
-    @javax.ws.rs.Path("/builds/{customer_id}")
+    @javax.ws.rs.Path("/build/{customer_id}")
     fun getBuilds(
-        @PathParam("customer_id") customerId: CustomerId,
-        @QueryParam("build_number") buildNumber: Long?
+        @PathParam("customer_id") customerId: CustomerId
     ): List<Build>
+
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Path("/build/{customer_id}/{build_number}")
+    fun getBuild(
+        @PathParam("customer_id") customerId: CustomerId,
+        @PathParam("build_number") buildNumber: Long
+    ): Build
+
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Path("/build/{customer_id}/{build_number}/events")
+    fun getBuildEvents(
+        @PathParam("customer_id") customerId: CustomerId,
+        @PathParam("build_number") buildNumber: Long
+    ): List<BuildEvent>
 }
 
 @Retrofittable
@@ -54,9 +69,20 @@ interface EvalQueryServiceClient {
         @Path("build_number") buildNumber: Long? = null
     ): CompletableFuture<CytoscapeDag>
 
-    @GET("query/builds/{customer_id}")
-    fun getBuildsAsync(@Path("customer_id") customerId: CustomerId, @Query("build_number") buildNumber: Long? = null): CompletableFuture<List<Build>>
+    @GET("query/build/{customer_id}")
+    fun getBuildsAsync(
+        @Path("customer_id") customerId: CustomerId
+    ): CompletableFuture<List<Build>>
 
-    @GET("query/build_events/{customer_id}")
-    fun getBuildEventsAsync(@Path("customer_id") customerId: CustomerId, @Query("build_number") buildNumber: Long): CompletableFuture<List<BuildEvent>>
+    @GET("query/build/{customer_id}/{build_number}")
+    fun getBuildAsync(
+        @Path("customer_id") customerId: CustomerId,
+        @Path("build_number") buildNumber: Long
+    ): CompletableFuture<Build>
+
+    @GET("query/build/{customer_id}/{build_number}/events")
+    fun getBuildEventsAsync(
+        @Path("customer_id") customerId: CustomerId,
+        @Path("build_number") buildNumber: Long
+    ): CompletableFuture<List<BuildEvent>>
 }

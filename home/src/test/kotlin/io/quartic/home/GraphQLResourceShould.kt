@@ -1,7 +1,6 @@
 package io.quartic.home
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.auth.User
@@ -10,6 +9,7 @@ import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildEvent
 import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.github.GitHub
 import io.quartic.home.resource.GraphQLResource
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -55,29 +55,27 @@ class GraphQLResourceShould {
     )
 
     val eval = mock<EvalQueryServiceClient> {
-        on { getBuildsAsync(any(), anyOrNull()) } doReturn CompletableFuture.completedFuture(builds)
+        on { getBuildsAsync(any()) } doReturn CompletableFuture.completedFuture(builds)
+        on { getBuildAsync(any(), any()) } doReturn CompletableFuture.completedFuture(builds[0])
         on { getBuildEventsAsync(any(), any()) } doReturn CompletableFuture.completedFuture(events)
     }
 
-    val resource = GraphQLResource(eval)
+    val github = mock<GitHub>()
+
+    val resource = GraphQLResource(eval, github)
     val user = User("alex", CustomerId(100))
 
     @Test
     fun list_builds() {
         val result = resource.execute(user, GraphQLResource.Request( """
             {
-                feed {
-                    id,
-                    events #{
-                    #    ... on Default {
-                    #        time
-                    #    }
-                    #}
-                }
+                feed { type, id, time, status, number }
             }"""))
 
         assertThat(result.errors, equalTo(emptyList()))
-        println(result.data)
+        val data = result.data as Map<*, *>
+        val feed = data.get("feed") as List<*>
+        assertThat(feed.size, equalTo(2))
     }
 
     @Test
@@ -85,7 +83,7 @@ class GraphQLResourceShould {
         val buildNumber = "\$buildNumber"
         val result = resource.execute(user, GraphQLResource.Request( """
             query FetchById($buildNumber: Long) {
-                build(buildNumber: $buildNumber) {
+                build(number:$buildNumber) {
                     id,
                     number,
                     events {
@@ -98,6 +96,6 @@ class GraphQLResourceShould {
             mapOf("buildNumber" to 100)
             ))
 
-        assertThat(result.errors, equalTo(emptyList()))
+        assertThat(result.errors.size, equalTo(0))
     }
 }

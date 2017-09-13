@@ -14,7 +14,7 @@ interface Query {
     @GraphQLField
     @GraphQLDescription("Load a single build")
     @GraphQLDataFetcher(BuildFetcher::class)
-    fun build(@GraphQLName("buildNumber") number: Long): Build
+    fun build(@GraphQLName("number") number: Long): Build
 
     @GraphQLField
     @GraphQLDescription("Fetch the currently authenticated user")

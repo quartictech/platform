@@ -11,18 +11,32 @@ import io.quartic.quarty.api.model.Step
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
-    override fun getBuilds(customerId: CustomerId, buildNumber: Long?) = database.getBuilds(customerId, buildNumber)
-        .map { buildRow ->
-            Build(
-                id = buildRow.id,
-                buildNumber = buildRow.buildNumber,
-                branch = buildRow.branch,
-                customerId = buildRow.customerId,
-                trigger = buildRow.trigger.trigger,
-                status = buildRow.status,
-                time = buildRow.time
+    override fun getBuild(customerId: CustomerId, buildNumber: Long): Build {
+        val builds = database.getBuilds(customerId, buildNumber)
+
+        if (builds.isEmpty()) {
+            throw NotFoundException(
+                "Build not found: customerId = ${customerId}, buildNumber=${buildNumber}"
             )
-        }
+        } else return builds.first().toBuild()
+    }
+
+    override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<BuildEvent> =
+        database.getEventsForBuild(customerId, buildNumber)
+            .map { BuildEvent(it.time) }
+
+    override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
+        .map { it.toBuild() }
+
+    private fun Database.BuildStatusRow.toBuild() = Build(
+        id = this.id,
+        buildNumber = this.buildNumber,
+        branch = this.branch,
+        customerId = this.customerId,
+        trigger = this.trigger.trigger,
+        status = this.status,
+        time = this.time
+    )
 
     override fun getDag(customerId: CustomerId): CytoscapeDag {
         val buildNumber = database.getLatestSuccessfulBuildNumber(customerId) ?:
