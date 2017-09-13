@@ -1,10 +1,10 @@
-const apiRootUrl = `${location.origin}${location.pathname}api`;
+export const apiRootUrl = `${location.origin}${location.pathname}api`;
 
 import { IDatasetMetadata, IDatasetCoords } from "../models";
 
 import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "../helpers/Utils";
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
   constructor(m: string, status: number) {
     super(m);
@@ -52,16 +52,8 @@ export function fetchAuth(url, options?) {
     .catch(err => ({ err }));
 }
 
-export function fetchProfile() {
-  return fetchUtil(`${apiRootUrl}/profile`);
-}
-
 export function fetchDatasets() {
   return fetchUtil(`${apiRootUrl}/datasets`);
-}
-
-export function fetchFeed() {
-  return fetchUtil(`${apiRootUrl}/builds`);
 }
 
 export function fetchDag(build: string) {

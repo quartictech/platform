@@ -21,11 +21,6 @@ export const userLoginSuccess = () => ({
   type: constants.USER_LOGIN_SUCCESS,
 });
 
-export const userFetchProfileSuccess = profile => ({
-  type: constants.USER_FETCH_PROFILE_SUCCESS,
-  profile,
-});
-
 export function fetchDatasetsSuccess(data) {
   return {
     type: constants.FETCH_DATASETS_SUCCESS,
@@ -96,19 +91,6 @@ export function fetchPipelineSuccess(data) {
 export function fetchPipelineNotFound() {
   return {
     type: constants.FETCH_PIPELINE_NOT_FOUND,
-  };
-}
-
-export function fetchFeed() {
-  return {
-    type: constants.FETCH_FEED,
-  };
-}
-
-export function fetchFeedSuccess(data) {
-  return {
-    type: constants.FETCH_FEED_SUCCESS,
-    data,
   };
 }
 

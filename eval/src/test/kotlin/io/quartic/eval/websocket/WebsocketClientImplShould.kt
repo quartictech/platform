@@ -5,6 +5,7 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.eval.websocket.WebsocketFactory.Websocket
@@ -22,7 +23,7 @@ class WebsocketClientImplShould {
     data class SendMsg(val s: String)
     data class ReceiveMsg(val i: Int)
 
-    // TODO - bias toward internal events
+    // TODO - test bias toward internal events
 
     @Test
     fun receive_messages() {
@@ -86,9 +87,7 @@ class WebsocketClientImplShould {
         createClient().use { client ->
             runOrTimeout {
                 client.awaitConnected()
-
                 server.dropConnections()
-
                 client.awaitDisconnected()
             }
         }
@@ -102,12 +101,40 @@ class WebsocketClientImplShould {
         createClient().use { client ->
             runOrTimeout {
                 client.awaitConnected()
-
                 server.dropConnections()
-
                 client.awaitConnected()
 
                 assertThat(client.awaitReceivedMessages(1), equalTo(expected))
+            }
+        }
+    }
+
+    @Test
+    fun abort_if_connect_dropped_when_duration_is_zeo() {
+        createClient(WebsocketClientImpl.ABORT_ON_FAILURE).use { client ->
+            runOrTimeout {
+                client.awaitConnected()
+                server.dropConnections()
+                client.awaitDisconnected()
+                client.awaitAborted()
+            }
+
+            runAndExpectToTimeout {
+                client.awaitConnected()
+            }
+        }
+    }
+
+    @Test
+    fun abort_if_first_connection_attempt_failed_when_duration_is_zeo() {
+        server.refuseConnections()
+        createClient(WebsocketClientImpl.ABORT_ON_FAILURE).use { client ->
+            runOrTimeout {
+                client.awaitAborted()
+            }
+
+            runAndExpectToTimeout {
+                client.awaitConnected()
             }
         }
     }
@@ -134,6 +161,7 @@ class WebsocketClientImplShould {
     @Test
     fun disconnect_and_not_attempt_reconnect_on_close() {
         val client = createClient()
+
         try {
             runOrTimeout {
                 client.awaitConnected()
@@ -167,7 +195,8 @@ class WebsocketClientImplShould {
         }
     }
 
-    private fun createClient() = WebsocketClientImpl.create<SendMsg, ReceiveMsg>(mock(), Duration.ofMillis(100), server.websocketFactory)
+    private fun createClient(backoffPeriod: Duration = Duration.ofMillis(100)) =
+        WebsocketClientImpl.create<SendMsg, ReceiveMsg>(mock(), backoffPeriod, server.websocketFactory)
 
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitReceivedMessages(num: Int): List<ReceiveMsg> {
         val received = mutableListOf<ReceiveMsg>()
@@ -182,6 +211,7 @@ class WebsocketClientImplShould {
 
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitConnected() = await(Connected::class.java)
     private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitDisconnected() = await(Disconnected::class.java)
+    private suspend fun WebsocketClient<SendMsg, ReceiveMsg>.awaitAborted() = await(Aborted::class.java)
 
     private suspend fun <T : WebsocketClient.Event<*>> WebsocketClient<SendMsg, ReceiveMsg>.await(clazz: Class<T>) {
         while (!clazz.isInstance(events.receive())) {}

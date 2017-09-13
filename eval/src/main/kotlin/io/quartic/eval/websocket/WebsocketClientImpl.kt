@@ -17,6 +17,8 @@ import kotlinx.coroutines.experimental.selects.select
 import java.net.URI
 import java.time.Duration
 
+// TODO - set user-agent
+
 class WebsocketClientImpl<in TSend, out TReceive>(
     private val uri: URI,
     private val receiveClass: Class<TReceive>,
@@ -35,6 +37,7 @@ class WebsocketClientImpl<in TSend, out TReceive>(
     private sealed class SocketState {
         class Disconnected : SocketState()
         class Connecting : SocketState()
+        class Aborted : SocketState()
         data class Connected(val websocket: Websocket) : SocketState()
     }
 
@@ -74,25 +77,23 @@ class WebsocketClientImpl<in TSend, out TReceive>(
         }
     }
 
-    private suspend fun backoff() {
-        async(CommonPool) {
-            delay(backoffPeriod.toMillis())
-            InternalEvent.BackoffCompleted().send()
-        }
+    private suspend fun backoffAsync() = async(CommonPool) {
+        delay(backoffPeriod.toMillis())
+        send(InternalEvent.BackoffCompleted())
     }
 
     private suspend fun attemptConnection() {
         websocketFactory.create(uri,
             connectHandler = {
                 LOG.info("Connected to ${uri}")
-                InternalEvent.Connected(it).send()
+                send(InternalEvent.Connected(it))
             },
             failureHandler = {
                 LOG.error("Failed to connect to ${uri}")
-                InternalEvent.FailedToConnect().send()
+                send(InternalEvent.FailedToConnect())
             },
-            messageHandler = { InternalEvent.MessageReceived(it).send() },
-            closeHandler = { InternalEvent.Disconnected().send() }
+            messageHandler = { send(InternalEvent.MessageReceived(it)) },
+            closeHandler = { send(InternalEvent.Disconnected()) }
         )
     }
 
@@ -110,8 +111,8 @@ class WebsocketClientImpl<in TSend, out TReceive>(
         }
     }
 
-    private suspend fun Event<TReceive>.send() = _events.sendIfOpen(this)
-    private fun InternalEvent.send() = runBlocking { internalEvents.sendIfOpen(this@send) }
+    private suspend fun send(event: Event<TReceive>) = _events.sendIfOpen(event)
+    private fun send(event: InternalEvent) = runBlocking { internalEvents.sendIfOpen(event) }
 
     // To deal with stragglers after close() is called
     private suspend fun <E> SendChannel<E>.sendIfOpen(element: E) {
@@ -130,18 +131,16 @@ class WebsocketClientImpl<in TSend, out TReceive>(
                 is InternalEvent.Connected -> {
                     checkState(state is SocketState.Connecting, "Socket is not currently connecting")
                     _state = SocketState.Connected(event.websocket)
-                    Connected<TReceive>().send()
+                    send(Connected())
                 }
                 is InternalEvent.FailedToConnect -> {
                     checkState(state is SocketState.Connecting, "Socket is not currently connecting")
-                    _state = SocketState.Disconnected()
-                    backoff()
+                    abortOrBackoff()
                 }
                 is InternalEvent.Disconnected -> {
                     checkState(state is SocketState.Connected, "Socket is not currently connected")
-                    _state = SocketState.Disconnected()
-                    backoff()
-                    Disconnected<TReceive>().send()
+                    send(Disconnected())
+                    abortOrBackoff()
                 }
                 is InternalEvent.BackoffCompleted -> {
                     checkState(state is SocketState.Disconnected, "Socket is not currently backing off")
@@ -156,8 +155,18 @@ class WebsocketClientImpl<in TSend, out TReceive>(
                         LOG.error("Error parsing received message", getRootCause(e))
                         return
                     }
-                    MessageReceived(parsed).send()
+                    send(MessageReceived(parsed))
                 }
+            }
+        }
+
+        private suspend fun WebsocketClientImpl<TSend, TReceive>.abortOrBackoff() {
+            if (backoffPeriod == ABORT_ON_FAILURE) {
+                _state = SocketState.Aborted()
+                send(Aborted())
+            } else {
+                _state = SocketState.Disconnected()
+                backoffAsync()
             }
         }
     }
@@ -168,5 +177,7 @@ class WebsocketClientImpl<in TSend, out TReceive>(
             backoffPeriod: Duration = Duration.ofSeconds(5),
             websocketFactory: WebsocketFactory = WebsocketFactory()
         ): WebsocketClient<TSend, TReceive> = WebsocketClientImpl(uri, TReceive::class.java, backoffPeriod, websocketFactory)
+
+        val ABORT_ON_FAILURE: Duration = Duration.ZERO
     }
 }

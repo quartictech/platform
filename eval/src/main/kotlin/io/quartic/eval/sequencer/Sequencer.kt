@@ -5,18 +5,17 @@ import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
 import io.quartic.registry.api.model.Customer
-import java.time.Instant
 
 interface Sequencer {
     suspend fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit)
 
     interface SequenceBuilder {
+        val container: QubeContainerProxy
         suspend fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R
     }
 
     interface PhaseBuilder<R> {
-        val container: QubeContainerProxy
-        suspend fun log(stream: String, message: String, timestamp: Instant = Instant.now())
+        suspend fun log(stream: String, message: String)
 
         // Helpers
         fun success(output: R): PhaseResult<R> = Success(output)

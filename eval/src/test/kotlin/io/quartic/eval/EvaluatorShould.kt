@@ -7,6 +7,7 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.model.Dag.Node
+import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
@@ -16,20 +17,20 @@ import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Owner
 import io.quartic.github.Repository
-import io.quartic.quarty.QuartyClient
-import io.quartic.quarty.model.Dataset
-import io.quartic.quarty.model.Pipeline
-import io.quartic.quarty.model.QuartyResult
-import io.quartic.quarty.model.QuartyResult.Failure
-import io.quartic.quarty.model.QuartyResult.Success
-import io.quartic.quarty.model.Step
+import io.quartic.quarty.api.model.Dataset
+import io.quartic.quarty.api.model.Pipeline
+import io.quartic.quarty.api.model.QuartyRequest.*
+import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
+import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
+import io.quartic.quarty.api.model.Step
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.contains
+import org.hamcrest.Matchers.hasItem
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -68,37 +69,15 @@ class EvaluatorShould {
     }
 
     @Test
-    fun quarty_init_before_evaluation() {
+    fun initialise_quarty_before_evaluation() {
         execute()
+
         inOrder(quarty) {
-            verify(quarty).initAsync(any(), any())
-            verify(quarty).evaluateAsync()
+            runBlocking {
+                verify(quarty).request(isA<Initialise>(), any())
+                verify(quarty).request(isA<Evaluate>(), any())
+            }
         }
-    }
-
-    // TODO - until we do true streaming, this may lead to non-monotonic events
-    @Test
-    fun log_quarty_log_events_with_original_timestamps() {
-        val instantA = mock<Instant>()
-        val instantB = mock<Instant>()
-
-        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(
-            Success(
-                listOf(
-                    QuartyResult.LogEvent("foo", "Hello", instantA),
-                    QuartyResult.LogEvent("bar", "World", instantB)
-                ),
-                pipeline
-            )
-        ))
-
-        execute()
-
-        // Other messages should be filtered out
-        assertThat(sequencer.logs, contains(
-            LogInvocation("foo", "Hello", instantA),
-            LogInvocation("bar", "World", instantB)
-        ))
     }
 
     @Test
@@ -118,8 +97,21 @@ class EvaluatorShould {
     }
 
     @Test
+    fun throw_if_pipeline_is_unparsable() {
+        runBlocking {
+            whenever(quarty.request(isA<Evaluate>(), any())).doReturn(Result(mapOf("noob" to "hole")))
+        }
+
+        execute()
+
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error parsing Quarty response")))
+    }
+
+    @Test
     fun produce_user_error_if_user_code_failed() {
-        whenever(quarty.evaluateAsync()).thenReturn(completedFuture(Failure(emptyList(), "badness")))
+        runBlocking {
+            whenever(quarty.request(isA<Evaluate>(), any())).thenReturn(Error("badness"))
+        }
 
         execute()
 
@@ -132,7 +124,9 @@ class EvaluatorShould {
 
         evaluate()
 
-        assertThat(sequencer.numSequences, equalTo(0))
+        runBlocking {
+            verify(sequencer, times(0)).sequence(any(), any(), any())
+        }
     }
 
     @Test
@@ -147,11 +141,24 @@ class EvaluatorShould {
 
     @Test
     fun throw_error_if_quarty_interaction_fails() {
-        whenever(quarty.evaluateAsync()).thenReturn(exceptionalFuture())
+        runBlocking {
+            whenever(quarty.request(isA<Evaluate>(), any())).thenThrow(EvaluatorException("Noobhole occurred"))
+        }
 
         execute()
 
-        assertThat(sequencer.throwables, hasItem(EvaluatorException("Error while communicating with Quarty")))
+        assertThat(sequencer.throwables, hasItem(EvaluatorException("Noobhole occurred")))
+    }
+
+    @Test
+    fun close_quarty_even_if_something_fails() {
+        runBlocking {
+            whenever(quarty.request(isA<Evaluate>(), any())).thenThrow(RuntimeException("Sad"))
+        }
+
+        execute()
+
+        verify(quarty).close()
     }
 
     @Test
@@ -159,8 +166,10 @@ class EvaluatorShould {
         execute()
 
         inOrder(quarty) {
-            verify(quarty).executeAsync("abc", customerNamespace)
-            verify(quarty).executeAsync("def", customerNamespace)
+            runBlocking {
+                verify(quarty).request(eq(Execute("abc", customerNamespace)), any())
+                verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+            }
         }
     }
 
@@ -168,7 +177,9 @@ class EvaluatorShould {
     fun evaluate_only() {
         evaluate()
 
-        verify(quarty, times(0)).executeAsync(any(), any())
+        runBlocking {
+            verify(quarty, times(0)).request(isA<Execute>(), any())
+        }
     }
 
     @Test
@@ -182,9 +193,10 @@ class EvaluatorShould {
 
         execute()
 
-
-        verify(quarty, times(1)).executeAsync(any(), any())
-        verify(quarty).executeAsync("def", customerNamespace)
+        runBlocking {
+            verify(quarty, times(1)).request(isA<Execute>(), any())
+            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+        }
     }
 
     private fun execute() = runBlocking {
@@ -282,14 +294,15 @@ class EvaluatorShould {
         on { getRepositoryAsync(githubRepoId, githubToken) } doReturn completedFuture(repo)
     }
 
-    private val quarty = mock<QuartyClient> {
-        on { initAsync(githubCloneUrlWithCreds, commitId) } doReturn completedFuture(Success(emptyList(), Unit))
-        on { initAsync(githubCloneUrlWithCreds, branch) } doReturn completedFuture(Success(emptyList(), Unit))
-        on { evaluateAsync() } doReturn completedFuture(Success(emptyList(), pipeline))
-        on { executeAsync(any(), any()) } doReturn completedFuture(Success(emptyList(), Unit))
+    private val quarty = mock<QuartyProxy> {
+        // TODO - get rid of this duplication
+        on { runBlocking { request(eq(Initialise(githubCloneUrlWithCreds, commitId)), any()) } } doReturn Result(null)
+        on { runBlocking { request(eq(Initialise(githubCloneUrlWithCreds, branch)), any()) } } doReturn Result(null)
+        on { runBlocking { request(isA<Evaluate>(), any()) } } doReturn Result(pipeline)
+        on { runBlocking { request(isA<Execute>(), any()) } } doReturn Result(null)
     }
 
-    private val quartyBuilder = mock<(String) -> QuartyClient> {
+    private val quartyBuilder = mock<(String) -> QuartyProxy> {
         on { invoke(containerHostname) } doReturn quarty
     }
 
@@ -297,7 +310,7 @@ class EvaluatorShould {
         on { invoke(pipeline) } doReturn dag
     }
 
-    private val sequencer = MySequencer()
+    private val sequencer = spy(MySequencer())
 
     private val evaluator = Evaluator(
         sequencer,
@@ -307,21 +320,18 @@ class EvaluatorShould {
         quartyBuilder
     )
 
-    private data class LogInvocation(val stream: String, val message: String, val timestamp: Instant)
-
     private inner class MySequencer : Sequencer {
-        var numSequences = 0
         val results = mutableListOf<PhaseResult<*>>()
         val throwables = mutableListOf<Throwable>()
         val descriptions = mutableListOf<String>()
-        val logs = mutableListOf<LogInvocation>()
 
         suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
-            numSequences++
             block(MySequenceBuilder())
         }
 
         private inner class MySequenceBuilder : SequenceBuilder {
+            override val container = quartyContainer
+
             suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
                 descriptions += description
                 val result = try {
@@ -341,11 +351,7 @@ class EvaluatorShould {
         }
 
         private inner class MyPhaseBuilder<R> : PhaseBuilder<R> {
-            override val container = quartyContainer
-
-            suspend override fun log(stream: String, message: String, timestamp: Instant) {
-                logs += LogInvocation(stream, message, timestamp)
-            }
+            suspend override fun log(stream: String, message: String) {}
         }
     }
 }

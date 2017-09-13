@@ -8,35 +8,32 @@ import * as moment from "moment";
 
 import { Button, Spinner, Classes, Intent } from "@blueprintjs/core";
 
+import { gql, graphql } from "react-apollo";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
 const s = require("./style.css");
 
-import { FeedItem, Validate, Execute, LoadingState } from "../../models";
+import { FeedItem, Validate, Execute } from "../../models";
 
 interface IProps {
-  fetchFeed: Function;
   buildPipeline: Function;
-  feed: {
-    state: LoadingState;
-    items: FeedItem[];
+  data: {
+    loading: boolean;
+    feed: FeedItem[];
+    error: any;
   };
 }
 
 export function isValidate(item: FeedItem): item is Validate {
-  return (item as any).trigger.type === "github_webhook_v1";
+  return (item as any).trigger.type === "github_webhook";
 }
 
 export function isExecute(item: FeedItem): item is Execute {
-  return (item as any).trigger.type === "manual_v1";
+  return (item as any).trigger.type === "manual";
 }
 
 class HomeView extends React.Component<IProps, {}> {
-  componentDidMount() {
-    this.props.fetchFeed();
-  }
-
   intentForStatus = (status) => {
     switch (status) {
       case "running": return "pt-intent-primary";
@@ -59,8 +56,8 @@ class HomeView extends React.Component<IProps, {}> {
 
           <div className={s.cardBody}>
             <h5>
-              <Link to={`/pipeline/${item.buildNumber}`}>
-                Validate #{item.buildNumber}
+              <Link to={`/pipeline/${item.number}`}>
+                Validate #{item.number}
               </Link>
             </h5>
             <b>Branch</b> {item.branch}
@@ -81,8 +78,8 @@ class HomeView extends React.Component<IProps, {}> {
 
           <div className={s.cardBody}>
             <h5>
-              <Link to={`/pipeline/${item.buildNumber}`}>
-                Build #{item.buildNumber}
+              <Link to={`/pipeline/${item.number}`}>
+                Build #{item.number}
               </Link>
             </h5>
             <b>Branch</b> {item.branch}
@@ -121,27 +118,24 @@ class HomeView extends React.Component<IProps, {}> {
       />
       <h2>Activity</h2>
       <div className={s.feed}>
-        {this.props.feed.items.map(item => this.renderItem(item))}
+        {this.props.data.feed.map(item => this.renderItem(item))}
       </div>
     </div>
   )
 
   renderContainer() {
-    switch (this.props.feed.state) {
-      case LoadingState.LOADING:
-        return (
-          <div className={s.noItems}>
-            <Spinner className={Classes.LARGE} />
-          </div>
-        );
-      case LoadingState.LOADED:
-        if (this.props.feed.items.length > 0) {
-          return this.renderFeed();
-        } else {
-          return this.renderNoItems();
-        }
-      default:
-        return null;
+    if (this.props.data.loading) {
+      return (
+        <div className={s.noItems}>
+          <Spinner className={Classes.LARGE} />
+        </div>
+      );
+    } else if (this.props.data.feed) {
+      if (this.props.data.feed.length > 0) {
+        return this.renderFeed();
+      } else {
+        return this.renderNoItems();
+      }
     }
   }
 
@@ -157,16 +151,28 @@ class HomeView extends React.Component<IProps, {}> {
 export { HomeView };
 
 const mapDispatchToProps = {
-  fetchFeed: actions.fetchFeed,
   buildPipeline: actions.buildPipeline,
 };
 
 const mapStateToProps = createStructuredSelector({
   ui: selectors.selectUi,
-  feed: selectors.selectFeed,
 });
 
-export default connect(
+const query = gql`{
+  feed {
+    type
+    id
+    time
+    status
+    number
+    branch
+    trigger {
+      type
+    }
+  }
+}`;
+
+export default graphql(query)(connect(
   mapStateToProps,
   mapDispatchToProps,
-)(HomeView);
+)(HomeView));

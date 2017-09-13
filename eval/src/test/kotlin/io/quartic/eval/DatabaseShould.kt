@@ -11,8 +11,8 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.model.Dataset
-import io.quartic.quarty.model.Step
+import io.quartic.quarty.api.model.Dataset
+import io.quartic.quarty.api.model.Step
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains

@@ -71,7 +71,7 @@ export interface FeedItem {
 }
 
 export interface Validate extends FeedItem {
-  buildNumber: number;
+  number: number;
   branch: string;
   status: string;
   trigger: {
@@ -80,7 +80,7 @@ export interface Validate extends FeedItem {
 }
 
 export interface Execute extends FeedItem {
-  buildNumber: number;
+  number: number;
   branch: string;
   status: string;
   trigger: {
@@ -88,8 +88,3 @@ export interface Execute extends FeedItem {
   };
 }
 
-export enum LoadingState {
-  NOT_LOADED,
-  LOADING,
-  LOADED,
-}

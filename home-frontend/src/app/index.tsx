@@ -1,11 +1,13 @@
 import "whatwg-fetch";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Provider } from "react-redux";
 import { Router } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
 import { configureStore } from "./redux/store";
 import { getRoutes, appHistory } from "./routes";
+
+import { ApolloProvider } from "react-apollo";
+import { client } from "./redux/apollo";
 
 import "@blueprintjs/core/dist/blueprint.css";
 
@@ -20,6 +22,7 @@ const history = syncHistoryWithStore(appHistory, store, {
   selectLocationState: selectLocationState(),
 });
 
+
 const component = (
   <Router history={history}>
     {getRoutes()}
@@ -27,8 +30,8 @@ const component = (
 );
 
 ReactDOM.render(
-  <Provider store={store}>
+  <ApolloProvider client={client} store={store}>
     {component}
-  </Provider>,
+  </ApolloProvider>,
   document.getElementById("app"),
 );

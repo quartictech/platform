@@ -6,13 +6,13 @@ qube:
   url: ws://localhost:8202
   pod:
     containers:
-    - name: quarty
-      image: eu.gcr.io/quartictech/jupyter:53
-      command:
-      - "python"
-      - "-m"
-      - "http.server"
-      port: 8000
+     - name: quarty
+       image: eu.gcr.io/quartictech/jupyter:53
+       command:
+        - "python"
+        - "-m"
+        - "http.server"
+       port: 8000
 
 github:
   appId: 4352

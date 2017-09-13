@@ -11,8 +11,8 @@ import io.quartic.eval.model.BuildEvent
 import io.quartic.eval.model.BuildEvent.PhaseCompleted
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
 import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.model.Dataset
-import io.quartic.quarty.model.Step
+import io.quartic.quarty.api.model.Dataset
+import io.quartic.quarty.api.model.Step
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -36,7 +36,7 @@ class QueryResourceShould {
     @Test
     fun throw_404_if_no_latest_build_found() {
         assertThrows<NotFoundException> {
-            resource.getDag(customerId)
+            resource.getLatestDag(customerId)
         }
     }
 
@@ -45,7 +45,7 @@ class QueryResourceShould {
         whenever(database.getLatestSuccessfulBuildNumber(customerId)).thenReturn(5678)
 
         try {
-            resource.getDag(customerId)
+            resource.getLatestDag(customerId)
         } catch(e: Exception) {}   // Swallow
 
         verify(database).getEventsForBuild(customerId, 5678)
