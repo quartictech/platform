@@ -6,6 +6,7 @@ open class FrontendExtension {
     val prod get() = _prod.toMap()
     val dev get() = _dev.toMap()
     var includeStandardDeps = true
+    var nginxTryFiles = "\$uri/index.html \$uri.html \$uri/ \$uri"
 
     @Suppress("unused")
     fun prod(name: String, version: String) {

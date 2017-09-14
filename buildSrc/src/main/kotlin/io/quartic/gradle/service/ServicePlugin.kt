@@ -2,6 +2,7 @@ package io.quartic.gradle.service
 
 import io.quartic.gradle.docker.DockerExtension
 import io.quartic.gradle.docker.DockerPlugin
+import io.quartic.gradle.getResourceAsText
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
@@ -81,7 +82,7 @@ class ServicePlugin : Plugin<Project> {
         }
     }
 
-    private val dockerfileTemplate = javaClass.getResource("Dockerfile").readText()
+    private val dockerfileTemplate = getResourceAsText("Dockerfile")
 
     private fun replace(original: String, replacements: Map<String, Any>) = replacements
         .entries

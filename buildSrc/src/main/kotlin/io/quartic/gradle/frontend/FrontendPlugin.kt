@@ -2,6 +2,7 @@ package io.quartic.gradle.frontend
 
 import io.quartic.gradle.docker.DockerExtension
 import io.quartic.gradle.docker.DockerPlugin
+import io.quartic.gradle.getResourceAsText
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
@@ -175,7 +176,7 @@ class FrontendPlugin : Plugin<Project> {
         plugins.apply(DockerPlugin::class.java)
 
         fun CopySpec.fromResource(name: String) =
-            from(resources.text.fromString(this@FrontendPlugin.javaClass.getResource(name).readText()).asFile()) {
+            from(resources.text.fromString(this@FrontendPlugin.getResourceAsText(name)).asFile()) {
                 it.rename { _ -> name }
             }
 
@@ -198,6 +199,9 @@ class FrontendPlugin : Plugin<Project> {
         block.invoke(task)
         return task
     }
+
+    private val dockerfileTemplate = getResourceAsText("Dockerfile")
+    private val nginxConfTemplate = getResourceAsText("default.conf")
 
     private val Project.ext get() = extensions.getByType(FrontendExtension::class.java)
 
