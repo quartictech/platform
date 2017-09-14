@@ -37,7 +37,7 @@ class SequencerImplShould {
 
         val buildId = uuid(100)
         verify(database).insertBuild(buildId, CustomerId(999), "lovely")
-        verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details)), any(), eq(buildId))
+        verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details.toDatabaseModel())), any(), eq(buildId))
         verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId))
         verify(database).insertEvent(eq(uuid(103)), eq(BUILD_SUCCEEDED), any(), eq(buildId))
     }

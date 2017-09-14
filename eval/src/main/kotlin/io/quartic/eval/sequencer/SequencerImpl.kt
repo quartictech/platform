@@ -42,7 +42,7 @@ class SequencerImpl(
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, trigger)
-            insert(TriggerReceived(trigger))
+            insert(TriggerReceived(trigger.toDatabaseModel()))
             notifier.notifyStart(trigger)
 
             val completionEvent = executeInContainer(block)

@@ -5,13 +5,13 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
+import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
@@ -30,7 +30,7 @@ class DatabaseShould {
     private val customerId = customerId()
     private val branch = "develop"
 
-    private val trigger = BuildTrigger.GithubWebhook(
+    private val trigger = GithubWebhook(
         deliveryId = "deadbeef",
         installationId = 1234,
         repoId = 5678,

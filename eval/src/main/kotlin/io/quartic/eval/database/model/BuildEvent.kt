@@ -6,11 +6,17 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
-import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.common.model.CustomerId
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
+import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
+import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
+import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
+import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
+import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
+import java.time.Instant
 import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -29,7 +35,39 @@ sealed class BuildEvent
 /**
  * Current event definitions
  */
-data class CurrentTriggerReceived(val trigger: BuildTrigger) : BuildEvent()
+data class CurrentTriggerReceived(val trigger: BuildTrigger) : BuildEvent() {
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(GithubWebhook::class, name = "github_webhook"),
+        Type(Manual::class, name = "manual")
+    )
+    sealed class BuildTrigger {
+        data class GithubWebhook(
+            val deliveryId: String,
+            val repoId: Long,
+            val ref: String,
+            val commit: String,
+            val timestamp: Instant,
+            val repoName: String,
+            val repoOwner: String,
+            val installationId: Long,
+            val rawWebhook: Map<String, Any>
+        ): BuildTrigger()
+
+        data class Manual(
+            val user: String,
+            val timestamp: Instant,
+            val customerId: CustomerId,
+            val branch: String,
+            val triggerType: TriggerType
+        ): BuildTrigger()
+    }
+
+    enum class TriggerType {
+        EVALUATE,
+        EXECUTE
+    }
+}
 sealed class BuildCompleted : BuildEvent()
 class CurrentBuildCancelled : BuildCompleted()
 class CurrentBuildSucceeded : BuildCompleted()
@@ -115,3 +153,50 @@ fun io.quartic.quarty.api.model.Dataset.toDatabaseModel() = Dataset(
     datasetId = this.datasetId
 )
 
+fun BuildTrigger.toApiModel() = when (this) {
+    is GithubWebhook -> io.quartic.eval.api.model.BuildTrigger.GithubWebhook(
+        deliveryId = deliveryId,
+        repoId = repoId,
+        ref = ref,
+        commit = commit,
+        timestamp = timestamp,
+        repoName = repoName,
+        repoOwner = repoOwner,
+        installationId = installationId,
+        rawWebhook = rawWebhook
+    )
+    is Manual -> io.quartic.eval.api.model.BuildTrigger.Manual(
+        user = user,
+        timestamp = timestamp,
+        customerId = customerId,
+        branch = branch,
+        triggerType = when (triggerType) {
+            EVALUATE -> io.quartic.eval.api.model.BuildTrigger.TriggerType.EVALUATE
+            EXECUTE -> io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
+        }
+    )
+}
+
+fun io.quartic.eval.api.model.BuildTrigger.toDatabaseModel() = when (this) {
+    is io.quartic.eval.api.model.BuildTrigger.GithubWebhook -> GithubWebhook(
+        deliveryId = deliveryId,
+        repoId = repoId,
+        ref = ref,
+        commit = commit,
+        timestamp = timestamp,
+        repoName = repoName,
+        repoOwner = repoOwner,
+        installationId = installationId,
+        rawWebhook = rawWebhook
+    )
+    is io.quartic.eval.api.model.BuildTrigger.Manual -> Manual(
+        user = user,
+        timestamp = timestamp,
+        customerId = customerId,
+        branch = branch,
+        triggerType = when (triggerType) {
+            io.quartic.eval.api.model.BuildTrigger.TriggerType.EVALUATE -> EVALUATE
+            io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE -> EXECUTE
+        }
+    )
+}

@@ -4,11 +4,11 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
 import io.quartic.eval.database.Database
-import io.quartic.eval.database.model.CurrentPhaseCompleted
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
 import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.toApiModel
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -34,7 +34,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
         buildNumber = this.buildNumber,
         branch = this.branch,
         customerId = this.customerId,
-        trigger = this.trigger.trigger,
+        trigger = this.trigger.trigger.toApiModel(),
         status = this.status,
         time = this.time
     )
