@@ -1,18 +1,17 @@
-package io.quartic.eval
+package io.quartic.eval.database
 
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.Database.BuildRow
-import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.api.model.Dataset
-import io.quartic.quarty.api.model.Step
+import io.quartic.eval.database.Database.BuildRow
+import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
+import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
@@ -31,7 +30,7 @@ class DatabaseShould {
     private val customerId = customerId()
     private val branch = "develop"
 
-    private val trigger = BuildTrigger.GithubWebhook(
+    private val trigger = GithubWebhook(
         deliveryId = "deadbeef",
         installationId = 1234,
         repoId = 5678,
@@ -62,7 +61,7 @@ class DatabaseShould {
     @Test
     fun insert_event() {
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(phaseId))
+        insertEvent(buildId, successfulPhase(phaseId))
 
         assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
             successfulPhase(phaseId) as BuildEvent
@@ -73,10 +72,10 @@ class DatabaseShould {
     fun get_events_for_build_in_chronological_order() {
         val time = Instant.now()
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(uuid(69)), time)
-        insertEvent(buildId, phaseId, successfulPhase(uuid(70)), time - Duration.ofSeconds(1))
-        insertEvent(buildId, phaseId, successfulPhase(uuid(71)), time + Duration.ofSeconds(1))
-        insertEvent(buildId, phaseId, successfulPhase(uuid(72)), time - Duration.ofSeconds(2))
+        insertEvent(buildId, successfulPhase(uuid(69)), time)
+        insertEvent(buildId, successfulPhase(uuid(70)), time - Duration.ofSeconds(1))
+        insertEvent(buildId, successfulPhase(uuid(71)), time + Duration.ofSeconds(1))
+        insertEvent(buildId, successfulPhase(uuid(72)), time - Duration.ofSeconds(2))
 
         assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
             successfulPhase(uuid(72)) as BuildEvent,
@@ -89,11 +88,11 @@ class DatabaseShould {
     @Test
     fun get_events_for_only_specified_build() {
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, successfulPhase(uuid(42)))
+        insertEvent(buildId, successfulPhase(uuid(42)))
 
         val otherBuildId = uuidGen()
         insertBuild(otherBuildId)
-        insertEvent(otherBuildId, phaseId, successfulPhase(uuid(69)))
+        insertEvent(otherBuildId, successfulPhase(uuid(69)))
 
         assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
             successfulPhase(uuid(42)) as BuildEvent
@@ -104,13 +103,13 @@ class DatabaseShould {
     fun get_latest_successful_build_number() {
         // Build #1
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, BuildEvent.BUILD_SUCCEEDED)
+        insertEvent(buildId, BUILD_SUCCEEDED)
         // Build #2
         insertBuild(uuid(1000))
-        insertEvent(uuid(1000), phaseId, BuildEvent.BUILD_SUCCEEDED)
+        insertEvent(uuid(1000), BUILD_SUCCEEDED)
         // Build #3
         insertBuild(uuid(2000))
-        insertEvent(uuid(2000), phaseId, BuildEvent.BUILD_CANCELLED)
+        insertEvent(uuid(2000), BUILD_CANCELLED)
 
         assertThat(DATABASE.getLatestSuccessfulBuildNumber(customerId), equalTo(2L))
     }
@@ -152,11 +151,10 @@ class DatabaseShould {
     fun get_builds_succeeded() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildId)
+        DATABASE.insertEvent(UUID.randomUUID(), BUILD_SUCCEEDED, time, buildId)
 
         val builds = DATABASE.getBuilds(customerId)
         assertThat(builds.size, equalTo(1))
@@ -167,11 +165,10 @@ class DatabaseShould {
     fun get_builds_failed() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BuildCompleted.BuildFailed("noob"), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildId)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildFailed("noob"), time, buildId)
 
         val builds = DATABASE.getBuilds(customerId)
         assertThat(builds.size, equalTo(1))
@@ -182,10 +179,9 @@ class DatabaseShould {
     fun get_builds_running() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
-        val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildId)
         val builds = DATABASE.getBuilds(customerId)
 
         assertThat(builds.size, equalTo(1))
@@ -199,10 +195,10 @@ class DatabaseShould {
         val buildBId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildAId, customerAId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildAId, UUID.randomUUID())
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildAId)
 
         DATABASE.insertBuild(buildBId, customerBId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildBId, UUID.randomUUID())
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildBId)
 
         val builds = DATABASE.getBuilds(customerAId)
         assertThat(builds.size, equalTo(1))
@@ -221,8 +217,8 @@ class DatabaseShould {
         DATABASE.insertBuild(buildId, customerId, branch)
     }
 
-    private fun insertEvent(buildId: UUID, phaseId: UUID? = null, event: BuildEvent, time: Instant = Instant.now()) {
-        DATABASE.insertEvent(uuidGen(), event, time, buildId, phaseId)
+    private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now()) {
+        DATABASE.insertEvent(uuidGen(), event, time, buildId)
     }
 
     private inner class UuidGen {

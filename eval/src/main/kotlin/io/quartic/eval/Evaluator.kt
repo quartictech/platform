@@ -7,8 +7,9 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.eval.model.Dag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
+import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
@@ -37,7 +38,7 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (Pipeline) -> Dag?,
+    private val extractDag: (List<Step>) -> Dag?,
     private val quartyBuilder: (String) -> QuartyProxy
 ) {
     constructor(
@@ -48,9 +49,9 @@ class Evaluator(
         sequencer,
         registry,
         github,
-        { pipeline ->
+        { steps ->
             try {
-                Dag.fromSteps(pipeline.steps)
+                Dag.fromSteps(steps)
             } catch (e: Exception) {
                 null
             }
@@ -133,11 +134,11 @@ class Evaluator(
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
     private fun PhaseBuilder<Dag>.extractDagFromPipeline(raw: Any?): PhaseResult<Dag> {
-        val pipeline = parseRawPipeline(raw)
-        val dag = extractDag(pipeline)
+        val steps = parseRawPipeline(raw)
+        val dag = extractDag(steps)
         return with(dag) {
             if (dag != null) {
-                successWithArtifact(EvaluationOutput(pipeline.steps), dag)
+                successWithArtifact(EvaluationOutput(steps), dag)
             } else {
                 userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
@@ -145,7 +146,7 @@ class Evaluator(
     }
 
     private fun parseRawPipeline(raw: Any?) = try {
-        OBJECT_MAPPER.convertValue<Pipeline>(raw!!)
+        OBJECT_MAPPER.convertValue<Pipeline>(raw!!).steps.map { it.toDatabaseModel() }
     } catch (e: Exception) {
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }

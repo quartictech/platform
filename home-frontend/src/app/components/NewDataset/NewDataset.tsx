@@ -24,7 +24,6 @@ interface IState {
   namespace: string;
   name?: string;
   description?: string;
-  fileType?: string;
 }
 
 // tslint:disable-next-line:variable-name
@@ -44,26 +43,6 @@ const FilesList = ({ files }) => (
   </table>
 );
 
-// tslint:disable-next-line:variable-name
-const FileTypeButton = ({ label, fileType, selectedFileType, onClick }) => (
-  <button
-    onClick={() => onClick(fileType)}
-    className={classNames("pt-button", { "pt-active": fileType === selectedFileType })}
-    role="button"
-  >
-    {label}
-  </button>
-);
-
-// tslint:disable-next-line:variable-name
-const FileTypeChooser = ({ fileType, onClick }) => (
-  <div className="pt-button-group pt-large pt-fill">
-    <FileTypeButton label="GeoJSON" fileType="geojson" selectedFileType={fileType} onClick={onClick} />
-    <FileTypeButton label="CSV (geospatial)" fileType="csv" selectedFileType={fileType} onClick={onClick} />
-    <FileTypeButton label="RAW" fileType="raw" selectedFileType={fileType} onClick={onClick} />
-  </div>
-);
-
 export class NewDataset extends React.Component<INewDatasetProps, IState> {
   constructor() {
     super();
@@ -72,7 +51,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       name: "",
       description: "",
       files: [],
-      fileType: "geojson",
     };
 
     this.toggleDialog = this.toggleDialog.bind(this);
@@ -80,7 +58,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     this.onChangeName = this.onChangeName.bind(this);
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onDrop = this.onDrop.bind(this);
-    this.onFileTypeClick = this.onFileTypeClick.bind(this);
     this.onSave = this.onSave.bind(this);
   }
 
@@ -94,7 +71,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       },
       {
         files: this.state.files,
-        fileType: this.state.fileType,
+        fileType: "RAW",
       },
     );
   }
@@ -131,10 +108,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
     return this.state.description.length !== 0;
   }
 
-  onFileTypeClick(fileType) {
-    this.setState({ fileType });
-  }
-
   public render() {
     return (
       <Dialog
@@ -145,18 +118,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
         style={{ backgroundColor: "#293742", minWidth: 400, width: "30%", bottom: "calc(100vh-50)" }}
       >
         <div className="pt-dialog-body pt-dark">
-          <label className="pt-label">
-            Namespace
-            <input
-              className={classNames("pt-input", "pt-fill", { "pt-intent-danger": !this.isNamespaceValid() })}
-              type="text"
-              placeholder="Namespace"
-              dir="auto"
-              value={this.state.namespace}
-              onChange={this.onChangeNamespace}
-            />
-          </label>
-
           <label className="pt-label">
             Name
             <input
@@ -190,13 +151,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
               {this.filesListOrMessage()}
             </Dropzone>
           </label>
-           <label className="pt-label">
-            File Type
-            <FileTypeChooser
-              fileType={this.state.fileType}
-              onClick={this.onFileTypeClick}
-            />
-           </label>
          </div>
          <div className="pt-dialog-footer">
            <div className="pt-dialog-footer-actions">
@@ -215,7 +169,7 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
   private filesListOrMessage() {
     return (this.state.files.length === 0)
-      ? <div>Try dropping some files here, or click to select files to upload.</div>
+      ? <div>Drag files here, or click to select files to upload.</div>
       : <FilesList files={this.state.files} />;
   }
 }

@@ -1,8 +1,8 @@
 datasets:
   assets:
-    prettyName: "RSL assets"
+    pretty_name: "RSL assets"
     url: "http://localhost:8120/api/magnolia/zeus%2Froads"
-    indexedAttributes: [ "RSL", "Road Name" ]
+    indexed_attributes: [ "RSL", "Road Name" ]
 
 url:
   port: 8160

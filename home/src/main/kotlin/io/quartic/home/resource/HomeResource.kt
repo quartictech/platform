@@ -50,7 +50,7 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getLatestDag(@Auth user: User) = evalQuery.getDagAsync(user.customerId!!)
+    fun getLatestDag(@Auth user: User) = evalQuery.getLatestDayAsync(user.customerId!!)
         .wrapNotFound("DAG", "latest")
 
     @POST

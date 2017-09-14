@@ -3,20 +3,22 @@ import { Header } from "../../components";
 
 import { Profile } from "../../models";
 
-import * as selectors from "../../redux/selectors";
-
 import { createStructuredSelector } from "reselect";
 import * as actions from "../../redux/actions";
 import { connect } from "react-redux";
+import { gql, graphql } from "react-apollo";
 
 const s = require("./style.css");
 
 interface IProps {
   children?: any;
-  showNewDatasetModal: any;
+  data: {
+    loading: boolean;
+    profile?: Profile;
+    error: any;
+  };
   searchDatasets: any;
   logout: () => void;
-  profile?: Profile;
 }
 
 export class App extends React.Component<IProps, {}> {
@@ -28,7 +30,7 @@ export class App extends React.Component<IProps, {}> {
           <Header
             searchBoxChange={this.props.searchDatasets}
             onLogOutClick={this.props.logout}
-            profile={this.props.profile}
+            profile={this.props.data.profile}
           />
           <div className={s.container}>
             {children}
@@ -45,10 +47,13 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
-  profile: selectors.selectProfile,
 });
 
-export default connect(
+const PROFILE_QUERY = gql`{
+  profile { name, avatarUrl }
+}`;
+
+export default graphql(PROFILE_QUERY)(connect(
   mapStateToProps,
   mapDispatchToProps,
-)(App);
+)(App));

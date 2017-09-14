@@ -2,17 +2,15 @@ package io.quartic.eval.sequencer
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.Database
-import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.*
-import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.Database.BuildRow
+import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -39,9 +37,9 @@ class SequencerImplShould {
 
         val buildId = uuid(100)
         verify(database).insertBuild(buildId, CustomerId(999), "lovely")
-        verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details)), any(), eq(buildId), eq(null))
-        verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId), eq(null))
-        verify(database).insertEvent(eq(uuid(103)), eq(BuildEvent.BUILD_SUCCEEDED), any(), eq(buildId), eq(null))
+        verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details.toDatabaseModel())), any(), eq(buildId))
+        verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId))
+        verify(database).insertEvent(eq(uuid(103)), eq(BUILD_SUCCEEDED), any(), eq(buildId))
     }
 
     @Test
@@ -56,8 +54,8 @@ class SequencerImplShould {
 
         val buildId = uuid(100)
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId), eq(phaseId))
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success(artifact))), any(), eq(buildId), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success(artifact))), any(), eq(buildId))
     }
 
     @Test
@@ -70,8 +68,8 @@ class SequencerImplShould {
 
         val buildId = uuid(100)
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId), eq(phaseId))
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success())), any(), eq(buildId), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success())), any(), eq(buildId))
     }
 
     @Test
@@ -84,7 +82,7 @@ class SequencerImplShould {
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), any(), any(), eq(phaseId))
+        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), any(), any())
     }
 
     @Test
@@ -97,7 +95,7 @@ class SequencerImplShould {
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(Instant.EPOCH), any(), eq(phaseId))
+        verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(Instant.EPOCH), any())
     }
 
     @Test
@@ -108,8 +106,8 @@ class SequencerImplShould {
             }
         }
 
-        verify(database, never()).insertEvent(any(), eq(BuildEvent.BUILD_SUCCEEDED), any(), any(), eq(null))
-        verify(database).insertEvent(any(), eq(BuildFailed("Internal error")), any(), any(), eq(null))
+        verify(database, never()).insertEvent(any(), eq(BUILD_SUCCEEDED), any(), any())
+        verify(database).insertEvent(any(), eq(BuildFailed("Internal error")), any(), any())
     }
 
     @Test
@@ -123,7 +121,7 @@ class SequencerImplShould {
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any(), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any())
     }
 
     @Test
@@ -142,7 +140,7 @@ class SequencerImplShould {
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any(), eq(phaseId))
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any())
     }
 
     @Test

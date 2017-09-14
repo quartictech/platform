@@ -7,7 +7,7 @@ class CloudDatasetLocatorShould : DatasetLocatorTests<DatasetLocator.CloudDatase
         {
             "type": "cloud",
             "path": "http://wat",
-            "mimeType": "application/noob"
+            "mime_type": "application/noob"
         }
     """
 }
