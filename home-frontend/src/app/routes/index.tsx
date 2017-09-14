@@ -24,7 +24,7 @@ function getRoutes() {
           <Route path="/datasets" component={DatasetsView} />
           <Route path="/datasets/:namespace/:id" component={DatasetView} />
           <Route path="/pipeline(/:build)" component={PipelineView} />
-          <Route path="/build(/:build)" component={BuildView} />
+          <Route path="/build/:build" component={BuildView} />
         </Route>
       </Route>
     </Route>

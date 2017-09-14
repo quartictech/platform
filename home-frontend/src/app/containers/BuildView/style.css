@@ -1,6 +1,6 @@
 
 .container {
-  width: 600px;
+  width: 800px;
   display: flex;
   padding: 20px;
   flex-direction: column;
@@ -32,6 +32,5 @@ pre.bash {
   background-color: #202B33;
   color: white;
   font-size: medium ;
-  font-family: Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 }
 

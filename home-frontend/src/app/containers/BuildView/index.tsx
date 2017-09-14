@@ -32,25 +32,25 @@ class BuildView extends React.Component<IProps, IState> {
     this.state = { openPhases: {} };
   }
 
-  renderLogs(events) {
+  private renderLogs(events) {
     return events.map(event => `[${this.formatTime(event.time)}] ${event.message}`)
       .join("\n");
   }
 
-  orderPhases(events: BuildEvent[]) {
+  private orderPhases(events: BuildEvent[]) {
     return events.filter(event => event.type === "phase_started")
       .sort((a, b) => a.time - b.time);
   }
 
-  groupByPhase(events: BuildEvent[]) {
+  private groupByPhase(events: BuildEvent[]) {
     const groupedEvents = _.groupBy(events, event => event.phase_id);
     return _.mapObject(groupedEvents, (val, _) =>
       val.filter(event => event.type === "log").sort((a, b) => a.time - b.time));
   }
 
-  formatTime = time => moment.unix(time).format("YYYY-MM-DD HH:mm:ss");
+  private formatTime = time => moment.unix(time).format("YYYY-MM-DD HH:mm:ss");
 
-  onPhaseClick(phaseId: string) {
+  private onPhaseClick(phaseId: string) {
     this.setState({ openPhases:
       Object.assign(this.state.openPhases, {
         [phaseId]: this.state.openPhases[phaseId] ? !this.state.openPhases[phaseId] : true,
@@ -58,7 +58,7 @@ class BuildView extends React.Component<IProps, IState> {
     });
   }
 
-  renderPhase(phase, events) {
+  private renderPhase(phase, events) {
     if (events.length === 0) {
       return (
         <div key={phase.id} className={s.phaseItem}>
@@ -92,7 +92,7 @@ class BuildView extends React.Component<IProps, IState> {
     }
   }
 
-  renderPhases(events) {
+  private renderPhases(events) {
     const phases = this.orderPhases(events);
     const eventsByPhase = this.groupByPhase(events);
     return phases.map(phase => this.renderPhase(phase, eventsByPhase[phase.phase_id]));

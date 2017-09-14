@@ -25,7 +25,7 @@ interface IProps {
   };
 }
 
-export function isValidate(item): item is Validate {
+export function isValidate(item: FeedItem): item is Validate {
   return (item as any).trigger.type === "github_webhook";
 }
 
@@ -93,6 +93,8 @@ class HomeView extends React.Component<IProps, {}> {
       return this.renderValidate(item);
     } else if (isExecute(item)) {
       return this.renderExecute(item);
+    } else {
+      return null;
     }
   }
 
