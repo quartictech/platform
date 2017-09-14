@@ -1,21 +1,21 @@
-catalogueUrl: http://localhost:8090/api
-howlUrl: http://localhost:8120/api
-registryUrl: http://localhost:8190/api/
-evalUrl: http://localhost:8200/api
+catalogue_url: http://localhost:8090/api
+howl_url: http://localhost:8120/api
+registry_url: http://localhost:8190/api/
+eval_url: http://localhost:8200/api
 
 github:
-  trampolineUrl: "http://localhost:8100/api/auth/gh/callback"
+  trampoline_url: "http://localhost:8100/api/auth/gh/callback"
 
-  redirectHost: "http://%s:3010"
+  redirect_host: "http://%s:3010"
 
   scopes:
     - user
 
 cookies:
   secure: true
-  maxAgeSeconds: 2592000 # 30 days
+  max_age_seconds: 2592000 # 30 days
 
 url:
-  randomPort: true
+  random_port: true
 
 

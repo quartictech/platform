@@ -61,7 +61,7 @@ class ApplicationBaseTokenAuthShould {
             TestApplication::class.java,
             resourceFilePath("test.yml"),
             config("auth.type", "token"),
-            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe)
+            config("auth.key_encrypted_base64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe)
         )
     }
 }

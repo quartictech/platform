@@ -1,9 +1,9 @@
-package io.quartic.eval.model
+package io.quartic.eval
 
 import com.google.common.base.Preconditions.checkArgument
-import io.quartic.eval.model.Dag.Node
-import io.quartic.quarty.api.model.Dataset
-import io.quartic.quarty.api.model.Step
+import io.quartic.eval.Dag.Node
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
 import org.jgrapht.DirectedGraph
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
