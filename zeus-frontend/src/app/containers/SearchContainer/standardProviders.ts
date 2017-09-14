@@ -37,7 +37,7 @@ const datasetProvider = () => {
     return engine(
       _.map(datasets, (v, k) => ({
         key: k,
-        name: v.prettyName,
+        name: v.pretty_name,
         iconName: "database",
         href: `/explorer/${encodeURIComponent(k)}`,
       })),

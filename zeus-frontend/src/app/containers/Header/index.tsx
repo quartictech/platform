@@ -142,7 +142,7 @@ class Header extends React.Component<Props, {}> {
       <MenuItem
         key={k}
         iconName="database"
-        text={v.prettyName}
+        text={v.pretty_name}
         href={appHistory.createHref({ pathname: `/explorer/${encodeURIComponent(k)}` })}
       />
     ));
