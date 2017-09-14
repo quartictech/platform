@@ -31,9 +31,21 @@ class QueryResource(private val database: Database) : EvalQueryService {
             message = this.payload.message,
             phaseId = this.payload.phaseId,
             time = this.time,
-            stream = this.payload.stream
+            stream = this.payload.stream,
+            id = this.id
         )
-        else -> ApiBuildEvent.Other(this.time)
+        is BuildEvent.PhaseStarted -> ApiBuildEvent.PhaseStarted(
+            phaseId = this.phaseId!!,
+            description = this.payload.description,
+            time = this.time,
+            id = this.id
+        )
+        is BuildEvent.PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
+            this.phaseId!!,
+            this.time,
+            this.id
+        )
+        else -> ApiBuildEvent.Other(this.time, this.id)
     }
 
     override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)

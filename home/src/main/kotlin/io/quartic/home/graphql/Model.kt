@@ -1,7 +1,8 @@
 package io.quartic.home.graphql
 
 import graphql.annotations.*
-import java.util.*
+import io.quartic.eval.api.model.ApiBuildEvent
+import java.time.Instant
 
 data class Build(
     @GraphQLField
@@ -43,7 +44,12 @@ data class User(
     val avatarUrl: String
 )
 
-@GraphQLUnion(possibleTypes = arrayOf(BuildEvent.Log::class, BuildEvent.Other::class))
+@GraphQLUnion(possibleTypes = arrayOf(
+    BuildEvent.Log::class,
+    BuildEvent.Other::class,
+    BuildEvent.PhaseStarted::class,
+    BuildEvent.PhaseCompleted::class
+))
 interface BuildEvent {
     @GraphQLField
     fun time(): Long
@@ -51,9 +57,10 @@ interface BuildEvent {
     @GraphQLField
     fun type(): String
 
-    data class Log(
-        @GraphQLField
-        @GraphQLName("phase_id")
+    @From<ApiBuildEvent.Log>
+    data class Log (
+        @get:GraphQLField
+        @get:GraphQLName("phase_id")
         val phaseId: String,
 
         @GraphQLField
@@ -62,9 +69,37 @@ interface BuildEvent {
         @GraphQLField
         val message: String,
 
-        private val time: Long): BuildEvent {
+        private val time: Instant
+    ): BuildEvent {
         override fun type() = "log"
-        override fun time() = time
+        override fun time() = time.epochSecond
+    }
+
+    @From<ApiBuildEvent.PhaseStarted>
+    data class PhaseStarted(
+        @get:GraphQLField
+        @get:GraphQLName("phase_id")
+        val phaseId: String,
+
+        @GraphQLField
+        val description: String,
+
+        private val time: Instant
+    ): BuildEvent {
+        override fun time() = time.epochSecond
+        override fun type() = "phase_started"
+    }
+
+    @From<ApiBuildEvent.PhaseCompleted>
+    data class PhaseCompleted(
+        @get:GraphQLField
+        @get:GraphQLName("phase_id")
+        val phaseId: String,
+
+        private val time: Instant
+    ): BuildEvent {
+        override fun time() = time.epochSecond
+        override fun type() = "phase_completed"
     }
 
     data class Other(private val time: Long): BuildEvent {

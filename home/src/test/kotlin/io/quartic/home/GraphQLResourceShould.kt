@@ -53,8 +53,8 @@ class GraphQLResourceShould {
             time = Instant.now()
         )
         )
-    private val events = listOf(
-        ApiBuildEvent(Instant.now())
+    private val events = listOf<ApiBuildEvent>(
+        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(), Instant.now(), UUID.randomUUID())
     )
 
     private val eval = mock<EvalQueryServiceClient> {
@@ -97,8 +97,8 @@ class GraphQLResourceShould {
                     id,
                     number,
                     events {
-                        ... on Default {
-                            time
+                        ... on PhaseCompleted {
+                            phase_id
                         }
                     }
                 }

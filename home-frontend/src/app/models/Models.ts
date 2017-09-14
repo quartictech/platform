@@ -70,6 +70,12 @@ export interface FeedItem {
   time: number;
 }
 
+export interface BuildEvent {
+  type: string;
+  time: number;
+  phase_id: string;
+}
+
 export interface Build extends FeedItem {
   number: number;
   branch: string;
@@ -77,7 +83,7 @@ export interface Build extends FeedItem {
   trigger: {
     type: string;
   };
-  events: any[];
+  events: BuildEvent[];
 }
 
 export interface Validate extends Build { }

@@ -49,8 +49,21 @@ class EventsFetcher: Fetcher<List<BuildEvent>>() {
 }
 
 fun ApiBuildEvent.toGraphQL() = when (this) {
-    is ApiBuildEvent.Log ->
-        BuildEvent.Log(this.phaseId.toString(), this.stream, this.message, this.time.epochSecond)
+    is ApiBuildEvent.Log -> BuildEvent.Log(
+        this.phaseId.toString(),
+        this.stream,
+        this.message,
+        this.time
+    )
+    is ApiBuildEvent.PhaseStarted -> BuildEvent.PhaseStarted(
+        this.phaseId.toString(),
+        this.description,
+        this.time
+    )
+    is ApiBuildEvent.PhaseCompleted -> BuildEvent.PhaseCompleted(
+        this.phaseId.toString(),
+        this.time
+    )
     else ->
         BuildEvent.Other(this.time.epochSecond)
 }

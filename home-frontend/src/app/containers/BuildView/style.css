@@ -7,3 +7,31 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+.phaseTitle {
+  line-height: 30px;
+}
+
+.phaseItem {
+  padding-bottom: 5px;
+  width: 100%;
+  position: relative;
+  padding-top: 5px;
+  border-bottom:0.1pt solid #CED9E0;
+  display: flex;
+  flex-direction: column;
+}
+
+.phaseHeader {
+  vertical-align: middle;
+  display: inline-block;
+}
+
+pre.bash {
+  margin-top: 10px;
+  background-color: #202B33;
+  color: white;
+  font-size: medium ;
+  font-family: Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+}
+
