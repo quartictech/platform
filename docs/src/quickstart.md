@@ -20,12 +20,11 @@ If you'd like to run this code, or use it as a starting point for your own pipel
 
 You can connect data sources from a number of providers, as well as upload raw data that you may have locally.
 
-The [Data Connectors](data_connectors) section to understand some important concepts about raw datasets and data versioning.
 To simply get started, we recommend doing one of the following:
 
-1) upload some data from the frontend. This data will then be available via the data URL displayed on the dataset for use in your pipeline.
+- upload some data from the frontend. This data will then be available via the data URL displayed on the dataset for use in your pipeline.
 
-2) (more advanced) define a raw dataset.
+- (more advanced) define a raw dataset.
 
 If you'd rather leave using your own data to a later stage, an example data source is provided when you first start the instance.
 
