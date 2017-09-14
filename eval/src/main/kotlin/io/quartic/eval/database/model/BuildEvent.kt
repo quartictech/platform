@@ -1,4 +1,4 @@
-package io.quartic.eval.model
+package io.quartic.eval.database.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.model.CurrentPhaseCompleted.Result.InternalError
-import io.quartic.eval.model.CurrentPhaseCompleted.Result.UserError
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.UserError
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.Success
 import io.quartic.quarty.api.model.Step
 import java.util.*
@@ -26,6 +26,9 @@ import java.util.*
 )
 sealed class BuildEvent
 
+/**
+ * Current event definitions
+ */
 data class CurrentTriggerReceived(val trigger: BuildTrigger) : BuildEvent()
 sealed class BuildCompleted : BuildEvent()
 class CurrentBuildCancelled : BuildCompleted()
@@ -57,6 +60,9 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
 }
 data class CurrentLogMessageReceived(val phaseId: UUID, val stream: String, val message: String) : BuildEvent()
 
+/**
+ * Typealiases to decouple codebase from version refactorings
+ */
 typealias TriggerReceived = CurrentTriggerReceived
 typealias BuildCancelled = CurrentBuildCancelled
 typealias BuildSucceeded = CurrentBuildSucceeded

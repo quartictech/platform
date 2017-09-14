@@ -1,9 +1,9 @@
-package io.quartic.eval.model
+package io.quartic.eval
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.model.Dag.Node
+import io.quartic.eval.Dag.Node
 import io.quartic.quarty.api.model.Dataset
 import io.quartic.quarty.api.model.Step
 import org.hamcrest.Matchers.containsInAnyOrder

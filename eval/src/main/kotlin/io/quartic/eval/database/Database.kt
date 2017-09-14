@@ -1,16 +1,16 @@
-package io.quartic.eval
+package io.quartic.eval.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.Database.*
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.model.CurrentPhaseCompleted.Result.Success
-import io.quartic.eval.model.PhaseCompleted
-import io.quartic.eval.model.TriggerReceived
+import io.quartic.eval.database.Database.*
+import io.quartic.eval.database.model.BuildEvent
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.TriggerReceived
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext

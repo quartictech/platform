@@ -1,4 +1,4 @@
-package io.quartic.eval
+package io.quartic.eval.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
@@ -8,8 +8,8 @@ import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.ContainerAcquired
-import io.quartic.eval.model.TriggerReceived
+import io.quartic.eval.database.model.ContainerAcquired
+import io.quartic.eval.database.model.TriggerReceived
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue

@@ -2,15 +2,15 @@ package io.quartic.eval.sequencer
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.Database
-import io.quartic.eval.Database.BuildRow
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.*
-import io.quartic.eval.model.CurrentPhaseCompleted.Artifact
-import io.quartic.eval.model.CurrentPhaseCompleted.Result.InternalError
-import io.quartic.eval.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
