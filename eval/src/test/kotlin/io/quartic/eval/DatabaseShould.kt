@@ -7,10 +7,9 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.*
+import io.quartic.eval.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.quarty.api.model.Dataset
 import io.quartic.quarty.api.model.Step
 import org.hamcrest.CoreMatchers.equalTo
@@ -104,13 +103,13 @@ class DatabaseShould {
     fun get_latest_successful_build_number() {
         // Build #1
         insertBuild(buildId)
-        insertEvent(buildId, phaseId, BuildEvent.BUILD_SUCCEEDED)
+        insertEvent(buildId, phaseId, BUILD_SUCCEEDED)
         // Build #2
         insertBuild(uuid(1000))
-        insertEvent(uuid(1000), phaseId, BuildEvent.BUILD_SUCCEEDED)
+        insertEvent(uuid(1000), phaseId, BUILD_SUCCEEDED)
         // Build #3
         insertBuild(uuid(2000))
-        insertEvent(uuid(2000), phaseId, BuildEvent.BUILD_CANCELLED)
+        insertEvent(uuid(2000), phaseId, BUILD_CANCELLED)
 
         assertThat(DATABASE.getLatestSuccessfulBuildNumber(customerId), equalTo(2L))
     }
@@ -155,8 +154,8 @@ class DatabaseShould {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BUILD_SUCCEEDED, time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), BUILD_SUCCEEDED, time, buildId, phaseId)
 
         val builds = DATABASE.getBuilds(customerId)
         assertThat(builds.size, equalTo(1))
@@ -170,8 +169,8 @@ class DatabaseShould {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.BuildCompleted.BuildFailed("noob"), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), BuildFailed("noob"), time, buildId, phaseId)
 
         val builds = DATABASE.getBuilds(customerId)
         assertThat(builds.size, equalTo(1))
@@ -185,7 +184,7 @@ class DatabaseShould {
         val phaseId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildId, customerId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildId, phaseId)
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildId, phaseId)
         val builds = DATABASE.getBuilds(customerId)
 
         assertThat(builds.size, equalTo(1))
@@ -199,10 +198,10 @@ class DatabaseShould {
         val buildBId = UUID.randomUUID()
         val time = Instant.now()
         DATABASE.insertBuild(buildAId, customerAId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildAId, UUID.randomUUID())
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildAId, UUID.randomUUID())
 
         DATABASE.insertBuild(buildBId, customerBId, branch)
-        DATABASE.insertEvent(UUID.randomUUID(), BuildEvent.TriggerReceived(trigger), time, buildBId, UUID.randomUUID())
+        DATABASE.insertEvent(UUID.randomUUID(), TriggerReceived(trigger), time, buildBId, UUID.randomUUID())
 
         val builds = DATABASE.getBuilds(customerAId)
         assertThat(builds.size, equalTo(1))

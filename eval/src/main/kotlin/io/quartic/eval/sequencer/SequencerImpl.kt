@@ -9,10 +9,8 @@ import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.*
-import io.quartic.eval.model.BuildEvent.BuildCompleted.*
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
+import io.quartic.eval.model.*
+import io.quartic.eval.model.CurrentPhaseCompleted.Result
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
@@ -57,7 +55,7 @@ class SequencerImpl(
                 insert(ContainerAcquired(container.id, container.hostname))
                 block(SequenceBuilderImpl(container))
             }
-            BuildEvent.BUILD_SUCCEEDED
+            BUILD_SUCCEEDED
         } catch (pe: PhaseException) {
             BuildFailed(pe.message!!)
         } catch (e: Exception) {

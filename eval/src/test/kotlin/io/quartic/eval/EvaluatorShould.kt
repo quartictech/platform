@@ -4,7 +4,8 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.CurrentPhaseCompleted
+import io.quartic.eval.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.model.Dag
 import io.quartic.eval.model.Dag.Node
 import io.quartic.eval.quarty.QuartyProxy

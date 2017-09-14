@@ -6,12 +6,13 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.ContainerAcquired
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.model.ContainerAcquired
+import io.quartic.eval.model.TriggerReceived
 import org.flywaydb.core.api.MigrationVersion
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
@@ -105,7 +106,7 @@ class DatabaseMigrationsShould {
 
         databaseVersion("7")
 
-        val trigger = OBJECT_MAPPER.readValue<BuildEvent.TriggerReceived>(DBI.open()
+        val trigger = OBJECT_MAPPER.readValue<TriggerReceived>(DBI.open()
             .createQuery("select payload from event where id = :id")
             .bind("id", id)
             .mapTo(String::class.java)

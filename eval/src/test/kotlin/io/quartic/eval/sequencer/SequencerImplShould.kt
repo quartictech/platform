@@ -7,12 +7,10 @@ import io.quartic.eval.Database.BuildRow
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.*
-import io.quartic.eval.model.BuildEvent.BuildCompleted.BuildFailed
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.InternalError
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact
+import io.quartic.eval.model.*
+import io.quartic.eval.model.CurrentPhaseCompleted.Artifact
+import io.quartic.eval.model.CurrentPhaseCompleted.Result.InternalError
+import io.quartic.eval.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.qube.QubeProxy.QubeException
@@ -41,7 +39,7 @@ class SequencerImplShould {
         verify(database).insertBuild(buildId, CustomerId(999), "lovely")
         verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details)), any(), eq(buildId), eq(null))
         verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId), eq(null))
-        verify(database).insertEvent(eq(uuid(103)), eq(BuildEvent.BUILD_SUCCEEDED), any(), eq(buildId), eq(null))
+        verify(database).insertEvent(eq(uuid(103)), eq(BUILD_SUCCEEDED), any(), eq(buildId), eq(null))
     }
 
     @Test
@@ -108,7 +106,7 @@ class SequencerImplShould {
             }
         }
 
-        verify(database, never()).insertEvent(any(), eq(BuildEvent.BUILD_SUCCEEDED), any(), any(), eq(null))
+        verify(database, never()).insertEvent(any(), eq(BUILD_SUCCEEDED), any(), any(), eq(null))
         verify(database).insertEvent(any(), eq(BuildFailed("Internal error")), any(), any(), eq(null))
     }
 

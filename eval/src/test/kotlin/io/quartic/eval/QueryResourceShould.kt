@@ -8,9 +8,9 @@ import io.quartic.common.test.assertThrows
 import io.quartic.eval.Database.EventRow
 import io.quartic.eval.api.model.*
 import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.model.PhaseCompleted
 import io.quartic.quarty.api.model.Dataset
 import io.quartic.quarty.api.model.Step
 import org.hamcrest.Matchers.equalTo

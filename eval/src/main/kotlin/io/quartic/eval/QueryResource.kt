@@ -3,10 +3,10 @@ package io.quartic.eval
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.model.Dag
+import io.quartic.eval.model.PhaseCompleted
 import io.quartic.quarty.api.model.Step
 import javax.ws.rs.NotFoundException
 
