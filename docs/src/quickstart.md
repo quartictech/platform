@@ -6,7 +6,7 @@ subtitle: Building your first pipeline
 The following is a shortcut guide to start building data pipelines within Quartic.
 This is intended to skim over features and functionality of the platform and focus only on getting you up and running with an example.
 
-The following assume you have already created an account. If not, [email us](contact@quartic.io).
+The following assumes you have already created an account. If not, [email us](mailto:contact@quartic.io).
 
 ### Creating a data pipeline repository
 

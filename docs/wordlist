@@ -25,7 +25,6 @@ datetime
 frontend
 config
 VCS
-Github
 metadata
 Metadata
 versioned
@@ -36,8 +35,4 @@ repo
 virtualenv
 UI
 GitHub
-github
 IDE
-ide
-Ide
-IdE
