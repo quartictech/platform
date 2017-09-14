@@ -22,7 +22,7 @@ interface IProps {
 
 interface IState {
   openPhases: {
-    [key: string]: boolean
+    [key: string]: boolean,
   };
 }
 
@@ -33,34 +33,33 @@ class BuildView extends React.Component<IProps, IState> {
   }
 
   renderLogs(events) {
-    return events.map(event => `[${moment.unix(event.time).format()}] ${event.message}`)
+    return events.map(event => `[${this.formatTime(event.time)}] ${event.message}`)
       .join("\n");
   }
 
   orderPhases(events: BuildEvent[]) {
-    return events.filter(event => event.type == "phase_started")
+    return events.filter(event => event.type === "phase_started")
       .sort((a, b) => a.time - b.time);
   }
 
   groupByPhase(events: BuildEvent[]) {
-    const groupedEvents = _.groupBy(events, event => event.phase_id)
-    return _.mapObject(groupedEvents,
-      (val, _) => val.filter(event => event.type == "log").sort((a, b) => a.time - b.time)
-    );
+    const groupedEvents = _.groupBy(events, event => event.phase_id);
+    return _.mapObject(groupedEvents, (val, _) =>
+      val.filter(event => event.type === "log").sort((a, b) => a.time - b.time));
   }
 
-  formatTime = (time) => moment(time).format("YYYY-MM-DD HH:mm:ss")
+  formatTime = time => moment.unix(time).format("YYYY-MM-DD HH:mm:ss");
 
   onPhaseClick(phaseId: string) {
     this.setState({ openPhases:
       Object.assign(this.state.openPhases, {
-        [phaseId]: this.state.openPhases[phaseId] ? !this.state.openPhases[phaseId] : true
-      })
+        [phaseId]: this.state.openPhases[phaseId] ? !this.state.openPhases[phaseId] : true,
+      }),
     });
   }
 
   renderPhase(phase, events) {
-    if (events.length == 0) {
+    if (events.length === 0) {
       return (
         <div key={phase.id} className={s.phaseItem}>
           <span className={s.phaseTitle}>
@@ -75,7 +74,7 @@ class BuildView extends React.Component<IProps, IState> {
           <div className={s.phaseHeader}>
             <Button
               className="pt-minimal pt-intent-primary"
-              style={{float: "right"}}
+              style={{ float: "right" }}
               onClick={() => this.onPhaseClick(phase.phase_id)}
             >
               Expand
@@ -137,7 +136,9 @@ const query = gql`
 `;
 
 export default graphql(query, {
-    options: (props: IProps) => ({variables: {
-      buildNumber: props.params.build
-    }})
-  })(BuildView as any);
+  options: (props: IProps) => ({
+    variables: {
+      buildNumber: props.params.build,
+    },
+  }),
+})(BuildView as any);
