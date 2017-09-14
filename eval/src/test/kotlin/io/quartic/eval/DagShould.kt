@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.Dag.Node
-import io.quartic.quarty.api.model.Dataset
-import io.quartic.quarty.api.model.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.Assert.assertThat
 import org.junit.Test

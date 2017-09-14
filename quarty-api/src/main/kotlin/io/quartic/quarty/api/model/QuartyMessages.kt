@@ -1,6 +1,5 @@
 package io.quartic.quarty.api.model
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -20,8 +19,7 @@ import java.net.URI
     Type(Execute::class, name = "execute")
 )
 sealed class QuartyRequest {
-    data class Initialise(@JsonProperty("repo_url") val repoURL: URI,
-                          @JsonProperty("repo_commit") val repoCommit: String) : QuartyRequest()
+    data class Initialise(val repoURL: URI, val repoCommit: String) : QuartyRequest()
     class Evaluate : QuartyRequest()
     data class Execute(val step: String, val namespace: String) : QuartyRequest()
 }

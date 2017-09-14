@@ -5,13 +5,13 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
-import io.quartic.quarty.api.model.Dataset
-import io.quartic.quarty.api.model.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains

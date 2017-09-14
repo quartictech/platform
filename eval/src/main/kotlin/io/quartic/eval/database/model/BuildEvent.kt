@@ -1,5 +1,6 @@
 package io.quartic.eval.database.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -7,10 +8,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.UserError
-import io.quartic.eval.sequencer.Sequencer.PhaseResult.Success
-import io.quartic.quarty.api.model.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
 import java.util.*
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -54,11 +54,30 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
         Type(EvaluationOutput::class, name = "evaluation_output")
     )
     sealed class Artifact {
-        // TODO - have our own Step to decouple DB schema
         data class EvaluationOutput(val steps: List<Step>) : Artifact()
     }
+
+    data class Step(
+        val id: String,
+        val name: String,
+        val description: String?,
+        val file: String,
+        val lineRange: List<Int>,
+        val inputs: List<Dataset>,
+        val outputs: List<Dataset>
+    )
+
+    data class Dataset(
+        val namespace: String?,
+        val datasetId: String
+    ) {
+        @get:JsonIgnore
+        val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
+    }
 }
+
 data class CurrentLogMessageReceived(val phaseId: UUID, val stream: String, val message: String) : BuildEvent()
+
 
 /**
  * Typealiases to decouple codebase from version refactorings
@@ -72,6 +91,27 @@ typealias PhaseStarted = CurrentPhaseStarted
 typealias PhaseCompleted = CurrentPhaseCompleted
 typealias LogMessageReceived = CurrentLogMessageReceived
 
+
+/**
+ * Helper stuff
+ */
+
 // To make testing easier given one can't have zero-arg data classes
 val BUILD_CANCELLED = BuildCancelled()
 val BUILD_SUCCEEDED = BuildSucceeded()
+
+fun io.quartic.quarty.api.model.Step.toDatabaseModel() = Step(
+    id = this.id,
+    name = this.name,
+    description = this.description,
+    file = this.file,
+    lineRange = this.lineRange,
+    inputs = this.inputs.map { it.toDatabaseModel() },
+    outputs = this.outputs.map { it.toDatabaseModel() }
+)
+
+fun io.quartic.quarty.api.model.Dataset.toDatabaseModel() = Dataset(
+    namespace = this.namespace,
+    datasetId = this.datasetId
+)
+

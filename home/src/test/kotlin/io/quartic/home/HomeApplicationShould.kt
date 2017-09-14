@@ -205,14 +205,14 @@ class HomeApplicationShould {
             HomeApplication::class.java,
             resourceFilePath("test.yml"),
             config("auth.type", "token"),
-            config("auth.keyEncryptedBase64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe),
-            config("github.trampolineUrl", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
-            config("github.oauthApiRoot", { "http://localhost:${github.port()}" }),
-            config("github.apiRoot", { "http://localhost:${github.port()}" }),
-            config("github.clientId", CLIENT_ID),
-            config("github.clientSecretEncrypted", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
-            config("github.redirectHost", { "http://localhost:${github.port()}" }),
-            config("registryUrl", { "http://localhost:${registry.port()}/api" })
+            config("auth.key_encrypted_base64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe),
+            config("github.trampoline_url", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
+            config("github.oauth_api_root", { "http://localhost:${github.port()}" }),
+            config("github.api_root", { "http://localhost:${github.port()}" }),
+            config("github.client_id", CLIENT_ID),
+            config("github.client_secret_encrypted", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
+            config("github.redirect_host", { "http://localhost:${github.port()}" }),
+            config("registry_url", { "http://localhost:${registry.port()}/api" })
         )
     }
 }
