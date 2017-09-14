@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -20,6 +21,7 @@ fun configureObjectMapper(mapper: ObjectMapper): ObjectMapper = mapper
     .registerModule(Jdk8Module())
     .registerModule(JavaTimeModule())
     .registerModule(KotlinModule())
+    .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
     .setSerializationInclusion(Include.NON_NULL)
     .disable(SerializationFeature.INDENT_OUTPUT)
     .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)

@@ -2,7 +2,6 @@ package io.quartic.hey.model
 
 import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
 import java.net.URI
 import java.time.OffsetDateTime
@@ -16,13 +15,11 @@ data class SlackMessage(
 
 data class SlackAttachment(
     val title: String,
-    @get:JsonProperty("title_link")
     val titleLink: URI? = null,
     val pretext: String? = null,
     val text: String,
     val fields: List<SlackField> = emptyList(),
     val footer: String? = null,
-    @get:JsonProperty("footer_icon")
     val footerIcon: URI? = null,
     @get:JsonIgnore
     val timestamp: OffsetDateTime? = null,

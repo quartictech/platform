@@ -3,12 +3,11 @@ package io.quartic.eval
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.eval.model.Dag
-import io.quartic.quarty.api.model.Step
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -27,21 +26,21 @@ class QueryResource(private val database: Database) : EvalQueryService {
             .map { println(it); it.toApi() }
 
     private fun Database.EventRow.toApi() = when (this.payload) {
-        is BuildEvent.LogMessageReceived -> ApiBuildEvent.Log(
+        is LogMessageReceived -> ApiBuildEvent.Log(
             message = this.payload.message,
             phaseId = this.payload.phaseId,
             time = this.time,
             stream = this.payload.stream,
             id = this.id
         )
-        is BuildEvent.PhaseStarted -> ApiBuildEvent.PhaseStarted(
-            phaseId = this.phaseId!!,
+        is PhaseStarted -> ApiBuildEvent.PhaseStarted(
+            phaseId = this.payload.phaseId,
             description = this.payload.description,
             time = this.time,
             id = this.id
         )
-        is BuildEvent.PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
-            this.phaseId!!,
+        is PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
+            this.payload.phaseId,
             this.time,
             this.id
         )
@@ -56,7 +55,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
         buildNumber = this.buildNumber,
         branch = this.branch,
         customerId = this.customerId,
-        trigger = this.trigger.trigger,
+        trigger = this.trigger.trigger.toApiModel(),
         status = this.status,
         time = this.time
     )
