@@ -139,5 +139,5 @@ class QueryResourceShould {
     private fun dataset(id: String, namespace: String? = "test") = Dataset(namespace, id)
 
     private fun eventRow(event: BuildEvent) =
-        EventRow(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Instant.now(), event)
+        EventRow(UUID.randomUUID(), UUID.randomUUID(), Instant.now(), event)
 }

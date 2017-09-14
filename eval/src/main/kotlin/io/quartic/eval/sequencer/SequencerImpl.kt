@@ -3,12 +3,12 @@ package io.quartic.eval.sequencer
 import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.database.Database
-import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result
 import io.quartic.eval.qube.QubeProxy
@@ -65,7 +65,7 @@ class SequencerImpl(
         private inner class SequenceBuilderImpl(override val container: QubeContainerProxy) : SequenceBuilder {
             suspend override fun <R> phase(description: String, block: suspend PhaseBuilder<R>.() -> PhaseResult<R>): R {
                 val phaseId = uuidGen()
-                insert(PhaseStarted(phaseId, description), phaseId)
+                insert(PhaseStarted(phaseId, description))
 
                 val result = try {
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId)) }.use { blockAsync ->
@@ -79,7 +79,7 @@ class SequencerImpl(
                     PhaseResult.InternalError<R>(e)
                 }
 
-                insert(PhaseCompleted(phaseId, transformResult(result)), phaseId)
+                insert(PhaseCompleted(phaseId, transformResult(result)))
                 return extractOutput(result)
             }
         }
@@ -100,13 +100,12 @@ class SequencerImpl(
 
         private inner class PhaseBuilderImpl<R>(private val phaseId: UUID) : PhaseBuilder<R> {
             suspend override fun log(stream: String, message: String) {
-                insert(LogMessageReceived(phaseId, stream, message), phaseId, clock.instant())
+                insert(LogMessageReceived(phaseId, stream, message), clock.instant())
             }
         }
 
         private suspend fun insert(
             event: BuildEvent,
-            phaseId: UUID? = null,
             time: Instant = Instant.now()
         ) = run(threadPool) {
             LOG.info("Event: ${event}")
@@ -114,8 +113,7 @@ class SequencerImpl(
                 id = uuidGen(),
                 payload = event,
                 time = time,
-                buildId = buildId,
-                phaseId = phaseId
+                buildId = buildId
             )
         }
 

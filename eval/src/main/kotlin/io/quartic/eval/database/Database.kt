@@ -44,8 +44,6 @@ interface Database {
         val id: UUID,
         @ColumnName("build_id")
         val buildId: UUID,
-        @ColumnName("phase_id")
-        val phaseId: UUID?,
         val time: Instant,
         val payload: BuildEvent
     )
@@ -121,13 +119,12 @@ interface Database {
         @Bind("branch") branch: String
     )
 
-    @SqlUpdate("insert into event(id, build_id, phase_id, time, payload) values(:id, :build_id, :phase_id, :time, :payload)")
+    @SqlUpdate("insert into event(id, build_id, time, payload) values(:id, :build_id, :time, :payload)")
     fun insertEvent(
         @Bind("id") id: UUID,
         @BindJson("payload") payload: BuildEvent,
         @Bind("time") time: Instant,
-        @Bind("build_id") buildId: UUID,
-        @Bind("phase_id") phaseId: UUID? = null
+        @Bind("build_id") buildId: UUID
     )
 
     @SqlQuery("""
