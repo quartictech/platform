@@ -4,11 +4,10 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
 import io.quartic.eval.database.Database
+import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
-import io.quartic.eval.database.model.PhaseCompleted
-import io.quartic.eval.database.model.toApiModel
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -22,9 +21,31 @@ class QueryResource(private val database: Database) : EvalQueryService {
         } else return builds.first().toBuild()
     }
 
-    override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<BuildEvent> =
+    override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<ApiBuildEvent> =
         database.getEventsForBuild(customerId, buildNumber)
-            .map { BuildEvent(it.time) }
+            .map { println(it); it.toApi() }
+
+    private fun Database.EventRow.toApi() = when (this.payload) {
+        is LogMessageReceived -> ApiBuildEvent.Log(
+            message = this.payload.message,
+            phaseId = this.payload.phaseId,
+            time = this.time,
+            stream = this.payload.stream,
+            id = this.id
+        )
+        is PhaseStarted -> ApiBuildEvent.PhaseStarted(
+            phaseId = this.payload.phaseId,
+            description = this.payload.description,
+            time = this.time,
+            id = this.id
+        )
+        is PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
+            this.payload.phaseId,
+            this.time,
+            this.id
+        )
+        else -> ApiBuildEvent.Other(this.time, this.id)
+    }
 
     override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
         .map { it.toBuild() }

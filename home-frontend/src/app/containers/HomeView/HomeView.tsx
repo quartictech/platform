@@ -90,10 +90,11 @@ class HomeView extends React.Component<IProps, {}> {
 
   renderItem = (item: FeedItem) => {
     if (isValidate(item)) {
-      this.renderValidate(item);
-    }
-    if (isExecute(item)) {
-      this.renderExecute(item);
+      return this.renderValidate(item);
+    } else if (isExecute(item)) {
+      return this.renderExecute(item);
+    } else {
+      return null;
     }
   }
 

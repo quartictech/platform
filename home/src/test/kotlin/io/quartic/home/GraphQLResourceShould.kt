@@ -8,7 +8,7 @@ import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.model.Build
-import io.quartic.eval.api.model.BuildEvent
+import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.GitHub
 import io.quartic.github.GitHubUser
@@ -53,8 +53,8 @@ class GraphQLResourceShould {
             time = Instant.now()
         )
         )
-    private val events = listOf(
-        BuildEvent(Instant.now())
+    private val events = listOf<ApiBuildEvent>(
+        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(), Instant.now(), UUID.randomUUID())
     )
 
     private val eval = mock<EvalQueryServiceClient> {
@@ -97,8 +97,8 @@ class GraphQLResourceShould {
                     id,
                     number,
                     events {
-                        ... on Default {
-                            time
+                        ... on PhaseCompleted {
+                            phase_id
                         }
                     }
                 }
